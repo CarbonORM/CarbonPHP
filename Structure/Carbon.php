@@ -8,17 +8,20 @@ class CarbonPHP
 {
     static function Application(array $PHP): callable
     {
-        ################   Correct arguments given?  #################
-        if (!defined('SERVER_ROOT')) print 'To use carbon php your SERVER_ROOT must be constantly defined' and die(1);
-
         if (!defined('DS')) define('DS', DIRECTORY_SEPARATOR);
 
-        define('CARBON_ROOT', dirname(__FILE__) . DS);
+        if (!defined('SERVER_ROOT')){
+            if ($PHP['GENERAL']['ROOT'] ?? false)
+                throw new \InvalidArgumentException('A server root must be give. Visit CarbonPHP.com for documentation.');
+            define('SERVER_ROOT', $PHP['GENERAL']['ROOT']);
+        }
+
+        define('CARBON_ROOT', dirname(dirname(__FILE__)) . DS);
 
         ################  Filter Malicious Requests  #################
-        if (pathinfo($_SERVER['REQUEST_URI'] ?? '/', PATHINFO_EXTENSION) != null) {
+        if (!$PHP['GENERAL']['ALLOW_EXTENSION'] && pathinfo($_SERVER['REQUEST_URI'] ?? '/', PATHINFO_EXTENSION) != null) {
             if ($_SERVER['REQUEST_URI'] == '/robots.txt') {
-                echo include SERVER_ROOT . 'robots.txt';
+                echo include CARBON_ROOT . 'Extras/robots.txt';
                 exit(1);
             }
             ob_start();
@@ -35,19 +38,13 @@ class CarbonPHP
         # PSR4 Autoloader, with common case first added for namespace = currentDir #
         # Composer Autoloader                                                      #
         ############################################################################
-        if (false == (include SERVER_ROOT . 'Application/Carbon/AutoLoad.php') ||
-            false == (include SERVER_ROOT . 'Data/vendor/autoload.php')) {
-            print 'App Map Error \n';
-            die(1);
-        }
-
         $thankGod = new Autoload;   // dynamically include classes via directory based namespace naming conventions (& const)
 
         foreach ($PHP['AUTOLOAD'] as $name => $path)
             $thankGod->addNamespace($name, $path);
 
         ##################    Reporting   #####################
-        date_default_timezone_set('America/Phoenix');
+        date_default_timezone_set($PHP['GENERAL']['TIMEZONE']);
 
         error_reporting($PHP['REPORTING']['LEVEL']);
 
@@ -55,7 +52,7 @@ class CarbonPHP
 
         define('FULL_REPORTS', $PHP['REPORTING']['FULL'] ?? true);
 
-        Error\ErrorCatcher::start($PHP['REPORTING']['LOCATION'] ?? SERVER_ROOT, $PHP['REPORTING']['PRINT']);    // Catch application errors and lo
+        Error\ErrorCatcher::start($PHP['REPORTING']['LOCATION'] ?? CARBON_ROOT, $PHP['REPORTING']['PRINT']);    // Catch application errors and lo
 
 
         ################    Database    ####################
@@ -69,25 +66,25 @@ class CarbonPHP
          * @constant DB_PASS The users password if applicable
          *
          */
-        define('DB_HOST', $PHP['DB_HOST'] ?? false);
 
-        define('DB_NAME', $PHP['DB_NAME'] ?? false);
+        define('DB_HOST', $PHP['DATABASE']['DB_HOST'] ?? '');
 
-        define('DB_USER', $PHP['DB_USER'] ?? false);
+        define('DB_NAME', $PHP['DATABASE']['DB_NAME'] ?? '');
 
-        define('DB_PASS', $PHP['DB_PASS'] ?? false);
+        define('DB_USER', $PHP['DATABASE']['DB_USER'] ?? '');
 
-        if ($PHP['INITIAL_SETUP'])  // can comment out after first run
-            Database::setUp();
+        define('DB_PASS', $PHP['DATABASE']['DB_PASS'] ?? '');
+
+        if ($PHP['DATABASE']['INITIAL_SETUP']) Database::setUp(); // can comment out after first run
 
         ################## Basic Information  ##################
-        define('SITE_TITLE', $PHP['SITE_TITLE'] ?? 'Define a site title in carbon_config');
+        define('SITE_TITLE', $PHP['SITE_TITLE'] ?? 'Carbon');
 
-        define('SITE_VERSION', $PHP['SITE_VERSION'] ?? phpversion());                               // printed in the footer
+        define('SITE_VERSION', $PHP['SITE_VERSION'] ?? phpversion());                            // printed in the footer
 
-        define('SYSTEM_EMAIL', $PHP['SYSTEM_EMAIL'] ?? false);                                      // server email system
+        define('SYSTEM_EMAIL', $PHP['SYSTEM_EMAIL'] ?? '');                                      // server email system
 
-        define('REPLY_EMAIL', $PHP['REPLY_EMAIL'] ?? false);                                        // I give you options :P
+        define('REPLY_EMAIL', $PHP['REPLY_EMAIL'] ?? '');                                        // I give you options :P
 
         ################# Application.php Paths ########################
         # Dynamically Find the current url on the server
@@ -106,24 +103,25 @@ class CarbonPHP
 
         define('SITE', url . DS, true);                                    // http(s)://example.com/  - do not change
 
-        define('BOOTSTRAP', $PHP['ROUTES'] ?? false);
+        define ('MUSTACHE', $PHP['DIRECTORY']['MUSTACHE']);
 
-        define('CONTENT', DS . $PHP['CONTENT'] ?? false);                  // TODO - I changed this from /public/statscoach
+        define('BOOTSTRAP', $PHP['DIRECTORY']['ROUTES'] ?? false);
 
-        define('VENDOR', DS . $PHP['VENDOR'] ?? false);
+        define('CONTENT',   DS . $PHP['DIRECTORY']['CONTENT'] ?? false);
 
-        define('TEMPLATE', DS . $PHP['TEMPLATE'] ?? false);                     // Path to the template for public use i.e. relative path for .css includes
+        define('VENDOR',    DS . $PHP['DIRECTORY']['VENDOR'] ?? false);
 
-        define('VENDOR_ROOT', SERVER_ROOT . $PHP['VENDOR'] ?? false);
+        define('TEMPLATE',  DS . $PHP['DIRECTORY']['TEMPLATE'] ?? false);                     // Path to the template for public use i.e. relative path for .css includes
 
-        define('TEMPLATE_ROOT', SERVER_ROOT . $PHP['TEMPLATE'] ?? false);
+        define('VENDOR_ROOT',   SERVER_ROOT . $PHP['DIRECTORY']['VENDOR'] ?? false);
 
-        define('CONTENT_ROOT', SERVER_ROOT . $PHP['CONTENT'] ?? false);
+        define('TEMPLATE_ROOT', SERVER_ROOT . $PHP['DIRECTORY']['TEMPLATE'] ?? false);
 
-        define('CONTENT_WRAPPER', SERVER_ROOT . $PHP['CONTENT_WRAPPER'] ?? false);
+        define('CONTENT_ROOT',  SERVER_ROOT . $PHP['DIRECTORY']['CONTENT'] ?? false);
 
-        define('WRAPPING_REQUIRES_LOGIN', $PHP['WRAPPING_REQUIRES_LOGIN'] ?? false);                                     // I use the same headers every where
+        define('CONTENT_WRAPPER', SERVER_ROOT . $PHP['DIRECTORY']['CONTENT_WRAPPER'] ?? false);
 
+        define('WRAPPING_REQUIRES_LOGIN', $PHP['WRAPPING_REQUIRES_LOGIN'] ?? false);    // I use the same headers every where
 
         ######################  Up the render speed ? ####################
         define('MINIFY_CONTENTS', $PHP['MINIFY_CONTENTS']);
@@ -162,7 +160,11 @@ class CarbonPHP
 
         ################    Session     ####################
 
-        new Session();
+        if ($PHP['SESSION']['SAVE_PATH'] ?? false)
+        session_save_path(        $PHP['SESSION']['SAVE_PATH'] ?? '' );   // Manually Set where the Users Session Data is stored
+
+        if ($PHP['SESSION']['STORE_REMOTE'] ?? false)
+            new Session();
 
         $_SESSION['id'] = array_key_exists('id', $_SESSION ?? []) ? $_SESSION['id'] : false;
 
@@ -236,7 +238,6 @@ class CarbonPHP
  *
  * @param mixed $mixed Will be run throught the var_dump function.
  *
- * @return die(1);
  */
 
 

@@ -1,0 +1,42 @@
+{
+  "name": "RichardTMiles/CarbonPHP",
+  "license": "MIT",
+  "type": "library",
+  "keywords": ["Sockets","Carbon"],
+  "homepage": "https://github.com/RichardTMiles/CarbonPHP",
+  "description": "Edit the DOM in PHP. A PHP >= 7 tool kit designed for SEO optimization.",
+  "minimum-stability": "dev",
+  "require": {
+    "php": "^7.0",
+    "almasaeed2010/adminlte": ">=2.4",
+    "bower-asset/jquery-backstretch": "^2.1.16",
+    "bower-asset/jquery-form": "^4.2.2",
+    "bower-asset/jquery-pjax": "^2.0.1",
+    "bower-asset/mustache.js": "^2.3.0"
+  },
+  "authors": [
+    {
+      "name": "Richard Miles",
+      "email": "Richard@Miles.systems",
+      "homepage": "http://www.CarbonPHP.com",
+      "role": "Developer"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Carbon\\": "Structure/",
+      "Carbon\\Error\\": "Error/",
+      "Carbon\\Helpers\\": "Helpers/",
+      "Carbon\\Interfaces\\": "Interfaces/"
+    }
+  },
+
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es5",
+    "sourceMap": true
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}

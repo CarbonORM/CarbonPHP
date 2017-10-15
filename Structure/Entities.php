@@ -10,6 +10,8 @@ namespace Carbon;
 
 use PDO;
 use stdClass;
+use Carbon\Helpers\Globals;
+use Carbon\Helpers\Skeleton;
 use Carbon\Interfaces\iEntity;
 use Carbon\Error\PublicAlert;
 
@@ -24,6 +26,7 @@ abstract class Entities
         $this->db = Database::getConnection();
         if ($this instanceof iEntity) return $this::get( $object, $id );
         #elseif (is_object($object) && $id) static::getEntities($object, $id);
+        return null;
     }
 
     static protected function database()
@@ -67,20 +70,20 @@ abstract class Entities
         $db = self::database();
         do {
             try {
-                $stmt = $db->prepare( 'INSERT INTO StatsCoach.carbon (entity_pk, entity_fk) VALUE (?,?)' );
+                $stmt = $db->prepare( 'INSERT INTO carbon (entity_pk, entity_fk) VALUE (?,?)' );
                 $stmt->execute( [$stmt = Bcrypt::genRandomHex(), $dependant] );
             } catch (\PDOException $e) {
                 $stmt = false;
             }
         } while (!$stmt);
-        $db->prepare( 'INSERT INTO StatsCoach.entity_tag (entity_id, user_id, tag_id, creation_date) VALUES (?,?,?,?)' )->execute( [$stmt, (!empty($_SESSION['id']) ? $_SESSION['id'] : $stmt), $tag_id, time()] );
+        $db->prepare( 'INSERT INTO entity_tag (entity_id, user_id, tag_id, creation_date) VALUES (?,?,?,?)' )->execute( [$stmt, (!empty($_SESSION['id']) ? $_SESSION['id'] : $stmt), $tag_id, time()] );
         self::$entityTransactionKeys[] = $stmt;
         return $stmt;
     }
 
     static protected function remove_entity($id)
     {
-        if (!self::database()->prepare( 'DELETE FROM StatsCoach.carbon WHERE entity_pk = ?' )->execute( [$id] ))
+        if (!self::database()->prepare( 'DELETE FROM carbon WHERE entity_pk = ?' )->execute( [$id] ))
             throw new \Exception( "Bad Entity Delete $id" );
     }
 

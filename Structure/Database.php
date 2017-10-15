@@ -51,7 +51,7 @@ class Database
     public static function setUp()
     {
         if (file_exists(  CARBON_ROOT . 'Extras/buildDatabase.php' ))
-            require_once  CARBON_ROOT . 'Extras/buildDatabase.php';
+            require_once CARBON_ROOT . 'Extras/buildDatabase.php';
     }
 
 } 

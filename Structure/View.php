@@ -48,7 +48,7 @@ class View
 
             $template = ob_get_clean();
 
-            echo (MINIFY_CONTENTS && (@include_once "Extras/minify.php")) ? minify_html( $template ) : $template;
+            echo (MINIFY_CONTENTS && (@include_once CARBON_ROOT . "Extras/minify.php")) ? minify_html( $template ) : $template;
 
 
             if ($forceWrapper):
@@ -81,7 +81,7 @@ class View
 
         if (file_exists( $file )) {
             if (SOCKET) {
-                // include $file;          // we not need compression / buffering for sockets
+                include $file;          // we not need compression / buffering for sockets
                 return;
             }
 
@@ -90,14 +90,19 @@ class View
             if (empty( $GLOBALS['alert'] ) && !empty( $GLOBALS['alert'] = $this->carryErrors ))
                 $this->carryErrors = null;
 
-            include CONTENT_ROOT . 'alert/alerts.php'; // a little hackish when not using template file
+            if (isset($this->alert)) {
+                if (isset($this->alert['danger'])) $this->bootstrapAlert($this->alert['danger'], 'danger');
+                if (isset($this->alert['info'])) $this->bootstrapAlert($this->alert['info'], 'info');
+                if (isset($this->alert['warning'])) $this->bootstrapAlert($this->alert['warning'], 'warning');
+                if (isset($this->alert['success'])) $this->bootstrapAlert($this->alert['success'], 'success');
+                $this->alert = null;
+            }
 
             include $file;
+
             $file = ob_get_clean();
 
-            // TODO minify_html()
-
-            if (MINIFY_CONTENTS && (@include_once "Extras/minify.php"))
+            if (MINIFY_CONTENTS && (@include_once CARBON_ROOT . "Extras/minify.php"))
                 $file = minify_html( $file );
 
 
@@ -106,7 +111,6 @@ class View
                 $this->currentPage = base64_encode( $file );
                 exit(1);
             } else echo $file;
-
 
         } else throw new \Exception( "$file does not exist" );  // TODO - throw 404 error
 
@@ -121,6 +125,14 @@ class View
      *                starting with slash).
      * @return mixed  file to be loaded.
      */
+
+
+    public function bootstrapAlert($message, $level) : void
+    {
+        $message = htmlentities( $message );
+        echo "<script>bootstrapAlert(\"$message\", '$level')</script>";
+    }
+
 
     public function versionControl($file)
     {

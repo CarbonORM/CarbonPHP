@@ -23,9 +23,7 @@ class Session implements \SessionHandlerInterface
 
     public function __construct($ip = null)
     {
-
-        session_save_path( SERVER_ROOT . 'Data/Sessions' );   // Manually Set where the Users Session Data is stored
-
+        
         ini_set( 'session.gc_probability', 1 );  // Clear any lingering session data in default locations
 
         session_set_save_handler( $this, true );                // Comment this out to stop storing session on the server
@@ -119,7 +117,7 @@ class Session implements \SessionHandlerInterface
         $db = Database::getConnection();
         if (!$db instanceof Database)
             $db = Database::getConnection();
-        $stmt = $db->prepare( 'SELECT session_data FROM StatsCoach.carbon_session WHERE carbon_session.session_id = ?' );
+        $stmt = $db->prepare( 'SELECT session_data FROM carbon_session WHERE carbon_session.session_id = ?' );
         $stmt->execute( [$id] );
         return $stmt->fetchColumn() ?: '';
     }
@@ -133,21 +131,21 @@ class Session implements \SessionHandlerInterface
 
         $NewDateTime = date( 'Y-m-d H:i:s', strtotime( date( 'Y-m-d H:i:s' ) . ' + 1 day' ) );  // so from time of last write and whenever the gc_collector hits
 
-        return ($db->prepare( 'REPLACE INTO StatsCoach.carbon_session SET session_id = ?, user_id = ?, StatsCoach.user_session.user_ip = ?,  Session_Expires = ?, Session_Data = ?' )->execute( [$id, static::$user_id, $_SERVER['REMOTE_ADDR'], $NewDateTime, $data] )) ?
+        return ($db->prepare( 'REPLACE INTO carbon_session SET session_id = ?, user_id = ?, user_session.user_ip = ?,  Session_Expires = ?, Session_Data = ?' )->execute( [$id, static::$user_id, $_SERVER['REMOTE_ADDR'], $NewDateTime, $data] )) ?
             true : false;
     }
 
     public function destroy($id)
     {
         $db = Database::getConnection();
-        return ($db->prepare( 'DELETE FROM StatsCoach.carbon_session WHERE user_id = ?' )->execute( [self::$user_id] )) ?
+        return ($db->prepare( 'DELETE FROM carbon_session WHERE user_id = ?' )->execute( [self::$user_id] )) ?
             true : false;
     }
 
     public function gc($maxLife)
     {
         $db = Database::getConnection();
-        return ($db->prepare( 'DELETE FROM StatsCoach.carbon_session WHERE (UNIX_TIMESTAMP(Session_Expires) + ? ) < ?' )->execute( [$maxLife, $maxLife] )) ?
+        return ($db->prepare( 'DELETE FROM carbon_session WHERE (UNIX_TIMESTAMP(Session_Expires) + ? ) < ?' )->execute( [$maxLife, $maxLife] )) ?
             true : false;
     }
 }
