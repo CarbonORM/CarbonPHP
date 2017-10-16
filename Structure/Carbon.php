@@ -4,7 +4,7 @@ namespace Carbon;
 
 use Carbon\Error\PublicAlert;
 
-class CarbonPHP
+class Carbon
 {
     static function Application(array $PHP): callable
     {
