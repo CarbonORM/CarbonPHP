@@ -25,6 +25,8 @@ abstract class Route
         $this->uri = explode( '/', ltrim( urldecode( parse_url( trim( preg_replace( '/\s+/', ' ', $_SERVER['REQUEST_URI'] ) ), PHP_URL_PATH ) ), ' /' ) );
         $this->uriLength =  $uriLength = sizeof( $this->uri );
         $this->matched = false;
+        if (empty($this->uri[0]))
+            $this->defaultRoute(true);
     }
 
     public function structure(callable $struct): Route
@@ -37,6 +39,7 @@ abstract class Route
     public function __destruct()
     {
         if ($this->matched || SOCKET) return null;
+        $this->matched = true;
         $this->defaultRoute(true);
     }
 
