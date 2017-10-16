@@ -88,7 +88,7 @@ class Carbon
 
         define('FULL_REPORTS', $PHP['REPORTING']['FULL'] ?? true);
 
-        Error\ErrorCatcher::start($PHP['REPORTING']['LOCATION']['ERROR'] ?? CARBON_ROOT, $PHP['REPORTING']['PRINT'] ?? false);    // Catch application errors and lo
+        Error\ErrorCatcher::start(($PHP['REPORTING']['LOCATION']['ERROR'] ?? '/') . 'Log_' . $_SESSION['id']  . '_' . time() . '.log' , $PHP['REPORTING']['PRINT'] ?? false);    // Catch application errors and lo
 
         ################# Application.php Paths ########################
         # Dynamically Find the current url on the server
@@ -105,9 +105,9 @@ class Carbon
 
         define('BOOTSTRAP', $PHP['ROUTES'] ?? false);
 
-        define('ERROR_LOG', $PHP['REPORTING']['LOCATION']['ERROR'] ?? '/' );
+        define('ERROR_LOG', ($PHP['REPORTING']['LOCATION']['ERROR']  ?? '/') . 'Log_' . $_SESSION['id']  . '_' . time() . '.log' );
 
-        define('SORTED_LOG', $PHP['REPORTING']['LOCATION']['SORTED'] ?? '/' );      // we ran the funtion sort or sortdump
+        define('SORTED_LOG',($PHP['REPORTING']['LOCATION']['SORTED'] ?? '/') . 'Sort_' . $_SESSION['id'] . '_' . time() . '.log' );      // we ran the funtion sort or sortdump
 
         define('SITE_TITLE', $PHP['SITE_TITLE'] ?? 'CarbonPHP');
 
@@ -168,7 +168,6 @@ class Carbon
 
         $_SESSION['id'] = array_key_exists('id', $_SESSION ?? []) ? $_SESSION['id'] : false;
 
-        define('ERROR_LOG', SERVER_ROOT . 'Data/Logs/Error/Log_' . $_SESSION['id'] . '_' . time() . '.log');
 
         Session::updateCallback($PHP['RESTART_CALLBACK'] ?? null); // Pull From Database, manage socket ip
 
