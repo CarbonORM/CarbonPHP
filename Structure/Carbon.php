@@ -10,7 +10,6 @@ use Carbon\Error\PublicAlert;
 
 class Carbon
 {
-
     static function URI_FILTER(): void
     {
         if (pathinfo($_SERVER['REQUEST_URI'] ?? '/', PATHINFO_EXTENSION) != null) {
@@ -76,11 +75,11 @@ class Carbon
         if (!$PHP['GENERAL']['ALLOW_EXTENSION'] ?? false)
             self::QUICK_URI_FILTER();
 
-        $thankGod = new Autoload;
+        $PSR4 = new Autoload;
 
         if ($PHP['AUTOLOAD'] ?? false)
             foreach ($PHP['AUTOLOAD'] as $name => $path)
-                $thankGod->addNamespace($name, $path);
+                $PSR4->addNamespace($name, $path);
 
         define('FULL_REPORTS', $PHP['REPORTING']['FULL'] ?? true);
 
@@ -160,16 +159,16 @@ class Carbon
         if ($PHP['SESSION']['SAVE_PATH'] ?? false)
             session_save_path($PHP['SESSION']['SAVE_PATH'] ?? '');   // Manually Set where the Users Session Data is stored
 
-        if ($PHP['SESSION']['STORE_REMOTE'] ?? false)
-            new Session();
+        new Session(self::IP_LOOKUP(), ($PHP['SESSION']['STORE_REMOTE'] ?? false));
 
         $_SESSION['id'] = array_key_exists('id', $_SESSION ?? []) ? $_SESSION['id'] : false;
 
         define('ERROR_LOG', SERVER_ROOT . 'Data/Logs/Error/Log_' . $_SESSION['id'] . '_' . time() . '.log');
 
-        Session::updateCallback($PHP['RESTART_CALLBACK']); // Pull From Database, manage socket ip
+        Session::updateCallback($PHP['RESTART_CALLBACK'] ?? null); // Pull From Database, manage socket ip
 
-        forward_static_call_array(['Carbon\Helpers\Serialized', 'start'], $PHP['SERIALIZE']);    // Pull theses from session, and store on shutdown
+        if (is_array($PHP['SERIALIZE'] ?? false))
+            forward_static_call_array(['Carbon\Helpers\Serialized', 'start'], $PHP['SERIALIZE']);    // Pull theses from session, and store on shutdown
 
         ################  Application Structure ###############
 

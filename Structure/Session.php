@@ -21,15 +21,15 @@ class Session implements \SessionHandlerInterface
 
     private static $callback;
 
-    public function __construct($ip = null)
+    public function __construct($ip = null, $dbStore = false)
     {
         
         ini_set( 'session.gc_probability', 1 );  // Clear any lingering session data in default locations
 
-        session_set_save_handler( $this, true );                // Comment this out to stop storing session on the server
+        if ($dbStore)
+            session_set_save_handler( $this, true );                // Comment this out to stop storing session on the server
 
         if (SOCKET) $this->verifySocket($ip);
-
 
         // More cache control is given in the .htaccess File
         Request::setHeader( 'Cache-Control: must-revalidate' );
@@ -61,7 +61,7 @@ class Session implements \SessionHandlerInterface
         if (!is_array($user))
             $user = array();
 
-        if (SOCKET) Database::resetConnection();
+        if (SOCKET) Database::resetConnection();        // TODO - $dbStore __const
 
         if (static::$user_id = $_SESSION['id'] = ($_SESSION['id'] ?? false)) {
 
