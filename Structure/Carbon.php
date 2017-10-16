@@ -10,7 +10,7 @@ use Carbon\Error\PublicAlert;
 
 class Carbon
 {
-    static function URI_FILTER()
+    static function URI_FILTER($logFolder)
     {
         if (pathinfo($_SERVER['REQUEST_URI'] ?? '/', PATHINFO_EXTENSION) == null) {
             define('URL', (isset($_SERVER['SERVER_NAME']) ?
@@ -30,7 +30,7 @@ class Carbon
         echo inet_pton($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'Go away.' . PHP_EOL;
         echo "\n\n\t\n" . $_SERVER['REQUEST_URI'];
         $report = ob_get_clean();
-        $file = fopen(SERVER_ROOT . 'Data/Logs/Request/url_' . time() . '.log', "a");
+        $file = fopen(SERVER_ROOT . $logFolder . 'url_' . time() . '.log', "a");
         fwrite($file, $report);
         fclose($file);
         exit(0);    // A request has been made to an invalid file
@@ -72,9 +72,8 @@ class Carbon
 
         define('CARBON_ROOT', dirname(dirname(__FILE__)) . DS);
 
-        define('REQUEST_LOG', $PHP['REPORTING']['LOCATION']['REQUEST'] ?? '/' );    // invalid url was sent to server
 
-        if (!$PHP['GENERAL']['ALLOW_EXTENSION'] ?? false) self::URI_FILTER();
+        if (!$PHP['GENERAL']['ALLOW_EXTENSION'] ?? false) self::URI_FILTER($PHP['REPORTING']['LOCATION']['REQUEST']);
 
         //Mark out for app local testing
         if (($PHP['URL'] ?? false) && URL !== true && $_SERVER['SERVER_NAME'] != $PHP['URL'])
@@ -88,7 +87,7 @@ class Carbon
 
         define('FULL_REPORTS', $PHP['REPORTING']['FULL'] ?? true);
 
-        Error\ErrorCatcher::start(($PHP['REPORTING']['LOCATION']['ERROR'] ?? '/') . 'Log_' . $_SESSION['id']  . '_' . time() . '.log' , $PHP['REPORTING']['PRINT'] ?? false);    // Catch application errors and lo
+        Error\ErrorCatcher::start(($PHP['REPORTING']['LOCATION']['ERROR'] ?? '/') , $PHP['REPORTING']['PRINT'] ?? false);    // Catch application errors and lo
 
         ################# Application.php Paths ########################
         # Dynamically Find the current url on the server
@@ -104,10 +103,6 @@ class Carbon
         if ($PHP['DATABASE']['INITIAL_SETUP'] ?? false) Database::setUp(); // can comment out after first run
 
         define('BOOTSTRAP', $PHP['ROUTES'] ?? false);
-
-        define('ERROR_LOG', ($PHP['REPORTING']['LOCATION']['ERROR']  ?? '/') . 'Log_' . $_SESSION['id']  . '_' . time() . '.log' );
-
-        define('SORTED_LOG',($PHP['REPORTING']['LOCATION']['SORTED'] ?? '/') . 'Sort_' . $_SESSION['id'] . '_' . time() . '.log' );      // we ran the funtion sort or sortdump
 
         define('SITE_TITLE', $PHP['SITE_TITLE'] ?? 'CarbonPHP');
 
@@ -164,7 +159,13 @@ class Carbon
         if ($PHP['SESSION']['SAVE_PATH'] ?? false)
             session_save_path($PHP['SESSION']['SAVE_PATH'] ?? '');   // Manually Set where the Users Session Data is stored
 
-        new Session(self::IP_LOOKUP(), ($PHP['SESSION']['STORE_REMOTE'] ?? false));
+        new Session(self::IP_LOOKUP(), ($PHP['SESSION']['STORE_REMOTE'] ?? false)); // session start
+
+
+        define('ERROR_LOG', ($PHP['REPORTING']['LOCATION']['ERROR']  ?? '/') . 'Log_' . $_SESSION['id']  . '_' . time() . '.log' );
+
+        define('SORTED_LOG',($PHP['REPORTING']['LOCATION']['SORTED'] ?? '/') . 'Sort_' . $_SESSION['id'] . '_' . time() . '.log' );      // we ran the funtion sort or sortdump
+
 
         $_SESSION['id'] = array_key_exists('id', $_SESSION ?? []) ? $_SESSION['id'] : false;
 

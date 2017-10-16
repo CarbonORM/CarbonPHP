@@ -20,7 +20,7 @@ class ErrorCatcher
         error_reporting(E_ALL);
         $closure = function (...$argv) use ($logLocation, $printToScreen) {
             $error = new ErrorCatcher();
-            $error->defaultLocation = SERVER_ROOT . $logLocation;
+            $error->defaultLocation = SERVER_ROOT . $logLocation . 'Log_' . ( $_SESSION['id'] ?? '' )  . '_' . time() . '.log';
             $error->printToScreen = $printToScreen;
             $error->generateLog($argv);
             //View::contents('error','500error');
@@ -43,8 +43,8 @@ class ErrorCatcher
         print PHP_EOL. PHP_EOL .'Printout of Function Stack: ' . PHP_EOL;
         print $this->generateCallTrace( ) . PHP_EOL;
         if (count( $argv ) >=4 ){
-        echo 'Message: ' . $argv[1] . PHP_EOL;
-        echo 'line: ' . $argv[2] .'('. $argv[3] .')';
+        print 'Message: ' . $argv[1] . PHP_EOL;
+        print 'line: ' . $argv[2] .'('. $argv[3] .')';
         } else var_dump( $argv );
         $output = ob_get_contents( );
         ob_end_clean( );
