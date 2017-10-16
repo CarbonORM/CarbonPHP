@@ -88,7 +88,7 @@ class Carbon
 
         define('FULL_REPORTS', $PHP['REPORTING']['FULL'] ?? true);
 
-        Error\ErrorCatcher::start($PHP['REPORTING']['LOCATION'] ?? CARBON_ROOT, $PHP['REPORTING']['PRINT'] ?? false);    // Catch application errors and lo
+        Error\ErrorCatcher::start($PHP['REPORTING']['LOCATION']['ERROR'] ?? CARBON_ROOT, $PHP['REPORTING']['PRINT'] ?? false);    // Catch application errors and lo
 
         ################# Application.php Paths ########################
         # Dynamically Find the current url on the server
