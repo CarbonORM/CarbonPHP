@@ -19,7 +19,7 @@ class CarbonPHP
         define('CARBON_ROOT', dirname(dirname(__FILE__)) . DS);
 
         ################  Filter Malicious Requests  #################
-        if (!$PHP['GENERAL']['ALLOW_EXTENSION'] && pathinfo($_SERVER['REQUEST_URI'] ?? '/', PATHINFO_EXTENSION) != null) {
+        if (!$PHP['GENERAL']['ALLOW_EXTENSION'] ?? false && pathinfo($_SERVER['REQUEST_URI'] ?? '/', PATHINFO_EXTENSION) != null) {
             if ($_SERVER['REQUEST_URI'] == '/robots.txt') {
                 echo include CARBON_ROOT . 'Extras/robots.txt';
                 exit(1);
@@ -40,19 +40,20 @@ class CarbonPHP
         ############################################################################
         $thankGod = new Autoload;   // dynamically include classes via directory based namespace naming conventions (& const)
 
-        foreach ($PHP['AUTOLOAD'] as $name => $path)
-            $thankGod->addNamespace($name, $path);
+        if ($PHP['AUTOLOAD'] ?? false)
+            foreach ($PHP['AUTOLOAD'] as $name => $path)
+                $thankGod->addNamespace($name, $path);
 
         ##################    Reporting   #####################
-        date_default_timezone_set($PHP['GENERAL']['TIMEZONE']);
+        date_default_timezone_set($PHP['GENERAL']['TIMEZONE'] ?? 'America/Phoenix');
 
-        error_reporting($PHP['REPORTING']['LEVEL']);
+        error_reporting($PHP['REPORTING']['LEVEL'] ?? E_ALL | E_STRICT);
 
         ini_set('display_errors', 1);
 
         define('FULL_REPORTS', $PHP['REPORTING']['FULL'] ?? true);
 
-        Error\ErrorCatcher::start($PHP['REPORTING']['LOCATION'] ?? CARBON_ROOT, $PHP['REPORTING']['PRINT']);    // Catch application errors and lo
+        Error\ErrorCatcher::start($PHP['REPORTING']['LOCATION'] ?? CARBON_ROOT, $PHP['REPORTING']['PRINT'] ?? false);    // Catch application errors and lo
 
 
         ################    Database    ####################
@@ -75,10 +76,10 @@ class CarbonPHP
 
         define('DB_PASS', $PHP['DATABASE']['DB_PASS'] ?? '');
 
-        if ($PHP['DATABASE']['INITIAL_SETUP']) Database::setUp(); // can comment out after first run
+        if ($PHP['DATABASE']['INITIAL_SETUP'] ?? false) Database::setUp(); // can comment out after first run
 
         ################## Basic Information  ##################
-        define('SITE_TITLE', $PHP['SITE_TITLE'] ?? 'Carbon');
+        define('SITE_TITLE', $PHP['SITE_TITLE'] ?? 'CarbonPHP');
 
         define('SITE_VERSION', $PHP['SITE_VERSION'] ?? phpversion());                            // printed in the footer
 
@@ -101,17 +102,17 @@ class CarbonPHP
          * }
          ***/
 
-        define('SITE', url . DS, true);                                    // http(s)://example.com/  - do not change
+        define('SITE', url . DS, true);                                    // http(s)://example.com/
 
-        define ('MUSTACHE', $PHP['DIRECTORY']['MUSTACHE']);
+        define('MUSTACHE',  $PHP['DIRECTORY']['MUSTACHE'] ?? false);
 
         define('BOOTSTRAP', $PHP['DIRECTORY']['ROUTES'] ?? false);
 
-        define('CONTENT',   DS . $PHP['DIRECTORY']['CONTENT'] ?? false);
+        define('CONTENT',   $PHP['DIRECTORY']['CONTENT'] ?? false);
 
-        define('VENDOR',    DS . $PHP['DIRECTORY']['VENDOR'] ?? false);
+        define('VENDOR',    $PHP['DIRECTORY']['VENDOR'] ?? 'Data/vendor/');
 
-        define('TEMPLATE',  DS . $PHP['DIRECTORY']['TEMPLATE'] ?? false);                     // Path to the template for public use i.e. relative path for .css includes
+        define('TEMPLATE',  $PHP['DIRECTORY']['TEMPLATE'] ?? false);                     // Path to the template for public use i.e. relative path for .css includes
 
         define('VENDOR_ROOT',   SERVER_ROOT . $PHP['DIRECTORY']['VENDOR'] ?? false);
 

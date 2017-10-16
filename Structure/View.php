@@ -136,12 +136,9 @@ class View
 
     public function versionControl($file)
     {
-        if (file_exists( $absolute = SERVER_ROOT . $file )) $file = DS . $file;
-        elseif (file_exists( $absolute = VENDOR_ROOT . $file )) $file = VENDOR . $file;
-        elseif (file_exists( $absolute = TEMPLATE_ROOT . $file )) $file = TEMPLATE . $file;
-        elseif (file_exists( $absolute = CONTENT_ROOT . $file )) $file = CONTENT . $file;
-        $control = @filemtime( $absolute );
-        return ($control ? preg_replace( '{\\.([^./]+)$}', "." . $control . ".\$1", $file ) : DS . $file);
+        if (!file_exists( $absolute = SERVER_ROOT . $file ) || !($time = filemtime($absolute)))
+                return $file;
+        return preg_replace( '{\\.([^./]+)$}', "." . $time . ".\$1", SERVER_ROOT . $file );
     }
 
     public function __get($variable)
