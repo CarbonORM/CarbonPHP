@@ -7,7 +7,7 @@
       <sourceFolder url="file://$MODULE_DIR$/Helpers" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Interfaces" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Extras" isTestSource="false" />
-      <excludeFolder url="file://$MODULE_DIR$/.idea" />
+      <sourceFolder url="file://$MODULE_DIR$/Structure" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/bower_components" />
       <excludeFolder url="file://$MODULE_DIR$/vendor" />
     </content>

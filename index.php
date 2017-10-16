@@ -22,9 +22,8 @@ if (false == (include 'vendor/autoload.php')) {       // Load the autoload() for
     exit(3);
 }
 
-use Carbon\CarbonPHP;
 
-CarbonPHP::Application([
+Carbon\Carbon::Application([
 
     'GENERAL' => [
         'URL' => 'stats.coach',

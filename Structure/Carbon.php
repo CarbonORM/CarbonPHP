@@ -1,16 +1,71 @@
 <?php
 
+
+// http://blackbe.lt/advanced-method-to-obtain-the-client-ip-in-php/
+
+
 namespace Carbon;
 
 use Carbon\Error\PublicAlert;
 
 class Carbon
 {
+
+    static function URI_FILTER(): void
+    {
+        if (pathinfo($_SERVER['REQUEST_URI'] ?? '/', PATHINFO_EXTENSION) != null) {
+            define('URL', (isset($_SERVER['SERVER_NAME']) ?
+                ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') || $_SERVER['SERVER_PORT'] == 443 ? 'https://' : 'http://') . $_SERVER['SERVER_NAME'] : null), true);
+
+            define('URI', ltrim(urldecode(parse_url($_SERVER['REQUEST_URI'] ?? $_SERVER['REQUEST_URI'] = '/', PHP_URL_PATH)), '/'), true);
+
+            define('SITE', url . DS, true);                                    // http(s)://example.com/
+
+            return null;
+        }
+        if ($_SERVER['REQUEST_URI'] == '/robots.txt') {
+            echo include CARBON_ROOT . 'Extras/robots.txt';
+            exit(1);
+        }
+        ob_start();
+        echo inet_pton($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'Go away.' . PHP_EOL;
+        echo "\n\n\t\n" . $_SERVER['REQUEST_URI'];
+        $report = ob_get_clean();
+        $file = fopen(SERVER_ROOT . 'Data/Logs/Request/url_' . time() . '.log', "a");
+        fwrite($file, $report);
+        fclose($file);
+        exit(0);    // A request has been made to an invalid file
+    }
+
+    static function IP_LOOKUP()
+    {
+        $ip_keys = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR');
+        foreach ($ip_keys as $key) {
+            if (array_key_exists($key, $_SERVER) === true) {
+                foreach (explode(',', $_SERVER[$key]) as $ip) {
+                    // trim for safety measures
+                    $ip = trim($ip);
+                    // attempt to validate IP
+                    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                        return $ip;
+                    }
+                }
+            }
+        }
+        return isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : false;
+    }
+
     static function Application(array $PHP): callable
     {
+        error_reporting($PHP['REPORTING']['LEVEL'] ?? E_ALL | E_STRICT);
+
+        ini_set('display_errors', 1);
+
+        date_default_timezone_set($PHP['GENERAL']['TIMEZONE'] ?? 'America/Phoenix');
+
         if (!defined('DS')) define('DS', DIRECTORY_SEPARATOR);
 
-        if (!defined('SERVER_ROOT')){
+        if (!defined('SERVER_ROOT')) {
             if ($PHP['GENERAL']['ROOT'] ?? false)
                 throw new \InvalidArgumentException('A server root must be give. Visit CarbonPHP.com for documentation.');
             define('SERVER_ROOT', $PHP['GENERAL']['ROOT']);
@@ -18,55 +73,25 @@ class Carbon
 
         define('CARBON_ROOT', dirname(dirname(__FILE__)) . DS);
 
-        ################  Filter Malicious Requests  #################
-        if (!$PHP['GENERAL']['ALLOW_EXTENSION'] ?? false && pathinfo($_SERVER['REQUEST_URI'] ?? '/', PATHINFO_EXTENSION) != null) {
-            if ($_SERVER['REQUEST_URI'] == '/robots.txt') {
-                echo include CARBON_ROOT . 'Extras/robots.txt';
-                exit(1);
-            }
-            ob_start();
-            echo inet_pton($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'Go away.' . PHP_EOL;
-            echo "\n\n\t\n" . $_SERVER['REQUEST_URI'];
-            $report = ob_get_clean();
-            $file = fopen(SERVER_ROOT . 'Data/Logs/Request/url_' . time() . '.log', "a");
-            fwrite($file, $report);
-            fclose($file);
-            exit(0);    // A request has been made to an invalid file
-        }
+        if (!$PHP['GENERAL']['ALLOW_EXTENSION'] ?? false)
+            self::QUICK_URI_FILTER();
 
-        ##############################   Autoloading   #############################
-        # PSR4 Autoloader, with common case first added for namespace = currentDir #
-        # Composer Autoloader                                                      #
-        ############################################################################
-        $thankGod = new Autoload;   // dynamically include classes via directory based namespace naming conventions (& const)
+        $thankGod = new Autoload;
 
         if ($PHP['AUTOLOAD'] ?? false)
             foreach ($PHP['AUTOLOAD'] as $name => $path)
                 $thankGod->addNamespace($name, $path);
 
-        ##################    Reporting   #####################
-        date_default_timezone_set($PHP['GENERAL']['TIMEZONE'] ?? 'America/Phoenix');
-
-        error_reporting($PHP['REPORTING']['LEVEL'] ?? E_ALL | E_STRICT);
-
-        ini_set('display_errors', 1);
-
         define('FULL_REPORTS', $PHP['REPORTING']['FULL'] ?? true);
 
         Error\ErrorCatcher::start($PHP['REPORTING']['LOCATION'] ?? CARBON_ROOT, $PHP['REPORTING']['PRINT'] ?? false);    // Catch application errors and lo
 
+        ################# Application.php Paths ########################
+        # Dynamically Find the current url on the server
 
-        ################    Database    ####################
-        /**
-         * The following constants are used by the Database
-         * Which uses a MYSQL database with a PDO wrapper
-         *
-         * @constant DB_HOST The databases Host i.e. localhost
-         * @constant DB_NAME The name of the location on the database
-         * @constant DB_USER The user name if required
-         * @constant DB_PASS The users password if applicable
-         *
-         */
+        //Mark out for app local testing
+        if (URL !== true && $_SERVER['SERVER_NAME'] != $PHP['URL'])
+            throw new \Error('Invalid Server Name');
 
         define('DB_HOST', $PHP['DATABASE']['DB_HOST'] ?? '');
 
@@ -78,7 +103,6 @@ class Carbon
 
         if ($PHP['DATABASE']['INITIAL_SETUP'] ?? false) Database::setUp(); // can comment out after first run
 
-        ################## Basic Information  ##################
         define('SITE_TITLE', $PHP['SITE_TITLE'] ?? 'CarbonPHP');
 
         define('SITE_VERSION', $PHP['SITE_VERSION'] ?? phpversion());                            // printed in the footer
@@ -87,47 +111,28 @@ class Carbon
 
         define('REPLY_EMAIL', $PHP['REPLY_EMAIL'] ?? '');                                        // I give you options :P
 
-        ################# Application.php Paths ########################
-        # Dynamically Find the current url on the server
-        define('URL', (isset($_SERVER['SERVER_NAME']) ?
-            ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') || $_SERVER['SERVER_PORT'] == 443 ? 'https://' : 'http://') . $_SERVER['SERVER_NAME'] : null), true);
-
-
-        define('URI', ltrim(urldecode(parse_url($_SERVER['REQUEST_URI'] ?? $_SERVER['REQUEST_URI'] = '/', PHP_URL_PATH)), '/'), true);
-
-        /** Mark out for app local testing
-         * if (URL !== true && $_SERVER['SERVER_NAME'] != $PHP['URL']) {
-         * throw new Error('Invalid Server Name');
-         * die(1);
-         * }
-         ***/
-
-        define('SITE', url . DS, true);                                    // http(s)://example.com/
-
-        define('MUSTACHE',  $PHP['DIRECTORY']['MUSTACHE'] ?? false);
+        define('MUSTACHE', $PHP['DIRECTORY']['MUSTACHE'] ?? false);
 
         define('BOOTSTRAP', $PHP['DIRECTORY']['ROUTES'] ?? false);
 
-        define('CONTENT',   $PHP['DIRECTORY']['CONTENT'] ?? false);
+        define('CONTENT', $PHP['DIRECTORY']['CONTENT'] ?? false);
 
-        define('VENDOR',    $PHP['DIRECTORY']['VENDOR'] ?? 'Data/vendor/');
+        define('VENDOR', $PHP['DIRECTORY']['VENDOR'] ?? 'Data/vendor/');
 
-        define('TEMPLATE',  $PHP['DIRECTORY']['TEMPLATE'] ?? false);                     // Path to the template for public use i.e. relative path for .css includes
+        define('TEMPLATE', $PHP['DIRECTORY']['TEMPLATE'] ?? false);                     // Path to the template for public use i.e. relative path for .css includes
 
-        define('VENDOR_ROOT',   SERVER_ROOT . $PHP['DIRECTORY']['VENDOR'] ?? false);
+        define('VENDOR_ROOT', SERVER_ROOT . $PHP['DIRECTORY']['VENDOR'] ?? false);
 
         define('TEMPLATE_ROOT', SERVER_ROOT . $PHP['DIRECTORY']['TEMPLATE'] ?? false);
 
-        define('CONTENT_ROOT',  SERVER_ROOT . $PHP['DIRECTORY']['CONTENT'] ?? false);
+        define('CONTENT_ROOT', SERVER_ROOT . $PHP['DIRECTORY']['CONTENT'] ?? false);
 
         define('CONTENT_WRAPPER', SERVER_ROOT . $PHP['DIRECTORY']['CONTENT_WRAPPER'] ?? false);
 
         define('WRAPPING_REQUIRES_LOGIN', $PHP['WRAPPING_REQUIRES_LOGIN'] ?? false);    // I use the same headers every where
 
-        ######################  Up the render speed ? ####################
         define('MINIFY_CONTENTS', $PHP['MINIFY_CONTENTS']);
 
-        #######################       Socket      ########################
         if (!defined('SOCKET')) {
             define('SOCKET', false);
             if (($PHP['SOCKET'] ?? false) && 'webcache' !== getservbyport(($PHP['SOCKET']['PORT'] ?? 8080), 'tcp'))
@@ -144,25 +149,16 @@ class Carbon
         // (PJAX == true) return required, else (!PJAX && AJAX) return optional (socket valid)
         define('AJAX', (PJAX || ((isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest'))));
 
+        if (!AJAX) $_POST = [];  // We only allow post requests through ajax/pjax
 
-        define('AJAX_OUT', $PHP['AJAX_OUT'] ?? false);
-
-        // We only allow post requests through ajax/pjax
-        if (!AJAX) $_POST = [];
-
-        // This should return the template
         define('HTTPS', (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off'));
 
-        // This will not return data
         define('HTTP', !(HTTPS || SOCKET || AJAX));
 
-        // If we're using https our htaccess should handle url resolution before this point
-        if (!$PHP['HTTP'] && HTTP) throw new PublicAlert('Failed to switch to https, please contact the server administrator.');
-
-        ################    Session     ####################
+        if (!($PHP['HTTP'] ?? true) && HTTP) throw new PublicAlert('Failed to switch to https, please contact the server administrator.');
 
         if ($PHP['SESSION']['SAVE_PATH'] ?? false)
-        session_save_path(        $PHP['SESSION']['SAVE_PATH'] ?? '' );   // Manually Set where the Users Session Data is stored
+            session_save_path($PHP['SESSION']['SAVE_PATH'] ?? '');   // Manually Set where the Users Session Data is stored
 
         if ($PHP['SESSION']['STORE_REMOTE'] ?? false)
             new Session();
@@ -186,68 +182,6 @@ class Carbon
 }
 
 
-#################   Development   ######################
-/**
- * This will run the application in an MVC style.
- * The classes will be defined in the the first param while
- * the method inside the second param.
- *
- * The flow of the application is
- *
- *  `Controller` -> `Model` -> `View`
- *
- * The controller should work with the request class to help validate all data
- * received from the user. If all data is preceived to be valid (by type) then
- * we should return true or a value which will evaluate to true with (==) double equal,
- * else false.
- *
- * The model will only be fetched and method executed if the previous controller
- * returns true (or mixed). The mixed value will be passed to the models constructor and method.
- * This will communicate with the database (if applicable) to
- * further validate, update, or fetch information.
- *
- * If no errors have been raised then the view will be executed. We created a self
- * stored instance in the index to handle the request throughout the application. This
- * allows us to call the view->contents() method statically even though it is defined as
- * a private method.
- *
- * Singletons functionality in the view ensures constructor is called and reset
- * when needed & in conjunction to any sterilized data also present.
- *
- * We keep the contents function private and call this way to allow frontend developers
- * to include global valuables using `$this->`
- *
- * @param $class string Name of the class within the controller and model folder
- *  and a folder name in the CONTENT_ROOT
- *
- * @param $method string Name of the method in the above parameter, and file name
- *  for the template.
- *
- * @return void The View->contents() procedure will exit(1)
- */
 
-
-##################   DEV Tools   #################
-// This will cleanly print the var_dump function and kill the execution of the application
-
-/**
- * This will cleanly print the var_dump function and kill the execution of the application.
- *
- * This function is for development purposes. The function accepts one value to printed on
- * the browser. If the value passes is empty or null the function will print all variables
- * in the $GLOBAL scope.
- *
- * @param mixed $mixed Will be run throught the var_dump function.
- *
- */
-
-
-/**
- * This ports the javascript alert function to work in PHP. Note output is sent to the browser
- *
- * @param string $string will be placed in the javascript alert function.
- *
- * @return null
- */
 
 
