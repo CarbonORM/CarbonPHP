@@ -23,11 +23,13 @@ class Session implements \SessionHandlerInterface
 
     public function __construct($ip = null, $dbStore = false)
     {
-        
-        ini_set( 'session.gc_probability', 1 );  // Clear any lingering session data in default locations
+        if ($ip === false)
+            print 'Carbon has detected ip spoofing.' and die;
 
-        if ($dbStore)
+        if ($dbStore) {
+            ini_set( 'session.gc_probability', 1 );  // Clear any lingering session data in default locations
             session_set_save_handler( $this, true );                // Comment this out to stop storing session on the server
+        }
 
         if (SOCKET) $this->verifySocket($ip);
 

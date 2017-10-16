@@ -10,9 +10,9 @@ use Carbon\Error\PublicAlert;
 
 class Carbon
 {
-    static function URI_FILTER(): void
+    static function URI_FILTER()
     {
-        if (pathinfo($_SERVER['REQUEST_URI'] ?? '/', PATHINFO_EXTENSION) != null) {
+        if (pathinfo($_SERVER['REQUEST_URI'] ?? '/', PATHINFO_EXTENSION) == null) {
             define('URL', (isset($_SERVER['SERVER_NAME']) ?
                 ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') || $_SERVER['SERVER_PORT'] == 443 ? 'https://' : 'http://') . $_SERVER['SERVER_NAME'] : null), true);
 
@@ -73,7 +73,11 @@ class Carbon
         define('CARBON_ROOT', dirname(dirname(__FILE__)) . DS);
 
         if (!$PHP['GENERAL']['ALLOW_EXTENSION'] ?? false)
-            self::QUICK_URI_FILTER();
+            self::URI_FILTER();
+
+        //Mark out for app local testing
+        if (($PHP['URL'] ?? false) && URL !== true && $_SERVER['SERVER_NAME'] != $PHP['URL'])
+            throw new \Error('Invalid Server Name');
 
         $PSR4 = new Autoload;
 
@@ -88,10 +92,6 @@ class Carbon
         ################# Application.php Paths ########################
         # Dynamically Find the current url on the server
 
-        //Mark out for app local testing
-        if (URL !== true && $_SERVER['SERVER_NAME'] != $PHP['URL'])
-            throw new \Error('Invalid Server Name');
-
         define('DB_HOST', $PHP['DATABASE']['DB_HOST'] ?? '');
 
         define('DB_NAME', $PHP['DATABASE']['DB_NAME'] ?? '');
@@ -102,6 +102,8 @@ class Carbon
 
         if ($PHP['DATABASE']['INITIAL_SETUP'] ?? false) Database::setUp(); // can comment out after first run
 
+        define('BOOTSTRAP', $PHP['ROUTES'] ?? false);
+
         define('SITE_TITLE', $PHP['SITE_TITLE'] ?? 'CarbonPHP');
 
         define('SITE_VERSION', $PHP['SITE_VERSION'] ?? phpversion());                            // printed in the footer
@@ -111,8 +113,6 @@ class Carbon
         define('REPLY_EMAIL', $PHP['REPLY_EMAIL'] ?? '');                                        // I give you options :P
 
         define('MUSTACHE', $PHP['DIRECTORY']['MUSTACHE'] ?? false);
-
-        define('BOOTSTRAP', $PHP['DIRECTORY']['ROUTES'] ?? false);
 
         define('CONTENT', $PHP['DIRECTORY']['CONTENT'] ?? false);
 
@@ -130,7 +130,7 @@ class Carbon
 
         define('WRAPPING_REQUIRES_LOGIN', $PHP['WRAPPING_REQUIRES_LOGIN'] ?? false);    // I use the same headers every where
 
-        define('MINIFY_CONTENTS', $PHP['MINIFY_CONTENTS']);
+        define('MINIFY_CONTENTS', $PHP['MINIFY_CONTENTS'] ?? false);
 
         if (!defined('SOCKET')) {
             define('SOCKET', false);

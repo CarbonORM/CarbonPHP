@@ -22,11 +22,11 @@ class View
         if (!AJAX):      // an HTTP request
             $_POST = [];
             $this->__construct();                       // and reprocess the dependencies, wrapper is a global closure
-        elseif (!empty( $this->currentPage )):          // Implies AJAX && a page has already been rendered and stored
-            echo base64_decode( $this->currentPage );   // The ajax page will be 64encoded before we store on the server
+        elseif (!empty($this->currentPage)):          // Implies AJAX && a page has already been rendered and stored
+            echo base64_decode($this->currentPage);   // The ajax page will be 64encoded before we store on the server
             $this->currentPage = false;
             self::clearInstance();                      // Remove stored information on the server and delete its self reference
-            exit( 1 );                                  // This is for the second inner AJAX request on first page load
+            exit(1);                                  // This is for the second inner AJAX request on first page load
         endif;                                          // We're requesting our second page through ajax ie not initial page request
     }
 
@@ -48,11 +48,11 @@ class View
 
             $template = ob_get_clean();
 
-            echo (MINIFY_CONTENTS && (@include_once CARBON_ROOT . "Extras/minify.php")) ? minify_html( $template ) : $template;
+            echo (MINIFY_CONTENTS && (@include_once CARBON_ROOT . "Extras/minify.php")) ? minify_html($template) : $template;
 
 
             if ($forceWrapper):
-                if (!empty( $GLOBALS['alert'] )) $this->carryErrors = $GLOBALS['alert']; // exit(1);
+                if (!empty($GLOBALS['alert'])) $this->carryErrors = $GLOBALS['alert']; // exit(1);
                 $this->forceStoreContent = true;
             endif;
         } // elseif (AJAX && is_callable($closure)) $closure();  // This would only be executed it wrapper_requires_login = true and user logged out, this can be helpful for making sure the user doesnt back into a state
@@ -62,24 +62,24 @@ class View
     public static function contents(...$argv)
     {
         $self = static::getInstance();
-        call_user_func_array( [$self, 'content'], $argv );
+        call_user_func_array([$self, 'content'], $argv);
     }
 
-    public function content(...$argv) : void // Must be called through Singleton, must be private
+    public function content(...$argv): void // Must be called through Singleton, must be private
     {
 
-        switch (count( $argv )) {
+        switch (count($argv)) {
             case 2:
-                $file = CONTENT_ROOT . strtolower( $argv[0] ) . DS . strtolower( $argv[1] ) . '.php';   //($this->user->user_id ? '.tpl.php' : '.php'));
+                $file = CONTENT_ROOT . strtolower($argv[0]) . DS . strtolower($argv[1]) . '.php';   //($this->user->user_id ? '.tpl.php' : '.php'));
                 break;
             case 1:
-                $file = @file_exists( $argv[0] ) ? $argv[0] : CONTENT_ROOT . $argv[0];
+                $file = @file_exists($argv[0]) ? $argv[0] : CONTENT_ROOT . $argv[0];
                 break;
             default:
                 throw new \InvalidArgumentException();
         }
 
-        if (file_exists( $file )) {
+        if (file_exists($file)) {
             if (SOCKET) {
                 include $file;          // we not need compression / buffering for sockets
                 return;
@@ -87,7 +87,7 @@ class View
 
             ob_start();
 
-            if (empty( $GLOBALS['alert'] ) && !empty( $GLOBALS['alert'] = $this->carryErrors ))
+            if (empty($GLOBALS['alert']) && !empty($GLOBALS['alert'] = $this->carryErrors))
                 $this->carryErrors = null;
 
             if (isset($this->alert)) {
@@ -103,16 +103,16 @@ class View
             $file = ob_get_clean();
 
             if (MINIFY_CONTENTS && (@include_once CARBON_ROOT . "Extras/minify.php"))
-                $file = minify_html( $file );
+                $file = minify_html($file);
 
 
             if ($this->forceStoreContent || (!AJAX && (!WRAPPING_REQUIRES_LOGIN ?: $_SESSION['id']))) {
                 # $this->forceStoreContent = false;
-                $this->currentPage = base64_encode( $file );
+                $this->currentPage = base64_encode($file);
                 exit(1);
             } else echo $file;
 
-        } else throw new \Exception( "$file does not exist" );  // TODO - throw 404 error
+        } else throw new \Exception("$file does not exist");  // TODO - throw 404 error
 
     }
 
@@ -127,23 +127,27 @@ class View
      */
 
 
-    public function bootstrapAlert($message, $level) : void
+    public function bootstrapAlert($message, $level): void
     {
-        $message = htmlentities( $message );
+        $message = htmlentities($message);
         echo "<script>bootstrapAlert(\"$message\", '$level')</script>";
     }
 
 
     public function versionControl($file)
     {
-        if (!file_exists( $absolute = SERVER_ROOT . $file ) || !($time = filemtime($absolute)))
-                return $file;
-        return preg_replace( '{\\.([^./]+)$}', "." . $time . ".\$1", SERVER_ROOT . $file );
+        try {
+            if (!file_exists($absolute = SERVER_ROOT . $file) || !($time = @filemtime($absolute)))
+                return DS . $file;
+            return preg_replace('{\\.([^./]+)$}', "." . $time . ".\$1", SITE . $file);
+        } catch (\ErrorException $e) {
+            return DS . $file;
+        }
     }
 
     public function __get($variable)
     {
-        return (isset( $GLOBALS[$variable] ) ? $GLOBALS[$variable] : null);
+        return (isset($GLOBALS[$variable]) ? $GLOBALS[$variable] : null);
     }
 
 
