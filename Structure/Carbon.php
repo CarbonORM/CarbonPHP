@@ -72,8 +72,9 @@ class Carbon
 
         define('CARBON_ROOT', dirname(dirname(__FILE__)) . DS);
 
-        if (!$PHP['GENERAL']['ALLOW_EXTENSION'] ?? false)
-            self::URI_FILTER();
+        define('REQUEST_LOG', $PHP['REPORTING']['LOCATION']['REQUEST'] ?? '/' );    // invalid url was sent to server
+
+        if (!$PHP['GENERAL']['ALLOW_EXTENSION'] ?? false) self::URI_FILTER();
 
         //Mark out for app local testing
         if (($PHP['URL'] ?? false) && URL !== true && $_SERVER['SERVER_NAME'] != $PHP['URL'])
@@ -103,6 +104,10 @@ class Carbon
         if ($PHP['DATABASE']['INITIAL_SETUP'] ?? false) Database::setUp(); // can comment out after first run
 
         define('BOOTSTRAP', $PHP['ROUTES'] ?? false);
+
+        define('ERROR_LOG', $PHP['REPORTING']['LOCATION']['ERROR'] ?? '/' );
+
+        define('SORTED_LOG', $PHP['REPORTING']['LOCATION']['SORTED'] ?? '/' );      // we ran the funtion sort or sortdump
 
         define('SITE_TITLE', $PHP['SITE_TITLE'] ?? 'CarbonPHP');
 

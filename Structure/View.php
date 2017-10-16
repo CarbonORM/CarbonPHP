@@ -16,7 +16,7 @@ class View
     private $carryErrors;
     private $forceStoreContent;
 
-    // sockets cannot possibly invoke the wake up function
+    // sockets cannot possibly invoke the wakeup function
     public function __wakeup()
     {
         if (!AJAX):      // an HTTP request
@@ -32,12 +32,12 @@ class View
 
     public function __construct($forceWrapper = false)   // Send the content wrapper
     {
-        if (SOCKET) return null;
+        if (SOCKET) return null;    // we don't need html -> socket
 
         #if (AJAX)
         # $closure = AJAX_SIGNED_OUT;
 
-        if (!WRAPPING_REQUIRES_LOGIN ?: $_SESSION['id']) {
+        if (!$closure = WRAPPING_REQUIRES_LOGIN ?: $_SESSION['id']) {
             if (!($forceWrapper || ($_SESSION['X_PJAX_Version'] != X_PJAX_VERSION)) && AJAX)
                 return null;
             $_POST = [];
@@ -55,7 +55,7 @@ class View
                 if (!empty($GLOBALS['alert'])) $this->carryErrors = $GLOBALS['alert']; // exit(1);
                 $this->forceStoreContent = true;
             endif;
-        } // elseif (AJAX && is_callable($closure)) $closure();  // This would only be executed it wrapper_requires_login = true and user logged out, this can be helpful for making sure the user doesnt back into a state
+        } elseif (AJAX && is_callable($closure)) $closure();  // This would only be executed it wrapper_requires_login = true and user logged out, this can be helpful for making sure the user doesnt back into a state
         // if there it is an ajax request, the user must be logged in, or container must be true
     }
 
@@ -92,7 +92,7 @@ class View
 
             if (isset($this->alert)) {
                 if (isset($this->alert['danger'])) $this->bootstrapAlert($this->alert['danger'], 'danger');
-                if (isset($this->alert['info'])) $this->bootstrapAlert($this->alert['info'], 'info');
+                if (isset($this->alert['info']))   $this->bootstrapAlert($this->alert['info'], 'info');
                 if (isset($this->alert['warning'])) $this->bootstrapAlert($this->alert['warning'], 'warning');
                 if (isset($this->alert['success'])) $this->bootstrapAlert($this->alert['success'], 'success');
                 $this->alert = null;
