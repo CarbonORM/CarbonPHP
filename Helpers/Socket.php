@@ -13,7 +13,7 @@ class Socket
 {
     public $socket;
 
-    public function start($port = "8080")
+    public function __construct($port = "8080")
     {
         //Create TCP/IP sream socket
         $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
@@ -22,7 +22,7 @@ class Socket
         socket_set_option($socket, SOL_SOCKET, SO_REUSEADDR, 1);
 
         //bind socket to specified host
-        socket_bind($socket, "45.40.160.145", $port);
+        socket_bind($socket, "127.0.0.1", $port);
 
         //listen to port
         socket_listen($socket, 100); // 100 connections my be stacked before auto dropping

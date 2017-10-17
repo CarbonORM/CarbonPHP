@@ -53,6 +53,7 @@
     <!-- Font Awesome -->
     <link rel="preload" href="<?= $this->versionControl( "components/font-awesome/css/font-awesome.min.css" ) ?>" as="style" onload="this.rel='stylesheet'">
 
+    <!-- Docs V2 -->
     <script>
         /*! loadCSS. [c]2017 Filament Group, Inc. MIT License */
         !function (a) {

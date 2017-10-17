@@ -8,7 +8,6 @@
  */
 
 
-
 declare(ticks=1);
 
 error_reporting(E_ALL);
@@ -35,57 +34,40 @@ pcntl_signal(SIGINT, 'signalHandler');  // Interrupted ( Ctrl-C is pressed)
 Fork::become_daemon();
 
 
-class Server extends Thread
+class Server
 {
-    private $mutex;     // Points to this, helpful for my eyes clarity ( C++ mutex , pthread )
-    private $socket;
-    private $host;      //
-    private $port;      // Defaults to 8080
+    private $host;
+    private $port;
 
-
-    public function __construct()
+    public function __construct($host, $port)
     {
-        $this->mutex = $this;
-        $this->host = 'localhost'; //host
-        $this->socket = new Socket();
-        $this->socket->start();
+        $this->port = $port;
+        $this->host = $host;          //localhost
+        $this->accept(new Socket($port));
+    }
+
+    public function accept(Socket $socket)
+    {
+        $user = socket_accept($socket->socket); // new socket user
+
+        $socket->perform_handshaking(socket_read($user, 1024), $user, $this->host, $this->port);  //perform websocket handshake
+
+        socket_getpeername($user, $ip);     // get ip address of connected socket
+
+        $this->Serve($socket, $user, $ip);
     }
 
 
-    public function run()
+    public function Serve(Socket $socket, $user, $ip)
     {
-        global $STDOUT;
-        /** This is uniquely executed  */
-
-        $socket = $this->socket;
-        $host = $this->host;
-        $port = $this->port;
-
-        $connection = $socket->socket;
-
-        /** cause this thread to wait **/
-        $userIO = $this->synchronized(function (Server $thread) use ($connection, $host, $port) {
-
-            $socket_new = socket_accept($connection); // new socket user
-
-            $header = socket_read($socket_new, 1024); //read data sent by the socket
-
-            $thread->socket->perform_handshaking($header, $socket_new, $host, $port); //perform websocket handshake
-
-            $thread->done = true;   // This is what the example was at PHP.net, notably arbitrary
-
-            $thread->notify();      // Catch a connection, set up response, repeat.
-
-            return $socket_new;
-
-        }, $this);
-
-        socket_getpeername($userIO, $ip);     // get ip address of connected socket
-
+        Fork::safe(function () use ($socket){
+            $this->accept($socket) and die;
+        });
 
         // we should verify our connection now
         new \Carbon\Session($ip);             // Pull From Database, manage socket ip
 
+        global $STDOUT;
 
         fclose(STDOUT);              // output has to be preprocessed for websites and javascript
 
@@ -108,7 +90,7 @@ class Server extends Thread
             $miss = 0;
             $handshake = 0;
 
-            $readers = array($UPDATE, $STDOUT, $userIO);    // This must be reset each loop
+            $readers = array($UPDATE, $STDOUT, $user);    // This must be reset each loop
 
             // poll the socket and named pipe for input. The socket is the users browser while the named pipe is our application.
             if (($stream = stream_select($readers, $writers, $except, 0, 15)) === false):
@@ -125,7 +107,7 @@ class Server extends Thread
                             print "Application closed socket \n";
                             exit(2);
                         elseif (!empty($string) && Fork::safe()):
-                            $this->socket->send_message($userIO, $string);
+                            $socket->send_message($user, $string);
                             exit(1);
                         endif;
                         $handshake++;
@@ -151,33 +133,33 @@ class Server extends Thread
                         endif;
                         $handshake++;
 
-                    elseif ($fd == $userIO):
+                    elseif ($fd == $user):
                         //check for any incomming data
-                        while (socket_recv($userIO, $buf, 1024, 0) >= 1) {
+                        while (socket_recv($user, $buf, 1024, 0) >= 1) {
                             $received_text = $this->socket->unmask($buf); //unmask data
                             $received_text = $request->set($received_text)->noHTML()->value(); // validate, S'clean.
                             startApplication($received_text);
                             break 2; //exist this loop
                         }
-                        $buf = @socket_read($userIO, 1024, PHP_NORMAL_READ);
+                        $buf = @socket_read($user, 1024, PHP_NORMAL_READ);
                         if ($buf === false) : // check disconnected client
                             exit(1);
                         endif;
 
-                else :
-                    // validate active socket
-                    print "Hits => $handshake";
-                    if ($handshake != 0):       // clear misses
-                        $handshake = 0;
-                        $miss = 1;
+                    else :
+                        // validate active socket
+                        print "Hits => $handshake";
+                        if ($handshake != 0):       // clear misses
+                            $handshake = 0;
+                            $miss = 1;
 
-                    elseif ($miss == 10):       // 10 misses !!?!?
-                        exit(2);
+                        elseif ($miss == 10):       // 10 misses !!?!?
+                            exit(2);
 
-                    else: $miss++;              // Nothing active, hu?
-                        print "Miss => $miss\n";
+                        else: $miss++;              // Nothing active, hu?
+                            print "Miss => $miss\n";
+                        endif;
                     endif;
-                endif;
                 }
                 sleep(1);     // Keep it off the processor stack
             endif;
@@ -187,15 +169,7 @@ class Server extends Thread
 
 }
 
-$server = new Server();
-
-while (true) {
-    $server->start();                           // Fork
-    /** cause this thread to wait **/
-    $this->synchronized(function ($thread) {    // Wait
-        if (!$thread->done) $thread->wait();
-    }, $server);
-}
+$server = new Server('127.0.0.1', '8080');
 
 
 //Kill Connection

@@ -161,14 +161,11 @@ class Carbon
 
         new Session(self::IP_LOOKUP(), ($PHP['SESSION']['STORE_REMOTE'] ?? false)); // session start
 
+        $_SESSION['id'] = array_key_exists('id', $_SESSION ?? []) ? $_SESSION['id'] : false;
 
         define('ERROR_LOG', ($PHP['REPORTING']['LOCATION']['ERROR']  ?? '/') . 'Log_' . $_SESSION['id']  . '_' . time() . '.log' );
 
         define('SORTED_LOG',($PHP['REPORTING']['LOCATION']['SORTED'] ?? '/') . 'Sort_' . $_SESSION['id'] . '_' . time() . '.log' );      // we ran the funtion sort or sortdump
-
-
-        $_SESSION['id'] = array_key_exists('id', $_SESSION ?? []) ? $_SESSION['id'] : false;
-
 
         Session::updateCallback($PHP['RESTART_CALLBACK'] ?? null); // Pull From Database, manage socket ip
 
