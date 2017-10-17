@@ -10,7 +10,7 @@ use Carbon\Error\PublicAlert;
 
 class Carbon
 {
-    static function URI_FILTER($logFolder)
+    static function URI_FILTER()
     {
         if (pathinfo($_SERVER['REQUEST_URI'] ?? '/', PATHINFO_EXTENSION) == null) {
             define('URL', (isset($_SERVER['SERVER_NAME']) ?
@@ -30,7 +30,7 @@ class Carbon
         echo inet_pton($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'Go away.' . PHP_EOL;
         echo "\n\n\t\n" . $_SERVER['REQUEST_URI'];
         $report = ob_get_clean();
-        $file = fopen(SERVER_ROOT . $logFolder . 'url_' . time() . '.log', "a");
+        $file = fopen(SERVER_ROOT . REPORTS . 'url_' . time() . '.log', "a");
         fwrite($file, $report);
         fclose($file);
         exit(0);    // A request has been made to an invalid file
@@ -58,7 +58,7 @@ class Carbon
     {
         error_reporting($PHP['REPORTING']['LEVEL'] ?? E_ALL | E_STRICT);
 
-        ini_set('display_errors', 1);
+        ini_set('display_errors', $PHP['REPORTING']['PRINT'] ?? 1);
 
         date_default_timezone_set($PHP['GENERAL']['TIMEZONE'] ?? 'America/Phoenix');
 
@@ -72,35 +72,59 @@ class Carbon
 
         define('CARBON_ROOT', dirname(dirname(__FILE__)) . DS);
 
+        define('REPORTS', $PHP['REPORTING']['LOCATION'] ?? '/');
 
-        if (!$PHP['GENERAL']['ALLOW_EXTENSION'] ?? false) self::URI_FILTER($PHP['REPORTING']['LOCATION']['REQUEST']);
+        if (!$PHP['GENERAL']['ALLOW_EXTENSION'] ?? false)
+            self::URI_FILTER();
 
-        //Mark out for app local testing
+
         if (($PHP['URL'] ?? false) && URL !== true && $_SERVER['SERVER_NAME'] != $PHP['URL'])
             throw new \Error('Invalid Server Name');
 
-        $PSR4 = new Autoload;
 
-        if ($PHP['AUTOLOAD'] ?? false)
+        if ($PHP['AUTOLOAD'] ?? false) {
+            @include_once 'AutoLoad.php';   // in case of
+            $PSR4 = new Autoload;
             foreach ($PHP['AUTOLOAD'] as $name => $path)
                 $PSR4->addNamespace($name, $path);
+        }
 
-        define('FULL_REPORTS', $PHP['REPORTING']['FULL'] ?? true);
+        Error\ErrorCatcher::start(
+            REPORTS,
+            $PHP['REPORTING']['STORE'] ?? false,
+            $PHP['REPORTING']['PRINT'] ?? false,  // Print to screen
+            $PHP['REPORTING']['FULL'] ?? true);     // Catch application errors and lo
 
-        Error\ErrorCatcher::start(($PHP['REPORTING']['LOCATION']['ERROR'] ?? '/') , $PHP['REPORTING']['PRINT'] ?? false);    // Catch application errors and lo
+        // More cache control is given in the .htaccess File
+        Request::setHeader( 'Cache-Control: must-revalidate' );
+
+        #################   SOCKET AND SYNC    #######################
+        if (!defined('SOCKET')) {
+            define('SOCKET', false);
+            if (($PHP['SOCKET'] ?? false) && getservbyport(($PHP['SOCKET']['PORT'] ?? 8080), 'tcp')) {
+                $path = ($PHP['SOCKET']['WEBSOCKETD'] ?? false ? CARBON_ROOT . 'Extras' . DS . 'Websocketd.php' : CARBON_ROOT . 'Structure' . DS . 'Server.php');
+                $JSON = json_encode($PHP);
+                Helpers\Fork::safe(function () use ($path, $JSON) {
+                    shell_exec("$path $JSON");
+                    exit(1);
+                });
+            }
+        }
 
         ################# Application.php Paths ########################
         # Dynamically Find the current url on the server
 
-        define('DB_HOST', $PHP['DATABASE']['DB_HOST'] ?? '');
+        if ($PHP['DATABASE'] ?? false) {
+            define('DB_HOST', $PHP['DATABASE']['DB_HOST'] ?? '');
 
-        define('DB_NAME', $PHP['DATABASE']['DB_NAME'] ?? '');
+            define('DB_NAME', $PHP['DATABASE']['DB_NAME'] ?? '');
 
-        define('DB_USER', $PHP['DATABASE']['DB_USER'] ?? '');
+            define('DB_USER', $PHP['DATABASE']['DB_USER'] ?? '');
 
-        define('DB_PASS', $PHP['DATABASE']['DB_PASS'] ?? '');
+            define('DB_PASS', $PHP['DATABASE']['DB_PASS'] ?? '');
 
-        if ($PHP['DATABASE']['INITIAL_SETUP'] ?? false) Database::setUp(); // can comment out after first run
+            if ($PHP['DATABASE']['INITIAL_SETUP'] ?? false) Database::setUp(); // can comment out after first run
+        }
 
         define('BOOTSTRAP', $PHP['ROUTES'] ?? false);
 
@@ -112,34 +136,16 @@ class Carbon
 
         define('REPLY_EMAIL', $PHP['REPLY_EMAIL'] ?? '');                                        // I give you options :P
 
-        define('MUSTACHE', $PHP['DIRECTORY']['MUSTACHE'] ?? false);
+        define('MUSTACHE', $PHP['DIRECTORY']['MUSTACHE'] ?? 'Public/Mustache/');
 
-        define('CONTENT', $PHP['DIRECTORY']['CONTENT'] ?? false);
+        define('CONTENT', $PHP['DIRECTORY']['CONTENT'] ?? 'Public/');
 
         define('VENDOR', $PHP['DIRECTORY']['VENDOR'] ?? 'Data/vendor/');
 
-        define('TEMPLATE', $PHP['DIRECTORY']['TEMPLATE'] ?? false);                     // Path to the template for public use i.e. relative path for .css includes
-
-        define('VENDOR_ROOT', SERVER_ROOT . $PHP['DIRECTORY']['VENDOR'] ?? false);
-
-        define('TEMPLATE_ROOT', SERVER_ROOT . $PHP['DIRECTORY']['TEMPLATE'] ?? false);
-
-        define('CONTENT_ROOT', SERVER_ROOT . $PHP['DIRECTORY']['CONTENT'] ?? false);
-
-        define('CONTENT_WRAPPER', SERVER_ROOT . $PHP['DIRECTORY']['CONTENT_WRAPPER'] ?? false);
-
-        define('WRAPPING_REQUIRES_LOGIN', $PHP['WRAPPING_REQUIRES_LOGIN'] ?? false);    // I use the same headers every where
+        define('CONTENT_WRAPPER', $PHP['DIRECTORY']['CONTENT_WRAPPER'] ?? CARBON_ROOT . 'Extras' . DS . 'AdminLTE.php');
 
         define('MINIFY_CONTENTS', $PHP['MINIFY_CONTENTS'] ?? false);
 
-        if (!defined('SOCKET')) {
-            define('SOCKET', false);
-            if (($PHP['SOCKET'] ?? false) && 'webcache' !== getservbyport(($PHP['SOCKET']['PORT'] ?? 8080), 'tcp'))
-                Helpers\Fork::safe(function () {
-                    shell_exec('server.php');           // when threading is supported ill do more, until then I wait
-                    exit(1);
-                });
-        }
         #######################   Pjax Ajax Refresh  ######################
 
         // Must return a non empty value
@@ -148,32 +154,31 @@ class Carbon
         // (PJAX == true) return required, else (!PJAX && AJAX) return optional (socket valid)
         define('AJAX', (PJAX || ((isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest'))));
 
-        if (!AJAX) $_POST = [];  // We only allow post requests through ajax/pjax
-
         define('HTTPS', (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off'));
 
         define('HTTP', !(HTTPS || SOCKET || AJAX));
 
-        if (!($PHP['HTTP'] ?? true) && HTTP) throw new PublicAlert('Failed to switch to https, please contact the server administrator.');
+        if (!($PHP['HTTP'] ?? true) && HTTP)
+            throw new PublicAlert('Failed to switch to https, please contact the server administrator.');
 
+        if (!AJAX) $_POST = [];  // We only allow post requests through ajax/pjax
+
+        ########################  Session Management ######################
         if ($PHP['SESSION']['SAVE_PATH'] ?? false)
             session_save_path($PHP['SESSION']['SAVE_PATH'] ?? '');   // Manually Set where the Users Session Data is stored
 
-        new Session(self::IP_LOOKUP(), ($PHP['SESSION']['STORE_REMOTE'] ?? false)); // session start
+        if ($PHP['SESSION'] ?? false)
+            new Session(self::IP_LOOKUP(), ($PHP['SESSION']['STORE_REMOTE'] ?? false)); // session start
 
         $_SESSION['id'] = array_key_exists('id', $_SESSION ?? []) ? $_SESSION['id'] : false;
 
-        define('ERROR_LOG', ($PHP['REPORTING']['LOCATION']['ERROR']  ?? '/') . 'Log_' . $_SESSION['id']  . '_' . time() . '.log' );
-
-        define('SORTED_LOG',($PHP['REPORTING']['LOCATION']['SORTED'] ?? '/') . 'Sort_' . $_SESSION['id'] . '_' . time() . '.log' );      // we ran the funtion sort or sortdump
-
-        Session::updateCallback($PHP['RESTART_CALLBACK'] ?? null); // Pull From Database, manage socket ip
+        if (is_callable($PHP['RESTART_CALLBACK'] ?? null))
+            Session::updateCallback($PHP['RESTART_CALLBACK']); // Pull From Database, manage socket ip
 
         if (is_array($PHP['SERIALIZE'] ?? false))
             forward_static_call_array(['Carbon\Helpers\Serialized', 'start'], $PHP['SERIALIZE']);    // Pull theses from session, and store on shutdown
 
-        ################  Application Structure ###############
-
+        ################  Helpful Application Functions ####################
         require_once CARBON_ROOT . 'Helpers/Application.php';
 
         return function () {

@@ -12,19 +12,23 @@ class ErrorCatcher
 
     private $defaultLocation;
     private $printToScreen;
+    private $fullReports;
+    private $storeReport;
 
-    public static function start( string $logLocation, bool $printToScreen )
+    public static function start( string $logLocation, bool $storeReport, bool $printToScreen, bool $fullReports )
     {
         ini_set( 'display_errors', 1 );
         ini_set( 'track_errors', 1 );
         error_reporting(E_ALL);
-        $closure = function (...$argv) use ($logLocation, $printToScreen) {
+        $closure = function (...$argv) use ($logLocation, $storeReport, $printToScreen, $fullReports) {
             $error = new ErrorCatcher();
             $error->defaultLocation = SERVER_ROOT . $logLocation . 'Log_' . ( $_SESSION['id'] ?? '' )  . '_' . time() . '.log';
             $error->printToScreen = $printToScreen;
+            $error->fullReports = $fullReports;
+            $error->storeReport = $storeReport;
             $error->generateLog($argv);
-            //View::contents('error','500error');
-            exit(1);                                // TODO - Uncomment
+            startApplication('Error/');
+            exit(1);
         };
         set_error_handler($closure);
         set_exception_handler($closure);
@@ -55,7 +59,8 @@ class ErrorCatcher
         // Write the contents to server
         $file = (defined('ERROR_LOG' ) ? ERROR_LOG : $this->defaultLocation);
 
-        $this->storeFile($file, $output);
+        if ($this->storeReport)
+        $this->storeFile(REPORT, $output);
 
 
     }

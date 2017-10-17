@@ -16,7 +16,7 @@ ob_implicit_flush();
 
 const SOCKET = true;
 
-include_once 'Carbon.php';    // This will load our configuration + auto-loaders
+// include_once 'Carbon.php';    // This will load our configuration + auto-loaders
 
 use Carbon\Helpers\Fork;
 use \Carbon\Helpers\Pipe;
@@ -25,14 +25,13 @@ use \Carbon\Helpers\Socket;
 
 # https://www.leaseweb.com/labs/2013/08/catching-signals-in-php-scripts/
 
-pcntl_signal(SIGTERM, 'signalHandler'); // Termination ('kill' was called')
+pcntl_signal( SIGTERM, 'signalHandler' ); // Termination ('kill' was called')
 
-pcntl_signal(SIGHUP, 'signalHandler');  // Terminal log-out
+pcntl_signal( SIGHUP, 'signalHandler' );  // Terminal log-out
 
-pcntl_signal(SIGINT, 'signalHandler');  // Interrupted ( Ctrl-C is pressed)
+pcntl_signal( SIGINT, 'signalHandler' );  // Interrupted ( Ctrl-C is pressed)
 
-Fork::become_daemon();
-
+// Fork::become_daemon();
 
 class Server
 {
@@ -60,9 +59,11 @@ class Server
 
     public function Serve(Socket $socket, $user, $ip)
     {
+        /*
         Fork::safe(function () use ($socket){
             $this->accept($socket) and die;
         });
+        */
 
         // we should verify our connection now
         new \Carbon\Session($ip);             // Pull From Database, manage socket ip
@@ -136,7 +137,7 @@ class Server
                     elseif ($fd == $user):
                         //check for any incomming data
                         while (socket_recv($user, $buf, 1024, 0) >= 1) {
-                            $received_text = $this->socket->unmask($buf); //unmask data
+                            $received_text = $socket->unmask($buf); //unmask data
                             $received_text = $request->set($received_text)->noHTML()->value(); // validate, S'clean.
                             startApplication($received_text);
                             break 2; //exist this loop

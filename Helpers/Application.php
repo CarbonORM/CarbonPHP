@@ -24,8 +24,8 @@ namespace {                                     // Carbon
 
         $view = View::getInstance($restartURI === true);     // Send the wrapper? only run once. (singleton)
 
-        if (!file_exists(BOOTSTRAP))
-            throw new InvalidArgumentException('Your routes file is not correctly setup. Visit CarbonPHP.com for Documentation.');
+        if (!defined('BOOTSTRAP') || !file_exists(BOOTSTRAP))
+            print 'You must define a route in your configuration. Visit CarbonPHP.com for Documentation.' and die;
 
         include SERVER_ROOT . BOOTSTRAP;                            // Router
     }

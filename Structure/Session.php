@@ -16,7 +16,7 @@ use Carbon\Helpers\Serialized;
 
 class Session implements \SessionHandlerInterface
 {
-    #private $sessionVerified;                                  // we should check between each request for browsers and ip if both change logout
+
     private static $user_id;
 
     private static $callback;
@@ -31,10 +31,9 @@ class Session implements \SessionHandlerInterface
             session_set_save_handler( $this, true );                // Comment this out to stop storing session on the server
         }
 
-        if (SOCKET) $this->verifySocket($ip);
+        if (SOCKET)
+            $this->verifySocket($ip);
 
-        // More cache control is given in the .htaccess File
-        Request::setHeader( 'Cache-Control: must-revalidate' );
 
         if (false == @session_start())
             throw new \Exception('Session Failed');
