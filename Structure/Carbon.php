@@ -10,28 +10,30 @@ class Carbon
 {
     static function Application(array $PHP = []): callable
     {
-        error_reporting($PHP['REPORTING']['LEVEL'] ?? E_ALL | E_STRICT);
+        ####################  GENERAL CONF  ######################
+        error_reporting($PHP['ERROR']['LEVEL'] ?? E_ALL | E_STRICT);
 
-        ini_set('display_errors', $PHP['REPORTING']['PRINT'] ?? 1);
+        ini_set('display_errors', $PHP['ERROR']['SHOW'] ?? 1);
 
-        date_default_timezone_set($PHP['GENERAL']['TIMEZONE'] ?? 'America/Phoenix');
+        date_default_timezone_set($PHP['SITE']['TIMEZONE'] ?? 'America/Phoenix');
 
-        if (!defined('DS')) define('DS', DIRECTORY_SEPARATOR);
+        if (!defined('DS'))
+            define('DS', DIRECTORY_SEPARATOR);
 
         define('CARBON_ROOT', dirname(dirname(__FILE__)) . DS);
 
-        if (!defined('SERVER_ROOT')) define('SERVER_ROOT', CARBON_ROOT);
+        define('VENDOR', dirname(CARBON_ROOT));
 
-        define('REPORTS', $PHP['REPORTING']['SAVE_PATH'] ?? SERVER_ROOT);
+        if (!defined('SERVER_ROOT'))
+            define('SERVER_ROOT', CARBON_ROOT);
 
-        if (!($PHP['GENERAL']['ALLOW_EXTENSION'] ?? false))
-            self::URI_FILTER();
+        define('REPORTS', $PHP['ERROR']['LOCATION'] ?? SERVER_ROOT);
 
-        if (($PHP['URL'] ?? false) && URL !== true && $_SERVER['SERVER_NAME'] != $PHP['URL'])
-            throw new \Error('Invalid Server Name');
+        self::URI_FILTER($PHP['SITE']['URL']);
 
-
-        if (!array_key_exists('AUTOLOAD', $PHP) || $PHP['AUTOLOAD']) {
+        #####################   AUTOLOAD    #######################
+        if (!array_key_exists('AUTOLOAD', $PHP) || $PHP['AUTOLOAD'])
+        {
             $PSR4 = include_once 'AutoLoad.php';   // in case of
             if (is_array($PHP['AUTOLOAD'] ?? false)) {
                 foreach ($PHP['AUTOLOAD'] as $name => $path)
@@ -41,19 +43,23 @@ class Carbon
             $PSR4->addNamespace("Carbon", dirname(__FILE__));
         }
 
+        #####################   ERRORS    #######################
         Error\ErrorCatcher::getInstance(
             REPORTS,
-            $PHP['REPORTING']['STORE'] ?? false,
-            $PHP['REPORTING']['PRINT'] ?? false,  // Print to screen
-            $PHP['REPORTING']['FULL'] ?? true);     // Catch application errors and lo
+            $PHP['ERROR']['STORE'] ?? false,
+            $PHP['ERROR']['SHOW'] ?? false,  // Print to screen
+            $PHP['ERROR']['FULL'] ?? true);     // Catch application errors and lo
 
         // More cache control is given in the .htaccess File
         Request::setHeader('Cache-Control: must-revalidate');
 
         #################   SOCKET AND SYNC    #######################
-        if (!defined('SOCKET')) {
+        if (!defined('SOCKET'))
+        {
             define('SOCKET', false);
-            if (($PHP['SOCKET'] ?? false) && getservbyport(($PHP['SOCKET']['PORT'] ?? 8080), 'tcp')) {
+
+            if (($PHP['SOCKET'] ?? false) && getservbyport(($PHP['SOCKET']['PORT'] ?? 8080), 'tcp'))
+            {
                 $path = ($PHP['SOCKET']['WEBSOCKETD'] ?? false ? CARBON_ROOT . 'Extras' . DS . 'Websocketd.php' : CARBON_ROOT . 'Structure' . DS . 'Server.php');
                 $JSON = json_encode($PHP);
                 Helpers\Fork::safe(function () use ($path, $JSON) {
@@ -63,10 +69,10 @@ class Carbon
             }
         }
 
-        ################# Application.php Paths ########################
-        # Dynamically Find the current url on the server
 
-        if ($PHP['DATABASE'] ?? false) {
+        #################  DATABASE  ########################
+        if ($PHP['DATABASE'] ?? false)
+        {
             define('DB_HOST', $PHP['DATABASE']['DB_HOST'] ?? '');
 
             define('DB_NAME', $PHP['DATABASE']['DB_NAME'] ?? '');
@@ -75,31 +81,36 @@ class Carbon
 
             define('DB_PASS', $PHP['DATABASE']['DB_PASS'] ?? '');
 
-            if ($PHP['DATABASE']['INITIAL_SETUP'] ?? false) Database::setUp(); // can comment out after first run
+            if ($PHP['DATABASE']['INITIAL_SETUP'] ?? false)     // can comment out after first run
+                Database::setUp();
         }
 
-        define('BOOTSTRAP', SERVER_ROOT . $PHP['ROUTES'] ?? false);
+        #################  SITE  ########################
+        if ($PHP['SITE'] ?? false)
+        {
+            define('BOOTSTRAP', SERVER_ROOT . $PHP['SITE']['BOOTSTRAP'] ?? false);
 
-        define('SITE_TITLE', $PHP['SITE_TITLE'] ?? 'CarbonPHP');
+            define('SITE_TITLE', $PHP['SITE']['TITLE'] ?? 'CarbonPHP');
 
-        define('SITE_VERSION', $PHP['SITE_VERSION'] ?? phpversion());                            // printed in the footer
+            define('SITE_VERSION', $PHP['SITE']['VERSION'] ?? phpversion());                            // printed in the footer
 
-        define('SYSTEM_EMAIL', $PHP['SYSTEM_EMAIL'] ?? '');                                      // server email system
+            define('SYSTEM_EMAIL', $PHP['SEND_EMAIL'] ?? '');                                      // server email system
 
-        define('REPLY_EMAIL', $PHP['REPLY_EMAIL'] ?? '');                                        // I give you options :P
+            define('REPLY_EMAIL', $PHP['REPLY_EMAIL'] ?? '');                                        // I give you options :P
 
-        define('MUSTACHE', $PHP['DIRECTORY']['MUSTACHE'] ?? 'Public/Mustache/');
+          }
 
-        define('CONTENT', $PHP['DIRECTORY']['CONTENT'] ?? 'Public/');
+        #######################    GENERAL VIEW      #####################
+        if ($PHP['VIEW'] ?? false)
+        {
+            define('MUSTACHE', $PHP['DIRECTORY']['MUSTACHE'] ?? 'Public/Mustache/');
 
-        define('VENDOR', $PHP['DIRECTORY']['VENDOR'] ?? 'Data/vendor/');
+            define('WRAPPER', $PHP['DIRECTORY']['CONTENT_WRAPPER'] ?? CARBON_ROOT . 'Extras' . DS . 'AdminLTE.php');
 
-        define('CONTENT_WRAPPER', $PHP['DIRECTORY']['CONTENT_WRAPPER'] ?? CARBON_ROOT . 'Extras' . DS . 'AdminLTE.php');
-
-        define('MINIFY_CONTENTS', $PHP['MINIFY_CONTENTS'] ?? false);
+            define('MINIFY', $PHP['MINIFY_CONTENTS'] ?? false);
+        }
 
         #######################   Pjax Ajax Refresh  ######################
-
         // Must return a non empty value
         define('PJAX', (isset($_GET['_pjax']) || (isset($_SERVER["HTTP_X_PJAX"]) && $_SERVER["HTTP_X_PJAX"])));
 
@@ -110,19 +121,22 @@ class Carbon
 
         define('HTTP', !(HTTPS || SOCKET || AJAX));
 
-        if (!($PHP['HTTP'] ?? true) && HTTP)
+        if (HTTP && !($PHP['SITE']['HTTP'] ?? true))
             throw new Error\PublicAlert('Failed to switch to https, please contact the server administrator.');
 
         if (!AJAX) $_POST = [];  // We only allow post requests through ajax/pjax
 
+
         ########################  Session Management ######################
+
         if ($PHP['SESSION']['SAVE_PATH'] ?? false)
             session_save_path($PHP['SESSION']['SAVE_PATH'] ?? '');   // Manually Set where the Users Session Data is stored
 
-        if ($PHP['SESSION'] ?? false)
+        if ($PHP['SESSION'] ?? true)
+        {
             new Session(self::IP_LOOKUP(), ($PHP['SESSION']['STORE_REMOTE'] ?? false)); // session start
-
-        $_SESSION['id'] = array_key_exists('id', $_SESSION ?? []) ? $_SESSION['id'] : false;
+            $_SESSION['id'] = array_key_exists('id', $_SESSION ?? []) ? $_SESSION['id'] : false;
+        }
 
         if (is_callable($PHP['RESTART_CALLBACK'] ?? null))
             Session::updateCallback($PHP['RESTART_CALLBACK']); // Pull From Database, manage socket ip
@@ -140,9 +154,12 @@ class Carbon
         }; // HTTP , AJAX, PJAX.. AKA NOT SOCKET
     }
 
-    static function URI_FILTER()
+    static function URI_FILTER($URL)
     {
         if (pathinfo($_SERVER['REQUEST_URI'] ?? '/', PATHINFO_EXTENSION) == null) {
+            if ($_SERVER['SERVER_NAME'] != $URL)
+                throw new \Error('Invalid Server Name');
+
             define('URL', (isset($_SERVER['SERVER_NAME']) ?
                 ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') || $_SERVER['SERVER_PORT'] == 443 ? 'https://' : 'http://') . $_SERVER['SERVER_NAME'] : null), true);
 

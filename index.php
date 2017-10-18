@@ -14,8 +14,6 @@
 
 const DS = DIRECTORY_SEPARATOR;
 
-define('SERVER_ROOT', dirname(__FILE__) . DS);  // Set our root folder for the application
-
 // These files are required for the app to run. You
 if (false == (include 'Structure/Carbon.php')) {       // Load the autoload() for composer dependencies located in the Services folder
     echo "Internal Server Error";                                             // Composer autoload
@@ -23,76 +21,67 @@ if (false == (include 'Structure/Carbon.php')) {       // Load the autoload() fo
 }
 
 $PHP = [
-    'GENERAL' => [
+    'SITE' => [
         'URL' => 'stats.coach',
 
-        'ROOT' => SERVER_ROOT,
+        'ROOT' => dirname(__FILE__) . DS,
 
         'TIMEZONE' => 'America/Phoenix',
 
-        'SITE_TITLE' => 'Stats Coach',
+        'TITLE' => 'Example',
 
-        'SITE_VERSION' => '1.0.8',
+        'VERSION' => '1.0.8',
 
-        'SYSTEM_EMAIL' => 'Support@Stats.Coach',
+        'SEND_EMAIL' => 'Support@Stats.Coach',
 
         'REPLY_EMAIL' => 'RichardMiles2@my.unt.edu',
 
-        'ALLOW_EXTENSION' => (bool)false,
+        'BOOTSTRAP' => 'Application/Route.php',
 
-        'USER_SUPPORT' => (bool)true                           // currently unsupported
+        'HTTP' => (bool)true,
     ],
-
-    'ROUTES' => 'Application/Route.php',
 
     'SERIALIZE' => [],
 
-    'SESSION' => [],
+    'SESSION' => [
+        'PATH' => (string) '',
 
-    'REPORTING' => [
+        'REMOTE' => (bool) false,
+
+        'CALLBACK' => null,
+    ],
+
+    'ERROR' => [
 
         'LEVEL' => (int)E_ALL | E_STRICT,
 
-        'LOCATION' => (string)"/",
+        'LOCATION' => (string)'',
 
         'STORE' => (bool)true,
 
-        'PRINT' => (bool)true,
+        'SHOW' => (bool)true,
 
         'FULL' => (bool)true
     ],
 
-    'CALLABLE' => [
-        'WRAPPING_REQUIRES_LOGIN' => false,
 
-        'RESTART_CALLBACK' => null
-
+    'SOCKET' => [
+        'TYPE' => 'WEBSOCKETD',
+        'port' => 8080,
+        'KEY' => '',
+        'CERT' => ''
     ],
 
-    'DIRECTORY' => [
-        'MUSTACHE' => '',
-
-        'CONTENT' => 'Public/',
-
-        'CONTENT_WRAPPER' => SERVER_ROOT . 'Public/AdminLTE.php',
-
-        'VENDOR' => 'Data/vendor/',
-
-    ],
 
     'VIEW' => [
-        'MINIFY_CONTENTS' => (bool)false,
+        'WRAPPER' => 'Public/AdminLTE.php',
 
-        'SOCKET' => (bool)false,      // [ 'port' => 8080, ]
+        'MINIFY' => (bool)false,
 
-        'HTTP' => (bool)true,
-
-        'HTTPS' => (bool)true,
+        'MUSTACHE' => '',
     ],
 
-    'DATABASE' => false,                                // Mixed (bool|array)
-
-    /* [
+    'DATABASE' => [
         'DB_HOST' => '',
 
         'DB_NAME' => '',
@@ -103,7 +92,6 @@ $PHP = [
 
         'INITIAL_SETUP' => false,                       // no tables
     ],
-    */
 
     'AUTOLOAD' => [                                     // 'Carbon' => '',
         'View' => '/Application/View',
@@ -118,8 +106,6 @@ $PHP = [
     ]
 
 ];
-
-
 
 Carbon\Carbon::Application($PHP);
 
