@@ -17,14 +17,12 @@ const DS = DIRECTORY_SEPARATOR;
 define('SERVER_ROOT', dirname(__FILE__) . DS);  // Set our root folder for the application
 
 // These files are required for the app to run. You
-if (false == (include 'Data/vendor/autoload.php')) {       // Load the autoload() for composer dependencies located in the Services folder
+if (false == (include 'Structure/Carbon.php')) {       // Load the autoload() for composer dependencies located in the Services folder
     echo "Internal Server Error";                                             // Composer autoload
     exit(3);
 }
 
-
-Carbon\Carbon::Application([
-
+$PHP = [
     'GENERAL' => [
         'URL' => 'stats.coach',
 
@@ -34,40 +32,41 @@ Carbon\Carbon::Application([
 
         'SITE_TITLE' => 'Stats Coach',
 
-        'SITE_VERSION' => 'Beta 1',
+        'SITE_VERSION' => '1.0.8',
 
         'SYSTEM_EMAIL' => 'Support@Stats.Coach',
 
         'REPLY_EMAIL' => 'RichardMiles2@my.unt.edu',
 
-        'ALLOW_EXTENSION' => false,
+        'ALLOW_EXTENSION' => (bool)false,
 
-        'USER_SUPPORT' => true
+        'USER_SUPPORT' => (bool)true                           // currently unsupported
     ],
 
-    'ROUTES' => 'Application/Routes.php',
+    'ROUTES' => 'Application/Route.php',
 
     'SERIALIZE' => [],
 
-    'SESSION' => [
-        'SAVE_PATH' => SERVER_ROOT . 'Data/Sessions',
-        'STORE_REMOTE' => true
-    ],
+    'SESSION' => [],
 
     'REPORTING' => [
-        'LEVEL' => E_ALL | E_STRICT,
 
-        'SAVE_PATH' => SERVER_ROOT . 'Data/Logs/',
+        'LEVEL' => (int)E_ALL | E_STRICT,
 
-        'STORE' => true,
+        'LOCATION' => (string)"/",
 
-        'PRINT' => true,
+        'STORE' => (bool)true,
 
-        'FULL' => true
+        'PRINT' => (bool)true,
+
+        'FULL' => (bool)true
     ],
 
     'CALLABLE' => [
         'WRAPPING_REQUIRES_LOGIN' => false,
+
+        'RESTART_CALLBACK' => null
+
     ],
 
     'DIRECTORY' => [
@@ -75,42 +74,41 @@ Carbon\Carbon::Application([
 
         'CONTENT' => 'Public/',
 
-        'CONTENT_WRAPPER' => 'Public/StatsCoach.php',
-
-        'TEMPLATE' => 'Data/vendor/almasaeed2010/adminlte/',
+        'CONTENT_WRAPPER' => SERVER_ROOT . 'Public/AdminLTE.php',
 
         'VENDOR' => 'Data/vendor/',
 
     ],
 
     'VIEW' => [
-        'MINIFY_CONTENTS' => false,
+        'MINIFY_CONTENTS' => (bool)false,
 
-        'SOCKET' => false,      // [ 'port' => 8080, ]
+        'SOCKET' => (bool)false,      // [ 'port' => 8080, ]
 
-        'HTTP' => true,
+        'HTTP' => (bool)true,
 
-        'HTTPS' => true,
+        'HTTPS' => (bool)true,
     ],
 
-    'DATABASE' => [
-        'DB_HOST' => '127.0.0.1',
+    'DATABASE' => false,                                // Mixed (bool|array)
 
-        'DB_NAME' => 'StatsCoach',
+    /* [
+        'DB_HOST' => '',
 
-        'DB_USER' => 'root',
+        'DB_NAME' => '',
 
-        'DB_PASS' => 'Huskies!99',
+        'DB_USER' => '',
+
+        'DB_PASS' => '',
 
         'INITIAL_SETUP' => false,                       // no tables
     ],
+    */
 
-    'AUTOLOAD' => [
+    'AUTOLOAD' => [                                     // 'Carbon' => '',
         'View' => '/Application/View',
 
         'Tables' => '/Application/Services',
-
-        'Carbon' => '/Application/CarbonPHP',
 
         'Controller' => '/Application/Controller',
 
@@ -119,7 +117,11 @@ Carbon\Carbon::Application([
         'App' => '/Application'
     ]
 
-])();
+];
+
+
+
+Carbon\Carbon::Application($PHP);
 
 
 

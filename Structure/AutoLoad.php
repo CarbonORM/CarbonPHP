@@ -108,7 +108,7 @@ class Autoload
     private function loadClass($class)
     {
         // I Like The Common Case First Rule -- added by Richard Miles
-        if ($this->requireFile( SERVER_ROOT . str_replace( '\\', '/', $class ) . '.php' )) return true;
+        if ($this->requireFile(str_replace( '\\', '/', $class ) . '.php' )) return true;
 
         // the current namespace prefix
         $prefix = $class;
@@ -180,7 +180,7 @@ class Autoload
                 . '.php';
 
             // if the mapped file exists, require it
-            if ($this->requireFile( SERVER_ROOT . $file )) {
+            if ($this->requireFile( $file )) {
                 // yes, we're done
                 return $file;
             }
@@ -190,3 +190,4 @@ class Autoload
     }
 }
 
+return new Autoload();

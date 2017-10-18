@@ -2,7 +2,13 @@
 <?php declare(ticks=1);
 const SOCKET = true;
 
+function fuck(){
+    die; die; die;  // unreachable my ass.
+}
+
+
 const DS = DIRECTORY_SEPARATOR;
+
 
 if (!(($argv[1] ?? false) && ($argv = json_decode(hex2bin($argv[1]), true)) && json_last_error() == JSON_ERROR_NONE))
     print 'This script should not be called directly. See CarbonPHP.com for documentation.' and die;
@@ -13,11 +19,6 @@ if (false == file_exists($psr4 = (($argv['GENERAL']['ROOT'] ?? DS ).($argv['DIRE
 if (false == include $psr4)
     print  "Failed to include $psr4 \n\n\n" and die;
 
-if (false == (include_once "../Structure/Carbon.php"))
-    print 'A file structure error has occurred. Please retry downloading CarbonPHP.' and die;
-
-print 'done';
-die; die;
 
 use Carbon\Carbon;
 

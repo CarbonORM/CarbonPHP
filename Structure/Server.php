@@ -26,6 +26,11 @@ if (false == file_exists($psr4 = ($argv['DIRECTORY']['VENDOR'] ?? DS . 'autoload
 
 include $psr4;
 
+
+
+print 'This is currently in dev and if you got here in execution you are luck' . PHP_EOL;
+die; die; die;
+
 use Carbon\Helpers\Fork;
 
 use \Carbon\Helpers\Pipe;
@@ -85,9 +90,9 @@ class Server
 
         fclose($STDOUT);                    // To Json...
 
-        $STDOUT = Pipe::named(SERVER_ROOT . 'Temp/' . $_SESSION['id'] . '.stdout');   // now echo and print will get sent to this file for buffering
+        $STDOUT = Pipe::named( 'Temp/' . $_SESSION['id'] . '.stdout');   // now echo and print will get sent to this file for buffering
 
-        $UPDATE = Pipe::named(SERVER_ROOT . 'Temp/' . $_SESSION['id'] . '.fifo');     // other users can notify us to update our application through this file
+        $UPDATE = Pipe::named( 'Temp/' . $_SESSION['id'] . '.fifo');     // other users can notify us to update our application through this file
 
         $request = new Request;                     // handles string validation from userIO
 

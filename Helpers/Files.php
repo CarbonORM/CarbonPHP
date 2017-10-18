@@ -62,15 +62,14 @@ class Files
             $count = 0;
 
             do {
-                $relative = $location . $_SESSION['id'] . '_' . time() . '_' . $count++ . '.' . $ext;
-                $targetPath = SERVER_ROOT . $relative;
+                $targetPath = $location . $_SESSION['id'] . '_' . time() . '_' . $count++ . '.' . $ext;
             } while (file_exists( $targetPath ));
 
 
             if (!move_uploaded_file( $fileArray['tmp_name'], $targetPath ))
                 throw new \RuntimeException( 'Failed to move uploaded file.' );
 
-            return $relative;
+            return $targetPath;
 
         } catch (\RuntimeException $e) {
             throw new PublicAlert($e->getMessage());

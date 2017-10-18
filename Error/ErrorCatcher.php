@@ -15,18 +15,17 @@ class ErrorCatcher
     private $fullReports;
     private $storeReport;
 
-    public static function start( string $logLocation, bool $storeReport, bool $printToScreen, bool $fullReports )
+    public function __construct( string $logLocation, bool $storeReport, bool $printToScreen, bool $fullReports )
     {
         ini_set( 'display_errors', 1 );
         ini_set( 'track_errors', 1 );
         error_reporting(E_ALL);
-        $closure = function (...$argv) use ($logLocation, $storeReport, $printToScreen, $fullReports) {
-            $error = new ErrorCatcher();
-            $error->defaultLocation = $logLocation . 'Log_' . ( $_SESSION['id'] ?? '' )  . '_' . time() . '.log';
-            $error->printToScreen = $printToScreen;
-            $error->fullReports = $fullReports;
-            $error->storeReport = $storeReport;
-            $error->generateLog($argv);
+        $this->defaultLocation = $logLocation . 'Log_' . ( $_SESSION['id'] ?? '' )  . '_' . time() . '.log';
+        $this->printToScreen = $printToScreen;
+        $this->fullReports = $fullReports;
+        $this->storeReport = $storeReport;
+        $closure = function (...$argv) {
+            $this->generateLog($argv);
             startApplication('Error/');
             exit(1);
         };

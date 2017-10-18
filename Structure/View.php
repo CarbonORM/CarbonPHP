@@ -81,11 +81,11 @@ class View
                 $this->carryErrors = null;
 
             if (isset($alert)) {
-                if (isset($alert['danger'])) $this->bootstrapAlert($this->alert['danger'], 'danger');
-                if (isset($alert['info']))   $this->bootstrapAlert($this->alert['info'], 'info');
-                if (isset($alert['warning'])) $this->bootstrapAlert($this->alert['warning'], 'warning');
-                if (isset($alert['success'])) $this->bootstrapAlert($this->alert['success'], 'success');
-                $this->alert = null;
+                if (isset($alert['danger']))  $this->bootstrapAlert($alert['danger'], 'danger');
+                if (isset($alert['info']))    $this->bootstrapAlert($alert['info'], 'info');
+                if (isset($alert['warning'])) $this->bootstrapAlert($alert['warning'], 'warning');
+                if (isset($alert['success'])) $this->bootstrapAlert($alert['success'], 'success');
+                $alert = null;
             }
 
             include $file;
@@ -95,10 +95,8 @@ class View
             if (MINIFY_CONTENTS && (@include_once CARBON_ROOT . "Extras/minify.php"))
                 $file = minify_html($file);
 
-
             if ($this->forceStoreContent || (!AJAX && (!$_SESSION['id']))) {
-                # $this->forceStoreContent = false;
-                $this->currentPage = base64_encode($file);
+                $this->currentPage .= base64_encode($file);
                 exit(1);
             } else echo $file;
 
@@ -126,6 +124,8 @@ class View
 
     public function versionControl($file)
     {
+        if (!defined('SERVER_ROOT'))
+            return DS . $file;
         try {
             if (!file_exists($absolute = SERVER_ROOT . $file) || !($time = @filemtime($absolute)))
                 return DS . $file;

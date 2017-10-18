@@ -6,57 +6,10 @@
 
 namespace Carbon;
 
-use Carbon\Error\PublicAlert;
-
 class Carbon
 {
-    static function URI_FILTER()
+    static function Application(array $PHP = []): callable
     {
-        if (pathinfo($_SERVER['REQUEST_URI'] ?? '/', PATHINFO_EXTENSION) == null) {
-            define('URL', (isset($_SERVER['SERVER_NAME']) ?
-                ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') || $_SERVER['SERVER_PORT'] == 443 ? 'https://' : 'http://') . $_SERVER['SERVER_NAME'] : null), true);
-
-            define('URI', ltrim(urldecode(parse_url($_SERVER['REQUEST_URI'] ?? $_SERVER['REQUEST_URI'] = '/', PHP_URL_PATH)), '/'), true);
-
-            define('SITE', url . DS, true);                                    // http(s)://example.com/
-
-            return null;
-        }
-        if ($_SERVER['REQUEST_URI'] == '/robots.txt') {
-            echo include CARBON_ROOT . 'Extras/robots.txt';
-            exit(1);
-        }
-        ob_start();
-        echo inet_pton($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'Go away.' . PHP_EOL;
-        echo "\n\n\t\n" . $_SERVER['REQUEST_URI'];
-        $report = ob_get_clean();
-        $file = fopen(SERVER_ROOT . REPORTS . 'url_' . time() . '.log', "a");
-        fwrite($file, $report);
-        fclose($file);
-        exit(0);    // A request has been made to an invalid file
-    }
-
-    static function IP_LOOKUP()
-    {
-        $ip_keys = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR');
-        foreach ($ip_keys as $key) {
-            if (array_key_exists($key, $_SERVER) === true) {
-                foreach (explode(',', $_SERVER[$key]) as $ip) {
-                    // trim for safety measures
-                    $ip = trim($ip);
-                    // attempt to validate IP
-                    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-                        return $ip;
-                    }
-                }
-            }
-        }
-        return isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : false;
-    }
-
-    static function Application(array $PHP): callable
-    {
-
         error_reporting($PHP['REPORTING']['LEVEL'] ?? E_ALL | E_STRICT);
 
         ini_set('display_errors', $PHP['REPORTING']['PRINT'] ?? 1);
@@ -75,27 +28,31 @@ class Carbon
 
         define('REPORTS', $PHP['REPORTING']['SAVE_PATH'] ?? '/');
 
-        if (!$PHP['GENERAL']['ALLOW_EXTENSION'] ?? false)
+        if (!($PHP['GENERAL']['ALLOW_EXTENSION'] ?? false))
             self::URI_FILTER();
 
         if (($PHP['URL'] ?? false) && URL !== true && $_SERVER['SERVER_NAME'] != $PHP['URL'])
             throw new \Error('Invalid Server Name');
 
-        if ($PHP['AUTOLOAD'] ?? false) {
-            @include_once 'AutoLoad.php';   // in case of
-            $PSR4 = new Autoload;
-            foreach ($PHP['AUTOLOAD'] as $name => $path)
-                $PSR4->addNamespace($name, $path);
+
+        if (!array_key_exists('AUTOLOAD', $PHP) || $PHP['AUTOLOAD']) {
+            $PSR4 = include_once 'AutoLoad.php';   // in case of
+            if (is_array($PHP['AUTOLOAD'] ?? false)) {
+                foreach ($PHP['AUTOLOAD'] as $name => $path)
+                    $PSR4->addNamespace($name, $path);
+            }
+            $PSR4->addNamespace("Carbon", CARBON_ROOT);
+            $PSR4->addNamespace("Carbon", dirname(__FILE__));
         }
 
-        Error\ErrorCatcher::start(
+        Error\ErrorCatcher::getInstance(
             REPORTS,
             $PHP['REPORTING']['STORE'] ?? false,
             $PHP['REPORTING']['PRINT'] ?? false,  // Print to screen
             $PHP['REPORTING']['FULL'] ?? true);     // Catch application errors and lo
 
         // More cache control is given in the .htaccess File
-        Request::setHeader( 'Cache-Control: must-revalidate' );
+        Request::setHeader('Cache-Control: must-revalidate');
 
         #################   SOCKET AND SYNC    #######################
         if (!defined('SOCKET')) {
@@ -158,7 +115,7 @@ class Carbon
         define('HTTP', !(HTTPS || SOCKET || AJAX));
 
         if (!($PHP['HTTP'] ?? true) && HTTP)
-            throw new PublicAlert('Failed to switch to https, please contact the server administrator.');
+            throw new Error\PublicAlert('Failed to switch to https, please contact the server administrator.');
 
         if (!AJAX) $_POST = [];  // We only allow post requests through ajax/pjax
 
@@ -177,13 +134,60 @@ class Carbon
         if (is_array($PHP['SERIALIZE'] ?? false))
             forward_static_call_array(['Carbon\Helpers\Serialized', 'start'], $PHP['SERIALIZE']);    // Pull theses from session, and store on shutdown
 
-        ################  Helpful Application Functions ####################
-        require_once CARBON_ROOT . 'Helpers/Application.php';
+
+        ################  Helpful Global Functions ####################
+        if (file_exists(CARBON_ROOT . 'Helpers/Application.php') && !@include CARBON_ROOT . 'Helpers/Application.php')
+            print "Your instance of CarbonPHP appears corrupt. Please see CarbonPHP.com for Documentation." and die;
 
         return function () {
             startApplication();
         }; // HTTP , AJAX, PJAX.. AKA NOT SOCKET
     }
+
+    static function URI_FILTER()
+    {
+        if (pathinfo($_SERVER['REQUEST_URI'] ?? '/', PATHINFO_EXTENSION) == null) {
+            define('URL', (isset($_SERVER['SERVER_NAME']) ?
+                ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') || $_SERVER['SERVER_PORT'] == 443 ? 'https://' : 'http://') . $_SERVER['SERVER_NAME'] : null), true);
+
+            define('URI', ltrim(urldecode(parse_url($_SERVER['REQUEST_URI'] ?? $_SERVER['REQUEST_URI'] = '/', PHP_URL_PATH)), '/'), true);
+
+            define('SITE', url . DS, true);                                    // http(s)://example.com/
+
+            return null;
+        }
+        if ($_SERVER['REQUEST_URI'] == '/robots.txt') {
+            echo include CARBON_ROOT . 'Extras/robots.txt';
+            exit(1);
+        }
+        ob_start();
+        echo inet_pton($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'Go away.' . PHP_EOL;
+        echo "\n\n\t\n" . $_SERVER['REQUEST_URI'];
+        $report = ob_get_clean();
+        $file = fopen(REPORTS . 'url_' . time() . '.log', "a");
+        fwrite($file, $report);
+        fclose($file);
+        exit(0);    // A request has been made to an invalid file
+    }
+
+    static function IP_LOOKUP()
+    {
+        $ip_keys = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR');
+        foreach ($ip_keys as $key) {
+            if (array_key_exists($key, $_SERVER) === true) {
+                foreach (explode(',', $_SERVER[$key]) as $ip) {
+                    // trim for safety measures
+                    $ip = trim($ip);
+                    // attempt to validate IP
+                    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                        return $ip;
+                    }
+                }
+            }
+        }
+        return isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : false;
+    }
+
 }
 
 
