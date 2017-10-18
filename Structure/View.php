@@ -37,25 +37,25 @@ class View
         #if (AJAX)
         # $closure = AJAX_SIGNED_OUT;
 
-        if (!$closure = WRAPPING_REQUIRES_LOGIN ?: $_SESSION['id']) {
-            if (!($forceWrapper || ($_SESSION['X_PJAX_Version'] != X_PJAX_VERSION)) && AJAX)
+        if (HTTP || HTTPS || $forceWrapper) {
+
+            if (!($forceWrapper || ($_SESSION['X_PJAX_Version'] != X_PJAX_VERSION)) && AJAX) // why was this not documented
                 return null;
-            $_POST = [];
 
             ob_start();
 
-            require(CONTENT_WRAPPER);   // Return the Template
+            require CONTENT_WRAPPER;   // Return the Template
 
-            $template = ob_get_clean();
-
-            echo (MINIFY_CONTENTS && (@include_once CARBON_ROOT . "Extras/minify.php")) ? minify_html($template) : $template;
+            echo (MINIFY_CONTENTS && (@include_once CARBON_ROOT . "Extras/minify.php")) ?
+                minify_html( ob_get_clean() ) : ob_get_clean();
 
 
             if ($forceWrapper):
-                if (!empty($GLOBALS['alert'])) $this->carryErrors = $GLOBALS['alert']; // exit(1);
+                if (!empty($GLOBALS['alert']))
+                    $this->carryErrors = $GLOBALS['alert']; //
                 $this->forceStoreContent = true;
             endif;
-        } elseif (AJAX && is_callable($closure)) $closure();  // This would only be executed it wrapper_requires_login = true and user logged out, this can be helpful for making sure the user doesnt back into a state
+        } // This would only be executed it wrapper_requires_login = true and user logged out, this can be helpful for making sure the user does not back into a state
         // if there it is an ajax request, the user must be logged in, or container must be true
     }
 

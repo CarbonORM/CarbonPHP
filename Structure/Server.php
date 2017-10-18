@@ -1,12 +1,7 @@
+#!/usr/bin/php
 <?php
 
-/**
- *  This file is broken
- *
- *
- *
- */
-
+//
 
 declare(ticks=1);
 
@@ -16,11 +11,27 @@ ob_implicit_flush();
 
 const SOCKET = true;
 
-// include_once 'Carbon.php';    // This will load our configuration + auto-loaders
+if (!extension_loaded('pcntl'))
+    print 'To use CarbonPHP\'s server you must have PCNTL enabled. See CarbonPHP.com for more information.';
+
+if (!(($argv[1] ?? false) && $argv = json_decode($argv[1]) && json_last_error() == JSON_ERROR_NONE))
+    print 'This script should not be called directly. See CarbonPHP.com for documentation.' and die;
+
+if (false == (include_once "../Structure/Carbon.php"))
+    print 'A file structure error has occurred. Please retry downloading CarbonPHP.' and die;
+
+if (false == file_exists($psr4 = ($argv['DIRECTORY']['VENDOR'] ?? DS . 'autoload.php')))
+    print 'You must include a $PHP[\'DIRECTORY\'][\'VENDOR\'] = (string)';
+
+
+include $psr4;
 
 use Carbon\Helpers\Fork;
+
 use \Carbon\Helpers\Pipe;
+
 use \Carbon\Request;
+
 use \Carbon\Helpers\Socket;
 
 # https://www.leaseweb.com/labs/2013/08/catching-signals-in-php-scripts/

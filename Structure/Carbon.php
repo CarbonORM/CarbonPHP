@@ -56,6 +56,10 @@ class Carbon
 
     static function Application(array $PHP): callable
     {
+
+        print 'HELL YA AND DIE' . PHP_EOL and die;
+        print 'HELL YA AND DIE' . PHP_EOL and die;
+
         error_reporting($PHP['REPORTING']['LEVEL'] ?? E_ALL | E_STRICT);
 
         ini_set('display_errors', $PHP['REPORTING']['PRINT'] ?? 1);
@@ -65,7 +69,7 @@ class Carbon
         if (!defined('DS')) define('DS', DIRECTORY_SEPARATOR);
 
         if (!defined('SERVER_ROOT')) {
-            if ($PHP['GENERAL']['ROOT'] ?? false)
+            if (!($PHP['GENERAL']['ROOT'] ?? true))
                 throw new \InvalidArgumentException('A server root must be give. Visit CarbonPHP.com for documentation.');
             define('SERVER_ROOT', $PHP['GENERAL']['ROOT']);
         }
@@ -77,10 +81,8 @@ class Carbon
         if (!$PHP['GENERAL']['ALLOW_EXTENSION'] ?? false)
             self::URI_FILTER();
 
-
         if (($PHP['URL'] ?? false) && URL !== true && $_SERVER['SERVER_NAME'] != $PHP['URL'])
             throw new \Error('Invalid Server Name');
-
 
         if ($PHP['AUTOLOAD'] ?? false) {
             @include_once 'AutoLoad.php';   // in case of
@@ -110,6 +112,10 @@ class Carbon
                 });
             }
         }
+
+        print PHP_EOL . 'hellll ya'. PHP_EOL;
+        die; die;
+
 
         ################# Application.php Paths ########################
         # Dynamically Find the current url on the server
