@@ -91,7 +91,7 @@ class ErrorCatcher
     {
         if(!file_exists(dirname($file)))
             mkdir(dirname($file));
-        $file = fopen($file , "w");
+        $file = fopen(SERVER_ROOT . $file , "w");
         fwrite( $file, $output );
         fclose( $file );
     }

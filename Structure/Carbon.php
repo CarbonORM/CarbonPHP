@@ -22,7 +22,7 @@ class Carbon
 
         if (!defined('SERVER_ROOT')) define('SERVER_ROOT', CARBON_ROOT);
 
-        define('REPORTS', $PHP['REPORTING']['SAVE_PATH'] ?? CARBON_ROOT);
+        define('REPORTS', $PHP['REPORTING']['SAVE_PATH'] ?? SERVER_ROOT);
 
         if (!($PHP['GENERAL']['ALLOW_EXTENSION'] ?? false))
             self::URI_FILTER();
@@ -78,7 +78,7 @@ class Carbon
             if ($PHP['DATABASE']['INITIAL_SETUP'] ?? false) Database::setUp(); // can comment out after first run
         }
 
-        define('BOOTSTRAP', $PHP['ROUTES'] ?? false);
+        define('BOOTSTRAP', SERVER_ROOT . $PHP['ROUTES'] ?? false);
 
         define('SITE_TITLE', $PHP['SITE_TITLE'] ?? 'CarbonPHP');
 
