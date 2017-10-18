@@ -57,9 +57,6 @@ class Carbon
     static function Application(array $PHP): callable
     {
 
-        print 'HELL YA AND DIE' . PHP_EOL and die;
-        print 'HELL YA AND DIE' . PHP_EOL and die;
-
         error_reporting($PHP['REPORTING']['LEVEL'] ?? E_ALL | E_STRICT);
 
         ini_set('display_errors', $PHP['REPORTING']['PRINT'] ?? 1);
