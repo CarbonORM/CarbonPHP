@@ -73,7 +73,7 @@ class Carbon
 
         define('CARBON_ROOT', dirname(dirname(__FILE__)) . DS);
 
-        define('REPORTS', $PHP['REPORTING']['LOCATION'] ?? '/');
+        define('REPORTS', $PHP['REPORTING']['SAVE_PATH'] ?? '/');
 
         if (!$PHP['GENERAL']['ALLOW_EXTENSION'] ?? false)
             self::URI_FILTER();
@@ -109,10 +109,6 @@ class Carbon
                 });
             }
         }
-
-        print PHP_EOL . 'hellll ya'. PHP_EOL;
-        die; die;
-
 
         ################# Application.php Paths ########################
         # Dynamically Find the current url on the server

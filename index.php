@@ -57,7 +57,7 @@ Carbon\Carbon::Application([
     'REPORTING' => [
         'LEVEL' => E_ALL | E_STRICT,
 
-        'LOCATION' => 'Data/Logs/Error.txt',
+        'SAVE_PATH' => SERVER_ROOT . 'Data/Logs/',
 
         'STORE' => true,
 

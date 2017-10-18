@@ -22,7 +22,7 @@ class ErrorCatcher
         error_reporting(E_ALL);
         $closure = function (...$argv) use ($logLocation, $storeReport, $printToScreen, $fullReports) {
             $error = new ErrorCatcher();
-            $error->defaultLocation = SERVER_ROOT . $logLocation . 'Log_' . ( $_SESSION['id'] ?? '' )  . '_' . time() . '.log';
+            $error->defaultLocation = $logLocation . 'Log_' . ( $_SESSION['id'] ?? '' )  . '_' . time() . '.log';
             $error->printToScreen = $printToScreen;
             $error->fullReports = $fullReports;
             $error->storeReport = $storeReport;
@@ -56,11 +56,8 @@ class ErrorCatcher
         if ($this->printToScreen)
             print "<pre>$output</pre>";    // dev
 
-        // Write the contents to server
-        $file = (defined('ERROR_LOG' ) ? ERROR_LOG : $this->defaultLocation);
-
         if ($this->storeReport)
-        $this->storeFile(REPORT, $output);
+            $this->storeFile($this->defaultLocation, $output);
 
 
     }

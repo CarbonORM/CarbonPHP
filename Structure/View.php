@@ -65,19 +65,9 @@ class View
         call_user_func_array([$self, 'content'], $argv);
     }
 
-    public function content(...$argv): void // Must be called through Singleton, must be private
+    public function content($file): void // Must be called through Singleton, must be private
     {
-
-        switch (count($argv)) {
-            case 2:
-                $file =  CONTENT. strtolower($argv[0]) . DS . strtolower($argv[1]) . '.php';   //($this->user->user_id ? '.tpl.php' : '.php'));
-                break;
-            case 1:
-                $file = @file_exists($argv[0]) ? $argv[0] : CONTENT_ROOT . $argv[0];
-                break;
-            default:
-                throw new \InvalidArgumentException();
-        }
+        global $alert;  // If a public alert is set it will be here.
 
         if (file_exists($file)) {
             if (SOCKET) {
@@ -90,11 +80,11 @@ class View
             if (empty($GLOBALS['alert']) && !empty($GLOBALS['alert'] = $this->carryErrors))
                 $this->carryErrors = null;
 
-            if (isset($this->alert)) {
-                if (isset($this->alert['danger'])) $this->bootstrapAlert($this->alert['danger'], 'danger');
-                if (isset($this->alert['info']))   $this->bootstrapAlert($this->alert['info'], 'info');
-                if (isset($this->alert['warning'])) $this->bootstrapAlert($this->alert['warning'], 'warning');
-                if (isset($this->alert['success'])) $this->bootstrapAlert($this->alert['success'], 'success');
+            if (isset($alert)) {
+                if (isset($alert['danger'])) $this->bootstrapAlert($this->alert['danger'], 'danger');
+                if (isset($alert['info']))   $this->bootstrapAlert($this->alert['info'], 'info');
+                if (isset($alert['warning'])) $this->bootstrapAlert($this->alert['warning'], 'warning');
+                if (isset($alert['success'])) $this->bootstrapAlert($this->alert['success'], 'success');
                 $this->alert = null;
             }
 
