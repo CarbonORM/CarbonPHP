@@ -23,5 +23,28 @@
         </SOURCES>
       </library>
     </orderEntry>
+    <orderEntry type="module-library">
+      <library name="PHP" type="php">
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/vendor/almasaeed2010/adminlte" />
+          <root url="file://$MODULE_DIR$/vendor/bower-asset/jquery" />
+          <root url="file://$MODULE_DIR$/vendor/bower-asset/jquery-backstretch" />
+          <root url="file://$MODULE_DIR$/vendor/bower-asset/jquery-form" />
+          <root url="file://$MODULE_DIR$/vendor/bower-asset/jquery-pjax" />
+          <root url="file://$MODULE_DIR$/vendor/bower-asset/mustache.js" />
+          <root url="file://$MODULE_DIR$/vendor/composer" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$MODULE_DIR$/vendor/almasaeed2010/adminlte" />
+          <root url="file://$MODULE_DIR$/vendor/bower-asset/jquery" />
+          <root url="file://$MODULE_DIR$/vendor/bower-asset/jquery-backstretch" />
+          <root url="file://$MODULE_DIR$/vendor/bower-asset/jquery-form" />
+          <root url="file://$MODULE_DIR$/vendor/bower-asset/jquery-pjax" />
+          <root url="file://$MODULE_DIR$/vendor/bower-asset/mustache.js" />
+          <root url="file://$MODULE_DIR$/vendor/composer" />
+        </SOURCES>
+      </library>
+    </orderEntry>
   </component>
 </module>

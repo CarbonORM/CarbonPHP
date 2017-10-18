@@ -70,7 +70,7 @@ class View
 
         switch (count($argv)) {
             case 2:
-                $file = CONTENT_ROOT . strtolower($argv[0]) . DS . strtolower($argv[1]) . '.php';   //($this->user->user_id ? '.tpl.php' : '.php'));
+                $file =  CONTENT. strtolower($argv[0]) . DS . strtolower($argv[1]) . '.php';   //($this->user->user_id ? '.tpl.php' : '.php'));
                 break;
             case 1:
                 $file = @file_exists($argv[0]) ? $argv[0] : CONTENT_ROOT . $argv[0];
@@ -106,7 +106,7 @@ class View
                 $file = minify_html($file);
 
 
-            if ($this->forceStoreContent || (!AJAX && (!WRAPPING_REQUIRES_LOGIN ?: $_SESSION['id']))) {
+            if ($this->forceStoreContent || (!AJAX && (!$_SESSION['id']))) {
                 # $this->forceStoreContent = false;
                 $this->currentPage = base64_encode($file);
                 exit(1);
