@@ -18,15 +18,11 @@ class Carbon
 
         if (!defined('DS')) define('DS', DIRECTORY_SEPARATOR);
 
-        if (!defined('SERVER_ROOT')) {
-            if (!($PHP['GENERAL']['ROOT'] ?? true))
-                throw new \InvalidArgumentException('A server root must be give. Visit CarbonPHP.com for documentation.');
-            define('SERVER_ROOT', $PHP['GENERAL']['ROOT']);
-        }
-
         define('CARBON_ROOT', dirname(dirname(__FILE__)) . DS);
 
-        define('REPORTS', $PHP['REPORTING']['SAVE_PATH'] ?? '/');
+        if (!defined('SERVER_ROOT')) define('SERVER_ROOT', CARBON_ROOT);
+
+        define('REPORTS', $PHP['REPORTING']['SAVE_PATH'] ?? SERVER_ROOT);
 
         if (!($PHP['GENERAL']['ALLOW_EXTENSION'] ?? false))
             self::URI_FILTER();
@@ -82,7 +78,7 @@ class Carbon
             if ($PHP['DATABASE']['INITIAL_SETUP'] ?? false) Database::setUp(); // can comment out after first run
         }
 
-        define('BOOTSTRAP', $PHP['ROUTES'] ?? false);
+        define('BOOTSTRAP', SERVER_ROOT . $PHP['ROUTES'] ?? false);
 
         define('SITE_TITLE', $PHP['SITE_TITLE'] ?? 'CarbonPHP');
 
