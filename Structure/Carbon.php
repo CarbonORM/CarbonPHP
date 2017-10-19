@@ -42,8 +42,8 @@ class Carbon
         #####################   ERRORS    #######################
         Error\ErrorCatcher::getInstance(
             REPORTS,
-            $PHP['ERROR']['STORE'] ?? false,
-            $PHP['ERROR']['SHOW'] ?? false,  // Print to screen
+            $PHP['ERROR']['STORE'] ?? false,    // Store on server
+            $PHP['ERROR']['SHOW'] ?? false,     // Print to screen
             $PHP['ERROR']['FULL'] ?? true);     // Catch application errors and lo
 
         // More cache control is given in the .htaccess File
