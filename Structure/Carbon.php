@@ -11,7 +11,7 @@ class Carbon
 
         ini_set('display_errors', $PHP['ERROR']['SHOW'] ?? 1);
 
-        date_default_timezone_set($PHP['SITE']['TIMEZONE'] ?? 'America/Phoenix');
+        date_default_timezone_set($PHP['SITE']['TIMEZONE'] ?? '');
 
         if (!defined('DS'))
             define('DS', DIRECTORY_SEPARATOR);
@@ -99,9 +99,9 @@ class Carbon
         #######################    GENERAL VIEW      #####################
         if ($PHP['VIEW'] ?? false)
         {
-            define('MUSTACHE', $PHP['VIEW']['MUSTACHE'] ?? 'Public/Mustache/');
+            define('MUSTACHE', $PHP['VIEW']['MUSTACHE'] ?? '');
 
-            define('WRAPPER', $PHP['VIEW']['WRAPPER'] ?? CARBON_ROOT . 'Extras' . DS . 'AdminLTE.php');
+            define('WRAPPER', SERVER_ROOT . $PHP['VIEW']['WRAPPER'] ?? '');
 
             define('MINIFY', $PHP['VIEW']['MINIFY'] ?? false);
         }
