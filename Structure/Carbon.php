@@ -1,9 +1,5 @@
 <?php
 
-
-// http://blackbe.lt/advanced-method-to-obtain-the-client-ip-in-php/
-
-
 namespace Carbon;
 
 class Carbon
@@ -182,6 +178,9 @@ class Carbon
         fclose($file);
         exit(0);    // A request has been made to an invalid file
     }
+
+
+    // http://blackbe.lt/advanced-method-to-obtain-the-client-ip-in-php/
 
     static function IP_LOOKUP()
     {
