@@ -50,6 +50,10 @@ class Fork
 
     public static function safe(callable $closure = null)
     {
+        if (!extension_loaded('pcntl')){
+            if ($closure != null) $closure();
+            return 0;
+        }
         if ($pid = pcntl_fork())    // return child id for parent and 0 for child
             return 0;     // Parent
         elseif ($pid < 0) throw new \Exception('Failed to fork');
@@ -60,7 +64,7 @@ class Fork
         // fclose(STDIN); -- unset
         register_shutdown_function(function () { session_abort(); posix_kill(posix_getpid(), SIGHUP); exit(1); });
 
-        return 1;
+        exit;
     }
 
 }

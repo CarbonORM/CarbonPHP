@@ -99,11 +99,11 @@ class Carbon
         #######################    GENERAL VIEW      #####################
         if ($PHP['VIEW'] ?? false)
         {
-            define('MUSTACHE', $PHP['DIRECTORY']['MUSTACHE'] ?? 'Public/Mustache/');
+            define('MUSTACHE', $PHP['VIEW']['MUSTACHE'] ?? 'Public/Mustache/');
 
-            define('WRAPPER', $PHP['DIRECTORY']['CONTENT_WRAPPER'] ?? CARBON_ROOT . 'Extras' . DS . 'AdminLTE.php');
+            define('WRAPPER', $PHP['VIEW']['WRAPPER'] ?? CARBON_ROOT . 'Extras' . DS . 'AdminLTE.php');
 
-            define('MINIFY', $PHP['MINIFY_CONTENTS'] ?? false);
+            define('MINIFY', $PHP['VIEW']['MINIFY'] ?? false);
         }
 
         #######################   Pjax Ajax Refresh  ######################
