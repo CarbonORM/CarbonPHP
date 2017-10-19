@@ -84,26 +84,26 @@ class Carbon
         #################  SITE  ########################
         if ($PHP['SITE'] ?? false)
         {
-            define('BOOTSTRAP', SERVER_ROOT . $PHP['SITE']['BOOTSTRAP'] ?? false);
+            define('BOOTSTRAP', SERVER_ROOT . $PHP['SITE']['BOOTSTRAP'] ?? false);          // Routing file
 
-            define('SITE_TITLE', $PHP['SITE']['TITLE'] ?? 'CarbonPHP');
+            define('SITE_TITLE', $PHP['SITE']['TITLE'] ?? 'CarbonPHP');                     // Carbon doesnt use
 
-            define('SITE_VERSION', $PHP['SITE']['VERSION'] ?? phpversion());                            // printed in the footer
+            define('SITE_VERSION', $PHP['SITE']['VERSION'] ?? phpversion());                // printed in the footer
 
-            define('SYSTEM_EMAIL', $PHP['SEND_EMAIL'] ?? '');                                      // server email system
+            define('SYSTEM_EMAIL', $PHP['SEND_EMAIL'] ?? '');                               // server email system
 
-            define('REPLY_EMAIL', $PHP['REPLY_EMAIL'] ?? '');                                        // I give you options :P
+            define('REPLY_EMAIL', $PHP['REPLY_EMAIL'] ?? '');                               // I give you options :P
 
           }
 
         #######################    GENERAL VIEW      #####################
         if ($PHP['VIEW'] ?? false)
         {
-            define('MUSTACHE', $PHP['VIEW']['MUSTACHE'] ?? '');
+            define('MUSTACHE', $PHP['VIEW']['MUSTACHE'] ?? '');                     // mustache loaded in js
 
-            define('WRAPPER', SERVER_ROOT . $PHP['VIEW']['WRAPPER'] ?? '');
+            define('WRAPPER', SERVER_ROOT . $PHP['VIEW']['WRAPPER'] ?? '');         // Wrapper
 
-            define('MINIFY', $PHP['VIEW']['MINIFY'] ?? false);
+            define('MINIFY', $PHP['VIEW']['MINIFY'] ?? false);                      // attempt to remove all white space from html
         }
 
         #######################   Pjax Ajax Refresh  ######################

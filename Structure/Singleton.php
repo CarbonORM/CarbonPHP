@@ -7,7 +7,7 @@ use Carbon\Helpers\Serialized;
 trait Singleton
 {
     public $storage;                // A Temporary variable for 'quick data'
-    protected $methods = array();   // Anonymous Function Declaration
+    protected $methods = array();   // Anonymous Function Declarations
 
     public static function __callStatic($methodName, $arguments = array())
     {

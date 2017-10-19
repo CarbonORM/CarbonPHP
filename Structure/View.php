@@ -2,11 +2,6 @@
 
 namespace Carbon;
 
-/* The function View is auto loaded on the initial view class call.
-    the view class will only point to the 'current-master' template
-            Which in this case is the class AdminLTE
-*/
-
 class View
 {
     use Singleton;
@@ -101,9 +96,6 @@ class View
             } else echo $file;
 
         } else throw new \Exception("$file does not exist");  // TODO - throw 404 error
-
-
-
     }
 
     /**
@@ -115,7 +107,6 @@ class View
      *                starting with slash).
      * @return mixed  file to be loaded.
      */
-
 
     public function bootstrapAlert($message, $level): void
     {

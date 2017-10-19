@@ -11,14 +11,6 @@ namespace Carbon\Helpers;
 
 class Fork
 {
-    public function __construct(callable $lambda, $argv = null)
-    {
-        if (self::safe()) {
-            call_user_func_array($lambda, $argv);
-            exit(1);
-        }
-    }
-
     private static function build()
     {
         define('FORK', TRUE);
@@ -26,6 +18,9 @@ class Fork
 
     public static function become_daemon()          // do not use this unless you know what you are doing
     {
+        if (!extension_loaded('pcntl'))
+            print 'You must have the PCNTL extencion installed. See Carbon PHP for documentation.' and die;
+
         if ($pid = pcntl_fork()) exit(1);     // Parent
         elseif ($pid < 0) throw new \Exception('Failed to fork');
         self::build();
