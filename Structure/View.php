@@ -46,7 +46,7 @@ class View
 
             require WRAPPER;   // Return the Template
 
-            echo (MINIFY_CONTENTS && (@include_once CARBON_ROOT . "Extras/minify.php")) ?
+            echo (MINIFY && (@include_once CARBON_ROOT . "Extras/minify.php")) ?
                 minify_html( ob_get_clean() ) : ob_get_clean();
 
 
