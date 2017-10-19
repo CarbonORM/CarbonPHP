@@ -102,6 +102,7 @@ class View
 
         } else throw new \Exception("$file does not exist");  // TODO - throw 404 error
 
+
     }
 
     /**
