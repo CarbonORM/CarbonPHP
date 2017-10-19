@@ -92,7 +92,7 @@ class View
 
             $file = ob_get_clean();
 
-            if (MINIFY_CONTENTS && (@include_once CARBON_ROOT . "Extras/minify.php"))
+            if (MINIFY && (@include_once CARBON_ROOT . "Extras/minify.php"))
                 $file = minify_html($file);
 
             if ($this->forceStoreContent || (!AJAX && (!$_SESSION['id']))) {
