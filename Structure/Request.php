@@ -62,8 +62,7 @@ class Request
 
 
     ########################### Request Data ###############################
-    private
-    function request($argv, &$array, $removeHTML = false): self
+    private function request($argv, &$array, $removeHTML = false): self
     {
         $this->storage = null;
         $closure = function ($key) use ($removeHTML, &$array) {
@@ -76,33 +75,28 @@ class Request
         return $this;
     }
 
-    public
-    function get(...$argv): self
+    public function get(...$argv): self
     {
         return $this->request( $argv, $_GET );
     }
 
-    public
-    function post(...$argv): self
+    public function post(...$argv): self
     {
         return $this->request( $argv, $_POST );
     }
 
-    public
-    function cookie(...$argv): self
+    public function cookie(...$argv): self
     {
         return $this->request( $argv, $_COOKIE, true );
     }
 
-    public
-    function files(...$argv): self
+    public function files(...$argv): self
     {
         return $this->request( $argv, $_FILES );
     }
 
     ########################### Store Files   #############################
-    public
-    function storeFiles($location = 'Data/Uploads/Temp/')
+    public function storeFiles($location = 'Data/Uploads/Temp/')
     {
         $storagePath = array();
         array_walk( $this->storage, function ($file) use ($location, &$storagePath) {
@@ -112,8 +106,7 @@ class Request
     }
 
     ##########################  Storage Shifting  #########################
-    public
-    function base64_decode(): self
+    public function base64_decode(): self
     {
         $array = [];
         $lambda = function ($key) use (&$array) {
@@ -127,14 +120,12 @@ class Request
         return $this;
     }
 
-    public
-    function has($key): bool
+    public function has($key): bool
     {
         return array_key_exists( $key, $this->storage );
     }
 
-    public
-    function except(...$argv): self
+    public function except(...$argv): self
     {
         array_walk( $argv, function ($key) {
             if (array_key_exists( $key, $this->storage )) unset( $this->storage[$key] );
@@ -143,16 +134,14 @@ class Request
     }
 
     ########################## Validating    ##############################
-    public
-    function is($type): bool
+    public function is($type): bool
     {
         $type = 'is_' . strtolower( $type );
         if (function_exists( $type )) return $type( $this->storage );
         throw new \InvalidArgumentException( 'no valid function is_$type' );
     }
 
-    public
-    function regex($condition)
+    public function regex($condition)
     {
         if (empty( $this->storage )) return false;
 
@@ -166,8 +155,7 @@ class Request
             $regex( $this->storage ));
     }   // Match a pcal regex expression
 
-    public
-    function noHTML($complete = false)
+    public function noHTML($complete = false)
     {   // Disallow: $, ", ', <, >
         if ($this->storage == null) return false;
         $array = [];
@@ -183,8 +171,7 @@ class Request
             : $this);
     }
 
-    public
-    function int(int $min = null, int $max = null)   // inclusive max and min
+    public function int(int $min = null, int $max = null)   // inclusive max and min
     {
         if ($this->storage == null) return false;
 
@@ -201,14 +188,12 @@ class Request
             false);
     }
 
-    public
-    function date()
+    public function date()
     {
         return $this->regex( '#^\d{1,2}\/\d{1,2}\/\d{4}$#' );
     }
 
-    public
-    function float()
+    public function float()
     {
         if ($this->storage == null) return false;
 
@@ -222,8 +207,7 @@ class Request
             false);
     }
 
-    public
-    function alnum()
+    public function alnum()
     {
         if ($this->storage == null) return false;
 
@@ -237,33 +221,28 @@ class Request
             $alphaNumeric( $this->storage ));
     }           // One word alpha numeric
 
-    public
-    function text()
+    public function text()
     {   // Multiple word alpha numeric
         return $this->regex( '/([^\w])+/' );
     }
 
-    public
-    function word()
+    public function word()
     {   // One word alpha
         return $this->regex( '/^[a-zA-Z]+$/' );
     }
 
-    public
-    function phone()
+    public function phone()
     {
         return (preg_match( '#((\(\d{3}\) ?)|(\d{3}-))?\d{3}-\d{4}#', $this->storage[0] ) ? $this->storage[0] : false);
     }
 
-    public
-    function email()
+    public function email()
     {
         if (empty( $this->storage )) return false;
         return filter_var( array_shift( $this->storage ), FILTER_VALIDATE_EMAIL, FILTER_NULL_ON_FAILURE );
     }
 
-    public
-    function website()
+    public function website()
     {
         $array = [];
         $lambda = function ($key) use (&$array) {
@@ -274,8 +253,7 @@ class Request
             $lambda( $this->storage ));
     }
 
-    public
-    function value()
+    public function value()
     {
         return count( $this->storage ) == 1 ? array_shift( $this->storage ) : $this->storage;
     }

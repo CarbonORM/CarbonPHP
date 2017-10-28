@@ -2,6 +2,8 @@
 
 namespace Carbon;
 
+use Carbon\Error\PublicAlert;
+
 class View
 {
     use Singleton;
@@ -41,10 +43,6 @@ class View
 
             require WRAPPER;   // Return the Template
 
-            echo (MINIFY && (@include_once CARBON_ROOT . "Extras/minify.php")) ?
-                minify_html( ob_get_clean() ) : ob_get_clean();
-
-
             if ($forceWrapper):
                 if (!empty($GLOBALS['alert']))
                     $this->carryErrors = $GLOBALS['alert']; //
@@ -83,12 +81,12 @@ class View
                 $alert = null;
             }
 
-            include $file;
+            if (!file_exists($file))
+                $this->bootstrapAlert('The file requested could not be found.', 'danger');
+            else
+                include $file;
 
             $file = ob_get_clean();
-
-            if (MINIFY && (@include_once CARBON_ROOT . "Extras/minify.php"))
-                $file = minify_html($file);
 
             if ($this->forceStoreContent || (!AJAX && (!$_SESSION['id']))) {
                 $this->currentPage .= base64_encode($file);

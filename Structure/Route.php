@@ -8,6 +8,8 @@
 
 namespace Carbon;
 
+use Psr\Log\InvalidArgumentException;
+
 abstract class Route
 {
     use Singleton;                // We use the add method function to bind the closure to the class
@@ -17,16 +19,19 @@ abstract class Route
     protected $matched;             // a bool
     protected $structure;           // The MVC pattern is currently passes
 
-    public abstract function defaultRoute($force);
+    public abstract function defaultRoute($force = false);
 
     public function __construct(callable $structure = null)
     {
         $this->structure = $structure;
         $this->uri = explode( '/', ltrim( urldecode( parse_url( trim( preg_replace( '/\s+/', ' ', $_SERVER['REQUEST_URI'] ) ), PHP_URL_PATH ) ), ' /' ) );
         $this->uriLength =  $uriLength = sizeof( $this->uri );
-        $this->matched = false;
-        if (empty($this->uri[0]))
-            $this->defaultRoute(true);
+        if (empty($this->uri[0])) {
+            if (SOCKET) throw new InvalidArgumentException('URL MUST BE SET IN SOCKETS');
+            $this->matched = true;
+            $this->defaultRoute(true) and exit(1);
+        } else
+            $this->matched = false;
     }
 
     public function structure(callable $struct): Route
@@ -40,7 +45,7 @@ abstract class Route
     {
         if ($this->matched || SOCKET) return null;
         $this->matched = true;
-        $this->defaultRoute(true);
+        $this->defaultRoute(true) and exit(1);
     }
 
     public function closure(callable $closure = null) : self
