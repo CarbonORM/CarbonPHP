@@ -25,7 +25,8 @@ class Carbon
 
         define('REPORTS', $PHP['ERROR']['LOCATION'] ?? SERVER_ROOT);
 
-        self::URI_FILTER($PHP['SITE']['URL']);
+        if ($PHP['SITE']['URL'] ?? false)
+            self::URI_FILTER($PHP['SITE']['URL']);
 
         #####################   AUTOLOAD    #######################
         if (!array_key_exists('AUTOLOAD', $PHP) || $PHP['AUTOLOAD'])
