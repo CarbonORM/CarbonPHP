@@ -11,7 +11,7 @@ class Carbon
 
         ini_set('display_errors', $PHP['ERROR']['SHOW'] ?? 1);
 
-        date_default_timezone_set($PHP['SITE']['TIMEZONE'] ?? '');
+        date_default_timezone_set($PHP['SITE']['TIMEZONE'] ?? 'America/Chicago');
 
         if (!defined('DS'))
             define('DS', DIRECTORY_SEPARATOR);
