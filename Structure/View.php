@@ -41,6 +41,9 @@ class View
 
             ob_start();
 
+            if (!defined('WRAPPER')|| !file_exists(WRAPPER))
+                print 'A valid wrapper must be provided. Please see CarbonPHP.com for documentation.' and die;
+
             require WRAPPER;   // Return the Template
 
             if ($forceWrapper):

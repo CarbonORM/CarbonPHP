@@ -2,6 +2,8 @@
 
 namespace Carbon;
 
+use Carbon\Error\PublicAlert;
+
 class Carbon
 {
     static function Application(array $PHP = []): callable
@@ -119,7 +121,7 @@ class Carbon
         define('HTTP', !(HTTPS || SOCKET || AJAX));
 
         if (HTTP && !($PHP['SITE']['HTTP'] ?? true))
-            throw new Error\PublicAlert('Failed to switch to https, please contact the server administrator.');
+            print 'Failed to switch to https, please contact the server administrator.' and die;
 
         if (!AJAX) $_POST = [];  // We only allow post requests through ajax/pjax
 
@@ -155,7 +157,7 @@ class Carbon
     {
         if (pathinfo($_SERVER['REQUEST_URI'] ?? '/', PATHINFO_EXTENSION) == null) {
             if ($_SERVER['SERVER_NAME'] != $URL)
-                throw new \Error('Invalid Server Name');
+                print 'Invalid Server Name! See CarbonPHP.com for documentation.' and die;
 
             define('URL', (isset($_SERVER['SERVER_NAME']) ?
                 ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') || $_SERVER['SERVER_PORT'] == 443 ? 'https://' : 'http://') . $_SERVER['SERVER_NAME'] : null), true);
@@ -166,10 +168,9 @@ class Carbon
 
             return null;
         }
-        if ($_SERVER['REQUEST_URI'] == '/robots.txt') {
-            echo include CARBON_ROOT . 'Extras/robots.txt';
-            exit(1);
-        }
+        if ($_SERVER['REQUEST_URI'] == '/robots.txt')
+            echo include CARBON_ROOT . 'Extras/robots.txt' and exit(1);
+
         ob_start();
         echo inet_pton($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'Go away.' . PHP_EOL;
         echo "\n\n\t\n" . $_SERVER['REQUEST_URI'];

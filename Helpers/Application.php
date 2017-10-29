@@ -74,7 +74,7 @@ namespace {                                     // Carbon
         $view = $view ?: View::getInstance(false);     // Send the wrapper? only run once. (singleton)
 
         // This could cache or send
-        $view->content("$class/$method.php");  // but will exit(1);
+        $view->content("Public/$class/$method.php");  // but will exit(1);
     }
 
     // Sends Json array to browser

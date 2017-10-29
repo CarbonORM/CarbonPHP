@@ -34,8 +34,8 @@ php -r "if (hash_file('SHA384', 'composer-setup.php') === '544e09ee996cdf60ece38
 php composer-setup.php
 php -r "unlink('composer-setup.php');"
 php -f composer.phar global require "fxp/composer-asset-plugin:~1.3"
-php -f composer.phar require "richardtmiles/carbonphp:dev-master"
-php -f composer.phar require "almasaeed2010/adminlte:>=2.4"
+php -f composer.phar require --dev --no-suggest "richardtmiles/carbonphp:dev-master"
+php -f composer.phar require --dev --prefer-stable "almasaeed2010/adminlte:>=2.4"
 php -f composer.phar require "bower-asset/jquery-backstretch:^2.1.16"
 
 # Move files to Root
