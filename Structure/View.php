@@ -118,12 +118,11 @@ class View
 
     public function versionControl($file)
     {
-        if (!defined('SERVER_ROOT'))
-            return DS . $file;
+        if (!defined('SERVER_ROOT')) return DS . $file;
         try {
             if (!file_exists($absolute = SERVER_ROOT . $file) || !($time = @filemtime($absolute)))
                 return DS . $file;
-            return preg_replace('{\\.([^./]+)$}', "." . $time . ".\$1", SITE . $file);
+            return preg_replace('{\\.([^./]+)$}', "." . $time . ".\$1",  DS . $file);
         } catch (\ErrorException $e) {
             return DS . $file;
         }
