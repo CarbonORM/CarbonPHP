@@ -21,8 +21,8 @@ class View
             $this->__construct();                       // and reprocess the dependencies, wrapper is a global closure
         elseif (!empty($this->currentPage)):          // Implies AJAX && a page has already been rendered and stored
             echo base64_decode($this->currentPage);   // The ajax page will be 64encoded before we store on the server
-            $this->currentPage = false;
-            self::clearInstance();                      // Remove stored information on the server and delete its self reference
+            $this->currentPage = '';
+            #self::clearInstance();                      // Remove stored information on the server and delete its self reference
             exit(1);                                  // This is for the second inner AJAX request on first page load
         endif;                                          // We're requesting our second page through ajax ie not initial page request
     }
@@ -92,7 +92,7 @@ class View
             $file = ob_get_clean();
 
             if ($this->forceStoreContent || (!AJAX && (!$_SESSION['id']))) {
-                $this->currentPage .= base64_encode($file);
+                $this->currentPage = base64_encode($file);
                 exit(1);
             } else echo $file;
 
