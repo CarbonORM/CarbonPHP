@@ -19,7 +19,7 @@ abstract class Route
     protected $matched;             // a bool
     protected $structure;           // The MVC pattern is currently passes
 
-    public abstract function defaultRoute($force = false);
+    public abstract function defaultRoute();
 
     public function __construct(callable $structure = null)
     {
@@ -29,7 +29,7 @@ abstract class Route
         if (empty($this->uri[0])) {
             if (SOCKET) throw new InvalidArgumentException('URL MUST BE SET IN SOCKETS');
             $this->matched = true;
-            $this->defaultRoute(true) and exit(1);
+            $this->defaultRoute() and exit(1);
         } else
             $this->matched = false;
     }
@@ -45,7 +45,8 @@ abstract class Route
     {
         if ($this->matched || SOCKET) return null;
         $this->matched = true;
-        $this->defaultRoute(true) and exit(1);
+        if (SOCKET) return;
+        $this->defaultRoute() and exit(1);
     }
 
     public function closure(callable $closure = null) : self

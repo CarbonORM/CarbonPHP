@@ -53,7 +53,7 @@ $PHP = [
     'ERROR' => [
         'LEVEL' => (int)E_ALL | E_STRICT,
 
-        'LOCATION' => (string)'',
+        'LOCATION' => (string) SERVER_ROOT . 'Data/Logs/',
 
         'STORE' => (bool)true,
 
@@ -65,7 +65,7 @@ $PHP = [
     'VIEW' => [
         'WRAPPER' => 'Public/Wrapper.php',
 
-        'MUSTACHE' => '',
+        'MUSTACHE' => 'Public/Mustache/',
     ],
 
     'DATABASE' => [
@@ -93,7 +93,6 @@ $PHP = [
         'App' => '/Application'
     ]
 ];
-
 
 Carbon\Carbon::Application($PHP)();
 

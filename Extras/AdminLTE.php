@@ -191,6 +191,7 @@ const TEMPLATE =  COMPOSER . 'almasaeed2010' . DS . 'adminlte' . DS;
             };
             "undefined" != typeof exports ? exports.loadCSS = b : a.loadCSS = b
         }("undefined" != typeof global ? global : this);
+
         /*! loadCSS rel=preload polyfill. [c]2017 Filament Group, Inc. MIT License */
         !function (a) {
             if (a.loadCSS) {
@@ -502,7 +503,7 @@ const TEMPLATE =  COMPOSER . 'almasaeed2010' . DS . 'adminlte' . DS;
     // JQuery
     //components/jquery/jquery.min.js
     // bower_components/jquery/dist/jquery.min.js
-    loadJS("<?= $this->versionControl( TEMPLATE . 'bower_components/jquery/dist/jquery.min.js' ) ?>", function () {
+    loadJS("<?= $this->versionControl( TEMPLATE . 'bower_components/jquery/dist/Jquery.min.js' ) ?>", function () {
         // A better closest function
         (function ($) {
             $.fn.closest_descendant = function (filter) {

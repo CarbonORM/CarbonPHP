@@ -115,7 +115,6 @@ class View
         echo "<script>bootstrapAlert(\"$message\", '$level')</script>";
     }
 
-
     public function versionControl($file)
     {
         if (!defined('SERVER_ROOT')) return DS . $file;
@@ -132,7 +131,6 @@ class View
     {
         return (isset($GLOBALS[$variable]) ? $GLOBALS[$variable] : null);
     }
-
 
 }
 
