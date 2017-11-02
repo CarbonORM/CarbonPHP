@@ -1,16 +1,9 @@
 <?php
-/**
- * Created by IntelliJ IDEA.
- * User: richardmiles
- * Date: 10/15/17
- * Time: 5:59 PM
- */
 
 use Carbon\Route;
 use Carbon\View;
 use Carbon\Request;
 use Carbon\Error\PublicAlert;
-
 
 const CONTENT = SERVER_ROOT . 'Public' . DS;
 

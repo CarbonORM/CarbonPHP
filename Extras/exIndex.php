@@ -1,15 +1,4 @@
 <?php
-/**
- * Created by IntelliJ IDEA.
- * User: Miles
- * Date: 9/3/17
- * Time: 11:16 PM
- *
- * Let it be known the basic commands of IntelliJ
- *
- * Jump to function definition:     (Command + click)
- *
- */
 
 define( 'DS', DIRECTORY_SEPARATOR);
 
@@ -21,7 +10,7 @@ if (false == (include SERVER_ROOT . 'Data/vendor/autoload.php')) {       // Load
     exit(3);
 }
 
-Carbon\Carbon::Application(include 'Application/Configs/Config.php')();
+Carbon\Carbon::Application(include 'Application/Configs/Options.php')();
 
 
 

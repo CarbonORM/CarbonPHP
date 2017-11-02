@@ -40,8 +40,10 @@ php -f composer.phar require "bower-asset/jquery-backstretch:^2.1.16"
 
 # Move files to Root
 cd vendor/richardtmiles/carbonphp/Extras
-cp exRoutes.php ${DIR}/Application/Routes.php
+cp exRoutes.php  ${DIR}/Application/Routes.php
+cp exOptions.php ${DIR}/Application/Configs/Options.php
+cp exIndex.php   ${DIR}/index.php
+
 cp AdminLTE.php ${DIR}/Public/Wrapper.php
-cp exIndex.php ${DIR}/index.php
 cp robots.txt ${DIR}/Data/robots.txt
 cp .htaccess ${DIR}/.htaccess
