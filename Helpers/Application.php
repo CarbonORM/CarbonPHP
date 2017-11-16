@@ -42,6 +42,7 @@ namespace {                                     // Carbon
         return function (...$argv) use ($lambda) {
             try {
                 call_user_func_array($lambda, $argv);
+            } catch (PublicAlert $e) {                      // These is handled to the view
             } catch (InvalidArgumentException $e) {
                 ErrorCatcher::generateErrorLog($e);
                 PublicAlert::danger('A fatal has occurred. We have logged this issue and we will investigate soon. Please contact us if problems persist.');
@@ -74,7 +75,7 @@ namespace {                                     // Carbon
         $view = $view ?: View::getInstance(false);     // Send the wrapper? only run once. (singleton)
 
         // This could cache or send
-        $view->content("Public/$class/$method.php");  // but will exit(1);
+        $view->content(SERVER_ROOT . "Public/$class/$method.php");  // but will exit(1);
     }
 
     // Sends Json array to browser

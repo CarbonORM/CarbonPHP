@@ -30,6 +30,12 @@ class Carbon
         if ($PHP['SITE']['URL'] ?? false)
             self::URI_FILTER($PHP['SITE']['URL']);
 
+        ####################  View ! Dynamic  ##################### ! = not
+
+        if (($PHP['SESSION']['CALLBACK'] ?? false) && ($PHP['SITE']['BOOTSTRAP'] ?? false))
+            View::getInstance();
+
+
         #####################   AUTOLOAD    #######################
         if (!array_key_exists('AUTOLOAD', $PHP) || $PHP['AUTOLOAD'])
         {
@@ -47,7 +53,7 @@ class Carbon
             REPORTS,
             $PHP['ERROR']['STORE'] ?? false,    // Store on server
             $PHP['ERROR']['SHOW'] ?? false,     // Print to screen
-            $PHP['ERROR']['FULL'] ?? true);     // Catch application errors and lo
+            $PHP['ERROR']['FULL'] ?? true);     // Catch application errors and alerts
 
         // More cache control is given in the .htaccess File
         Request::setHeader('Cache-Control: must-revalidate');
@@ -128,21 +134,21 @@ class Carbon
 
         ########################  Session Management ######################
 
-        if ($PHP['SESSION']['SAVE_PATH'] ?? false)
-            session_save_path($PHP['SESSION']['SAVE_PATH'] ?? '');   // Manually Set where the Users Session Data is stored
-
         if ($PHP['SESSION'] ?? true)
         {
+            if ($PHP['SESSION']['PATH'] ?? false)
+                session_save_path($PHP['SESSION']['PATH'] ?? '');   // Manually Set where the Users Session Data is stored
+
             new Session(self::IP_LOOKUP(), ($PHP['SESSION']['STORE_REMOTE'] ?? false)); // session start
             $_SESSION['id'] = array_key_exists('id', $_SESSION ?? []) ? $_SESSION['id'] : false;
-        }
 
-        if (is_callable($PHP['RESTART_CALLBACK'] ?? null))
-            Session::updateCallback($PHP['RESTART_CALLBACK']); // Pull From Database, manage socket ip
+            if (is_callable($PHP['SESSION']['CALLBACK'] ?? null))
+                Session::updateCallback($PHP['SESSION']['CALLBACK']); // Pull From Database, manage socket ip
+
+        }
 
         if (is_array($PHP['SERIALIZE'] ?? false))
             forward_static_call_array(['Carbon\Helpers\Serialized', 'start'], $PHP['SERIALIZE']);    // Pull theses from session, and store on shutdown
-
 
         ################  Helpful Global Functions ####################
         if (file_exists(CARBON_ROOT . 'Helpers/Application.php') && !@include CARBON_ROOT . 'Helpers/Application.php')
