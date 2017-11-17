@@ -6,8 +6,11 @@ try {
 
     echo "STARTING MAJOR CARBON SYSTEMS" . PHP_EOL;
 
-
-    $sql = <<<END
+    try {
+        $db->exec("SELECT 1 FROM carbon LIMIT 1;");
+        print "Table `carbon` already exists\n\n";
+    } catch (PDOException $e) {
+        $sql = <<<END
 CREATE TABLE carbon
 (
 	entity_pk VARCHAR(225) NOT NULL
@@ -25,10 +28,16 @@ CREATE INDEX entity_entity_entity_pk_fk
 	ON carbon (entity_fk)
 ;
 END;
+        $db->exec($sql);
+        print "Table `carbon` Created\n\n";
+    }
 
-    $db->exec($sql);
 
-    $sql = <<<END
+    try {
+        $db->exec("SELECT 1 FROM user LIMIT 1;");
+        print "Table `user` already exists\n\n";
+    } catch (PDOException $e) {
+        $sql = <<<END
 CREATE TABLE user
 (
 	user_id VARCHAR(225) NOT NULL
@@ -68,32 +77,42 @@ CREATE TABLE user
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
 ;  
 END;
-    $db->exec($sql);
+        $db->exec($sql);
 
-    $sql = <<<END
-create table carbon_session
+    }
+
+    try {
+        $db->exec("SELECT 1 FROM carbon_session LIMIT 1;");
+        print "Table `carbon_session` already exists\n\n";
+    } catch (PDOException $e) {
+        $sql = <<<END
+CREATE TABLE carbon_session
 (
-	user_id varchar(225) not null
-		primary key,
-	user_ip varchar(255) null,
-	session_id varchar(255) not null,
-	session_expires datetime not null,
-	session_data text null,
-	user_online_status tinyint(1) default '1' null,
-	constraint user_session_user_user_id_fk
-		foreign key (user_id) references user (user_id)
-			on update cascade on delete cascade
+	user_id VARCHAR(225) NOT NULL
+		PRIMARY KEY,
+	user_ip VARCHAR(255) NULL,
+	session_id VARCHAR(255) NOT NULL,
+	session_expires DATETIME NOT NULL,
+	session_data TEXT NULL,
+	user_online_status TINYINT(1) DEFAULT '1' NULL,
+	CONSTRAINT user_session_user_user_id_fk
+		FOREIGN KEY (user_id) REFERENCES user (user_id)
+			ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
 ;
 
 END;
+        $db->exec($sql);
+        echo 'USER ENTITY SYSTEM COMPLETE' . PHP_EOL;
+    }
 
-    $db->exec($sql);
 
-    echo 'USER ENTITY SYSTEM COMPLETE' . PHP_EOL;
-    echo 'INI COMMENTS' . PHP_EOL;
-
-    $sql = <<<END
+    try {
+        $db->exec("SELECT 1 FROM carbon_comments LIMIT 1;");
+        print "Table `carbon_comments` already exists\n\n";
+    } catch (PDOException $e) {
+        echo 'INI COMMENTS' . PHP_EOL;
+        $sql = <<<END
 CREATE TABLE carbon_comments
 (
 	parent_id VARCHAR(225) NOT NULL,
@@ -121,12 +140,16 @@ CREATE INDEX entity_comments_entity_user_pk_fk
 	ON carbon_comments (user_id)
 ;
 END;
+        $db->exec($sql);
+        print "DONE.......\n";
+    }
 
-    $db->exec($sql);
-
-    echo 'DONE....... INI LOCATION' . PHP_EOL;
-
-    $sql = <<<END
+    try {
+        $db->exec("SELECT 1 FROM carbon_location LIMIT 1;");
+        print "Table `carbon_location` already exists\n\n";
+    } catch (PDOException $e) {
+        print ' INI `carbon_location`' . PHP_EOL;
+        $sql = <<<END
 CREATE TABLE carbon_location
 (
 	entity_id VARCHAR(225) NOT NULL
@@ -145,14 +168,19 @@ CREATE TABLE carbon_location
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
 ;
 
-
 END;
 
-    $db->exec($sql);
+        $db->exec($sql);
+        echo 'DONE.......' . PHP_EOL;
+    }
 
-    echo 'DONE....... INI PHOTOS' . PHP_EOL;
 
-    $sql = <<<END
+    try {
+        $db->exec("SELECT 1 FROM carbon_photos LIMIT 1;");
+        print "Table `carbon_photos` already exists\n\n";
+    } catch (PDOException $e) {
+        print 'INI PHOTOS' . PHP_EOL;
+        $sql = <<<END
 CREATE TABLE carbon_photos
 (
 	parent_id VARCHAR(225) NOT NULL
@@ -179,69 +207,198 @@ CREATE INDEX photos_entity_user_pk_fk
 	ON carbon_photos (user_id)
 ;
 
-
 END;
 
-    $db->exec($sql);
+        $db->exec($sql);
+        echo "\n DONE.......\n";
+    }
 
-    echo "\n DONE....... INI TAG SYSTEMS" . PHP_EOL;
 
-    $sql = <<<END
-create table carbon_tags
+
+    try {
+        $db->exec("SELECT 1 FROM carbon_tags LIMIT 1;");
+        print "Table `carbon_tags` already exists\n\n";
+    } catch (PDOException $e) {
+        print 'INI TAG SYSTEMS  `carbon_tags`' . PHP_EOL;
+        $sql = <<<END
+CREATE TABLE carbon_tags
 (
-	tag_id int auto_increment
-		primary key,
-	tag_description text not null,
-	tag_name text null,
-	constraint tag_tag_id_uindex
-		unique (tag_id)
+	tag_id INT AUTO_INCREMENT
+		PRIMARY KEY,
+	tag_description TEXT NOT NULL,
+	tag_name TEXT NULL,
+	CONSTRAINT tag_tag_id_uindex
+		UNIQUE (tag_id)
 )  ENGINE=InnoDB DEFAULT CHARSET=latin1
 ;
 
 
 END;
 
-    $db->exec($sql);
+        $db->exec($sql);
+        print 'DONE.......' . PHP_EOL;
 
-    $sql = <<<END
-create table carbon_tag
+    }
+
+
+    try {
+        $db->exec("SELECT 1 FROM carbon_tag LIMIT 1;");
+        print "Table `carbon_tag` already exists\n\n";
+    } catch (PDOException $e) {
+        $sql = <<<END
+CREATE TABLE carbon_tag
 (
-	entity_id varchar(225) not null,
-	user_id varchar(225) null,
-	tag_id int not null,
-	creation_date int(20) not null,
-	constraint entity_tag_entity_entity_pk_fk
-		foreign key (entity_id) references carbon (entity_pk)
-			on update cascade on delete cascade,
-	constraint entity_tag_entity_user_pk_fk
-		foreign key (user_id) references carbon (entity_pk)
-			on update cascade on delete set null,
-	constraint entity_tag_tag_tag_id_fk
-		foreign key (tag_id) references carbon_tags (tag_id)
-			on update cascade on delete cascade
+	entity_id VARCHAR(225) NOT NULL,
+	user_id VARCHAR(225) NULL,
+	tag_id INT NOT NULL,
+	creation_date INT(20) NOT NULL,
+	CONSTRAINT entity_tag_entity_entity_pk_fk
+		FOREIGN KEY (entity_id) REFERENCES carbon (entity_pk)
+			ON UPDATE CASCADE ON DELETE CASCADE,
+	CONSTRAINT entity_tag_entity_user_pk_fk
+		FOREIGN KEY (user_id) REFERENCES carbon (entity_pk)
+			ON UPDATE CASCADE ON DELETE SET NULL,
+	CONSTRAINT entity_tag_tag_tag_id_fk
+		FOREIGN KEY (tag_id) REFERENCES carbon_tags (tag_id)
+			ON UPDATE CASCADE ON DELETE CASCADE
 )  ENGINE=InnoDB DEFAULT CHARSET=latin1
 ;
 
-create index entity_tag_entity_entity_pk_fk
-	on carbon_tag (entity_id)
+CREATE INDEX entity_tag_entity_entity_pk_fk
+	ON carbon_tag (entity_id)
 ;
 
-create index entity_tag_entity_user_pk_fk
-	on carbon_tag (user_id)
+CREATE INDEX entity_tag_entity_user_pk_fk
+	ON carbon_tag (user_id)
 ;
 
-create index entity_tag_tag_tag_id_fk
-	on carbon_tag (tag_id)
+CREATE INDEX entity_tag_tag_tag_id_fk
+	ON carbon_tag (tag_id)
 ;
 
 
 END;
 
-    $db->exec($sql);
+        $db->exec($sql);
 
-    echo "W00T!" . PHP_EOL;
+        echo "W00T!" . PHP_EOL;
+    }
 
-    echo "Rocking!" . PHP_EOL;
+    try {
+        $db->exec("SELECT 1 FROM user_followers LIMIT 1;");
+        print "Table `user_followers` already exists\n\n";
+    } catch (PDOException $e) {
+        print 'build Followers system' . PHP_EOL;
+        $sql = <<<END
+CREATE TABLE user_followers
+(
+	follows_user_id VARCHAR(225) NOT NULL
+		PRIMARY KEY,
+	user_id VARCHAR(225) NOT NULL,
+	CONSTRAINT followers_entity_entity_follows_pk_fk
+		FOREIGN KEY (follows_user_id) REFERENCES carbon (entity_pk)
+			ON UPDATE CASCADE ON DELETE CASCADE,
+	CONSTRAINT followers_entity_entity_pk_fk
+		FOREIGN KEY (user_id) REFERENCES carbon (entity_pk)
+			ON UPDATE CASCADE ON DELETE CASCADE
+)  ENGINE=InnoDB DEFAULT CHARSET=latin1
+;
+
+CREATE INDEX followers_entity_entity_pk_fk
+	ON user_followers (user_id)
+;
+
+
+
+END;
+
+        $db->exec($sql);
+        print 'Done .......\n';
+
+    }
+
+
+    try {
+        $db->exec("SELECT 1 FROM user_messages LIMIT 1;");
+        print "Table `user_messages` already exists\n\n";
+    } catch (PDOException $e) {
+        print 'Build Messaging system `user_messages`' . PHP_EOL;
+        $sql = <<<END
+CREATE TABLE user_messages
+(
+	message_id VARCHAR(225) NULL,
+	to_user_id VARCHAR(225) NULL,
+	message TEXT NOT NULL,
+	message_read TINYINT(1) DEFAULT '0' NULL,
+	CONSTRAINT messages_entity_entity_pk_fk
+		FOREIGN KEY (message_id) REFERENCES carbon (entity_pk)
+			ON UPDATE CASCADE ON DELETE CASCADE,
+	CONSTRAINT messages_entity_user_from_pk_fk
+		FOREIGN KEY (to_user_id) REFERENCES carbon (entity_pk)
+			ON UPDATE CASCADE ON DELETE CASCADE
+)  ENGINE=InnoDB DEFAULT CHARSET=latin1
+;
+
+CREATE INDEX messages_entity_entity_pk_fk
+	ON user_messages (message_id)
+;
+
+CREATE INDEX messages_entity_user_from_pk_fk
+	ON user_messages (to_user_id)
+;
+
+
+END;
+
+        $db->exec($sql);
+
+    }
+
+    try {
+        $db->exec("SELECT 1 FROM user_messages LIMIT 1;");
+        print "Table `user_messages` already exists\n\n";
+    } catch (PDOException $e) {
+        print 'Build Tasks System' . PHP_EOL;
+        $sql = <<<END
+CREATE TABLE user_tasks
+(
+	task_id VARCHAR(225) NOT NULL,
+	user_id VARCHAR(225) NOT NULL COMMENT 'This is the user the task is being assigned to'
+		PRIMARY KEY,
+	from_id VARCHAR(225) NULL COMMENT 'Keeping this colum so forgen key will remove task if user deleted',
+	task_name VARCHAR(40) NOT NULL,
+	task_description VARCHAR(225) NULL,
+	percent_complete INT DEFAULT '0' NULL,
+	start_date DATETIME NULL,
+	end_date DATETIME NULL,
+	CONSTRAINT tasks_entity_entity_pk_fk
+		FOREIGN KEY (task_id) REFERENCES carbon (entity_pk)
+			ON UPDATE CASCADE ON DELETE CASCADE,
+	CONSTRAINT user_tasks_entity_user_pk_fk
+		FOREIGN KEY (user_id) REFERENCES carbon (entity_pk)
+			ON UPDATE CASCADE ON DELETE CASCADE,
+	CONSTRAINT user_tasks_entity_entity_pk_fk
+		FOREIGN KEY (from_id) REFERENCES carbon (entity_pk)
+			ON UPDATE CASCADE ON DELETE CASCADE
+)  ENGINE=InnoDB DEFAULT CHARSET=latin1
+;
+
+CREATE INDEX user_tasks_entity_entity_pk_fk
+	ON user_tasks (from_id)
+;
+
+CREATE INDEX user_tasks_entity_task_pk_fk
+	ON user_tasks (task_id)
+;
+
+END;
+
+        $db->exec($sql);
+
+        echo "Done!" . PHP_EOL;
+    }
+
+    echo "Rocking! Setup and rebuild complete." . PHP_EOL;
 
 } catch (PDOException $e) {
 
@@ -250,6 +407,6 @@ END;
 
 }
 
-if (file_exists($file = SERVER_ROOT . 'Application/Configs/buildDatabase.php')) include_once $file;
+if (file_exists($file = SERVER_ROOT . 'Application / Configs / buildDatabase . php')) include_once $file;
 
 exit(1);

@@ -6,27 +6,37 @@ DIR=`pwd`
 # brew install php70 --with-homebrew-curl
 
 # Setup File Structure
-mkdir Application
-mkdir Public
-mkdir Tests
-mkdir Data
+
+createFile() {
+if [ -d $1 ]; then
+  printf "dir $1 exists.\n"
+else
+  mkdir $1
+  printf "Created $1 created.\n"
+fi
+}
+
+createFile Application
+createFile Public
+createFile Tests
+createFile Data
 
 cd Application
-mkdir Configs
-mkdir Controller
-mkdir Model
-mkdir Services
-mkdir View
+createFile Configs
+createFile Controller
+createFile Model
+createFile Services
+createFile View
 
 cd ${DIR}
 cd Data
-mkdir Cache
-mkdir Indexes
-mkdir Logs
-mkdir Session
-mkdir Temp
-mkdir Uploads
-mkdir Views
+createFile Cache
+createFile Indexes
+createFile Logs
+createFile Session
+createFile Temp
+createFile Uploads
+createFile Views
 
 # Install Composer and CarbonPHP
 php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
