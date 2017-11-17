@@ -29,14 +29,9 @@ class View
 
     public function __construct($forceWrapper = false)   // Send the content wrapper
     {
-        if (SOCKET) return null;    // we don't need html -> socket
+        if (HTTP || HTTPS || $forceWrapper) {            // The user logging out should force content wrapper refresh
 
-        #if (AJAX)
-        # $closure = AJAX_SIGNED_OUT;
-
-        if (HTTP || HTTPS || $forceWrapper) {
-
-            if (!($forceWrapper || ($_SESSION['X_PJAX_Version'] != X_PJAX_VERSION)) && AJAX) // why was this not documented
+            if (!($forceWrapper || ($_SESSION['X_PJAX_Version'] != X_PJAX_VERSION)) && AJAX)
                 return null;
 
             ob_start();
@@ -44,15 +39,14 @@ class View
             if (!defined('WRAPPER')|| !file_exists(WRAPPER))
                 print 'A valid wrapper must be provided. Please see CarbonPHP.com for documentation.' and die;
 
-            require WRAPPER;   // Return the Template
+            require WRAPPER;   // Return the Template, this file should have your user logic in it
 
             if ($forceWrapper):
                 if (!empty($GLOBALS['alert']))
                     $this->carryErrors = $GLOBALS['alert']; //
                 $this->forceStoreContent = true;
             endif;
-        } // This would only be executed it wrapper_requires_login = true and user logged out, this can be helpful for making sure the user does not back into a state
-        // if there it is an ajax request, the user must be logged in, or container must be true
+        }
     }
 
     public static function contents(...$argv)

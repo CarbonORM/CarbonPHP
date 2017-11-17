@@ -34,7 +34,6 @@ class Session implements \SessionHandlerInterface
         if (SOCKET)
             $this->verifySocket($ip);
 
-
         if (false == @session_start())
             throw new \Exception('Session Failed');
 

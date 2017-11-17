@@ -30,11 +30,6 @@ class Carbon
         if ($PHP['SITE']['URL'] ?? false)
             self::URI_FILTER($PHP['SITE']['URL']);
 
-        ####################  View ! Dynamic  ##################### ! = not
-
-        if (($PHP['SESSION']['CALLBACK'] ?? false) && ($PHP['SITE']['BOOTSTRAP'] ?? false))
-            View::getInstance();
-
 
         #####################   AUTOLOAD    #######################
         if (!array_key_exists('AUTOLOAD', $PHP) || $PHP['AUTOLOAD'])
@@ -86,8 +81,8 @@ class Carbon
 
             define('DB_PASS', $PHP['DATABASE']['DB_PASS'] ?? '');
 
-            if ($PHP['DATABASE']['INITIAL_SETUP'] ?? false)     // can comment out after first run
-                Database::setUp();
+            if ($PHP['DATABASE']['INITIAL_SETUP'] ?? false)  Database::setUp();   // could comment out after first run
+
         }
 
         #################  SITE  ########################
@@ -103,16 +98,6 @@ class Carbon
 
             define('REPLY_EMAIL', $PHP['REPLY_EMAIL'] ?? '');                               // I give you options :P
 
-          }
-
-        #######################    GENERAL VIEW      #####################
-        if ($PHP['VIEW'] ?? false)
-        {
-            define('MUSTACHE', $PHP['VIEW']['MUSTACHE'] ?? '');                     // mustache loaded in js
-
-            define('WRAPPER', SERVER_ROOT . $PHP['VIEW']['WRAPPER'] ?? '');         // Wrapper
-
-            define('MINIFY', $PHP['VIEW']['MINIFY'] ?? false);                      // attempt to remove all white space from html
         }
 
         #######################   Pjax Ajax Refresh  ######################
@@ -132,6 +117,20 @@ class Carbon
         if (!AJAX) $_POST = [];  // We only allow post requests through ajax/pjax
 
 
+        #######################   VIEW             #####################
+        if ($PHP['VIEW'] ?? false)
+        {
+            define('MUSTACHE', $PHP['VIEW']['MUSTACHE'] ?? '');                     // mustache loaded in js
+
+            define('WRAPPER', SERVER_ROOT . $PHP['VIEW']['WRAPPER'] ?? '');         // Wrapper
+
+            define('MINIFY', $PHP['VIEW']['MINIFY'] ?? false);
+
+            if (($PHP['SESSION']['CALLBACK'] ?? false)
+                && !SOCKET && WRAPPER)
+                View::getInstance();// attempt to remove all white space from html
+        }
+
         ########################  Session Management ######################
 
         if ($PHP['SESSION'] ?? true)
@@ -144,7 +143,6 @@ class Carbon
 
             if (is_callable($PHP['SESSION']['CALLBACK'] ?? null))
                 Session::updateCallback($PHP['SESSION']['CALLBACK']); // Pull From Database, manage socket ip
-
         }
 
         if (is_array($PHP['SERIALIZE'] ?? false))
@@ -181,7 +179,9 @@ class Carbon
         echo inet_pton($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'Go away.' . PHP_EOL;
         echo "\n\n\t\n" . $_SERVER['REQUEST_URI'];
         $report = ob_get_clean();
-        $file = fopen(REPORTS . 'url_' . time() . '.log', "a");
+        if (!is_dir(REPORTS . 'Request'))
+            mkdir(REPORTS . 'Request');
+        $file = fopen(REPORTS . 'Request/url_' . time() . '.log', "a");
         fwrite($file, $report);
         fclose($file);
         exit(0);    // A request has been made to an invalid file
