@@ -8,6 +8,7 @@
 
 namespace Carbon;
 
+use Carbon\Helpers\Bcrypt;
 use PDO;
 use stdClass;
 use Carbon\Helpers\Globals;
@@ -82,7 +83,7 @@ static function new_entity($tag_id, $dependant)
             $stmt = false;
         }
     } while (!$stmt);
-    $db->prepare('INSERT INTO entity_tag (entity_id, user_id, tag_id, creation_date) VALUES (?,?,?,?)')->execute([$stmt, (!empty($_SESSION['id']) ? $_SESSION['id'] : $stmt), $tag_id, time()]);
+    $db->prepare('INSERT INTO carbon_tag (entity_id, user_id, tag_id, creation_date) VALUES (?,?,?,?)')->execute([$stmt, (!empty($_SESSION['id']) ? $_SESSION['id'] : $stmt), $tag_id, time()]);
     self::$entityTransactionKeys[] = $stmt;
     return $stmt;
 }
@@ -142,21 +143,5 @@ static protected function remove_entity($id)
         $array = $stmt->fetchAll();
         foreach ($array as $key => $value) $object->$key = $value;
     }
-
-
-    static function buildDatabase()
-    {
-        $sql = <<<END
-        CREATE TABLE `entity` (
-    `entity_pk` VARCHAR(225) NOT NULL,
-  `entity_fk` VARCHAR(225) DEFAULT NULL,
-  PRIMARY KEY (`entity_pk`),
-  UNIQUE KEY `entity_entity_pk_uindex` (`entity_pk`),
-  KEY `entity_entity_entity_pk_fk` (`entity_fk`),
-  CONSTRAINT `entity_entity_entity_pk_fk` FOREIGN KEY (`entity_fk`) REFERENCES carbon (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-END;
-    }
-
 
 }

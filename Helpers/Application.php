@@ -43,6 +43,9 @@ namespace {                                     // Carbon
             try {
                 call_user_func_array($lambda, $argv);
             } catch (PublicAlert $e) {                      // These is handled to the view
+            } catch (PDOException $e) {
+                ErrorCatcher::generateErrorLog($e);
+                PublicAlert::danger('A fatal has occurred. We have logged this issue and we will investigate soon. Please contact us if problems persist.');
             } catch (InvalidArgumentException $e) {
                 ErrorCatcher::generateErrorLog($e);
                 PublicAlert::danger('A fatal has occurred. We have logged this issue and we will investigate soon. Please contact us if problems persist.');
@@ -151,6 +154,7 @@ namespace {                                     // Carbon
 
         $report = ob_get_clean();
         // Output to file
+        if (!is_dir(REPORTS . 'Dumped/')) mkdir(REPORTS . 'Dumped/');
         $file = fopen(REPORTS . 'Sort_' . time() . '.log', "a");
         fwrite($file, $report);
         fclose($file);

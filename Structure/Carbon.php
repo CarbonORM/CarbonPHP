@@ -2,8 +2,6 @@
 
 namespace Carbon;
 
-use Carbon\Error\PublicAlert;
-
 class Carbon
 {
     static function Application(array $PHP = []): callable
