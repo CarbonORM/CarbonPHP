@@ -222,8 +222,8 @@ class Request
     }           // One word alpha numeric
 
     public function text()
-    {   // Multiple word alpha numeric
-        return $this->regex( '/([^\w])+/' );
+    {
+        return $this->regex( '/([\w\s])+/' );   // Multiple word alpha numeric
     }
 
     public function word()

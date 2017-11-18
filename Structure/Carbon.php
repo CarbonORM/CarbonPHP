@@ -126,9 +126,6 @@ class Carbon
 
             define('MINIFY', $PHP['VIEW']['MINIFY'] ?? false);
 
-            if (($PHP['SESSION']['CALLBACK'] ?? false)
-                && !SOCKET && WRAPPER)
-                View::getInstance();// attempt to remove all white space from html
         }
 
         ########################  Session Management ######################
@@ -187,9 +184,7 @@ class Carbon
         exit(0);    // A request has been made to an invalid file
     }
 
-
     // http://blackbe.lt/advanced-method-to-obtain-the-client-ip-in-php/
-
     static function IP_LOOKUP()
     {
         $ip_keys = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR');

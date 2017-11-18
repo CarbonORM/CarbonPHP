@@ -4,11 +4,12 @@ try {
     $db = \Carbon\Database::getConnection();
 
 
-    echo "STARTING MAJOR CARBON SYSTEMS" . PHP_EOL;
+    echo "<html><head><body><h1>STARTING MAJOR CARBON SYSTEMS</h1>" . PHP_EOL;
 
     try {
-        $db->exec("SELECT 1 FROM carbon LIMIT 1;");
-        print "Table `carbon` already exists\n\n";
+        $stmt = $db->prepare("SELECT 1 FROM carbon LIMIT 1;");
+        $stmt->execute();
+        print "<br>Table `carbon` already exists";
     } catch (PDOException $e) {
         $sql = <<<END
 CREATE TABLE carbon
@@ -29,13 +30,13 @@ CREATE INDEX entity_entity_entity_pk_fk
 ;
 END;
         $db->exec($sql);
-        print "Table `carbon` Created\n\n";
+        print "<br>Table `carbon` Created";
     }
 
-
     try {
-        $db->exec("SELECT 1 FROM user LIMIT 1;");
-        print "Table `user` already exists\n\n";
+        $stmt = $db->prepare("SELECT 1 FROM user LIMIT 1;");
+        $stmt->execute();
+        print "<br>Table `user` already exists";
     } catch (PDOException $e) {
         $sql = <<<END
 CREATE TABLE user
@@ -78,12 +79,13 @@ CREATE TABLE user
 ;  
 END;
         $db->exec($sql);
-
+        print "<br>Table `user` Created";
     }
 
     try {
-        $db->exec("SELECT 1 FROM carbon_session LIMIT 1;");
-        print "Table `carbon_session` already exists\n\n";
+        $stmt = $db->prepare("SELECT 1 FROM carbon_session LIMIT 1;");
+        $stmt->execute();
+        print "<br>Table `carbon_session` already exists";
     } catch (PDOException $e) {
         $sql = <<<END
 CREATE TABLE carbon_session
@@ -100,18 +102,17 @@ CREATE TABLE carbon_session
 			ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
 ;
-
 END;
         $db->exec($sql);
-        echo 'USER ENTITY SYSTEM COMPLETE' . PHP_EOL;
+        print "<br>Table `carbon_session` Created";
     }
 
 
     try {
-        $db->exec("SELECT 1 FROM carbon_comments LIMIT 1;");
-        print "Table `carbon_comments` already exists\n\n";
+        $stmt = $db->prepare("SELECT 1 FROM carbon_comments LIMIT 1;");
+        $stmt->execute();
+        print "<br>Table `carbon_comments` already exists";
     } catch (PDOException $e) {
-        echo 'INI COMMENTS' . PHP_EOL;
         $sql = <<<END
 CREATE TABLE carbon_comments
 (
@@ -141,14 +142,14 @@ CREATE INDEX entity_comments_entity_user_pk_fk
 ;
 END;
         $db->exec($sql);
-        print "DONE.......\n";
+        print "<br>Table `carbon_comments` Created";
     }
 
     try {
-        $db->exec("SELECT 1 FROM carbon_location LIMIT 1;");
-        print "Table `carbon_location` already exists\n\n";
+        $stmt = $db->prepare("SELECT 1 FROM carbon_location LIMIT 1;");
+        $stmt->execute();
+        print '<br>Table `carbon_location` already exists';
     } catch (PDOException $e) {
-        print ' INI `carbon_location`' . PHP_EOL;
         $sql = <<<END
 CREATE TABLE carbon_location
 (
@@ -171,15 +172,15 @@ CREATE TABLE carbon_location
 END;
 
         $db->exec($sql);
-        echo 'DONE.......' . PHP_EOL;
+        print "<br>Table `carbon_location` Created";
     }
 
 
     try {
-        $db->exec("SELECT 1 FROM carbon_photos LIMIT 1;");
-        print "Table `carbon_photos` already exists\n\n";
+        $stmt = $db->prepare("SELECT 1 FROM carbon_photos LIMIT 1;");
+        $stmt->execute();
+        print "<br>Table `carbon_photos` already exists";
     } catch (PDOException $e) {
-        print 'INI PHOTOS' . PHP_EOL;
         $sql = <<<END
 CREATE TABLE carbon_photos
 (
@@ -210,16 +211,16 @@ CREATE INDEX photos_entity_user_pk_fk
 END;
 
         $db->exec($sql);
-        echo "\n DONE.......\n";
+        print "<br>Table `carbon_photos` Created";
     }
 
 
 
     try {
-        $db->exec("SELECT 1 FROM carbon_tags LIMIT 1;");
-        print "Table `carbon_tags` already exists\n\n";
+        $stmt = $db->prepare("SELECT 1 FROM carbon_tags LIMIT 1;");
+        $stmt->execute();
+        print "<br>Table `carbon_tags` already exists";
     } catch (PDOException $e) {
-        print 'INI TAG SYSTEMS  `carbon_tags`' . PHP_EOL;
         $sql = <<<END
 CREATE TABLE carbon_tags
 (
@@ -236,14 +237,15 @@ CREATE TABLE carbon_tags
 END;
 
         $db->exec($sql);
-        print 'DONE.......' . PHP_EOL;
+        print "<br>Table `carbon_tags` Created";
 
     }
 
 
     try {
-        $db->exec("SELECT 1 FROM carbon_tag LIMIT 1;");
-        print "Table `carbon_tag` already exists\n\n";
+        $stmt = $db->prepare("SELECT 1 FROM carbon_tag LIMIT 1;");
+        $stmt->execute();
+        print "<br>Table `carbon_tag` already exists";
     } catch (PDOException $e) {
         $sql = <<<END
 CREATE TABLE carbon_tag
@@ -281,14 +283,14 @@ END;
 
         $db->exec($sql);
 
-        echo "W00T!" . PHP_EOL;
+        print "<br>Table `carbon_tag` Created";
     }
 
     try {
-        $db->exec("SELECT 1 FROM user_followers LIMIT 1;");
-        print "Table `user_followers` already exists\n\n";
+        $stmt = $db->prepare("SELECT 1 FROM user_followers LIMIT 1;");
+        $stmt->execute();
+        print "<br>Table `user_followers` already exists";
     } catch (PDOException $e) {
-        print 'build Followers system' . PHP_EOL;
         $sql = <<<END
 CREATE TABLE user_followers
 (
@@ -313,16 +315,16 @@ CREATE INDEX followers_entity_entity_pk_fk
 END;
 
         $db->exec($sql);
-        print 'Done .......\n';
+        print "<br>Table `user_followers` Created";
 
     }
 
 
     try {
-        $db->exec("SELECT 1 FROM user_messages LIMIT 1;");
-        print "Table `user_messages` already exists\n\n";
+        $stmt = $db->prepare("SELECT 1 FROM user_messages LIMIT 1;");
+        $stmt->execute();
+        print "<br>Table `user_messages` already exists";
     } catch (PDOException $e) {
-        print 'Build Messaging system `user_messages`' . PHP_EOL;
         $sql = <<<END
 CREATE TABLE user_messages
 (
@@ -351,14 +353,15 @@ CREATE INDEX messages_entity_user_from_pk_fk
 END;
 
         $db->exec($sql);
+        print "<br>Table `user_messages` Created";
 
     }
 
     try {
-        $db->exec("SELECT 1 FROM user_messages LIMIT 1;");
-        print "Table `user_messages` already exists\n\n";
+        $stmt = $db->prepare("SELECT 1 FROM user_tasks LIMIT 1;");
+        $stmt->execute();
+        print "<br>Table `user_tasks` already exists";
     } catch (PDOException $e) {
-        print 'Build Tasks System' . PHP_EOL;
         $sql = <<<END
 CREATE TABLE user_tasks
 (
@@ -395,10 +398,10 @@ END;
 
         $db->exec($sql);
 
-        echo "Done!" . PHP_EOL;
+        print "<br>Table `user_tasks` Created";
     }
 
-    echo "Rocking! Setup and rebuild complete." . PHP_EOL;
+    echo "<br><br><h3>Rocking! Setup and rebuild complete.</h3>";
 
 } catch (PDOException $e) {
 
@@ -407,6 +410,6 @@ END;
 
 }
 
-if (file_exists($file = SERVER_ROOT . 'Application / Configs / buildDatabase . php')) include_once $file;
+if (file_exists($file = SERVER_ROOT . 'Application/Configs/buildDatabase.php')) include_once $file;
 
 exit(1);
