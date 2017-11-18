@@ -48,6 +48,7 @@ abstract class Entities
             if (!empty($errorMessage))
                 PublicAlert::danger($errorMessage);
         }
+        return false;
     }
 
 static function commit(callable $lambda = null): bool
