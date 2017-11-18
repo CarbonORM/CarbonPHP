@@ -27,7 +27,9 @@ class Request
         if (SOCKET || headers_sent()) return null;
 
         if (isset( $_SESSION['Cookies'] ) && is_array( $_SESSION['Cookies'] ))
-            foreach ($_SESSION['Cookies'] as $key => $array) static::setCookie( $key, $array[0], $array[1] );
+            foreach ($_SESSION['Cookies'] as $key => $array)
+                print "$key => $array <br>";
+                #static::setCookie( $key, $array[0], $array[1] );
 
         if (isset( $_SESSION['Headers'] ) && is_array( $_SESSION['Headers'] ))
             foreach ($_SESSION['Headers'] as $value) static::setHeader( $value );
