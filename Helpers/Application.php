@@ -67,7 +67,7 @@ namespace {                                     // Carbon
         $model = "Model\\$class";
 
         $run = function ($class, $argv) use ($method) {
-            return call_user_func_array([new $class, "$method"], $argv);
+            return call_user_func_array([new $class, "$method"], (is_array($argv) ? $argv : [$argv]));
         };
 
         catchErrors(function () use ($run, $controller, $model, $argv) {

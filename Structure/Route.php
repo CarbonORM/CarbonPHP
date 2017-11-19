@@ -100,23 +100,20 @@ abstract class Route
                         $referenceVariables[] = &$GLOBALS[$key];
                     }
 
-                    $run = function ($callable, $argv = false) use ($referenceVariables) : bool {
-                        if (!is_callable($callable))
-                            return false;
-
-                        if ($c = (new \ReflectionFunction($callable))->getNumberOfRequiredParameters() > count($referenceVariables))
-                            throw new PublicAlert('Closure to route requires ( ' . $c . ' ) arguments! See CarbonPHP.com for documentation.');
-
-                        $this->addMethod('routeMatched', $callable);
-
-                        if (call_user_func_array($this->methods['routeMatched'], $argv ?: $referenceVariables) === false)
+                    if (is_callable( $argv[0] )) {
+                        $this->addMethod('routeMatched', $argv[0]);
+                        if (call_user_func_array($this->methods['routeMatched'], $referenceVariables) === false)
                             throw new \Error('Bad Closure Passed to Route::match()');
+                        return $this;
+                    }
 
-                        return true;
-                    };
-
-                    if (!$run($argv[0])) $run($this->structure, $argv);
-
+                    if (is_callable($this->structure)) {
+                        $argv[] = &$referenceVariables;
+                        $this->addMethod('routeMatched', $this->structure);
+                        if (call_user_func_array($this->methods['routeMatched'], $argv) === false)
+                            throw new \Error('Bad Arguments Passed to Route::match()');
+                        return $this;
+                    }
                     return $this;
 
                 case '{': // this is going to indicate the start of a variable name

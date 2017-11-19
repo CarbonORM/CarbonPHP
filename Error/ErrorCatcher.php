@@ -20,9 +20,10 @@ class ErrorCatcher
         ini_set( 'display_errors', 1 );
         ini_set( 'track_errors', 1 );
         error_reporting(E_ALL);
-        if (!is_dir($logLocation . 'Error/'))
-            mkdir($logLocation . 'Error/');
-        $this->defaultLocation = $logLocation . 'Error/Log_' . ( $_SESSION['id'] ?? '' )  . '_' . time() . '.log';
+        $logLocation .= 'Error/';
+        if (!is_dir($logLocation))
+            mkdir($logLocation);
+        $this->defaultLocation = $logLocation . 'Log_' . ( $_SESSION['id'] ?? '' )  . '_' . time() . '.log';
         $this->printToScreen = $printToScreen;
         $this->fullReports = $fullReports;
         $this->storeReport = $storeReport;

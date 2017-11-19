@@ -83,7 +83,7 @@ class View
 
             $file = ob_get_clean();
 
-            if ($this->forceStoreContent || (!AJAX && (!$_SESSION['id']))) {
+            if ($this->forceStoreContent || HTTP || HTTPS) {
                 $this->currentPage = base64_encode($file);
                 exit(1);                                               // TODO - Should this be removed? opinionated?
             } else echo $file;
