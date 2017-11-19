@@ -12,11 +12,13 @@ interface iSingleton
 {
     public static function __callStatic($methodName, $arguments = array());
 
-    public static function newInstance(...$args);
+    public static function newInstance(...$args) : self;
 
-    public static function getInstance(...$args);
+    public static function getInstance(...$args) : self;
 
-    public static function clearInstance($object = null);
+    public static function clearInstance() : void;
+
+    public static function setInstance(self $object) : self;
 
     public function __call($methodName, $arguments = array());
 

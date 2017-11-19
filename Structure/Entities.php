@@ -52,54 +52,55 @@ abstract class Entities
         return false;
     }
 
-static function commit(callable $lambda = null): bool
-{
-    if (!self::database()->commit()) return static::verify();
-    self::$inTransaction = false;
-    self::$entityTransactionKeys = [];
-    if (is_callable($lambda)) $lambda();
-    return true;
-}
+    static function commit(callable $lambda = null): bool
+    {
+        if (!self::database()->commit()) return static::verify();
+        self::$inTransaction = false;
+        self::$entityTransactionKeys = [];
+        if (is_callable($lambda)) $lambda();
+        return true;
+    }
 
-static function beginTransaction($tag_id, $dependant = null)
-{
-    self::$inTransaction = true;
-    $key = self::new_entity($tag_id, $dependant);
-    Database::getConnection()->beginTransaction();
-    return $key;
-}
+    static function beginTransaction($tag_id, $dependant = null)
+    {
+        self::$inTransaction = true;
+        $key = self::new_entity($tag_id, $dependant);
+        Database::getConnection()->beginTransaction();
+        return $key;
+    }
 
-static function new_entity($tag_id, $dependant)
-{
-    if (defined($tag_id))
-        $tag_id = constant($tag_id);
+    static function new_entity($tag_id, $dependant)
+    {
+        if (defined($tag_id))
+            $tag_id = constant($tag_id);
 
-    $db = self::database();
-    do {
-        try {
-            $stmt = $db->prepare('INSERT INTO carbon (entity_pk, entity_fk) VALUE (?,?)');
-            $stmt->execute([$stmt = Bcrypt::genRandomHex(), $dependant]);
-        } catch (\PDOException $e) {
-            $stmt = false;
-        }
-    } while (!$stmt);
-    $db->prepare('INSERT INTO carbon_tag (entity_id, user_id, tag_id, creation_date) VALUES (?,?,?,?)')->execute([$stmt, (!empty($_SESSION['id']) ? $_SESSION['id'] : $stmt), $tag_id, time()]);
-    self::$entityTransactionKeys[] = $stmt;
-    return $stmt;
-}
+        $db = self::database();
+        do {
+            try {
+                $stmt = $db->prepare('INSERT INTO carbon (entity_pk, entity_fk) VALUE (?,?)');
+                $stmt->execute([$stmt = Bcrypt::genRandomHex(), $dependant]);
+            } catch (\PDOException $e) {
+                $stmt = false;
+            }
+        } while (!$stmt);
+        $db->prepare('INSERT INTO carbon_tag (entity_id, user_id, tag_id, creation_date) VALUES (?,?,?,?)')->execute([$stmt, (!empty($_SESSION['id']) ? $_SESSION['id'] : $stmt), $tag_id, time()]);
+        self::$entityTransactionKeys[] = $stmt;
+        return $stmt;
+    }
 
-static protected function remove_entity($id)
-{
-    if (!self::database()->prepare('DELETE FROM carbon WHERE entity_pk = ?')->execute([$id]))
-        throw new \Exception("Bad Entity Delete $id");
-}
+    static protected function remove_entity($id)
+    {
+        if (!self::database()->prepare('DELETE FROM carbon WHERE entity_pk = ?')->execute([$id]))
+            throw new \Exception("Bad Entity Delete $id");
+    }
 
     static function fetch(string $sql, ...$execute): array
     {
         $stmt = self::database()->prepare($sql);
         if (!$stmt->execute($execute))
-            if (!$stmt->execute($execute)) return [];
-        return $stmt->fetchAll();  // user obj
+            if (!$stmt->execute($execute))
+                return [];
+        return (count($stmt = $stmt->fetchAll()) == 1 ? $stmt[0] : $stmt);  // user obj
     }
 
     static function fetch_object(string $sql, ...$execute): stdClass

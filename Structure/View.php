@@ -27,7 +27,7 @@ class View
 
     public function __construct($forceWrapper = false)   // Send the content wrapper
     {
-        if (HTTP || HTTPS || $forceWrapper) {            // The user logging out should force content wrapper refresh
+        if (!SOCKET && (HTTP || HTTPS || $forceWrapper)) {            // The user logging out should force content wrapper refresh
 
             if (!($forceWrapper || ($_SESSION['X_PJAX_Version'] != X_PJAX_VERSION)) && AJAX)
                 return null;
