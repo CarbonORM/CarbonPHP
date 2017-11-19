@@ -2,8 +2,6 @@
 
 namespace Carbon;
 
-use Carbon\Error\PublicAlert;
-
 class View
 {
     use Singleton;
@@ -87,7 +85,7 @@ class View
 
             if ($this->forceStoreContent || (!AJAX && (!$_SESSION['id']))) {
                 $this->currentPage = base64_encode($file);
-                exit(1);
+                exit(1);                                               // TODO - Should this be removed? opinionated?
             } else echo $file;
 
         } else throw new \Exception("$file does not exist");  // TODO - throw 404 error

@@ -34,7 +34,7 @@ END;
     }
 
     try {
-        $stmt = $db->prepare("SELECT 1 FROM user LIMIT 1;");
+        $stmt = $db->prepare("SELECT 1 FROM `user` LIMIT 1;");
         $stmt->execute();
         print "<br>Table `user` already exists";
     } catch (PDOException $e) {
@@ -53,7 +53,7 @@ CREATE TABLE user
 	user_last_name VARCHAR(25) NOT NULL,
 	user_profile_pic VARCHAR(225) NULL,
 	user_profile_uri VARCHAR(225) NULL,
-	user_cover_photo VARCHAR(225) DEFAULT 'Data/Uploads/Pictures/default_cover.png' NULL,
+	user_cover_photo VARCHAR(225) NULL,
 	user_birthday TEXT NULL,
 	user_gender VARCHAR(25) NULL,
 	user_about_me TEXT NULL,

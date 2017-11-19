@@ -174,8 +174,8 @@ class Carbon
         echo inet_pton($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'Go away.' . PHP_EOL;
         echo "\n\n\t\n" . $_SERVER['REQUEST_URI'];
         $report = ob_get_clean();
-        if (!is_dir(REPORTS . 'Request'))
-            mkdir(REPORTS . 'Request');
+        if (!is_dir(REPORTS . 'Request/'))
+            mkdir(REPORTS . 'Request/');
         $file = fopen(REPORTS . 'Request/url_' . time() . '.log', "a");
         fwrite($file, $report);
         fclose($file);

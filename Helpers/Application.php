@@ -67,12 +67,12 @@ namespace {                                     // Carbon
         $model = "Model\\$class";
 
         $run = function ($class, $argv) use ($method) {
-            return call_user_func_array([new $class, "$method"],
-                is_array($argv) ? $argv : [$argv]);
+            return call_user_func_array([new $class, "$method"], $argv);
         };
 
         catchErrors(function () use ($run, $controller, $model, $argv) {
-            if (!empty($argv = $run($controller, $argv))) $run($model, $argv);
+            if ($argv = $run($controller, $argv))
+                $run($model, $argv);
         })();
 
         $view = $view ?: View::getInstance(false);     // Send the wrapper? only run once. (singleton)
