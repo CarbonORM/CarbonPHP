@@ -1,4 +1,5 @@
 #!/bin/bash
+DIR=`pwd`
 
 # we should see is brew and other tools are installed
 
@@ -8,7 +9,7 @@
 
 createFile() {
 if [ -d $1 ]; then
-  printf "dir $1 exists.\n"
+  printf "dir $1 exists\n"
 else
   mkdir $1
   printf "Created $1 \n"
@@ -20,7 +21,7 @@ createFile Public
 createFile Tests
 createFile Data
 
-cd Application
+cd ./Application
 createFile Configs
 createFile Controller
 createFile Model
@@ -50,9 +51,9 @@ php -f composer.phar require "bower-asset/jquery-backstretch:^2.1.16"
 # Move files to Root
 cd ./vendor/richardtmiles/carbonphp/Extras
 
-cp ./exIndex.php    ../../../../index.php
-cp ./exRoutes.php   ../../../../Application/Routes.php
-cp ./exOptions.php  ../../../../Application/Configs/Options.php
-cp ./AdminLTE.php   ../../../../Public/Wrapper.php
-cp ./robots.txt     ../../../../Data/robots.txt
-cp ./.htaccess      ../../../../.htaccess
+cp ./exIndex.php     ${DIR}/index.php
+cp ./exRoutes.php    ${DIR}/Application/Routes.php
+cp ./exOptions.php   ${DIR}/Application/Configs/Options.php
+cp ./AdminLTE.php    ${DIR}/Public/Wrapper.php
+cp ./robots.txt      ${DIR}/Data/robots.txt
+cp ./.htaccess       ${DIR}/.htaccess
