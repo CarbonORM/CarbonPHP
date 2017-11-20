@@ -1,7 +1,7 @@
 function Carbon(selector, address) {
 
     //-- Stats Coach Bootstrap Alert -->
-    function bootstrapAlert(message, level) {
+    $.fn.bootstrapAlert = function(message, level) {
         if (level == null) level = 'info';
         var container = document.getElementById('alert'),
             node = document.createElement("DIV"), text;
@@ -13,25 +13,26 @@ function Carbon(selector, address) {
 
         node.innerHTML = '<div id="row"><div class="alert alert-' + level + ' alert-dismissible">' +
             '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>' +
-            '<h4><i class="icon fa fa-' + (level == "danger" ? "ban" : (level == "success" ? "check" : level)) + '"></i>' + text + '!</h4>' + message + '</div></div>';
+            '<h4><i class="icon fa fa-' + (level == "danger" ? "ban" : (level == "success" ? "check" : level)) +
+            '"></i>' + text + '!</h4>' + message + '</div></div>';
 
         container.innerHTML = node.innerHTML + container.innerHTML;
-    }
+    };
 
     // A better closest function
-    (function ($) {
-        $.fn.closest_descendant = function (filter) {
-            var $found = $(),
-                $currentSet = this; // Current place
-            while ($currentSet.length) {
-                $found = $currentSet.filter(filter);
-                if ($found.length) break;  // At least one match: break loop
-                // Get all children of the current set
-                $currentSet = $currentSet.children();
-            }
-            return $found.first(); // Return first match of the collection
+
+    $.fn.closest_descendant = function (filter) {
+        var $found = $(),
+            $currentSet = this; // Current place
+        while ($currentSet.length) {
+            $found = $currentSet.filter(filter);
+            if ($found.length) break;  // At least one match: break loop
+            // Get all children of the current set
+            $currentSet = $currentSet.children();
         }
-    })(jQuery);
+        return $found.first(); // Return first match of the collection
+    };
+
     /*$(document).on('pjax:start', function () {
         console.log("PJAX");
     });*/
@@ -167,12 +168,10 @@ function Carbon(selector, address) {
         $(selector).fadeIn('fast').removeClass('overlay');
     });
 
-    // Get inner contents already buffered on server
-    $.pjax.reload(selector);
-
-
     var defaultOnSocket = false,
-        statsSocket = new WebSocket(address);
+        statsSocket;
+
+    if (address !== '') statsSocket = new WebSocket(address);
 
     $.fn.trySocket = function () {
         if (address === null || address === '')
@@ -229,7 +228,6 @@ function Carbon(selector, address) {
         }
     }
 
-
     $.fn.sendEvent = function (url) {
         if (defaultOnSocket && $.fn.trySocket) {           //defaultOnSocket &&
             console.log('URI ' + url);
@@ -239,26 +237,44 @@ function Carbon(selector, address) {
         }); // json
     };
 
-    statsSocket.onmessage = function (data) {
-        if (IsJsonString(data.data)) {
-            MustacheWidgets(JSON.parse(data.data));
-        } else console.log(data.data);
-    };
-
-    statsSocket.onerror = function () {
-        console.log('Web Socket Error');
-    };
-
-    statsSocket.onopen = function () {
-        console.log('Socket Started');
-
-        // prevent the race condition
-        statsSocket.onclose = function () {
-            console.log('Closed Socket');
-            $.fn.trySocket();
+    if (address !== '') {
+        statsSocket.onmessage = function (data) {
+            if (IsJsonString(data.data)) {
+                MustacheWidgets(JSON.parse(data.data));
+            } else console.log(data.data);
         };
 
-    };
+        statsSocket.onerror = function () {
+            console.log('Web Socket Error');
+        };
 
+        statsSocket.onopen = function () {
+            console.log('Socket Started');
+
+            // prevent the race condition
+            statsSocket.onclose = function () {
+                console.log('Closed Socket');
+                $.fn.trySocket();
+            };
+        };
+    }
+
+    // Get inner contents already buffered on server
+    $.pjax.reload(selector);
+
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+            (i[r].q = i[r].q || []).push(arguments)
+        }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+            m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
+
+    ga('create', 'UA-100885582-1', 'auto');
+    ga('send', 'pageview');
 }
 

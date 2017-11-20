@@ -155,7 +155,7 @@ namespace {                                     // Carbon
         $report = ob_get_clean();
         // Output to file
         if (!is_dir(REPORTS . 'Dumped/')) mkdir(REPORTS . 'Dumped/');
-        $file = fopen(REPORTS . 'Sort_' . time() . '.log', "a");
+        $file = fopen(REPORTS . 'Dumped/Sort_' . time() . '.log', "a");
         fwrite($file, $report);
         fclose($file);
 

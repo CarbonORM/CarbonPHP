@@ -133,7 +133,7 @@ class Carbon
             if ($PHP['SESSION']['PATH'] ?? false)
                 session_save_path($PHP['SESSION']['PATH'] ?? '');   // Manually Set where the Users Session Data is stored
 
-            new Session(self::IP_LOOKUP(), ($PHP['SESSION']['STORE_REMOTE'] ?? false)); // session start
+            new Session(self::IP_LOOKUP(), ($PHP['SESSION']['REMOTE'] ?? false)); // session start
             $_SESSION['id'] = array_key_exists('id', $_SESSION ?? []) ? $_SESSION['id'] : false;
 
             if (is_callable($PHP['SESSION']['CALLBACK'] ?? null))

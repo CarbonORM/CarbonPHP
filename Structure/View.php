@@ -9,7 +9,7 @@ class View
 
     public $currentPage;
     private $carryErrors;
-    private $forceStoreContent;
+    private $forceStoreContent = false;
 
     // sockets cannot possibly invoke the wakeup function
     public function __wakeup()
@@ -17,33 +17,25 @@ class View
         if (!AJAX):      // an HTTP request
             $_POST = [];
             $this->__construct();                       // and reprocess the dependencies, wrapper is a global closure
-        elseif (!empty($this->currentPage)):          // Implies AJAX && a page has already been rendered and stored
-            echo base64_decode($this->currentPage);   // The ajax page will be 64encoded before we store on the server
+        elseif (!empty($this->currentPage)):            // Implies AJAX && a page has already been rendered and stored
+            echo base64_decode($this->currentPage);     // The ajax page will be 64encoded before we store on the server
             $this->currentPage = '';
-            #self::clearInstance();                      // Remove stored information on the server and delete its self reference
-            exit(1);                                  // This is for the second inner AJAX request on first page load
+            self::clearInstance();                      // Remove stored information on the server and delete its self reference
+            exit(1);                                    // This is for the second inner AJAX request on first page load
         endif;                                          // We're requesting our second page through ajax ie not initial page request
     }
 
     public function __construct($forceWrapper = false)   // Send the content wrapper
     {
         if (!SOCKET && (HTTP || HTTPS || $forceWrapper)) {            // The user logging out should force content wrapper refresh
-
-            if (!($forceWrapper || ($_SESSION['X_PJAX_Version'] != X_PJAX_VERSION)) && AJAX)
-                return null;
-
-            ob_start();
-
+            $this->forceStoreContent = $forceWrapper;
             if (!defined('WRAPPER')|| !file_exists(WRAPPER))
                 print 'A valid wrapper must be provided. Please see CarbonPHP.com for documentation.' and die;
 
             require WRAPPER;   // Return the Template, this file should have your user logic in it
 
-            if ($forceWrapper):
-                if (!empty($GLOBALS['alert']))
-                    $this->carryErrors = $GLOBALS['alert']; //
-                $this->forceStoreContent = true;
-            endif;
+            if ($forceWrapper && !empty($GLOBALS['alert']))
+                $this->carryErrors = $GLOBALS['alert'];
         }
     }
 
@@ -69,10 +61,8 @@ class View
                 $this->carryErrors = null;
 
             if (isset($alert)) {
-                if (isset($alert['danger']))  $this->bootstrapAlert($alert['danger'], 'danger');
-                if (isset($alert['info']))    $this->bootstrapAlert($alert['info'], 'info');
-                if (isset($alert['warning'])) $this->bootstrapAlert($alert['warning'], 'warning');
-                if (isset($alert['success'])) $this->bootstrapAlert($alert['success'], 'success');
+                foreach ($alert as $level => $message)
+                    $this->bootstrapAlert($message, $level);
                 $alert = null;
             }
 
@@ -104,7 +94,7 @@ class View
     public function bootstrapAlert($message, $level): void
     {
         $message = htmlentities($message);
-        echo "<script>bootstrapAlert(\"$message\", '$level')</script>";
+        echo "<script>$.fn.bootstrapAlert(\"$message\", '$level')</script>";
     }
 
     public function versionControl($file)
