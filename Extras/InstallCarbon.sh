@@ -7,36 +7,36 @@ DIR=`pwd`
 
 # Setup File Structure
 
-createFile() {
+createFolder() {
 if [ -d $1 ]; then
-  printf "dir $1 exists\n"
+  printf "dir $1 exists.\n"
 else
   mkdir $1
   printf "Created $1 \n"
 fi
 }
 
-createFile Application
-createFile Public
-createFile Tests
-createFile Data
+createFolder Application
+createFolder Public
+createFolder Tests
+createFolder Data
 
-cd ./Application
-createFile Configs
-createFile Controller
-createFile Model
-createFile Services
-createFile View
+cd Application
+createFolder Configs
+createFolder Controller
+createFolder Model
+createFolder Services
+createFolder View
 
 cd ../
 cd Data
-createFile Cache
-createFile Indexes
-createFile Logs
-createFile Session
-createFile Temp
-createFile Uploads
-createFile Views
+createFolder Cache
+createFolder Indexes
+createFolder Logs
+createFolder Session
+createFolder Temp
+createFolder Uploads
+createFolder Views
 
 # Install Composer and CarbonPHP
 php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
@@ -49,11 +49,9 @@ php -f composer.phar require --dev --prefer-stable "almasaeed2010/adminlte:>=2.4
 php -f composer.phar require "bower-asset/jquery-backstretch:^2.1.16"
 
 # Move files to Root
-cd ./vendor/richardtmiles/carbonphp/Extras
-
-cp ./exIndex.php     ${DIR}/index.php
-cp ./exRoutes.php    ${DIR}/Application/Routes.php
-cp ./exOptions.php   ${DIR}/Application/Configs/Options.php
-cp ./AdminLTE.php    ${DIR}/Public/Wrapper.php
-cp ./robots.txt      ${DIR}/Data/robots.txt
-cp ./.htaccess       ${DIR}/.htaccess
+cp ./vendor/richardtmiles/carbonphp/Extras/exIndex.php    ./index.php
+cp ./vendor/richardtmiles/carbonphp/Extras/exRoutes.php   ./Application/Routes.php
+cp ./vendor/richardtmiles/carbonphp/Extras/exOptions.php  ./Application/Configs/Options.php
+cp ./vendor/richardtmiles/carbonphp/Extras/AdminLTE.php   ./Public/Wrapper.php
+cp ./vendor/richardtmiles/carbonphp/Extras/robots.txt     ./Data/robots.txt
+cp ./vendor/richardtmiles/carbonphp/Extras/.htaccess      ./.htaccess

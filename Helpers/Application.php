@@ -5,24 +5,26 @@ namespace {                                     // Carbon
     use Carbon\Error\ErrorCatcher;              //  Catches development errors
     use Carbon\Error\PublicAlert;               //  Displays alerts nicely
     use Carbon\Entities;                        //  Manages table relations
+    use Carbon\Helpers\Files;
     use Carbon\Session;                         //  Automatically stores session
     use Carbon\Request;                         //  Sterilizes input
     use Carbon\Route;                           //  Easily route app
     use Carbon\View;                            //  Seamlessly include the DOM
 
 
-    function startApplication($restartURI = false): void
+    function startApplication($reset = false): void
     {
-        static $view = false;
-
-        if ($restartURI):                                          // This will always be se in a socket
-            Request::changeURI($restartURI ?: '/');         // Dynamically using pjax + headers
+        static $firstRun = true;
+        if ($reset):                                          // This will always be se in a socket
+            Request::changeURI($reset ?: '/');         // Dynamically using pjax + headers
             $_POST = [];                                           // Only PJAX + AJAX can post
         endif;
 
-        Session::update($restartURI === true);                // Get User. Setting RestartURI = true hard restarts app
+        Session::update($reset = ($reset === true));                             // Check wrapper / session callback
 
-        $view = $view ?: View::getInstance($restartURI === true);     // Send the wrapper? only run once. (singleton)
+        if ($firstRun || $reset)
+            View::getInstance()->wrapper($reset);                                // Send wrapper
+        $firstRun = false;
 
         if (!defined('BOOTSTRAP') || !file_exists(BOOTSTRAP))
             print 'You must define a route in your configuration. Visit CarbonPHP.com for Documentation.' and die;
@@ -61,8 +63,6 @@ namespace {                                     // Carbon
     // Controller -(true?)> Model -(final)> View();
     function MVC(string $class, string $method, array &$argv = [])
     {
-        static $view = false;
-
         $controller = "Controller\\$class";
         $model = "Model\\$class";
 
@@ -75,14 +75,12 @@ namespace {                                     // Carbon
                 $run($model, $argv);
         })();
 
-        $view = $view ?: View::getInstance(false);     // Send the wrapper? only run once. (singleton)
-
         // This could cache or send
-        $view->content(SERVER_ROOT . "Public/$class/$method.php");  // but will exit(1);
+        View::contents(SERVER_ROOT . "Public/$class/$method.php");  // but will exit(1);
     }
 
     // Sends Json array to browser
-    function Mustache()
+    function Mustache(string $path, array $options = [])
     {
         catchErrors(function ($path, $options = array()) {
 
@@ -103,7 +101,7 @@ namespace {                                     // Carbon
                 (is_array($options) ? $options : []));       // Options Trumps all
 
             print json_encode($json) . PHP_EOL;
-        });
+        })($path, $options);
     }
 
     function alert($string = "Stay woke.")
@@ -145,7 +143,7 @@ namespace {                                     // Carbon
             echo '####################### MIXED DUMP ########################<br><pre>';
             $mixed = (is_array($mixed) && count($mixed) == 1 ? array_pop($mixed) : $mixed);
             echo '<pre>';
-            debug_zval_dump( $mixed ?: $GLOBALS );
+            debug_zval_dump($mixed ?: $GLOBALS);
             echo '</pre><br><br>';
             echo '####################### BACK TRACE ########################<br><pre>';
             var_dump(debug_backtrace());
@@ -154,7 +152,7 @@ namespace {                                     // Carbon
 
         $report = ob_get_clean();
         // Output to file
-        if (!is_dir(REPORTS . 'Dumped/')) mkdir(REPORTS . 'Dumped/');
+        Files::mkdir(REPORTS . 'Dumped');
         $file = fopen(REPORTS . 'Dumped/Sort_' . time() . '.log', "a");
         fwrite($file, $report);
         fclose($file);

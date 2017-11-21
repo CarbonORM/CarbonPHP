@@ -15,7 +15,7 @@ class Files
         return fwrite($handle, $data) && fclose($handle);    //write some data here
     }
 
-    public static function storeFile($fileArray, $location)
+    public static function uploadFile($fileArray, $location)
     {
         try {
 
@@ -75,4 +75,20 @@ class Files
             throw new PublicAlert($e->getMessage());
         }
     }
+
+
+    public static function mkdir($location)
+    {
+        return is_dir($location) ?: mkdir($location, 755);
+    }
+
+    public static function storeContent($file, $output)
+    {
+        if(!file_exists(dirname($file)))
+            mkdir(dirname($file));
+        $file = fopen(  $file , "w");
+        fwrite( $file, $output );
+        fclose( $file );
+    }
+
 }

@@ -56,11 +56,13 @@ class Carbon
         {
             define('SOCKET', false);
 
+            // This forks to a new process, so it can be exec before we start the DB
+
             if (($PHP['SOCKET'] ?? false) && getservbyport(($PHP['SOCKET']['PORT'] ?? 8080), 'tcp'))
             {
                 $path = ($PHP['SOCKET']['WEBSOCKETD'] ?? false ? CARBON_ROOT . 'Extras' . DS . 'Websocketd.php' : CARBON_ROOT . 'Structure' . DS . 'Server.php');
                 $JSON = json_encode($PHP);
-                Helpers\Fork::safe(function () use ($path, $JSON) {
+                Helpers\Fork::safe(function () use ($path, $JSON) {     // todo daemon
                     shell_exec("$path $JSON");
                     exit(1);
                 });
@@ -114,7 +116,6 @@ class Carbon
 
         if (!AJAX) $_POST = [];  // We only allow post requests through ajax/pjax
 
-
         #######################   VIEW             #####################
         if ($PHP['VIEW'] ?? false)
         {
@@ -123,7 +124,6 @@ class Carbon
             define('WRAPPER', SERVER_ROOT . $PHP['VIEW']['WRAPPER'] ?? '');         // Wrapper
 
             define('MINIFY', $PHP['VIEW']['MINIFY'] ?? false);
-
         }
 
         ########################  Session Management ######################

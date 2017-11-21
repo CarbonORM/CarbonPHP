@@ -23,16 +23,18 @@ class Session implements \SessionHandlerInterface
 
     public function __construct($ip = null, $dbStore = false)
     {
+        session_write_close(); //cancel the session's auto start, important
+
         if ($ip === false)
             print 'Carbon has detected ip spoofing.' and die;
 
         if ($dbStore) {
             ini_set( 'session.gc_probability', 1 );  // Clear any lingering session data in default locations
-            session_set_save_handler( $this, true );                // Comment this out to stop storing session on the server
+            if (!session_set_save_handler( $this, false ))
+                print 'Session failed to store remotely' and die(1);                // Comment this out to stop storing session on the server
         }
 
-        if (SOCKET)
-            $this->verifySocket($ip);
+        if (SOCKET) $this->verifySocket($ip);
 
         if (false == @session_start())
             throw new \Exception('Session Failed');
@@ -63,13 +65,11 @@ class Session implements \SessionHandlerInterface
 
         if (SOCKET) Database::resetConnection();        // TODO - $dbStore __const
 
-        if (static::$user_id = $_SESSION['id'] = ($_SESSION['id'] ?? false)) {
-
+        if ((static::$user_id = $_SESSION['id'] = ($_SESSION['id'] ?? false)))
             $_SESSION['X_PJAX_Version'] = 'v' . SITE_VERSION . 'u' . $_SESSION['id']; // force reload occurs when X_PJAX_Version changes between requests
 
-        } else $_SESSION['X_PJAX_Version'] = SITE_VERSION;
-
-        if (!isset( $_SESSION['X_PJAX_Version'] )) $_SESSION['X_PJAX_Version'] = SITE_VERSION;
+        if (!isset( $_SESSION['X_PJAX_Version'] ))
+            $_SESSION['X_PJAX_Version'] = SITE_VERSION;     // static::$user_id, keep this static
 
         Request::setHeader( 'X-PJAX-Version: ' . $_SESSION['X_PJAX_Version'] );
 
@@ -103,21 +103,18 @@ class Session implements \SessionHandlerInterface
 
     public function open($savePath, $sessionName)
     {
-        Database::getConnection();
         return true;
     }
 
     public function close()
     {
+        register_shutdown_function('session_write_close');
         return true;
     }
 
     public function read($id)
     {
-        $db = Database::getConnection();
-        if (!$db instanceof Database)
-            $db = Database::getConnection();
-        $stmt = $db->prepare( 'SELECT session_data FROM carbon_session WHERE carbon_session.session_id = ?' );
+        $stmt = (Database::getConnection())->prepare( 'SELECT session_data FROM carbon_session WHERE session_id = ?' );
         $stmt->execute( [$id] );
         return $stmt->fetchColumn() ?: '';
     }
@@ -125,13 +122,10 @@ class Session implements \SessionHandlerInterface
     public function write($id, $data)
     {
         $db = Database::getConnection();
-        if (!$db instanceof Database) $this->db = Database::getConnection();
-
-        if (SOCKET || empty( static::$user_id = $_SESSION['id'] )) return true;     // must be true for php 7.0
-
+        if (empty(self::$user_id)) self::$user_id = $_SESSION['id'] ?? false;
         $NewDateTime = date( 'Y-m-d H:i:s', strtotime( date( 'Y-m-d H:i:s' ) . ' + 1 day' ) );  // so from time of last write and whenever the gc_collector hits
-
-        return ($db->prepare( 'REPLACE INTO carbon_session SET session_id = ?, user_id = ?, user_session.user_ip = ?,  Session_Expires = ?, Session_Data = ?' )->execute( [$id, static::$user_id, $_SERVER['REMOTE_ADDR'], $NewDateTime, $data] )) ?
+        return ($db->prepare( 'REPLACE INTO carbon_session SET session_id = ?, user_id = ?, user_ip = ?,  session_expires = ?, session_data = ?' )->execute( [
+            $id, static::$user_id, $_SERVER['REMOTE_ADDR'], $NewDateTime, $data] )) ?
             true : false;
     }
 
@@ -145,7 +139,7 @@ class Session implements \SessionHandlerInterface
     public function gc($maxLife)
     {
         $db = Database::getConnection();
-        return ($db->prepare( 'DELETE FROM carbon_session WHERE (UNIX_TIMESTAMP(Session_Expires) + ? ) < ?' )->execute( [$maxLife, $maxLife] )) ?
+        return ($db->prepare( 'DELETE FROM carbon_session WHERE (UNIX_TIMESTAMP(session_expires) + ? ) < UNIX_TIMESTAMP(?)' )->execute( [$maxLife, date( 'Y-m-d H:i:s' )] )) ?
             true : false;
     }
 }

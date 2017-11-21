@@ -8,24 +8,18 @@ class View
     const Singleton = true;
 
     public $currentPage;
-    private $carryErrors;
-    private $forceStoreContent = false;
+    public $forceStoreContent = false;
 
-    // sockets cannot possibly invoke the wakeup function
-    public function __wakeup()
+    public function __construct()
     {
-        if (!AJAX):      // an HTTP request
-            $_POST = [];
-            $this->__construct();                       // and reprocess the dependencies, wrapper is a global closure
-        elseif (!empty($this->currentPage)):            // Implies AJAX && a page has already been rendered and stored
-            echo base64_decode($this->currentPage);     // The ajax page will be 64encoded before we store on the server
-            $this->currentPage = '';
-            self::clearInstance();                      // Remove stored information on the server and delete its self reference
-            exit(1);                                    // This is for the second inner AJAX request on first page load
-        endif;                                          // We're requesting our second page through ajax ie not initial page request
+        if ((PJAX || AJAX) && !empty($this->currentPage)) {
+            echo base64_decode($this->currentPage);
+            $this->currentPage = null;
+            exit(1);
+        }
     }
 
-    public function __construct($forceWrapper = false)   // Send the content wrapper
+    public function wrapper($forceWrapper = false)   // Send the content wrapper
     {
         if (!SOCKET && (HTTP || HTTPS || $forceWrapper)) {            // The user logging out should force content wrapper refresh
             $this->forceStoreContent = $forceWrapper;
@@ -33,9 +27,6 @@ class View
                 print 'A valid wrapper must be provided. Please see CarbonPHP.com for documentation.' and die;
 
             require WRAPPER;   // Return the Template, this file should have your user logic in it
-
-            if ($forceWrapper && !empty($GLOBALS['alert']))
-                $this->carryErrors = $GLOBALS['alert'];
         }
     }
 
@@ -57,9 +48,6 @@ class View
 
             ob_start();
 
-            if (empty($GLOBALS['alert']) && !empty($GLOBALS['alert'] = $this->carryErrors))
-                $this->carryErrors = null;
-
             if (isset($alert)) {
                 foreach ($alert as $level => $message)
                     $this->bootstrapAlert($message, $level);
@@ -75,11 +63,16 @@ class View
 
             if ($this->forceStoreContent || HTTP || HTTPS) {
                 $this->currentPage = base64_encode($file);
-                exit(1);                                               // TODO - Should this be removed? opinionated?
             } else echo $file;
-
         } else throw new \Exception("$file does not exist");  // TODO - throw 404 error
     }
+
+    public function bootstrapAlert($message, $level): void
+    {
+        $message = htmlentities($message);
+        echo "<script>$.fn.bootstrapAlert(\"$message\", '$level')</script>";
+    }
+
 
     /**
      *  Given a file, i.e. /css/base.css, replaces it with a string containing the
@@ -90,12 +83,6 @@ class View
      *                starting with slash).
      * @return mixed  file to be loaded.
      */
-
-    public function bootstrapAlert($message, $level): void
-    {
-        $message = htmlentities($message);
-        echo "<script>$.fn.bootstrapAlert(\"$message\", '$level')</script>";
-    }
 
     public function versionControl($file)
     {

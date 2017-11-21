@@ -4,6 +4,7 @@
 
 namespace Carbon\Error;
 
+use Carbon\Helpers\Files;
 use Carbon\Singleton;
 
 class ErrorCatcher
@@ -21,8 +22,7 @@ class ErrorCatcher
         ini_set( 'track_errors', 1 );
         error_reporting(E_ALL);
         $logLocation .= 'Error/';
-        if (!is_dir($logLocation))
-            mkdir($logLocation);
+        Files::mkdir($logLocation);
         $this->defaultLocation = $logLocation . 'Log_' . ( $_SESSION['id'] ?? '' )  . '_' . time() . '.log';
         $this->printToScreen = $printToScreen;
         $this->fullReports = $fullReports;
@@ -93,7 +93,7 @@ class ErrorCatcher
     {
         if(!file_exists(dirname($file)))
             mkdir(dirname($file));
-        $file = fopen(  $file , "w");
+        $file = fopen( $file , "w");
         fwrite( $file, $output );
         fclose( $file );
     }

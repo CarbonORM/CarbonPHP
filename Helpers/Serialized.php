@@ -52,8 +52,9 @@ abstract class Serialized {
             $last_error = error_get_last();
             if ($last_error['type'] === E_ERROR) {
                 sortDump($last_error);
-            } else foreach ($argv as $value) if (isset($GLOBALS[$value]))  $_SESSION[__CLASS__][$value] = $GLOBALS[$value];
-
+            } else foreach ($argv as $value)
+                if (isset($GLOBALS[$value]))
+                    $_SESSION[__CLASS__][$value] = $GLOBALS[$value];
             /// $_SESSION[__CLASS__][$value] = base64_encode( serialize( $GLOBALS[$value] ) );
 		} );
 	}

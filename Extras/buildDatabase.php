@@ -90,9 +90,8 @@ END;
         $sql = <<<END
 CREATE TABLE carbon_session
 (
-	user_id VARCHAR(225) NOT NULL
-		PRIMARY KEY,
-	user_ip VARCHAR(255) NULL,
+	user_id VARCHAR(225) NOT NULL,
+	user_ip VARCHAR(255) NOT NULL,
 	session_id VARCHAR(255) NOT NULL,
 	session_expires DATETIME NOT NULL,
 	session_data TEXT NULL,
