@@ -2,6 +2,8 @@
 
 namespace Carbon;
 
+use Carbon\Helpers\Files;
+
 class Carbon
 {
     static function Application(array $PHP = []): callable
@@ -13,8 +15,7 @@ class Carbon
 
         date_default_timezone_set($PHP['SITE']['TIMEZONE'] ?? 'America/Chicago');
 
-        if (!defined('DS'))
-            define('DS', DIRECTORY_SEPARATOR);
+        if (!defined('DS')) define('DS', DIRECTORY_SEPARATOR);
 
         define('CARBON_ROOT', dirname(dirname(__FILE__)) . DS);
 
@@ -25,13 +26,11 @@ class Carbon
 
         define('REPORTS', $PHP['ERROR']['LOCATION'] ?? SERVER_ROOT);
 
-        if ($PHP['SITE']['URL'] ?? false)
+        if ($PHP['SITE']['URL'] ?? false && !defined('SOCKET'))
             self::URI_FILTER($PHP['SITE']['URL']);
 
-
         #####################   AUTOLOAD    #######################
-        if (!array_key_exists('AUTOLOAD', $PHP) || $PHP['AUTOLOAD'])
-        {
+        if (!array_key_exists('AUTOLOAD', $PHP) || $PHP['AUTOLOAD']) {
             $PSR4 = include_once 'AutoLoad.php';   // in case of
             if (is_array($PHP['AUTOLOAD'] ?? false)) {
                 foreach ($PHP['AUTOLOAD'] as $name => $path)
@@ -46,24 +45,35 @@ class Carbon
             REPORTS,
             $PHP['ERROR']['STORE'] ?? false,    // Store on server
             $PHP['ERROR']['SHOW'] ?? false,     // Print to screen
-            $PHP['ERROR']['FULL'] ?? true);     // Catch application errors and alerts
+            $PHP['ERROR']['FULL'] ?? true,
+            $PHP['ERROR']['LEVEL']);     // Catch application errors and alerts
 
         // More cache control is given in the .htaccess File
         Request::setHeader('Cache-Control: must-revalidate');
 
         #################   SOCKET AND SYNC    #######################
-        if (!defined('SOCKET'))
-        {
+        if (!defined('SOCKET')) {
             define('SOCKET', false);
 
-            // This forks to a new process, so it can be exec before we start the DB
+            $trySocket = function ($port) {
+            try {
+                $setup = is_resource($connection = @fsockopen("127.0.0.1", $port));
+                fclose($connection);
+                return $setup;
+            } catch (\Error $e) { return false; }};
 
-            if (($PHP['SOCKET'] ?? false) && getservbyport(($PHP['SOCKET']['PORT'] ?? 8080), 'tcp'))
-            {
-                $path = ($PHP['SOCKET']['WEBSOCKETD'] ?? false ? CARBON_ROOT . 'Extras' . DS . 'Websocketd.php' : CARBON_ROOT . 'Structure' . DS . 'Server.php');
-                $JSON = json_encode($PHP);
-                Helpers\Fork::safe(function () use ($path, $JSON) {     // todo daemon
-                    shell_exec("$path $JSON");
+            if (($PHP['SOCKET'] ?? false) && !$trySocket($PHP['SOCKET']['PORT']??8888)) {
+                $path = CARBON_ROOT . ($PHP['SOCKET']['WEBSOCKETD'] ?? false ?
+                            'Extras' . DS . 'Websocketd.php' :
+                            'Structure' . DS . 'Server.php');
+
+                $CMD = "websocketd --port=" . ($PHP['SOCKET']['PORT'] ?? 8888) . ' ' .
+                    (($PHP['SOCKET']['DEV'] ?? false) ? '--devconsole ' : '') .
+                    (($PHP['SOCKET']['SSL'] ?? false) ? "--ssl --sslkey={$PHP['SOCKET']['SSL']['KEY']} --sslcert={$PHP['SOCKET']['SSL']['CERT']} " : ' ') .
+                    "php $path  " . SERVER_ROOT;
+
+                Helpers\Fork::safe(function () use ($CMD) {     // todo daemon
+                    shell_exec("$CMD");
                     exit(1);
                 });
             }
@@ -71,8 +81,7 @@ class Carbon
 
 
         #################  DATABASE  ########################
-        if ($PHP['DATABASE'] ?? false)
-        {
+        if ($PHP['DATABASE'] ?? false) {
             define('DB_HOST', $PHP['DATABASE']['DB_HOST'] ?? '');
 
             define('DB_NAME', $PHP['DATABASE']['DB_NAME'] ?? '');
@@ -81,13 +90,12 @@ class Carbon
 
             define('DB_PASS', $PHP['DATABASE']['DB_PASS'] ?? '');
 
-            if ($PHP['DATABASE']['INITIAL_SETUP'] ?? false)  Database::setUp();   // could comment out after first run
+            if ($PHP['DATABASE']['INITIAL_SETUP'] ?? false) Database::setUp();   // could comment out after first run
 
         }
 
         #################  SITE  ########################
-        if ($PHP['SITE'] ?? false)
-        {
+        if ($PHP['SITE'] ?? false) {
             define('BOOTSTRAP', SERVER_ROOT . $PHP['SITE']['BOOTSTRAP'] ?? false);          // Routing file
 
             define('SITE_TITLE', $PHP['SITE']['TITLE'] ?? 'CarbonPHP');                     // Carbon doesnt use
@@ -107,7 +115,7 @@ class Carbon
         // (PJAX == true) return required, else (!PJAX && AJAX) return optional (socket valid)
         define('AJAX', (PJAX || ((isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest'))));
 
-        define('HTTPS', (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off'));
+        define('HTTPS', ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? false) == 'https' || (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off'));
 
         define('HTTP', !(HTTPS || SOCKET || AJAX));
 
@@ -117,8 +125,7 @@ class Carbon
         if (!AJAX) $_POST = [];  // We only allow post requests through ajax/pjax
 
         #######################   VIEW             #####################
-        if ($PHP['VIEW'] ?? false)
-        {
+        if ($PHP['VIEW'] ?? false) {
             define('MUSTACHE', $PHP['VIEW']['MUSTACHE'] ?? '');                     // mustache loaded in js
 
             define('WRAPPER', SERVER_ROOT . $PHP['VIEW']['WRAPPER'] ?? '');         // Wrapper
@@ -128,8 +135,7 @@ class Carbon
 
         ########################  Session Management ######################
 
-        if ($PHP['SESSION'] ?? true)
-        {
+        if ($PHP['SESSION'] ?? true) {
             if ($PHP['SESSION']['PATH'] ?? false)
                 session_save_path($PHP['SESSION']['PATH'] ?? '');   // Manually Set where the Users Session Data is stored
 
@@ -155,8 +161,9 @@ class Carbon
     static function URI_FILTER($URL)
     {
         if (pathinfo($_SERVER['REQUEST_URI'] ?? '/', PATHINFO_EXTENSION) == null) {
+
             if ($_SERVER['SERVER_NAME'] != $URL)
-                print 'Invalid Server Name! See CarbonPHP.com for documentation.' and die;
+                print '<h1>Invalid URL `'.$_SERVER['SERVER_NAME'].'` in configuration. See CarbonPHP.com for documentation.</h1>' and die;
 
             define('URL', (isset($_SERVER['SERVER_NAME']) ?
                 ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') || $_SERVER['SERVER_PORT'] == 443 ? 'https://' : 'http://') . $_SERVER['SERVER_NAME'] : null), true);
@@ -174,11 +181,7 @@ class Carbon
         echo inet_pton($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'Go away.' . PHP_EOL;
         echo "\n\n\t\n" . $_SERVER['REQUEST_URI'];
         $report = ob_get_clean();
-        if (!is_dir(REPORTS . 'Request/'))
-            mkdir(REPORTS . 'Request/');
-        $file = fopen(REPORTS . 'Request/url_' . time() . '.log', "a");
-        fwrite($file, $report);
-        fclose($file);
+        Files::storeContent(REPORTS . 'Request/url_' . time() . '.log', $report);
         exit(0);    // A request has been made to an invalid file
     }
 
@@ -193,7 +196,8 @@ class Carbon
                     $ip = trim($ip);
                     // attempt to validate IP
                     if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-                        return $ip;
+                        define('IP', $ip);
+                        return IP;
                     }
                 }
             }

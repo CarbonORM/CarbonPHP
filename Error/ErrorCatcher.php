@@ -16,11 +16,12 @@ class ErrorCatcher
     private $fullReports;
     private $storeReport;
 
-    public function __construct( string $logLocation, bool $storeReport, bool $printToScreen, bool $fullReports )
+    public function __construct( string $logLocation, bool $storeReport, bool $printToScreen, bool $fullReports, int $level )
     {
         ini_set( 'display_errors', 1 );
         ini_set( 'track_errors', 1 );
-        error_reporting(E_ALL);
+        define('REPORTING', $level);
+        error_reporting(REPORTING);
         $logLocation .= 'Error/';
         Files::mkdir($logLocation);
         $this->defaultLocation = $logLocation . 'Log_' . ( $_SESSION['id'] ?? '' )  . '_' . time() . '.log';

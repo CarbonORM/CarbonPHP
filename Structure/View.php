@@ -5,30 +5,6 @@ namespace Carbon;
 class View
 {
     use Singleton;
-    const Singleton = true;
-
-    public $currentPage;
-    public $forceStoreContent = false;
-
-    public function __construct()
-    {
-        if ((PJAX || AJAX) && !empty($this->currentPage)) {
-            echo base64_decode($this->currentPage);
-            $this->currentPage = null;
-            exit(1);
-        }
-    }
-
-    public function wrapper($forceWrapper = false)   // Send the content wrapper
-    {
-        if (!SOCKET && (HTTP || HTTPS || $forceWrapper)) {            // The user logging out should force content wrapper refresh
-            $this->forceStoreContent = $forceWrapper;
-            if (!defined('WRAPPER')|| !file_exists(WRAPPER))
-                print 'A valid wrapper must be provided. Please see CarbonPHP.com for documentation.' and die;
-
-            require WRAPPER;   // Return the Template, this file should have your user logic in it
-        }
-    }
 
     public static function contents(...$argv)
     {
@@ -36,35 +12,44 @@ class View
         call_user_func_array([$self, 'content'], $argv);
     }
 
-    public function content($file): void // Must be called through Singleton, must be private
+    public function content($file) // Must be called through Singleton, must be private
     {
-        global $alert;  // If a public alert is set it will be here.
+        global $mustache, $alert;  // If a public alert is set it will be here.
 
-        if (file_exists($file)) {
-            if (SOCKET) {
-                include $file;          // we not need compression / buffering for sockets
-                return;
-            }
+        if (SOCKET) {
+            include $file;          // we not need compression / buffering for sockets
+            exit(1);
+        }
 
-            ob_start();
+        ob_start();
 
-            if (isset($alert)) {
-                foreach ($alert as $level => $message)
-                    $this->bootstrapAlert($message, $level);
-                $alert = null;
-            }
+        if (isset($alert)):
+            foreach ($alert as $level => $message)
+                $this->bootstrapAlert($message, $level);
+            $alert = null;
+        endif;
 
-            if (!file_exists($file))
-                $this->bootstrapAlert('The file requested could not be found.', 'danger');
-            else
-                include $file;
+        if (!file_exists($file)):
+            $this->bootstrapAlert('The file requested could not be found.', 'danger');
+        else:
+            include $file;
+        endif;
 
-            $file = ob_get_clean();
+        $file = ob_get_clean();
 
-            if ($this->forceStoreContent || HTTP || HTTPS) {
-                $this->currentPage = base64_encode($file);
-            } else echo $file;
-        } else throw new \Exception("$file does not exist");  // TODO - throw 404 error
+        if (pathinfo($file, PATHINFO_EXTENSION) == 'hbs'):
+            $m = new Mustache_Engine;
+            $file = $m->render($file, $this);
+        endif;
+
+        if (PJAX || AJAX):
+            print $file;
+        else:
+            $this->bufferedContent = $file;
+            include_once WRAPPER;
+        endif;
+
+        exit(1);
     }
 
     public function bootstrapAlert($message, $level): void
@@ -90,7 +75,7 @@ class View
         try {
             if (!file_exists($absolute = SERVER_ROOT . $file) || !($time = @filemtime($absolute)))
                 return DS . $file;
-            return preg_replace('{\\.([^./]+)$}', "." . $time . ".\$1",  DS . $file);
+            return preg_replace('{\\.([^./]+)$}', "." . $time . ".\$1", DS . $file);
         } catch (\ErrorException $e) {
             return DS . $file;
         }

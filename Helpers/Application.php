@@ -11,20 +11,16 @@ namespace {                                     // Carbon
     use Carbon\Route;                           //  Easily route app
     use Carbon\View;                            //  Seamlessly include the DOM
 
-
     function startApplication($reset = false): void
     {
-        static $firstRun = true;
         if ($reset):                                          // This will always be se in a socket
-            Request::changeURI($reset ?: '/');         // Dynamically using pjax + headers
+            Request::changeURI($reset === true ? '/' : $reset);         // Dynamically using pjax + headers
             $_POST = [];                                           // Only PJAX + AJAX can post
         endif;
 
         Session::update($reset = ($reset === true));                             // Check wrapper / session callback
 
-        if ($firstRun || $reset)
-            View::getInstance()->wrapper($reset);                                // Send wrapper
-        $firstRun = false;
+        View::getInstance();                                // Send wrapper
 
         if (!defined('BOOTSTRAP') || !file_exists(BOOTSTRAP))
             print 'You must define a route in your configuration. Visit CarbonPHP.com for Documentation.' and die;
@@ -44,16 +40,11 @@ namespace {                                     // Carbon
         return function (...$argv) use ($lambda) {
             try {
                 call_user_func_array($lambda, $argv);
-            } catch (PublicAlert $e) {                      // These is handled to the view
-            } catch (PDOException $e) {
-                ErrorCatcher::generateErrorLog($e);
-                PublicAlert::danger('A fatal has occurred. We have logged this issue and we will investigate soon. Please contact us if problems persist.');
-            } catch (InvalidArgumentException $e) {
-                ErrorCatcher::generateErrorLog($e);
-                PublicAlert::danger('A fatal has occurred. We have logged this issue and we will investigate soon. Please contact us if problems persist.');
-            } catch (TypeError $e) {
-                ErrorCatcher::generateErrorLog($e);
-                PublicAlert::danger('Developers make mistakes, and you found a big one. We\'ve logged this event and will be investigating soon.'); // TODO - Change what is logged
+            } catch (Exception | Error $e) {
+                if (!$e instanceof PublicAlert){
+                    ErrorCatcher::generateErrorLog($e);
+                    PublicAlert::danger('Developers make mistakes, and you found a big one. We\'ve logged this event and will be investigating soon.'); // TODO - Change what is logged
+                }
             } finally {
                 return Entities::verify();     // Check that all database commit chains have finished successfully, otherwise attempt to remove
             }
@@ -63,8 +54,13 @@ namespace {                                     // Carbon
     // Controller -(true?)> Model -(final)> View();
     function MVC(string $class, string $method, array &$argv = [])
     {
+        $class = ucfirst(strtolower($class));
         $controller = "Controller\\$class";
         $model = "Model\\$class";
+        $method = strtolower($method);
+
+        if (!class_exists($controller, true) || !class_exists($model, true))
+            throw new Exception("Invalid Class {$class} Passed to MVC");
 
         $run = function ($class, $argv) use ($method) {
             return call_user_func_array([new $class, "$method"], (is_array($argv) ? $argv : [$argv]));
@@ -83,7 +79,6 @@ namespace {                                     // Carbon
     function Mustache(string $path, array $options = [])
     {
         catchErrors(function ($path, $options = array()) {
-
             global $json;   // It's best to leave the array empty before this function call, but the option is left open..
 
             $file = MUSTACHE . "$path.php";
@@ -94,7 +89,7 @@ namespace {                                     // Carbon
             $json = array_merge(
                 is_array($json) ? $json : [],            // Easy Error Catching
                 array('UID' => $_SESSION['id'],
-                    'Mustache' => SITE . "Application/View/Mustache/$path.mst"));
+                    'Mustache' => SITE . "Application/View/Mustache/$path.hbs"));
 
             $json = array_merge(
                 (is_array($json) ? $json : []),               // Easy Error Catching - dont mess up
@@ -151,18 +146,14 @@ namespace {                                     // Carbon
         };
 
         $report = ob_get_clean();
-        // Output to file
-        Files::mkdir(REPORTS . 'Dumped');
-        $file = fopen(REPORTS . 'Dumped/Sort_' . time() . '.log', "a");
-        fwrite($file, $report);
-        fclose($file);
+        $file = REPORTS . 'Dumped/Sort_' . time() . '.log';
+        Files::storeContent($file, $report);
 
         print $report . PHP_EOL;
 
         // Output to browser
-        // $view = \View\View::getInstance();
-        //if ($view->ajaxActive()) echo $report;
-        // else $view->currentPage = base64_encode( $report );
+        if (AJAX) echo $report;
+        else View::getInstance()->bufferedContent = base64_encode( $report );
         if ($die) exit(1);
     }
 }

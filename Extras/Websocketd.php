@@ -2,33 +2,22 @@
 <?php declare(ticks=1);
 const SOCKET = true;
 
-function fuck(){
-    die; die; die;  // unreachable my ass.
-}
+if (!($argv[1] ?? false) && !is_dir($argv[1]))
+    print "The SERVER_ROOT should be passed as a command line argument.\n" and die;
 
+@include_once $argv[1] . 'index.php';       // This will invoke Carbon::Appliction()
 
-const DS = DIRECTORY_SEPARATOR;
+\Carbon\Database::reset(true);
 
-
-if (!(($argv[1] ?? false) && ($argv = json_decode(hex2bin($argv[1]), true)) && json_last_error() == JSON_ERROR_NONE))
-    print 'This script should not be called directly. See CarbonPHP.com for documentation.' and die;
-
-if (false == file_exists($psr4 = (($argv['GENERAL']['ROOT'] ?? DS ).($argv['DIRECTORY']['VENDOR'] ?? DS). 'autoload.php')))
-    print "You must include a \$PHP['DIRECTORY']['VENDOR'] = (string) and \$PHP['GENERAL']['ROOT'] = (string) \n See CarbonPHP.com for Documentation.\n" and die;
-
-if (false == include $psr4)
-    print  "Failed to include $psr4 \n\n\n" and die;
-
-
-use Carbon\Carbon;
-
-Carbon::Application($argv);
-
-print 'HELL YA AND DIE' . PHP_EOL and die;
+if (!defined('SERVER_ROOT'))
+    print 'We Failed to load CarbonPHP. Please see CarbonPHP.com for documentation.' . PHP_EOL and die;
 
 error_reporting(E_ALL);
 set_time_limit(0);
 ob_implicit_flush();
+
+if (!extension_loaded('pcntl'))
+    print "Sorry websockets require the PCNTL library be installed. Please see CarbonPHP.com for documentation.\n" and die;
 
 # https://www.leaseweb.com/labs/2013/08/catching-signals-in-php-scripts/
 pcntl_signal( SIGTERM, 'signalHandler' ); // Termination ('kill' was called')
@@ -81,7 +70,8 @@ while (true) {
                 } elseif (!empty( $string ) && pcntl_fork() == 0) {
                     print "Fetch :: $string \n";
                     $_SERVER['REQUEST_URI'] = $string;
-                    startApplication(  );
+                    //\Carbon\Database::reset();
+                    startApplication( $string );
                     exit( 1 );
                 } $handshake++;
             } elseif ($fd == $fifoFile) {

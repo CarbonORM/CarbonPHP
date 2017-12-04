@@ -85,7 +85,7 @@ class Files
     public static function storeContent($file, $output)
     {
         if(!file_exists(dirname($file)))
-            mkdir(dirname($file));
+            mkdir(dirname($file), 755);
         $file = fopen(  $file , "w");
         fwrite( $file, $output );
         fclose( $file );

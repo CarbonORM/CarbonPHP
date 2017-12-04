@@ -24,15 +24,9 @@ abstract class Entities
 
     public function __construct($object = null, $id = null)
     {
-        $this->db = Database::getConnection();
+        $this->db = Database::Database();
         if ($this instanceof iEntity) return $this::get($object, $id);
-        #elseif (is_object($object) && $id) static::getEntities($object, $id);
         return null;
-    }
-
-    static protected function database()
-    {
-        return Database::getConnection();
     }
 
     static function verify(string $errorMessage = null): bool
@@ -42,7 +36,7 @@ abstract class Entities
             foreach (self::$entityTransactionKeys as $key)
                 static::remove_entity($key);
         try {
-            Database::getConnection()->rollBack();
+            Database::Database()->rollBack();
         } catch (\PDOException $e) {
             PublicAlert::danger($e->getMessage());
         } finally {
@@ -54,7 +48,7 @@ abstract class Entities
 
     static function commit(callable $lambda = null): bool
     {
-        if (!self::database()->commit()) return static::verify();
+        if (!Database::database()->commit()) return static::verify();
         self::$inTransaction = false;
         self::$entityTransactionKeys = [];
         if (is_callable($lambda)) $lambda();
@@ -65,7 +59,7 @@ abstract class Entities
     {
         self::$inTransaction = true;
         $key = self::new_entity($tag_id, $dependant);
-        Database::getConnection()->beginTransaction();
+        Database::Database()->beginTransaction();
         return $key;
     }
 
@@ -74,7 +68,7 @@ abstract class Entities
         if (defined($tag_id))
             $tag_id = constant($tag_id);
 
-        $db = self::database();
+        $db = Database::database();
         do {
             try {
                 $stmt = $db->prepare('INSERT INTO carbon (entity_pk, entity_fk) VALUE (?,?)');
@@ -90,13 +84,13 @@ abstract class Entities
 
     static protected function remove_entity($id)
     {
-        if (!self::database()->prepare('DELETE FROM carbon WHERE entity_pk = ?')->execute([$id]))
+        if (!Database::database()->prepare('DELETE FROM carbon WHERE entity_pk = ?')->execute([$id]))
             throw new \Exception("Bad Entity Delete $id");
     }
 
     static function fetch(string $sql, ...$execute): array
     {
-        $stmt = self::database()->prepare($sql);
+        $stmt = Database::database()->prepare($sql);
         if (!$stmt->execute($execute))
             if (!$stmt->execute($execute))
                 return [];
@@ -105,7 +99,7 @@ abstract class Entities
 
     static function fetch_object(string $sql, ...$execute): stdClass
     {
-        $stmt = self::database()->prepare($sql);
+        $stmt = Database::database()->prepare($sql);
         $stmt->setFetchMode(PDO::FETCH_CLASS, stdClass::class);
         if (!$stmt->execute($execute))
             throw new \Exception('Failed to Execute');
@@ -115,7 +109,7 @@ abstract class Entities
 
     static function fetch_classes(string $sql, ...$execute): array
     {
-        $stmt = self::database()->prepare($sql);
+        $stmt = Database::database()->prepare($sql);
         $stmt->setFetchMode(PDO::FETCH_CLASS, stdClass::class);
         if (!$stmt->execute($execute)) return [];
         return $stmt->fetchAll();  // user obj
@@ -123,7 +117,7 @@ abstract class Entities
 
     static function fetch_as_array_object(string $sql, ...$execute): array
     {
-        $stmt = self::database()->prepare($sql);
+        $stmt = Database::database()->prepare($sql);
         $stmt->setFetchMode(PDO::FETCH_CLASS, Skeleton::class);
         if (!$stmt->execute($execute)) return [];
         return $stmt->fetchAll();  // user obj
@@ -131,7 +125,7 @@ abstract class Entities
 
     static function fetch_to_global(string $sql, $execute)
     {
-        $stmt = self::database()->prepare($sql);
+        $stmt = Database::database()->prepare($sql);
         $stmt->setFetchMode(PDO::FETCH_CLASS, Globals::class);
         $stmt->execute($execute);
         $stmt->fetchAll();  // user obj
@@ -139,7 +133,7 @@ abstract class Entities
 
     static function fetch_into_class($object, $sql, ...$execute)
     {
-        $stmt = self::database()->prepare($sql);
+        $stmt = Database::database()->prepare($sql);
         $stmt->execute($execute);
         $array = $stmt->fetchAll();
         foreach ($array as $key => $value) $object->$key = $value;

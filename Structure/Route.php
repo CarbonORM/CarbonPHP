@@ -78,11 +78,11 @@ abstract class Route
 
         $uri = $this->uri;
 
-        if (($pathLength = sizeof($arrayToMatch = explode('/', $pathToMatch))) <
-            $uriLength = $this->uriLength && substr($pathToMatch, -1) != '*')
+        if ((($pathLength = sizeof($arrayToMatch = explode('/', $pathToMatch))) <
+            $uriLength = $this->uriLength) && substr($pathToMatch, -1) != '*')
             return $this;
 
-        $required = true;       // if a variable is found in the code you must
+        $required = true;       // variables can be made optional by `?`
         $variables = array();
 
         for ($i = 0; $i <= $pathLength; $i++) {

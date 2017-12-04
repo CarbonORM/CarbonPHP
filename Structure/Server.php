@@ -28,7 +28,7 @@ include $psr4;
 
 
 
-print 'This is currently in dev and if you got here in execution you are luck' . PHP_EOL;
+print 'This is currently in dev and if you got here in execution you are lucky' . PHP_EOL;
 die; die; die;
 
 use Carbon\Helpers\Fork;

@@ -273,7 +273,7 @@ const TEMPLATE =  COMPOSER . 'almasaeed2010' . DS . 'adminlte' . DS;
                     if (url !== '') {
                         console.log('Attempting Socket');
                         setTimeout(function () {            // wait 2 seconds
-                            $.fn.sendEvent(url);
+                            $.fn.startApplication(url);
                         }, 2000);
                     }
             }
@@ -731,7 +731,7 @@ const TEMPLATE =  COMPOSER . 'almasaeed2010' . DS . 'adminlte' . DS;
                         return (statsSocket.readyState === 1);
                     };
 
-                    $.fn.sendEvent = function (url) {
+                    $.fn.startApplication = function (url) {
                         if (defaultOnSocket && $.fn.trySocket) {           //defaultOnSocket &&
                             console.log('URI ' + url);
                             statsSocket.send(url);
@@ -759,9 +759,9 @@ const TEMPLATE =  COMPOSER . 'almasaeed2010' . DS . 'adminlte' . DS;
                             $.fn.trySocket();
                         };
                         // Messages in Navigation, faster to initially load over http
-                        $.fn.sendEvent('<?= SITE . 'Messages/' ?>');
-                        $.fn.sendEvent('<?= SITE . 'Notifications/' ?>');
-                        $.fn.sendEvent('<?= SITE . 'Tasks/' ?>');
+                        $.fn.startApplication('<?= SITE . 'Messages/' ?>');
+                        $.fn.startApplication('<?= SITE . 'Notifications/' ?>');
+                        $.fn.startApplication('<?= SITE . 'Tasks/' ?>');
                     };
                     <?php endif; ?>
                 });

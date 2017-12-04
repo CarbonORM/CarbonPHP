@@ -1,7 +1,7 @@
 <?php
 
 try {
-    $db = \Carbon\Database::getConnection();
+    $db = \Carbon\Database::Database();
 
 
     echo "<html><head><body><h1>STARTING MAJOR CARBON SYSTEMS</h1>" . PHP_EOL;
@@ -47,7 +47,7 @@ CREATE TABLE user
 	user_sport VARCHAR(20) DEFAULT 'Golf' NOT NULL COMMENT 'This is used to start the model
 	',
 	user_session_id VARCHAR(225) NULL,
-	user_facebook_id INT NULL,
+	user_facebook_id VARCHAR(225) NULL,
 	user_username VARCHAR(25) NOT NULL,
 	user_first_name VARCHAR(25) NOT NULL,
 	user_last_name VARCHAR(25) NOT NULL,
@@ -88,19 +88,19 @@ END;
         print "<br>Table `carbon_session` already exists";
     } catch (PDOException $e) {
         $sql = <<<END
-CREATE TABLE carbon_session
+        
+create table carbon_session
 (
-	user_id VARCHAR(225) NOT NULL,
-	user_ip VARCHAR(255) NOT NULL,
-	session_id VARCHAR(255) NOT NULL,
-	session_expires DATETIME NOT NULL,
-	session_data TEXT NULL,
-	user_online_status TINYINT(1) DEFAULT '1' NULL,
-	CONSTRAINT user_session_user_user_id_fk
-		FOREIGN KEY (user_id) REFERENCES user (user_id)
-			ON UPDATE CASCADE ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=latin1
+	user_id varchar(225) not null,
+	user_ip varchar(255) null,
+	session_id varchar(255) not null
+		primary key,
+	session_expires datetime not null,
+	session_data text null,
+	user_online_status tinyint(1) default '1' null
+)
 ;
+
 END;
         $db->exec($sql);
         print "<br>Table `carbon_session` Created";

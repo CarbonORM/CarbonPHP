@@ -12,34 +12,37 @@ class Database
     private static $dbName = DB_NAME;
     private static $host = DB_HOST;
 
-    # Build the connection
-    public static function resetConnection()
+    public static function database(string $dbName = null): PDO
     {
-        self::$database = null;
-        self::getConnection();
+
+        if (empty(self::$database) || !self::$database instanceof PDO)
+            return static::reset();
+
+        try {
+            error_reporting(0);
+            self::$database->query("SELECT 1");
+            return self::$database;
+        } catch (\Error $e) {
+            error_reporting(REPORTING);
+            return self::reset();
+        }
     }
 
-    public static function getConnection(string $dbName = null): PDO
-    {
-        if (!empty(self::$database) && self::$database instanceof PDO)
-            return static::$database;
-
+    public static function reset($clear = false){
+        self::$database = null;
+        if ($clear) return true;
         $attempts = 0;
-        $host = static::$host;
-        if (empty($dbName)) $dbName = static::$dbName;
-
         do { try {
-                $db = new PDO( "mysql:host={$host};dbname={$dbName}", static::$username, static::$password );
+                $db = @new PDO( "mysql:host=".static::$host.";dbname=".static::$dbName, static::$username, static::$password );
                 $db->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
+                $db->setAttribute( PDO::ATTR_PERSISTENT, SOCKET );
                 $db->setAttribute( PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC );
                 self::$database = $db;
                 return self::$database;
-            } catch (\PDOException $e) {
+            } catch (\Error $e) {
                 $attempts++;
-
             }
         } while($attempts < 3);
-
 
         print 'We failed to connect to our database, please try again later.' . PHP_EOL;
 

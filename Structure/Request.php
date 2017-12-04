@@ -10,7 +10,7 @@ namespace Carbon;
 
 use Carbon\Helpers\Files;
 
-class Request
+class Request   // requires carbon::application;
 {
     use Singleton;
 
@@ -51,6 +51,7 @@ class Request
 
     public static function setHeader($string)
     {
+        if (defined('SOCKET') && SOCKET) return false;
         if (headers_sent()) $_SESSION['Headers'][] = $string;
         else header( $string, true );
     }
@@ -101,7 +102,7 @@ class Request
     {
         $storagePath = array();
         array_walk( $this->storage, function ($file) use ($location, &$storagePath) {
-            $storagePath[] = Files::storeFile( $file, $location );
+            $storagePath[] = Files::uploadFile( $file, $location );
         } );
         return count( $storagePath ) == 1 ? array_shift( $storagePath ) : $storagePath;
     }
