@@ -72,7 +72,12 @@ namespace {                                     // Carbon
         })();
 
         // This could cache or send
-        View::contents(SERVER_ROOT . "Public/$class/$method.php");  // but will exit(1);
+        $file = SERVER_ROOT . "Public/$class/$method";
+        $file .= (file_exists($file . '.php') ? '.php' :
+            (file_exists($file . '.hbs') ? '.hbs'
+                : ''));
+
+        View::contents($file);  // but will exit(1);
     }
 
     // Sends Json array to browser
