@@ -41,7 +41,7 @@ RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
 #prevent hotlinking
 RewriteEngine on
 RewriteCond %{HTTP_REFERER} !^$
-RewriteCond %{HTTP_REFERER} !^https://Stats.Coach/.*$ [NC]
+RewriteCond %{HTTP_REFERER} !^http://Stats.Coach/.*$ [NC]
 RewriteRule \.(gif|jpg)$ - [F]
 
 # protect against DOS attacks by limiting file upload size [bytes]
