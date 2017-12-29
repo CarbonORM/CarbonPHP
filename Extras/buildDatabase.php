@@ -428,6 +428,34 @@ END;
 
 }
 
+print '<h4>Creating Tags</h4>';
+
+Try {
+    $sql = <<<END
+REPLACE INTO carbon_tags (tag_id, tag_description, tag_name) VALUES (?,?,?);
+END;
+
+    $tag = [
+        [USER,'','USER'],
+        [USER_FOLLOWERS, '', 'USER_FOLLOWERS'],
+        [USER_NOTIFICATIONS, '', 'USER_NOTIFICATIONS'],
+        [USER_MESSAGES, '', 'USER_MESSAGES'],
+        [USER_TASKS, '', 'USER_TASKS'],
+        [ENTITY_COMMENTS, '', 'ENTITY_COMMENTS'],
+        [ENTITY_PHOTOS, '', 'ENTITY_PHOTOS']
+    ];
+
+    foreach ($tag as $key => $value)
+        $db->prepare($sql)->execute($value);
+
+    print '<br>Tags inserted';
+
+} catch (PDOException $e) {
+    print '<br>' . $e->getMessage();
+}
+
+print '<br><h4>Done!</h4>';
+
 if (file_exists($file = SERVER_ROOT . 'Application/Configs/buildDatabase.php')) include_once $file;
 
 exit(1);
