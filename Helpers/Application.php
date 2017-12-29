@@ -9,23 +9,28 @@ namespace {                                     // Carbon
     use Carbon\Session;                         //  Automatically stores session
     use Carbon\Request;                         //  Sterilizes input
     use Carbon\Route;                           //  Easily route app
-    use Carbon\View;                            //  Seamlessly include the DOM
+    use Carbon\View;                                     //  Seamlessly include the DOM
+
 
     function startApplication($reset = false): void
     {
-        if ($reset):                                          // This will always be se in a socket
-            Request::changeURI($reset === true ? '/' : $reset);         // Dynamically using pjax + headers
-            $_POST = [];                                           // Only PJAX + AJAX can post
+        if ($reset):                                    // This will always be se in a socket
+            if ($reset === true):
+                View::getInstance()->forceWrapper = true;
+                Request::changeURI('/');         // Dynamically using pjax + headers
+            else:
+                Request::changeURI($reset);
+            endif;
+            $reset = true;
+            $_POST = [];                      // Only PJAX + AJAX can post
         endif;
 
-        Session::update($reset = ($reset === true));                             // Check wrapper / session callback
-
-        View::getInstance();                                // Send wrapper
+        Session::update($reset);              // Check wrapper / session callback
 
         if (!defined('BOOTSTRAP') || !file_exists(BOOTSTRAP))
             print 'You must define a route in your configuration. Visit CarbonPHP.com for Documentation.' and die;
 
-        include BOOTSTRAP;                            // Router
+        include BOOTSTRAP;  // Router
     }
 
     function uri(): Route
@@ -39,20 +44,20 @@ namespace {                                     // Carbon
     {
         return function (...$argv) use ($lambda) {
             try {
-                call_user_func_array($lambda, $argv);
+                $argv = call_user_func_array($lambda, $argv);
             } catch (Exception | Error $e) {
-                if (!$e instanceof PublicAlert){
+                if (!$e instanceof PublicAlert) {
                     ErrorCatcher::generateErrorLog($e);
                     PublicAlert::danger('Developers make mistakes, and you found a big one. We\'ve logged this event and will be investigating soon.'); // TODO - Change what is logged
                 }
             } finally {
-                return Entities::verify();     // Check that all database commit chains have finished successfully, otherwise attempt to remove
+                Entities::verify();     // Check that all database commit chains have finished successfully, otherwise attempt to remove
+                return $argv;
             }
         };
     }
 
-    // Controller -(true?)> Model -(final)> View();
-    function MVC(string $class, string $method, array &$argv = [])
+    function CM(string $class, string $method, array &$argv = [])
     {
         $class = ucfirst(strtolower($class));
         $controller = "Controller\\$class";
@@ -62,46 +67,28 @@ namespace {                                     // Carbon
         if (!class_exists($controller, true) || !class_exists($model, true))
             throw new Exception("Invalid Class {$class} Passed to MVC");
 
-        $run = function ($class, $argv) use ($method) {
+        $exec = function ($class,$argv) use ($method) {
             return call_user_func_array([new $class, "$method"], (is_array($argv) ? $argv : [$argv]));
         };
 
-        catchErrors(function () use ($run, $controller, $model, $argv) {
-            if ($argv = $run($controller, $argv))
-                $run($model, $argv);
+        return catchErrors(function () use ($exec, $controller, $model, $argv) {
+            if ($argv = $exec($controller, $argv))
+                return $exec($model, $argv);
+            return $argv;
         })();
-
-        // This could cache or send
-        $file = SERVER_ROOT . "Public/$class/$method";
-        $file .= (file_exists($file . '.php') ? '.php' :
-            (file_exists($file . '.hbs') ? '.hbs'
-                : ''));
-
-        View::contents($file);  // but will exit(1);
     }
 
-    // Sends Json array to browser
-    function Mustache(string $path, array $options = [])
+    // Controller -(true?)> Model -(final)> View();
+    function MVC(string $class, string $method, array &$argv = [])
     {
-        catchErrors(function ($path, $options = array()) {
-            global $json;   // It's best to leave the array empty before this function call, but the option is left open..
+        CM($class, $method, $argv); // Controller -> Model
 
-            $file = MUSTACHE . "$path.php";
-            if (file_exists($file) && is_array($file = include $file))
-                $json = array_merge(
-                    is_array($json) ? $json : [], $file);
+        // This could cache or send
+        $file = PUBLIC_FOLDER . "$class/$method";
+        $found = $file . (file_exists(SERVER_ROOT . $file . '.php') ? '.php' :
+                (file_exists(SERVER_ROOT . $file . '.hbs') ? '.hbs' : ''));
 
-            $json = array_merge(
-                is_array($json) ? $json : [],            // Easy Error Catching
-                array('UID' => $_SESSION['id'],
-                    'Mustache' => SITE . "Application/View/Mustache/$path.hbs"));
-
-            $json = array_merge(
-                (is_array($json) ? $json : []),               // Easy Error Catching - dont mess up
-                (is_array($options) ? $options : []));       // Options Trumps all
-
-            print json_encode($json) . PHP_EOL;
-        })($path, $options);
+        return View::contents($found);  // View
     }
 
     function alert($string = "Stay woke.")
@@ -152,13 +139,13 @@ namespace {                                     // Carbon
 
         $report = ob_get_clean();
         $file = REPORTS . 'Dumped/Sort_' . time() . '.log';
-        Files::storeContent($file, $report);
+        //Files::storeContent($file, $report);
 
         print $report . PHP_EOL;
 
         // Output to browser
         if (AJAX) echo $report;
-        else View::getInstance()->bufferedContent = base64_encode( $report );
+        else View::getInstance()->bufferedContent = base64_encode($report);
         if ($die) exit(1);
     }
 }

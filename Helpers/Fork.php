@@ -16,15 +16,17 @@ class Fork
         define('FORK', TRUE);
     }
 
-    public static function become_daemon()          // do not use this unless you know what you are doing
+    public static function become_daemon(callable $call = null)          // do not use this unless you know what you are doing
     {
         if (!extension_loaded('pcntl'))
             print 'You must have the PCNTL extencion installed. See Carbon PHP for documentation.' and die;
 
-        if ($pid = pcntl_fork()) exit(1);     // Parent
-        elseif ($pid < 0) throw new \Exception('Failed to fork');
+        if ($pid = pcntl_fork()) {  // Parent
+            if (is_callable($call))
+                return 1;
+            else exit;
+        } elseif ($pid < 0) throw new \Exception('Failed to fork');
         self::build();
-
 
         /* child becomes our daemon */
         posix_setsid();
@@ -39,6 +41,11 @@ class Fork
             exit(1);
         });
 
+        if (is_callable($call)) {
+            $call();
+            exit(1);
+        }
+
         return posix_getpid();
     }
 
@@ -50,14 +57,14 @@ class Fork
             return 0;
         }
         if ($pid = pcntl_fork())    // return child id for parent and 0 for child
-            return 0;     // Parent
+            return $pid;     // Parent
         elseif ($pid < 0) throw new \Exception('Failed to fork');
         self::build();
-
-        if ($closure != null) $closure();
         // Database::resetConnection();
         // fclose(STDIN); -- unset
         register_shutdown_function(function () { session_abort(); posix_kill(posix_getpid(), SIGHUP); exit(1); });
+
+        if ($closure != null) $closure();
 
         exit;
     }

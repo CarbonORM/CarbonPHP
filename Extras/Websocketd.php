@@ -1,20 +1,37 @@
 #!/usr/bin/php
-<?php declare(ticks=1);
-const SOCKET = true;
+<?php declare(ticks=1);             // so we can catch exit signals ,
 
-if (!($argv[1] ?? false) && !is_dir($argv[1]))
+//if we wait to send output until we fork we can preserve our socket and session with the database
+const SOCKET = true;                // faster than define
+
+const DS = DIRECTORY_SEPARATOR;     // shorthand
+
+if (!($argv[1] ?? false))
+    print "This file should not be executed statically.\n" and die;
+
+if (!is_dir($argv[1]))
+    print "The SERVER_ROOT should be a valid line argument.\n" and die;
+
+define('SERVER_ROOT', $argv[1]);    // expressions not allowed in const
+
+if (!($argv[2] ?? false) && !file_exists($argv[2]))
     print "The SERVER_ROOT should be passed as a command line argument.\n" and die;
 
-@include_once $argv[1] . 'index.php';       // This will invoke Carbon::Appliction()
+if (false == include_once dirname(dirname(__FILE__)) . '/Structure/Carbon.php')
+    print "We failed to find a valid carbon application. You may need to reinstall or repair the carbon file layout. See CarbonPHP.com for documentation.\n\n" and die(0);
 
-\Carbon\Database::reset(true);
+$config = (include($argv[2]));
+
+\Carbon\Carbon::Application($config);
 
 if (!defined('SERVER_ROOT'))
     print 'We Failed to load CarbonPHP. Please see CarbonPHP.com for documentation.' . PHP_EOL and die;
 
-error_reporting(E_ALL);
-set_time_limit(0);
-ob_implicit_flush();
+error_reporting(E_ALL);     // Reported to console
+
+set_time_limit(0);       //  No timeout
+
+ob_implicit_flush();             // send on freaking print!!!
 
 if (!extension_loaded('pcntl'))
     print "Sorry websockets require the PCNTL library be installed. Please see CarbonPHP.com for documentation.\n" and die;
@@ -24,24 +41,9 @@ pcntl_signal( SIGTERM, 'signalHandler' ); // Termination ('kill' was called')
 pcntl_signal( SIGHUP, 'signalHandler' );  // Terminal log-out
 pcntl_signal( SIGINT, 'signalHandler' );  // Interrupted ( Ctrl-C is pressed)
 
-$fifoPath = SERVER_ROOT . 'Temp/' . $_SESSION['id'] . '.fifo';
-
-if (file_exists( $fifoPath )) unlink( $fifoPath );
-
-posix_mkfifo( $fifoPath, 0644 );
-
-echo $user = get_current_user();
-
-$fifoFile = \Carbon\Helpers\Pipe::named(SERVER_ROOT . 'Temp/' . $_SESSION['id'] . '.fifo');     // other users can notify us to update our application through this file
+$fifoFile = \Carbon\Helpers\Pipe::named(SERVER_ROOT . 'Data/Temp/' . $_SESSION['id'] . '.fifo');     // other users can notify us to update our application through this file
 
 $stdin = fopen( 'php://stdin', 'r' );
-
-echo "Socket Communication Started  
-    USER :: " . get_current_user() . "
-    PID :: " . getmypid() . "
-    ID  :: " . $_SESSION['id'] . " 
-    SOCKET :: " . SOCKET . PHP_EOL;
-
 
 $request = (new class extends Carbon\Request
 {
@@ -52,40 +54,64 @@ $request = (new class extends Carbon\Request
     }
 });
 
+\Carbon\Session::pause();
+\Carbon\Database::reset(true);
 
 while (true) {
     $miss = 0;
     $handshake = 0;
     $readers = array($fifoFile, $stdin);
+
     if (($stream = stream_select( $readers, $writers, $except, 0, 15 )) === false):
-        print "A stream error occurred\n";
-        break;
+        print "A stream error occurred\n" and die;
     else :
         foreach ($readers as $input => $fd) {
+
             if ($fd == $stdin) {
+
                 $string = $request->set( fgets( $stdin ) )->noHTML()->value();      // I think were going to make this a search function
+
                 if ($string == 'exit') {
-                    print "Application closed socket \n";
-                    break;
-                } elseif (!empty( $string ) && pcntl_fork() == 0) {
+                    print "Application closed socket \n" and die;
+
+                } elseif (!empty( $string ) && pcntl_fork() == 0) {     // Fork
+
+                    \Carbon\Session::resume();      // resume session
+
                     print "Fetch :: $string \n";
+
                     $_SERVER['REQUEST_URI'] = $string;
-                    //\Carbon\Database::reset();
+
                     startApplication( $string );
+
                     exit( 1 );
                 } $handshake++;
+
             } elseif ($fd == $fifoFile) {
+
                 $data = fread( $fifoFile, $bytes = 1024 );
-                if (!empty( $data )) {
-                    if (pcntl_fork() == 0) {
-                        print "Update :: $data \n";
-                        $_SERVER['REQUEST_URI'] = $data;
-                        startApplication( $data );
-                        exit( 1 );
+
+                $data = explode(PHP_EOL,$data);
+
+                foreach ($data as $id => $uri) {
+
+                    if (!empty($uri)) {
+
+                        if (pcntl_fork() == 0) {
+
+                            \Carbon\Session::resume();
+
+                            $_SERVER['REQUEST_URI'] = $uri = trim($uri);
+
+                            print "Update :: $uri \n";
+
+                            startApplication($uri); // will DO NOT exit in view
+
+                            exit(1);    // but if we decide to change that...  (we decided to change that!)
+                        }
                     }
                 }
                 $handshake++;
-                print "Handshake\n";
             } else {
                 print "Hits => $handshake";
                 if ($handshake != 0):

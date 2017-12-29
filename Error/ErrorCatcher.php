@@ -4,6 +4,7 @@
 
 namespace Carbon\Error;
 
+use Carbon\Database;
 use Carbon\Helpers\Files;
 use Carbon\Singleton;
 
@@ -15,6 +16,7 @@ class ErrorCatcher
     private $printToScreen;
     private $fullReports;
     private $storeReport;
+    private $report;
 
     public function __construct( string $logLocation, bool $storeReport, bool $printToScreen, bool $fullReports, int $level )
     {
@@ -23,14 +25,13 @@ class ErrorCatcher
         define('REPORTING', $level);
         error_reporting(REPORTING);
         $logLocation .= 'Error/';
-        Files::mkdir($logLocation);
         $this->defaultLocation = $logLocation . 'Log_' . ( $_SESSION['id'] ?? '' )  . '_' . time() . '.log';
         $this->printToScreen = $printToScreen;
         $this->fullReports = $fullReports;
         $this->storeReport = $storeReport;
         $closure = function (...$argv) {
             $this->generateLog($argv);
-            startApplication('Error/');
+            startApplication(true);
             exit(1);
         };
         set_error_handler($closure);
@@ -45,26 +46,30 @@ class ErrorCatcher
 
     public function generateLog($argv = array())
     {
-        ob_start( );
-        print PHP_EOL. date( 'D, d M Y H:i:s' , time());
-        print PHP_EOL. PHP_EOL .'Printout of Function Stack: ' . PHP_EOL;
-        print $this->generateCallTrace( ) . PHP_EOL;
-        if (count( $argv ) >=4 ){
-        print 'Message: ' . $argv[1] . PHP_EOL;
-        print 'line: ' . $argv[2] .'('. $argv[3] .')';
-        } else var_dump( $argv );
+        ob_start();
+        print_r($argv);
+        $trace = $this->generateCallTrace( );
+        print $trace . PHP_EOL;
+        if (count( $argv ) >=4 )
+            print 'Message: ' . $argv[1] . PHP_EOL . 'line: ' . $argv[2] .'('. $argv[3] .')';
+        else var_dump( $argv );
         $output = ob_get_contents( );
         ob_end_clean( );
 
-        if ($this->printToScreen)
-            print "<pre>$output</pre>";    // dev
+        if ($this->storeReport) {
 
-        if ($this->storeReport)
-            $this->storeFile($this->defaultLocation, $output);
+            $sql = "INSERT INTO carbon_reports (date, log_level, report, call_trace) VALUES (?, ?, ?, ?)";
+            $sql = Database::database()->prepare($sql);
 
+
+            if (!$sql->execute([date("Y-m-d H:i:s"), 'LOG', $output, $trace]))
+                print 'Failed to store error log, nothing works... Why does nothing work?' and die(1);
+        }
+
+        return $output;
     }
 
-    private function generateCallTrace()
+    public function generateCallTrace()
     {
         $e = new \Exception( );
         ob_start( );
@@ -89,17 +94,6 @@ class ErrorCatcher
         return $output;
     }
 
-
-    private function storeFile($file, $output)
-    {
-        if(!file_exists(dirname($file)))
-            mkdir(dirname($file));
-        $file = fopen( $file , "w");
-        fwrite( $file, $output );
-        fclose( $file );
-    }
-
-    
 }
 
 

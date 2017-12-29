@@ -15,9 +15,9 @@ abstract class Route
 {
     use Singleton;                // We use the add method function to bind the closure to the class
 
-    protected $uri;
-    protected $uriLength;
-    protected $matched;             // a bool
+    public $uri;
+    public $uriLength;
+    public $matched;             // a bool
     protected $structure;           // The MVC pattern is currently passes
 
     public abstract function defaultRoute();
@@ -30,24 +30,29 @@ abstract class Route
         if (empty($this->uri[0])) {
             if (SOCKET) throw new InvalidArgumentException('URL MUST BE SET IN SOCKETS');
             $this->matched = true;
-            $this->defaultRoute() and exit(1);
-        } else
+            return $this->defaultRoute();
+        } else {
             $this->matched = false;
+        }
     }
 
-    public function structure(callable $struct): Route
+    public function __toString()
+    {
+        return (string) !!$this->matched;
+    }
+
+    public function structure(callable $struct = null): Route
     {
         $this->structure = $struct;
         return $this;
     }
 
-
     public function __destruct()
     {
-        if ($this->matched || SOCKET) return null;
+        if ($this->matched || SOCKET)
+            return null;
         $this->matched = true;
-        if (SOCKET) return;
-        $this->defaultRoute() and exit(1);
+        $this->defaultRoute();
     }
 
     public function closure(callable $closure = null): self

@@ -20,7 +20,7 @@ class Database
 
         try {
             error_reporting(0);
-            self::$database->query("SELECT 1");
+            self::$database->query("SELECT 1");     // This has had a history of causing spotty error.. if this is the location of your error, you should keep looking...
             return self::$database;
         } catch (\Error $e) {
             error_reporting(REPORTING);
@@ -28,19 +28,31 @@ class Database
         }
     }
 
-    public static function reset($clear = false){
+    public static function reset($clear = false){       // mainly to help preserve database in sockets and forks
         self::$database = null;
+
         if ($clear) return true;
+
         $attempts = 0;
-        do { try {
+
+        do {
+            try {
                 $db = @new PDO( "mysql:host=".static::$host.";dbname=".static::$dbName, static::$username, static::$password );
+
                 $db->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
+
                 $db->setAttribute( PDO::ATTR_PERSISTENT, SOCKET );
+
                 $db->setAttribute( PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC );
+
                 self::$database = $db;
+
                 return self::$database;
+
             } catch (\Error $e) {
+
                 $attempts++;
+
             }
         } while($attempts < 3);
 

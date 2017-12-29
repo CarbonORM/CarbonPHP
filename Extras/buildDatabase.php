@@ -34,6 +34,25 @@ END;
     }
 
     try {
+        $stmt = $db->prepare("SELECT 1 FROM carbon_reports LIMIT 1;");
+        $stmt->execute();
+        print "<br>Table `carbon_reports` already exists";
+    } catch (PDOException $e) {
+        $sql = <<<END
+create table carbon_reports
+(
+	log_level varchar(20) null,
+	report text null,
+	date varchar(22) not null,
+	call_trace text not null
+)
+;
+END;
+        $db->exec($sql);
+        print "<br>Table `carbon_reports` Created";
+    }
+
+    try {
         $stmt = $db->prepare("SELECT 1 FROM `user` LIMIT 1;");
         $stmt->execute();
         print "<br>Table `user` already exists";

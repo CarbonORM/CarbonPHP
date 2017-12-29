@@ -76,19 +76,27 @@ class Files
         }
     }
 
-
     public static function mkdir($location)
     {
+        $user = get_current_user();                           // get current process user
+        exec("chown -R {$user}:{$user} $location");           // We need to modify the permissions so users can write to it
         return is_dir($location) ?: mkdir($location, 755);
     }
 
     public static function storeContent($file, $output)
     {
+        $user = get_current_user();                           // get current process user
+
+        exec("chown -R {$user}:{$user} " . dir($file));           // We need to modify the permissions so users can write to it
+
         if(!file_exists(dirname($file)))
             mkdir(dirname($file), 755);
-        $file = fopen(  $file , "w");
-        fwrite( $file, $output );
-        fclose( $file );
+
+        if (false == $rs = fopen(  $file , "w"))
+            throw new \Error("Failed to open $file");
+
+        fwrite( $rs, $output );
+        fclose( $rs );
     }
 
 }

@@ -2,12 +2,12 @@
 
 namespace Carbon;
 
-use Carbon\Helpers\Files;
-
 class Carbon
 {
+
     static function Application(array $PHP = []): callable
     {
+
         ####################  GENERAL CONF  ######################
         error_reporting($PHP['ERROR']['LEVEL'] ?? E_ALL | E_STRICT);
 
@@ -15,70 +15,63 @@ class Carbon
 
         date_default_timezone_set($PHP['SITE']['TIMEZONE'] ?? 'America/Chicago');
 
-        if (!defined('DS')) define('DS', DIRECTORY_SEPARATOR);
+        if (!defined('DS')) define('DS', DIRECTORY_SEPARATOR, false);
 
         define('CARBON_ROOT', dirname(dirname(__FILE__)) . DS);
 
-        define('VENDOR', dirname(CARBON_ROOT));
-
-        if (!defined('SERVER_ROOT'))
-            define('SERVER_ROOT', CARBON_ROOT);
+        if (!defined('SERVER_ROOT')) define('SERVER_ROOT', CARBON_ROOT);
 
         define('REPORTS', $PHP['ERROR']['LOCATION'] ?? SERVER_ROOT);
 
-        if ($PHP['SITE']['URL'] ?? false && !defined('SOCKET'))
-            self::URI_FILTER($PHP['SITE']['URL']);
-
         #####################   AUTOLOAD    #######################
         if (!array_key_exists('AUTOLOAD', $PHP) || $PHP['AUTOLOAD']) {
-            $PSR4 = include_once 'AutoLoad.php';   // in case of
-            if (is_array($PHP['AUTOLOAD'] ?? false)) {
+
+            $PSR4 = include_once CARBON_ROOT . 'Structure/AutoLoad.php';
+
+            if (is_array($PHP['AUTOLOAD'] ?? false))
                 foreach ($PHP['AUTOLOAD'] as $name => $path)
                     $PSR4->addNamespace($name, $path);
-            }
+
             $PSR4->addNamespace("Carbon", CARBON_ROOT);
+
             $PSR4->addNamespace("Carbon", dirname(__FILE__));
         }
 
         #####################   ERRORS    #######################
+
         Error\ErrorCatcher::getInstance(
             REPORTS,
             $PHP['ERROR']['STORE'] ?? false,    // Store on server
             $PHP['ERROR']['SHOW'] ?? false,     // Print to screen
             $PHP['ERROR']['FULL'] ?? true,
-            $PHP['ERROR']['LEVEL']);     // Catch application errors and alerts
+            $PHP['ERROR']['LEVEL']);            // Catch application errors and alerts
 
         // More cache control is given in the .htaccess File
-        Request::setHeader('Cache-Control: must-revalidate');
+        Request::setHeader('Cache-Control:  must-revalidate');
 
         #################   SOCKET AND SYNC    #######################
         if (!defined('SOCKET')) {
+
             define('SOCKET', false);
 
-            $trySocket = function ($port) {
-            try {
-                $setup = is_resource($connection = @fsockopen("127.0.0.1", $port));
-                fclose($connection);
-                return $setup;
-            } catch (\Error $e) { return false; }};
-
-            if (($PHP['SOCKET'] ?? false) && !$trySocket($PHP['SOCKET']['PORT']??8888)) {
+            if (($PHP['SOCKET'] ?? false) && getservbyport('8888', 'tcp')) {
                 $path = CARBON_ROOT . ($PHP['SOCKET']['WEBSOCKETD'] ?? false ?
                             'Extras' . DS . 'Websocketd.php' :
                             'Structure' . DS . 'Server.php');
 
-                $CMD = "websocketd --port=" . ($PHP['SOCKET']['PORT'] ?? 8888) . ' ' .
+                $config = $PHP['SITE']['CONFIG'] ?? SERVER_ROOT;
+
+                $CMD = "/usr/local/bin/websocketd --port=" . ($PHP['SOCKET']['PORT'] ?? 8888) . ' ' .
                     (($PHP['SOCKET']['DEV'] ?? false) ? '--devconsole ' : '') .
                     (($PHP['SOCKET']['SSL'] ?? false) ? "--ssl --sslkey={$PHP['SOCKET']['SSL']['KEY']} --sslcert={$PHP['SOCKET']['SSL']['CERT']} " : ' ') .
-                    "php $path  " . SERVER_ROOT;
+                    "php $path " . SERVER_ROOT . ' ' . $config . ' 2>&1';
 
-                Helpers\Fork::safe(function () use ($CMD) {     // todo daemon
-                    shell_exec("$CMD");
-                    exit(1);
+                Helpers\Fork::become_daemon(function () use ($CMD) {
+                    `$CMD`;
                 });
+
             }
         }
-
 
         #################  DATABASE  ########################
         if ($PHP['DATABASE'] ?? false) {
@@ -91,8 +84,13 @@ class Carbon
             define('DB_PASS', $PHP['DATABASE']['DB_PASS'] ?? '');
 
             if ($PHP['DATABASE']['INITIAL_SETUP'] ?? false) Database::setUp();   // could comment out after first run
-
         }
+        ##################  VALIDATE URL / URI ##################
+        // Even if a request is bad, we need to store the log
+        self::IP_LOOKUP();
+
+        if ($PHP['SITE']['URL'] ?? false && !defined('SOCKET'))
+            self::URI_FILTER($PHP['SITE']['URL']);
 
         #################  SITE  ########################
         if ($PHP['SITE'] ?? false) {
@@ -105,7 +103,6 @@ class Carbon
             define('SYSTEM_EMAIL', $PHP['SEND_EMAIL'] ?? '');                               // server email system
 
             define('REPLY_EMAIL', $PHP['REPLY_EMAIL'] ?? '');                               // I give you options :P
-
         }
 
         #######################   Pjax Ajax Refresh  ######################
@@ -120,18 +117,14 @@ class Carbon
         define('HTTP', !(HTTPS || SOCKET || AJAX));
 
         if (HTTP && !($PHP['SITE']['HTTP'] ?? true))
-            print 'Failed to switch to https, please contact the server administrator.' and die;
+            print '<h1>Failed to switch to https, please contact the server administrator.</h1>' and die;
 
         if (!AJAX) $_POST = [];  // We only allow post requests through ajax/pjax
 
+
         #######################   VIEW             #####################
-        if ($PHP['VIEW'] ?? false) {
-            define('MUSTACHE', $PHP['VIEW']['MUSTACHE'] ?? '');                     // mustache loaded in js
-
-            define('WRAPPER', SERVER_ROOT . $PHP['VIEW']['WRAPPER'] ?? '');         // Wrapper
-
-            define('MINIFY', $PHP['VIEW']['MINIFY'] ?? false);
-        }
+        define('PUBLIC_FOLDER', $PHP['VIEW']['VIEW'] ?? '');         // Public Folder
+        define('WRAPPER', SERVER_ROOT . PUBLIC_FOLDER . $PHP['VIEW']['WRAPPER'] ?? '');          // Wrapper
 
         ########################  Session Management ######################
 
@@ -139,7 +132,7 @@ class Carbon
             if ($PHP['SESSION']['PATH'] ?? false)
                 session_save_path($PHP['SESSION']['PATH'] ?? '');   // Manually Set where the Users Session Data is stored
 
-            new Session(self::IP_LOOKUP(), ($PHP['SESSION']['REMOTE'] ?? false)); // session start
+            new Session(IP, ($PHP['SESSION']['REMOTE'] ?? false)); // session start
             $_SESSION['id'] = array_key_exists('id', $_SESSION ?? []) ? $_SESSION['id'] : false;
 
             if (is_callable($PHP['SESSION']['CALLBACK'] ?? null))
@@ -151,38 +144,51 @@ class Carbon
 
         ################  Helpful Global Functions ####################
         if (file_exists(CARBON_ROOT . 'Helpers/Application.php') && !@include CARBON_ROOT . 'Helpers/Application.php')
-            print "Your instance of CarbonPHP appears corrupt. Please see CarbonPHP.com for Documentation." and die;
+            print "<h1>Your instance of CarbonPHP appears corrupt. Please see CarbonPHP.com for Documentation.</h1>" and die;
+
 
         return function () {
-            startApplication();
-        }; // HTTP , AJAX, PJAX.. AKA NOT SOCKET
+            return startApplication();
+        };
     }
+
+    /* TODO - Google uses a callback system that uses a .me ending. PATHINFO_EXT.. catches that
+     *  This brings up a good point that we shouldnt assume the user has apache installed
+     *  Which brings us to...
+     *      We must add all the error validation from the htaccess file to the framework
+     */
+
 
     static function URI_FILTER($URL)
     {
-        if (pathinfo($_SERVER['REQUEST_URI'] ?? '/', PATHINFO_EXTENSION) == null) {
+        $ext = pathinfo($_SERVER['REQUEST_URI'] ?? '/', PATHINFO_EXTENSION);
+
+        if ($ext == null || $ext == 'me') { // facebook uses this ext
 
             if ($_SERVER['SERVER_NAME'] != $URL)
-                print '<h1>Invalid URL `'.$_SERVER['SERVER_NAME'].'` in configuration. See CarbonPHP.com for documentation.</h1>' and die;
+
+                print IP . '<h1>There appears to be an invalid URL in your configuration. ' . $URL . ' !== (' . $_SERVER['SERVER_NAME'] . ') See CarbonPHP.com for documentation.</h1>' and die;
 
             define('URL', (isset($_SERVER['SERVER_NAME']) ?
                 ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') || $_SERVER['SERVER_PORT'] == 443 ? 'https://' : 'http://') . $_SERVER['SERVER_NAME'] : null), true);
 
             define('URI', ltrim(urldecode(parse_url($_SERVER['REQUEST_URI'] ?? $_SERVER['REQUEST_URI'] = '/', PHP_URL_PATH)), '/'), true);
 
-            define('SITE', url . DS, true);                                    // http(s)://example.com/
+            define('SITE', url . DS, true);                                     // http(s)://example.com/
 
-            return null;
+            return true;
         }
-        if ($_SERVER['REQUEST_URI'] == '/robots.txt')
-            echo include CARBON_ROOT . 'Extras/robots.txt' and exit(1);
+        $uri = $_SERVER['REQUEST_URI'];
 
-        ob_start();
-        echo inet_pton($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'Go away.' . PHP_EOL;
-        echo "\n\n\t\n" . $_SERVER['REQUEST_URI'];
-        $report = ob_get_clean();
-        Files::storeContent(REPORTS . 'Request/url_' . time() . '.log', $report);
-        exit(0);    // A request has been made to an invalid file
+        if ($uri == '/robots.txt') include CARBON_ROOT . 'Extras/robots.txt' and exit(1);
+
+        View::unVersion($uri);  // This may exit and send a file
+
+        Error\ErrorCatcher::generateErrorLog();
+
+        $_SERVER['REQUEST_URI'] = '';
+
+        return false;
     }
 
     // http://blackbe.lt/advanced-method-to-obtain-the-client-ip-in-php/
@@ -195,13 +201,17 @@ class Carbon
                     // trim for safety measures
                     $ip = trim($ip);
                     // attempt to validate IP
-                    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                    if ($ip = filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
                         define('IP', $ip);
                         return IP;
+                    } else {
+                        print 'Could not establish an IP address.' and die(1);
                     }
                 }
             }
         }
+        print_r($_SERVER) and die(1);
+
         return isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : false;
     }
 

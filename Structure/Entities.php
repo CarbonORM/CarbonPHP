@@ -94,7 +94,16 @@ abstract class Entities
         if (!$stmt->execute($execute))
             if (!$stmt->execute($execute))
                 return [];
-        return (count($stmt = $stmt->fetchAll()) == 1 ? $stmt[0] : $stmt);  // user obj
+        return (count($stmt = $stmt->fetchAll()) === 1 ?
+            (is_array($stmt['0']) ? $stmt['0'] : $stmt) : $stmt);  //
+    }
+
+    static function fetchColumn(string $sql, ...$execute): array
+    {
+        $stmt = Database::database()->prepare($sql);
+        if (!$stmt->execute($execute)) return [];
+        return (count($stmt = $stmt->fetchAll(PDO::FETCH_COLUMN)) === 1 ?
+            (is_array($stmt['0']) ? $stmt['0'] : $stmt) : $stmt);
     }
 
     static function fetch_object(string $sql, ...$execute): stdClass

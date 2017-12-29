@@ -8,48 +8,52 @@
 
 namespace Carbon\Helpers;
 
+use Carbon\Error\ErrorCatcher;
+
 class Pipe
 {
     public static function named($fifoPath)  // Arbitrary)
     {
 
-        if (file_exists( $fifoPath )) unlink( $fifoPath );         // We are always the master, hopefully we'll catch the kill this time
+        if (file_exists($fifoPath)) unlink($fifoPath);          // We are always the master, hopefully we'll catch the kill this time
 
-        posix_mkfifo( $fifoPath, 0644 );                    // create a named pipe
+        posix_mkfifo($fifoPath, 0644);                    // create a named pipe
 
-        $user = get_current_user();                                // get current process user
+        //$user = get_current_user();                           // get current process user
 
-        exec( "chown -R {$user}:{$user} $fifoPath" );    // We need to modify the permissions so users can write to it
+        //exec("chown -R {$user}:{$user} $fifoPath");           // We need to modify the permissions so users can write to it
 
-        $fifoFile = fopen( $fifoPath, 'r+' );               // Now we open the named pipe we Already created
+        $fifoFile = fopen($fifoPath, 'r+');              // Now we open the named pipe we Already created
 
-        stream_set_blocking( $fifoFile, false );            // setting to true (resource heavy) activates the handshake feature, aka timeout
+        stream_set_blocking($fifoFile, false);           // setting to true (resource heavy) activates the handshake feature, aka timeout
 
-        return $fifoFile;                                          // File descriptor
+        return $fifoFile;                                       // File descriptor
     }
 
 
     public static function send(string $value, string $fifoPath)
     {
-        if (Fork::safe()) {
-            try {
-                if (!file_exists( $fifoPath )) exit(1); // if it does
+        try {
+            if (!file_exists($fifoPath))
+                return false; //sortDump('Fuck me!'); // if it does
 
-                posix_mkfifo( $fifoPath, 0644 );
+            posix_mkfifo($fifoPath, 0644);
 
-                # sortDump(substr(sprintf('%o', fileperms($fifoPath)), -4) . PHP_EOL);  -- file permissions
+            //$user = get_current_user();                                // get current process user
 
-                $value = $value . PHP_EOL; // safely send, dada needs to end in null
+            //exec("chown -R {$user}:{$user} $fifoPath");    // We need to modify the permissions so users can write to it
 
-                $fifo = fopen( $fifoPath, 'r+' );
+            # sortDump(substr(sprintf('%o', fileperms($fifoPath)), -4) . PHP_EOL);  -- file permissions
 
-                fwrite( $fifo, $value, strlen($value) + 1 );
+            $value = $value . PHP_EOL; // safely send, dada needs to end in null
 
-                fclose( $fifo );
-            } catch (\Exception $e) {
+            $fifo = fopen($fifoPath, 'r+');
 
-            }
-            exit(1);  // TODO - remove
+            fwrite($fifo, $value, strlen($value) + 1);
+
+            fclose($fifo);
+        } catch (\Exception $e) {
+            ErrorCatcher::generateErrorLog($e);
         }
     }
 }
