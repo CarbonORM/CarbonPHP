@@ -423,7 +423,7 @@ END;
 
 } catch (PDOException $e) {
 
-    echo "Oh no!! Goto CarbonPHP.com for support! ( code this code )" . PHP_EOL;
+    echo "Oh no, we failed to insert our databases!! Goto CarbonPHP.com for support and show the following code!<b>" . PHP_EOL;
     echo $e->getMessage() . PHP_EOL;
 
 }

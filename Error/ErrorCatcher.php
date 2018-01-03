@@ -5,7 +5,6 @@
 namespace Carbon\Error;
 
 use Carbon\Database;
-use Carbon\Helpers\Files;
 use Carbon\Singleton;
 
 class ErrorCatcher
@@ -16,7 +15,6 @@ class ErrorCatcher
     private $printToScreen;
     private $fullReports;
     private $storeReport;
-    private $report;
 
     public function __construct( string $logLocation, bool $storeReport, bool $printToScreen, bool $fullReports, int $level )
     {
@@ -41,7 +39,7 @@ class ErrorCatcher
     public static function generateErrorLog($argv = array())
     {
         $self = static::getInstance();
-        $self->generateLog($argv);
+        return $self->generateLog($argv);
     }
 
     public function generateLog($argv = array())

@@ -1,0 +1,6 @@
+# Created by .ignore support plugin (hsz.mobi)
+/composer.phar
+/vendor/
+.idea/dataSources/
+.idea/inspectionProfiles/
+.idea/workspace.xml

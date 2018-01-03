@@ -39,22 +39,35 @@ class Database
             try {
                 $db = @new PDO( "mysql:host=".static::$host.";dbname=".static::$dbName, static::$username, static::$password );
 
-                $db->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
+                $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-                $db->setAttribute( PDO::ATTR_PERSISTENT, SOCKET );
+                $db->setAttribute(PDO::ATTR_PERSISTENT, SOCKET);
 
-                $db->setAttribute( PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC );
+                $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
 
                 self::$database = $db;
 
                 return self::$database;
+            } catch (\PDOException $e){
+                if (empty(static::$host))
+                    print '<h2>You must set a host. See CarbonPHP.com for documentation</h2>';
 
-            } catch (\Error $e) {
+                if (empty(static::$dbName))
+                    print '<h2>You must set a database name. See CarbonPHP.com for documentation</h2>';
 
+                if (empty(static::$username))
+                    print '<h2>You must set a database user name. See CarbonPHP.com for documentation</h2>';
+
+                if (empty(static::$password))
+                    print '<h2>You may need to set a database password. See CarbonPHP.com for documentation</h2>';
+
+
+                print $e->getMessage() . '<br>';    // This may print twice if the error catcher is trying to
+                die(0);                            // but don't fear, die works...
+            } catch (\Error $e) {                   // The error catcher
                 $attempts++;
-
             }
-        } while($attempts < 3);
+        } while ($attempts < 3);
 
         print 'We failed to connect to our database, please try again later.' . PHP_EOL;
 
@@ -65,7 +78,7 @@ class Database
 
     public static function setUp()
     {
-        if (file_exists(  CARBON_ROOT . 'Extras/buildDatabase.php' ))
+        if (file_exists(CARBON_ROOT . 'Extras/buildDatabase.php'))
             require_once CARBON_ROOT . 'Extras/buildDatabase.php';
     }
 
