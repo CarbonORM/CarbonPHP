@@ -16,20 +16,21 @@ class ErrorCatcher
     private $fullReports;
     private $storeReport;
 
-    public function __construct( string $logLocation, bool $storeReport, bool $printToScreen, bool $fullReports, int $level )
+    public function __construct(string $logLocation, bool $storeReport, bool $printToScreen, bool $fullReports, int $level)
     {
-        ini_set( 'display_errors', 1 );
-        ini_set( 'track_errors', 1 );
+        ini_set('display_errors', 1);
+        ini_set('track_errors', 1);
         define('REPORTING', $level);
         error_reporting(REPORTING);
         $logLocation .= 'Error/';
-        $this->defaultLocation = $logLocation . 'Log_' . ( $_SESSION['id'] ?? '' )  . '_' . time() . '.log';
+        $this->defaultLocation = $logLocation . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
         $this->printToScreen = $printToScreen;
         $this->fullReports = $fullReports;
         $this->storeReport = $storeReport;
         $closure = function (...$argv) {
             $this->generateLog($argv);
-            startApplication(true);
+            if (function_exists('startApplication'))
+                startApplication(true);
             exit(1);
         };
         set_error_handler($closure);
@@ -46,13 +47,13 @@ class ErrorCatcher
     {
         ob_start();
         print_r($argv);
-        $trace = $this->generateCallTrace( );
+        $trace = $this->generateCallTrace();
         print $trace . PHP_EOL;
-        if (count( $argv ) >=4 )
-            print 'Message: ' . $argv[1] . PHP_EOL . 'line: ' . $argv[2] .'('. $argv[3] .')';
-        else var_dump( $argv );
-        $output = ob_get_contents( );
-        ob_end_clean( );
+        if (count($argv) >= 4)
+            print 'Message: ' . $argv[1] . PHP_EOL . 'line: ' . $argv[2] . '(' . $argv[3] . ')';
+        else var_dump($argv);
+        $output = ob_get_contents();
+        ob_end_clean();
 
         if ($this->storeReport) {
 

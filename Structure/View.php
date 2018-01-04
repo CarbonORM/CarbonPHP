@@ -92,20 +92,47 @@ class View
         }
     }
 
+
+    /**
+     *  Given a file versioned by file's mtime, i.e. /css/base.1221534296.css.
+     *  return the requested file with proper headers, i.e. /css/base.css.
+     *
+     * @param $uri
+     *  file to be loaded.  Must be an absolute path (i.e.
+     *                starting with slash).
+     * @return mixed  file to be loaded.
+     */
     static function unVersion($uri)
     {
         if (!defined('SERVER_ROOT'))
             return DS . $uri;
-        if ((new Request())->set($uri)->regex('^(.*)\.[\d]{10}\.(css|js|html)')){
-            $uri = preg_match('#^(.*)\.[\d]{10}\.(css|js|html)#', $uri, $matches, PREG_OFFSET_CAPTURE);
-            $uri = "$uri[1].$uri[2]";
+
+        if (preg_match('#^(.*)\.[\d]{10}\.(css|js|html)#', $uri, $matches, PREG_OFFSET_CAPTURE)) {
+
+            $uri = trim($matches[1][0] . '.' . $matches[2][0], '/');
+
             if (file_exists(SERVER_ROOT . $uri))
-                include $uri and exit(1);
+                self::sendResource($uri, $matches[2][0]);
         }
         return false;
     }
 
-    public function __get($variable)
+    static function sendResource($file, $ext){
+        if ($mime = self::mimeType($ext)) {
+            header("Content-type: " . $mime . "; charset: UTF-8");
+            readfile($file);
+            exit(1);                        // exit = die  but implies success
+        }
+        http_response_code(404);
+        die(1);
+    }
+
+    static function mimeType($ext){     // TODO - make more robust
+        $mime_types = include_once SERVER_ROOT . 'Data/Indexes/MimeTypes.php';
+        return (array_key_exists( $ext, $mime_types )) ? $mime_types[$ext] : false;
+    }
+
+    public function __get($variable)    // This replaces the definition in our trait to help devs catch ref errors
     {
         return (isset($GLOBALS[$variable]) ? $GLOBALS[$variable] : null);
     }

@@ -38,7 +38,6 @@ class Carbon
         }
 
         #####################   ERRORS    #######################
-
         Error\ErrorCatcher::getInstance(
             REPORTS,
             $PHP['ERROR']['STORE'] ?? false,    // Store on server
@@ -89,10 +88,12 @@ class Carbon
 
         ##################  VALIDATE URL / URI ##################
         // Even if a request is bad, we need to store the log
-        self::IP_FILTER();
+        define('LOCAL_SERVER', self::isClientServer());
 
-        if ($PHP['SITE']['URL'] ?? false && !defined('SOCKET'))
-            self::URI_FILTER($PHP['SITE']['URL']);
+        if (!LOCAL_SERVER)
+            self::IP_FILTER();
+
+        self::URI_FILTER($PHP['SITE']['URL'] ?? '');
 
         #################  SITE  ########################
         if ($PHP['SITE'] ?? false) {
@@ -122,7 +123,6 @@ class Carbon
             print '<h1>Failed to switch to https, please contact the server administrator.</h1>' and die;
 
         if (!AJAX) $_POST = [];  // We only allow post requests through ajax/pjax
-
 
         #######################   VIEW             #####################
         define('PUBLIC_FOLDER', $PHP['VIEW']['VIEW'] ?? '');         // Public Folder
@@ -160,47 +160,58 @@ class Carbon
      *      We must add all the error validation from the htaccess file to the framework
      */
 
-
-    static function URI_FILTER($URL)
+    static function isClientServer()
     {
+        if (in_array($_SERVER['REMOTE_ADDR'] ?? [], ['127.0.0.1', 'fe80::1', '::1']) || php_sapi_name() === 'cli-server') {
+            define('IP', '127.0.0.1');
+            return IP;
+        }
+        return false;
+    }
+
+
+    static function URI_FILTER($URL, $allowedEXT = ['jpg'])
+    {
+        $regx = '';
+        foreach ($allowedEXT as $item => $value)
+            $regx .= $value . '|';
+
+        $regx = trim($regx, '|');
+
+        if (preg_match("#^((.*)\.($regx)).*#", $URL, $matches, PREG_OFFSET_CAPTURE)) {
+            $uri = trim($matches[1][0] . '.' . $matches[2][0], '/');
+            print_r($matches);
+        }
+
         $ext = pathinfo($_SERVER['REQUEST_URI'] ?? '/', PATHINFO_EXTENSION);
 
-        if ($ext == null || $ext == 'me') { // facebook uses this ext
+        if (!empty($URL) && $_SERVER['SERVER_NAME'] != $URL)
+            print IP . '<h1>There appears to be an invalid URL in your configuration. ' . $URL . ' !== (' . $_SERVER['SERVER_NAME'] . ') See CarbonPHP.com for documentation.</h1>' and die;
 
-            if ($_SERVER['SERVER_NAME'] != $URL)
+        define('URL',
+            (isset($_SERVER['SERVER_NAME']) ?
+            ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') || $_SERVER['SERVER_PORT'] == 443 ? 'https://' : 'http://') .
+                $_SERVER['SERVER_NAME'] . (LOCAL_SERVER ? ':'.$_SERVER['SERVER_PORT'] : '') : null), true);
 
-                print IP . '<h1>There appears to be an invalid URL in your configuration. ' . $URL . ' !== (' . $_SERVER['SERVER_NAME'] . ') See CarbonPHP.com for documentation.</h1>' and die;
+        define('URI', ltrim(urldecode(parse_url($_SERVER['REQUEST_URI'] ?? $_SERVER['REQUEST_URI'] = '/', PHP_URL_PATH)), '/'), true);
 
-            define('URL', (isset($_SERVER['SERVER_NAME']) ?
-                ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') || $_SERVER['SERVER_PORT'] == 443 ? 'https://' : 'http://') . $_SERVER['SERVER_NAME'] : null), true);
+        define('SITE', url . DS, true);   // http(s)://example.com/
 
-            define('URI', ltrim(urldecode(parse_url($_SERVER['REQUEST_URI'] ?? $_SERVER['REQUEST_URI'] = '/', PHP_URL_PATH)), '/'), true);
+        if ($ext == null) return true;
 
-            define('SITE', url . DS, true);                                     // http(s)://example.com/
+        if (file_exists(SERVER_ROOT . URI)) {
+            if (false !== array_search($ext, $allowedEXT))
+                View::sendResource(URI, $ext);
 
-            return true;
+        } else {
+            View::unVersion(URI);  // This may exit and send a file
         }
-        $uri = $_SERVER['REQUEST_URI'];
-
-        if ($uri == '/robots.txt') include CARBON_ROOT . 'Extras/robots.txt' and exit(1);
-
-        View::unVersion($uri);  // This may exit and send a file
-
-        Error\ErrorCatcher::generateErrorLog();
-
-        $_SERVER['REQUEST_URI'] = '';
-
-        return false;
+        die(1);
     }
 
     // http://blackbe.lt/advanced-method-to-obtain-the-client-ip-in-php/
     static function IP_FILTER()
     {
-        if (in_array($_SERVER['REMOTE_ADDR'] ?? [], ['127.0.0.1', 'fe80::1', '::1']) || php_sapi_name() === 'cli-server') {
-            define('IP', 'localhost');
-            return IP;
-        }
-
         $ip_keys = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR');
         foreach ($ip_keys as $key) {
             if (array_key_exists($key, $_SERVER) === true) {
