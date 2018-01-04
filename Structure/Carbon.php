@@ -90,10 +90,9 @@ class Carbon
         // Even if a request is bad, we need to store the log
         define('LOCAL_SERVER', self::isClientServer());
 
-        if (!LOCAL_SERVER)
-            self::IP_FILTER();
+        if (!LOCAL_SERVER) self::IP_FILTER();
 
-        self::URI_FILTER($PHP['SITE']['URL'] ?? '');
+        self::URI_FILTER($PHP['SITE']['URL'] ?? '', $PHP['SITE']['ALLOWED_EXTENSIONS'] ?? '');
 
         #################  SITE  ########################
         if ($PHP['SITE'] ?? false) {
@@ -172,26 +171,22 @@ class Carbon
 
     static function URI_FILTER($URL, $allowedEXT = ['jpg'])
     {
-        $regx = '';
-        foreach ($allowedEXT as $item => $value)
-            $regx .= $value . '|';
 
-        $regx = trim($regx, '|');
-
-        if (preg_match("#^((.*)\.($regx)).*#", $URL, $matches, PREG_OFFSET_CAPTURE)) {
-            $uri = trim($matches[1][0] . '.' . $matches[2][0], '/');
-            print_r($matches);
-        }
-
-        $ext = pathinfo($_SERVER['REQUEST_URI'] ?? '/', PATHINFO_EXTENSION);
-
-        if (!empty($URL) && $_SERVER['SERVER_NAME'] != $URL)
+        if (!empty($URL) && $_SERVER['SERVER_NAME'] != $URL && !LOCAL_SERVER)
             print IP . '<h1>There appears to be an invalid URL in your configuration. ' . $URL . ' !== (' . $_SERVER['SERVER_NAME'] . ') See CarbonPHP.com for documentation.</h1>' and die;
+
+        View::unVersion($_SERVER['REQUEST_URI']);  // This may exit and send a file
+
+        preg_match("#^(.*\.)($allowedEXT)\?*.*#", $_SERVER['REQUEST_URI'], $matches, PREG_OFFSET_CAPTURE);
+
+        $ext = $matches[2][0] ?? '';  // routes should be null
+
+        define('URI', ltrim(urldecode(parse_url(($matches[1][0] ?? '/') . $ext, PHP_URL_PATH)), '/'), true);
 
         define('URL',
             (isset($_SERVER['SERVER_NAME']) ?
-            ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') || $_SERVER['SERVER_PORT'] == 443 ? 'https://' : 'http://') .
-                $_SERVER['SERVER_NAME'] . (LOCAL_SERVER ? ':'.$_SERVER['SERVER_PORT'] : '') : null), true);
+                ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') || $_SERVER['SERVER_PORT'] == 443 ? 'https://' : 'http://') .
+                $_SERVER['SERVER_NAME'] . (LOCAL_SERVER ? ':' . $_SERVER['SERVER_PORT'] : '') : null), true);
 
         define('URI', ltrim(urldecode(parse_url($_SERVER['REQUEST_URI'] ?? $_SERVER['REQUEST_URI'] = '/', PHP_URL_PATH)), '/'), true);
 
@@ -199,13 +194,10 @@ class Carbon
 
         if ($ext == null) return true;
 
-        if (file_exists(SERVER_ROOT . URI)) {
-            if (false !== array_search($ext, $allowedEXT))
-                View::sendResource(URI, $ext);
+        if (file_exists(SERVER_ROOT . URI))
+            View::sendResource(URI, $ext);
 
-        } else {
-            View::unVersion(URI);  // This may exit and send a file
-        }
+        http_response_code(404);
         die(1);
     }
 

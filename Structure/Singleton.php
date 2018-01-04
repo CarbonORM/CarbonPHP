@@ -117,7 +117,7 @@ trait Singleton
         } catch (\Exception $e){ unset($_SESSION[__CLASS__]); return null; };
     }
 
-    public function &__get($variable)
+    public function &__get($variable)   // TODO - MAJOR rework, store in $storage
     {
         return $GLOBALS[$variable];
     }

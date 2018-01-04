@@ -117,8 +117,9 @@ class View
         return false;
     }
 
-    static function sendResource($file, $ext){
-        if ($mime = self::mimeType($ext)) {
+    static function sendResource($file, $ext)
+    {
+        if ($mime = self::mimeType($file, $ext)) {
             header("Content-type: " . $mime . "; charset: UTF-8");
             readfile($file);
             exit(1);                        // exit = die  but implies success
@@ -127,9 +128,19 @@ class View
         die(1);
     }
 
-    static function mimeType($ext){     // TODO - make more robust
+    static function mimeType($file, $ext)
+    {
         $mime_types = include_once SERVER_ROOT . 'Data/Indexes/MimeTypes.php';
-        return (array_key_exists( $ext, $mime_types )) ? $mime_types[$ext] : false;
+        if (array_key_exists($ext, $mime_types))
+            return $mime_types[$ext];
+
+        if (function_exists('finfo_open')) {
+            $file_info = finfo_open(FILEINFO_MIME);
+            $mime_types = finfo_file($file_info, $file);
+            finfo_close($file_info);
+            return $mime_types;
+        }
+        return 'application/octet-stream';
     }
 
     public function __get($variable)    // This replaces the definition in our trait to help devs catch ref errors
