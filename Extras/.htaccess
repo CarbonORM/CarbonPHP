@@ -1,28 +1,36 @@
 #Fix Rewrite
-Options -Multiviews
+# CarbonPHP doesnt require this file
+# If you are building on apache place this file in the root directory.
+# It's Caching will speed up your server. Read the comments to see if
+# editing is required for your build (most likely)...
 
-RewriteEngine on
+Options -Multiviews         #
+
+RewriteEngine on            # For pre interprating urls in this file
 
 # enable symbolic links
-Options +FollowSymLinks
+Options +FollowSymLinks     # aliases,
 
-# this needs to be somewhere
-# LoadModule http2_module modules/mod_http2.so
-# ProtocolsHonorOrder On
-# Protocols h2 http/1.1
+# If you experence errors when you first move this file its likely that you do not have
+# HTTP2 installed/enabled on your computer, so comment out # the next three lines.
+LoadModule http2_module modules/mod_http2.so
+ProtocolsHonorOrder On
+Protocols h2 http/1.1
 
 
 # increase performance by disabling AllowOverride
 # this htacces will be the default across the server
-#AllowOverride None
+# This broke my server personally, but it would be
+# excelent to have enabled if you can
+AllowOverride None
 
-# Disable directory browsing
+# Disable directory browsing - This is fine, leave it
 Options All -Indexes
 
-# Set the directory index
+# Set the directory index   - also fine..
 DirectoryIndex index.php
 
-# Redirect Specific Files
+# Redirect Specific Files   TODO - change
 RewriteRule ^favicon.ico Public/StatsCoach/img/icons/favicon.png [L]
 
 # Remove www.
@@ -30,22 +38,25 @@ RewriteBase /
 RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
 RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
 
+
 # Turn on https ( Cent OS )
-#RewriteCond %{HTTPS} off
-#RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 # Turn on https ( Mac OS )
-#RewriteCond %{HTTP:X-Forwarded-Proto} !https
-#RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# RewriteCond %{HTTP:X-Forwarded-Proto} !https
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 #prevent hotlinking
 RewriteEngine on
 RewriteCond %{HTTP_REFERER} !^$
-RewriteCond %{HTTP_REFERER} !^http://Stats.Coach/.*$ [NC]
-RewriteRule \.(gif|jpg)$ - [F]
+RewriteCond %{HTTP_REFERER} !^http://example.com/.*$ [NC]    # Change This!!!
+RewriteRule \.(png|gif|jpg)$ - [F]                           # File types to prevent other websites from serving
+
 
 # protect against DOS attacks by limiting file upload size [bytes]
 LimitRequestBody 10240000
+
 
 # Enable compression
 <ifModule mod_gzip.c>
@@ -60,8 +71,7 @@ mod_gzip_item_exclude rspheader ^Content-Encoding:.*gzip.*
 </ifModule>
 
 
-
-# This scares me man
+# Ummmm sure
 <IfModule mod_speling.c>
 	CheckSpelling On
 </IfModule>
