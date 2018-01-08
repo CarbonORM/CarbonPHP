@@ -16,7 +16,7 @@ class View
 
     public function content($file)
     {
-        $buffer = catchErrors(function () use ($file) {         // closure  $buffer();
+        $buffer = catchErrors(function () use ($file) : string {         // closure  $buffer();
 
             global $alert;           // Buffer contents may not need to be run if AJAX or SOCKET
 
@@ -107,7 +107,7 @@ class View
         if (!defined('SERVER_ROOT'))
             return DS . $uri;
 
-        if (preg_match('#^(.*)\.[\d]{10}\.(css|js|html)#', $uri, $matches, PREG_OFFSET_CAPTURE)) {
+        if (preg_match('#^(.*)\.[\d]{10}\.(css|js)#', $uri, $matches, PREG_OFFSET_CAPTURE)) {
 
             $uri = trim($matches[1][0] . '.' . $matches[2][0], '/');
 

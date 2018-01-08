@@ -70,26 +70,26 @@ class ErrorCatcher
 
     public function generateCallTrace()
     {
-        $e = new \Exception( );
-        ob_start( );
-        $trace = explode( "\n", $e->getTraceAsString() );
+        $e = new \Exception();
+        ob_start();
+        $trace = explode("\n", $e->getTraceAsString());
         // reverse array to make steps line up chronologically
-        $trace = array_reverse( $trace );
-        array_shift( $trace ); // remove {main}
-        array_pop( $trace ); // remove call to this method
-        array_pop( $trace ); // remove call to this method
-        $length = count( $trace );
-        $result = array( );
+        $trace = array_reverse($trace);
+        array_shift($trace); // remove {main}
+        array_pop($trace); // remove call to this method
+        array_pop($trace); // remove call to this method
+        $length = count($trace);
+        $result = array();
 
-        for ( $i = 0; $i < $length; $i++ ) {
-            $result[] = ($i + 1) . ') ' . substr(substr( $trace[$i], strpos( $trace[$i], ' ' ) ), 35) . PHP_EOL;
+        for ($i = 0; $i < $length; $i++) {
+            $result[] = ($i + 1) . ') ' . substr(substr($trace[$i], strpos($trace[$i], ' ')), 35) . PHP_EOL;
             print PHP_EOL; // replace '#someNum' with '$i)', set the right ordering
         }
 
-        print "\t" . implode( "\n\t", $result );
+        print "\t" . implode("\n\t", $result);
 
-        $output = ob_get_contents( );
-        ob_end_clean( );
+        $output = ob_get_contents();
+        ob_end_clean();
         return $output;
     }
 

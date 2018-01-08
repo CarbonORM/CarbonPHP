@@ -4,6 +4,7 @@ namespace Carbon;
 
 class Carbon
 {
+    private static $safelyExit;
 
     static function Application(array $PHP = []): callable
     {
@@ -23,6 +24,10 @@ class Carbon
 
         define('REPORTS', $PHP['ERROR']['LOCATION'] ?? SERVER_ROOT);
 
+        self::$safelyExit = $safelyExit = function () use (&$safelyExit) {
+          return $safelyExit;
+        };
+
         #####################   AUTOLOAD    #######################
         if (!array_key_exists('AUTOLOAD', $PHP) || $PHP['AUTOLOAD']) {
 
@@ -31,10 +36,6 @@ class Carbon
             if (is_array($PHP['AUTOLOAD'] ?? false))
                 foreach ($PHP['AUTOLOAD'] as $name => $path)
                     $PSR4->addNamespace($name, $path);
-
-            $PSR4->addNamespace("Carbon", CARBON_ROOT);
-
-            $PSR4->addNamespace("Carbon", dirname(__FILE__));
         }
 
         #####################   ERRORS    #######################
@@ -74,9 +75,8 @@ class Carbon
 
         #################  DATABASE  ########################
         if ($PHP['DATABASE'] ?? false) {
-            define('DB_HOST', $PHP['DATABASE']['DB_HOST'] ?? '');
 
-            define('DB_NAME', $PHP['DATABASE']['DB_NAME'] ?? '');
+            define('DB_DSN', $PHP['DATABASE']['DB_DSN'] ?? '');
 
             define('DB_USER', $PHP['DATABASE']['DB_USER'] ?? '');
 
@@ -124,8 +124,8 @@ class Carbon
         if (!AJAX) $_POST = [];  // We only allow post requests through ajax/pjax
 
         #######################   VIEW             #####################
-        define('PUBLIC_FOLDER', $PHP['VIEW']['VIEW'] ?? '');         // Public Folder
-        define('WRAPPER', SERVER_ROOT . PUBLIC_FOLDER . $PHP['VIEW']['WRAPPER'] ?? '');          // Wrapper
+        define('APP_VIEW', $PHP['VIEW']['VIEW'] ?? '');         // Public Folder
+        define('WRAPPER', SERVER_ROOT . APP_VIEW . $PHP['VIEW']['WRAPPER'] ?? '');          // Wrapper
 
         ########################  Session Management ######################
 
@@ -171,12 +171,16 @@ class Carbon
 
     static function URI_FILTER($URL, $allowedEXT = ['jpg'])
     {
+        if (!empty($URL) && $_SERVER['SERVER_NAME'] != $URL && !LOCAL_SERVER) {
+            print IP . '<h1>You appear to be redirected.</h1><h2>Moving to ' . $URL .'</h2>';
+            print "<script>window.location.type = $URL";
+            return self::$safelyExit;
+        }
 
-        if (!empty($URL) && $_SERVER['SERVER_NAME'] != $URL && !LOCAL_SERVER)
-            print IP . '<h1>There appears to be an invalid URL in your configuration. ' . $URL . ' !== (' . $_SERVER['SERVER_NAME'] . ') See CarbonPHP.com for documentation.</h1>' and die;
 
         View::unVersion($_SERVER['REQUEST_URI']);  // This may exit and send a file
 
+        // It does not matter if this matches, we will take care of that in the next if.
         preg_match("#^(.*\.)($allowedEXT)\?*.*#", $_SERVER['REQUEST_URI'], $matches, PREG_OFFSET_CAPTURE);
 
         $ext = $matches[2][0] ?? '';  // routes should be null
@@ -188,7 +192,6 @@ class Carbon
                 ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') || $_SERVER['SERVER_PORT'] == 443 ? 'https://' : 'http://') .
                 $_SERVER['SERVER_NAME'] . (LOCAL_SERVER ? ':' . $_SERVER['SERVER_PORT'] : '') : null), true);
 
-        define('URI', ltrim(urldecode(parse_url($_SERVER['REQUEST_URI'] ?? $_SERVER['REQUEST_URI'] = '/', PHP_URL_PATH)), '/'), true);
 
         define('SITE', url . DS, true);   // http(s)://example.com/
 

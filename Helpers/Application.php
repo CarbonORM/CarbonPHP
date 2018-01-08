@@ -84,7 +84,7 @@ namespace {                                     // Carbon
         CM($class, $method, $argv); // Controller -> Model
 
         // This could cache or send
-        $file = PUBLIC_FOLDER . "$class/$method";
+        $file = APP_VIEW . "$class/$method";
         $found = $file . (file_exists(SERVER_ROOT . $file . '.php') ? '.php' :
                 (file_exists(SERVER_ROOT . $file . '.hbs') ? '.hbs' : ''));
 

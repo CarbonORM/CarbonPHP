@@ -9,10 +9,9 @@ class Database
     private static $database;
     private static $username = DB_USER;
     private static $password = DB_PASS;
-    private static $dbName = DB_NAME;
-    private static $host = DB_HOST;
+    private static $dsn = DB_DSN;
 
-    public static function database(string $dbName = null): PDO
+    public static function database(): PDO
     {
 
         if (empty(self::$database) || !self::$database instanceof PDO)
@@ -22,7 +21,7 @@ class Database
             error_reporting(0);
             self::$database->query("SELECT 1");     // This has had a history of causing spotty error.. if this is the location of your error, you should keep looking...
             return self::$database;
-        } catch (\Error $e) {
+        } catch (\Error $e) {                       // added for socket support
             error_reporting(REPORTING);
             return self::reset();
         }
@@ -37,7 +36,7 @@ class Database
 
         do {
             try {
-                $db = @new PDO( "mysql:host=".static::$host.";dbname=".static::$dbName, static::$username, static::$password );
+                $db = @new PDO( static::$dsn, static::$username, static::$password );
 
                 $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
@@ -49,12 +48,6 @@ class Database
 
                 return self::$database;
             } catch (\PDOException $e){
-                if (empty(static::$host))
-                    print '<h2>You must set a host. See CarbonPHP.com for documentation</h2>';
-
-                if (empty(static::$dbName))
-                    print '<h2>You must set a database name. See CarbonPHP.com for documentation</h2>';
-
                 if (empty(static::$username))
                     print '<h2>You must set a database user name. See CarbonPHP.com for documentation</h2>';
 
