@@ -55,7 +55,8 @@ class ErrorCatcher
         $output = ob_get_contents();
         ob_end_clean();
 
-        if ($this->storeReport) {
+
+        if ($this->storeReport) {       // TODO - store to file?
 
             $sql = "INSERT INTO carbon_reports (date, log_level, report, call_trace) VALUES (?, ?, ?, ?)";
             $sql = Database::database()->prepare($sql);
