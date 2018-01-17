@@ -69,7 +69,6 @@ class Carbon
                 Helpers\Fork::become_daemon(function () use ($CMD) {
                     `$CMD`;
                 });
-
             }
         }
 

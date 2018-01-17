@@ -4,7 +4,7 @@ try {
     $db = \Carbon\Database::Database();
 
 
-    echo "<html><head><body><h1>STARTING MAJOR CARBON SYSTEMS</h1>" . PHP_EOL;
+    print "<html><head><title>Setup or Rebuild Database</title></head><body><h1>STARTING MAJOR CARBON SYSTEMS</h1>" . PHP_EOL;
 
     try {
         $stmt = $db->prepare("SELECT 1 FROM carbon LIMIT 1;");
@@ -458,8 +458,8 @@ print '<br><h4>Done!</h4>';
 
 if (file_exists($file = SERVER_ROOT . 'Application/Configs/buildDatabase.php'))
     include_once $file;
-else print '<h3>When you add a database be sure to add it to the file \'Application/Configs/buildDatabase.php\'</h3><h4>Use '. __FILE__ .' a as refrence.</h4>';
+else print '<h3>When you add a database be sure to add it to the file \'Application/Configs/buildDatabase.php\'</h3><h5>Use '. __FILE__ .' a as refrence.</h5>';
 
 print '<br><br><h2>Refreshing in 6 seconds</h2><script>t1 = window.setTimeout(function(){ window.location.href = "'.SITE.'"; },6000);</script>';
 
-return true;
+exit(1);
