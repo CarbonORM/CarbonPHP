@@ -458,10 +458,8 @@ print '<br><h4>Done!</h4>';
 
 if (file_exists($file = SERVER_ROOT . 'Application/Configs/buildDatabase.php'))
     include_once $file;
-else print '<h1>When you add a database be sure to add it to the file \'Application/Configs/buildDatabase.php\'</h1><h2>Use '. __FILE__ .' a as refrence.</h2>';
+else print '<h3>When you add a database be sure to add it to the file \'Application/Configs/buildDatabase.php\'</h3><h4>Use '. __FILE__ .' a as refrence.</h4>';
 
-print '<br><br><h2>Refreshing in 6 seconds</h2>';
-
-print '<script>t1 = window.setTimeout(function(){ window.location.href = "'.SITE.'"; },6000);</script>';
+print '<br><br><h2>Refreshing in 6 seconds</h2><script>t1 = window.setTimeout(function(){ window.location.href = "'.SITE.'"; },6000);</script>';
 
 return true;
