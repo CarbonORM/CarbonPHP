@@ -33,10 +33,52 @@ namespace {                                     // Carbon
         include BOOTSTRAP;  // Router
     }
 
-    function uri(): Route
+    function highlight($argv, $fileExt = false)
     {
-        call_user_func_array(array($route = Route::getInstance(), "match"), func_get_args());
-        return $route;
+        if ($fileExt == "java") {
+            ini_set("highlight.comment", "#008000");
+            ini_set("highlight.default", "#000000");
+            ini_set("highlight.html", "#808080");
+            ini_set("highlight.keyword", "#0000BB; font-weight: bold");
+            ini_set("highlight.string", "#DD0000");
+        } else if ($fileExt == "html") {
+            ini_set("highlight.comment", "green");
+            ini_set("highlight.default", "black");
+            ini_set("highlight.html", "blue");
+            ini_set("highlight.keyword", "black");
+            ini_set("highlight.string",  "#0000FF");
+        }
+
+
+        if (file_exists($argv)) {
+            $text = file_get_contents($argv);
+            $fileExt = pathinfo($argv, PATHINFO_EXTENSION);
+
+            if ($fileExt !== 'php') $text = " <?php " . $text;
+        } else $text = " <?php " . $argv;
+
+        $text = highlight_string($text, true);  // highlight_string() requires opening PHP tag or otherwise it will not colorize the text
+
+        $text = substr_replace($text, '', 0, 6);    // this removes the <code>
+
+        $text = preg_replace('#^<span style="[\w\d\s\#">;:]*#', "", $text, 1);  // remove prefix
+
+        $text = (($pos = strpos($text, $needle = '&lt;?php')) ?
+            substr_replace($text, '', $pos, strlen($needle)) :
+            $text);
+
+        $text = (($pos = strrpos($text, $needle = '</span>')) ?
+            substr_replace($text, '', $pos, strlen($needle) ) :
+            $text);
+
+        $text = (($pos = strrpos($text, $needle = '</code>')) ?
+            substr_replace($text, '', $pos, strlen($needle) ) :
+            $text);
+
+
+        $text = '<span style="overflow-x: scroll">' . $text . '</span>';
+
+        return $text;
     }
 
     // Wrap a closure in try {} catch ()

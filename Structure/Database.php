@@ -34,29 +34,59 @@ class Database
 
         $attempts = 0;
 
+
+        $prep = function () use (&$db) : PDO {
+            $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+            $db->setAttribute(PDO::ATTR_PERSISTENT, SOCKET);
+
+            $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
+
+            self::$database = $db;
+
+            return self::$database;
+        };
+
         do {
             try {
                 $db = @new PDO( static::$dsn, static::$username, static::$password );
 
-                $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                return $prep();
 
-                $db->setAttribute(PDO::ATTR_PERSISTENT, SOCKET);
-
-                $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
-
-                self::$database = $db;
-
-                return self::$database;
             } catch (\PDOException $e){
-                if (empty(static::$username))
-                    print '<h2>You must set a database user name. See CarbonPHP.com for documentation</h2>';
 
-                if (empty(static::$password))
-                    print '<h2>You may need to set a database password. See CarbonPHP.com for documentation</h2>';
+                if ($e->getCode() == 1049) {        // Database has not been created
 
+                    $query = explode(';',self::$dsn);
 
-                print $e->getMessage() . '<br>';    // This may print twice if the error catcher is trying to
-                die(0);                            // but don't fear, die works...
+                    $db_name = explode('=', $query[1])[1];
+
+                    if (empty($db_name))
+                        print '<h1>Could not determine a database to create. See Carbonphp.com for documentation.</h1>' and die;
+
+                    $db = @new PDO($query[0], static::$username, static::$password );
+
+                    $db = $prep();
+
+                    $stmt = "CREATE DATABASE $db_name;";
+
+                    if (!$db->prepare($stmt)->execute())
+                        print '<h1>Failed to insert database. See Carbonphp.com for documentation.</h1>' and die;
+                    else {
+                        $db->query("use $db_name");
+                        self::setUp();
+                    }
+
+                } else {
+                    if (empty(static::$username))
+                        print '<h2>You must set a database user name. See CarbonPHP.com for documentation</h2>';
+
+                    if (empty(static::$password))
+                        print '<h2>You may need to set a database password. See CarbonPHP.com for documentation</h2>';
+
+                    print $e->getMessage() . '<br>';    // This may print twice if the error catcher is trying to
+                    die(0);                            // but don't fear, die works...
+                }
             } catch (\Error $e) {                   // The error catcher
                 $attempts++;
             }
@@ -73,6 +103,7 @@ class Database
     {
         if (file_exists(CARBON_ROOT . 'Extras/buildDatabase.php'))
             require_once CARBON_ROOT . 'Extras/buildDatabase.php';
+        return self::database();
     }
 
 } 

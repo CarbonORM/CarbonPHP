@@ -85,7 +85,7 @@ abstract class Entities
     static protected function remove_entity($id)
     {
         if (!Database::database()->prepare('DELETE FROM carbon WHERE entity_pk = ?')->execute([$id]))
-            throw new \Exception("Bad Entity Delete $id");
+            throw new \Exception("Failed to delete $id");
     }
 
     static function fetch(string $sql, ...$execute): array

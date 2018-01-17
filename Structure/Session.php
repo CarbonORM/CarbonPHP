@@ -95,7 +95,7 @@ class Session implements \SessionHandlerInterface
             $_SESSION = array();
             session_write_close();
             $db = Database::Database();
-            $db->prepare('DELETE FROM StatsCoach.carbon_session WHERE session_id = ?')->execute([$id]);
+            $db->prepare('DELETE FROM carbon_session WHERE session_id = ?')->execute([$id]);
             session_start();
         } catch (\PDOException $e) {
             sortDump($e);
@@ -106,7 +106,7 @@ class Session implements \SessionHandlerInterface
     {
         if ($ip) $_SERVER['REMOTE_ADDR'] = $ip;
         $db = Database::Database();
-        $sql = "SELECT session_id FROM StatsCoach.carbon_session WHERE user_ip = ?";
+        $sql = "SELECT session_id FROM carbon_session WHERE user_ip = ?";
         $stmt = $db->prepare($sql);
         $stmt->execute([$_SERVER['REMOTE_ADDR']]);
         $session = $stmt->fetchColumn();
@@ -154,7 +154,7 @@ class Session implements \SessionHandlerInterface
     public function destroy($id)
     {
         $db = Database::Database();
-        return ($db->prepare('DELETE FROM StatsCoach.carbon_session WHERE user_id = ? OR session_id = ?')->execute([self::$user_id, $id])) ?
+        return ($db->prepare('DELETE FROM carbon_session WHERE user_id = ? OR session_id = ?')->execute([self::$user_id, $id])) ?
             true : false;
     }
 
