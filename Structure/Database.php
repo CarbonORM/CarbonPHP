@@ -4,13 +4,29 @@ namespace Carbon;
 
 use PDO;
 
+/**
+ * Class Database
+ * @package Carbon
+ */
 class Database
 {
+    /**
+     * @var PDO
+     */
     private static $database;
+    /**
+     * @var string
+     */
     private static $username = DB_USER;
+    /**
+     * @var string
+     */
     private static $password = DB_PASS;
     private static $dsn = DB_DSN;
 
+    /**
+     * @return PDO
+     */
     public static function database(): PDO
     {
 
@@ -27,6 +43,11 @@ class Database
         }
     }
 
+    /** Clears and restarts the PDO connection
+     *
+     * @param bool $clear - set this to true if you do not want to re-initialise the connection
+     * @return bool|PDO
+     */
     public static function reset($clear = false){       // mainly to help preserve database in sockets and forks
         self::$database = null;
 
@@ -101,12 +122,34 @@ class Database
         exit(1);
     }
 
-    public static function setUp(bool $redirect)
+    /**
+     * @return PDO
+     */
+    public static function getDatabase() : PDO
+    {
+        return self::$database;
+    }
+
+    /** Overwrite the current database
+     * @param PDO $database
+     */
+    public static function setDatabase(PDO $database)
+    {
+        self::$database = $database;
+    }
+
+    /**
+     * This will attempt to create the required tables for CarbonPHP
+     * If a file aptly named `buildDatabase.php` exists in your configuration
+     * file it will also be run. Be sure to model your build tool after ours
+     * so it does not block.. setUp is synonymous = resetDatabase (which doesn't exist)
+     *
+     * @return PDO
+     */
+    public static function setUp()
     {
         if (file_exists(CARBON_ROOT . 'Extras/buildDatabase.php'))
             require_once CARBON_ROOT . 'Extras/buildDatabase.php';
-        if ($redirect) print '<br><br><h2>Refreshing in 6 seconds</h2><script>t1 = window.setTimeout(function(){ window.location.href = "'.SITE.'"; },6000);</script>' and exit(1);
-
         return self::database();
     }
 
