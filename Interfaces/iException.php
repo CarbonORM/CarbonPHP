@@ -1,13 +1,11 @@
 <?php
 /**
- * Created by IntelliJ IDEA.
- * User: Miles
- * Date: 7/16/17
- * Time: 5:09 PM
+ * Taken from
+ * http://php.net/manual/en/language.exceptions.php
+ * for quickly implementing custom exceptions
  */
 
 namespace Carbon\Interfaces;
-
 
 interface iException
 {
@@ -17,9 +15,9 @@ interface iException
     public function getFile();                    // Source filename
     public function getLine();                    // Source line
     public function getTrace();                   // An array of the backtrace()
-    public function getTraceAsString();           // Formated string of trace
+    public function getTraceAsString();           // Formatted string of trace
 
-    /* Overrideable methods inherited from Exception class */
-    public function __toString();                 // formated string for display
+    /* Overridable methods inherited from Exception class */
+    public function __toString();                 // formatted string for display
     public function __construct($message = null, $code = 0);
 }

@@ -12,7 +12,6 @@ use Carbon\Helpers\Bcrypt;
 use PDO;
 use stdClass;
 use Carbon\Helpers\Globals;
-use Carbon\Helpers\Skeleton;
 use Carbon\Interfaces\iTable;
 use Carbon\Error\PublicAlert;
 
@@ -22,10 +21,13 @@ use Carbon\Error\PublicAlert;
  * @package Carbon
  *
  * Popular in game development, web apps are perfect
- * candidates for Entity Systems. Slighly
+ * candidates for Entity Systems.
  * Databases become complicated when you need
- * you have rows who can reference any and a
- *
+ * a hierarchical system of inheritance.
+ * A singular tuple table containing only primary keys solves
+ * this issue. If a table needs or may need a primary key, you
+ * must use the Entities.beginTransaction() &
+ *  Entities.commit() methods to generate them.
  */
 abstract class Entities
 {
@@ -216,9 +218,9 @@ abstract class Entities
             (is_array($stmt['0']) ? $stmt['0'] : $stmt) : $stmt);
     }
 
-    /** This returns all vaules from the requested query as an Object to type stdClass.
+    /** This returns all values from the requested query as an Object to type stdClass.
      *  Its important to note that PHP arrays are hash tables. This means that
-     *  while semantically pleasing, fetch_
+     *  while semantically pleasing, fetching into an object should be avoided
      *
      * @param string $sql
      * @param array ...$execute
@@ -235,10 +237,10 @@ abstract class Entities
         return (is_array($stmt) && count($stmt) == 1 ? $stmt[0] : new stdClass);
     }
 
-    /**
+    /** Each row received will be converted into its own object
      * @param string $sql
      * @param array ...$execute
-     * @return array
+     * @return array of stdClass::class objects
      */
     static function fetch_classes(string $sql, ...$execute): array
     {
@@ -248,20 +250,7 @@ abstract class Entities
         return $stmt->fetchAll();  // user obj
     }
 
-    /**
-     * @param string $sql
-     * @param array ...$execute
-     * @return array
-     */
-    static function fetch_as_array_object(string $sql, ...$execute): array
-    {
-        $stmt = Database::database()->prepare($sql);
-        $stmt->setFetchMode(PDO::FETCH_CLASS, Skeleton::class);
-        if (!$stmt->execute($execute)) return [];
-        return $stmt->fetchAll();  // user obj
-    }
-
-    /**
+    /** Fetch a sql query and return results directly into the global scope
      * @param string $sql
      * @param $execute
      */
@@ -273,12 +262,12 @@ abstract class Entities
         $stmt->fetchAll();  // user obj
     }
 
-    /**
+    /** Run an sql statement and return results as attributes of a stdClass
      * @param $object
      * @param $sql
      * @param array ...$execute
      */
-    static function fetch_into_class($object, $sql, ...$execute)
+    static function fetch_into_class(&$object, $sql, ...$execute)
     {
         $stmt = Database::database()->prepare($sql);
         $stmt->execute($execute);

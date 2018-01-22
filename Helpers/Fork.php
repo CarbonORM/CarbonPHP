@@ -8,13 +8,8 @@
 
 namespace Carbon\Helpers;
 
-
 class Fork
 {
-    private static function build()
-    {
-        define('FORK', TRUE);
-    }
 
     public static function become_daemon(callable $call = null)          // do not use this unless you know what you are doing
     {
@@ -26,7 +21,7 @@ class Fork
                 return 1;
             else exit;
         } elseif ($pid < 0) throw new \Exception('Failed to fork');
-        self::build();
+        define('FORK', TRUE);
 
         /* child becomes our daemon */
         posix_setsid();
@@ -59,7 +54,7 @@ class Fork
         if ($pid = pcntl_fork())    // return child id for parent and 0 for child
             return $pid;     // Parent
         elseif ($pid < 0) throw new \Exception('Failed to fork');
-        self::build();
+        define('FORK', TRUE);
         // Database::resetConnection();
         // fclose(STDIN); -- unset
         register_shutdown_function(function () { session_abort(); posix_kill(posix_getpid(), SIGHUP); exit(1); });

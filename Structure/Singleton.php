@@ -4,16 +4,63 @@ namespace Carbon;
 
 use Carbon\Helpers\Serialized;
 
+/**
+ * Trait Singleton
+ * @package Carbon
+ *
+ * Singeltons are considered an anti-pattern if being utilized during runtime.
+ * This class is designed to give you a lot of features for the quick and dirty.
+ * PHP has magic methods that allow you to do almost anything to the syntax, even
+ * make it more Javascript like. Adding
+ *
+ * class Example {
+ *      use Singleton;
+ *      const Singleton = true;
+ *
+ *      ...
+ * }
+ *
+ * Will cause serializable variables defined in the class to be stored between sessions.
+ * The Caveat:
+ *      Instead of using the new statement you must use getInstance() in a static context.
+ *      $obj = Example::getInstance();
+ *
+ * Javascript fans: If singleton is used, the following syntax becomes available
+ *
+ *      $obj->newClosure = function () { print "Closure Binding"; };
+ *
+ *      $obj->newClosure();
+ *
+ * This will store the new closure in the methods variable and attempt to run it using
+ * call_user_func_array();
+ *
+ *
+ */
 trait Singleton
 {
+    /**
+     * @var
+     */
     public $storage;                // A Temporary variable for 'quick data'
+    /**
+     * @var array
+     */
     protected $methods = array();   // Anonymous Function Declarations
 
+    /**
+     * @param $methodName
+     * @param array $arguments
+     * @return Singleton|mixed
+     */
     public static function __callStatic($methodName, $arguments = array())
     {
         return self::getInstance()->Skeleton($methodName, $arguments);
     }
 
+    /**
+     * @param array ...$args
+     * @return self
+     */
     public static function newInstance(...$args): self
     {   // Start a new instance of the class and pass any arguments
         self::clearInstance();
@@ -25,6 +72,10 @@ trait Singleton
         return $GLOBALS['Singleton'][$class];
     }
 
+    /**
+     * @param array ...$args
+     * @return self
+     */
     public static function getInstance(...$args): self
     {   // see if the class has already been called this run
         if (!empty($GLOBALS['Singleton'][$calledClass = get_called_class()]))
@@ -42,22 +93,40 @@ trait Singleton
         return $GLOBALS['Singleton'][$calledClass];
     }
 
+    /**
+     * @param self $object
+     * @return self
+     */
     public static function setInstance(self $object): self
     {
         return $GLOBALS['Singleton'][get_called_class()] = $object;
     }
 
-    public static function clearInstance() : void
+    /**
+     *
+     */
+    public static function clearInstance(): void
     {
         unset($_SESSION[$calledClass = get_called_class()], $GLOBALS['Singleton'][$calledClass]);
     }
-    
-    public function __call($methodName, $arguments = array())
+
+    /**
+     * @param $methodName
+     * @param array $arguments
+     * @return Singleton|mixed
+     */
+    public function __call($methodName, array $arguments = [])
     {
         return $this->Skeleton($methodName, $arguments);
     }
 
-    private function Skeleton($methodName, $arguments = array())
+    /**
+     * @param $methodName
+     * @param array $arguments
+     * @return Singleton|mixed
+     * @throws \Exception
+     */
+    private function Skeleton(string $methodName, array $arguments = [])
     {
         // Have we used addMethod() to override an existing method
         if (key_exists($methodName, $this->methods))
@@ -81,82 +150,137 @@ trait Singleton
         throw new \Exception("There is valid method or closure with the given name '$methodName' to call");
     }
 
-    private function addMethod($name, $closure): void
+    /**
+     * @param $name
+     * @param $closure
+     * @throws \Exception
+     */
+    private function addMethod(string $name, callable $closure): void
     {
-        if (is_callable($closure)):
-            $this->methods[$name] = \Closure::bind($closure, $this, get_called_class());
-        else: // Nested to ensure Singleton returns the correct value of self
-            throw new \Exception("New Method Must Be A Valid Closure");
-        endif;
+        $this->methods[$name] = \Closure::bind($closure, $this, get_called_class());
     }
 
+    /**
+     *  If a previous class object was stored in our session then getInstance()
+     *  will return the un-serialized object.
+     */
     public function __wakeup()
     {
-        $object = get_object_vars( $this );
+        $object = get_object_vars($this);
         foreach ($object as $item => $value) Serialized::is_serialized($value, $this->$item);
-        if (method_exists( $this, '__construct' )) self::__construct();
+        if (method_exists($this, '__construct')) self::__construct();
     }
 
     // for auto class serialization add: const Singleton = true; to calling class
+
+    /** Attempt to serialize the current class.
+     * @return array|null
+     */
     public function __sleep()
     {
-        if (!defined( 'self::Singleton' ) || !self::Singleton) return null;
-        foreach (get_object_vars( $this ) as $key => &$value) {
+        if (!defined('self::Singleton') || !self::Singleton) return null;
+        foreach (get_object_vars($this) as $key => &$value) {
             if (empty($value)) continue;    // The object could be null from serialization?
-            if (is_object( $value )) {
-                try { $this->$key = (@serialize( $value ));
-                } catch (\Exception $e){ continue; }                // Database object we need to catch the error thrown.
-            } $onlyKeys[] = $key;
-        } return (isset($onlyKeys) ? $onlyKeys : []);
+            if (is_object($value)) {
+                try {
+                    $this->$key = (@serialize($value));
+                } catch (\Exception $e) {
+                    continue;
+                }                // Database object we need to catch the error thrown.
+            }
+            $onlyKeys[] = $key;
+        }
+        return (isset($onlyKeys) ? $onlyKeys : []);
     }
 
+    /**
+     *   Attempt to serialize the current class.
+     */
     public function __destruct()
     {   // We require a sleep function to be set manually for singleton to manage utilization
-        if (!defined( 'self::Singleton' ) || !self::Singleton) return null;
-        try { $_SESSION[__CLASS__] =  @serialize( $this );     // TODO - base64_encode(
-        } catch (\Exception $e){ unset($_SESSION[__CLASS__]); return null; };
+        if (!defined('self::Singleton') || !self::Singleton) return null;
+        try {
+            $_SESSION[__CLASS__] = @serialize($this);     // TODO - base64_encode(
+        } catch (\Exception $e) {
+            unset($_SESSION[__CLASS__]);
+            return null;
+        };
     }
 
-    public function &__get($variable)   // TODO - MAJOR rework, store in $storage
+    /**
+     * @param string $variable a global variable
+     * @return mixed
+     */
+    public function &__get(string $variable)   // TODO - MAJOR rework, store in $storage
     {
         return $GLOBALS[$variable];
     }
 
-    public function __set($variable, $value)
+    /**
+     * @param string $variable variable name to set to the global scope
+     * @param mixed $value
+     */
+    public function __set(string $variable, $value)
     {
         if (is_callable($value)) $this->{$variable} = $value->bindTo($this, $this);
         else $GLOBALS[$variable] = $value;
     }
 
-    public function __isset($variable): bool
+    /**
+     * @param string $variable check the global scope for the given variable name
+     * @return bool
+     */
+    public function __isset(string $variable): bool
     {
         return array_key_exists($variable, $GLOBALS);
     }
 
-    public function __unset($variable)
+    /**
+     * @param string $variable unset the variable from the global scope
+     */
+    public function __unset(string $variable)
     {
         unset($GLOBALS[$variable]);
     }
 
+    /**
+     * @return mixed the values contained in our storage container
+     */
     public function __invoke()
     {
         return $this->storage;
     }
 
+    /**
+     * @param array ...$argv comma separated parameters to be set to the storage attribute
+     * @return self
+     */
     public function set(...$argv): self
     {
         $this->storage = $argv;
         return $this;
     }
 
-    public function get($variable = null)
+    /**
+     * @param string $variable
+     * @return mixed
+     */
+    public function get(string $variable = null)
     {
         return ($variable == null ?
             $this->storage :
             $this->{$variable});
     }
 
-    public function has($variable): bool
+    /**
+     * @param string $variable the variable name to
+     * lookup. Will return true if a variable matching the
+     * given param exists and is accessible in the global or
+     * current scope. This does not work for variable methods
+     * added to the current scope via closures.
+     * @return bool
+     */
+    public function has(string $variable): bool
     {
         return isset($this->$variable);
     }

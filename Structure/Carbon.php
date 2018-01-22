@@ -2,17 +2,87 @@
 
 namespace Carbon;
 
+/**
+ * Class Carbon
+ * @package Carbon
+ *
+ * This is CarbonPHP, a simple framework designed to make building robust web
+ * applications extremely quick. The following class is the setup for the rest
+ * of library. For reference and support visit
+ *
+ * @link http://www.carbonphp.com/
+ */
 class Carbon
 {
-    private static $safelyExit;
+    /**
+     * @var bool $safelyExit determines if start application should be executed
+     * when running the invoke magic method.
+     */
+    private $safelyExit = false;
 
-    static function Application(array $PHP = []): callable
+
+    /** If safely exit is false run startApplication(), otherwise return $safelyExit
+     * @link http://php.net/manual/en/language.oop5.magic.php#object.invoke
+     * @return bool
+     */
+    public function __invoke()
     {
+        return $this->safelyExit ?: startApplication();
+    }
 
+    /**
+     * @type $PHP = [
+     *       'SITE' => [
+     *           'URL' => string '',                                  // Server Url name you do not need to chane in remote development
+     *           'ROOT' => string '__FILE__',                         // This was defined in our ../index.php
+     *           'ALLOWED_EXTENSIONS' => string 'jpg|png',            // File ending in these extentions will be served
+     *           'CONFIG' => string __FILE__,                         // Send to sockets
+     *           'TIMEZONE' => string 'America/Chicago',              //  Current timezone TODO - look up php
+     *           'TITLE' => string 'Carbon 6',                        // Website title
+     *           'VERSION' => string /phpversion(),                   // Add link to symantic versioning
+     *           'SEND_EMAIL' => string '',                           // I send emails to validate accounts
+     *           'REPLY_EMAIL' => string '',
+     *           'BOOTSTRAP' => string '',                            // This file is executed when the startApplication() function is called
+     *           'HTTP' => bool true
+     *       ],
+     *       'DATABASE' => [
+     *           'DB_DSN'  => string '',                        // Host and Database get put here
+     *           'DB_USER' => string '',
+     *           'DB_PASS' => string '',
+     *           'DB_BUILD'=> string '',                        // Absolute file path to your database set up file
+     *           'REBUILD' => bool false
+     *       ],
+     *       'SESSION' => [
+     *           'REMOTE' => bool true,             // Store the session in the SQL database
+     *           'SERIALIZE' => [],                 // These global variables will be stored between session
+     *           'CALLBACK' => callable,
+     *       'SOCKET' => [
+     *           'WEBSOCKETD' => bool false,        // Todo - remove websockets
+     *           'PORT' => int 8888,
+     *           'DEV' => bool false,
+     *           'SSL' => [
+     *               'KEY' => string '',
+     *               'CERT' => string ''
+     *           ]
+     *       ],
+     *       'ERROR' => [
+     *           'LEVEL' => (int) E_ALL | E_STRICT,
+     *           'STORE' => (bool) true,                // Database if specified and / or File 'LOCATION' in your system
+     *           'SHOW' => (bool) true,                 // Show errors on browser
+     *           'FULL' => (bool) true                  // Generate custom stacktrace will high detail - DO NOT set to TRUE in PRODUCTION
+     *       ],
+     *       'VIEW' => [
+     *           'VIEW' => string '/',          // This is where the MVC() function will map the HTML.PHP and HTML.HBS . See Carbonphp.com/mvc
+     *          'WRAPPER' => string '',         // View::content() will produce this
+     *      ],
+     * ]
+     */
+    public function __construct(array $PHP = [])
+    {
         ####################  GENERAL CONF  ######################
         error_reporting($PHP['ERROR']['LEVEL'] ?? E_ALL | E_STRICT);
 
-        ini_set('display_errors', $PHP['ERROR']['SHOW'] ?? 1);
+        ini_set('display_errors', $PHP['ERROR']['SHOW'] ?? true);
 
         date_default_timezone_set($PHP['SITE']['TIMEZONE'] ?? 'America/Chicago');
 
@@ -23,10 +93,6 @@ class Carbon
         if (!defined('SERVER_ROOT')) define('SERVER_ROOT', CARBON_ROOT);
 
         define('REPORTS', $PHP['ERROR']['LOCATION'] ?? SERVER_ROOT);
-
-        self::$safelyExit = $safelyExit = function () use (&$safelyExit) {
-          return $safelyExit;
-        };
 
         #####################   AUTOLOAD    #######################
         if (!array_key_exists('AUTOLOAD', $PHP) || $PHP['AUTOLOAD']) {
@@ -39,12 +105,12 @@ class Carbon
         }
 
         #####################   ERRORS    #######################
-        Error\ErrorCatcher::getInstance(
-            REPORTS,
-            $PHP['ERROR']['STORE'] ?? false,    // Store on server
-            $PHP['ERROR']['SHOW'] ?? false,     // Print to screen
-            $PHP['ERROR']['FULL'] ?? true,
-            $PHP['ERROR']['LEVEL']);            // Catch application errors and alerts
+        Error\ErrorCatcher::$defaultLocation = REPORTS . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
+        Error\ErrorCatcher::$fullReports = $PHP['ERROR']['STORE'] ?? false;
+        Error\ErrorCatcher::$printToScreen = $PHP['ERROR']['SHOW'] ?? true;
+        Error\ErrorCatcher::$storeReport = $PHP['ERROR']['FULL'] ?? true;
+        Error\ErrorCatcher::$level = $PHP['ERROR']['LEVEL'] ?? ' E_ALL | E_STRICT';
+        Error\ErrorCatcher::start();            // Catch application errors and alerts
 
         // More cache control is given in the .htaccess File
         Request::setHeader('Cache-Control:  must-revalidate');
@@ -54,7 +120,7 @@ class Carbon
 
             define('SOCKET', false);
 
-            if (($PHP['SOCKET'] ?? false) && getservbyport('8888', 'tcp')) {
+            if (($PHP['SOCKET'] ?? false) && getservbyport($PHP['SOCKET']['PORT'] ?? 8888, 'tcp')) {
                 $path = CARBON_ROOT . ($PHP['SOCKET']['WEBSOCKETD'] ?? false ?
                             'Extras' . DS . 'Websocketd.php' :
                             'Structure' . DS . 'Server.php');
@@ -74,13 +140,10 @@ class Carbon
 
         #################  DATABASE  ########################
         if ($PHP['DATABASE'] ?? false) {
-
-            define('DB_DSN', $PHP['DATABASE']['DB_DSN'] ?? '');
-
-            define('DB_USER', $PHP['DATABASE']['DB_USER'] ?? '');
-
-            define('DB_PASS', $PHP['DATABASE']['DB_PASS'] ?? '');
-
+            Database::$dsn = $PHP['DATABASE']['DB_DSN'] ?? '';
+            Database::$username = $PHP['DATABASE']['DB_USER'] ?? '';
+            Database::$password = $PHP['DATABASE']['DB_PASS'] ?? '';
+            Database::$setup = $PHP['DATABASE']['DB_BUILD'] ?? '';
         }
 
         ##################  VALIDATE URL / URI ##################
@@ -91,12 +154,12 @@ class Carbon
 
         self::URI_FILTER($PHP['SITE']['URL'] ?? '', $PHP['SITE']['ALLOWED_EXTENSIONS'] ?? '');
 
-        if ($PHP['DATABASE']['INITIAL_SETUP'] ?? false)
+        if ($PHP['DATABASE']['REBUILD'] ?? false)
             Database::setUp(false);   // redirect = false
 
         #################  SITE  ########################
         if ($PHP['SITE'] ?? false) {
-            define('BOOTSTRAP', SERVER_ROOT . $PHP['SITE']['BOOTSTRAP'] ?? false);          // Routing file
+            define('BOOTSTRAP', SERVER_ROOT . $PHP['SITE']['BOOTSTRAP'] ?? '');          // Routing file
 
             define('SITE_TITLE', $PHP['SITE']['TITLE'] ?? 'CarbonPHP');                     // Carbon doesnt use
 
@@ -124,8 +187,9 @@ class Carbon
         if (!AJAX) $_POST = [];  // We only allow post requests through ajax/pjax
 
         #######################   VIEW             #####################
-        define('APP_VIEW', $PHP['VIEW']['VIEW'] ?? '');         // Public Folder
-        define('WRAPPER', SERVER_ROOT . APP_VIEW . $PHP['VIEW']['WRAPPER'] ?? '');          // Wrapper
+        define('APP_VIEW', $PHP['VIEW']['VIEW'] ?? '/');         // Public Folder
+
+        View::$wrapper = SERVER_ROOT . APP_VIEW . $PHP['VIEW']['WRAPPER'] ?? '';
 
         ########################  Session Management ######################
 
@@ -146,20 +210,15 @@ class Carbon
         ################  Helpful Global Functions ####################
         if (file_exists(CARBON_ROOT . 'Helpers/Application.php') && !@include CARBON_ROOT . 'Helpers/Application.php')
             print "<h1>Your instance of CarbonPHP appears corrupt. Please see CarbonPHP.com for Documentation.</h1>" and die;
-
-
-        return function () {
-            return startApplication();
-        };
     }
 
-    /* TODO - Google uses a callback system that uses a .me ending. PATHINFO_EXT.. catches that
-     *  This brings up a good point that we shouldnt assume the user has apache installed
-     *  Which brings us to...
-     *      We must add all the error validation from the htaccess file to the framework
-     */
 
-    static function isClientServer()
+    /**
+     * returns 127.0.0.1 if you are using a local development server,
+     * otherwise returns false.
+     * @return bool|mixed|string
+     */
+    private function isClientServer()
     {
         if (in_array($_SERVER['REMOTE_ADDR'] ?? [], ['127.0.0.1', 'fe80::1', '::1']) || php_sapi_name() === 'cli-server') {
             define('IP', '127.0.0.1');
@@ -168,15 +227,23 @@ class Carbon
         return false;
     }
 
-
-    static function URI_FILTER($URL, $allowedEXT = ['jpg'])
+    /** If a url is encoded in a version control View::versionControl()
+     * or ends in a file extension attempt to load it and send with
+     * appropriate headers.
+     * @param string $URL by the user configuration file.
+     * If the url is not equal to the server url, and we are not
+     * on a local development server, then redirect to url provided.
+     * @param string $allowedEXT is a list separated by the logical | or
+     * operator denoting allowed file extensions.
+     * @return bool
+     */
+    private function URI_FILTER(string $URL, string $allowedEXT = 'jpg|png')
     {
         if (!empty($URL) && $_SERVER['SERVER_NAME'] != $URL && !LOCAL_SERVER) {
-            print IP . '<h1>You appear to be redirected.</h1><h2>Moving to ' . $URL .'</h2>';
-            print "<script>window.location.type = $URL";
-            return self::$safelyExit;
+            print IP . '<h1>You appear to be redirected.</h1><h2>Moving to ' . $URL . '</h2>';
+            print "<script>window.location.type = $URL</script>";
+            $this->safelyExit = true;
         }
-
 
         View::unVersion($_SERVER['REQUEST_URI']);  // This may exit and send a file
 
@@ -204,8 +271,14 @@ class Carbon
         die(1);
     }
 
-    // http://blackbe.lt/advanced-method-to-obtain-the-client-ip-in-php/
-    static function IP_FILTER()
+
+
+    /** This function uses common keys for obtaining the users real IP.
+     * We use this for verbose operating systems support.
+     * @link http://blackbe.lt/advanced-method-to-obtain-the-client-ip-in-php/
+     * @return mixed|string
+     */
+    private function IP_FILTER()
     {
         $ip_keys = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR');
         foreach ($ip_keys as $key) {

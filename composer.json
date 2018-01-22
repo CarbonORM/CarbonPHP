@@ -13,10 +13,11 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
-    "php": "^7.0",
+    "php": "^7.1",
     "bower-asset/jquery-form": "^4.2.2",
     "bower-asset/jquery-pjax": "^2.0.1",
-    "bower-asset/mustache.js": "^2.3.0"
+    "bower-asset/mustache.js": "^2.3.0",
+    "mustache/mustache": "^2.12"
   },
   "suggest": {
     "almasaeed2010/adminlte": ">=2.4",

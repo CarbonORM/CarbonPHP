@@ -5,30 +5,50 @@
 namespace Carbon\Error;
 
 use Carbon\Database;
-use Carbon\Singleton;
 
+/**
+ * Class ErrorCatcher
+ * @package Carbon\Error
+ *
+ * Provide a global error and exception handler.
+ *
+ */
 class ErrorCatcher
 {
-    use Singleton;                              // todo - put notes also why singleton is used in each class
+    /**
+     * @var string TODO - re-setup logs saving to files
+     */
+    public static $defaultLocation;
+    /**
+     * @var bool $printToScreen determine if a generated error log should be shown on the browser.
+     * This value can be set using the ["ERROR"]["SHOW"] configuration option
+     */
+    public static $printToScreen;
+    /**
+     * @var bool
+     */
+    public static $fullReports;
+    /**
+     * @var bool
+     */
+    public static $storeReport;
 
-    private $defaultLocation;
-    private $printToScreen;
-    private $fullReports;
-    private $storeReport;
+    /**
+     * @var int to be used with error_reporting()
+     * @link http://php.net/manual/en/function.error-reporting.php
+     */
+    public static $level;
 
-    public function __construct(string $logLocation, bool $storeReport, bool $printToScreen, bool $fullReports, int $level)
+    /**
+     * ErrorCatcher constructor.
+     */
+    public static function start()
     {
         ini_set('display_errors', 1);
         ini_set('track_errors', 1);
-        define('REPORTING', $level);
-        error_reporting(REPORTING);
-        $logLocation .= 'Error/';
-        $this->defaultLocation = $logLocation . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
-        $this->printToScreen = $printToScreen;
-        $this->fullReports = $fullReports;
-        $this->storeReport = $storeReport;
+        error_reporting(self::$level);
         $closure = function (...$argv) {
-            $this->generateLog($argv);
+            self::generateLog($argv);
             if (function_exists('startApplication'))
                 startApplication(true);
             exit(1);
@@ -37,17 +57,16 @@ class ErrorCatcher
         set_exception_handler($closure);
     }
 
-    public static function generateErrorLog($argv = array())
+    /** Generate a full error log consisting of a
+     * @param array $argv
+     * @param string
+     * @return string
+     */
+    public static function generateLog(array $argv = [], string $level = 'log')
     {
-        $self = static::getInstance();
-        return $self->generateLog($argv);
-    }
-
-    public function generateLog($argv = array())
-    {
-        ob_start();
-
-        $trace = $this->generateCallTrace();
+        ob_end_clean(); // Attempt to remove any previous in-progress output buffers
+        ob_start();     // start a new buffer for saving errors
+        $trace = self::generateCallTrace();
         print $trace . PHP_EOL;
         if (count($argv) >= 4)
             print 'Message: ' . $argv[1] . PHP_EOL . 'line: ' . $argv[2] . '(' . $argv[3] . ')';
@@ -55,13 +74,12 @@ class ErrorCatcher
         $output = ob_get_contents();
         ob_end_clean();
 
-        if ($this->storeReport) {       // TODO - store to file?
+        if (self::$storeReport) {       // TODO - store to file?
             $sql = "INSERT INTO carbon_reports (date, log_level, report, call_trace) VALUES (?, ?, ?, ?)";
             $sql = Database::database()->prepare($sql);
-
-            if (!$sql->execute([date("Y-m-d H:i:s"), 'LOG', $output, $trace]))
+            if (!$sql->execute([date("Y-m-d H:i:s"), $level, $output, $trace]))
                 print 'Failed to store error log, nothing works... Why does nothing work?' and die(1);
-        } elseif ($this->printToScreen) {
+        } elseif (self::$printToScreen) {
             print '<pre>';
             print_r($argv);
             print '</pre>';
@@ -70,7 +88,11 @@ class ErrorCatcher
         return $output;
     }
 
-    public function generateCallTrace()
+    /** A simplified back trace for quickly identifying route.
+     * @link http://php.net/manual/en/function.debug-backtrace.php
+     * @return string
+     */
+    public static function generateCallTrace()
     {
         $e = new \Exception();
         ob_start();
@@ -83,10 +105,8 @@ class ErrorCatcher
         $length = count($trace);
         $result = array();
 
-        for ($i = 0; $i < $length; $i++) {
+        for ($i = 0; $i < $length; $i++)
             $result[] = ($i + 1) . ') ' . substr(substr($trace[$i], strpos($trace[$i], ' ')), 35) . PHP_EOL;
-            print PHP_EOL; // replace '#someNum' with '$i)', set the right ordering
-        }
 
         print "\t" . implode("\n\t", $result);
 

@@ -2,32 +2,39 @@
 
 namespace Carbon;
 
+use Carbon\Error\ErrorCatcher;
 use PDO;
 
 /**
  * Class Database
  * @package Carbon
+ *
+ *  TODO - create setters? lambda binding makes me not care about permissions so I think no
  */
 class Database
 {
-    /**
-     * @var PDO
+    /** Represents a connection between PHP and a database server.
+     * @link http://php.net/manual/en/class.pdo.php
      */
     private static $database;
+
+    public static $username;
+
+    public static $password;
     /**
-     * @var string
+     * @var string this hold the connection protocol
+     * @link http://php.net/manual/en/pdo.construct.php
      */
-    private static $username = DB_USER;
-    /**
-     * @var string
-     */
-    private static $password = DB_PASS;
-    /**
-     * @var string
-     */
-    private static $dsn = DB_DSN;
+    public static $dsn;
 
     /**
+     * @var string holds the path of the users database set up file
+     */
+    public static $setup;
+
+    /** the database method will return a connection to the database
+     * Before returning a connection it must pass an active check.
+     * This is mainly for persistent socket connections.
      * @return PDO
      */
     public static function database(): PDO
@@ -39,16 +46,16 @@ class Database
         try {
             error_reporting(0);
             self::$database->query("SELECT 1");     // This has had a history of causing spotty error.. if this is the location of your error, you should keep looking...
+            error_reporting(ErrorCatcher::$level);
             return self::$database;
-        } catch (\Error $e) {                       // added for socket support
-            error_reporting(REPORTING);
+        } catch (\Error | \Exception $e) {                       // added for socket support
+            error_reporting(ErrorCatcher::$level);
             return self::reset();
         }
     }
 
     /** Clears and restarts the PDO connection
-     *
-     * @param bool $clear - set this to true if you do not want to re-initialise the connection
+     * @param bool $clear set this to true if you do not want to re-initialise the connection
      * @return bool|PDO
      */
     public static function reset($clear = false){       // mainly to help preserve database in sockets and forks
@@ -146,6 +153,12 @@ class Database
     {
         if (file_exists(CARBON_ROOT . 'Extras/buildDatabase.php'))
             require_once CARBON_ROOT . 'Extras/buildDatabase.php';
+
+        if (file_exists(self::$setup))
+            include_once self::$setup;
+        else print '<h3>When you add a database be sure to add it to the file ["DATABASE"][]</h3><h5>Use '. __FILE__ .' a as refrence.</h5>';
+
+
 
         if ($refresh)
             print '<br><br><h2>Refreshing in 6 seconds</h2><script>t1 = window.setTimeout(function(){ window.location.href = "'.SITE.'"; },6000);</script>'

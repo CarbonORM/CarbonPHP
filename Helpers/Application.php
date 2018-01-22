@@ -1,6 +1,6 @@
 <?php
 
-namespace {                                     // Carbon
+namespace {                                     // This runs the following code in the global scope
 
     use Carbon\Error\ErrorCatcher;              //  Catches development errors
     use Carbon\Error\PublicAlert;               //  Displays alerts nicely
@@ -12,7 +12,23 @@ namespace {                                     // Carbon
     use Carbon\View;                                     //  Seamlessly include the DOM
 
 
-    function startApplication($reset = false): void
+    /** Start application will start the registered bootstrap from line one.
+     *  If a string is given
+     *
+     * @param $reset
+     *  If a string is passed to reset then the uri of the website will be changed
+     *  to the value of reset.
+     *
+     *  If ($reset == true) then set our uri to '/' and all variables cached using
+     *  the serialized class will be reset. The the outer html will be sent and
+     *  our session callback will be executed.
+     *
+     *  The session callback is be set in carbon's configuration
+     * @link
+     *
+     * @return bool Returns the response from the bootstrap as a bool
+     */
+    function startApplication($reset = false): bool
     {
         if ($reset):                                    // This will always be se in a socket
             if ($reset === true):
@@ -30,10 +46,20 @@ namespace {                                     // Carbon
         if (!defined('BOOTSTRAP') || !file_exists(BOOTSTRAP))
             print 'You must define a route in your configuration. Visit CarbonPHP.com for Documentation.' and die;
 
-        include BOOTSTRAP;  // Router
+        return !!include BOOTSTRAP;  // Router
     }
 
-    function highlight($argv, $fileExt = false)
+    /** This extends the PHP's built-in highlight function to highlight
+     *  other file types. Currently java and html are custom colored.
+     *  All languages should, to some degree, benefit from this.
+     * @link http://php.net/manual/en/function.highlight-string.php
+     * @param $argv - if a filepath is given load it from memory,
+     *  otherwise highlight the string provided as code
+     *
+     * @param bool $fileExt
+     * @return string -- the text highlighted and converted to html
+     */
+    function highlight($argv, $fileExt = false) : string
     {
         if ($fileExt == "java") {
             ini_set("highlight.comment", "#008000");
@@ -80,7 +106,11 @@ namespace {                                     // Carbon
         return $text;
     }
 
-    // Wrap a closure in try {} catch ()
+    /** Attempt to safely catch errors and public alerts in a closure
+     *  TODO - Should we disable our error catcher before execution, I think yes
+     * @param callable $lambda
+     * @return callable
+     */
     function catchErrors(callable $lambda): callable
     {
         return function (...$argv) use ($lambda) {
@@ -88,7 +118,7 @@ namespace {                                     // Carbon
                 $argv = call_user_func_array($lambda, $argv);
             } catch (Exception | Error $e) {
                 if (!$e instanceof PublicAlert) {
-                    ErrorCatcher::generateErrorLog($e);
+                    ErrorCatcher::generateLog($e);
                     PublicAlert::danger('Developers make mistakes, and you found a big one. We\'ve logged this event and will be investigating soon.'); // TODO - Change what is logged
                 }
             } finally {
@@ -98,16 +128,33 @@ namespace {                                     // Carbon
         };
     }
 
+
+    /**Stands for Controller -> Model .
+     *
+     * This will run the controller/$class.$method().
+     * If the method returns true the model/$class.$method() will be
+     * invoked. If an array is returned from the controller its values
+     * will be passed as parameters to our model.
+     * @link http://php.net/manual/en/function.call-user-func-array.php
+     *
+     * @param string $class   This class name to autoload
+     * @param string $method  The method within the provided class
+     * @param array $argv     Arguments to be passed to method
+     * @return mixed          the returned value from model/$class.$method() or false | void
+     * @throws Exception
+     */
     function CM(string $class, string $method, array &$argv = [])
     {
-        $class = ucfirst(strtolower($class));
-        $controller = "Controller\\$class";
+        $class = ucfirst(strtolower($class));   // Prevent malformed class names
+        $controller = "Controller\\$class";     // add namespace for autoloader
         $model = "Model\\$class";
-        $method = strtolower($method);
+        $method = strtolower($method);          // Prevent malformed method names
 
+        // Make sure our class exists
         if (!class_exists($controller, true) || !class_exists($model, true))
             throw new Exception("Invalid Class {$class} Passed to MVC");
 
+        // the array $argv will be passed as arguments to the method requested, see link above
         $exec = function ($class,$argv) use ($method) {
             return call_user_func_array([new $class, "$method"], (is_array($argv) ? $argv : [$argv]));
         };
@@ -119,10 +166,30 @@ namespace {                                     // Carbon
         })();
     }
 
-    // Controller -(true?)> Model -(final)> View();
+    /** Stands for Controller -> Model -> View
+     *
+     * This will run the controller/$class.$method().
+     * If the method returns true the model/$class.$method() will be
+     * invoked. If an array is returned from the controller its values
+     * will be passed as parameters to our model. Finally the View will
+     * be executed. The file should be in the APP_VIEW directory (set in config)
+     * with the following naming convention
+     *
+     *  APP_VIEW / $class / $method . (php | hbs)  - We accept handlebar templates.
+     *
+     * The view will be processed server-side and returned
+     *
+     * @link http://php.net/manual/en/function.call-user-func-array.php
+     *
+     * @param string $class   This class name to autoload
+     * @param string $method  The method within the provided class
+     * @param array $argv     Arguments to be passed to method
+     * @return mixed          the returned value from model/$class.$method() or false | void
+     * @throws Exception
+     */
     function MVC(string $class, string $method, array &$argv = [])
     {
-        CM($class, $method, $argv); // Controller -> Model
+        CM($class, $method, $argv);  // Controller -> Model
 
         // This could cache or send
         $file = APP_VIEW . "$class/$method";
@@ -132,13 +199,19 @@ namespace {                                     // Carbon
         return View::contents($found);  // View
     }
 
+    /** Ports the javascript alert function in php.
+     * @param string $string
+     */
     function alert($string = "Stay woke.")
     {
         static $count = 0;
         print "<script>alert('( #" . ++$count . " )  $string')</script>";
     }
 
-    // http://php.net/manual/en/debugger.php
+    /** Prots the javascript console.log() function
+     * @link http://php.net/manual/en/debugger.php
+     * @param string $data data to be sent to the browsers console
+     */
     function console_log($data)
     {
         ob_start();
@@ -150,6 +223,9 @@ namespace {                                     // Carbon
         echo '<script>console.log(\'' . json_encode($data) . '\')</script>';
     }
 
+    /** Output all parameters given neatly to the screen and continue execution.
+     * @param array ...$argv variable length parameters stored as array
+     */
     function dump(...$argv)
     {
         echo '<pre>';
@@ -157,9 +233,29 @@ namespace {                                     // Carbon
         echo '</pre>';
     }
 
+    /** This is dump()'s big brother, a better dump per say.
+     * By default, this outputs the value passed in and exits our execution.
+     * This is convent when dealing with requests that would otherwise refresh the session.
+     *
+     * @param mixed $mixed the variable to output.
+     * You can output multiple variables by wrapping them in an array
+     *       [$var, $var2, $anotherVar]
+     *
+     * @param bool $fullReport this outputs a backtrace and zvalues
+     * @link http://php.net/manual/en/function.debug-backtrace.php
+     *
+     * From personal experience you should not worry about Z-values, as it is almost
+     * never ever the issue. I'm 99.9% sure of this, but if you don't trust me you
+     * should read this full manual page
+     *
+     * @link http://php.net/manual/en/internals2.php                 -- the hackers guide
+     * @link http://php.net/manual/en/function.debug-zval-dump.php
+     *
+     * @param bool $die -
+     */
     function sortDump($mixed, $fullReport = false, $die = true)
     {
-        // Notify or error
+        // Notify that sort dump was executed
         alert(__FUNCTION__);
 
         // Generate Report
@@ -179,14 +275,16 @@ namespace {                                     // Carbon
         };
 
         $report = ob_get_clean();
-        $file = REPORTS . 'Dumped/Sort_' . time() . '.log';
-        //Files::storeContent($file, $report);
+
+        // TODO - re-create a store to file configuration option
+        #$file = REPORTS . 'Dumped/Sort_' . time() . '.log';
+        #Files::storeContent($file, $report);
 
         print $report . PHP_EOL;
 
         // Output to browser
         if (AJAX) echo $report;
-        else View::getInstance()->bufferedContent = base64_encode($report);
+        else View::$bufferedContent = base64_encode($report);
         if ($die) exit(1);
     }
 }

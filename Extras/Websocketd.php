@@ -1,6 +1,15 @@
 #!/usr/bin/php
 <?php declare(ticks=1);             // so we can catch exit signals ,
 
+/*
+ *
+ *
+ *
+ */
+
+
+
+
 //if we wait to send output until we fork we can preserve our socket and session with the database
 const SOCKET = true;                // faster than define
 

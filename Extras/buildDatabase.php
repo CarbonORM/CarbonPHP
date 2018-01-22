@@ -1,5 +1,10 @@
 <?php
-
+/* This script will safely build or rebuild you database
+ * tables. You should never execute this script manually as
+ * CarbonPHP will automatically rebuild itself if needed.
+ *
+ * If you add tables to you c
+ */
 try {
     $db = \Carbon\Database::Database();
 
@@ -455,8 +460,3 @@ END;
 }
 
 print '<br><h4>Done!</h4>';
-
-if (file_exists($file = SERVER_ROOT . 'Application/Configs/buildDatabase.php'))
-    include_once $file;
-else print '<h3>When you add a database be sure to add it to the file \'Application/Configs/buildDatabase.php\'</h3><h5>Use '. __FILE__ .' a as refrence.</h5>';
-

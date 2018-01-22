@@ -2,36 +2,49 @@
 
 namespace Carbon;
 
+/**
+ * Class View
+ * @package Carbon
+ */
+/**
+ * Class View
+ * @package Carbon
+ */
 class View
 {
-    use Singleton;              // were still in need of a force wrapper
+    /**
+     * @var string
+     */
+    public static $bufferedContent = 'No Content Buffered';
+    /**
+     * @var bool
+     */
+    public static $forceWrapper = false;
+    /**
+     * @var
+     */
+    public static $wrapper;
 
-    public $forceWrapper = false;
-
-    public static function contents($argv)
-    {
-        $self = static::getInstance();
-        return call_user_func([$self, 'content'], $argv);
-    }
-
-    public function content($file)
+    /**
+     * @param string $file
+     * @return bool
+     */
+    public static function content(string $file)
     {
         $buffer = catchErrors(function () use ($file) : string {         // closure  $buffer();
 
-            global $alert;           // Buffer contents may not need to be run if AJAX or SOCKET
+            global $alert;              // Buffer contents may not need to be run if AJAX or SOCKET
 
-            // so a closure of a buffer is kinda like a double buffer
-
-            ob_start();
+            ob_start();                 // closure of a buffer is kinda like a double buffer
 
             if (isset($alert)):
                 foreach ($alert as $level => $message)
-                    $this->bootstrapAlert($message, $level);   // If a public alert is set it will be processed here.
+                    self::bootstrapAlert($message, $level);   // If a public alert is set it will be processed here.
                 $alert = null;
             endif;
 
             if (!file_exists($file) && !file_exists($file = SERVER_ROOT . $file)):
-                $this->bootstrapAlert("The file ($file)requested could not be found.", 'danger');
+                self::bootstrapAlert("The file ($file)requested could not be found.", 'danger');
             else:
                 include $file;
             endif;
@@ -41,7 +54,7 @@ class View
 
         if (pathinfo($file, PATHINFO_EXTENSION) == 'hbs'):
             global $json;
-            if (SOCKET || (!$this->forceWrapper && !PJAX && AJAX)) {
+            if (SOCKET || (!self::$forceWrapper && !PJAX && AJAX)) {
                 $json['Mustache'] = SITE . $file;
                 print json_encode($json) . PHP_EOL;
                 return true;
@@ -52,17 +65,21 @@ class View
             $buffer = $buffer();
         endif;
 
-        if (!$this->forceWrapper && (PJAX || AJAX)):
+        if (!self::$forceWrapper && (PJAX || AJAX)):
             print $buffer;
         else:
-            $this->bufferedContent = $buffer;
+            self::$bufferedContent = $buffer;
             include_once WRAPPER;
         endif;
 
         return true;
     }
 
-    private function bootstrapAlert($message, $level): void
+    /** This method
+     * @param $message
+     * @param $level
+     */
+    private static function bootstrapAlert($message, $level): void
     {
         $message = htmlentities($message);  // Im not sure how this may be used,
         $level = htmlentities($level);      // for completeness I sanitise
@@ -117,6 +134,10 @@ class View
         return false;
     }
 
+    /**
+     * @param $file
+     * @param $ext
+     */
     static function sendResource($file, $ext)
     {
         if ($mime = self::mimeType($file, $ext)) {
@@ -128,8 +149,21 @@ class View
         die(1);
     }
 
+    /**
+     * @param $file
+     * @param $ext
+     * @return mixed|string
+     */
     static function mimeType($file, $ext)   // TODO - Add the full list generator from stack overflow
     {
+        /*
+        finfo = finfo_open(FILEINFO_MIME_TYPE); // return mime type ala mimetype extension
+        foreach (glob("*") as $filename) {
+            echo finfo_file($finfo, $filename) . "\n";
+        }
+        finfo_close($finfo);
+        */
+
         $mime_types = include_once SERVER_ROOT . 'Data/Indexes/MimeTypes.php';
         if (array_key_exists($ext, $mime_types))
             return $mime_types[$ext];
@@ -141,11 +175,6 @@ class View
             return $mime_types;
         }
         return 'application/octet-stream';
-    }
-
-    public function __get($variable)    // This replaces the definition in our trait to help devs catch ref errors
-    {
-        return (isset($GLOBALS[$variable]) ? $GLOBALS[$variable] : null);
     }
 
 }

@@ -53,7 +53,7 @@ class Pipe
 
             fclose($fifo);
         } catch (\Exception $e) {
-            ErrorCatcher::generateErrorLog($e);
+            ErrorCatcher::generateLog($e);
         }
     }
 }

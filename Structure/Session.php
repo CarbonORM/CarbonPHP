@@ -5,8 +5,11 @@
  * Date: 7/27/17
  * Time: 10:26 PM
  *
- *
+ * This class is desigend to handle the session storage.
  * http://php.net/manual/en/function.session-set-save-handler.php
+ *
+ * If true is passed to the second parameter of our constructor, our
+ * $_SESSION variables will be stored in the database.
  *
  */
 
@@ -16,12 +19,30 @@ use Carbon\Helpers\Serialized;
 
 class Session implements \SessionHandlerInterface
 {
+    /**
+     * @var string - if we need to close or pause the session in the middle of execution,
+     * this will persistently hold our session_id.
+     */
     private static $session_id;
 
+    /**
+     * @var $user_id - After a session is closed the session data is serialized and removed
+     * from the global (accessible) scope.
+     */
     private static $user_id;
 
+    /**
+     * @var $callback - if the session is reset using the startApplication function,
+     * this callable function will be executed. You can set this variable in the configuration.
+     */
     private static $callback;
 
+    /**
+     * Session constructor. This
+     * @param null $ip
+     * @param bool $dbStore
+     * @throws \Exception
+     */
     public function __construct($ip = null, $dbStore = false)
     {
         session_write_close(); //cancel the session's auto start, important
@@ -43,22 +64,39 @@ class Session implements \SessionHandlerInterface
             throw new \Exception('Session Failed');
     }
 
+    /**
+     *   Pauses the current session. This is required if you plan to fork you process and
+     *   continue with session manipulation.
+     */
     static function pause() {
         self::$session_id = session_id();
         session_write_close();
     }
 
+    /**
+     *   After a session is stopped with session_write_close() or paused with self::pause()
+     *   It maybe resumed assuming the original id was stored in self::$session_id
+     */
     static function resume() {
         session_id(self::$session_id);
         session_start();
     }
 
 
+    /**
+     * Change the callback run if self::update() is called.
+     * @param callable|null $lambda
+     */
     static function updateCallback(callable $lambda = null)
     {
         self::$callback = $lambda;
     }
 
+    /**
+     * This handles our users state. If the user goes form logged-in to logged-out
+     * the outer html-wrapper will be sent.
+     * @param bool $clear - if true is passed serialized data will be set to null
+     */
     static function update($clear = false)
     {
         global $user;
@@ -88,6 +126,9 @@ class Session implements \SessionHandlerInterface
         Request::sendHeaders();  // Send any stored headers
     }
 
+    /**
+     * This will remove our session data from our scope and the database
+     */
     static function clear()
     {
         try {
@@ -102,6 +143,12 @@ class Session implements \SessionHandlerInterface
         }
     }
 
+    /** This function was created to make sure all socket request come from
+     * an existing user who has a session stored in our database. If database
+     * session storage is turned off this method will fail and exit.
+     *
+     * @param $ip - the ip address to look up from our database.
+     */
     private function verifySocket($ip)
     {
         if ($ip) $_SERVER['REMOTE_ADDR'] = $ip;
@@ -117,17 +164,31 @@ class Session implements \SessionHandlerInterface
         session_id($session);
     }
 
+    /** This is required for the session save handler interface.
+     *  Do no change.
+     *
+     * @param string $savePath
+     * @param string $sessionName
+     * @return bool
+     */
     public function open($savePath, $sessionName)
     {
         return true;
     }
 
+    /** Make user our session data gets stored in the db.
+     * @return bool
+     */
     public function close()
     {
         register_shutdown_function('session_write_close');
         return true;
     }
 
+    /** read
+     * @param string $id
+     * @return string
+     */
     public function read($id)
     {
         //TODO - if ip has changed and session id hasn't invalidate
@@ -136,6 +197,12 @@ class Session implements \SessionHandlerInterface
         return $stmt->fetchColumn() ?: '';
     }
 
+    /** This function should never be called by you directly. It can be invoked using
+     * session_write_close().
+     * @param string $id
+     * @param string $data
+     * @return bool
+     */
     public function write($id, $data)
     {
         $db = Database::Database();
@@ -151,6 +218,11 @@ class Session implements \SessionHandlerInterface
         return true;
     }
 
+    /** This method can be run explicit or through
+     *      session_destroy()
+     * @param string $id
+     * @return bool
+     */
     public function destroy($id)
     {
         $db = Database::Database();
@@ -158,6 +230,12 @@ class Session implements \SessionHandlerInterface
             true : false;
     }
 
+    /** This is our garbage collector. If a session is expired attempt to remove it.
+     * This function is executed via a probability. See link for more details.
+     * @link http://php.net/manual/en/features.gc.php
+     * @param int $maxLife
+     * @return bool
+     */
     public function gc($maxLife)
     {
         $db = Database::Database();
