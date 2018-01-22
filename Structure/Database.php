@@ -22,6 +22,9 @@ class Database
      * @var string
      */
     private static $password = DB_PASS;
+    /**
+     * @var string
+     */
     private static $dsn = DB_DSN;
 
     /**
@@ -94,7 +97,7 @@ class Database
                             $db->query("use $db_name") and self::setUp();
                         break;
                     case '42S02':
-                            self::setUp();
+                            self::setUp(true);
                         break;
 
                     default:
@@ -122,14 +125,6 @@ class Database
         exit(1);
     }
 
-    /**
-     * @return PDO
-     */
-    public static function getDatabase() : PDO
-    {
-        return self::$database;
-    }
-
     /** Overwrite the current database
      * @param PDO $database
      */
@@ -144,12 +139,18 @@ class Database
      * file it will also be run. Be sure to model your build tool after ours
      * so it does not block.. setUp is synonymous = resetDatabase (which doesn't exist)
      *
+     * @param bool $refresh - if true sends Javascript refresh to browser using SITE constant
      * @return PDO
      */
-    public static function setUp()
+    public static function setUp(bool $refresh)
     {
         if (file_exists(CARBON_ROOT . 'Extras/buildDatabase.php'))
             require_once CARBON_ROOT . 'Extras/buildDatabase.php';
+
+        if ($refresh)
+            print '<br><br><h2>Refreshing in 6 seconds</h2><script>t1 = window.setTimeout(function(){ window.location.href = "'.SITE.'"; },6000);</script>'
+            and exit(1);
+
         return self::database();
     }
 
