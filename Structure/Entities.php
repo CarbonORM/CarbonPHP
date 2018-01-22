@@ -175,6 +175,12 @@ abstract class Entities
             throw new \Exception("Failed to delete $id");
     }
 
+
+    static protected function exeute(string $sql, ...$execute)
+    {
+
+    }
+
     /**
      * Use prepaired statements with question mark values.
      * @link https://www.w3schools.com/php/php_mysql_prepared_statements.asp
@@ -192,11 +198,10 @@ abstract class Entities
     static function fetch(string $sql, ...$execute): array
     {
         $stmt = Database::database()->prepare($sql);
-        if (!$stmt->execute($execute))
-            if (!$stmt->execute($execute))
+        if (!$stmt->execute($execute) && !$stmt->execute($execute))  // try it twice, you never know..
                 return [];
         return (count($stmt = $stmt->fetchAll()) === 1 ?
-            (is_array($stmt['0']) ? $stmt['0'] : $stmt) : $stmt);  //
+            (is_array($stmt['0']) ? $stmt['0'] : $stmt) : $stmt);   // promise this is needed and will still return the desired array
     }
 
     /** Quickly prepare and execute PDO $sql statements using
