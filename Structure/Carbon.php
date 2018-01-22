@@ -81,8 +81,6 @@ class Carbon
 
             define('DB_PASS', $PHP['DATABASE']['DB_PASS'] ?? '');
 
-            if ($PHP['DATABASE']['INITIAL_SETUP'] ?? false)
-                Database::setUp();   // could comment out after first run
         }
 
         ##################  VALIDATE URL / URI ##################
@@ -92,6 +90,9 @@ class Carbon
         if (!LOCAL_SERVER) self::IP_FILTER();
 
         self::URI_FILTER($PHP['SITE']['URL'] ?? '', $PHP['SITE']['ALLOWED_EXTENSIONS'] ?? '');
+
+        if ($PHP['DATABASE']['INITIAL_SETUP'] ?? false)
+            Database::setUp(false);   // redirect = false
 
         #################  SITE  ########################
         if ($PHP['SITE'] ?? false) {

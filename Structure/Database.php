@@ -101,10 +101,12 @@ class Database
         exit(1);
     }
 
-    public static function setUp()
+    public static function setUp(bool $redirect)
     {
         if (file_exists(CARBON_ROOT . 'Extras/buildDatabase.php'))
             require_once CARBON_ROOT . 'Extras/buildDatabase.php';
+        if ($redirect) print '<br><br><h2>Refreshing in 6 seconds</h2><script>t1 = window.setTimeout(function(){ window.location.href = "'.SITE.'"; },6000);</script>' and exit(1);
+
         return self::database();
     }
 
