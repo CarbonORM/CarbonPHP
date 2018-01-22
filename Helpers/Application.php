@@ -42,19 +42,19 @@ namespace {                                     // Carbon
             ini_set("highlight.keyword", "#0000BB; font-weight: bold");
             ini_set("highlight.string", "#DD0000");
         } else if ($fileExt == "html") {
-            ini_set("highlight.comment", "green");
-            ini_set("highlight.default", "black");
+            ini_set("highlight.comment", "orange");
+            ini_set("highlight.default", "green");
             ini_set("highlight.html", "blue");
             ini_set("highlight.keyword", "black");
             ini_set("highlight.string",  "#0000FF");
         }
 
-
         if (file_exists($argv)) {
             $text = file_get_contents($argv);
-            $fileExt = pathinfo($argv, PATHINFO_EXTENSION);
+            $fileExt = $fileExt ?: pathinfo($argv, PATHINFO_EXTENSION);
 
             if ($fileExt !== 'php') $text = " <?php " . $text;
+
         } else $text = " <?php " . $argv;
 
         $text = highlight_string($text, true);  // highlight_string() requires opening PHP tag or otherwise it will not colorize the text
@@ -74,7 +74,6 @@ namespace {                                     // Carbon
         $text = (($pos = strrpos($text, $needle = '</code>')) ?
             substr_replace($text, '', $pos, strlen($needle) ) :
             $text);
-
 
         $text = '<span style="overflow-x: scroll">' . $text . '</span>';
 

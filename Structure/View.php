@@ -128,7 +128,7 @@ class View
         die(1);
     }
 
-    static function mimeType($file, $ext)
+    static function mimeType($file, $ext)   // TODO - Add the full list generator from stack overflow
     {
         $mime_types = include_once SERVER_ROOT . 'Data/Indexes/MimeTypes.php';
         if (array_key_exists($ext, $mime_types))

@@ -46,7 +46,7 @@ class ErrorCatcher
     public function generateLog($argv = array())
     {
         ob_start();
-        print_r($argv);
+
         $trace = $this->generateCallTrace();
         print $trace . PHP_EOL;
         if (count($argv) >= 4)
@@ -55,15 +55,16 @@ class ErrorCatcher
         $output = ob_get_contents();
         ob_end_clean();
 
-
         if ($this->storeReport) {       // TODO - store to file?
-
             $sql = "INSERT INTO carbon_reports (date, log_level, report, call_trace) VALUES (?, ?, ?, ?)";
             $sql = Database::database()->prepare($sql);
 
-
             if (!$sql->execute([date("Y-m-d H:i:s"), 'LOG', $output, $trace]))
                 print 'Failed to store error log, nothing works... Why does nothing work?' and die(1);
+        } elseif ($this->printToScreen) {
+            print '<pre>';
+            print_r($argv);
+            print '</pre>';
         }
 
         return $output;
