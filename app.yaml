@@ -6,12 +6,12 @@ runtime_config:
   document_root: .
 
 beta_settings:
-  cloud_sql_instances: "statscoach-miles:us-central1:statsdatamine"
+  cloud_sql_instances: "YOUR_GOOGLE_SQL_INSTANCE_HERE"
 
 env_variables:
   # Replace USER, PASSWORD, DATABASE, and CONNECTION_NAME with the
   # values obtained when configuring your Cloud SQL instance.
-  MYSQL_DSN: mysql:unix_socket=/cloudsql/carbonphp-191421:us-central1:carbonphp;dbname=C6
+  MYSQL_DSN: mysql:unix_socket=/cloudsql/YOUR_GOOGLE_SQL_INSTANCE_HERE;dbname=C6
   MYSQL_USER: root
   MYSQL_PASSWORD: smokey
 
