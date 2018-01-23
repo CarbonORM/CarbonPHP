@@ -32,7 +32,7 @@ namespace {                                     // This runs the following code 
     {
         if ($reset):                                    // This will always be se in a socket
             if ($reset === true):
-                View::getInstance()->forceWrapper = true;
+                View::$forceWrapper = true;
                 Request::changeURI('/');         // Dynamically using pjax + headers
             else:
                 Request::changeURI($reset);

@@ -45,12 +45,12 @@ class Database
 
         try {
             error_reporting(0);
-            self::$database->query("SELECT 1");     // This has had a history of causing spotty error.. if this is the location of your error, you should keep looking...
+            PDO.exec("SELECT 1");     // This has had a history of causing spotty error.. if this is the location of your error, you should keep looking...
             error_reporting(ErrorCatcher::$level);
-            return self::$database;
+            return static::$database;
         } catch (\Error | \Exception $e) {                       // added for socket support
             error_reporting(ErrorCatcher::$level);
-            return self::reset();
+            return static::reset();
         }
     }
 
@@ -58,13 +58,9 @@ class Database
      * @param bool $clear set this to true if you do not want to re-initialise the connection
      * @return bool|PDO
      */
-    public static function reset($clear = false){       // mainly to help preserve database in sockets and forks
-        self::$database = null;
-
-        if ($clear) return true;
-
+    public static function reset() // mainly to help preserve database in sockets and forks
+    {
         $attempts = 0;
-
 
         $prep = function (PDO $db): PDO {
             $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -73,9 +69,9 @@ class Database
 
             $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
 
-            self::$database = $db;
+            static::$database = $db;
 
-            return self::$database;
+            return static::$database;
         };
 
         do {
@@ -87,7 +83,7 @@ class Database
                 switch ($e->getCode()) {        // Database has not been created
 
                     case 1049:
-                        $query = explode(';', self::$dsn);
+                        $query = explode(';', static::$dsn);
 
                         $db_name = explode('=', $query[1])[1];
 
@@ -101,10 +97,11 @@ class Database
                         if (!$db->prepare($stmt)->execute())
                             print '<h1>Failed to insert database. See Carbonphp.com for documentation.</h1>' and die;
                         else
-                            $db->query("use $db_name") and self::setUp();
+                            $db->query("use $db_name")
+                            and static::setUp(true);   // this will exit
                         break;
                     case '42S02':
-                            self::setUp(true);
+                        static::setUp(true);
                         break;
 
                     default:
@@ -132,10 +129,11 @@ class Database
         exit(1);
     }
 
-    /** Overwrite the current database
-     * @param PDO $database
+    /** Overwrite the current database. If nothing is given the
+     * connection to the database will be closed
+     * @param PDO|null $database
      */
-    public static function setDatabase(PDO $database)
+    public static function setDatabase(PDO $database = null)
     {
         self::$database = $database;
     }
@@ -146,7 +144,8 @@ class Database
      * file it will also be run. Be sure to model your build tool after ours
      * so it does not block.. setUp is synonymous = resetDatabase (which doesn't exist)
      *
-     * @param bool $refresh - if true sends Javascript refresh to browser using SITE constant
+     * @param bool $refresh if set to true will send Javascript
+     * to refresh the browser using SITE constant
      * @return PDO
      */
     public static function setUp(bool $refresh)
@@ -154,17 +153,15 @@ class Database
         if (file_exists(CARBON_ROOT . 'Extras/buildDatabase.php'))
             require_once CARBON_ROOT . 'Extras/buildDatabase.php';
 
-        if (file_exists(self::$setup))
-            include_once self::$setup;
+        if (file_exists(static::$setup))
+            include_once static::$setup;
         else print '<h3>When you add a database be sure to add it to the file ["DATABASE"][]</h3><h5>Use '. __FILE__ .' a as refrence.</h5>';
-
-
 
         if ($refresh)
             print '<br><br><h2>Refreshing in 6 seconds</h2><script>t1 = window.setTimeout(function(){ window.location.href = "'.SITE.'"; },6000);</script>'
             and exit(1);
 
-        return self::database();
+        return static::database();
     }
 
 } 

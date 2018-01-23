@@ -1,15 +1,6 @@
 #!/usr/bin/php
 <?php declare(ticks=1);             // so we can catch exit signals ,
 
-/*
- *
- *
- *
- */
-
-
-
-
 //if we wait to send output until we fork we can preserve our socket and session with the database
 const SOCKET = true;                // faster than define
 
@@ -26,12 +17,12 @@ define('SERVER_ROOT', $argv[1]);    // expressions not allowed in const
 if (!($argv[2] ?? false) && !file_exists($argv[2]))
     print "The SERVER_ROOT should be passed as a command line argument.\n" and die;
 
-if (false == include_once dirname(dirname(__FILE__)) . '/Structure/Carbon.php')
+if (false === include((dirname(__FILE__, 2) . '/Structure/Carbon.php')))
     print "We failed to find a valid carbon application. You may need to reinstall or repair the carbon file layout. See CarbonPHP.com for documentation.\n\n" and die(0);
 
-$config = (include($argv[2]));
+$config = include($argv[2]);
 
-\Carbon\Carbon::Application($config);
+new \Carbon\Carbon($config);
 
 if (!defined('SERVER_ROOT'))
     print 'We Failed to load CarbonPHP. Please see CarbonPHP.com for documentation.' . PHP_EOL and die;
@@ -52,21 +43,22 @@ pcntl_signal( SIGINT, 'signalHandler' );  // Interrupted ( Ctrl-C is pressed)
 
 $fifoFile = \Carbon\Helpers\Pipe::named(SERVER_ROOT . 'Data/Temp/' . $_SESSION['id'] . '.fifo');     // other users can notify us to update our application through this file
 
-$stdin = fopen( 'php://stdin', 'r' );
+$stdin = fopen( 'php://stdin', 'b' );
 
-$request = (new class extends Carbon\Request
+$request = new class extends Carbon\Request
 {
     public function is_json($string)
     {
         json_decode( $string );
-        return (json_last_error() == JSON_ERROR_NONE);
+        return json_last_error() === JSON_ERROR_NONE;
     }
-});
+};
 
-\Carbon\Session::pause();
-\Carbon\Database::reset(true);
+\Carbon\Session::pause();           // Close the current session
+\Carbon\Database::setDatabase();    // This will clear the connection
 
-while (true) {
+while (true)
+{
     $miss = 0;
     $handshake = 0;
     $readers = array($fifoFile, $stdin);
@@ -76,11 +68,11 @@ while (true) {
     else :
         foreach ($readers as $input => $fd) {
 
-            if ($fd == $stdin) {
+            if ($fd === $stdin) {
 
                 $string = $request->set( fgets( $stdin ) )->noHTML()->value();      // I think were going to make this a search function
 
-                if ($string == 'exit') {
+                if ($string === 'exit') {
                     print "Application closed socket \n" and die;
 
                 } elseif (!empty( $string ) && pcntl_fork() == 0) {     // Fork
@@ -96,7 +88,7 @@ while (true) {
                     exit( 1 );
                 } $handshake++;
 
-            } elseif ($fd == $fifoFile) {
+            } elseif ($fd === $fifoFile) {
 
                 $data = fread( $fifoFile, $bytes = 1024 );
 
@@ -106,7 +98,7 @@ while (true) {
 
                     if (!empty($uri)) {
 
-                        if (pcntl_fork() == 0) {
+                        if (pcntl_fork() === 0) {
 
                             \Carbon\Session::resume();
 
@@ -123,10 +115,10 @@ while (true) {
                 $handshake++;
             } else {
                 print "Hits => $handshake";
-                if ($handshake != 0):
+                if ($handshake !== 0):
                     $handshake = 0;
                     $miss = 1;
-                elseif ($miss == 10):
+                elseif ($miss === 10):
                     exit( 1 );
                 else: $miss++;
                     print "Misses => $miss\n";

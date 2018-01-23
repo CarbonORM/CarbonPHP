@@ -37,7 +37,7 @@ class View
 
             ob_start();                 // closure of a buffer is kinda like a double buffer
 
-            if (isset($alert)):
+            if (null !== $alert):
                 foreach ($alert as $level => $message)
                     self::bootstrapAlert($message, $level);   // If a public alert is set it will be processed here.
                 $alert = null;
@@ -52,7 +52,7 @@ class View
             return ob_get_clean();
         });
 
-        if (pathinfo($file, PATHINFO_EXTENSION) == 'hbs'):
+        if (pathinfo($file, PATHINFO_EXTENSION) === 'hbs'):
             global $json;
             if (SOCKET || (!self::$forceWrapper && !PJAX && AJAX)) {
                 $json['Mustache'] = SITE . $file;
@@ -69,7 +69,7 @@ class View
             print $buffer;
         else:
             self::$bufferedContent = $buffer;
-            include_once WRAPPER;
+            include_once self::$wrapper;
         endif;
 
         return true;
@@ -98,7 +98,7 @@ class View
 
     static function versionControl($file)
     {
-        if (!defined('SERVER_ROOT'))
+        if (!\defined('SERVER_ROOT'))
             return DS . $file;
         try {
             if (!file_exists($absolute = SERVER_ROOT . $file) || !($time = @filemtime($absolute)))
@@ -164,11 +164,11 @@ class View
         finfo_close($finfo);
         */
 
-        $mime_types = include_once SERVER_ROOT . 'Data/Indexes/MimeTypes.php';
+        $mime_types = include SERVER_ROOT . 'Data/Indexes/MimeTypes.php';
         if (array_key_exists($ext, $mime_types))
             return $mime_types[$ext];
 
-        if (function_exists('finfo_open')) {
+        if (\function_exists('finfo_open')) {
             $file_info = finfo_open(FILEINFO_MIME);
             $mime_types = finfo_file($file_info, $file);
             finfo_close($file_info);
