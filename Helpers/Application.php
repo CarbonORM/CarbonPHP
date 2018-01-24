@@ -196,7 +196,7 @@ namespace {                                     // This runs the following code 
         $found = $file . (file_exists(SERVER_ROOT . $file . '.php') ? '.php' :
                 (file_exists(SERVER_ROOT . $file . '.hbs') ? '.hbs' : ''));
 
-        return View::contents($found);  // View
+        return View::content($found);  // View
     }
 
     /** Ports the javascript alert function in php.

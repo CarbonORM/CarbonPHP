@@ -8,8 +8,6 @@ use PDO;
 /**
  * Class Database
  * @package Carbon
- *
- *  TODO - create setters? lambda binding makes me not care about permissions so I think no
  */
 class Database
 {
@@ -56,9 +54,9 @@ class Database
 
     /** Clears and restarts the PDO connection
      * @param bool $clear set this to true if you do not want to re-initialise the connection
-     * @return bool|PDO
+     * @return PDO
      */
-    public static function reset() // mainly to help preserve database in sockets and forks
+    public static function reset() : PDO // mainly to help preserve database in sockets and forks
     {
         $attempts = 0;
 
@@ -122,9 +120,7 @@ class Database
             }
         } while ($attempts < 3);
 
-        print 'We failed to connect to our database, please try again later.' . PHP_EOL;
-
-        print $e->getMessage();
+        print 'We failed to connect to our database, please try again later.' . PHP_EOL . $e->getMessage();
 
         exit(1);
     }
@@ -154,8 +150,8 @@ class Database
             require_once CARBON_ROOT . 'Extras/buildDatabase.php';
 
         if (file_exists(static::$setup))
-            include_once static::$setup;
-        else print '<h3>When you add a database be sure to add it to the file ["DATABASE"][]</h3><h5>Use '. __FILE__ .' a as refrence.</h5>';
+            include static::$setup;
+        else print '<h3>When you add a database be sure to add it to the file ["DATABASE"]["DB_BUILD"]</h3><h5>Use '. __FILE__ .' a as refrence.</h5>';
 
         if ($refresh)
             print '<br><br><h2>Refreshing in 6 seconds</h2><script>t1 = window.setTimeout(function(){ window.location.href = "'.SITE.'"; },6000);</script>'

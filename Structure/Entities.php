@@ -178,7 +178,7 @@ abstract class Entities
 
     static protected function exeute(string $sql, ...$execute)
     {
-
+        return Database::database()->prepare($sql)->execute($execute);
     }
 
     /**

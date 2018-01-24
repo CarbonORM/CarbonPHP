@@ -105,6 +105,7 @@ class Carbon
         }
 
         #####################   ERRORS    #######################
+        // TODO - debating on removing the start and attempting to catch our own errors. look into later
         Error\ErrorCatcher::$defaultLocation = REPORTS . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
         Error\ErrorCatcher::$fullReports = $PHP['ERROR']['STORE'] ?? false;
         Error\ErrorCatcher::$printToScreen = $PHP['ERROR']['SHOW'] ?? true;
