@@ -44,7 +44,7 @@ class Database
         }
         try {
             error_reporting(0);
-            self::$database->exec('SELECT 1');     // This has had a history of causing spotty error.. if this is the location of your error, you should keep looking...
+            self::$database->prepare('SELECT 1');     // This has had a history of causing spotty error.. if this is the location of your error, you should keep looking...
             error_reporting(ErrorCatcher::$level);
             return static::$database;
         } catch (\Error | \Exception $e) {                       // added for socket support

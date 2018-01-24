@@ -262,8 +262,6 @@ class Carbon
             $this->safelyExit = true;
         }
 
-        View::unVersion($_SERVER['REQUEST_URI']);  // This may exit and send a file
-
         // It does not matter if this matches, we will take care of that in the next if.
         preg_match("#^(.*\.)($allowedEXT)\?*.*#", $_SERVER['REQUEST_URI'], $matches, PREG_OFFSET_CAPTURE);
 
@@ -279,11 +277,15 @@ class Carbon
 
         \define('SITE', url . DS, true);   // http(s)://example.com/
 
-        if ($ext === null) {
+        if (empty($ext)) {
             return true;
         }
 
-        if (file_exists(SERVER_ROOT . URI)) {
+        // Look for versioning
+        View::unVersion($_SERVER['REQUEST_URI']);           // This may exit and send a file
+
+        // Not versioned, so see it it exists
+        if (file_exists(SERVER_ROOT . URI)) {      //  also may exit
             View::sendResource(URI, $ext);
         }
 
