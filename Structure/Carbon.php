@@ -157,7 +157,9 @@ class Carbon
         // Even if a request is bad, we need to store the log
         \define('LOCAL_SERVER', $this->isClientServer());
 
-        if (!LOCAL_SERVER) $this->IP_FILTER();
+        if (!LOCAL_SERVER) {
+            $this->IP_FILTER();
+        }
 
         $this->URI_FILTER($PHP['SITE']['URL'] ?? '', $PHP['SITE']['ALLOWED_EXTENSIONS'] ?? '');
 

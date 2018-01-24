@@ -33,12 +33,12 @@ abstract class Route
      */
     public $matched = false;             // a bool
     /**
-     * @var callable $structure will hold the function to execute if
+     * @var callable $closure will hold the function to execute if
      * the match function should accept a given path-to-match. Arguments
      * can be specified in the variable length parameter field $argv.
      * See Route.Match(...)
      */
-    protected $structure;           // The MVC pattern is currently passes
+    protected $closure;           // The MVC pattern is currently passes
 
     /**
      * This function must be implemented by the user to use the Route Class.
@@ -73,7 +73,7 @@ abstract class Route
      */
     public function __construct(callable $structure = null)
     {
-        $this->structure = $structure;
+        $this->closure = $structure;
         $this->uri = explode('/', $this->uriLength = ltrim(urldecode(parse_url(trim(preg_replace('/\s+/', ' ', $_SERVER['REQUEST_URI'])), PHP_URL_PATH)), ' /'));
         $this->uriLength = \substr_count($this->uriLength, '/') + 1; // I need the exploded string
         if (empty($this->uri[0])) {
@@ -102,9 +102,9 @@ abstract class Route
      * @param callable|null $struct
      * @return Route
      */
-    public function set_structure(callable $struct = null): Route
+    public function structure(callable $struct = null): Route
     {
-        $this->structure = $struct;
+        $this->closure = $struct;
         return $this;
     }
 
@@ -160,9 +160,9 @@ abstract class Route
                     }
 
                     // If variables were captured in our path to match, they will be merged with our variable list provided with $argv
-                    if (\is_callable($this->structure)) {
+                    if (\is_callable($this->closure)) {
                         $argv[] = &$referenceVariables;
-                        $this->addMethod('routeMatched', $this->structure);
+                        $this->addMethod('routeMatched', $this->closure);
                         if (\call_user_func_array($this->methods['routeMatched'], $argv) === false) {
                             throw new PublicAlert('Bad Arguments Passed to Route::match()');
                         }
