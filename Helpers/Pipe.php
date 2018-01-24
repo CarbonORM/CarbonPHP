@@ -10,9 +10,27 @@ namespace Carbon\Helpers;
 
 use Carbon\Error\ErrorCatcher;
 
+/**
+ * Class Pipe
+ * @package Carbon\Helpers
+ *
+ * In both method in this class I have commented out changing the
+ * user / owner of the named pipe. Some environments MAY require that
+ * you change permissions. Over the past few years I've migrated to
+ * many diffrent hosting solutions and I believe this
+ * was a fix on one. But im not positive...
+ */
 class Pipe
 {
-    public static function named($fifoPath)  // Arbitrary)
+    /** This will open a named pipe on our server. This is used for sending
+     * information between two active processes on the server. Generally,
+     * each user can send data real time to each other using this method.
+     * Keep in mind that the fifo file must be unique to the users listening
+     * on it.
+     * @param string $fifoPath is the location of the fifo file.
+     * @return bool|resource
+     */
+    public static function named(string $fifoPath)  // Arbitrary)
     {
 
         if (file_exists($fifoPath)) unlink($fifoPath);          // We are always the master, hopefully we'll catch the kill this time
@@ -23,7 +41,7 @@ class Pipe
 
         //exec("chown -R {$user}:{$user} $fifoPath");           // We need to modify the permissions so users can write to it
 
-        $fifoFile = fopen($fifoPath, 'r+');              // Now we open the named pipe we Already created
+        $fifoFile = fopen($fifoPath, 'rb+');              // Now we open the named pipe we Already created
 
         stream_set_blocking($fifoFile, false);           // setting to true (resource heavy) activates the handshake feature, aka timeout
 
@@ -31,6 +49,13 @@ class Pipe
     }
 
 
+    /** Attempt to send a string to a named pipe. This is normally done
+     * after forking so error are ungraciously ignored. If you require
+     * further error checking you will need to Try {} Catch this..
+     * @param string $value
+     * @param string $fifoPath
+     * @return bool
+     */
     public static function send(string $value, string $fifoPath)
     {
         try {
@@ -47,7 +72,7 @@ class Pipe
 
             $value = $value . PHP_EOL; // safely send, dada needs to end in null
 
-            $fifo = fopen($fifoPath, 'r+');
+            $fifo = fopen($fifoPath, 'rb+');
 
             fwrite($fifo, $value, strlen($value) + 1);
 

@@ -11,24 +11,41 @@ namespace Carbon\Helpers;
 class Fork
 {
 
-    public static function become_daemon(callable $call = null)          // do not use this unless you know what you are doing
+    /** If a callable function is passes the interpreter will attempt to
+     * fork using the pncl library and then execute the desired closure.
+     * If no arguments are passed than the current execution environment
+     * will become "Demonized". All masks will be set to 0 and the new
+     * working environment will be the root dir. This can be exceptionally
+     * dangerous and should only be used if your absolutely
+     * sure you know whats going on.
+     * @param callable|null $call
+     * @return int
+     * @throws \Exception
+     */
+    public static function become_daemon(callable $call = null) : int        // do not use this unless you know what you are doing
     {
-        if (!extension_loaded('pcntl'))
+        if (!\extension_loaded('pcntl')) {
             print 'You must have the PCNTL extencion installed. See Carbon PHP for documentation.' and die;
+        }
 
         if ($pid = pcntl_fork()) {  // Parent
-            if (is_callable($call))
+            if (\is_callable($call)) {
                 return 1;
-            else exit;
-        } elseif ($pid < 0) throw new \Exception('Failed to fork');
-        define('FORK', TRUE);
+            }
+            exit;
+        }
+        if ($pid < 0) {
+            throw new \RuntimeException('Failed to fork');
+        }
+
+        \define('FORK', TRUE);
 
         /* child becomes our daemon */
         posix_setsid();
 
         chdir('/');   // What does this do ?
 
-        umask(0);       // bump..
+        umask(0);        // Give access to nothing
 
         register_shutdown_function(function () {
             session_abort();
@@ -36,7 +53,7 @@ class Fork
             exit(1);
         });
 
-        if (is_callable($call)) {
+        if (\is_callable($call)) {
             $call();
             exit(1);
         }
@@ -45,22 +62,42 @@ class Fork
     }
 
 
+    /** This will safely execute a passed closure if the pncl library in not
+     * found in the environment. This should only be used when the callable
+     * function does not access or modify the database or session. Carbon uses
+     * this when realtime communication using named pipe is requested. It only
+     * speeds up execution, however it is not required and will never throw an
+     * error.
+     * @param callable|null $closure
+     * @return int
+     * @throws \Exception
+     */
     public static function safe(callable $closure = null)
     {
-        if (!extension_loaded('pcntl')){
-            if ($closure != null) $closure();
+        if (!\extension_loaded('pcntl')) {
+            if ($closure !== null) {
+                $closure();
+            }
             return 0;
         }
-        if ($pid = pcntl_fork())    // return child id for parent and 0 for child
+        if ($pid = pcntl_fork()) {    // return child id for parent and 0 for child
             return $pid;     // Parent
-        elseif ($pid < 0) throw new \Exception('Failed to fork');
-        define('FORK', TRUE);
+        }
+        if ($pid < 0) {
+            throw new \Exception('Failed to fork');
+        }
+        \define('FORK', TRUE);
         // Database::resetConnection();
         // fclose(STDIN); -- unset
-        register_shutdown_function(function () { session_abort(); posix_kill(posix_getpid(), SIGHUP); exit(1); });
+        register_shutdown_function(function () {
+            session_abort();
+            posix_kill(posix_getpid(), SIGHUP);
+            exit(1);
+        });
 
-        if ($closure != null) $closure();
-
+        if ($closure != null) {
+            $closure();
+        }
         exit;
     }
 

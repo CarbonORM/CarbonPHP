@@ -42,7 +42,7 @@ class ErrorCatcher
     /**
      * ErrorCatcher constructor.
      */
-    public static function start()
+    public static function start()      // TODO - not this.
     {
         ini_set('display_errors', 1);
         ini_set('track_errors', 1);
@@ -84,7 +84,6 @@ class ErrorCatcher
             print_r($argv);
             print '</pre>';
         }
-
         return $output;
     }
 

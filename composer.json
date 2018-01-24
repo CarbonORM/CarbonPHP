@@ -17,7 +17,8 @@
     "bower-asset/jquery-form": "^4.2.2",
     "bower-asset/jquery-pjax": "^2.0.1",
     "bower-asset/mustache.js": "^2.3.0",
-    "mustache/mustache": "^2.12"
+    "mustache/mustache": "^2.12",
+    "psr/log": "^1.0"
   },
   "suggest": {
     "almasaeed2010/adminlte": ">=2.4",

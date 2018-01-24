@@ -38,12 +38,12 @@ class Database
     public static function database(): PDO
     {
 
-        if (empty(self::$database) || !self::$database instanceof PDO)
+        if (empty(self::$database) || !self::$database instanceof PDO) {
             return static::reset();
-
+        }
         try {
             error_reporting(0);
-            PDO.exec("SELECT 1");     // This has had a history of causing spotty error.. if this is the location of your error, you should keep looking...
+            self::$database->exec('SELECT 1');     // This has had a history of causing spotty error.. if this is the location of your error, you should keep looking...
             error_reporting(ErrorCatcher::$level);
             return static::$database;
         } catch (\Error | \Exception $e) {                       // added for socket support
@@ -53,10 +53,9 @@ class Database
     }
 
     /** Clears and restarts the PDO connection
-     * @param bool $clear set this to true if you do not want to re-initialise the connection
      * @return PDO
      */
-    public static function reset() : PDO // mainly to help preserve database in sockets and forks
+    public static function reset() : PDO // built to help preserve database in sockets and forks
     {
         $attempts = 0;
 
@@ -92,23 +91,24 @@ class Database
 
                         $stmt = "CREATE DATABASE $db_name;";
 
-                        if (!$db->prepare($stmt)->execute())
+                        if (!$db->prepare($stmt)->execute()) {
                             print '<h1>Failed to insert database. See Carbonphp.com for documentation.</h1>' and die;
-                        else
-                            $db->query("use $db_name")
-                            and static::setUp(true);   // this will exit
+                        } else {
+                            $db->exec("use $db_name");
+                            static::setUp(true);   // this will exit
+                        }
                         break;
                     case '42S02':
                         static::setUp(true);
                         break;
 
                     default:
-                        if (empty(static::$username))
+                        if (empty(static::$username)) {
                             print '<h2>You must set a database user name. See CarbonPHP.com for documentation</h2>';
-
-                        if (empty(static::$password))
+                        }
+                        if (empty(static::$password)) {
                             print '<h2>You may need to set a database password. See CarbonPHP.com for documentation</h2>';
-
+                        }
                         print $e->getMessage() . '<br>';    // This may print twice if the error catcher is trying to
 
                         die(0);                            // but don't fear, die works...
@@ -122,14 +122,14 @@ class Database
 
         print 'We failed to connect to our database, please try again later.' . PHP_EOL . $e->getMessage();
 
-        exit(1);
+        die(1);
     }
 
     /** Overwrite the current database. If nothing is given the
      * connection to the database will be closed
      * @param PDO|null $database
      */
-    public static function setDatabase(PDO $database = null)
+    public static function setDatabase(PDO $database = null) : void
     {
         self::$database = $database;
     }
@@ -144,19 +144,20 @@ class Database
      * to refresh the browser using SITE constant
      * @return PDO
      */
-    public static function setUp(bool $refresh)
+    public static function setUp(bool $refresh) : PDO
     {
-        if (file_exists(CARBON_ROOT . 'Extras/buildDatabase.php'))
-            require_once CARBON_ROOT . 'Extras/buildDatabase.php';
-
-        if (file_exists(static::$setup))
+        if (file_exists(CARBON_ROOT . 'Extras/buildDatabase.php')) {
+            include CARBON_ROOT . 'Extras/buildDatabase.php';
+        }
+        if (file_exists(static::$setup)) {
             include static::$setup;
-        else print '<h3>When you add a database be sure to add it to the file ["DATABASE"]["DB_BUILD"]</h3><h5>Use '. __FILE__ .' a as refrence.</h5>';
-
-        if ($refresh)
-            print '<br><br><h2>Refreshing in 6 seconds</h2><script>t1 = window.setTimeout(function(){ window.location.href = "'.SITE.'"; },6000);</script>'
-            and exit(1);
-
+        } else {
+            print '<h3>When you add a database be sure to add it to the file ["DATABASE"]["DB_BUILD"]</h3><h5>Use '. __FILE__ .' a as refrence.</h5>';
+        }
+        if ($refresh) {
+            print '<br><br><h2>Refreshing in 6 seconds</h2><script>t1 = window.setTimeout(function(){ window.location.href = "' . SITE . '"; },6000);</script>';
+            exit(1);
+        }
         return static::database();
     }
 

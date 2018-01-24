@@ -2,6 +2,7 @@
 
 namespace Carbon;
 
+use Carbon\Error\ErrorCatcher;
 use Carbon\Helpers\Serialized;
 
 /**
@@ -15,7 +16,7 @@ use Carbon\Helpers\Serialized;
  *
  * class Example {
  *      use Singleton;
- *      const Singleton = true;
+ *      const Singleton = true;  // for auto class serialization
  *
  *      ...
  * }
@@ -64,9 +65,7 @@ trait Singleton
     public static function newInstance(...$args): self
     {   // Start a new instance of the class and pass any arguments
         self::clearInstance();
-
-        $reflect = new \ReflectionClass($class = get_called_class());
-
+        $reflect = new \ReflectionClass($class = static::class);
         $GLOBALS['Singleton'][$class] = $reflect->newInstanceArgs($args);
 
         return $GLOBALS['Singleton'][$class];
@@ -78,9 +77,9 @@ trait Singleton
      */
     public static function getInstance(...$args): self
     {   // see if the class has already been called this run
-        if (!empty($GLOBALS['Singleton'][$calledClass = get_called_class()]))
+        if (!empty($GLOBALS['Singleton'][$calledClass = static::class])) {
             return $GLOBALS['Singleton'][$calledClass];
-
+        }
         // check if the object has been sterilized in the session
         // This will invoke the __wake up operator   TODO - base64_decode
         if (isset($_SESSION[$calledClass]) && Serialized::is_serialized($_SESSION[$calledClass], $GLOBALS['Singleton'][$calledClass]))
@@ -93,21 +92,23 @@ trait Singleton
         return $GLOBALS['Singleton'][$calledClass];
     }
 
+
     /**
      * @param self $object
      * @return self
      */
     public static function setInstance(self $object): self
     {
-        return $GLOBALS['Singleton'][get_called_class()] = $object;
+        return $GLOBALS['Singleton'][static::class] = $object;
     }
 
+
     /**
-     *
+     * Remove the current instance. Also removes any serialized data.
      */
     public static function clearInstance(): void
     {
-        unset($_SESSION[$calledClass = get_called_class()], $GLOBALS['Singleton'][$calledClass]);
+        unset($_SESSION[$calledClass = static::class], $GLOBALS['Singleton'][$calledClass]);
     }
 
     /**
@@ -124,40 +125,41 @@ trait Singleton
      * @param $methodName
      * @param array $arguments
      * @return Singleton|mixed
-     * @throws \Exception
+     * @throws \InvalidArgumentException
      */
     private function Skeleton(string $methodName, array $arguments = [])
     {
         // Have we used addMethod() to override an existing method
-        if (key_exists($methodName, $this->methods))
-            return (null === ($result = call_user_func_array($this->methods[$methodName], $arguments)) ? $this : $result);
+        if (array_key_exists($methodName, $this->methods)) {
+            return (null === ($result = \call_user_func_array($this->methods[$methodName], $arguments)) ? $this : $result);
+        }
         // Is the method in the current scope ( public, protected, private ).
         // Note declaring the method as private is the only way to ensure single instancing
-        if (method_exists($this, $methodName))
-            return (null === ($result = call_user_func_array(array($this, $methodName), $arguments)) ? $this : $result);
-
-        if (is_callable($this->{$methodName})) {
-            self::addMethod($methodName, $this->{$methodName});
-            return call_user_func_array($this->{$methodName}, $arguments);
-        } // closure binding
-
-        if (key_exists('closures', $GLOBALS) && key_exists($methodName, $GLOBALS['closures'])) {
+        if (method_exists($this, $methodName)) {
+            return (null === ($result = \call_user_func_array(array($this, $methodName), $arguments)) ? $this : $result);
+        }
+        // Check to see if we've bound it to the class using an undefined attribute (variable)
+        if (\is_callable($this->{$methodName})) {
+            $this->addMethod($methodName, $this->{$methodName});
+            return \call_user_func_array($this->{$methodName}, $arguments);
+        }
+        // closure binding
+        if (array_key_exists('closures', $GLOBALS) && array_key_exists($methodName, $GLOBALS['closures'])) {
             $function = $GLOBALS['closures'][$methodName];
             $this->addMethod($methodName, $function);
-            return (null === ($result = call_user_func_array($this->methods[$methodName], $arguments)) ? $this : $result);
+            return (null === ($result = \call_user_func_array($this->methods[$methodName], $arguments)) ? $this : $result);
         }
-
-        throw new \Exception("There is valid method or closure with the given name '$methodName' to call");
+        throw new \InvalidArgumentException("There is valid method or closure with the given name '$methodName' to call");
     }
 
-    /**
+    /** Attempt to bind a closure to the working scope. This would mean the calling class
+     * not the class which uses the Singelton trait
      * @param $name
      * @param $closure
-     * @throws \Exception
      */
     private function addMethod(string $name, callable $closure): void
     {
-        $this->methods[$name] = \Closure::bind($closure, $this, get_called_class());
+        $this->methods[$name] = \Closure::bind($closure, $this, static::class);
     }
 
     /**
@@ -167,21 +169,28 @@ trait Singleton
     public function __wakeup()
     {
         $object = get_object_vars($this);
-        foreach ($object as $item => $value) Serialized::is_serialized($value, $this->$item);
-        if (method_exists($this, '__construct')) self::__construct();
+        foreach ($object as $item => $value) {
+            Serialized::is_serialized($value, $this->$item);
+        }
+        if (method_exists($this, '__construct')) {
+            $this->__construct();
+        }
     }
-
-    // for auto class serialization add: const Singleton = true; to calling class
 
     /** Attempt to serialize the current class.
      * @return array|null
      */
     public function __sleep()
     {
-        if (!defined('self::Singleton') || !self::Singleton) return null;
+        if (!\defined('self::Singleton') || !self::Singleton) {
+            return [];
+        }
+
         foreach (get_object_vars($this) as $key => &$value) {
-            if (empty($value)) continue;    // The object could be null from serialization?
-            if (is_object($value)) {
+            if (empty($value)) {
+                continue;
+            }   // The object could be null from serialization?
+            if (\is_object($value)) {
                 try {
                     $this->$key = (@serialize($value));
                 } catch (\Exception $e) {
@@ -190,7 +199,7 @@ trait Singleton
             }
             $onlyKeys[] = $key;
         }
-        return (isset($onlyKeys) ? $onlyKeys : []);
+        return $onlyKeys ?? [];
     }
 
     /**
@@ -198,13 +207,15 @@ trait Singleton
      */
     public function __destruct()
     {   // We require a sleep function to be set manually for singleton to manage utilization
-        if (!defined('self::Singleton') || !self::Singleton) return null;
+        if (!\defined('self::Singleton') || !self::Singleton) {
+            return;
+        }
         try {
             $_SESSION[__CLASS__] = @serialize($this);     // TODO - base64_encode(
         } catch (\Exception $e) {
             unset($_SESSION[__CLASS__]);
-            return null;
-        };
+            return;
+        }
     }
 
     /**
@@ -222,8 +233,11 @@ trait Singleton
      */
     public function __set(string $variable, $value)
     {
-        if (is_callable($value)) $this->{$variable} = $value->bindTo($this, $this);
-        else $GLOBALS[$variable] = $value;
+        if (\is_callable($value)) {
+            $this->{$variable} = $value->bindTo($this, $this);  // This preserves the 'normal' new attribute closure binding
+        } else {
+            $GLOBALS[$variable] = $value;
+        }
     }
 
     /**
@@ -244,7 +258,7 @@ trait Singleton
     }
 
     /**
-     * @return mixed the values contained in our storage container
+     * @return mixed the value(s) contained in our $storage attribute
      */
     public function __invoke()
     {
@@ -267,7 +281,7 @@ trait Singleton
      */
     public function get(string $variable = null)
     {
-        return ($variable == null ?
+        return ($variable === null ?
             $this->storage :
             $this->{$variable});
     }
