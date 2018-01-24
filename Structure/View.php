@@ -128,8 +128,9 @@ class View
 
             $uri = trim($matches[1][0] . '.' . $matches[2][0], '/');
 
-            if (file_exists(SERVER_ROOT . $uri))
+            if (file_exists(SERVER_ROOT . $uri)) {
                 self::sendResource($uri, $matches[2][0]);
+            }
         }
         return false;
     }

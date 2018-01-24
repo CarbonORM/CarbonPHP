@@ -250,7 +250,7 @@ class Carbon
     private function URI_FILTER(string $URL, string $allowedEXT = 'jpg|png') : bool
     {
         if (!empty($URL) && $_SERVER['SERVER_NAME'] !== $URL && !LOCAL_SERVER) {
-            print IP . '<h1>You appear to be redirected.</h1><h2>Moving to ' . $URL . '</h2>';
+            print IP . '<h1>You appear to be lost.</h1><h2>Moving to ' . $URL . '</h2>';
             print "<script>window.location.type = $URL</script>";
             $this->safelyExit = true;
         }

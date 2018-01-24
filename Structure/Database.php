@@ -13,6 +13,7 @@ class Database
 {
     /** Represents a connection between PHP and a database server.
      * @link http://php.net/manual/en/class.pdo.php
+     * @var PDO $database
      */
     private static $database;
 
@@ -38,7 +39,7 @@ class Database
     public static function database(): PDO
     {
 
-        if (empty(self::$database) || !self::$database instanceof PDO) {
+        if (null === self::$database || !self::$database instanceof PDO) {
             return static::reset();
         }
         try {
