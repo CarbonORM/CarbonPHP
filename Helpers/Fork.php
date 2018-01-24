@@ -72,7 +72,7 @@ class Fork
      * @return int
      * @throws \Exception
      */
-    public static function safe(callable $closure = null)
+    public static function safe(callable $closure = null) : int
     {
         if (!\extension_loaded('pcntl')) {
             if ($closure !== null) {
@@ -81,12 +81,12 @@ class Fork
             return 0;
         }
         if ($pid = pcntl_fork()) {    // return child id for parent and 0 for child
-            return $pid;     // Parent
+            return $pid;             // Parent
         }
         if ($pid < 0) {
-            throw new \Exception('Failed to fork');
+            throw new \RuntimeException('Failed to fork');
         }
-        \define('FORK', TRUE);
+        \define('FORK', true);
         // Database::resetConnection();
         // fclose(STDIN); -- unset
         register_shutdown_function(function () {
@@ -95,7 +95,7 @@ class Fork
             exit(1);
         });
 
-        if ($closure != null) {
+        if ($closure !== null) {
             $closure();
         }
         exit;

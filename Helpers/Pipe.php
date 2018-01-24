@@ -33,8 +33,9 @@ class Pipe
     public static function named(string $fifoPath)  // Arbitrary)
     {
 
-        if (file_exists($fifoPath)) unlink($fifoPath);          // We are always the master, hopefully we'll catch the kill this time
-
+        if (file_exists($fifoPath)) {
+            unlink($fifoPath);          // We are always the master, hopefully we'll catch the kill this time
+        }
         posix_mkfifo($fifoPath, 0644);                    // create a named pipe
 
         //$user = get_current_user();                           // get current process user
@@ -56,12 +57,12 @@ class Pipe
      * @param string $fifoPath
      * @return bool
      */
-    public static function send(string $value, string $fifoPath)
+    public static function send(string $value, string $fifoPath) : bool
     {
         try {
-            if (!file_exists($fifoPath))
+            if (!file_exists($fifoPath)) {
                 return false; //sortDump('Fuck me!'); // if it does
-
+            }
             posix_mkfifo($fifoPath, 0644);
 
             //$user = get_current_user();                                // get current process user
@@ -70,11 +71,11 @@ class Pipe
 
             # sortDump(substr(sprintf('%o', fileperms($fifoPath)), -4) . PHP_EOL);  -- file permissions
 
-            $value = $value . PHP_EOL; // safely send, dada needs to end in null
+            $value .= PHP_EOL; // safely send, dada needs to end in null
 
             $fifo = fopen($fifoPath, 'rb+');
 
-            fwrite($fifo, $value, strlen($value) + 1);
+            fwrite($fifo, $value, \strlen($value) + 1);
 
             fclose($fifo);
         } catch (\Exception $e) {

@@ -41,7 +41,6 @@ class Session implements \SessionHandlerInterface
      * Session constructor. This
      * @param null $ip
      * @param bool $dbStore
-     * @throws \Exception
      */
     public function __construct($ip = null, $dbStore = false)
     {
@@ -62,7 +61,9 @@ class Session implements \SessionHandlerInterface
             }
         }
 
-        if (SOCKET) $this->verifySocket($ip);
+        if (SOCKET) {
+            $this->verifySocket($ip);
+        }
 
         if (false === @session_start()) {
             print 'Carbon failed to start your session';
@@ -74,7 +75,8 @@ class Session implements \SessionHandlerInterface
      *   Pauses the current session. This is required if you plan to fork you process and
      *   continue with session manipulation.
      */
-    static function pause() {
+    public static function pause()
+    {
         static::$session_id = session_id();
         session_write_close();
     }
@@ -83,7 +85,8 @@ class Session implements \SessionHandlerInterface
      *   After a session is stopped with session_write_close() or paused with self::pause()
      *   It maybe resumed assuming the original id was stored in self::$session_id
      */
-    static function resume() {
+    public static function resume()
+    {
         session_id(static::$session_id);
         session_start();
     }
@@ -93,7 +96,7 @@ class Session implements \SessionHandlerInterface
      * Change the callback run if self::update() is called.
      * @param callable|null $lambda
      */
-    static function updateCallback(callable $lambda = null)
+    public static function updateCallback(callable $lambda = null)
     {
         self::$callback = $lambda;
     }
@@ -103,7 +106,7 @@ class Session implements \SessionHandlerInterface
      * the outer html-wrapper will be sent.
      * @param bool $clear - if true is passed serialized data will be set to null
      */
-    static function update($clear = false)
+    public static function update($clear = false)
     {
         global $user;
         static $count = 0;
@@ -144,7 +147,7 @@ class Session implements \SessionHandlerInterface
     /**
      * This will remove our session data from our scope and the database
      */
-    static function clear()
+    public static function clear()
     {
         try {
             $id = session_id();

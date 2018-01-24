@@ -94,7 +94,9 @@ class Carbon
 
         \define('CARBON_ROOT', \dirname(__FILE__, 2) . DS);
 
-        if (!\defined('SERVER_ROOT')) define('SERVER_ROOT', CARBON_ROOT);
+        if (!\defined('SERVER_ROOT')) {
+            \define('SERVER_ROOT', CARBON_ROOT);
+        }
 
         \define('REPORTS', $PHP['ERROR']['LOCATION'] ?? SERVER_ROOT);
 
@@ -159,9 +161,9 @@ class Carbon
 
         $this->URI_FILTER($PHP['SITE']['URL'] ?? '', $PHP['SITE']['ALLOWED_EXTENSIONS'] ?? '');
 
-        if ($PHP['DATABASE']['REBUILD'] ?? false)
+        if ($PHP['DATABASE']['REBUILD'] ?? false) {
             Database::setUp(false);   // redirect = false
-
+        }
         #################  SITE  ########################
         if ($PHP['SITE'] ?? false) {
             \define('BOOTSTRAP', SERVER_ROOT . $PHP['SITE']['BOOTSTRAP'] ?? '');          // Routing file
