@@ -43,10 +43,10 @@ namespace {                                     // This runs the following code 
 
         Session::update($reset);              // Check wrapper / session callback
 
-        if (!defined('BOOTSTRAP') || !file_exists(BOOTSTRAP))
+        if (!\defined('BOOTSTRAP') || !file_exists(BOOTSTRAP)) {
             print 'You must define a route in your configuration. Visit CarbonPHP.com for Documentation.' and die;
-
-        return !!include BOOTSTRAP;  // Router
+        }
+        return include BOOTSTRAP;  // Routing file
     }
 
     /** This extends the PHP's built-in highlight function to highlight
@@ -59,46 +59,49 @@ namespace {                                     // This runs the following code 
      * @param bool $fileExt
      * @return string -- the text highlighted and converted to html
      */
-    function highlight($argv, $fileExt = false) : string
+    function highlight($argv, $fileExt = false): string
     {
-        if ($fileExt == "java") {
-            ini_set("highlight.comment", "#008000");
-            ini_set("highlight.default", "#000000");
-            ini_set("highlight.html", "#808080");
-            ini_set("highlight.keyword", "#0000BB; font-weight: bold");
-            ini_set("highlight.string", "#DD0000");
-        } else if ($fileExt == "html") {
-            ini_set("highlight.comment", "orange");
-            ini_set("highlight.default", "green");
-            ini_set("highlight.html", "blue");
-            ini_set("highlight.keyword", "black");
-            ini_set("highlight.string",  "#0000FF");
+        if ($fileExt === 'java') {
+            ini_set('highlight.comment', '#008000');
+            ini_set('highlight.default', '#000000');
+            ini_set('highlight.html', '#808080');
+            ini_set('highlight.keyword', '#0000BB; font-weight: bold');
+            ini_set('highlight.string', '#DD0000');
+        } else if ($fileExt === 'html') {
+            ini_set('highlight.comment', 'orange');
+            ini_set('highlight.default', 'green');
+            ini_set('highlight.html', 'blue');
+            ini_set('highlight.keyword', 'black');
+            ini_set('highlight.string', '#0000FF');
         }
 
         if (file_exists($argv)) {
             $text = file_get_contents($argv);
             $fileExt = $fileExt ?: pathinfo($argv, PATHINFO_EXTENSION);
 
-            if ($fileExt !== 'php') $text = " <?php " . $text;
-
-        } else $text = " <?php " . $argv;
+            if ($fileExt !== 'php') {
+                $text = ' <?php ' . $text;
+            }
+        } else {
+            $text = ' <?php ' . $argv;
+        }
 
         $text = highlight_string($text, true);  // highlight_string() requires opening PHP tag or otherwise it will not colorize the text
 
         $text = substr_replace($text, '', 0, 6);    // this removes the <code>
 
-        $text = preg_replace('#^<span style="[\w\d\s\#">;:]*#', "", $text, 1);  // remove prefix
+        $text = preg_replace('#^<span style="[\w\s\#">;:]*#', '', $text, 1);  // remove prefix
 
         $text = (($pos = strpos($text, $needle = '&lt;?php')) ?
             substr_replace($text, '', $pos, strlen($needle)) :
             $text);
 
         $text = (($pos = strrpos($text, $needle = '</span>')) ?
-            substr_replace($text, '', $pos, strlen($needle) ) :
+            substr_replace($text, '', $pos, strlen($needle)) :
             $text);
 
         $text = (($pos = strrpos($text, $needle = '</code>')) ?
-            substr_replace($text, '', $pos, strlen($needle) ) :
+            substr_replace($text, '', $pos, strlen($needle)) :
             $text);
 
         $text = '<span style="overflow-x: scroll">' . $text . '</span>';
@@ -115,7 +118,7 @@ namespace {                                     // This runs the following code 
     {
         return function (...$argv) use ($lambda) {
             try {
-                $argv = call_user_func_array($lambda, $argv);
+                $argv = \call_user_func_array($lambda, $argv);
             } catch (Exception | Error $e) {
                 if (!$e instanceof PublicAlert) {
                     ErrorCatcher::generateLog($e);
@@ -137,9 +140,9 @@ namespace {                                     // This runs the following code 
      * will be passed as parameters to our model.
      * @link http://php.net/manual/en/function.call-user-func-array.php
      *
-     * @param string $class   This class name to autoload
-     * @param string $method  The method within the provided class
-     * @param array $argv     Arguments to be passed to method
+     * @param string $class This class name to autoload
+     * @param string $method The method within the provided class
+     * @param array $argv Arguments to be passed to method
      * @return mixed          the returned value from model/$class.$method() or false | void
      * @throws Exception
      */
@@ -151,17 +154,18 @@ namespace {                                     // This runs the following code 
         $method = strtolower($method);          // Prevent malformed method names
 
         // Make sure our class exists
-        if (!class_exists($controller, true) || !class_exists($model, true))
-            throw new Exception("Invalid Class {$class} Passed to MVC");
-
+        if (!class_exists($controller, true) || !class_exists($model, true)) {
+            throw new InvalidArgumentException("Invalid Class {$class} Passed to MVC");
+        }
         // the array $argv will be passed as arguments to the method requested, see link above
-        $exec = function ($class,$argv) use ($method) {
-            return call_user_func_array([new $class, "$method"], (is_array($argv) ? $argv : [$argv]));
+        $exec = function ($class, $argv) use ($method) {
+            return \call_user_func_array([new $class, "$method"], (array)$argv);
         };
 
         return catchErrors(function () use ($exec, $controller, $model, $argv) {
-            if ($argv = $exec($controller, $argv))
+            if ($argv = $exec($controller, $argv)) {
                 return $exec($model, $argv);
+            }
             return $argv;
         })();
     }
@@ -181,9 +185,9 @@ namespace {                                     // This runs the following code 
      *
      * @link http://php.net/manual/en/function.call-user-func-array.php
      *
-     * @param string $class   This class name to autoload
-     * @param string $method  The method within the provided class
-     * @param array $argv     Arguments to be passed to method
+     * @param string $class This class name to autoload
+     * @param string $method The method within the provided class
+     * @param array $argv Arguments to be passed to method
      * @return mixed          the returned value from model/$class.$method() or false | void
      * @throws Exception
      */
@@ -193,16 +197,17 @@ namespace {                                     // This runs the following code 
 
         // This could cache or send
         $file = APP_VIEW . "$class/$method";
-        $found = $file . (file_exists(SERVER_ROOT . $file . '.php') ? '.php' :
-                (file_exists(SERVER_ROOT . $file . '.hbs') ? '.hbs' : ''));
 
-        return View::content($found);  // View
+        if (!file_exists(SERVER_ROOT . $file . ($ext = '.php')) && !file_exists(SERVER_ROOT . $file . ($ext = '.hbs'))) {
+            $ext = '';
+        }
+        return View::content($file . $ext);  // View
     }
 
     /** Ports the javascript alert function in php.
      * @param string $string
      */
-    function alert($string = "Stay woke.")
+    function alert($string = 'Stay woke')
     {
         static $count = 0;
         print "<script>alert('( #" . ++$count . " )  $string')</script>";
@@ -229,7 +234,7 @@ namespace {                                     // This runs the following code 
     function dump(...$argv)
     {
         echo '<pre>';
-        var_dump(count($argv) == 1 ? array_shift($argv) : $argv);
+        var_dump(\count($argv) === 1 ? array_shift($argv) : $argv);
         echo '</pre>';
     }
 
