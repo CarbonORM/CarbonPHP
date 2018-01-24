@@ -33,6 +33,7 @@ class Carbon
 
     /**
      * @type $PHP = [
+     *       'AUTOLOAD' => []                       // Provide PSR-4 namespace roots
      *       'SITE' => [
      *           'URL' => string '',                                  // Server Url name you do not need to chane in remote development
      *           'ROOT' => string '__FILE__',                         // This was defined in our ../index.php
@@ -87,22 +88,26 @@ class Carbon
 
         date_default_timezone_set($PHP['SITE']['TIMEZONE'] ?? 'America/Chicago');
 
-        if (!defined('DS')) define('DS', DIRECTORY_SEPARATOR, false);
+        if (!\defined('DS')) {
+            \define('DS', DIRECTORY_SEPARATOR);
+        }
 
-        define('CARBON_ROOT', dirname(dirname(__FILE__)) . DS);
+        \define('CARBON_ROOT', \dirname(__FILE__, 2) . DS);
 
-        if (!defined('SERVER_ROOT')) define('SERVER_ROOT', CARBON_ROOT);
+        if (!\defined('SERVER_ROOT')) define('SERVER_ROOT', CARBON_ROOT);
 
-        define('REPORTS', $PHP['ERROR']['LOCATION'] ?? SERVER_ROOT);
+        \define('REPORTS', $PHP['ERROR']['LOCATION'] ?? SERVER_ROOT);
 
         #####################   AUTOLOAD    #######################
         if (!array_key_exists('AUTOLOAD', $PHP) || $PHP['AUTOLOAD']) {
 
-            $PSR4 = include_once CARBON_ROOT . 'Structure/AutoLoad.php';
+            $PSR4 = include CARBON_ROOT . 'Structure/AutoLoad.php';
 
-            if (is_array($PHP['AUTOLOAD'] ?? false))
-                foreach ($PHP['AUTOLOAD'] as $name => $path)
+            if (\is_array($PHP['AUTOLOAD'] ?? false)) {
+                foreach ($PHP['AUTOLOAD'] as $name => $path) {
                     $PSR4->addNamespace($name, $path);
+                }
+            }
         }
 
         #####################   ERRORS    #######################
@@ -134,9 +139,7 @@ class Carbon
                     (($PHP['SOCKET']['SSL'] ?? false) ? "--ssl --sslkey={$PHP['SOCKET']['SSL']['KEY']} --sslcert={$PHP['SOCKET']['SSL']['CERT']} " : ' ') .
                     "php $path " . SERVER_ROOT . ' ' . $config . ' 2>&1';
 
-                Helpers\Fork::become_daemon(function () use ($CMD) {
-                    `$CMD`;
-                });
+                Helpers\Fork::become_daemon(function () use ($CMD) {`$CMD`;});
             }
         }
 
@@ -150,9 +153,9 @@ class Carbon
 
         ##################  VALIDATE URL / URI ##################
         // Even if a request is bad, we need to store the log
-        define('LOCAL_SERVER', self::isClientServer());
+        \define('LOCAL_SERVER', $this->isClientServer());
 
-        if (!LOCAL_SERVER) self::IP_FILTER();
+        if (!LOCAL_SERVER) $this->IP_FILTER();
 
         $this->URI_FILTER($PHP['SITE']['URL'] ?? '', $PHP['SITE']['ALLOWED_EXTENSIONS'] ?? '');
 
