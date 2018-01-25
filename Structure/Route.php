@@ -74,8 +74,14 @@ abstract class Route
     public function __construct(callable $structure = null)
     {
         $this->closure = $structure;
-        $this->uri = explode('/', $this->uriLength = ltrim(urldecode(parse_url(trim(preg_replace('/\s+/', ' ', $_SERVER['REQUEST_URI'])), PHP_URL_PATH)), ' /'));
-        $this->uriLength = \substr_count($this->uriLength, '/') + 1; // I need the exploded string
+        // This check allows Route to be independent of Carbon/Application, but benefit if we've already initiated
+        if (\defined('URI')) {
+            $this->uri = explode('/', trim(URI, '/'));
+            $this->uriLength = \count($this->uri);
+        } else {
+            $this->uri = explode('/', $this->uriLength = trim(urldecode(parse_url(trim(preg_replace('/\s+/', ' ', $_SERVER['REQUEST_URI'])), PHP_URL_PATH)), ' /'));
+            $this->uriLength = \substr_count($this->uriLength, '/') + 1; // I need the exploded string
+        }
         if (empty($this->uri[0])) {
             if (SOCKET) {
                 throw new PublicAlert('$_SERVER["REQUEST_URI"] MUST BE SET IN SOCKET REQUESTS');
@@ -121,7 +127,8 @@ abstract class Route
 
         $uri = $this->uri;
 
-        $arrayToMatch = explode('/', $pathToMatch);
+
+        $arrayToMatch = explode('/', trim($pathToMatch, '/'));
 
         $pathLength = \count($arrayToMatch);
 

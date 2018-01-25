@@ -21,7 +21,7 @@ class Database
 
     public static $password;
     /**
-     * @var string this hold the connection protocol
+     * @var string $dsn holds the connection protocol
      * @link http://php.net/manual/en/pdo.construct.php
      */
     public static $dsn;
@@ -67,7 +67,7 @@ class Database
 
             $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
 
-            static::$database = $db;
+            Database::setDatabase($db);
 
             return static::$database;
         };
@@ -85,8 +85,9 @@ class Database
 
                         $db_name = explode('=', $query[1])[1];
 
-                        if (empty($db_name))
+                        if (empty($db_name)) {
                             print '<h1>Could not determine a database to create. See Carbonphp.com for documentation.</h1>' and die;
+                        }
 
                         $db = $prep(@new PDO($query[0], static::$username, static::$password));
 

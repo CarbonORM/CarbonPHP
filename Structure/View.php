@@ -29,7 +29,7 @@ class View
      * @param string $file
      * @return bool
      */
-    public static function content(string $file)
+    public static function content(string $file) : bool
     {
         $buffer = catchErrors(function () use ($file) : string {         // closure  $buffer();
 
@@ -79,7 +79,7 @@ class View
      * @param $message
      * @param $level
      */
-    private static function bootstrapAlert($message, $level): void
+    public static function bootstrapAlert($message, $level): void
     {
         $message = htmlentities($message);  // Im not sure how this may be used,
         $level = htmlentities($level);      // for completeness I sanitise
@@ -96,14 +96,16 @@ class View
      * @return mixed  file to be loaded.
      */
 
-    static function versionControl($file)
+    public static function versionControl($file)
     {
-        if (!\defined('SERVER_ROOT'))
+        if (!\defined('SERVER_ROOT')) {
             return DS . $file;
+        }
         try {
-            if (!file_exists($absolute = SERVER_ROOT . $file) || !($time = @filemtime($absolute)))
+            if (!file_exists($absolute = SERVER_ROOT . $file) || !($time = @filemtime($absolute))) {
                 return DS . $file;
-            return preg_replace('{\\.([^./]+)$}', "." . $time . ".\$1", DS . $file);
+            }
+            return preg_replace('{\\.([^./]+)$}', '.' . $time . '.\$1', DS . $file);
         } catch (\ErrorException $e) {
             return DS . $file;
         }
@@ -119,11 +121,11 @@ class View
      *                starting with slash).
      * @return mixed  file to be loaded.
      */
-    static function unVersion($uri)
+    public static function unVersion($uri)
     {
-        if (!defined('SERVER_ROOT'))
+        if (!\defined('SERVER_ROOT')){
             return DS . $uri;
-
+        }
         if (preg_match('#^(.*)\.[\d]{10}\.(css|js)#', $uri, $matches, PREG_OFFSET_CAPTURE)) {
 
             $uri = trim($matches[1][0] . '.' . $matches[2][0], '/');
@@ -139,7 +141,7 @@ class View
      * @param $file
      * @param $ext
      */
-    static function sendResource($file, $ext)
+    public static function sendResource($file, $ext) : void
     {
         if ($mime = self::mimeType($file, $ext)) {
             header("Content-type: " . $mime . "; charset: UTF-8");
@@ -153,9 +155,9 @@ class View
     /**
      * @param $file
      * @param $ext
-     * @return mixed|string
+     * @return string
      */
-    static function mimeType($file, $ext)   // TODO - Add the full list generator from stack overflow
+    public static function mimeType($file, $ext) : string // TODO - Add the full list generator from stack overflow
     {
         /*
         finfo = finfo_open(FILEINFO_MIME_TYPE); // return mime type ala mimetype extension

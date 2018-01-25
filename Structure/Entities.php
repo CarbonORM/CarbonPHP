@@ -54,9 +54,10 @@ abstract class Entities
      */
     public function __construct(array &$array = null)
     {
-        $this->db = Database::Database();
-        return ($this instanceof iTable && $array != null ?
-            $this::Post($array) : null);
+        $this->db = Database::database();
+        if ($this instanceof iTable && $array !== null) {
+            $this::Post($array);
+        }
     }
 
     /** Check our database to verify that a transaction
@@ -71,22 +72,26 @@ abstract class Entities
      * @param string|null $errorMessage
      * @return bool
      */
-    static function verify(string $errorMessage = null): bool
+    public static function verify(string $errorMessage = null): bool
     {
-        if (!static::$inTransaction)        // We're verifying that we do not have an un finished transaction
+        if (!static::$inTransaction) {        // We're verifying that we do not have an un finished transaction
             return true;
+        }
 
-        if (!empty(self::$entityTransactionKeys))
-            foreach (self::$entityTransactionKeys as $key)
+        if (!empty(self::$entityTransactionKeys)) {
+            foreach (self::$entityTransactionKeys as $key) {
                 static::remove_entity($key);
+            }
+        }
 
         try {
-            Database::Database()->rollBack();
+            Database::database()->rollBack();
         } catch (\PDOException $e) {
             PublicAlert::danger($e->getMessage());
         } finally {
-            if (!empty($errorMessage))
+            if (null !== $errorMessage) {
                 PublicAlert::danger($errorMessage);
+            }
         }
         return false;
     }
@@ -96,17 +101,19 @@ abstract class Entities
      * @param callable|null $lambda
      * @return bool
      */
-    static function commit(callable $lambda = null): bool
+    protected static function commit(callable $lambda = null): bool
     {
-        if (!Database::database()->commit())
+        if (!Database::database()->commit()) {
             return static::verify();
+        }
 
         self::$inTransaction = false;
 
         self::$entityTransactionKeys = [];
 
-        if (is_callable($lambda))
+        if (\is_callable($lambda)) {
             return $lambda();
+        }
 
         return true;
     }
@@ -122,16 +129,16 @@ abstract class Entities
      * This <b>must be static</b> so multiple table files can insert on the same
      * transaction without running beginTransaction again
      *
-     * @param $tag_id         - passed to new_entity
+     * @param $tag_id - passed to new_entity
      * @param null $dependant - passed to new_entity
      *
      * @return bool|\PDOStatement|string
      */
-    static function beginTransaction($tag_id, $dependant = null)
+    protected static function beginTransaction($tag_id, $dependant = null)
     {
         self::$inTransaction = true;
         $key = self::new_entity($tag_id, $dependant);
-        Database::Database()->beginTransaction();
+        Database::database()->beginTransaction();
         return $key;
     }
 
@@ -144,11 +151,11 @@ abstract class Entities
      * @param $dependant
      * @return bool|\PDOStatement|string
      */
-    static function new_entity($tag_id, $dependant)
+    protected static function new_entity($tag_id, $dependant)
     {
-        if (defined($tag_id))
-            $tag_id = constant($tag_id);
-
+        if (\defined($tag_id)) {
+            $tag_id = \constant($tag_id);
+        }
         $db = Database::database();
         do {
             try {
@@ -167,16 +174,15 @@ abstract class Entities
      * If other entities reference the my be deleted baised on how they are set up on your database
      * @link https://dev.mysql.com/doc/refman/5.7/en/innodb-index-types.html
      * @param $id - Remove entity_pk form carbon
-     * @throws \Exception
+     * @return bool
      */
-    static protected function remove_entity($id)
+    protected static function remove_entity($id) : bool
     {
-        if (!Database::database()->prepare('DELETE FROM carbon WHERE entity_pk = ?')->execute([$id]))
-            throw new \Exception("Failed to delete $id");
+        return Database::database()->prepare('DELETE FROM carbon WHERE entity_pk = ?')->execute([$id]);
     }
 
 
-    static protected function exeute(string $sql, ...$execute)
+    protected static function execute(string $sql, ...$execute) : bool
     {
         return Database::database()->prepare($sql)->execute($execute);
     }
@@ -195,11 +201,12 @@ abstract class Entities
      * @link http://php.net/manual/en/functions.arguments.php
      * @return array
      */
-    static function fetch(string $sql, ...$execute): array
+    protected static function fetch(string $sql, ...$execute): array
     {
         $stmt = Database::database()->prepare($sql);
-        if (!$stmt->execute($execute) && !$stmt->execute($execute))  // try it twice, you never know..
-                return [];
+        if (!$stmt->execute($execute) && !$stmt->execute($execute)) { // try it twice, you never know..
+            return [];
+        }
         return (count($stmt = $stmt->fetchAll()) === 1 ?
             (is_array($stmt['0']) ? $stmt['0'] : $stmt) : $stmt);   // promise this is needed and will still return the desired array
     }
@@ -210,17 +217,19 @@ abstract class Entities
      * Example:
      * $array['following'] = self::fetchColumn('SELECT follows_user_id FROM user_followers WHERE user_id = ?', $id);
      *
-     * @param string $sql           - variables should be denoted by question marks
-     * @param array ...$execute     -
+     * @param string $sql - variables should be denoted by question marks
+     * @param array ...$execute -
      *  if multiple question marks exist you may use comma separated parameters to fill the statement
      * @return array
      */
-    static function fetchColumn(string $sql, ...$execute): array
+    protected static function fetchColumn(string $sql, ...$execute): array
     {
         $stmt = Database::database()->prepare($sql);
-        if (!$stmt->execute($execute)) return [];
-        return (count($stmt = $stmt->fetchAll(PDO::FETCH_COLUMN)) === 1 ?
-            (is_array($stmt['0']) ? $stmt['0'] : $stmt) : $stmt);
+        if (!$stmt->execute($execute)) {
+            return [];
+        }
+        return (\count($stmt = $stmt->fetchAll(PDO::FETCH_COLUMN)) === 1 ?
+            (\is_array($stmt['0']) ? $stmt['0'] : $stmt) : $stmt);
     }
 
     /** This returns all values from the requested query as an Object to type stdClass.
@@ -232,14 +241,15 @@ abstract class Entities
      * @return stdClass
      * @throws \Exception
      */
-    static function fetch_object(string $sql, ...$execute): stdClass
+    protected static function fetch_object(string $sql, ...$execute): stdClass
     {
         $stmt = Database::database()->prepare($sql);
         $stmt->setFetchMode(PDO::FETCH_CLASS, stdClass::class);
-        if (!$stmt->execute($execute))
+        if (!$stmt->execute($execute)) {
             throw new \Exception('Failed to Execute');
+        }
         $stmt = $stmt->fetchAll();  // user obj
-        return (is_array($stmt) && count($stmt) == 1 ? $stmt[0] : new stdClass);
+        return (\is_array($stmt) && \count($stmt) === 1 ? $stmt[0] : new stdClass);
     }
 
     /** Each row received will be converted into its own object
@@ -247,11 +257,13 @@ abstract class Entities
      * @param array ...$execute
      * @return array of stdClass::class objects
      */
-    static function fetch_classes(string $sql, ...$execute): array
+    protected static function fetch_classes(string $sql, ...$execute): array
     {
         $stmt = Database::database()->prepare($sql);
         $stmt->setFetchMode(PDO::FETCH_CLASS, stdClass::class);
-        if (!$stmt->execute($execute)) return [];
+        if (!$stmt->execute($execute)) {
+            return [];
+        }
         return $stmt->fetchAll();  // user obj
     }
 
@@ -259,7 +271,7 @@ abstract class Entities
      * @param string $sql
      * @param $execute
      */
-    static function fetch_to_global(string $sql, $execute)
+    protected static function fetch_to_global(string $sql, $execute)
     {
         $stmt = Database::database()->prepare($sql);
         $stmt->setFetchMode(PDO::FETCH_CLASS, Globals::class);
@@ -272,12 +284,14 @@ abstract class Entities
      * @param $sql
      * @param array ...$execute
      */
-    static function fetch_into_class(&$object, $sql, ...$execute)
+    protected static function fetch_into_class(&$object, $sql, ...$execute)
     {
         $stmt = Database::database()->prepare($sql);
         $stmt->execute($execute);
         $array = $stmt->fetchAll();
-        foreach ($array as $key => $value) $object->$key = $value;
+        foreach ($array as $key => $value) {
+            $object->$key = $value;
+        }
     }
 
 }

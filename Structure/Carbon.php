@@ -37,11 +37,11 @@ class Carbon
      *       'SITE' => [
      *           'URL' => string '',                                  // Server Url name you do not need to chane in remote development
      *           'ROOT' => string '__FILE__',                         // This was defined in our ../index.php
-     *           'ALLOWED_EXTENSIONS' => string 'jpg|png',            // File ending in these extentions will be served
+     *           'ALLOWED_EXTENSIONS' => string 'jpg|png',            // File ending in these extensions will be served
      *           'CONFIG' => string __FILE__,                         // Send to sockets
-     *           'TIMEZONE' => string 'America/Chicago',              //  Current timezone TODO - look up php
+     *           'TIMEZONE' => string 'America/Chicago',              // Current timezone TODO - look up php
      *           'TITLE' => string 'Carbon 6',                        // Website title
-     *           'VERSION' => string /phpversion(),                   // Add link to symantic versioning
+     *           'VERSION' => string /phpversion(),                   // Add link to semantic versioning
      *           'SEND_EMAIL' => string '',                           // I send emails to validate accounts
      *           'REPLY_EMAIL' => string '',
      *           'BOOTSTRAP' => string '',                            // This file is executed when the startApplication() function is called
@@ -113,7 +113,15 @@ class Carbon
         }
 
         #####################   ERRORS    #######################
-        // TODO - debating on removing the start and attempting to catch our own errors. look into later
+        /**
+         * TODO - debating on removing the start and attempting to catch our own errors. look into later
+         * So I've looked into it and discovered thrown errors can return to the current execution point
+         * We must now decide how and when we throw errors / exceptions..
+         *
+         * Questions still to test. When does the error catcher get resorted to?
+         * Do Try Catch block have a higher precedence than the error catcher?
+         * What if that error is thrown multiple function levels down in a block?
+         **/
         Error\ErrorCatcher::$defaultLocation = REPORTS . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
         Error\ErrorCatcher::$fullReports = $PHP['ERROR']['STORE'] ?? false;
         Error\ErrorCatcher::$printToScreen = $PHP['ERROR']['SHOW'] ?? true;
@@ -262,34 +270,33 @@ class Carbon
             $this->safelyExit = true;
         }
 
-        // It does not matter if this matches, we will take care of that in the next if.
-        preg_match("#^(.*\.)($allowedEXT)\?*.*#", $_SERVER['REQUEST_URI'], $matches, PREG_OFFSET_CAPTURE);
-
-        $ext = $matches[2][0] ?? '';  // routes should be null
-
-        \define('URI', ltrim(urldecode(parse_url(($matches[1][0] ?? '/') . $ext, PHP_URL_PATH)), '/'), true);
+        \define('URI', trim(urldecode(parse_url(trim(preg_replace('/\s+/', ' ', $_SERVER['REQUEST_URI'])), PHP_URL_PATH)), '/'), true);
 
         \define('URL',
             (isset($_SERVER['SERVER_NAME']) ?
                 ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] === 443 ? 'https://' : 'http://') .
                 $_SERVER['SERVER_NAME'] . (LOCAL_SERVER ? ':' . $_SERVER['SERVER_PORT'] : '') : null), true);
 
-
         \define('SITE', url . DS, true);   // http(s)://example.com/
 
-        if (empty($ext)) {
+
+        // It does not matter if this matches, we will take care of that in the next if.
+        preg_match("#^(.*\.)($allowedEXT)\?*.*#",URI, $matches, PREG_OFFSET_CAPTURE);
+        // So if the request has an extension that's not allowed we ignore it and keep processing as a valid route
+
+        $ext = $matches[2][0] ?? '';    // routes should be null
+
+        if (empty($ext)) {              // We're requesting a file
             return true;
         }
-
         // Look for versioning
         View::unVersion($_SERVER['REQUEST_URI']);           // This may exit and send a file
 
         // Not versioned, so see it it exists
-        if (file_exists(SERVER_ROOT . URI)) {      //  also may exit
+        if (file_exists(SERVER_ROOT . URI)) {      //  also may send and exit
             View::sendResource(URI, $ext);
         }
-
-        http_response_code(404);
+        http_response_code(404);              // If we haven't found the request send code 404
         die(1);
     }
 
