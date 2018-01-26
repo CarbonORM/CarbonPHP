@@ -12,16 +12,15 @@ class Files
      * @param $location
      * @return string
      * @throws PublicAlert
-     * @throws \ErrorException
      */
-    public static function uploadFile($fileArray, $location)
+    public static function uploadFile(array $fileArray, string $location) : ?string
     {
         try {
-
             // Undefined | Multiple Files | $_FILES Corruption Attack
             // If this request falls under any of them, treat it invalid.
-            if (!isset($fileArray['error']) || \is_array($fileArray['error']))
-                throw new \ErrorException('Invalid parameters.');                 // changes to catch via error handler
+            if (!isset($fileArray['error'])) {
+                throw new \RuntimeException('Files could not be upl.');                 // changes to catch via error handler
+            }
 
             // Check $_FILES['upfile']['error'] value.
             switch ($fileArray['error']) {
@@ -65,12 +64,13 @@ class Files
             } while (file_exists($targetPath));
 
 
-            if (!move_uploaded_file($fileArray['tmp_name'], $targetPath))
+            if (!move_uploaded_file($fileArray['tmp_name'], $targetPath)) {
                 throw new \RuntimeException('Failed to move uploaded file.');
+            }
 
             return $targetPath;
 
-        } catch (\RuntimeException $e) {
+        } catch (\Error | \Exception | \ErrorException $e) {    // Seriously, I do not want anything but
             throw new PublicAlert($e->getMessage());
         }
     }
@@ -80,7 +80,7 @@ class Files
      * Files and folders created with this function may require sudo.
      * @param $location
      * @return bool
-     * @throws \ErrorException
+     * @throws \RuntimeException
      */
     public static function mkdir($location) : bool
     {
@@ -97,6 +97,7 @@ class Files
      * @param string $file the absolute file path
      * @param string $output the text to store in the file
      * @return bool failure status
+     * @throws \RuntimeException    If the directory does not exist & cannot be created
      */
     public static function storeContent(string $file, string $output) : bool
     {

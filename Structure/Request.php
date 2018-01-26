@@ -8,6 +8,7 @@
 
 namespace Carbon;
 
+use Carbon\Error\PublicAlert;
 use Carbon\Helpers\Files;
 
 class Request   // requires carbon::application;
@@ -27,23 +28,28 @@ class Request   // requires carbon::application;
     }
 
     ########################## Session Storage #############################
+
     /** Headers can only be sent and set if output has not already started.
      *  If we attempt to set a header after output has started, store it and
      *  send on the next request.
      * @return null
      */
-    public static function sendHeaders()
+    public static function sendHeaders(): void
     {
         if (SOCKET || headers_sent()) return null;
 
-        if (isset( $_SESSION['Cookies'] ) && is_array( $_SESSION['Cookies'] ))
-            foreach ($_SESSION['Cookies'] as $key => $array)
-                static::setCookie( $key, $array[0] ?? null , $array[1] ?? null );
+        if (isset($_SESSION['Cookies']) && is_array($_SESSION['Cookies'])) {
+            foreach ($_SESSION['Cookies'] as $key => $array) {
+                static::setCookie($key, $array[0] ?? null, $array[1] ?? null);
+            }
+        }
 
-        if (isset( $_SESSION['Headers'] ) && is_array( $_SESSION['Headers'] ))
-            foreach ($_SESSION['Headers'] as $value) static::setHeader( $value );
-
-        unset( $_SESSION['Cookies'], $_SESSION['Headers'] );
+        if (isset($_SESSION['Headers']) && \is_array($_SESSION['Headers'])) {
+            foreach ($_SESSION['Headers'] as $value) {
+                static::setHeader($value);
+            }
+        }
+        unset($_SESSION['Cookies'], $_SESSION['Headers']);
     }
 
     /** Cookies are a pain to set up as they also rely on headers not being sent.
@@ -52,34 +58,42 @@ class Request   // requires carbon::application;
      * @param mixed $value
      * @param int $time the expiration time of our cookie
      */
-    public static function setCookie(string $key, $value = null, int $time = 604800) // Week?
+    public static function setCookie(string $key, $value = null, int $time = 604800): void // Week?
     {
-        if (headers_sent()) $_SESSION['Cookies'][] = [$key => [$value, $time]];
-        else setcookie( $key, $value, time() + $time, '/', $_SERVER['SERVER_NAME'], (isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] != 'off'), true );
+        if (headers_sent()) {
+            $_SESSION['Cookies'][] = [$key => [$value, $time]];
+        } else {
+            setcookie($key, $value, time() + $time, '/', $_SERVER['SERVER_NAME'], isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off', true);
+        }
     }
 
 
     /**
      * Clear all active cookies in the current session
      */
-    public function clearCookies()
+    public function clearCookies(): void
     {
-        $all = array_keys( is_array( $_COOKIE ) ? $_COOKIE : [] );
-        foreach ($all as $key => $value)
-            static::setCookie( $value );
+        $all = array_keys(is_array($_COOKIE) ? $_COOKIE : []);
+        foreach ($all as $key => $value) {
+            static::setCookie($value);
+        }
     }       // Supporting function to setCookie
 
 
     /**
      * @param string $string is passed to the php header function
      * @link http://php.net/manual/en/function.header.php
-     * @return bool
      */
-    public static function setHeader(string $string)
+    public static function setHeader(string $string): void
     {
-        if (defined('SOCKET') && SOCKET) return false;
-        if (headers_sent()) $_SESSION['Headers'][] = $string;
-        else header( $string, true );
+        if (\defined('SOCKET') && SOCKET) {
+            return;
+        }
+        if (headers_sent()) {
+            $_SESSION['Headers'][] = $string;
+        } else {
+            header($string);
+        }
     }
 
     /** This method requires that PJAX be a loaded JS include in
@@ -88,10 +102,10 @@ class Request   // requires carbon::application;
      * in the browser.
      * @param string $string the new uri location.
      */
-    public static function changeURI(string $string)
+    public static function changeURI(string $string): void
     {
         $_SERVER['REQUEST_URI'] = $string;
-        static::setHeader( "X-PJAX-URL: " . SITE . $string );
+        static::setHeader('X-PJAX-URL: ' . SITE . $string);
     }
 
 
@@ -108,14 +122,43 @@ class Request   // requires carbon::application;
     {
         $this->storage = null;
         $closure = function ($key) use ($removeHTML, &$array) {
-            if (array_key_exists( $key, $array )) {
-                $this->storage[] = $removeHTML ? htmlspecialchars( $array[$key] ) : $array[$key];
+            if (array_key_exists($key, $array)) {
+                $this->storage[] = $removeHTML ? htmlspecialchars($array[$key]) : $array[$key];
                 $array[$key] = null;    // by reference, if we validate it then we should ensure no one uses it
-            } else $this->storage[] = false;
+            } else {
+                $this->storage[] = false;
+            }
         };
-        if (count( $argv ) == 0 || !array_walk( $argv, $closure )) $this->storage = [];
+        if (\count($argv) === 0 || !array_walk($argv, $closure)) {
+            $this->storage = [];
+        }
         return $this;
     }
+
+
+    /** Runs a callable function on every member of the $storage set.
+     * If one value is present one value will be returned. If an array
+     * is set, and array will be returned.
+     * @param callable $closure
+     * @return bool|\Closure
+     */
+    public function closure(callable $closure)
+    {
+        if (empty($this->storage)) {
+            return false;
+        }
+
+        if (\is_array($this->storage)) {
+            array_walk($this->storage, $closure);
+        } else {
+            $closure($this->storage);
+        }
+
+        return function ($array) {
+            return \count($array) === 1 ? array_shift($array) : $array;
+        };
+    }
+
 
     /** Filter the $_GET array with the arguments passed in
      * @param array ...$argv
@@ -123,7 +166,7 @@ class Request   // requires carbon::application;
      */
     public function get(...$argv): self
     {
-        return $this->request( $argv, $_GET );
+        return $this->request($argv, $_GET);
     }
 
     /** Filter the $_POST array with the arguments passed in
@@ -132,7 +175,7 @@ class Request   // requires carbon::application;
      */
     public function post(...$argv): self
     {
-        return $this->request( $argv, $_POST );
+        return $this->request($argv, $_POST);
     }
 
     /** Filter the $_COOKIE array with the arguments passed in
@@ -141,7 +184,7 @@ class Request   // requires carbon::application;
      */
     public function cookie(...$argv): self
     {
-        return $this->request( $argv, $_COOKIE, true );
+        return $this->request($argv, $_COOKIE, true);
     }
 
     /** Filter the $_FILES array with the arguments passed in
@@ -150,7 +193,7 @@ class Request   // requires carbon::application;
      */
     public function files(...$argv): self
     {
-        return $this->request( $argv, $_FILES );
+        return $this->request($argv, $_FILES);
     }
 
     ########################### Store Files   #############################
@@ -158,14 +201,14 @@ class Request   // requires carbon::application;
     /** storeFiles attempts to store files currently in the storage set
      * @param string $location the location to store the files
      * @return array|mixed
+     * @throws PublicAlert if the files fail to be stored
      */
     public function storeFiles(string $location = 'Data/Uploads/Temp/')
     {
         $storagePath = array();
-        array_walk( $this->storage, function ($file) use ($location, &$storagePath) {
-            $storagePath[] = Files::uploadFile( $file, $location );
-        } );
-        return count( $storagePath ) == 1 ? array_shift( $storagePath ) : $storagePath;
+        return $this->closure(function ($file) use ($location, &$storagePath) {
+            $storagePath[] = Files::uploadFile($file, $location);
+        })($storagePath);
     }
 
     ##########################  Storage Shifting  #########################
@@ -176,14 +219,9 @@ class Request   // requires carbon::application;
     public function base64_decode(): self
     {
         $array = [];
-        $lambda = function ($key) use (&$array) {
-            $array[] = base64_decode( $key, true );
-        };
-
-        if (is_array( $this->storage )) array_walk( $this->storage, $lambda );
-        elseif ($this->storage != null) $lambda( $this->storage );
-        $this->storage = $array;
-
+        $this->closure(function ($key) use (&$array) {
+            $array[] = base64_decode($key, true);
+        });
         return $this;
     }
 
@@ -194,7 +232,7 @@ class Request   // requires carbon::application;
      */
     public function has(string $key): bool
     {
-        return array_key_exists( $key, $this->storage );
+        return array_key_exists($key, $this->storage);
     }
 
     /** Removes passed arguments from the set
@@ -203,9 +241,11 @@ class Request   // requires carbon::application;
      */
     public function except(...$argv): self
     {
-        array_walk( $argv, function ($key) {
-            if (array_key_exists( $key, $this->storage )) unset( $this->storage[$key] );
-        } );
+        array_walk($argv, function ($key) {
+            if (array_key_exists($key, $this->storage)) {
+                unset($this->storage[$key]);
+            }
+        });
         return $this;
     }
 
@@ -246,24 +286,18 @@ class Request   // requires carbon::application;
      *
      * @param string $type
      * @return array|bool|mixed
+     * @throws \InvalidArgumentException
      */
     public function is(string $type)
     {
-        if (!function_exists( $type = 'is_' . strtolower( $type )))
-            throw new \InvalidArgumentException( 'no valid function is_$type' );
+        if (!\function_exists($type = 'is_' . strtolower($type))) {
+            throw new \InvalidArgumentException('Function is_$type() could not be found. Please check arguments supplied to is.');
+        }
 
         $array = [];
-        $is = function ($key) use ($type, &$array) {
+        return $this->closure(function ($key) use ($type, &$array) {
             $array[] = $type($key) ? $key : false;
-        };
-
-        if (is_array( $this->storage )) array_walk( $this->storage, $is );
-        elseif ($this->storage != null) $is( $this->storage );
-        $this->storage = $array;
-
-        return (array_walk( $this->storage, $is ) ?
-            (count( $array ) == 1 ? array_shift( $array ) : $array) :
-            false);
+        })($array);
     }
 
     /** Preforms a regex expression using preg_match on each member of the set
@@ -273,16 +307,10 @@ class Request   // requires carbon::application;
      */
     public function regex(string $condition)
     {
-        if (empty( $this->storage )) return false;
-
         $array = [];
-        $regex = function ($key) use ($condition, &$array) {
-            return $array[] = (preg_match( $condition, $key ) ? $key : false);
-        };
-
-        return (array_walk( $this->storage, $regex ) ?
-            count( $array ) == 1 ? array_shift( $array ) : $array :
-            $regex( $this->storage ));
+        return $this->closure(function ($key) use ($condition, &$array) {
+            return $array[] = (preg_match($condition, $key) ? $key : false);
+        })($array);
     }
 
     /** Removes HTML chars from a given set
@@ -292,18 +320,16 @@ class Request   // requires carbon::application;
      */
     public function noHTML($complete = false)
     {   // Disallow: $, ", ', <, >
-        if ($this->storage == null) return false;
         $array = [];
-        $lambda = function ($key) use (&$array) {
-            return $array[] = htmlspecialchars( $key );
-        };
+        $fn = $this->closure(function ($key) use (&$array) {
+            return $array[] = htmlspecialchars($key);
+        });
 
-        $this->storage = (array_walk( $this->storage, $lambda ) ? $array : false);
+        if ($complete) {
+            return $fn($array);
+        }
 
-        return ($complete && $this->storage ?
-            (count( $array ) == 1 ? array_shift( $array )
-                : $array)
-            : $this);
+        return $this;
     }
 
 
@@ -315,28 +341,30 @@ class Request   // requires carbon::application;
      */
     public function int(int $min = null, int $max = null)   // inclusive max and min
     {
-        if ($this->storage == null) return false;
 
         $array = [];
-        $integer = function ($key) use (&$array, $min, $max) {
-            if (($key = intval( $key )) === false) return $array[] = false;
-            if ($max !== null) $key = ($key <= $max ? $key : false);
-            if ($min !== null) $key = ($key >= $min ? $key : false);
+        return $this->closure(function ($key) use (&$array, $min, $max) {
+            if (($key = (int)$key) === false) {
+                return $array[] = false;
+            }
+            if ($max !== null) {
+                $key = ($key <= $max ? $key : false);
+            }
+            if ($min !== null) {
+                $key = ($key >= $min ? $key : false);
+            }
             return $array[] = $key;
-        };
+        })($array);
 
-        return (array_walk( $this->storage, $integer ) ?
-            (count( $array ) == 1 ? array_shift( $array ) : $array) :
-            false);
     }
 
     /** Runs a regex expression to find dates matching the pattern
-     *      11/12/1995
+     *         11/12/1995
      * @return array|bool|mixed
      */
     public function date()
     {
-        return $this->regex( '#^\d{1,2}\/\d{1,2}\/\d{4}$#' );
+        return $this->regex('#^\d{1,2}\/\d{1,2}\/\d{4}$#');
     }
 
 
@@ -346,16 +374,10 @@ class Request   // requires carbon::application;
      */
     public function alnum()
     {
-        if ($this->storage == null) return false;
-
         $array = [];
-        $alphaNumeric = function ($key) use (&$array) {
-            return $array[] = (ctype_alnum( $key ) ? $key : false);
-        };
-
-        return (array_walk( $this->storage, $alphaNumeric ) ?
-            (count( $array ) == 1 ? array_shift( $array ) : $array) :
-            $alphaNumeric( $this->storage ));
+        return $this->closure(function ($key) use (&$array) {
+            return $array[] = (ctype_alnum($key) ? $key : false);
+        })($array);
     }           // One word alpha numeric
 
     /**
@@ -364,7 +386,7 @@ class Request   // requires carbon::application;
      */
     public function text()
     {
-        return $this->regex( '/([\w\s])+/' );   // Multiple word alpha numeric
+        return $this->regex('/([\w\s])+/');   // Multiple word alpha numeric
     }
 
     /** Filter single words containing only letters
@@ -372,53 +394,50 @@ class Request   // requires carbon::application;
      */
     public function word()
     {
-        return $this->regex( '/^[\w]+$/' );
+        return $this->regex('/^[\w]+$/');
     }
 
     /** Filters phone numbers matching the pattern
      *        #((\(\d{3}\) ?)|(\d{3}-))?\d{3}-\d{4}#
-     * @return bool
+     * @return array|bool|mixed
      */
     public function phone()
     {
-        return (preg_match( '#((\(\d{3}\) ?)|(\d{3}-))?\d{3}-\d{4}#', $this->storage[0] ) ? $this->storage[0] : false);
+        $array = [];
+        return $this->closure(function ($arg) use (&$array) {
+            return $array[] = preg_match('#((\(\d{3}\) ?)|(\d{3}-))?\d{3}-\d{4}#', $arg) ? $this->storage[0] : false;
+        })($array);
     }
 
     /**Checks to see if emails names are given in the set
-     * @return bool|mixed
+     * @return array|bool|mixed
      */
     public function email()
     {
         $array = [];
-        $lambda = function ($key) use (&$array) {
-            $array[] = filter_var( $key, FILTER_VALIDATE_EMAIL, FILTER_NULL_ON_FAILURE );
-        };
-        return (array_walk( $this->storage, $lambda ) ?
-            (count( $array ) == 1 ? array_shift( $array ) : $array) :
-            $lambda( $this->storage ));
+        $this->closure(function ($key) use (&$array) {
+            $array[] = filter_var($key, FILTER_VALIDATE_EMAIL, FILTER_NULL_ON_FAILURE);
+        })($array);
     }
 
     /** Checks to see if domain names are given in the set
      * @link http://php.net/manual/en/function.filter-var.php
-     * @return array|mixed
+     * @return array|bool|mixed
      */
     public function website()
     {
         $array = [];
-        $lambda = function ($key) use (&$array) {
-            $array[] = filter_var( $key, FILTER_VALIDATE_URL );
-        };
-        return (array_walk( $this->storage, $lambda ) ?
-            (count( $array ) == 1 ? array_shift( $array ) : $array) :
-            $lambda( $this->storage ));
+        return $this->closure(function ($key) use (&$array) {
+            $array[] = filter_var($key, FILTER_VALIDATE_URL);
+        })($array);
     }
 
     /** returns our full current set
-     * @return mixed
+     * @return array|bool|mixed
      */
     public function value()
     {
-        return count( $this->storage ) == 1 ? array_shift( $this->storage ) : $this->storage;
+        return \count($this->storage) === 1 ? array_shift($this->storage) : $this->storage;
     }
 
 
