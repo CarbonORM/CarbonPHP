@@ -47,7 +47,7 @@ class Database
             self::$database->prepare('SELECT 1');     // This has had a history of causing spotty error.. if this is the location of your error, you should keep looking...
             error_reporting(ErrorCatcher::$level);
             return static::$database;
-        } catch (\Error | \Exception $e) {                       // added for socket support
+        } catch (\Error | \Exception | \PDOException $e) {                       // added for socket support
             error_reporting(ErrorCatcher::$level);
             return static::reset();
         }
@@ -146,10 +146,13 @@ class Database
      * to refresh the browser using SITE constant
      * @return PDO
      */
-    public static function setUp(bool $refresh) : PDO
+    public static function setUp(bool $refresh = true) : PDO
     {
         if (file_exists(CARBON_ROOT . 'Extras/buildDatabase.php')) {
             include CARBON_ROOT . 'Extras/buildDatabase.php';
+        } else {
+            print '<h1>Could not find database setup. Please see Carbonphp.com for more documentation</h1>';
+            die(1);
         }
         if (file_exists(static::$setup)) {
             include static::$setup;

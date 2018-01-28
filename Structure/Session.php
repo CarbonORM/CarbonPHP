@@ -195,6 +195,15 @@ class Session implements \SessionHandlerInterface
      */
     public function open($savePath, $sessionName)
     {
+        try {
+            Database::database()->prepare('SELECT count(*) FROM carbon_session LIMIT 1')->execute();
+        } catch (\PDOException $e) {
+            if ($e->getCode()) {
+                print "<h1>Setting up database {$e->getCode()}</h1>";
+                Database::setUp();
+                exit(1);
+            }
+        }
         return true;
     }
 

@@ -5,6 +5,9 @@
  *
  * If you add tables to you c
  */
+
+print '<h1>Setting up database</h1>';
+
 try {
     $db = \Carbon\Database::Database();
 

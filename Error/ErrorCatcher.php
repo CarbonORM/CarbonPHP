@@ -76,15 +76,17 @@ class ErrorCatcher
         $output = ob_get_contents();
         ob_end_clean();
 
+        if (self::$printToScreen) {
+            print '<pre>';
+            print_r($argv);
+            print '</pre>';
+        }
+
         if (self::$storeReport) {       // TODO - store to file?
             $sql = "INSERT INTO carbon_reports (date, log_level, report, call_trace) VALUES (?, ?, ?, ?)";
             $sql = Database::database()->prepare($sql);
             if (!$sql->execute([date("Y-m-d H:i:s"), $level, $output, $trace]))
                 print 'Failed to store error log, nothing works... Why does nothing work?' and die(1);
-        } elseif (self::$printToScreen) {
-            print '<pre>';
-            print_r($argv);
-            print '</pre>';
         }
         return $output;
     }

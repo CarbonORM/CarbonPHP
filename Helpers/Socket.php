@@ -1,5 +1,4 @@
-#!/usr/local/bin/php
-<?php declare(ticks=1);
+<?php
 /**
  * Created by IntelliJ IDEA.
  * User: richardmiles
