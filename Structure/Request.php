@@ -52,6 +52,9 @@ class Request   // requires carbon::application;
             }
         }
         unset($_SESSION['Cookies'], $_SESSION['Headers']);
+
+        return;
+
     }
 
     /** Cookies are a pain to set up as they also rely on headers not being sent.
