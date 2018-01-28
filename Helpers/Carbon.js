@@ -96,10 +96,7 @@ function CarbonJS(selector, address, options) {
 
     $(document).on('pjax:click', () => $(selector).hide());
 
-    $(document).on('pjax:success', () => {
-        $.fn.runEvent("Carbon");
-        console.log("Successfully loaded " + window.location.href)
-    });
+    $(document).on('pjax:success', () => console.log("Successfully loaded " + window.location.href));
 
     $(document).on('pjax:timeout', (event) => event.preventDefault());
 
@@ -107,6 +104,7 @@ function CarbonJS(selector, address, options) {
 
     $(document).on('pjax:complete', () => {
         // Set up Box Annotations
+        $.fn.runEvent("Carbon");
         $(selector).fadeIn('fast').removeClass('overlay');
         $(".box").boxWidget({
             animationSpeed: 500,

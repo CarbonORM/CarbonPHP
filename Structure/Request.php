@@ -40,7 +40,7 @@ class Request   // requires carbon::application;
             return;
         }
 
-        if (isset($_SESSION['Cookies']) && is_array($_SESSION['Cookies'])) {
+        if (isset($_SESSION['Cookies']) && \is_array($_SESSION['Cookies'])) {
             foreach ($_SESSION['Cookies'] as $key => $array) {
                 static::setCookie($key, $array[0] ?? null, $array[1] ?? null);
             }
@@ -52,9 +52,6 @@ class Request   // requires carbon::application;
             }
         }
         unset($_SESSION['Cookies'], $_SESSION['Headers']);
-
-        return;
-
     }
 
     /** Cookies are a pain to set up as they also rely on headers not being sent.
