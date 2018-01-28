@@ -32,11 +32,13 @@ class Request   // requires carbon::application;
     /** Headers can only be sent and set if output has not already started.
      *  If we attempt to set a header after output has started, store it and
      *  send on the next request.
-     * @return null
+     * @return void
      */
     public static function sendHeaders(): void
     {
-        if (SOCKET || headers_sent()) return null;
+        if (SOCKET || headers_sent()) {
+            return;
+        }
 
         if (isset($_SESSION['Cookies']) && is_array($_SESSION['Cookies'])) {
             foreach ($_SESSION['Cookies'] as $key => $array) {

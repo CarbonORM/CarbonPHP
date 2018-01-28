@@ -64,7 +64,9 @@ class ErrorCatcher
      */
     public static function generateLog(array $argv = [], string $level = 'log')
     {
-        ob_end_clean(); // Attempt to remove any previous in-progress output buffers
+        if (ob_get_status()) {
+            ob_end_clean(); // Attempt to remove any previous in-progress output buffers
+        }
         ob_start();     // start a new buffer for saving errors
         $trace = self::generateCallTrace();
         print $trace . PHP_EOL;
