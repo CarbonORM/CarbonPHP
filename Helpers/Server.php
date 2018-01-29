@@ -6,10 +6,17 @@
  * Time: 11:06 AM
  *
  *
+ * TODO - finish
+ *
  */
 
 namespace Carbon\Helpers;
 
+use Carbon\Error\ErrorCatcher;
+use Carbon\Helpers\Pipe;
+use Carbon\Session;
+use Carbon\Database;
+use Carbon\Carbon;
 
 const SOCKET = true;
 
@@ -23,14 +30,15 @@ set_time_limit(0);
 
 ob_implicit_flush();
 
+\define('SERVER_ROOT', $argv[1]);    // expressions not allowed in const
+
 #print_r(get_loaded_extensions()) and die;
 
 if (!\extension_loaded('pcntl')) {
     print '<h1>CarbonPHP Websockets require the PCNTL library. See CarbonPHP.com for more Documentation</h1>';
 }
 
-$signal = function($signal)
-{
+$signal = function ($signal) {
     print "Signal :: $signal\n";
     global $fifoPath, $fp;
     if (\is_resource($fp)) {
@@ -48,7 +56,7 @@ pcntl_signal(SIGHUP, $signal);  // Terminal log-out
 pcntl_signal(SIGINT, $signal);  // Interrupted ( Ctrl-C is pressed)
 
 
-class Socket
+class Server
 {
     private const TEXT = 0x1;
     private const BINARY = 0x2;
@@ -62,13 +70,7 @@ class Socket
     private const CERT = '/cert.pem';
     private const PASS = 'Smokey';
 
-    private $socket;    // hold the connection
-    private $stdin;     // input sent from browser
-    private $pipe_fd;
-    private $sock_fd;
-
-
-    public function __construct($port = '8080')
+    public function __construct($config)
     {
         if (self::SSL) {
             $context = stream_context_create([
@@ -86,41 +88,67 @@ class Socket
             $context = stream_context_create();
             $protocol = 'tcp';
         }
-        $this->socket = stream_socket_server("$protocol://" . self::HOST . ':' . self::PORT, $errorNumber, $errorString, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, $context);
+        $socket = stream_socket_server("$protocol://" .$config['SOCKET']['HOST'] . ':' . $config['SOCKET']['PORT'], $errorNumber, $errorString, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, $context);
 
-        if (!$this->socket) {
+        if (!$socket) {
             print "$errorString ($errorNumber)<br />\n";
-        } else {
-            $this->stdin = fopen('php://stdin', 'b');
-            $this();
+        }
+
+        new Carbon();
+        Session::pause();           // Close the current session
+        Database::setDatabase();    // This will clear the connection
+
+        $sock_fd = [$socket];
+        for (; ;) {                         // should
+            $clientList = $sock_fd;
+            do {
+                $number = stream_select($clientList, $write, $error, 5);
+            } while (!$number);
+
+            // Forking can return the pid for parent, 0 for child, and -1 for error
+            // we need to pop
+            $connection = array_pop($clientList); // This is the users file descriptor linked to a unique process
+
+
+            if (($connection = stream_socket_accept($connection)) === false) {
+                continue;
+            }
+
+            if (!$this->handshake($connection) ) {              // attempt to send wss validation
+
+                // TODO - validate ip
+
+                @fclose($connection);                          // close any accepted connection if failure
+                continue;
+            }
+            if ($pid = pcntl_fork()) {                         // if parent restart looking for incomming connections
+                continue;
+            }
+            if ($pid < 0) {
+                ErrorCatcher::generateCallTrace();  // log errors
+            }
+            \define('FORK', true);
+
+            $this($connection);     // pass connection to the invoke function
         }
     }
 
-    public function __invoke()
+    public function __invoke($user)
     {
-        $master[] = $this->socket;
+        // We need std out and the users socket address
+        $stdin = fopen('php://stdin', 'wb');       // why.. cli?
+
+        $fifoFile = Pipe::named(SERVER_ROOT . 'Data/Temp/' . $_SESSION['id'] . '.fifo');     // other users can notify us to update our application through this file
+
         while (true) {
-            $read = $master;
-            $mod_fd = stream_select($read, $_w, $_e, 5);  // returns number of file descriptors modified
-            if ($mod_fd === 0) {
-                continue;
-            }
+            $read = [$stdin, $fifoFile];
+            do {
+                $mod_fd = stream_select($read, $_w, $_e, 5);  // returns number of file descriptors modified
+            } while (!$mod_fd);
+
             foreach ($read as $connection) {
-                if ($connection === $this->socket) { // accepting a new connection?
-                    $conn = @stream_socket_accept($this->socket);
-                    if (!$this->handshake($conn)) {
-                        fclose($conn);
-                    } else {
-                        // The connection has been opened
+                if ($connection === $fifoFile) { // accepting a new connection?
 
-                        // TODO - we need to validate the ip ?
-
-                        // We need to open a named pipe
-
-                        fwrite($conn, $this->encode('Hello! The time is ' . date('n/j/Y g:i a') . "\n"));
-
-                        $master[] = $conn;
-                    }
                 } else {
                     $data = $this->decode($connection);
 
@@ -295,5 +323,5 @@ class Socket
 }
 
 
-new Socket;
+new Server($argv[1]);
 

@@ -59,6 +59,7 @@ class Carbon
      *           'SERIALIZE' => [],                 // These global variables will be stored between session
      *           'CALLBACK' => callable,
      *       'SOCKET' => [
+     *           'HOST' => string '',               // The IP or DNS server to connect ws or wss with
      *           'WEBSOCKETD' => bool false,        // Todo - remove websockets
      *           'PORT' => int 8888,
      *           'DEV' => bool false,

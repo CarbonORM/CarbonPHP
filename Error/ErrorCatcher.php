@@ -42,7 +42,7 @@ class ErrorCatcher
     /**
      * ErrorCatcher constructor.
      */
-    public static function start()      // TODO - not this.
+    public static function start(): void     // TODO - not this.
     {
         ini_set('display_errors', 1);
         ini_set('track_errors', 1);
@@ -62,7 +62,7 @@ class ErrorCatcher
      * @param string
      * @return string
      */
-    public static function generateLog(array $argv = [], string $level = 'log')
+    public static function generateLog(array $argv = [], string $level = 'log'): string
     {
         if (ob_get_status()) {
             ob_end_clean(); // Attempt to remove any previous in-progress output buffers
@@ -95,7 +95,7 @@ class ErrorCatcher
      * @link http://php.net/manual/en/function.debug-backtrace.php
      * @return string
      */
-    public static function generateCallTrace()
+    public static function generateCallTrace(): string
     {
         $e = new \Exception();
         ob_start();
@@ -105,12 +105,12 @@ class ErrorCatcher
         array_shift($trace); // remove {main}
         array_pop($trace); // remove call to this method
         array_pop($trace); // remove call to this method
-        $length = count($trace);
+        $length = \count($trace);
         $result = array();
 
-        for ($i = 0; $i < $length; $i++)
+        for ($i = 0; $i < $length; $i++) {
             $result[] = ($i + 1) . ') ' . substr(substr($trace[$i], strpos($trace[$i], ' ')), 35) . PHP_EOL;
-
+        }
         print "\t" . implode("\n\t", $result);
 
         $output = ob_get_contents();

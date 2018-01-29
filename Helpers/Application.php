@@ -146,7 +146,7 @@ namespace {                                     // This runs the following code 
      * @return mixed          the returned value from model/$class.$method() or false | void
      * @throws Exception
      */
-    function CM(string $class, string $method, array &$argv = [])
+    function CM(string &$class, string &$method, array &$argv = [])
     {
         $class = ucfirst(strtolower($class));   // Prevent malformed class names
         $controller = "Controller\\$class";     // add namespace for autoloader
