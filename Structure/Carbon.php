@@ -174,6 +174,7 @@ class Carbon
 
         if ($PHP['DATABASE']['REBUILD'] ?? false) {
             Database::setUp(false);   // redirect = false
+            exit(1);                  //
         }
         #################  SITE  ########################
         if ($PHP['SITE'] ?? false) {
