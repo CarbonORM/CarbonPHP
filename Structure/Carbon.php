@@ -33,7 +33,7 @@ class Carbon
 
     /**
      * @type $PHP = [
-     *       'AUTOLOAD' => []                       // Provide PSR-4 namespace roots
+     *       'AUTOLOAD' => string array []                       // Provide PSR-4 namespace roots
      *       'SITE' => [
      *           'URL' => string '',                                  // Server Url name you do not need to chane in remote development
      *           'ROOT' => string '__FILE__',                         // This was defined in our ../index.php
@@ -220,7 +220,7 @@ class Carbon
                 session_save_path($PHP['SESSION']['PATH'] ?? '');   // Manually Set where the Users Session Data is stored
             }
 
-            new Session(IP, ($PHP['SESSION']['REMOTE'] ?? false)); // session start
+            new Session(IP, $PHP['SESSION']['REMOTE'] ?? false); // session start
 
             $_SESSION['id'] = array_key_exists('id', $_SESSION ?? []) ? $_SESSION['id'] : false;
 

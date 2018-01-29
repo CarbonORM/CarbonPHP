@@ -49,8 +49,9 @@ class ErrorCatcher
         error_reporting(self::$level);
         $closure = function (...$argv) {
             self::generateLog($argv);
-            if (function_exists('startApplication'))
+            if (\function_exists('startApplication')) {     // TODO - do we really want to reset?
                 startApplication(true);
+            }
             exit(1);
         };
         set_error_handler($closure);
@@ -83,9 +84,9 @@ class ErrorCatcher
         }
 
         if (self::$storeReport) {       // TODO - store to file?
-            $sql = "INSERT INTO carbon_reports (date, log_level, report, call_trace) VALUES (?, ?, ?, ?)";
+            $sql = 'INSERT INTO carbon_reports (date, log_level, report, call_trace) VALUES (?, ?, ?, ?)';
             $sql = Database::database()->prepare($sql);
-            if (!$sql->execute([date("Y-m-d H:i:s"), $level, $output, $trace]))
+            if (!$sql->execute([date('Y-m-d H:i:s'), $level, $output, $trace]))
                 print 'Failed to store error log, nothing works... Why does nothing work?' and die(1);
         }
         return $output;

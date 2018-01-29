@@ -75,7 +75,7 @@ while (true)
                 if ($string === 'exit') {
                     print "Application closed socket \n" and die;
 
-                } elseif (!empty( $string ) && pcntl_fork() == 0) {     // Fork
+                } elseif (!empty( $string ) && pcntl_fork() === 0) {     // Fork
 
                     \Carbon\Session::resume();      // resume session
 
