@@ -2,12 +2,7 @@
 <project version="4">
   <component name="PhpIncludePathManager">
     <include_path>
-      <path value="$PROJECT_DIR$/vendor/bower-asset/mustache.js" />
-      <path value="$PROJECT_DIR$/vendor/bower-asset/jquery-form" />
       <path value="$PROJECT_DIR$/vendor/composer" />
-      <path value="$PROJECT_DIR$/vendor/bower-asset/jquery-pjax" />
-      <path value="$PROJECT_DIR$/vendor/bower-asset/jquery" />
-      <path value="$PROJECT_DIR$/vendor/mustache/mustache" />
       <path value="$PROJECT_DIR$/vendor/psr/log" />
     </include_path>
   </component>

@@ -7,8 +7,8 @@
       <sourceFolder url="file://$MODULE_DIR$/Structure" isTestSource="false" packagePrefix="Carbon\" />
       <sourceFolder url="file://$MODULE_DIR$/Helpers" isTestSource="false" packagePrefix="Carbon\Helpers\" />
       <sourceFolder url="file://$MODULE_DIR$/Error" isTestSource="false" packagePrefix="Carbon\Error\" />
+      <sourceFolder url="file://$MODULE_DIR$/vendor" type="java-resource" />
       <excludeFolder url="file://$MODULE_DIR$/bower_components" />
-      <excludeFolder url="file://$MODULE_DIR$/vendor" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
@@ -20,29 +20,6 @@
         <JAVADOC />
         <SOURCES>
           <root url="phar://$MODULE_DIR$/composer.phar/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="PHP" type="php">
-        <CLASSES>
-          <root url="file://$MODULE_DIR$/vendor/bower-asset/jquery" />
-          <root url="file://$MODULE_DIR$/vendor/bower-asset/jquery-form" />
-          <root url="file://$MODULE_DIR$/vendor/bower-asset/jquery-pjax" />
-          <root url="file://$MODULE_DIR$/vendor/bower-asset/mustache.js" />
-          <root url="file://$MODULE_DIR$/vendor/composer" />
-          <root url="file://$MODULE_DIR$/vendor/mustache/mustache" />
-          <root url="file://$MODULE_DIR$/vendor/psr/log" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="file://$MODULE_DIR$/vendor/bower-asset/jquery" />
-          <root url="file://$MODULE_DIR$/vendor/bower-asset/jquery-form" />
-          <root url="file://$MODULE_DIR$/vendor/bower-asset/jquery-pjax" />
-          <root url="file://$MODULE_DIR$/vendor/bower-asset/mustache.js" />
-          <root url="file://$MODULE_DIR$/vendor/composer" />
-          <root url="file://$MODULE_DIR$/vendor/mustache/mustache" />
-          <root url="file://$MODULE_DIR$/vendor/psr/log" />
         </SOURCES>
       </library>
     </orderEntry>
