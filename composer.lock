@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "73aadac2a1efa6eac5b273d6bae7a3df",
+    "content-hash": "88053b2ebdf25d5d0ee9ac1ac611f4a7",
     "packages": [
         {
             "name": "bower-asset/jquery",
@@ -40,16 +40,16 @@
         },
         {
             "name": "bower-asset/jquery-form",
-            "version": "v4.2.2",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jquery-form/form.git",
-                "reference": "4beae57bc92402e2d03ca66b5ae2942d0c94c695"
+                "reference": "8281f8909563601f6a8f8fb5e1ec57715bd7c151"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jquery-form/form/zipball/4beae57bc92402e2d03ca66b5ae2942d0c94c695",
-                "reference": "4beae57bc92402e2d03ca66b5ae2942d0c94c695",
+                "url": "https://api.github.com/repos/jquery-form/form/zipball/8281f8909563601f6a8f8fb5e1ec57715bd7c151",
+                "reference": "8281f8909563601f6a8f8fb5e1ec57715bd7c151",
                 "shasum": ""
             },
             "require": {
@@ -78,20 +78,20 @@
                 "json",
                 "json-form"
             ],
-            "time": "2017-08-09T20:56:53+00:00"
+            "time": "2017-08-21T17:27:29+00:00"
         },
         {
             "name": "bower-asset/jquery-pjax",
-            "version": "v2.0.1",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/defunkt/jquery-pjax.git",
-                "reference": "0f63686a4be744c948c2dd7bd64d257d3fe80c20"
+                "reference": "153262eda33e31119eabb97cd5f14365580a3b35"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/defunkt/jquery-pjax/zipball/0f63686a4be744c948c2dd7bd64d257d3fe80c20",
-                "reference": "0f63686a4be744c948c2dd7bd64d257d3fe80c20",
+                "url": "https://api.github.com/repos/defunkt/jquery-pjax/zipball/153262eda33e31119eabb97cd5f14365580a3b35",
+                "reference": "153262eda33e31119eabb97cd5f14365580a3b35",
                 "shasum": ""
             },
             "require": {
@@ -110,20 +110,20 @@
                     "test/"
                 ]
             },
-            "time": "2017-05-20T18:38:49+00:00"
+            "time": "2017-05-23T11:23:11+00:00"
         },
         {
             "name": "bower-asset/mustache.js",
-            "version": "v2.3.0",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/janl/mustache.js.git",
-                "reference": "23beb3a8805c9a857e3ea777431481599fab503e"
+                "reference": "b283da5c8c26dbf78c357a1f67bfed26d18f5e32"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/janl/mustache.js/zipball/23beb3a8805c9a857e3ea777431481599fab503e",
-                "reference": "23beb3a8805c9a857e3ea777431481599fab503e",
+                "url": "https://api.github.com/repos/janl/mustache.js/zipball/b283da5c8c26dbf78c357a1f67bfed26d18f5e32",
+                "reference": "b283da5c8c26dbf78c357a1f67bfed26d18f5e32",
                 "shasum": ""
             },
             "type": "bower-asset-library",
@@ -144,11 +144,11 @@
                 "template",
                 "templates"
             ],
-            "time": "2016-11-08T16:24:16+00:00"
+            "time": "2017-08-26T16:14:01+00:00"
         },
         {
             "name": "mustache/mustache",
-            "version": "v2.12.0",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/bobthecow/mustache.php.git",
@@ -194,7 +194,7 @@
         },
         {
             "name": "psr/log",
-            "version": "1.0.2",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-fig/log.git",
@@ -243,7 +243,13 @@
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": [],
+    "stability-flags": {
+        "bower-asset/jquery-form": 20,
+        "bower-asset/jquery-pjax": 20,
+        "bower-asset/mustache.js": 20,
+        "mustache/mustache": 20,
+        "psr/log": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
