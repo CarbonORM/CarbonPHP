@@ -89,8 +89,17 @@ class Database
                             print '<h1>Could not determine a database to create. See Carbonphp.com for documentation.</h1>' and die;
                         }
 
-                        $db = $prep(@new PDO($query[0], static::$username, static::$password));
-
+                        Try {
+                            $db = $prep(@new PDO($query[0], static::$username, static::$password));
+                        } catch (\PDOException $e) {
+                            if ($e->getCode() === 1049){
+                                print '<h1>Auto Setup Failed!</h1><h3>Your database DSN may be slightly misformatted.</h3>';
+                                print '<p>CarbonPHP requires the host come before the database in your DNS.</p>';
+                                print '<p>It should follow the following format "mysql:host=127.0.0.1;dbname=C6".</p>';
+                            }
+                            var_dump($e->getMessage());
+                            die(0);
+                        }
                         $stmt = "CREATE DATABASE $db_name;";
 
                         if (!$db->prepare($stmt)->execute()) {

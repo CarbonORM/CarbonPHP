@@ -154,7 +154,7 @@ class Session implements \SessionHandlerInterface
             $_SESSION = array();
             session_write_close();
             $db = Database::database();
-            $db->prepare('DELETE FROM carbon_session WHERE session_id = ?')->execute([$id]);
+            $db->prepare('DELETE FROM carbon_sessions WHERE session_id = ?')->execute([$id]);
             session_start();
         } catch (\PDOException $e) {
             sortDump($e);
@@ -173,7 +173,7 @@ class Session implements \SessionHandlerInterface
             $_SERVER['REMOTE_ADDR'] = $ip;
         }
         $db = Database::database();
-        $sql = 'SELECT session_id FROM carbon_session WHERE user_ip = ?';
+        $sql = 'SELECT session_id FROM carbon_sessions WHERE user_ip = ?';
         $stmt = $db->prepare($sql);
         $stmt->execute([$_SERVER['REMOTE_ADDR']]);
         $session = $stmt->fetchColumn();
@@ -196,7 +196,7 @@ class Session implements \SessionHandlerInterface
     public function open($savePath, $sessionName)
     {
         try {
-            Database::database()->prepare('SELECT count(*) FROM carbon_session LIMIT 1')->execute();
+            Database::database()->prepare('SELECT count(*) FROM carbon_sessions LIMIT 1')->execute();
         } catch (\PDOException $e) {
             if ($e->getCode()) {
                 print "<h1>Setting up database {$e->getCode()}</h1>";
@@ -223,7 +223,7 @@ class Session implements \SessionHandlerInterface
     public function read($id)
     {
         //TODO - if ip has changed and session id hasn't invalidate
-        $stmt = Database::database()->prepare('SELECT session_data FROM carbon_session WHERE session_id = ?');
+        $stmt = Database::database()->prepare('SELECT session_data FROM carbon_sessions WHERE session_id = ?');
         $stmt->execute([$id]);
         return $stmt->fetchColumn() ?: '';
     }
@@ -241,7 +241,7 @@ class Session implements \SessionHandlerInterface
         $NewDateTime = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . ' + 1 d,lay'));  // so from time of last write and whenever the gc_collector hits
 
         try {
-            $db->prepare('REPLACE INTO carbon_session SET session_id = ?, user_id = ?, user_ip = ?,  session_expires = ?, session_data = ?')->execute([
+            $db->prepare('REPLACE INTO carbon_sessions SET session_id = ?, user_id = ?, user_ip = ?,  session_expires = ?, session_data = ?')->execute([
                 $id, static::$user_id, $_SERVER['REMOTE_ADDR'], $NewDateTime, $data]);
         } catch (\PDOException $e) {
             sortDump($e);
@@ -257,7 +257,7 @@ class Session implements \SessionHandlerInterface
     public function destroy($id)
     {
         $db = Database::database();
-        return $db->prepare('DELETE FROM carbon_session WHERE user_id = ? OR session_id = ?')->execute([self::$user_id, $id]) ?
+        return $db->prepare('DELETE FROM carbon_sessions WHERE user_id = ? OR session_id = ?')->execute([self::$user_id, $id]) ?
             true : false;
     }
 
@@ -270,7 +270,7 @@ class Session implements \SessionHandlerInterface
     public function gc($maxLife)
     {
         $db = Database::database();
-        return $db->prepare('DELETE FROM carbon_session WHERE (UNIX_TIMESTAMP(session_expires) + ? ) < UNIX_TIMESTAMP(?)')->execute([$maxLife, date('Y-m-d H:i:s')]) ?
+        return $db->prepare('DELETE FROM carbon_sessions WHERE (UNIX_TIMESTAMP(session_expires) + ? ) < UNIX_TIMESTAMP(?)')->execute([$maxLife, date('Y-m-d H:i:s')]) ?
             true : false;
     }
 }
