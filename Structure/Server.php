@@ -1,211 +1,327 @@
-#!/usr/bin/php
 <?php
+/**
+ * Created by IntelliJ IDEA.
+ * User: richardmiles
+ * Date: 10/7/17
+ * Time: 11:06 AM
+ *
+ *
+ * TODO - finish
+ *
+ */
 
-//
+namespace Carbon\Helpers;
 
-declare(ticks=1);
-
-error_reporting(E_ALL);
-set_time_limit(0);
-ob_implicit_flush();
+use Carbon\Error\ErrorCatcher;
+use Carbon\Helpers\Pipe;
+use Carbon\Session;
+use Carbon\Database;
+use Carbon\Carbon;
 
 const SOCKET = true;
 
-if (!extension_loaded('pcntl'))
-    print 'To use CarbonPHP\'s server you must have PCNTL enabled. See CarbonPHP.com for more information.';
+const DS = DIRECTORY_SEPARATOR;
 
-if (!(($argv[1] ?? false) && $argv = json_decode($argv[1]) && json_last_error() == JSON_ERROR_NONE))
-    print 'This script should not be called directly. See CarbonPHP.com for documentation.' and die;
+// TODO - add the checks for the input args
 
-if (false == (include_once "../Structure/Carbon.php"))
-    print 'A file structure error has occurred. Please retry downloading CarbonPHP.' and die;
+error_reporting(E_ALL);
 
-if (false == file_exists($psr4 = ($argv['DIRECTORY']['VENDOR'] ?? DS . 'autoload.php')))
-    print 'You must include a $PHP[\'DIRECTORY\'][\'VENDOR\'] = (string)';
+set_time_limit(0);
 
+ob_implicit_flush();
 
-include $psr4;
+\define('SERVER_ROOT', $argv[1]);    // expressions not allowed in const
 
+#print_r(get_loaded_extensions()) and die;
 
+if (!\extension_loaded('pcntl')) {
+    print '<h1>CarbonPHP Websockets require the PCNTL library. See CarbonPHP.com for more Documentation</h1>';
+}
 
-print 'This is currently in dev and if you got here in execution you are lucky' . PHP_EOL;
-die; die; die;
-
-use Carbon\Helpers\Fork;
-
-use \Carbon\Helpers\Pipe;
-
-use \Carbon\Request;
-
-use \Carbon\Helpers\Socket;
+$signal = function ($signal) {
+    print "Signal :: $signal\n";
+    global $fifoPath, $fp;
+    if (\is_resource($fp)) {
+        @fclose($fp);
+    }
+    if (file_exists($fifoPath)) {
+        @unlink($fifoPath);
+    }
+    exit(1);
+};
 
 # https://www.leaseweb.com/labs/2013/08/catching-signals-in-php-scripts/
+pcntl_signal(SIGTERM, $signal); // Termination ('kill' was called')
+pcntl_signal(SIGHUP, $signal);  // Terminal log-out
+pcntl_signal(SIGINT, $signal);  // Interrupted ( Ctrl-C is pressed)
 
-pcntl_signal( SIGTERM, 'signalHandler' ); // Termination ('kill' was called')
-
-pcntl_signal( SIGHUP, 'signalHandler' );  // Terminal log-out
-
-pcntl_signal( SIGINT, 'signalHandler' );  // Interrupted ( Ctrl-C is pressed)
-
-// Fork::become_daemon();
 
 class Server
 {
-    private $host;
-    private $port;
+    private const TEXT = 0x1;
+    private const BINARY = 0x2;
+    private const CLOSE = 0x8;
+    private const PING = 0x9;
+    private const PONG = 0xa;
+    private const PORT = 8080;
+    private const SSL = false;
 
-    public function __construct($host, $port)
+    private const HOST = 'localhost';
+    private const CERT = '/cert.pem';
+    private const PASS = 'Smokey';
+
+    public function __construct($config)
     {
-        $this->port = $port;
-        $this->host = $host;          //localhost
-        $this->accept(new Socket($port));
-    }
+        if (self::SSL) {
+            $context = stream_context_create([
+                'ssl' => [
+                    'local_cert' => self::CERT,
+                    'passphrase' => self::PASS,
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                    'allow_self_signed' => true,
+                    'verify_depth' => 0
+                ]
+            ]);
+            $protocol = 'ssl';
+        } else {
+            $context = stream_context_create();
+            $protocol = 'tcp';
+        }
+        $socket = stream_socket_server("$protocol://" .$config['SOCKET']['HOST'] . ':' . $config['SOCKET']['PORT'], $errorNumber, $errorString, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, $context);
 
-    public function accept(Socket $socket)
-    {
-        $user = socket_accept($socket->socket); // new socket user
-
-        $socket->perform_handshaking(socket_read($user, 1024), $user, $this->host, $this->port);  //perform websocket handshake
-
-        socket_getpeername($user, $ip);     // get ip address of connected socket
-
-        $this->Serve($socket, $user, $ip);
-    }
-
-
-    public function Serve(Socket $socket, $user, $ip)
-    {
-        /*
-        Fork::safe(function () use ($socket){
-            $this->accept($socket) and die;
-        });
-        */
-
-        // we should verify our connection now
-        new \Carbon\Session($ip);             // Pull From Database, manage socket ip
-
-        global $STDOUT;
-
-        fclose(STDOUT);              // output has to be preprocessed for websites and javascript
-
-        fclose($STDOUT);                    // To Json...
-
-        $STDOUT = Pipe::named( 'Temp/' . $_SESSION['id'] . '.stdout');   // now echo and print will get sent to this file for buffering
-
-        $UPDATE = Pipe::named( 'Temp/' . $_SESSION['id'] . '.fifo');     // other users can notify us to update our application through this file
-
-        $request = new Request;                     // handles string validation from userIO
-
-        print 'Socket Active' . PHP_EOL;            // This will get sent to the file descriptor, but will not send until ( ** 1 )
-
-        while (true) {  // loop.
-
-            // if the named pipe is blocking we know the user is active with each empty data set received
-            // this is the equivalent to the ready state, if the foreach is run and no descriptor is active
-            // or has been `hit` via handshake, the socket will assume the user is offline and kill the process.
-            // its costly to do this..?
-            $miss = 0;
-            $handshake = 0;
-
-            $readers = array($UPDATE, $STDOUT, $user);    // This must be reset each loop
-
-            // poll the socket and named pipe for input. The socket is the users browser while the named pipe is our application.
-            if (($stream = stream_select($readers, $writers, $except, 0, 15)) === false):
-                print "A stream error occurred\n";
-                break;
-
-            else :
-                // Readers will have only files with input available
-                foreach ($readers as $input => $fd) {
-
-                    if ($fd == $STDOUT): //
-                        $string = fgets($STDOUT); // valid application output, S'clean. ( ** 1 )
-                        if ($string == 'exit'):
-                            print "Application closed socket \n";
-                            exit(2);
-                        elseif (!empty($string) && Fork::safe()):
-                            $socket->send_message($user, $string);
-                            exit(1);
-                        endif;
-                        $handshake++;
-
-                    elseif ($fd == $UPDATE):
-                        // Application.php sends a request to update via route uri
-                        $data = fread($UPDATE, $bytes = 1024);  // This will read multiple lines
-                        // we only send uri's to help with validation, and to update the applicable users session data
-                        if (!empty($data)):
-                            $data = explode("\n", $data); // separate uri's by newline.
-                            foreach ($data as $i => $value) {
-                                if (empty($value))
-                                    continue;
-                                if (Fork::safe()):              // fork a request foreach uri
-                                    print "Update :: $value \n";
-                                    $_SERVER['REQUEST_URI'] = $value;
-                                    startApplication($value);
-                                    exit(1);
-                                endif;
-                            }
-                        else:
-                            print "Handshake \n";
-                        endif;
-                        $handshake++;
-
-                    elseif ($fd == $user):
-                        //check for any incomming data
-                        while (socket_recv($user, $buf, 1024, 0) >= 1) {
-                            $received_text = $socket->unmask($buf); //unmask data
-                            $received_text = $request->set($received_text)->noHTML()->value(); // validate, S'clean.
-                            startApplication($received_text);
-                            break 2; //exist this loop
-                        }
-                        $buf = @socket_read($user, 1024, PHP_NORMAL_READ);
-                        if ($buf === false) : // check disconnected client
-                            exit(1);
-                        endif;
-
-                    else :
-                        // validate active socket
-                        print "Hits => $handshake";
-                        if ($handshake != 0):       // clear misses
-                            $handshake = 0;
-                            $miss = 1;
-
-                        elseif ($miss == 10):       // 10 misses !!?!?
-                            exit(2);
-
-                        else: $miss++;              // Nothing active, hu?
-                            print "Miss => $miss\n";
-                        endif;
-                    endif;
-                }
-                sleep(1);     // Keep it off the processor stack
-            endif;
+        if (!$socket) {
+            print "$errorString ($errorNumber)<br />\n";
         }
 
+        new Carbon();
+        Session::pause();           // Close the current session
+        Database::setDatabase();    // This will clear the connection
+
+        $sock_fd = [$socket];
+        for (; ;) {                         // should
+            $clientList = $sock_fd;
+            do {
+                $number = stream_select($clientList, $write, $error, 5);
+            } while (!$number);
+
+            // Forking can return the pid for parent, 0 for child, and -1 for error
+            // we need to pop
+            $connection = array_pop($clientList); // This is the users file descriptor linked to a unique process
+
+
+            if (($connection = stream_socket_accept($connection)) === false) {
+                continue;
+            }
+
+            if (!$this->handshake($connection) ) {              // attempt to send wss validation
+
+                // TODO - validate ip
+
+                @fclose($connection);                          // close any accepted connection if failure
+                continue;
+            }
+            if ($pid = pcntl_fork()) {                         // if parent restart looking for incomming connections
+                continue;
+            }
+            if ($pid < 0) {
+                ErrorCatcher::generateCallTrace();  // log errors
+            }
+            \define('FORK', true);
+
+            $this($connection);     // pass connection to the invoke function
+        }
     }
+
+    public function __invoke($user)
+    {
+        // We need std out and the users socket address
+        $stdin = fopen('php://stdin', 'wb');       // why.. cli?
+
+        $fifoFile = Pipe::named(SERVER_ROOT . 'Data/Temp/' . $_SESSION['id'] . '.fifo');     // other users can notify us to update our application through this file
+
+        while (true) {
+            $read = [$stdin, $fifoFile];
+            do {
+                $mod_fd = stream_select($read, $_w, $_e, 5);  // returns number of file descriptors modified
+            } while (!$mod_fd);
+
+            foreach ($read as $connection) {
+                if ($connection === $fifoFile) { // accepting a new connection?
+
+                } else {
+                    $data = $this->decode($connection);
+
+                    var_dump($data);
+
+                    switch ($data['opcode']) {
+                        case self::CLOSE:
+                            $key_to_del = array_search($connection, $master, false);
+                            @fclose($connection);
+                            unset($master[$key_to_del]);
+                            break;
+                        case self::PING :
+                            @fwrite($connection, $this->encode('', self::PONG));
+                            break;
+                        case self::TEXT:
+                            print 'The client has sent :';
+                            var_dump($data['payload']);
+                            @fwrite($connection, $this->encode([
+                                'type' => 'usermsg',
+                                'name' => $data['payload']->name,
+                                'message' => $data['payload']->message,
+                                'color' => $data['payload']->color
+                            ]));
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        }
+    }
+
+    public function handshake($socket): bool
+    {
+        $headers = [];
+        $lines = preg_split("/\r\n/", @fread($socket, 4096));
+        foreach ($lines as $line) {
+            $line = rtrim($line);
+            if (preg_match('/\A(\S+): (.*)\z/', $line, $matches)) {
+                $headers[$matches[1]] = $matches[2];
+            }
+        }
+        if (!isset($headers['Sec-WebSocket-Key'])) {
+            return false;
+        }
+        $secKey = $headers['Sec-WebSocket-Key'];
+        $secAccept = base64_encode(pack('H*', sha1($secKey . '258EAFA5-E914-47DA-95CA-C5AB0DC85B11')));
+        $response = "HTTP/1.1 101 Web Socket Protocol Handshake\r\n" .
+            "Upgrade: websocket\r\n" .
+            "Connection: Upgrade\r\n" .
+            "WebSocket-Origin: " . self::HOST . "\r\n" .
+            "WebSocket-Location: ws://" . self::HOST . ":" . self::PORT . "/\r\n" .
+            "Sec-WebSocket-Accept:$secAccept\r\n\r\n";
+        try {
+            return fwrite($socket, $response);
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    public function encode($message, $opCode = self::TEXT): string
+    {
+        $rsv1 = 0x0;
+        $rsv2 = 0x0;
+        $rsv3 = 0x0;
+        $message = json_encode($message);
+        $length = strlen($message);
+        $out = \chr((0x1 << 7) | ($rsv1 << 6) | ($rsv2 << 5) | ($rsv3 << 4) | $opCode);
+        if (0xffff < $length) {
+            $out .= \chr(0x7f) . pack('NN', 0, $length);
+        } elseif (0x7d < $length) {
+            $out .= \chr(0x7e) . pack('n', $length);
+        } else {
+            $out .= \chr($length);
+        }
+        return $out . $message;
+    }
+
+    public function decode($socket): array
+    {
+        if (!$socket || !\is_resource($socket)) {
+            return [
+                'opcode' => self::CLOSE,
+                'payload' => ''
+            ];
+        }
+        $out = [];
+        $read = @fread($socket, 1);
+        if (empty($read)) {
+            return [
+                'opcode' => self::CLOSE,
+                'payload' => ''
+            ];
+        }
+        $handle = \ord($read);
+        $out['fin'] = ($handle >> 7) & 0x1;
+        $out['rsv1'] = ($handle >> 6) & 0x1;
+        $out['rsv2'] = ($handle >> 5) & 0x1;
+        $out['rsv3'] = ($handle >> 4) & 0x1;
+        $out['opcode'] = $handle & 0xf;
+        if (!\in_array($out['opcode'], [
+            self::TEXT,
+            self::BINARY,
+            self::CLOSE,
+            self::PING,
+            self::PONG], true)) {
+            return ['opcode' => '', 'payload' => '',
+                'error' => 'unknown opcode (1003)'
+            ];
+        }
+        $handle = \ord(fread($socket, 1));
+        $out['mask'] = ($handle >> 7) & 0x1;
+        $out['length'] = $handle & 0x7f;
+        $length = &$out['length'];
+        if ($out['rsv1'] !== 0x0 || $out['rsv2'] !== 0x0 || $out['rsv3'] !== 0x0) {
+            return [
+                'opcode' => $out['opcode'],
+                'payload' => '',
+                'error' => 'protocol error (1002)'
+            ];
+        }
+        if ($length === 0) {
+            $out['payload'] = '';
+            return $out;
+        }
+        if ($length === 0x7e) {
+            $handle = unpack('nl', fread($socket, 2));
+            $length = $handle['l'];
+        } elseif ($length === 0x7f) {
+            $handle = unpack('N*l', fread($socket, 8));
+            $length = $handle['l2'] ?? $length;
+            if ($length > 0x7fffffffffffffff) {
+                return [
+                    'opcode' => $out['opcode'],
+                    'payload' => '',
+                    'error' => 'content length mismatch'
+                ];
+            }
+        }
+        if ($out['mask'] === 0x0) {
+            $msg = '';
+            $readLength = 0;
+            while ($readLength < $length) {
+                $toRead = $length - $readLength;
+                $msg .= fread($socket, $toRead);
+                if ($readLength === strlen($msg)) {
+                    break;
+                }
+                $readLength = strlen($msg);
+            }
+            $out['payload'] = $msg;
+            return $out;
+        }
+        $maskN = array_map('ord', str_split(fread($socket, 4)));
+        $maskC = 0;
+        $bufferLength = 1024;
+        $message = '';
+        for ($i = 0; $i < $length; $i += $bufferLength) {
+            $buffer = min($bufferLength, $length - $i);
+            $handle = fread($socket, $buffer);
+            for ($j = 0, $_length = strlen($handle); $j < $_length; ++$j) {
+                $handle[$j] = chr(ord($handle[$j]) ^ $maskN[$maskC]);
+                $maskC = ($maskC + 1) % 4;
+            }
+            $message .= $handle;
+        }
+        $out['payload'] = json_decode($message);
+        return $out;
+    }
+
 
 }
 
-$server = new Server('127.0.0.1', '8080');
 
+new Server($argv[1]);
 
-//Kill Connection
-function signalHandler($signal)
-{
-    switch ($signal) {                      // Attempt to clean up our file descriptors
-        case SIGTERM:
-        case SIGINT:
-            print "Signal :: $signal\n";
-            global $fifoPath, $fp;
-            if (is_resource($fp))
-                @fclose($fp);
-            if (file_exists($fifoPath))
-                @unlink($fifoPath);
-            print "Safe Exit \n\n";
-            exit(1);
-        case SIGCHLD:
-            pcntl_waitpid(-1, $status); // The child processes send SIGCHLD to their parent when they exit but the parent can't handle signals while it's waiting for socket_accept (blocking).
-            break;
-    }
-
-}
