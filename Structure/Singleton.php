@@ -35,8 +35,8 @@ use Carbon\Helpers\Serialized;
  * This will store the new closure in the methods variable and attempt to run it using
  * call_user_func_array();
  *
- *
  */
+
 trait Singleton
 {
     /**

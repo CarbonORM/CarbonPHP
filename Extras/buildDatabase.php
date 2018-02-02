@@ -59,13 +59,13 @@ END;
 
 
     try {
-        $db->prepare('SELECT 1 FROM carbon_sessions LIMIT 1;')->execute();
-        print '<br>Table `carbon_sessions` already exists';
+        $db->prepare('SELECT 1 FROM sessions LIMIT 1;')->execute();
+        print '<br>Table `sessions` already exists';
     } catch (PDOException $e) {
         try {
             $sql = <<<END
         
-CREATE TABLE carbon_sessions
+CREATE TABLE sessions
 (
 	user_id VARCHAR(225) NOT NULL,
 	user_ip VARCHAR(255) NULL,
@@ -79,7 +79,7 @@ CREATE TABLE carbon_sessions
 
 END;
             $db->exec($sql);
-            print '<br>Table `carbon_sessions` Created';
+            print '<br>Table `sessions` Created';
         } catch (\Error | Exception $e) {
             print '<pre>';
             var_dump($e);
@@ -90,8 +90,8 @@ END;
 
 
     try {
-        $db->prepare("SELECT 1 FROM carbon_tags LIMIT 1;")->execute();
-        print "<br>Table `carbon_tags` already exists";
+        $db->prepare('SELECT 1 FROM carbon_tags LIMIT 1;')->execute();
+        print '<br>Table `carbon_tags` already exists';
     } catch (PDOException $e) {
         $sql = <<<END
 CREATE TABLE carbon_tags
