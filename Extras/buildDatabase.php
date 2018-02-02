@@ -8,16 +8,14 @@
 
 print '<h1>Setting up CarbonPHP</h1>';
 
+$db = \Carbon\Database::database();
+
 try {
-    $db = \Carbon\Database::Database();
-
-
-    print "<html><head><title>Setup or Rebuild Database</title></head><body><h1>STARTING MAJOR CARBON SYSTEMS</h1>" . PHP_EOL;
+    print '<html><head><title>Setup or Rebuild Database</title></head><body><h1>STARTING MAJOR CARBON SYSTEMS</h1>' . PHP_EOL;
 
     try {
-        $stmt = $db->prepare("SELECT 1 FROM carbon LIMIT 1;");
-        $stmt->execute();
-        print "<br>Table `carbon` already exists";
+        $db->prepare('SELECT 1 FROM carbon LIMIT 1;')->execute();
+        print '<br>Table `carbon` already exists';
     } catch (PDOException $e) {
         $sql = <<<END
 CREATE TABLE carbon
@@ -38,13 +36,12 @@ CREATE INDEX entity_entity_entity_pk_fk
 ;
 END;
         $db->exec($sql);
-        print "<br>Table `carbon` Created";
+        print '<br>Table `carbon` Created';
     }
 
     try {
-        $stmt = $db->prepare("SELECT 1 FROM carbon_reports LIMIT 1;");
-        $stmt->execute();
-        print "<br>Table `carbon_reports` already exists";
+        $db->prepare('SELECT 1 FROM carbon_reports LIMIT 1;')->execute();
+        print '<br>Table `carbon_reports` already exists';
     } catch (PDOException $e) {
         $sql = <<<END
 create table carbon_reports
@@ -57,19 +54,18 @@ create table carbon_reports
 ;
 END;
         $db->exec($sql);
-        print "<br>Table `carbon_reports` Created";
+        print '<br>Table `carbon_reports` Created';
     }
 
 
     try {
-        $stmt = $db->prepare("SELECT 1 FROM carbon_sessions LIMIT 1;");
-        $stmt->execute();
-        print "<br>Table `carbon_sessions` already exists";
+        $db->prepare('SELECT 1 FROM carbon_sessions LIMIT 1;')->execute();
+        print '<br>Table `carbon_sessions` already exists';
     } catch (PDOException $e) {
         try {
             $sql = <<<END
         
-CREATE TABLE carbon_session
+CREATE TABLE carbon_sessions
 (
 	user_id VARCHAR(225) NOT NULL,
 	user_ip VARCHAR(255) NULL,
@@ -83,8 +79,8 @@ CREATE TABLE carbon_session
 
 END;
             $db->exec($sql);
-            print "<br>Table `carbon_sessions` Created";
-        } catch (Error | Exception $e) {
+            print '<br>Table `carbon_sessions` Created';
+        } catch (\Error | Exception $e) {
             print '<pre>';
             var_dump($e);
             print '</pre>';
@@ -94,8 +90,7 @@ END;
 
 
     try {
-        $stmt = $db->prepare("SELECT 1 FROM carbon_tags LIMIT 1;");
-        $stmt->execute();
+        $db->prepare("SELECT 1 FROM carbon_tags LIMIT 1;")->execute();
         print "<br>Table `carbon_tags` already exists";
     } catch (PDOException $e) {
         $sql = <<<END
@@ -114,15 +109,14 @@ CREATE TABLE carbon_tags
 END;
 
         $db->exec($sql);
-        print "<br>Table `carbon_tags` Created";
+        print '<br>Table `carbon_tags` Created';
 
     }
 
 
     try {
-        $stmt = $db->prepare("SELECT 1 FROM carbon_tag LIMIT 1;");
-        $stmt->execute();
-        print "<br>Table `carbon_tag` already exists";
+        $stmt = $db->prepare('SELECT 1 FROM carbon_tag LIMIT 1;')->execute();
+        print '<br>Table `carbon_tag` already exists';
     } catch (PDOException $e) {
         $sql = <<<END
 CREATE TABLE carbon_tag
@@ -160,15 +154,15 @@ END;
 
         $db->exec($sql);
 
-        print "<br>Table `carbon_tag` Created";
+        print '<br>Table `carbon_tag` Created';
     }
 
     print '<br><br><h3>Rocking! CarbonPHP setup and/or rebuild is complete.</h3>';
 
 } catch (PDOException $e) {
 
-    echo "Oh no, we failed to insert our databases!! Goto CarbonPHP.com for support and show the following code!<b>" . PHP_EOL;
-    echo $e->getMessage() . PHP_EOL;
+    print 'Oh no, we failed to insert our databases!! Goto CarbonPHP.com for support and show the following code!<b>' . PHP_EOL;
+    print $e->getMessage() . PHP_EOL;
 
 }
 
