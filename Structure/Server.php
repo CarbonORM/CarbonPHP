@@ -1,14 +1,4 @@
 <?php
-/**
- * Created by IntelliJ IDEA.
- * User: richardmiles
- * Date: 10/7/17
- * Time: 11:06 AM
- *
- *
- * TODO - finish
- *
- */
 
 namespace Carbon\Helpers;
 
