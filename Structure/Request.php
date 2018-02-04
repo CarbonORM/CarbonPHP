@@ -417,7 +417,7 @@ class Request   // requires carbon::application;
     public function email()
     {
         $array = [];
-        $this->closure(function ($key) use (&$array) {
+        return $this->closure(function ($key) use (&$array) {
             $array[] = filter_var($key, FILTER_VALIDATE_EMAIL);
         })($array);
     }
