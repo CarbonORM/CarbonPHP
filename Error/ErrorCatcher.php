@@ -49,7 +49,7 @@ class ErrorCatcher
         error_reporting(self::$level);
         $closure = function (...$argv) {
             self::generateLog($argv);
-            if (\function_exists('startApplication')) {     // TODO - do we really want to reset?
+            if (!SOCKET && \function_exists('startApplication')) {     // TODO - do we really want to reset?
                 startApplication(true);
             }
             exit(1);

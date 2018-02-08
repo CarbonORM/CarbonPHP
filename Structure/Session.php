@@ -42,7 +42,7 @@ class Session implements \SessionHandlerInterface
      * @param null $ip
      * @param bool $dbStore
      */
-    public function __construct($ip = null, $dbStore = false)
+    public function __construct($ip = null, $dbStore = false, $verifySocket = true)
     {
         session_write_close(); //cancel the session's auto start, important
 
@@ -61,7 +61,7 @@ class Session implements \SessionHandlerInterface
             }
         }
 
-        if (SOCKET) {
+        if (SOCKET && $verifySocket) {
             $this->verifySocket($ip);
         }
 
@@ -177,6 +177,7 @@ class Session implements \SessionHandlerInterface
         $stmt = $db->prepare($sql);
         $stmt->execute([$_SERVER['REMOTE_ADDR']]);
         $session = $stmt->fetchColumn();
+        self::$session_id = $session;
         if (empty($session)) {
             if (SOCKET) {
                 print 'BAD ADDRESS :: ' . $_SERVER['REMOTE_ADDR'] . "\n\n";
@@ -242,7 +243,7 @@ class Session implements \SessionHandlerInterface
 
         try {
             $db->prepare('REPLACE INTO sessions SET session_id = ?, user_id = ?, user_ip = ?,  session_expires = ?, session_data = ?')->execute([
-                $id, static::$user_id, $_SERVER['REMOTE_ADDR'], $NewDateTime, $data]);
+                $id, static::$user_id, IP, $NewDateTime, $data]);
         } catch (\PDOException $e) {
             sortDump($e);
         }

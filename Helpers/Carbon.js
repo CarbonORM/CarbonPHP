@@ -94,7 +94,7 @@ function CarbonJS(selector, address, options) {
     // All links will be sent with ajax
     $(document).pjax('a', selector);
 
-    $(document).on('pjax:click', () => $(selector).hide());
+    //$(document).on('pjax:click', () => $(selector).hide());
 
     $(document).on('pjax:success', () => console.log("Successfully loaded " + window.location.href));
 
@@ -105,7 +105,7 @@ function CarbonJS(selector, address, options) {
     $(document).on('pjax:complete', () => {
         // Set up Box Annotations
         $.fn.runEvent("Carbon");
-        $(selector).fadeIn('fast').removeClass('overlay');
+        //$(selector).fadeIn('fast').removeClass('overlay');
         $(".box").boxWidget({
             animationSpeed: 500,
             collapseTrigger: '[data-widget="collapse"]',
@@ -150,7 +150,7 @@ function CarbonJS(selector, address, options) {
         console.log('URI::' + url);
         if (defaultOnSocket && $.fn.trySocket) {           //defaultOnSocket &&
             console.log('Socket::' + url);
-            statsSocket.send(url);
+            statsSocket.send(JSON.stringify(url));
         } else $.get(url, (data) => MustacheWidgets(data)); // json
     };
 

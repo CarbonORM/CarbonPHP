@@ -80,8 +80,19 @@ class Carbon
      *      ],
      * ]
      */
-    public function __construct(array $PHP = [])
+    public function __construct(string $PHP = null)
     {
+        ####################  Did we use $ php -S localhost:8080 index.php
+        \define('APP_LOCAL', $this->isClientServer());
+
+        if (!\defined('SERVER_ROOT')) {
+            \define('SERVER_ROOT', CARBON_ROOT);
+        }
+
+        if (file_exists(SERVER_ROOT . $PHP)) {
+            $PHP = include $PHP;
+        }
+
         ####################  GENERAL CONF  ######################
         error_reporting($PHP['ERROR']['LEVEL'] ?? E_ALL | E_STRICT);
 
@@ -102,7 +113,7 @@ class Carbon
         \define('REPORTS', $PHP['ERROR']['LOCATION'] ?? SERVER_ROOT);
 
         #####################   AUTOLOAD    #######################
-        if (!array_key_exists('AUTOLOAD', $PHP) || $PHP['AUTOLOAD']) {
+        if (array_key_exists('AUTOLOAD', $PHP) && $PHP['AUTOLOAD']) {
 
             $PSR4 = include CARBON_ROOT . 'Structure/AutoLoad.php';
 
@@ -139,18 +150,19 @@ class Carbon
             \define('SOCKET', false);
 
             if (($PHP['SOCKET'] ?? false) && getservbyport($PHP['SOCKET']['PORT'] ?? 8888, 'tcp')) {
-                $path = CARBON_ROOT . ($PHP['SOCKET']['WEBSOCKETD'] ?? false ?
-                            'Extras' . DS . 'Websocketd.php' :
-                            'Structure' . DS . 'Server.php');
+                if (($PHP['SOCKET']['WEBSOCKETD'] ?? false) === true) {
+                    $CMD = '/usr/local/bin/websocketd --port=' . ($PHP['SOCKET']['PORT'] ?? 8888) . ' ' .
+                        (($PHP['SOCKET']['DEV'] ?? false) ? '--devconsole ' : '') .
+                        (($PHP['SOCKET']['SSL'] ?? false) ? "--ssl --sslkey={$PHP['SOCKET']['SSL']['KEY']} --sslcert={$PHP['SOCKET']['SSL']['CERT']} " : ' ') .
+                        'php '. CARBON_ROOT .  'Extras' . DS . 'Websocketd.php '. SERVER_ROOT . ' ' . ($PHP['SITE']['CONFIG'] ?? SERVER_ROOT) . ' 2>&1';
 
-                $config = $PHP['SITE']['CONFIG'] ?? SERVER_ROOT;
-
-                $CMD = '/usr/local/bin/websocketd --port=' . ($PHP['SOCKET']['PORT'] ?? 8888) . ' ' .
-                    (($PHP['SOCKET']['DEV'] ?? false) ? '--devconsole ' : '') .
-                    (($PHP['SOCKET']['SSL'] ?? false) ? "--ssl --sslkey={$PHP['SOCKET']['SSL']['KEY']} --sslcert={$PHP['SOCKET']['SSL']['CERT']} " : ' ') .
-                    "php $path " . SERVER_ROOT . ' ' . $config . ' 2>&1';
+                } else {
+                    $CMD = 'php '. CARBON_ROOT . 'Structure' . DS . 'Server.php ' . SERVER_ROOT . ' ' . ($PHP['SITE']['CONFIG'] ?? SERVER_ROOT);
+                }
 
                 Helpers\Fork::become_daemon(function () use ($CMD) {`$CMD`;});
+
+                #print $CMD;
             }
         }
 
@@ -164,9 +176,8 @@ class Carbon
 
         ##################  VALIDATE URL / URI ##################
         // Even if a request is bad, we need to store the log
-        \define('LOCAL_SERVER', $this->isClientServer());
 
-        if (!LOCAL_SERVER) {
+        if (!APP_LOCAL) {
             $this->IP_FILTER();
         }
 
@@ -191,12 +202,12 @@ class Carbon
 
         #######################   Pjax Ajax Refresh  ######################
         // Must return a non empty value
-        \define('PJAX', isset($_GET['_pjax']) || (isset($_SERVER['HTTP_X_PJAX']) && $_SERVER['HTTP_X_PJAX']));
+        \define('PJAX', SOCKET ? false : isset($_GET['_pjax']) || (isset($_SERVER['HTTP_X_PJAX']) && $_SERVER['HTTP_X_PJAX']));
 
         // (PJAX == true) return required, else (!PJAX && AJAX) return optional (socket valid)
-        \define('AJAX', PJAX || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'));
+        \define('AJAX', SOCKET ? false : PJAX || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'));
 
-        \define('HTTPS', $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? false) === 'https' || (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+        \define('HTTPS', SOCKET ? false : $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? false) === 'https' || (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
 
         \define('HTTP', !(HTTPS || SOCKET || AJAX));
 
@@ -215,7 +226,7 @@ class Carbon
 
         ########################  Session Management ######################
 
-        if ($PHP['SESSION'] ?? true) {
+        if (!SOCKET && ($PHP['SESSION'] ?? true)) {
             if ($PHP['SESSION']['PATH'] ?? false) {
                 session_save_path($PHP['SESSION']['PATH'] ?? '');   // Manually Set where the Users Session Data is stored
             }
@@ -266,7 +277,7 @@ class Carbon
      */
     private function URI_FILTER(string $URL, string $allowedEXT = 'jpg|png') : bool
     {
-        if (!empty($URL=strtolower($URL)) && $_SERVER['SERVER_NAME'] !== $URL && !LOCAL_SERVER) {
+        if (!empty($URL=strtolower($URL)) && $_SERVER['SERVER_NAME'] !== $URL && !APP_LOCAL) {
             print IP . '<h1>You appear to be lost.</h1><h2>Moving to ' . $URL . '</h2>';
             print "<script>window.location.type = $URL</script>";
             $this->safelyExit = true;
@@ -277,7 +288,7 @@ class Carbon
         \define('URL',
             (isset($_SERVER['SERVER_NAME']) ?
                 ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] === 443 ? 'https://' : 'http://') .
-                $_SERVER['SERVER_NAME'] . (LOCAL_SERVER ? ':' . $_SERVER['SERVER_PORT'] : '') : null), true);
+                $_SERVER['SERVER_NAME'] . (APP_LOCAL ? ':' . $_SERVER['SERVER_PORT'] : '') : null), true);
 
         \define('SITE', url . DS, true);   // http(s)://example.com/
 

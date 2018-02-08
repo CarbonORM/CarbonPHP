@@ -4,15 +4,20 @@ namespace Carbon\Helpers;
 
 use Carbon\Error\ErrorCatcher;
 use Carbon\Helpers\Pipe;
+use Carbon\Request;
 use Carbon\Session;
 use Carbon\Database;
 use Carbon\Carbon;
 
-const SOCKET = true;
+define('SOCKET', true);
 
-const DS = DIRECTORY_SEPARATOR;
+define('DS', DIRECTORY_SEPARATOR);
 
-// TODO - add the checks for the input args
+
+if (\count($argv) < 2) {
+    print 'The Server should not be started statically';
+    die(0);
+}
 
 error_reporting(E_ALL);
 
@@ -22,11 +27,20 @@ ob_implicit_flush();
 
 \define('SERVER_ROOT', $argv[1]);    // expressions not allowed in const
 
-#print_r(get_loaded_extensions()) and die;
+const APP_ROOT = SERVER_ROOT;
+
+dir(SERVER_ROOT);
+
+if (false === (include SERVER_ROOT . 'Data/Vendors/autoload.php')) {     // Load the autoload() for composer dependencies located in the Services folder
+    print '<h1>Loading Composer Failed. See Carbonphp.com for documentation.</h1>' and die;     // Composer autoload
+}
 
 if (!\extension_loaded('pcntl')) {
     print '<h1>CarbonPHP Websockets require the PCNTL library. See CarbonPHP.com for more Documentation</h1>';
 }
+
+new Carbon($opts = include $argv[2]);
+
 
 $signal = function ($signal) {
     print "Signal :: $signal\n";
@@ -46,7 +60,7 @@ pcntl_signal(SIGHUP, $signal);  // Terminal log-out
 pcntl_signal(SIGINT, $signal);  // Interrupted ( Ctrl-C is pressed)
 
 
-class Server
+class Server extends Request
 {
     private const TEXT = 0x1;
     private const BINARY = 0x2;
@@ -60,8 +74,24 @@ class Server
     private const CERT = '/cert.pem';
     private const PASS = 'Smokey';
 
+    public $user;
+    public $user_ip;
+    public $user_port;
+
+
     public function __construct($config)
     {
+        \define('URL', $config['SITE']['SITE'] ?? LOCAL_SERVER);
+
+        if (!URL) {
+            print 'Your url must be set for Sockets';
+            exit(1);
+        }
+
+        \define('SITE', URL . DS);
+
+        #\define('URI', '');
+
         if (self::SSL) {
             $context = stream_context_create([
                 'ssl' => [
@@ -78,20 +108,17 @@ class Server
             $context = stream_context_create();
             $protocol = 'tcp';
         }
-        $socket = stream_socket_server("$protocol://" .$config['SOCKET']['HOST'] . ':' . $config['SOCKET']['PORT'], $errorNumber, $errorString, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, $context);
+        $socket = stream_socket_server($c = "$protocol://" . ($config['SOCKET']['HOST'] ?? '127.0.0.1') . ':' . $config['SOCKET']['PORT'], $errorNumber, $errorString, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, $context);
 
         if (!$socket) {
             print "$errorString ($errorNumber)<br />\n";
         }
 
-        new Carbon();
-        Session::pause();           // Close the current session
-        Database::setDatabase();    // This will clear the connection
-
         $sock_fd = [$socket];
+
         for (; ;) {                         // should
-            $clientList = $sock_fd;
             do {
+                $clientList = $sock_fd;
                 $number = stream_select($clientList, $write, $error, 5);
             } while (!$number);
 
@@ -99,69 +126,103 @@ class Server
             // we need to pop
             $connection = array_pop($clientList); // This is the users file descriptor linked to a unique process
 
-
-            if (($connection = stream_socket_accept($connection)) === false) {
+            if (($connection = stream_socket_accept($connection, ini_get("default_socket_timeout"), $peername)) === false) {
                 continue;
             }
 
-            if (!$this->handshake($connection) ) {              // attempt to send wss validation
-
-                // TODO - validate ip
-
-                @fclose($connection);                          // close any accepted connection if failure
+            if (!$this->handshake($connection)) {              // attempt to send wss validation
+                @fclose($connection);                          // close any accepted connection if failurephp /Users/richardmiles/Documents/WebServer/BiologyAnswers.org/Data/Vendors/richardtmiles/carbonphp/Structure/Server.php /Users/richardmiles/Documents/WebServer/BiologyAnswers.org/ /Users/richardmiles/Documents/WebServer/BiologyAnswers.org/Application/Config/Config.php
                 continue;
             }
-            if ($pid = pcntl_fork()) {                         // if parent restart looking for incomming connections
+
+            if (($pid = pcntl_fork()) > 0) {                     // if parent restart looking for incomming connections
                 continue;
             }
             if ($pid < 0) {
-                ErrorCatcher::generateCallTrace();  // log errors
+                ErrorCatcher::generateCallTrace();             // log errors
             }
-            \define('FORK', true);
 
-            $this($connection);     // pass connection to the invoke function
+            [$this->user_ip, $this->user_port] = explode(':', $peername);
+
+            $this->user = &$connection;
+
+            return;
         }
     }
 
-    public function __invoke($user)
+    public function serve($connection)
     {
-        // We need std out and the users socket address
-        $stdin = fopen('php://stdin', 'wb');       // why.. cli?
+        if (!\is_resource($connection)) {
+            print 'Failed to handle user connection';
+            die(1);
+        }
 
-        $fifoFile = Pipe::named(SERVER_ROOT . 'Data/Temp/' . $_SESSION['id'] . '.fifo');     // other users can notify us to update our application through this file
+        new Session($this->user_ip, true, false);  // todo - default to storing on db
+
+        $fifoFile = Pipe::named(SERVER_ROOT . 'Data/Temp/' . session_id() . '.fifo');     // other users can notify us to update our application through this file
+
+        Session::pause();           // Close the current session
+
+        Database::setDatabase();    // This will clear the connection
+
+        $read = [$this->user, $fifoFile];
+
+        $run = function ($url) {
+            ob_start();
+            $_SERVER["REQUEST_URI"] = $url;
+            startApplication($url);
+            $buff = ob_get_clean();
+            @fwrite($connection, $this->encode($buff));
+        };
 
         while (true) {
-            $read = [$stdin, $fifoFile];
             do {
+                $read = [$this->user, $fifoFile];
                 $mod_fd = stream_select($read, $_w, $_e, 5);  // returns number of file descriptors modified
             } while (!$mod_fd);
 
             foreach ($read as $connection) {
+
                 if ($connection === $fifoFile) { // accepting a new connection?
+
+                    $data = fread($fifoFile, $bytes = 1024);
+
+                    $data = explode(PHP_EOL, $data);
+
+                    foreach ($data as $id => $uri) {
+
+                        if (!empty($uri)) {
+
+                            if (pcntl_fork() === 0) {
+
+                                \Carbon\Session::resume();
+
+                                $run(trim($uri));
+
+                                print "Update :: $uri \n";
+
+                                startApplication($uri); // will DO NOT exit in view
+
+                                exit(1);    // but if we decide to change that...  (we decided to change that!)
+                            }
+                        }
+                    }
 
                 } else {
                     $data = $this->decode($connection);
 
-                    var_dump($data);
-
                     switch ($data['opcode']) {
                         case self::CLOSE:
-                            $key_to_del = array_search($connection, $master, false);
-                            @fclose($connection);
-                            unset($master[$key_to_del]);
+                            @fclose($user);
+                            exit(1);
                             break;
                         case self::PING :
                             @fwrite($connection, $this->encode('', self::PONG));
                             break;
                         case self::TEXT:
-                            print 'The client has sent :';
-                            var_dump($data['payload']);
-                            @fwrite($connection, $this->encode([
-                                'type' => 'usermsg',
-                                'name' => $data['payload']->name,
-                                'message' => $data['payload']->message,
-                                'color' => $data['payload']->color
-                            ]));
+                            if ($data['payload'] = $this->set($data['payload'])->noHTML(true)) {
+                                $run($data['payload']);
+                            }
                             break;
                         default:
                             break;
@@ -175,6 +236,7 @@ class Server
     {
         $headers = [];
         $lines = preg_split("/\r\n/", @fread($socket, 4096));
+
         foreach ($lines as $line) {
             $line = rtrim($line);
             if (preg_match('/\A(\S+): (.*)\z/', $line, $matches)) {
@@ -227,6 +289,7 @@ class Server
         }
         $out = [];
         $read = @fread($socket, 1);
+
         if (empty($read)) {
             return [
                 'opcode' => self::CLOSE,
@@ -313,5 +376,25 @@ class Server
 }
 
 
-new Server($argv[1]);
+$socket = new Server($opts);
 
+
+$socket->serve($socket->user);
+
+/*
+ *
+
+if ($pid = pcntl_fork()) {                         // if parent restart looking for incomming connections
+                continue;
+            }
+            if ($pid < 0) {
+                ErrorCatcher::generateCallTrace();  // log errors
+            }
+
+            [$ip, $port] = explode(':', $peername);
+
+            if (!defined('IP')) {
+                define('IP', $ip);
+            }
+}
+ */
