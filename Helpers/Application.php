@@ -115,7 +115,7 @@ namespace {                                     // This runs the following code 
      */
     function catchErrors(callable $lambda): callable
     {
-        return function (...$argv) use ($lambda) : bool {
+        return function (...$argv) use ($lambda) {
             try {
                 $argv = \call_user_func_array($lambda, $argv);
             } catch (Exception | Error $e) {
@@ -126,7 +126,7 @@ namespace {                                     // This runs the following code 
                 $argv = true;
             } finally {
                 Entities::verify();     // Check that all database commit chains have finished successfully, otherwise attempt to remove
-                return (bool) $argv;
+                return $argv;
             }
         };
     }
