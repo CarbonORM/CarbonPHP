@@ -87,7 +87,7 @@ function CarbonJS(selector, address, options) {
 
     // PJAX Forum Request
     $(document).on('submit', 'form[data-pjax]', (event) => {
-        $(selector).hide();
+        $(selector).innerHTML = '';
         $.pjax.submit(event, selector)
     });
 

@@ -9,7 +9,7 @@ namespace {                                     // This runs the following code 
     use Carbon\Session;                         //  Automatically stores session
     use Carbon\Request;                         //  Sterilizes input
     use Carbon\Route;                           //  Easily route app
-    use Carbon\View;                                     //  Seamlessly include the DOM
+    use Carbon\View;                            //  Seamlessly include the DOM
 
 
     /** Start application will start the registered bootstrap from line one.
@@ -110,13 +110,12 @@ namespace {                                     // This runs the following code 
     }
 
     /** Attempt to safely catch errors and public alerts in a closure
-     *  TODO - Should we disable our error catcher before execution, I think yes
      * @param callable $lambda
      * @return callable
      */
     function catchErrors(callable $lambda): callable
     {
-        return function (...$argv) use ($lambda) {
+        return function (...$argv) use ($lambda) : bool {
             try {
                 $argv = \call_user_func_array($lambda, $argv);
             } catch (Exception | Error $e) {
@@ -124,9 +123,10 @@ namespace {                                     // This runs the following code 
                     ErrorCatcher::generateLog($e);
                     PublicAlert::danger('Developers make mistakes, and you found a big one. We\'ve logged this event and will be investigating soon.'); // TODO - Change what is logged
                 }
+                $argv = true;
             } finally {
                 Entities::verify();     // Check that all database commit chains have finished successfully, otherwise attempt to remove
-                return $argv;
+                return (bool) $argv;
             }
         };
     }
@@ -135,7 +135,7 @@ namespace {                                     // This runs the following code 
     /**Stands for Controller -> Model .
      *
      * This will run the controller/$class.$method().
-     * If the method returns true the model/$class.$method() will be
+     * If the method returns !empty() the model/$class.$method() will be
      * invoked. If an array is returned from the controller its values
      * will be passed as parameters to our model.
      * @link http://php.net/manual/en/function.call-user-func-array.php
@@ -154,7 +154,7 @@ namespace {                                     // This runs the following code 
         $method = strtolower($method);          // Prevent malformed method names
 
         // Make sure our class exists
-        if (!class_exists($controller, true) || !class_exists($model, true)) {
+        if (!class_exists($controller) || !class_exists($model)) {
             throw new InvalidArgumentException("Invalid Class {$class} Passed to MVC");
         }
         // the array $argv will be passed as arguments to the method requested, see link above
@@ -163,7 +163,7 @@ namespace {                                     // This runs the following code 
         };
 
         return catchErrors(function () use ($exec, $controller, $model, $argv) {
-            if ($argv = $exec($controller, $argv)) {
+            if (!empty($argv = $exec($controller, $argv))) {
                 return $exec($model, $argv);
             }
             return $argv;
@@ -193,7 +193,9 @@ namespace {                                     // This runs the following code 
      */
     function MVC(string $class, string $method, array &$argv = [])
     {
-        CM($class, $method, $argv);  // Controller -> Model
+        if (false === CM($class, $method, $argv)) {  // Controller -> Model
+            return false;
+        }
 
         // This could cache or send
         $file = APP_VIEW . "$class/$method";
@@ -210,7 +212,8 @@ namespace {                                     // This runs the following code 
     function alert($string = 'Stay woke')
     {
         static $count = 0;
-        print "<script>alert('( #" . ++$count . " )  $string')</script>";
+        ++$count;
+        print "<script>alert('(#$count)  $string')</script>";
     }
 
     /** Prots the javascript console.log() function
@@ -222,7 +225,7 @@ namespace {                                     // This runs the following code 
         ob_start();
         echo $data;
         $report = ob_get_clean();
-        $file = fopen(REPORTS . '/Log_' . time() . '.log', "a");
+        $file = fopen(REPORTS . '/Log_' . time() . '.log', 'ab');
         fwrite($file, $report);
         fclose($file);
         echo '<script>console.log(\'' . json_encode($data) . '\')</script>';
@@ -265,9 +268,9 @@ namespace {                                     // This runs the following code 
 
         // Generate Report
         ob_start();
-        echo '####################### VAR DUMP ########################<br><pre>';
+        print '####################### VAR DUMP ########################<br><pre>';
         var_dump($mixed);
-        echo '</pre><br><br><br>';
+        print '</pre><br><br><br>';
         if ($fullReport) {
             echo '####################### MIXED DUMP ########################<br><pre>';
             $mixed = (is_array($mixed) && count($mixed) == 1 ? array_pop($mixed) : $mixed);
@@ -277,7 +280,7 @@ namespace {                                     // This runs the following code 
             echo '####################### BACK TRACE ########################<br><pre>';
             var_dump(debug_backtrace());
             echo '</pre>';
-        };
+        }
 
         $report = ob_get_clean();
 
@@ -288,8 +291,13 @@ namespace {                                     // This runs the following code 
         print $report . PHP_EOL;
 
         // Output to browser
-        if (AJAX) echo $report;
-        else View::$bufferedContent = base64_encode($report);
-        if ($die) exit(1);
+        if (AJAX) {
+            print $report;
+        } else {
+            View::$bufferedContent = base64_encode($report);
+        }
+        if ($die) {
+            exit(1);
+        }
     }
 }

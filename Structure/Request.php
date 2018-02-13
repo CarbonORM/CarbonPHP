@@ -42,7 +42,11 @@ class Request   // requires carbon::application;
 
         if (isset($_SESSION['Cookies']) && \is_array($_SESSION['Cookies'])) {
             foreach ($_SESSION['Cookies'] as $key => $array) {
-                static::setCookie($key, $array[0] ?? null, $array[1] ?? null);
+                if ($array[1] ?? false) {
+                    static::setCookie($key, $array[0] ?? null, $array[1]);
+                } else {
+                    static::setCookie($key, $array[0] ?? null);
+                }
             }
         }
 
@@ -65,7 +69,7 @@ class Request   // requires carbon::application;
         if (headers_sent()) {
             $_SESSION['Cookies'][] = [$key => [$value, $time]];
         } else {
-            setcookie($key, $value, time() + $time, '/', $_SERVER['SERVER_NAME'], isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off', true);
+            setcookie($key, $value, time() + $time, '/', SITE, HTTPS, true);
         }
     }
 
@@ -75,7 +79,7 @@ class Request   // requires carbon::application;
      */
     public function clearCookies(): void
     {
-        $all = array_keys(is_array($_COOKIE) ? $_COOKIE : []);
+        $all = array_keys(\is_array($_COOKIE) ? $_COOKIE : []);
         foreach ($all as $key => $value) {
             static::setCookie($value);
         }

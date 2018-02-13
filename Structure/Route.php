@@ -26,7 +26,7 @@ abstract class Route
      */
     public $uriLength;
     /**
-     * @var bool|string $matched will equal "weMatched" if the
+     * @var bool|string $matched will equal "true" if the
      * current state has not executed a lambda function in response.
      * If a function has been executed the value of matched will be
      * true;
@@ -51,7 +51,7 @@ abstract class Route
     /**
      * Will be run when the active object is destroyed. If the
      * $matched variable is false then our default route will be
-     * executed. If matched is set to "weMatched", indicating that
+     * executed. If matched is set to "true", indicating that
      * no callable has been run, no errors or warnings will be printed.
      * This is by design.
      */
@@ -149,7 +149,7 @@ abstract class Route
 
             switch ($arrayToMatch[$i][0]) {
                 case  '*':
-                    $this->matched = 'weMatched';
+                    $this->matched = true;
                     $referenceVariables = [];
 
                     foreach ($variables as $key => $value) {
@@ -170,9 +170,7 @@ abstract class Route
                     if (\is_callable($this->closure)) {
                         $argv[] = &$referenceVariables;
                         $this->addMethod('routeMatched', $this->closure);
-                        if (\call_user_func_array($this->methods['routeMatched'], $argv) === false) {
-                            throw new PublicAlert('Bad Arguments Passed to Route::match()');
-                        }
+                        \call_user_func_array($this->methods['routeMatched'], $argv);
                         return $this;
                     }
                     return $this;
