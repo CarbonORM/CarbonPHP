@@ -36,26 +36,24 @@ class Request   // requires carbon::application;
      */
     public static function sendHeaders(): void
     {
-        if (SOCKET || headers_sent()) {
-            return;
-        }
-
-        if (isset($_SESSION['Cookies']) && \is_array($_SESSION['Cookies'])) {
-            foreach ($_SESSION['Cookies'] as $key => $array) {
-                if ($array[1] ?? false) {
-                    static::setCookie($key, $array[0] ?? null, $array[1]);
-                } else {
-                    static::setCookie($key, $array[0] ?? null);
+        if (!(SOCKET || headers_sent())) {
+            if (isset($_SESSION['Cookies']) && \is_array($_SESSION['Cookies'])) {
+                foreach ($_SESSION['Cookies'] as $key => $array) {
+                    if ($array[1] ?? false) {
+                        static::setCookie($key, $array[0] ?? null, $array[1]);
+                    } else {
+                        static::setCookie($key, $array[0] ?? null);
+                    }
                 }
             }
-        }
 
-        if (isset($_SESSION['Headers']) && \is_array($_SESSION['Headers'])) {
-            foreach ($_SESSION['Headers'] as $value) {
-                static::setHeader($value);
+            if (isset($_SESSION['Headers']) && \is_array($_SESSION['Headers'])) {
+                foreach ($_SESSION['Headers'] as $value) {
+                    static::setHeader($value);
+                }
             }
+            unset($_SESSION['Cookies'], $_SESSION['Headers']);
         }
-        unset($_SESSION['Cookies'], $_SESSION['Headers']);
     }
 
     /** Cookies are a pain to set up as they also rely on headers not being sent.
@@ -92,13 +90,12 @@ class Request   // requires carbon::application;
      */
     public static function setHeader(string $string): void
     {
-        if (\defined('SOCKET') && SOCKET) {
-            return;
-        }
-        if (headers_sent()) {
-            $_SESSION['Headers'][] = $string;
-        } else {
-            header($string);
+        if (!(\defined('SOCKET') && SOCKET)) {
+            if (headers_sent()) {
+                $_SESSION['Headers'][] = $string;
+            } else {
+                header($string);
+            }
         }
     }
 

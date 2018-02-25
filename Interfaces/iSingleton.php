@@ -5,7 +5,7 @@ namespace Carbon\Interfaces;
 interface iSingleton
 {
 
-    public static function __callStatic($methodName, $arguments = array());
+    public static function __callStatic($methodName, array $arguments = array());
 
     public static function newInstance(...$args);
 
@@ -13,7 +13,7 @@ interface iSingleton
 
     public static function clearInstance() : void;
 
-    public function __call($methodName, $arguments = array());
+    public function __call($methodName, array $arguments = array());
 
     public function __wakeup();
 
@@ -22,19 +22,19 @@ interface iSingleton
 
     public function __destruct();
 
-    public function &__get($variable);
+    public function &__get(string $variable);
 
-    public function __set($variable, $value);
+    public function __set(string $variable, $value);
 
-    public function __isset($variable): bool;
+    public function __isset(string $variable): bool;
 
-    public function __unset($variable);
+    public function __unset(string $variable);
 
     public function __invoke();
 
     public function set(...$argv);
 
-    public function get($variable = null);
+    public function get(string $variable = null);
 
-    public function has($variable): bool;
+    public function has(string $variable): bool;
 }

@@ -207,8 +207,8 @@ abstract class Entities
         if (!$stmt->execute($execute) && !$stmt->execute($execute)) { // try it twice, you never know..
             return [];
         }
-        return (count($stmt = $stmt->fetchAll()) === 1 ?
-            (is_array($stmt['0']) ? $stmt['0'] : $stmt) : $stmt);   // promise this is needed and will still return the desired array
+        return (\count($stmt = $stmt->fetchAll()) === 1 ?
+            (\is_array($stmt['0']) ? $stmt['0'] : $stmt) : $stmt);   // promise this is needed and will still return the desired array
     }
 
     /** Quickly prepare and execute PDO $sql statements using

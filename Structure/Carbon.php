@@ -212,7 +212,8 @@ class Carbon
         \define('HTTP', !(HTTPS || SOCKET || AJAX));
 
         if (HTTP && !($PHP['SITE']['HTTP'] ?? true)) {
-            print '<h1>Failed to switch to https, please contact the server administrator.</h1>' and die;
+            print '<h1>Failed to switch to https, please contact the server administrator.</h1>';
+            die(0);
         }
 
         if (!AJAX) {
@@ -240,8 +241,8 @@ class Carbon
             }
         }
 
-        if (\is_array($PHP['SERIALIZE'] ?? false)) {
-            forward_static_call_array([Serialized::class, 'start'], $PHP['SERIALIZE']);    // Pull theses from session, and store on shutdown
+        if (\is_array($PHP['SESSION']['SERIALIZE'] ?? false)) {
+            forward_static_call_array([Serialized::class, 'start'], $PHP['SESSION']['SERIALIZE']);    // Pull theses from session, and store on shutdown
         }
         ################  Helpful Global Functions ####################
         if (file_exists(CARBON_ROOT . 'Helpers/Application.php') && !@include CARBON_ROOT . 'Helpers/Application.php') {

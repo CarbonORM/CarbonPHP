@@ -29,31 +29,33 @@ class View
      * @param string $file
      * @return bool
      */
-    public static function content(string $file) : bool
+    public static function content(string $file): bool
     {
-        $buffer = catchErrors(function () use ($file) : string {         // closure  $buffer();
+        $buffer = function () use ($file) : string {         // closure  $buffer();
 
             global $alert;              // Buffer contents may not need to be run if AJAX or SOCKET
 
             ob_start();                 // closure of a buffer is kinda like a double buffer
 
-            if (null !== $alert):
-                foreach ($alert as $level => $message)
-                    self::bootstrapAlert($message, $level);   // If a public alert is set it will be processed here.
+            if (\is_array($alert) && !empty($alert)) {
+                foreach ($alert as $level => $message) {
+                    self::bootstrapAlert($message, $level);
+                }   // If a public alert is set it will be processed here.
                 $alert = null;
-            endif;
+            }
 
-            if (!file_exists($file) && !file_exists($file = SERVER_ROOT . $file)):
+            if (!file_exists($file) && !file_exists($file = SERVER_ROOT . $file)) {
                 self::bootstrapAlert("The file ($file)requested could not be found.", 'danger');
-            else:
+            } else {
                 include $file;
-            endif;
-
+            }
             return ob_get_clean();
-        });
+        };
 
-        if (pathinfo($file, PATHINFO_EXTENSION) === 'hbs'):
+        if (pathinfo($file, PATHINFO_EXTENSION) === 'hbs') {
             global $json;
+            #sortDump($json);
+            $json['site'] = SITE;
             if (SOCKET || (!self::$forceWrapper && !PJAX && AJAX)) {
                 $json['Mustache'] = SITE . $file;
                 print json_encode($json) . PHP_EOL;
@@ -61,9 +63,13 @@ class View
             }
             $m = new \Mustache_Engine();
             $buffer = $m->render($buffer(), $json);
-        else:
+        } else {
             $buffer = $buffer();
-        endif;
+        }
+
+        if (!\is_string($buffer)) {
+            $buffer = "<script>Carbon(() => $.fn.bootstrapAlert('Content Buffer Failed ($file)', 'danger'))</script>";
+        }
 
         if (!self::$forceWrapper && (PJAX || AJAX)):
             print $buffer;
@@ -123,7 +129,7 @@ class View
      */
     public static function unVersion($uri)
     {
-        if (!\defined('SERVER_ROOT')){
+        if (!\defined('SERVER_ROOT')) {
             return DS . $uri;
         }
         if (preg_match('#^(.*)\.[\d]{10}\.(css|js)#', $uri, $matches, PREG_OFFSET_CAPTURE)) {
@@ -141,10 +147,10 @@ class View
      * @param $file
      * @param $ext
      */
-    public static function sendResource($file, $ext) : void
+    public static function sendResource($file, $ext): void
     {
         if ($mime = self::mimeType($file, $ext)) {
-            header("Content-type: " . $mime . "; charset: UTF-8");
+            header('Content-type:' . $mime . '; charset: UTF-8');
             readfile($file);
             exit(1);                        // exit = die  but implies success
         }
@@ -157,7 +163,7 @@ class View
      * @param $ext
      * @return string
      */
-    public static function mimeType($file, $ext) : string // TODO - Add the full list generator from stack overflow
+    public static function mimeType($file, $ext): string // TODO - Add the full list generator from stack overflow
     {
         /*
         finfo = finfo_open(FILEINFO_MIME_TYPE); // return mime type ala mimetype extension

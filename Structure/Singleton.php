@@ -52,8 +52,10 @@ trait Singleton
      * @param $methodName
      * @param array $arguments
      * @return Singleton|mixed
+     * @throws \ReflectionException
+     * @throws \InvalidArgumentException
      */
-    public static function __callStatic($methodName, $arguments = array())
+    public static function __callStatic($methodName, array $arguments = array())
     {
         return self::getInstance()->Skeleton($methodName, $arguments);
     }
@@ -61,6 +63,7 @@ trait Singleton
     /**
      * @param array ...$args
      * @return self
+     * @throws \ReflectionException
      */
     public static function newInstance(...$args): self
     {   // Start a new instance of the class and pass any arguments
@@ -74,6 +77,7 @@ trait Singleton
     /**
      * @param array ...$args
      * @return self
+     * @throws \ReflectionException
      */
     public static function getInstance(...$args): self
     {   // see if the class has already been called this run
@@ -94,7 +98,7 @@ trait Singleton
 
 
     /**
-     * @param self $object
+     * @param $object
      * @return self
      */
     public static function setInstance(self $object): self
@@ -115,6 +119,7 @@ trait Singleton
      * @param $methodName
      * @param array $arguments
      * @return Singleton|mixed
+     * @throws \InvalidArgumentException
      */
     public function __call($methodName, array $arguments = [])
     {

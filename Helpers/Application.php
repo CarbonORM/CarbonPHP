@@ -123,8 +123,11 @@ namespace {                                     // This runs the following code 
                     ErrorCatcher::generateLog($e);
                     PublicAlert::danger('Developers make mistakes, and you found a big one. We\'ve logged this event and will be investigating soon.'); // TODO - Change what is logged
                 }
-                $argv = true;
+                $argv = null;
             } finally {
+                if (ob_get_status()) {
+                    ob_end_clean(); // Attempt to remove any previous in-progress output buffers
+                }
                 Entities::verify();     // Check that all database commit chains have finished successfully, otherwise attempt to remove
                 return $argv;
             }
@@ -146,7 +149,7 @@ namespace {                                     // This runs the following code 
      * @return mixed          the returned value from model/$class.$method() or false | void
      * @throws Exception
      */
-    function CM(string &$class, string &$method, array &$argv = [])
+    function CM(string $class, string &$method, array &$argv = [])
     {
         $class = ucfirst(strtolower($class));   // Prevent malformed class names
         $controller = "Controller\\$class";     // add namespace for autoloader
@@ -154,17 +157,23 @@ namespace {                                     // This runs the following code 
         $method = strtolower($method);          // Prevent malformed method names
 
         // Make sure our class exists
+
         if (!class_exists($controller) || !class_exists($model)) {
-            throw new InvalidArgumentException("Invalid Class {$class} Passed to MVC");
+            throw new InvalidArgumentException("Invalid Class ({$class}) Passed to MVC");
         }
         // the array $argv will be passed as arguments to the method requested, see link above
-        $exec = function ($class, $argv) use ($method) {
-            return \call_user_func_array([new $class, "$method"], (array)$argv);
+        $exec = function &(string $class, array &$argv) use ($method) {
+            $argv = \call_user_func_array([new $class, "$method"], $argv);
+            return $argv;
         };
 
-        return catchErrors(function () use ($exec, $controller, $model, $argv) {
+        return catchErrors(function () use ($exec, $controller, $model, &$argv) {
             if (!empty($argv = $exec($controller, $argv))) {
-                return $exec($model, $argv);
+                if (\is_array($argv)) {
+                    return $exec($model, $argv);        // array passed
+                }
+                $controller = [&$argv];                 // allow return by reference
+                return $exec($model, $controller);
             }
             return $argv;
         })();
@@ -273,7 +282,7 @@ namespace {                                     // This runs the following code 
         print '</pre><br><br><br>';
         if ($fullReport) {
             echo '####################### MIXED DUMP ########################<br><pre>';
-            $mixed = (is_array($mixed) && count($mixed) == 1 ? array_pop($mixed) : $mixed);
+            $mixed = (\is_array($mixed) && \count($mixed) === 1 ? array_pop($mixed) : $mixed);
             echo '<pre>';
             debug_zval_dump($mixed ?: $GLOBALS);
             echo '</pre><br><br>';
