@@ -91,6 +91,16 @@ abstract class Route
         }
     }
 
+    /**
+     * @param string $uri
+     */
+    public function changeURI(string $uri) : void
+    {
+        $this->uri = explode('/', $uri = trim($uri, '/'));
+        $this->uriLength = substr_count($uri, '/') + 1;
+        $this->matched = false;
+    }
+
     /** This will return the current value of $this->matched.
      * Added to allow us to quickly check the status using the
      * (string) type cast
@@ -126,7 +136,6 @@ abstract class Route
         $this->storage = $argv;  // This is for home route function (singleton)
 
         $uri = $this->uri;
-
 
         $arrayToMatch = explode('/', trim($pathToMatch, '/'));
 

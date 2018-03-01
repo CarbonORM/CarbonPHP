@@ -2,6 +2,7 @@
 
 namespace {                                     // This runs the following code in the global scope
 
+    use App\Bootstrap;
     use Carbon\Error\ErrorCatcher;              //  Catches development errors
     use Carbon\Error\PublicAlert;               //  Displays alerts nicely
     use Carbon\Entities;                        //  Manages table relations
@@ -30,12 +31,15 @@ namespace {                                     // This runs the following code 
      */
     function startApplication($reset = false): bool
     {
+        $app = Bootstrap::getInstance();
+
         if ($reset):                                    // This will always be se in a socket
             if ($reset === true):
                 View::$forceWrapper = true;
-                Request::changeURI('/');         // Dynamically using pjax + headers
+                Request::changeURI($uri = '/');         // Dynamically using pjax + headers
+
             else:
-                Request::changeURI($reset);
+                Request::changeURI($uri = $reset);
             endif;
             $reset = true;
             $_POST = [];                      // Only PJAX + AJAX can post
@@ -43,10 +47,7 @@ namespace {                                     // This runs the following code 
 
         Session::update($reset);              // Check wrapper / session callback
 
-        if (!\defined('BOOTSTRAP') || !file_exists(BOOTSTRAP)) {
-            print 'You must define a route in your configuration. Visit CarbonPHP.com for Documentation.' and die;
-        }
-        return include BOOTSTRAP;  // Routing file
+        return $app($uri ?? null);  // Routing file
     }
 
     /** This extends the PHP's built-in highlight function to highlight
@@ -167,7 +168,7 @@ namespace {                                     // This runs the following code 
             return $argv;
         };
 
-        return catchErrors(function () use ($exec, $controller, $model, &$argv) {
+        return (function () use ($exec, $controller, $model, &$argv) {
             if (!empty($argv = $exec($controller, $argv))) {
                 if (\is_array($argv)) {
                     return $exec($model, $argv);        // array passed

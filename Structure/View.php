@@ -28,9 +28,12 @@ class View
     /**
      * @param string $file
      * @return bool
+     * @throws \Mustache_Exception_InvalidArgumentException
      */
     public static function content(string $file): bool
     {
+        global $json;
+
         $buffer = function () use ($file) : string {         // closure  $buffer();
 
             global $alert;              // Buffer contents may not need to be run if AJAX or SOCKET
@@ -53,7 +56,8 @@ class View
         };
 
         if (pathinfo($file, PATHINFO_EXTENSION) === 'hbs') {
-            global $json;
+            $mustache = new \Mustache_Engine();
+
             #sortDump($json);
             $json['site'] = SITE;
             if (SOCKET || (!self::$forceWrapper && !PJAX && AJAX)) {
@@ -61,8 +65,7 @@ class View
                 print json_encode($json) . PHP_EOL;
                 return true;
             }
-            $m = new \Mustache_Engine();
-            $buffer = $m->render($buffer(), $json);
+            $buffer = $mustache->render($buffer(), $json);
         } else {
             $buffer = $buffer();
         }
@@ -73,6 +76,11 @@ class View
 
         if (!self::$forceWrapper && (PJAX || AJAX)):
             print $buffer;
+
+        elseif (pathinfo(self::$wrapper, PATHINFO_EXTENSION) === 'hbs'):
+            $json['content'] = $buffer;
+            $mustache = $mustache ?? new \Mustache_Engine();
+            print $mustache->render(file_get_contents(self::$wrapper), $json);
         else:
             self::$bufferedContent = $buffer;
             include_once self::$wrapper;
