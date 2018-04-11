@@ -1,6 +1,7 @@
 <?php
 
 namespace Carbon;
+
 use Carbon\Helpers\Serialized;
 
 /**
@@ -24,11 +25,12 @@ class Carbon
 
     /** If safely exit is false run startApplication(), otherwise return $safelyExit
      * @link http://php.net/manual/en/language.oop5.magic.php#object.invoke
+     * @param null $reset
      * @return bool
      */
-    public function __invoke()
+    public function __invoke($reset = null)
     {
-        return $this->safelyExit ?: startApplication();
+        return $this->safelyExit ?: startApplication($reset);
     }
 
     /**
@@ -79,9 +81,14 @@ class Carbon
      *          'WRAPPER' => string '',         // View::content() will produce this
      *      ],
      * ]
+     * @throws \Exception
      */
     public function __construct(string $PHP = null)
     {
+        if (!defined('SOCKET')) {
+            define('SOCKET', false);
+        }
+
         ####################  Did we use $ php -S localhost:8080 index.php
         \define('APP_LOCAL', $this->isClientServer());
 
@@ -89,7 +96,7 @@ class Carbon
             \define('SERVER_ROOT', CARBON_ROOT);
         }
 
-        if (file_exists(SERVER_ROOT . $PHP)) {
+        if (file_exists($PHP)) {
             $PHP = include $PHP;
         }
 
@@ -144,26 +151,26 @@ class Carbon
         // More cache control is given in the .htaccess File
         Request::setHeader('Cache-Control:  must-revalidate');
 
+
+
         #################   SOCKET AND SYNC    #######################
-        if (!\defined('SOCKET')) {
+        if (!SOCKET && ($PHP['SOCKET'] ?? false) && !getservbyport($PHP['SOCKET']['PORT'] ?? 8888, 'tcp')) {
 
-            \define('SOCKET', false);
-
-            if (($PHP['SOCKET'] ?? false) && getservbyport($PHP['SOCKET']['PORT'] ?? 8888, 'tcp')) {
-                if (($PHP['SOCKET']['WEBSOCKETD'] ?? false) === true) {
-                    $CMD = '/usr/local/bin/websocketd --port=' . ($PHP['SOCKET']['PORT'] ?? 8888) . ' ' .
-                        (($PHP['SOCKET']['DEV'] ?? false) ? '--devconsole ' : '') .
-                        (($PHP['SOCKET']['SSL'] ?? false) ? "--ssl --sslkey={$PHP['SOCKET']['SSL']['KEY']} --sslcert={$PHP['SOCKET']['SSL']['CERT']} " : ' ') .
-                        'php '. CARBON_ROOT .  'Extras' . DS . 'Websocketd.php '. SERVER_ROOT . ' ' . ($PHP['SITE']['CONFIG'] ?? SERVER_ROOT) . ' 2>&1';
-
-                } else {
-                    $CMD = 'php '. CARBON_ROOT . 'Structure' . DS . 'Server.php ' . SERVER_ROOT . ' ' . ($PHP['SITE']['CONFIG'] ?? SERVER_ROOT);
-                }
-
-                Helpers\Fork::become_daemon(function () use ($CMD) {`$CMD`;});
-
-                #print $CMD;
+            if (($PHP['SOCKET']['WEBSOCKETD'] ?? false) === true) {
+                $CMD = '/usr/bin/websocketd --port=' . ($PHP['SOCKET']['PORT'] ?? 8888) . ' ' .
+                    (($PHP['SOCKET']['DEV'] ?? false) ? '--devconsole ' : '') .
+                    (($PHP['SOCKET']['SSL'] ?? false) ? "--ssl --sslkey={$PHP['SOCKET']['SSL']['KEY']} --sslcert={$PHP['SOCKET']['SSL']['CERT']} " : ' ') .
+                    'php ' . CARBON_ROOT . 'Extras' . DS . 'Websocketd.php ' . SERVER_ROOT . ' ' . ($PHP['SITE']['CONFIG'] ?? SERVER_ROOT) . ' 2>&1';
+            } else {
+                $CMD = 'php ' . CARBON_ROOT . 'Structure' . DS . 'Server.php ' . ($PHP['SITE']['CONFIG'] ?? SERVER_ROOT);
             }
+
+            Helpers\Fork::become_daemon(function () use ($CMD) {
+                `$CMD`;
+            });
+
+            print $CMD;
+            die;
         }
 
         #################  DATABASE  ########################
@@ -174,10 +181,10 @@ class Carbon
             Database::$setup = $PHP['DATABASE']['DB_BUILD'] ?? '';
         }
 
-        ##################  VALIDATE URL / URI ##################
-        // Even if a request is bad, we need to store the log
+##################  VALIDATE URL / URI ##################
+// Even if a request is bad, we need to store the log
 
-        if (!APP_LOCAL) {
+        if (!\defined('IP')) {
             $this->IP_FILTER();
         }
 
@@ -187,7 +194,7 @@ class Carbon
             Database::setUp(false);   // redirect = false
             exit(1);                  //
         }
-        #################  SITE  ########################
+#################  SITE  ########################
         if ($PHP['SITE'] ?? false) {
             \define('BOOTSTRAP', SERVER_ROOT . $PHP['SITE']['BOOTSTRAP'] ?? '');          // Routing file
 
@@ -200,11 +207,11 @@ class Carbon
             \define('REPLY_EMAIL', $PHP['REPLY_EMAIL'] ?? '');                               // I give you options :P
         }
 
-        #######################   Pjax Ajax Refresh  ######################
-        // Must return a non empty value
+#######################   Pjax Ajax Refresh  ######################
+// Must return a non empty value
         \define('PJAX', SOCKET ? false : isset($_GET['_pjax']) || (isset($_SERVER['HTTP_X_PJAX']) && $_SERVER['HTTP_X_PJAX']));
 
-        // (PJAX == true) return required, else (!PJAX && AJAX) return optional (socket valid)
+// (PJAX == true) return required, else (!PJAX && AJAX) return optional (socket valid)
         \define('AJAX', SOCKET ? false : PJAX || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'));
 
         \define('HTTPS', SOCKET ? false : $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? false) === 'https' || (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
@@ -220,14 +227,14 @@ class Carbon
             $_POST = []; // We only allow post requests through ajax/pjax
         }
 
-        #######################   VIEW             #####################
+#######################   VIEW             #####################
         \define('APP_VIEW', $PHP['VIEW']['VIEW'] ?? '/');         // Public Folder
 
         View::$wrapper = SERVER_ROOT . APP_VIEW . $PHP['VIEW']['WRAPPER'] ?? '';
 
-        ########################  Session Management ######################
+########################  Session Management ######################
 
-        if (!SOCKET && ($PHP['SESSION'] ?? true)) {
+        if (($PHP['SESSION'] ?? true)) {
             if ($PHP['SESSION']['PATH'] ?? false) {
                 session_save_path($PHP['SESSION']['PATH'] ?? '');   // Manually Set where the Users Session Data is stored
             }
@@ -244,7 +251,7 @@ class Carbon
         if (\is_array($PHP['SESSION']['SERIALIZE'] ?? false)) {
             forward_static_call_array([Serialized::class, 'start'], $PHP['SESSION']['SERIALIZE']);    // Pull theses from session, and store on shutdown
         }
-        ################  Helpful Global Functions ####################
+################  Helpful Global Functions ####################
         if (file_exists(CARBON_ROOT . 'Helpers/Application.php') && !@include CARBON_ROOT . 'Helpers/Application.php') {
             print '<h1>Your instance of CarbonPHP appears corrupt. Please see CarbonPHP.com for Documentation.</h1>';
             die(1);
@@ -257,9 +264,14 @@ class Carbon
      * otherwise returns false.
      * @return bool|mixed|string
      */
-    private function isClientServer()
+    private
+    function isClientServer()
     {
-        if (PHP_SAPI === 'cli-server' ||  PHP_SAPI === 'cli' || \in_array($_SERVER['REMOTE_ADDR'] ?? [], ['127.0.0.1', 'fe80::1', '::1'], false)) {
+        if (PHP_SAPI === 'cli-server' || PHP_SAPI === 'cli' || \in_array($_SERVER['REMOTE_ADDR'] ?? [], ['127.0.0.1', 'fe80::1', '::1'], false)) {
+            if (SOCKET) {
+                \define('IP', filter_var($_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE));
+                return false;
+            }
             \define('IP', '127.0.0.1');
             return IP;
         }
@@ -276,9 +288,10 @@ class Carbon
      * operator denoting allowed file extensions.
      * @return bool
      */
-    private function URI_FILTER(string $URL, string $allowedEXT = 'jpg|png') : bool
+    private
+    function URI_FILTER(string $URL, string $allowedEXT = 'jpg|png'): bool
     {
-        if (!empty($URL=strtolower($URL)) && $_SERVER['SERVER_NAME'] !== $URL && !APP_LOCAL) {
+        if (!empty($URL = strtolower($URL)) && $_SERVER['SERVER_NAME'] !== $URL && !APP_LOCAL) {
             print IP . '<h1>You appear to be lost.</h1><h2>Moving to ' . $URL . '</h2>';
             print "<script>window.location.type = $URL</script>";
             $this->safelyExit = true;
@@ -295,7 +308,7 @@ class Carbon
 
 
         // It does not matter if this matches, we will take care of that in the next if.
-        preg_match("#^(.*\.)($allowedEXT)\?*.*#",URI, $matches, PREG_OFFSET_CAPTURE);
+        preg_match("#^(.*\.)($allowedEXT)\?*.*#", URI, $matches, PREG_OFFSET_CAPTURE);
         // So if the request has an extension that's not allowed we ignore it and keep processing as a valid route
 
         $ext = $matches[2][0] ?? '';    // routes should be null
@@ -320,7 +333,8 @@ class Carbon
      * @link http://blackbe.lt/advanced-method-to-obtain-the-client-ip-in-php/
      * @return mixed|string
      */
-    private function IP_FILTER()
+    private
+    function IP_FILTER()
     {
         $ip_keys = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR');
         foreach ($ip_keys as $key) {

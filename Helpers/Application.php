@@ -37,7 +37,6 @@ namespace {                                     // This runs the following code 
             if ($reset === true):
                 View::$forceWrapper = true;
                 Request::changeURI($uri = '/');         // Dynamically using pjax + headers
-
             else:
                 Request::changeURI($uri = $reset);
             endif;
@@ -47,7 +46,7 @@ namespace {                                     // This runs the following code 
 
         Session::update($reset);              // Check wrapper / session callback
 
-        return $app($uri ?? null);  // Routing file
+        return $app->startApplication($uri ?? null);  // Routing file
     }
 
     /** This extends the PHP's built-in highlight function to highlight
@@ -168,7 +167,7 @@ namespace {                                     // This runs the following code 
             return $argv;
         };
 
-        return (function () use ($exec, $controller, $model, &$argv) {
+        return (function () use ($exec, $controller, $model, &$argv) {          // TODO - this is where catch Errors is / goes
             if (!empty($argv = $exec($controller, $argv))) {
                 if (\is_array($argv)) {
                     return $exec($model, $argv);        // array passed
@@ -223,7 +222,7 @@ namespace {                                     // This runs the following code 
     {
         static $count = 0;
         ++$count;
-        print "<script>alert('(#$count)  $string')</script>";
+        print "<script>alert('(#$count)  $string')</script>\n";
     }
 
     /** Prots the javascript console.log() function
@@ -238,7 +237,7 @@ namespace {                                     // This runs the following code 
         $file = fopen(REPORTS . '/Log_' . time() . '.log', 'ab');
         fwrite($file, $report);
         fclose($file);
-        echo '<script>console.log(\'' . json_encode($data) . '\')</script>';
+        print '<script>console.log(\'' . json_encode($data) . '\')</script>' . PHP_EOL;
     }
 
     /** Output all parameters given neatly to the screen and continue execution.

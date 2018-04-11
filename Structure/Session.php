@@ -41,6 +41,7 @@ class Session implements \SessionHandlerInterface
      * Session constructor. This
      * @param null $ip
      * @param bool $dbStore
+     * @param bool $verifySocket
      */
     public function __construct($ip = null, $dbStore = false, $verifySocket = true)
     {
@@ -172,19 +173,29 @@ class Session implements \SessionHandlerInterface
         if ($ip) {
             $_SERVER['REMOTE_ADDR'] = $ip;
         }
+
+        preg_match ('#PHPSESSID=([^;\s]+)#', $_SERVER['HTTP_COOKIE'], $array, PREG_OFFSET_CAPTURE);
+
+        $session_id = $array[1][0] ?? false;
+
+        if (!$session_id) {
+            print 'Failed to capture PHPSESSID' . PHP_EOL;
+            die(1);
+        }
+
         $db = Database::database();
-        $sql = 'SELECT session_id FROM sessions WHERE user_ip = ?';
+        $sql = 'SELECT count(*) FROM sessions WHERE user_ip = ? AND session_id = ? LIMIT 1';
         $stmt = $db->prepare($sql);
-        $stmt->execute([$_SERVER['REMOTE_ADDR']]);
+        $stmt->execute([$_SERVER['REMOTE_ADDR'], $session_id]);
         $session = $stmt->fetchColumn();
-        self::$session_id = $session;
-        if (empty($session)) {
+        self::$session_id = $session_id;
+        if (!$session) {
             if (SOCKET) {
                 print 'BAD ADDRESS :: ' . $_SERVER['REMOTE_ADDR'] . "\n\n";
             }
-            exit(0);
+            die(0);
         }
-        session_id($session);
+        session_id($session_id);
     }
 
     /** This is required for the session save handler interface.

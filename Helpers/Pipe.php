@@ -36,11 +36,18 @@ class Pipe
         if (file_exists($fifoPath)) {
             unlink($fifoPath);          // We are always the master, hopefully we'll catch the kill this time
         }
-        posix_mkfifo($fifoPath, 0644);                    // create a named pipe
 
-        //$user = get_current_user();                           // get current process user
 
-        //exec("chown -R {$user}:{$user} $fifoPath");           // We need to modify the permissions so users can write to it
+        umask(0000);
+
+        if (!posix_mkfifo($fifoPath, 0666)) {
+            print 'Failed to create named Pipe' . PHP_EOL;
+            return null;
+        }                   // create a named pipe 0644
+
+        $user = get_current_user();                    // get current process user
+
+        //exec("chown -R {$user} $fifoPath");    // We need to modify the permissions so users can write to it
 
         $fifoFile = fopen($fifoPath, 'rb+');              // Now we open the named pipe we Already created
 
@@ -57,23 +64,27 @@ class Pipe
      * @param string $fifoPath
      * @return bool
      */
-    public static function send(string $value, string $fifoPath) : bool
+    public static function send(string $value, string $fifoPath): bool
     {
+
         try {
             if (!file_exists($fifoPath)) {
                 return false; //sortDump('Fuck me!'); // if it does
             }
-            posix_mkfifo($fifoPath, 0644);
 
-            //$user = get_current_user();                                // get current process user
+            umask(0000);
 
-            //exec("chown -R {$user}:{$user} $fifoPath");    // We need to modify the permissions so users can write to it
+            posix_mkfifo($fifoPath, 0666);              // TODO - don't be a dumbass, start sockets in config
 
-            # sortDump(substr(sprintf('%o', fileperms($fifoPath)), -4) . PHP_EOL);  -- file permissions
+            # $user = get_current_user();                    // get current process user
+
+            // exec("chown -R {$user}:{$user} $fifoPath");    // We need to modify the permissions so users can write to it
+
+            #sortDump(substr(sprintf('%o', fileperms($fifoPath)), -4) . PHP_EOL);  //-- file permissions
 
             $value .= PHP_EOL; // safely send, dada needs to end in null
 
-            $fifo = fopen($fifoPath, 'rb+');
+            $fifo = fopen($fifoPath, 'wb+');
 
             fwrite($fifo, $value, \strlen($value) + 1);
 
@@ -81,6 +92,7 @@ class Pipe
         } catch (\Exception $e) {
             ErrorCatcher::generateLog($e);
         }
+        return true;
     }
 }
 

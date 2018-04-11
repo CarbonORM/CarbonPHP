@@ -46,7 +46,7 @@ class Database
             error_reporting(0);
             self::$database->prepare('SELECT 1');     // This has had a history of causing spotty error.. if this is the location of your error, you should keep looking...
             error_reporting(ErrorCatcher::$level);
-            return static::$database;
+            return static::$database;                       // Why should this work again?
         } catch (\Error | \Exception | \PDOException $e) {                       // added for socket support
             error_reporting(ErrorCatcher::$level);
             return static::reset();
@@ -75,6 +75,8 @@ class Database
         do {
             try {
                 return $prep(@new PDO(static::$dsn, static::$username, static::$password));
+
+
 
             } catch (\PDOException $e) {
 

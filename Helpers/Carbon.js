@@ -24,7 +24,9 @@ function CarbonJS(selector, address, options) {
 
     //-- Bootstrap Alert -->
     $.fn.bootstrapAlert = (message, level) => {
-        if (level === null) level = 'info';
+        if (!$.fn.isset(level)) {
+            level = 'info';
+        }
         let container,node = document.createElement("DIV"), text;
         text = level.charAt(0).toUpperCase() + level.slice(1);
         container = selector + " div#alert";
@@ -71,23 +73,30 @@ function CarbonJS(selector, address, options) {
             document.fireEvent("on" + event.eventType, event);
     };
 
-    $(document).on('submit', 'form[data-hbs]', function (event) {
+    $(document).on('submit', 'form[data-hbs]', function (event) {   // TODO - test a billion times
         $(this).ajaxSubmit({
             url: $(this).attr('action'),
             type: 'post',
-            dataType: 'json',
+            dataType: 'json',               // Change the data type???? post process html of JS to mustache here?
             success: function (data) {
+                console.log('Form Mustache');
                 console.log(data);
                 MustacheWidgets(data);
                 return false;
-            }
+            },
+            error: function(data) {
+                console.log(data);
+                console.log(data.responseText);
+                $(selector).html(data.responseText);
+            },
         });
         event.preventDefault();
     });
 
     // PJAX Forum Request
-    $(document).on('submit', 'form[data-pjax]', (event) => {
+    $(document).on('submit', 'form[data-pjax]', (event) => {        // TODO - remove this pos
         $(selector).innerHTML = '';
+        console.log('form[data-pjax]');
         $.pjax.submit(event, selector)
     });
 
@@ -158,13 +167,30 @@ function CarbonJS(selector, address, options) {
         if (data !== null) {
             let json = (typeof data === "string" ? isJson(data) : data);
 
-            if (json && json.hasOwnProperty('Mustache') && json.hasOwnProperty('widget')) {
-                console.log('Valid Mustache $( ' + json.widget + ' ).render( ' + json.Mustache + ', ... ); \n');
+            console.log('MustacheWidgets');
+            console.log(json);
+
+            if (json && json.hasOwnProperty('Mustache')) {
+                if (!json.hasOwnProperty('Widget')) {
+                    json.Widget = selector;
+                }
+                if (!json.hasOwnProperty('Alert')) {
+                    $.fn.bootstrapAlert(json.Alert);
+                }
+                console.log('Valid Mustache $( ' + json.Widget + ' ).render( ' + json.Mustache + ', ... ); \n');
                 $.get(json.Mustache, (template) => {
-                    Mustache.parse(template);
-                    $(json.widget).html(Mustache.render(template, json));
-                    if (json.hasOwnProperty('scroll'))
+
+                    //console.log('HBS-Template::');                                  // log
+
+                    //console.log(template);                                      // TODO - comment out
+
+                    Mustache.parse(template);                                   // cache
+
+                    $(json.Widget).html(Mustache.render(template, json));       // render json with mustache lib
+
+                    if (json.hasOwnProperty('scroll')) {                        // use slim scroll to move to bottom of chats (lifo)
                         $(json.scroll).slimscroll({start: json.scrollTo});
+                    }
                 });
             } else {
                 console.log("Trimmers :: ");                    // log ( string )
@@ -179,21 +205,11 @@ function CarbonJS(selector, address, options) {
         }
     }
 
-    /* TODO - This would be ideal when load balancing high traffic, ie rendering mustache templates on client side computers
-    $(document).on('pjax:beforeReplace', (event, contents, options) => {
-        let s;
-        if (s = $.fn.IsJsonString(contents)) {
-            console.log('Mustache found ');
-            MustacheWidgets(s, window.location);
-            options.preventDefault();
-            return;
-        }
-        console.log('Not json');
-    });
-    */
-
     if (address !== '' && address !== undefined) {
-        statsSocket.onmessage = (data) => (isJson(data.data) ? MustacheWidgets(JSON.parse(data.data)) : console.log(data.data));
+        statsSocket.onmessage = (data) => {
+            //console.log('Socket Update');
+            (isJson(data.data) ? MustacheWidgets(JSON.parse(data.data)) : console.log(data.data));
+        }
         statsSocket.onerror = () => console.log('Web Socket Error');
         statsSocket.onopen = () => {
             $.fn.runEvent("Carbon");

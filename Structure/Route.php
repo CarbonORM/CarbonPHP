@@ -57,9 +57,21 @@ abstract class Route
      */
     public function __destruct()
     {
-        if ($this->matched || SOCKET) {
+        if ($this->matched) {
             return;
         }
+        if (SOCKET) {
+            print 'Socket Left Route Class Un-Matched' . PHP_EOL;
+            exit(1);
+        }
+
+        /*
+        if (AJAX) {
+            print 'AJAX Left Route Class Un-Matched' . PHP_EOL;
+            exit(1);
+        }
+        */
+
         $this->matched = true;
         $this->defaultRoute();
     }
@@ -75,20 +87,14 @@ abstract class Route
     {
         $this->closure = $structure;
         // This check allows Route to be independent of Carbon/Application, but benefit if we've already initiated
-        if (\defined('URI')) {
+        if (\defined('URI') && !SOCKET) {
             $this->uri = explode('/', trim(URI, '/'));
             $this->uriLength = \count($this->uri);
         } else {
             $this->uri = explode('/', $this->uriLength = trim(urldecode(parse_url(trim(preg_replace('/\s+/', ' ', $_SERVER['REQUEST_URI'])), PHP_URL_PATH)), ' /'));
             $this->uriLength = \substr_count($this->uriLength, '/') + 1; // I need the exploded string
         }
-        if (empty($this->uri[0])) {
-            if (SOCKET) {
-                throw new PublicAlert('$_SERVER["REQUEST_URI"] MUST BE SET IN SOCKET REQUESTS');
-            }
-            $this->matched = true;
-            $this->defaultRoute();
-        }
+
     }
 
     /**
@@ -104,11 +110,11 @@ abstract class Route
     /** This will return the current value of $this->matched.
      * Added to allow us to quickly check the status using the
      * (string) type cast
-     * @return string
+     * @return bool
      */
-    public function __toString()
+    public function __invoke()
     {
-        return (string)(bool)$this->matched;
+        return (bool) $this->matched;
     }
 
     /** This sets a default route to execute immediately when

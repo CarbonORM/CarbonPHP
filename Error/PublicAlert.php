@@ -33,9 +33,11 @@ class PublicAlert extends CustomException {
      * @param string $code you may choose between success, info, danger, or warning
      */
     private static function alert(string $message, string $code) {
-        if ($code != 'success' && $code != 'info')
+        global $json;
+        if ($code !== 'success' && $code !== 'info') {
             $message .= ' Contact us if problem persists.';
-        $GLOBALS['alert'][$code] = $message;
+        }
+        $json['alert'][$code] = $message;
     }
 
     /**
@@ -43,7 +45,8 @@ class PublicAlert extends CustomException {
      */
     public static function success(string $message)
     {
-        $GLOBALS['alert']['success'] = $message;
+        global $json;
+        $json['alert']['success'] = $message;
     }
 
     /**
@@ -51,7 +54,8 @@ class PublicAlert extends CustomException {
      */
     public static function info(string $message)
     {
-        $GLOBALS['alert']['info'] = $message;
+        global $json;
+        $json['alert']['info'] = $message;
     }
 
     /**
@@ -59,7 +63,8 @@ class PublicAlert extends CustomException {
      */
     public static function danger(string $message)
     {
-        $GLOBALS['alert']['danger'] = $message;
+        global $json;
+        $json['alert']['danger'] = $message;
 
     }
 
@@ -68,7 +73,8 @@ class PublicAlert extends CustomException {
      */
     public static function warning(string $message)
     {
-        $GLOBALS['alert']['warning'] = $message;
+        global $json;
+        $json['alert']['warning'] = $message;
     }
 
     /**
@@ -78,8 +84,9 @@ class PublicAlert extends CustomException {
      */
     public function __construct($message = null, $code = 'warning')
     {
-        if (!empty($message))
-            static::alert( $message, $code );
+        if (!empty($message)) {
+            static::alert($message, $code);
+        }
         parent::__construct($message, 0);
     }
 

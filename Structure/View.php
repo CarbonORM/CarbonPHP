@@ -36,57 +36,78 @@ class View
 
         $buffer = function () use ($file) : string {         // closure  $buffer();
 
-            global $alert;              // Buffer contents may not need to be run if AJAX or SOCKET
+            global $json;              // Buffer contents may not need to be run if AJAX or SOCKET
 
             ob_start();                 // closure of a buffer is kinda like a double buffer
 
-            if (\is_array($alert) && !empty($alert)) {
-                foreach ($alert as $level => $message) {
+            if (($json['alert'] ?? false) && \is_array($json['alert']) && !empty($json['alert'])) {
+                foreach ($json['alert'] as $level => $message) {
                     self::bootstrapAlert($message, $level);
                 }   // If a public alert is set it will be processed here.
                 $alert = null;
             }
 
+
             if (!file_exists($file) && !file_exists($file = SERVER_ROOT . $file)) {
-                self::bootstrapAlert("The file ($file)requested could not be found.", 'danger');
+                self::bootstrapAlert("The file ($file.(hbs|php))requested could not be found.", 'danger');
+            } else if (!SOCKET) {
+                include $file;          // TODO - remove socket check?
             } else {
-                include $file;
+                $json = array_merge([
+                    'Mustache' => SITE . $file,
+                    'Widget' => '#pjax-content'
+                ], $json);
+                print_r($json);
+                print PHP_EOL;
             }
             return ob_get_clean();
         };
 
+
+        if (SOCKET) {
+            print $buffer() . PHP_EOL;
+            return true;
+        }
+
         if (pathinfo($file, PATHINFO_EXTENSION) === 'hbs') {
             $mustache = new \Mustache_Engine();
 
-            #sortDump($json);
-            $json['site'] = SITE;
-            if (SOCKET || (!self::$forceWrapper && !PJAX && AJAX)) {
-                $json['Mustache'] = SITE . $file;
-                print json_encode($json) . PHP_EOL;
+            if (SOCKET || (!self::$forceWrapper && !PJAX && AJAX)) {        // Send JSON To Socket
+                $json = array_merge([
+                    'Mustache' => SITE . $file,
+                    'Widget' => '#pjax-content'
+                ], $json);
+
+                print json_encode($json) . PHP_EOL . PHP_EOL;
+
                 return true;
             }
-            $buffer = $mustache->render($buffer(), $json);
+            $buffer = $mustache->render($buffer(), $json);                  // Render Inner Content
         } else {
             $buffer = $buffer();
         }
+
+        // Make sure our buffer didn't fail
 
         if (!\is_string($buffer)) {
             $buffer = "<script>Carbon(() => $.fn.bootstrapAlert('Content Buffer Failed ($file)', 'danger'))</script>";
         }
 
-        if (!self::$forceWrapper && (PJAX || AJAX)):
+        if (!self::$forceWrapper && (PJAX || AJAX)):        // Send only inner content?
             print $buffer;
 
-        elseif (pathinfo(self::$wrapper, PATHINFO_EXTENSION) === 'hbs'):
+
+        #################### Send the Outter Wrapper
+        elseif (pathinfo(self::$wrapper, PATHINFO_EXTENSION) === 'hbs'):   // Outer Wrapper is Mustache
             $json['content'] = $buffer;
             $mustache = $mustache ?? new \Mustache_Engine();
             print $mustache->render(file_get_contents(self::$wrapper), $json);
-        else:
+        else:                                                                       // Outer Wrapper is PHP?
             self::$bufferedContent = $buffer;
             include_once self::$wrapper;
         endif;
 
-        return true;
+        return true;    // This should fall, or pop, on the stack to the bootstrap which will return because of a match, then to the index.php
     }
 
     /** This method
