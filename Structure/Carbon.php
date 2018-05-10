@@ -85,8 +85,8 @@ class Carbon
      */
     public function __construct(string $PHP = null)
     {
-        if (!defined('SOCKET')) {
-            define('SOCKET', false);
+        if (!\defined('SOCKET')) {
+            \define('SOCKET', false);
         }
 
         ####################  Did we use $ php -S localhost:8080 index.php
@@ -96,8 +96,14 @@ class Carbon
             \define('SERVER_ROOT', CARBON_ROOT);
         }
 
-        if (file_exists($PHP)) {
-            $PHP = include $PHP;
+        if ($PHP !== null) {
+            if (file_exists($PHP)) {
+                $PHP = include $PHP;            // this file must return an array!
+            } elseif ($PHP !== null) {
+                print 'Invalid configuration path given! ' . $PHP;
+                $this->safelyExit = true;
+                return;
+            }
         }
 
         ####################  GENERAL CONF  ######################
@@ -150,8 +156,6 @@ class Carbon
 
         // More cache control is given in the .htaccess File
         Request::setHeader('Cache-Control:  must-revalidate');
-
-
 
         #################   SOCKET AND SYNC    #######################
         if (!SOCKET && ($PHP['SOCKET'] ?? false) && !getservbyport($PHP['SOCKET']['PORT'] ?? 8888, 'tcp')) {
