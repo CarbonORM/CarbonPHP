@@ -34,7 +34,7 @@
   ],
   "autoload": {
     "psr-4": {
-      "Carbon\\": "Structure/",
+      "Carbon\\": "",
       "Carbon\\Error\\": "Error/",
       "Carbon\\Helpers\\": "Helpers/",
       "Carbon\\Interfaces\\": "Interfaces/"

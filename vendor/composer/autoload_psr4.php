@@ -10,5 +10,5 @@ return array(
     'Carbon\\Interfaces\\' => array($baseDir . '/Interfaces'),
     'Carbon\\Helpers\\' => array($baseDir . '/Helpers'),
     'Carbon\\Error\\' => array($baseDir . '/Error'),
-    'Carbon\\' => array($baseDir . '/Structure'),
+    'Carbon\\' => array($baseDir . '/'),
 );

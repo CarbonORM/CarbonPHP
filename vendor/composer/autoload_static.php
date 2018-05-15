@@ -39,7 +39,7 @@ class ComposerStaticInitf7bcaf88814232fa6202e75e65efaeed
         ),
         'Carbon\\' => 
         array (
-            0 => __DIR__ . '/../..' . '/Structure',
+            0 => __DIR__ . '/../..' . '/',
         ),
     );
 

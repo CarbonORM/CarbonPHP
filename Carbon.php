@@ -86,6 +86,7 @@ class Carbon
      */
     public function __construct(string $PHP = null)
     {
+        print 'Const' and die;
 
         \defined('SOCKET') OR \define('SOCKET', false);
 
@@ -95,6 +96,8 @@ class Carbon
         \defined('SERVER_ROOT') OR \define('SERVER_ROOT', CARBON_ROOT);
 
         \defined('COMPOSER_ROOT') OR \define('COMPOSER_ROOT', \dirname(Factory::getComposerFile()));
+
+        print 'Default' and die;
 
         if ($PHP !== null) {
             if (file_exists($PHP)) {
