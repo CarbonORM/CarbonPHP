@@ -86,19 +86,22 @@ class Carbon
      */
     public function __construct(string $PHP = null)
     {
-        print 'Const' and die;
-
+        ####################  Sockets will have already claimed this global
         \defined('SOCKET') OR \define('SOCKET', false);
 
-        ####################  Did we use $ php -S localhost:8080 index.php
-        \defined('APP_LOCAL') OR \define('APP_LOCAL', $this->isClientServer());
-
+        ####################  Define your own server root
         \defined('SERVER_ROOT') OR \define('SERVER_ROOT', CARBON_ROOT);
 
-        \defined('COMPOSER_ROOT') OR \define('COMPOSER_ROOT', \dirname(Factory::getComposerFile()));
+        ####################  For help loading our Carbon.js
+        \defined('CARBON_ROOT') OR  \define('CARBON_ROOT', __DIR__ . DS);
 
-        print 'Default' and die;
+        ####################  Did we use >> php -S localhost:8080 index.php
+        \defined('APP_LOCAL') OR \define('APP_LOCAL', $this->isClientServer());
 
+        ####################  May as well make composer a dependency
+        \defined('COMPOSER_ROOT') OR \define('COMPOSER_ROOT', \dirname(CARBON_ROOT, 2) . DS);
+
+        ####################  Now load config file so globals above & stacktrace security
         if ($PHP !== null) {
             if (file_exists($PHP)) {
                 $PHP = include $PHP;            // this file must return an array!
@@ -119,8 +122,6 @@ class Carbon
         if (!\defined('DS')) {
             \define('DS', DIRECTORY_SEPARATOR);
         }
-
-        \define('CARBON_ROOT', \dirname(__FILE__, 2) . DS);
 
         if (!\defined('SERVER_ROOT')) {
             \define('SERVER_ROOT', CARBON_ROOT);
@@ -326,8 +327,6 @@ class Carbon
         if (empty($ext)) {              // We're requesting a file
             return true;
         }
-
-        print 'hello';
 
         // Look for versioning
         View::unVersion($_SERVER['REQUEST_URI']);           // This may exit and send a file
