@@ -85,8 +85,10 @@ class Files
     public static function mkdir($location) : bool
     {
         $user = get_current_user();                            // get current process user
-        exec("chown -R {$user}:{$user} $location");  // We need to modify the permissions so users can write to it
-        if (!mkdir($location, 755) && !is_dir($location)) {
+
+        print exec("chown -R {$user}:{$user} " . APP_ROOT);  // We need to modify the permissions so users can write to it
+
+        if (!mkdir(APP_ROOT . $location, 755, true) && !is_dir($location)) {
             throw new \RuntimeException("Failed to create directory $location");
         }
         return is_dir($location);
@@ -103,10 +105,12 @@ class Files
     {
         $user = get_current_user();                           // get current process user
 
-        exec("chown -R {$user}:{$user} " . dir($file));           // We need to modify the permissions so users can write to it
+        $dir = \dirname($file);
 
-        if (!file_exists(\dirname($file))) {
-            static::mkdir($file);
+        exec("chown -R {$user}:{$user} " . $dir);           // We need to modify the permissions so users can write to it
+
+        if (!file_exists($dir)) {
+            static::mkdir($dir);
         }
         if (false === $rs = fopen($file, 'wb')) {
             return false;

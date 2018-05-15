@@ -50,7 +50,7 @@ class ErrorCatcher
         $closure = function (...$argv) {
             self::generateLog($argv);
             if (APP_LOCAL) {
-                sortDump('An Error has occurred');
+                sortDump('An error has occurred');
             }
             if (!SOCKET && \function_exists('startApplication')) {     // TODO - do we really want to reset?
                 startApplication(true);

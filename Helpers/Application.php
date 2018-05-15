@@ -3,6 +3,7 @@
 namespace {                                     // This runs the following code in the global scope
 
     use App\Bootstrap;
+    use Carbon\Application;
     use Carbon\Error\ErrorCatcher;              //  Catches development errors
     use Carbon\Error\PublicAlert;               //  Displays alerts nicely
     use Carbon\Entities;                        //  Manages table relations
@@ -31,7 +32,17 @@ namespace {                                     // This runs the following code 
      */
     function startApplication($reset = false): bool
     {
-        $app = Bootstrap::getInstance();
+        static $application;
+
+        if ($application === null) {
+            $application = new $reset;
+            $reset = false;
+        }
+
+        if (!$application instanceof Application) {
+            print 'Your application must extend the Carbon/Route::class' . PHP_EOL;
+            return false;
+        }
 
         if ($reset):                                    // This will always be se in a socket
             if ($reset === true):
@@ -46,7 +57,7 @@ namespace {                                     // This runs the following code 
 
         Session::update($reset);              // Check wrapper / session callback
 
-        return $app->startApplication($uri ?? null);  // Routing file
+        return $application->startApplication($uri ?? null);  // Routing file
     }
 
     /** This extends the PHP's built-in highlight function to highlight

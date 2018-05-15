@@ -3,6 +3,7 @@
 namespace Carbon;
 
 use Carbon\Helpers\Serialized;
+use Composer\Factory;
 
 /**
  * Class Carbon
@@ -25,12 +26,12 @@ class Carbon
 
     /** If safely exit is false run startApplication(), otherwise return $safelyExit
      * @link http://php.net/manual/en/language.oop5.magic.php#object.invoke
-     * @param null $reset
+     * @param string $application
      * @return bool
      */
-    public function __invoke($reset = null)
+    public function __invoke($application)
     {
-        return $this->safelyExit ?: startApplication($reset);
+        return $this->safelyExit ?: startApplication($application);
     }
 
     /**
@@ -85,16 +86,15 @@ class Carbon
      */
     public function __construct(string $PHP = null)
     {
-        if (!\defined('SOCKET')) {
-            \define('SOCKET', false);
-        }
+
+        \defined('SOCKET') OR \define('SOCKET', false);
 
         ####################  Did we use $ php -S localhost:8080 index.php
-        \define('APP_LOCAL', $this->isClientServer());
+        \defined('APP_LOCAL') OR \define('APP_LOCAL', $this->isClientServer());
 
-        if (!\defined('SERVER_ROOT')) {
-            \define('SERVER_ROOT', CARBON_ROOT);
-        }
+        \defined('SERVER_ROOT') OR \define('SERVER_ROOT', CARBON_ROOT);
+
+        \defined('COMPOSER_ROOT') OR \define('COMPOSER_ROOT', \dirname(Factory::getComposerFile()));
 
         if ($PHP !== null) {
             if (file_exists($PHP)) {
@@ -147,12 +147,14 @@ class Carbon
          * Do Try Catch block have a higher precedence than the error catcher?
          * What if that error is thrown multiple function levels down in a block?
          **/
+        /*
         Error\ErrorCatcher::$defaultLocation = REPORTS . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
         Error\ErrorCatcher::$fullReports = $PHP['ERROR']['STORE'] ?? false;
         Error\ErrorCatcher::$printToScreen = $PHP['ERROR']['SHOW'] ?? true;
         Error\ErrorCatcher::$storeReport = $PHP['ERROR']['FULL'] ?? true;
         Error\ErrorCatcher::$level = $PHP['ERROR']['LEVEL'] ?? ' E_ALL | E_STRICT';
         Error\ErrorCatcher::start();            // Catch application errors and alerts
+        */
 
         // More cache control is given in the .htaccess File
         Request::setHeader('Cache-Control:  must-revalidate');
@@ -185,8 +187,8 @@ class Carbon
             Database::$setup = $PHP['DATABASE']['DB_BUILD'] ?? '';
         }
 
-##################  VALIDATE URL / URI ##################
-// Even if a request is bad, we need to store the log
+        ##################  VALIDATE URL / URI ##################
+        // Even if a request is bad, we need to store the log
 
         if (!\defined('IP')) {
             $this->IP_FILTER();
@@ -198,7 +200,8 @@ class Carbon
             Database::setUp(false);   // redirect = false
             exit(1);                  //
         }
-#################  SITE  ########################
+
+        #################  SITE  ########################
         if ($PHP['SITE'] ?? false) {
             \define('BOOTSTRAP', SERVER_ROOT . $PHP['SITE']['BOOTSTRAP'] ?? '');          // Routing file
 
@@ -320,8 +323,16 @@ class Carbon
         if (empty($ext)) {              // We're requesting a file
             return true;
         }
+
+        print 'hello';
+
         // Look for versioning
         View::unVersion($_SERVER['REQUEST_URI']);           // This may exit and send a file
+
+
+        if (file_exists(COMPOSER_ROOT . URI)) {
+            View::sendResource(COMPOSER_ROOT . URI, $ext);
+        }
 
         // Not versioned, so see it it exists
         if (file_exists(SERVER_ROOT . URI)) {      //  also may send and exit

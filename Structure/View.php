@@ -6,6 +6,9 @@ namespace Carbon;
  * Class View
  * @package Carbon
  */
+
+use Carbon\Helpers\Files;
+
 /**
  * Class View
  * @package Carbon
@@ -89,6 +92,16 @@ class View
 
         // Make sure our buffer didn't fail
 
+        if (!file_exists(self::$wrapper)) {
+            print '<h1>The content wrapper (' . self::$wrapper . ') was not found.</h1>';
+            $message = fopen(__FILE__, 'rb');
+            // Go to the end of the __halt_compiler();
+            fseek($message, __COMPILER_HALT_OFFSET__);
+            print stream_get_contents($message);
+            fclose($message);
+            return false;
+        }
+
         if (!\is_string($buffer)) {
             $buffer = "<script>Carbon(() => $.fn.bootstrapAlert('Content Buffer Failed ($file)', 'danger'))</script>";
         }
@@ -168,6 +181,9 @@ class View
             if (file_exists(SERVER_ROOT . $uri)) {
                 self::sendResource($uri, $matches[2][0]);
             }
+            if (file_exists(COMPOSER_ROOT . $uri)) {
+                self::sendResource(COMPOSER_ROOT . $uri, $matches[2][0]);
+            }
         }
         return false;
     }
@@ -178,6 +194,7 @@ class View
      */
     public static function sendResource($file, $ext): void
     {
+
         if ($mime = self::mimeType($file, $ext)) {
             header('Content-type:' . $mime . '; charset: UTF-8');
             readfile($file);
@@ -187,24 +204,33 @@ class View
         die(1);
     }
 
+    //Josh Sean
+    public static function generateUpToDateMimeArray()
+    {
+        \defined('APACHE_MIME_TYPES_URL') OR \define('APACHE_MIME_TYPES_URL', 'http://svn.apache.org/repos/asf/httpd/httpd/trunk/docs/conf/mime.types');
+        $s = array();
+        foreach (@explode("\n", @file_get_contents(APACHE_MIME_TYPES_URL)) as $x)
+            if (isset($x[0]) && $x[0] !== '#' && preg_match_all('#([^\s]+)#', $x, $out) && isset($out[1]) && ($c = count($out[1])) > 1)
+                for ($i = 1; $i < $c; $i++)
+                    $s[] = '&nbsp;&nbsp;&nbsp;\'' . $out[1][$i] . '\' => \'' . $out[1][0] . '\'';
+        print @sort($s) ? 'return array(<br />' . implode($s, ',<br />') . '<br />);' : false;
+    }
+
+
     /**
      * @param $file
      * @param $ext
      * @return string
      */
-    public static function mimeType($file, $ext): string // TODO - Add the full list generator from stack overflow
+    public static function mimeType($file, $ext): string
     {
-        /*
-        finfo = finfo_open(FILEINFO_MIME_TYPE); // return mime type ala mimetype extension
-        foreach (glob("*") as $filename) {
-            echo finfo_file($finfo, $filename) . "\n";
-        }
-        finfo_close($finfo);
-        */
+        #self::generateUpToDateMimeArray() and die;
 
-        $mime_types = include SERVER_ROOT . 'Data/Indexes/MimeTypes.php';
-        if (array_key_exists($ext, $mime_types))
+        $mime_types = include CARBON_ROOT . 'Extras/mimeTypes.php';
+
+        if (array_key_exists($ext, $mime_types)) {
             return $mime_types[$ext];
+        }
 
         if (\function_exists('finfo_open')) {
             $file_info = finfo_open(FILEINFO_MIME);
@@ -216,4 +242,8 @@ class View
     }
 
 }
+
+
+__halt_compiler();
+<h1>Wrapper does not exist</h1>
 

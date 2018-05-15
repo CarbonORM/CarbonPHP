@@ -7,9 +7,7 @@
       <sourceFolder url="file://$MODULE_DIR$/Structure" isTestSource="false" packagePrefix="Carbon\" />
       <sourceFolder url="file://$MODULE_DIR$/Error" isTestSource="false" packagePrefix="Carbon\Error\" />
       <sourceFolder url="file://$MODULE_DIR$/Helpers" isTestSource="false" packagePrefix="Carbon\Helpers\" />
-      <excludeFolder url="file://$MODULE_DIR$/bower_components" />
     </content>
-    <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library">
       <library name="PHARS">
