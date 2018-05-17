@@ -6,10 +6,10 @@
  * Time: 4:28 AM
  */
 
-namespace Carbon;
+namespace CarbonPHP;
 
-use Carbon\Error\PublicAlert;
-use Carbon\Helpers\Files;
+use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Helpers\Files;
 
 class Request   // requires carbon::application;
 {

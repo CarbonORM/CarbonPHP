@@ -6,9 +6,8 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
-    'Psr\\Log\\' => array($vendorDir . '/psr/log/Psr/Log'),
-    'Carbon\\Interfaces\\' => array($baseDir . '/Interfaces'),
-    'Carbon\\Helpers\\' => array($baseDir . '/Helpers'),
-    'Carbon\\Error\\' => array($baseDir . '/Error'),
-    'Carbon\\' => array($baseDir . '/'),
+    'CarbonPHP\\Interfaces\\' => array($baseDir . '/Interfaces'),
+    'CarbonPHP\\Helpers\\' => array($baseDir . '/Helpers'),
+    'CarbonPHP\\Error\\' => array($baseDir . '/Error'),
+    'CarbonPHP\\' => array($baseDir . '/'),
 );

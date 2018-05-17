@@ -2,9 +2,9 @@
 
 // http://php.net/manual/en/function.debug-backtrace.php
 
-namespace Carbon\Error;
+namespace CarbonPHP\Error;
 
-use Carbon\Database;
+use CarbonPHP\Database;
 
 /**
  * Class ErrorCatcher

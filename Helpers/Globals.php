@@ -1,6 +1,6 @@
-<?php namespace Carbon\Helpers;
+<?php namespace CarbonPHP\Helpers;
 
-use Carbon\Singleton;
+use CarbonPHP\Singleton;
 
 /**
  * Class Globals

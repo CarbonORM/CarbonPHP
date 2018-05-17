@@ -5,7 +5,7 @@
  * for quickly implementing custom exceptions
  */
 
-namespace Carbon\Interfaces;
+namespace CarbonPHP\Interfaces;
 
 interface iException
 {

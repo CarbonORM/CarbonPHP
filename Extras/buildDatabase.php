@@ -8,7 +8,7 @@
 
 print '<h1>Setting up CarbonPHP</h1>';
 
-$db = \Carbon\Database::database();
+$db = \CarbonPHP\Database::database();
 
 try {
     print '<html><head><title>Setup or Rebuild Database</title></head><body><h1>STARTING MAJOR CARBON SYSTEMS</h1>' . PHP_EOL;

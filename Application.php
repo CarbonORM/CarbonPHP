@@ -6,7 +6,7 @@
  * Time: 3:20 AM
  */
 
-namespace Carbon;
+namespace CarbonPHP;
 
 
 abstract class Application extends Route
@@ -18,7 +18,7 @@ abstract class Application extends Route
      * defaultRoute method defined below.
      * @return callable
      * @throws \Mustache_Exception_InvalidArgumentException
-     * @throws \Carbon\Error\PublicAlert
+     * @throws \CarbonPHP\Error\PublicAlert
      */
 
     public function fullPage() : callable

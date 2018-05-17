@@ -24,7 +24,7 @@ if (false === (include SERVER_ROOT . 'Data/Vendors/autoload.php'))
     // Composer autoload
 }
 
-$app = new Carbon\Carbon($argv[2]);
+$app = new CarbonPHP\Carbon($argv[2]);
 
 if (!($_SESSION ?? false)) {
     print "You must be logged in to use this API\n";
@@ -46,11 +46,11 @@ pcntl_signal( SIGTERM, 'signalHandler' ); // Termination ('kill' was called')
 pcntl_signal( SIGHUP, 'signalHandler' );  // Terminal log-out
 pcntl_signal( SIGINT, 'signalHandler' );  // Interrupted ( Ctrl-C is pressed)
 
-$fifoFile = \Carbon\Helpers\Pipe::named(SERVER_ROOT . 'Data/Temp/' . session_id() . '.fifo');     // other users can notify us to update our application through this file
+$fifoFile = \CarbonPHP\Helpers\Pipe::named(SERVER_ROOT . 'Data/Temp/' . session_id() . '.fifo');     // other users can notify us to update our application through this file
 
 $stdin = fopen( 'php://stdin', 'b' );
 
-$request = new class extends Carbon\Request
+$request = new class extends CarbonPHP\Request
 {
     public function is_json($string)
     {
@@ -59,8 +59,8 @@ $request = new class extends Carbon\Request
     }
 };
 
-\Carbon\Session::pause();           // Close the current session
-\Carbon\Database::setDatabase();    // This will clear the connection
+\CarbonPHP\Session::pause();           // Close the current session
+\CarbonPHP\Database::setDatabase();    // This will clear the connection
 
 while (true)
 {
@@ -82,7 +82,7 @@ while (true)
 
                 } elseif (!empty( $string ) && pcntl_fork() === 0) {     // Fork
 
-                    \Carbon\Session::resume();      // resume session
+                    \CarbonPHP\Session::resume();      // resume session
 
                     $_SERVER['REQUEST_URI'] = $string = trim(preg_replace('/\s+/', ' ', $string));
 
@@ -105,7 +105,7 @@ while (true)
 
                         if (pcntl_fork() === 0) {
 
-                            \Carbon\Session::resume();
+                            \CarbonPHP\Session::resume();
 
                             $_SERVER['REQUEST_URI'] = $string = trim(preg_replace('/\s+/', ' ', $uri));
 

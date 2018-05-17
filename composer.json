@@ -34,18 +34,10 @@
   ],
   "autoload": {
     "psr-4": {
-      "Carbon\\": "",
-      "Carbon\\Error\\": "Error/",
-      "Carbon\\Helpers\\": "Helpers/",
-      "Carbon\\Interfaces\\": "Interfaces/"
+      "CarbonPHP\\": "",
+      "CarbonPHP\\Error\\": "Error/",
+      "CarbonPHP\\Helpers\\": "Helpers/",
+      "CarbonPHP\\Interfaces\\": "Interfaces/"
     }
-  },
-  "compilerOptions": {
-    "module": "commonjs",
-    "target": "es5",
-    "sourceMap": true
-  },
-  "exclude": [
-    "node_modules"
-  ]
+  }
 }

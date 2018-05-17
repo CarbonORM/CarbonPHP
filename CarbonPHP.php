@@ -1,9 +1,8 @@
 <?php
 
-namespace Carbon;
+namespace CarbonPHP;
 
-use Carbon\Helpers\Serialized;
-use Composer\Factory;
+use CarbonPHP\Helpers\Serialized;
 
 /**
  * Class Carbon
@@ -15,7 +14,7 @@ use Composer\Factory;
  *
  * @link http://www.carbonphp.com/
  */
-class Carbon
+class CarbonPHP
 {
     /**
      * @var bool $safelyExit determines if start application should be executed
@@ -119,20 +118,16 @@ class Carbon
 
         date_default_timezone_set($PHP['SITE']['TIMEZONE'] ?? 'America/Chicago');
 
-        if (!\defined('DS')) {
-            \define('DS', DIRECTORY_SEPARATOR);
-        }
+        \defined('DS') OR \define('DS', DIRECTORY_SEPARATOR);
 
-        if (!\defined('SERVER_ROOT')) {
-            \define('SERVER_ROOT', CARBON_ROOT);
-        }
+        \defined('SERVER_ROOT') OR \define('SERVER_ROOT', CARBON_ROOT);
 
         \define('REPORTS', $PHP['ERROR']['LOCATION'] ?? SERVER_ROOT);
 
         #####################   AUTOLOAD    #######################
         if (array_key_exists('AUTOLOAD', $PHP) && $PHP['AUTOLOAD']) {
 
-            $PSR4 = include CARBON_ROOT . 'Structure/AutoLoad.php';
+            $PSR4 = include CARBON_ROOT . 'AutoLoad.php';
 
             if (\is_array($PHP['AUTOLOAD'] ?? false)) {
                 foreach ($PHP['AUTOLOAD'] as $name => $path) {
@@ -161,7 +156,7 @@ class Carbon
         */
 
         // More cache control is given in the .htaccess File
-        Request::setHeader('Cache-Control:  must-revalidate');
+        Request::setHeader('Cache-Control:  must-revalidate'); // TODO - not this per say (better cache)
 
         #################   SOCKET AND SYNC    #######################
         if (!SOCKET && ($PHP['SOCKET'] ?? false) && !getservbyport($PHP['SOCKET']['PORT'] ?? 8888, 'tcp')) {
@@ -172,7 +167,7 @@ class Carbon
                     (($PHP['SOCKET']['SSL'] ?? false) ? "--ssl --sslkey={$PHP['SOCKET']['SSL']['KEY']} --sslcert={$PHP['SOCKET']['SSL']['CERT']} " : ' ') .
                     'php ' . CARBON_ROOT . 'Extras' . DS . 'Websocketd.php ' . SERVER_ROOT . ' ' . ($PHP['SITE']['CONFIG'] ?? SERVER_ROOT) . ' 2>&1';
             } else {
-                $CMD = 'php ' . CARBON_ROOT . 'Structure' . DS . 'Server.php ' . ($PHP['SITE']['CONFIG'] ?? SERVER_ROOT);
+                $CMD = 'php ' . CARBON_ROOT . 'Server.php ' . ($PHP['SITE']['CONFIG'] ?? SERVER_ROOT);
             }
 
             Helpers\Fork::become_daemon(function () use ($CMD) {
@@ -218,11 +213,11 @@ class Carbon
             \define('REPLY_EMAIL', $PHP['REPLY_EMAIL'] ?? '');                               // I give you options :P
         }
 
-#######################   Pjax Ajax Refresh  ######################
-// Must return a non empty value
+        #######################   Pjax Ajax Refresh  ######################
+        // Must return a non empty value
         \define('PJAX', SOCKET ? false : isset($_GET['_pjax']) || (isset($_SERVER['HTTP_X_PJAX']) && $_SERVER['HTTP_X_PJAX']));
 
-// (PJAX == true) return required, else (!PJAX && AJAX) return optional (socket valid)
+        // (PJAX == true) return required, else (!PJAX && AJAX) return optional (socket valid)
         \define('AJAX', SOCKET ? false : PJAX || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'));
 
         \define('HTTPS', SOCKET ? false : $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? false) === 'https' || (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
@@ -234,16 +229,14 @@ class Carbon
             die(0);
         }
 
-        if (!AJAX) {
-            $_POST = []; // We only allow post requests through ajax/pjax
-        }
+        AJAX OR $_POST = []; // We only allow post requests through ajax/pjax
 
-#######################   VIEW             #####################
-        \define('APP_VIEW', $PHP['VIEW']['VIEW'] ?? '/');         // Public Folder
+        #######################   VIEW             #####################
+        \define('APP_VIEW', $PHP['VIEW']['VIEW'] ?? DS);         // Public Folder
 
         View::$wrapper = SERVER_ROOT . APP_VIEW . $PHP['VIEW']['WRAPPER'] ?? '';
 
-########################  Session Management ######################
+        ########################  Session Management ######################
 
         if (($PHP['SESSION'] ?? true)) {
             if ($PHP['SESSION']['PATH'] ?? false) {
@@ -262,8 +255,8 @@ class Carbon
         if (\is_array($PHP['SESSION']['SERIALIZE'] ?? false)) {
             forward_static_call_array([Serialized::class, 'start'], $PHP['SESSION']['SERIALIZE']);    // Pull theses from session, and store on shutdown
         }
-################  Helpful Global Functions ####################
-        if (file_exists(CARBON_ROOT . 'Helpers/Application.php') && !@include CARBON_ROOT . 'Helpers/Application.php') {
+        ################  Helpful Global Functions ####################
+        if (file_exists(CARBON_ROOT . 'Helpers'. DS .'Application.php') && !@include CARBON_ROOT . 'Helpers'. DS .'Application.php') {
             print '<h1>Your instance of CarbonPHP appears corrupt. Please see CarbonPHP.com for Documentation.</h1>';
             die(1);
         }
@@ -279,8 +272,8 @@ class Carbon
     function isClientServer()
     {
         if (PHP_SAPI === 'cli-server' || PHP_SAPI === 'cli' || \in_array($_SERVER['REMOTE_ADDR'] ?? [], ['127.0.0.1', 'fe80::1', '::1'], false)) {
-            if (SOCKET) {
-                \define('IP', filter_var($_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE));
+            if (SOCKET && $ip = filter_var($_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                \define('IP', $ip);
                 return false;
             }
             \define('IP', '127.0.0.1');
@@ -315,7 +308,7 @@ class Carbon
                 ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] === 443 ? 'https://' : 'http://') .
                 $_SERVER['SERVER_NAME'] . (APP_LOCAL ? ':' . $_SERVER['SERVER_PORT'] : '') : null), true);
 
-        \define('SITE', url . DS, true);   // http(s)://example.com/
+        \define('SITE', url . '/', true);   // http(s)://example.com/  - URL's require a forward slash so DS may not work on os (windows)
 
 
         // It does not matter if this matches, we will take care of that in the next if.
@@ -332,7 +325,7 @@ class Carbon
         View::unVersion($_SERVER['REQUEST_URI']);           // This may exit and send a file
 
 
-        if (file_exists(COMPOSER_ROOT . URI)) {
+        if (file_exists(COMPOSER_ROOT . URI)) {             // Composer is now always the base uri
             View::sendResource(COMPOSER_ROOT . URI, $ext);
         }
 

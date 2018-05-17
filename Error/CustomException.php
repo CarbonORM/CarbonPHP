@@ -4,9 +4,9 @@
  * http://php.net/manual/en/language.exceptions.php
  */
 
-namespace Carbon\Error;
+namespace CarbonPHP\Error;
 
-use Carbon\Interfaces\iException;
+use CarbonPHP\Interfaces\iException;
 
 abstract class CustomException extends \Exception implements iException
 {

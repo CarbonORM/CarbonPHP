@@ -6,10 +6,10 @@
  * Time: 11:48 AM
  */
 
-namespace Carbon;
+namespace CarbonPHP;
 
 
-use Carbon\Error\PublicAlert;
+use CarbonPHP\Error\PublicAlert;
 
 abstract class Route
 {

@@ -3,15 +3,15 @@
 namespace {                                     // This runs the following code in the global scope
 
     use App\Bootstrap;
-    use Carbon\Application;
-    use Carbon\Error\ErrorCatcher;              //  Catches development errors
-    use Carbon\Error\PublicAlert;               //  Displays alerts nicely
-    use Carbon\Entities;                        //  Manages table relations
-    use Carbon\Helpers\Files;
-    use Carbon\Session;                         //  Automatically stores session
-    use Carbon\Request;                         //  Sterilizes input
-    use Carbon\Route;                           //  Easily route app
-    use Carbon\View;                            //  Seamlessly include the DOM
+    use CarbonPHP\Application;
+    use CarbonPHP\Error\ErrorCatcher;              //  Catches development errors
+    use CarbonPHP\Error\PublicAlert;               //  Displays alerts nicely
+    use CarbonPHP\Entities;                        //  Manages table relations
+    use CarbonPHP\Helpers\Files;
+    use CarbonPHP\Session;                         //  Automatically stores session
+    use CarbonPHP\Request;                         //  Sterilizes input
+    use CarbonPHP\Route;                           //  Easily route app
+    use CarbonPHP\View;                            //  Seamlessly include the DOM
 
 
     /** Start application will start the registered bootstrap from line one.

@@ -6,9 +6,9 @@
  * Time: 11:00 AM
  */
 
-namespace Carbon\Helpers;
+namespace CarbonPHP\Helpers;
 
-use Carbon\Error\ErrorCatcher;
+use CarbonPHP\Error\ErrorCatcher;
 
 /**
  * Class Pipe

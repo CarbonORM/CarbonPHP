@@ -1,8 +1,8 @@
 <?php // Parent of Model class, can only be called indirectly
 
-namespace Carbon;
+namespace CarbonPHP;
 
-use Carbon\Error\ErrorCatcher;
+use CarbonPHP\Error\ErrorCatcher;
 use PDO;
 
 /**

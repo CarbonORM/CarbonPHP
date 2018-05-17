@@ -1,13 +1,13 @@
 <?php
 
-namespace Carbon;
+namespace CarbonPHP;
 
 /**
  * Class View
  * @package Carbon
  */
 
-use Carbon\Helpers\Files;
+use CarbonPHP\Helpers\Files;
 
 /**
  * Class View

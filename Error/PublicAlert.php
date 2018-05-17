@@ -6,7 +6,7 @@
  * Time: 5:19 PM
  */
 
-namespace Carbon\Error;
+namespace CarbonPHP\Error;
 
 /**
  * Class PublicAlert

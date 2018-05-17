@@ -6,14 +6,14 @@
  * Time: 5:48 AM
  */
 
-namespace Carbon;
+namespace CarbonPHP;
 
-use Carbon\Helpers\Bcrypt;
+use CarbonPHP\Helpers\Bcrypt;
 use PDO;
 use stdClass;
-use Carbon\Helpers\Globals;
-use Carbon\Interfaces\iTable;
-use Carbon\Error\PublicAlert;
+use CarbonPHP\Helpers\Globals;
+use CarbonPHP\Interfaces\iTable;
+use CarbonPHP\Error\PublicAlert;
 
 /**
  * Class Entities

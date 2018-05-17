@@ -1,13 +1,13 @@
 <?php
 
-namespace Carbon\Helpers;
+namespace CarbonPHP\Helpers;
 
-use Carbon\Error\ErrorCatcher;
-use Carbon\Helpers\Pipe;
-use Carbon\Request;
-use Carbon\Session;
-use Carbon\Database;
-use Carbon\Carbon;
+use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Helpers\Pipe;
+use CarbonPHP\Request;
+use CarbonPHP\Session;
+use CarbonPHP\Database;
+use CarbonPHP\Carbon;
 
 define('SOCKET', true);
 
@@ -195,7 +195,7 @@ class Server extends Request
 
                             if (pcntl_fork() === 0) {
 
-                                \Carbon\Session::resume();
+                                \CarbonPHP\Session::resume();
 
                                 $run(trim($uri));
 

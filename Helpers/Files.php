@@ -1,8 +1,8 @@
 <?php
 
-namespace Carbon\Helpers;
+namespace CarbonPHP\Helpers;
 
-use Carbon\Error\PublicAlert;
+use CarbonPHP\Error\PublicAlert;
 
 class Files
 {

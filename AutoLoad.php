@@ -1,6 +1,6 @@
 <?php
 
-namespace Carbon;
+namespace CarbonPHP;
 
 /**         Psr4AutoloaderClass
  *

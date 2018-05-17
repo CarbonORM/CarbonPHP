@@ -1,9 +1,9 @@
 <?php
 
-namespace Carbon;
+namespace CarbonPHP;
 
-use Carbon\Error\ErrorCatcher;
-use Carbon\Helpers\Serialized;
+use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Helpers\Serialized;
 
 /**
  * Trait Singleton

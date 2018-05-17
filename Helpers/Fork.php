@@ -6,7 +6,7 @@
  * Time: 8:54 AM
  */
 
-namespace Carbon\Helpers;
+namespace CarbonPHP\Helpers;
 
 class Fork
 {
