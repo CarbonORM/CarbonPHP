@@ -7,6 +7,10 @@ namespace Composer\Autoload;
 class ComposerStaticInitf7bcaf88814232fa6202e75e65efaeed
 {
     public static $prefixLengthsPsr4 = array (
+        'P' => 
+        array (
+            'Psr\\Log\\' => 8,
+        ),
         'C' => 
         array (
             'CarbonPHP\\Interfaces\\' => 21,
@@ -17,6 +21,10 @@ class ComposerStaticInitf7bcaf88814232fa6202e75e65efaeed
     );
 
     public static $prefixDirsPsr4 = array (
+        'Psr\\Log\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
+        ),
         'CarbonPHP\\Interfaces\\' => 
         array (
             0 => __DIR__ . '/../..' . '/Interfaces',
