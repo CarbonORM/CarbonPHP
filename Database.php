@@ -171,7 +171,7 @@ class Database
             print '<h3>When you add a database be sure to add it to the file ["DATABASE"]["DB_BUILD"]</h3><h5>Use '. __FILE__ .' a as refrence.</h5>';
         }
         if ($refresh) {
-            print '<br><br><h2>Refreshing in 6 seconds</h2><script>t1 = window.setTimeout(function(){ window.location.href = "' . SITE . '"; },6000);</script>';
+            print '<br><br><h2>Refreshing in 6 seconds</h2><script>t1 = window.setTimeout(function(){ window.location.href = \''. SITE .'\'; },6000);</script>';
             exit(1);
         }
         return static::database();

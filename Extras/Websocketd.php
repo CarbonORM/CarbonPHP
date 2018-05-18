@@ -14,17 +14,17 @@ if (!is_dir($argv[1])) {
     print "The SERVER_ROOT should be a valid line argument.\n" and die;
 }
 
-define('SERVER_ROOT', $argv[1]);    // expressions not allowed in const
+define('APP_ROOT', $argv[1]);    // expressions not allowed in const
 
-const APP_ROOT = SERVER_ROOT;  // I would like to change to only using app_root soon
+const APP_ROOT = APP_ROOT;  // I would like to change to only using app_root soon
 
-if (false === (include SERVER_ROOT . 'Data/Vendors/autoload.php'))
+if (false === (include APP_ROOT . 'Data/Vendors/autoload.php'))
 {   // Load the autoload() for composer dependencies located in the Services folder
     print '<h1>Loading Composer Failed. See Carbonphp.com for documentation.</h1>' and die;
     // Composer autoload
 }
 
-$app = new CarbonPHP\Carbon($argv[2]);
+$app = new CarbonPHP\CarbonPHP($argv[2]);
 
 if (!($_SESSION ?? false)) {
     print "You must be logged in to use this API\n";
@@ -46,7 +46,7 @@ pcntl_signal( SIGTERM, 'signalHandler' ); // Termination ('kill' was called')
 pcntl_signal( SIGHUP, 'signalHandler' );  // Terminal log-out
 pcntl_signal( SIGINT, 'signalHandler' );  // Interrupted ( Ctrl-C is pressed)
 
-$fifoFile = \CarbonPHP\Helpers\Pipe::named(SERVER_ROOT . 'Data/Temp/' . session_id() . '.fifo');     // other users can notify us to update our application through this file
+$fifoFile = \CarbonPHP\Helpers\Pipe::named(APP_ROOT . 'Data/Temp/' . session_id() . '.fifo');     // other users can notify us to update our application through this file
 
 $stdin = fopen( 'php://stdin', 'b' );
 

@@ -51,7 +51,7 @@ class View
             }
 
 
-            if (!file_exists($file) && !file_exists($file = SERVER_ROOT . $file)) {
+            if (!file_exists($file) && !file_exists($file = APP_ROOT . $file)) {
                 self::bootstrapAlert("The file ($file.(hbs|php))requested could not be found.", 'danger');
             } else if (!SOCKET) {
                 include $file;          // TODO - remove socket check?
@@ -131,7 +131,7 @@ class View
     {
         $message = htmlentities($message);  // Im not sure how this may be used,
         $level = htmlentities($level);      // for completeness I sanitise
-        print "<script>Carbon(() => $.fn.bootstrapAlert(\"$message\", \"$level\"))</script>";
+        printf('<script>Carbon(() => $.carbon.alert("%s", "%s"))</script>', $message, $level);
     }
 
     /**
@@ -150,7 +150,7 @@ class View
             return DS . $file;
         }
         try {
-            if (!file_exists($absolute = SERVER_ROOT . $file) || !($time = @filemtime($absolute))) {
+            if (!file_exists($absolute = APP_ROOT . $file) || !($time = @filemtime($absolute))) {
                 return DS . $file;
             }
             return preg_replace('{\\.([^./]+)$}', '.' . $time . '.\$1', DS . $file);
@@ -178,7 +178,7 @@ class View
 
             $uri = trim($matches[1][0] . '.' . $matches[2][0], '/');
 
-            if (file_exists(SERVER_ROOT . $uri)) {
+            if (file_exists(APP_ROOT . $uri)) {
                 self::sendResource($uri, $matches[2][0]);
             }
             if (file_exists(COMPOSER_ROOT . $uri)) {

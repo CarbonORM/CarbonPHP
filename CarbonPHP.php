@@ -28,9 +28,9 @@ class CarbonPHP
      * @param string $application
      * @return bool
      */
-    public function __invoke($application)
+    public function __invoke($uri = false)
     {
-        return $this->safelyExit ?: startApplication($application);
+        return $this->safelyExit ?: startApplication($uri);
     }
 
     /**
@@ -89,7 +89,7 @@ class CarbonPHP
         \defined('SOCKET') OR \define('SOCKET', false);
 
         ####################  Define your own server root
-        \defined('SERVER_ROOT') OR \define('SERVER_ROOT', CARBON_ROOT);
+        \defined('APP_ROOT') OR \define('APP_ROOT', CARBON_ROOT);
 
         ####################  For help loading our Carbon.js
         \defined('CARBON_ROOT') OR  \define('CARBON_ROOT', __DIR__ . DS);
@@ -107,7 +107,7 @@ class CarbonPHP
             } elseif ($PHP !== null) {
                 print 'Invalid configuration path given! ' . $PHP;
                 $this->safelyExit = true;
-                return;
+                return null;
             }
         }
 
@@ -120,9 +120,9 @@ class CarbonPHP
 
         \defined('DS') OR \define('DS', DIRECTORY_SEPARATOR);
 
-        \defined('SERVER_ROOT') OR \define('SERVER_ROOT', CARBON_ROOT);
+        \defined('APP_ROOT') OR \define('APP_ROOT', CARBON_ROOT);
 
-        \define('REPORTS', $PHP['ERROR']['LOCATION'] ?? SERVER_ROOT);
+        \define('REPORTS', $PHP['ERROR']['LOCATION'] ?? APP_ROOT);
 
         #####################   AUTOLOAD    #######################
         if (array_key_exists('AUTOLOAD', $PHP) && $PHP['AUTOLOAD']) {
@@ -182,12 +182,12 @@ class CarbonPHP
 
         if ($PHP['DATABASE']['REBUILD'] ?? false) {
             Database::setUp(false);   // redirect = false
-            exit(1);                  //
+            exit(1);                         //
         }
 
         #################  SITE  ########################
         if ($PHP['SITE'] ?? false) {
-            \define('BOOTSTRAP', SERVER_ROOT . $PHP['SITE']['BOOTSTRAP'] ?? '');          // Routing file
+            \define('BOOTSTRAP', APP_ROOT . $PHP['SITE']['BOOTSTRAP'] ?? '');          // Routing file
 
             \define('SITE_TITLE', $PHP['SITE']['TITLE'] ?? 'CarbonPHP');                     // Carbon doesnt use
 
@@ -211,7 +211,7 @@ class CarbonPHP
 
         if (HTTP && !($PHP['SITE']['HTTP'] ?? true)) {
             print '<h1>Failed to switch to https, please contact the server administrator.</h1>';
-            die(0);
+            die(1);
         }
 
         AJAX OR $_POST = []; // We only allow post requests through ajax/pjax
@@ -219,7 +219,7 @@ class CarbonPHP
         #######################   VIEW             #####################
         \define('APP_VIEW', $PHP['VIEW']['VIEW'] ?? DS);         // Public Folder
 
-        View::$wrapper = SERVER_ROOT . APP_VIEW . $PHP['VIEW']['WRAPPER'] ?? '';
+        View::$wrapper = APP_ROOT . APP_VIEW . $PHP['VIEW']['WRAPPER'] ?? '';
 
         ########################  Session Management ######################
 
@@ -245,6 +245,7 @@ class CarbonPHP
             print '<h1>Your instance of CarbonPHP appears corrupt. Please see CarbonPHP.com for Documentation.</h1>';
             die(1);
         }
+        return null;
     }
 
 
@@ -315,7 +316,7 @@ class CarbonPHP
         }
 
         // Not versioned, so see it it exists
-        if (file_exists(SERVER_ROOT . URI)) {      //  also may send and exit
+        if (file_exists(APP_ROOT . URI)) {      //  also may send and exit
             View::sendResource(URI, $ext);
         }
         http_response_code(404);              // If we haven't found the request send code 404

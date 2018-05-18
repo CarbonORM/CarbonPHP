@@ -7,7 +7,7 @@ use CarbonPHP\Helpers\Pipe;
 use CarbonPHP\Request;
 use CarbonPHP\Session;
 use CarbonPHP\Database;
-use CarbonPHP\Carbon;
+use CarbonPHP\CarbonPHP;
 
 define('SOCKET', true);
 
@@ -25,13 +25,11 @@ set_time_limit(0);
 
 ob_implicit_flush();
 
-\define('SERVER_ROOT', $argv[1]);    // expressions not allowed in const
+\define('APP_ROOT', $argv[1]);    // expressions not allowed in const
 
-const APP_ROOT = SERVER_ROOT;
+dir(APP_ROOT);
 
-dir(SERVER_ROOT);
-
-if (false === (include SERVER_ROOT . 'Data/Vendors/autoload.php')) {     // Load the autoload() for composer dependencies located in the Services folder
+if (false === (include APP_ROOT . 'vendor/autoload.php')) {     // Load the autoload() for composer dependencies located in the Services folder
     print '<h1>Loading Composer Failed. See Carbonphp.com for documentation.</h1>' and die;     // Composer autoload
 }
 
@@ -39,7 +37,7 @@ if (!\extension_loaded('pcntl')) {
     print '<h1>CarbonPHP Websockets require the PCNTL library. See CarbonPHP.com for more Documentation</h1>';
 }
 
-new Carbon($opts = include $argv[2]);
+new CarbonPHP($opts = include $argv[2]);
 
 
 $signal = function ($signal) {
@@ -159,7 +157,7 @@ class Server extends Request
 
         new Session($this->user_ip, true, false);  // todo - default to storing on db
 
-        $fifoFile = Pipe::named(SERVER_ROOT . 'Data/Temp/' . session_id() . '.fifo');     // other users can notify us to update our application through this file
+        $fifoFile = Pipe::named(APP_ROOT . 'Data/Temp/' . session_id() . '.fifo');     // other users can notify us to update our application through this file
 
         Session::pause();           // Close the current session
 
@@ -167,7 +165,7 @@ class Server extends Request
 
         $read = [$this->user, $fifoFile];
 
-        $run = function ($url) {
+        $run = function ($url) use (&$connection) {
             ob_start();
             $_SERVER["REQUEST_URI"] = $url;
             startApplication($url);
@@ -213,7 +211,7 @@ class Server extends Request
 
                     switch ($data['opcode']) {
                         case self::CLOSE:
-                            @fclose($user);
+                            @fclose($this->user);
                             exit(1);
                             break;
                         case self::PING :

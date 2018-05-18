@@ -56,7 +56,7 @@ abstract class Application extends Route
                 return false;
             }
 
-            if (!file_exists(SERVER_ROOT . $file = (APP_VIEW . $class . DS . $method . '.hbs'))) {
+            if (!file_exists(APP_ROOT . $file = (APP_VIEW . $class . DS . $method . '.hbs'))) {
                 $alert = 'Mustache Template Not Found ' . $file;
             }
 

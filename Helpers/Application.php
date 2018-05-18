@@ -33,12 +33,7 @@ namespace {                                     // This runs the following code 
      */
     function startApplication($reset = false): bool
     {
-        static $application;
-
-        if ($application === null) {
-            $application = new $reset;
-            $reset = false;
-        }
+        $application = BOOTSTRAP;
 
         if (!$application instanceof Application) {
             print 'Your application must extend the Carbon/Route::class' . PHP_EOL;
@@ -221,7 +216,7 @@ namespace {                                     // This runs the following code 
         // This could cache or send
         $file = APP_VIEW . "$class/$method";
 
-        if (!file_exists(SERVER_ROOT . $file . ($ext = '.php')) && !file_exists(SERVER_ROOT . $file . ($ext = '.hbs'))) {
+        if (!file_exists(APP_ROOT . $file . ($ext = '.php')) && !file_exists(APP_ROOT . $file . ($ext = '.hbs'))) {
             $ext = '';
         }
         return View::content($file . $ext);  // View
@@ -336,11 +331,11 @@ namespace {                                     // This runs the following code 
                 $CMD = '/usr/bin/websocketd --port=' . ($PHP['SOCKET']['PORT'] ?? 8888) . ' ' .
                     (($PHP['SOCKET']['DEV'] ?? false) ? '--devconsole ' : '') .
                     (($PHP['SOCKET']['SSL'] ?? false) ? "--ssl --sslkey={$PHP['SOCKET']['SSL']['KEY']} --sslcert={$PHP['SOCKET']['SSL']['CERT']} " : ' ') .
-                    'php ' . CARBON_ROOT . 'Extras' . DS . 'Websocketd.php ' . SERVER_ROOT . ' ' . ($PHP['SITE']['CONFIG'] ?? SERVER_ROOT) . ' 2>&1';
+                    'php ' . CARBON_ROOT . 'Extras' . DS . 'Websocketd.php ' . APP_ROOT . ' ' . ($PHP['SITE']['CONFIG'] ?? APP_ROOT) . ' 2>&1';
                 `$CMD`;
                 break;
             case 'php':
-                $CMD = 'php ' . CARBON_ROOT . 'Server.php ' . ($PHP['SITE']['CONFIG'] ?? SERVER_ROOT);
+                $CMD = 'php ' . CARBON_ROOT . 'Server.php ' . ($PHP['SITE']['CONFIG'] ?? APP_ROOT);
                 `$CMD`;
                 break;
             case 'help':
