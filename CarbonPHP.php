@@ -25,12 +25,12 @@ class CarbonPHP
 
     /** If safely exit is false run startApplication(), otherwise return $safelyExit
      * @link http://php.net/manual/en/language.oop5.magic.php#object.invoke
-     * @param string $application
+     * @param string $application The class to execute. This must extend CarbonPHP/Application
      * @return bool
      */
-    public function __invoke($uri = false)
+    public function __invoke($application)
     {
-        return $this->safelyExit ?: startApplication($uri);
+        return $this->safelyExit ?: startApplication($application);
     }
 
     /**

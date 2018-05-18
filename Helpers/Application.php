@@ -36,12 +36,13 @@ namespace {                                     // This runs the following code 
         static $application;
 
         if (null === $application) {
-            $application = BOOTSTRAP;
+            $application = $reset;
             $application = new $application;
             if (!$application instanceof Application) {
                 print 'Your application must extend the CarbonPHP/Application::class' . PHP_EOL;
                 return false;
             }
+            $reset = false;
         }
 
         if ($reset):                                    // This will always be se in a socket
