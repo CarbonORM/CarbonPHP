@@ -2,7 +2,8 @@
 
 namespace {                                     // This runs the following code in the global scope
 
-    use App\Bootstrap;
+    use /** @noinspection PhpUndefinedNamespaceInspection */
+        App\Bootstrap;
     use CarbonPHP\Application;
     use CarbonPHP\Error\ErrorCatcher;              //  Catches development errors
     use CarbonPHP\Error\PublicAlert;               //  Displays alerts nicely
@@ -318,6 +319,41 @@ namespace {                                     // This runs the following code 
         }
         if ($die) {
             exit(1);
+        }
+    }
+
+
+    /** Command Line Interface
+     * @param array $argv
+     * @param array $PHP
+     */
+    function CLI(array $argv, array $PHP)
+    {
+        (count($argv) < 2) AND $argv[1] = null;
+
+        switch ($argv[1]) {
+            case 'go':
+                $CMD = '/usr/bin/websocketd --port=' . ($PHP['SOCKET']['PORT'] ?? 8888) . ' ' .
+                    (($PHP['SOCKET']['DEV'] ?? false) ? '--devconsole ' : '') .
+                    (($PHP['SOCKET']['SSL'] ?? false) ? "--ssl --sslkey={$PHP['SOCKET']['SSL']['KEY']} --sslcert={$PHP['SOCKET']['SSL']['CERT']} " : ' ') .
+                    'php ' . CARBON_ROOT . 'Extras' . DS . 'Websocketd.php ' . SERVER_ROOT . ' ' . ($PHP['SITE']['CONFIG'] ?? SERVER_ROOT) . ' 2>&1';
+                `$CMD`;
+                break;
+            case 'php':
+                $CMD = 'php ' . CARBON_ROOT . 'Server.php ' . ($PHP['SITE']['CONFIG'] ?? SERVER_ROOT);
+                `$CMD`;
+                break;
+            case 'help':
+            default:
+                print <<<END
+\n\n
+\t.$argv[0] [ :path? ] [ :command [ :args? ] ]\n
+\thelp\t - display a list of options
+\tphp\t  - start a HTTP 5 web socket server written in PHP
+\tgo\t   - start a HTTP 5 web socket server written in Google Go
+\n\n
+END;
+
         }
     }
 }

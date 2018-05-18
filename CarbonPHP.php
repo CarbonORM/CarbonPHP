@@ -155,28 +155,16 @@ class CarbonPHP
         Error\ErrorCatcher::start();            // Catch application errors and alerts
         */
 
+        if (php_sapi_name() === 'cli') {
+
+            var_dump($GLOBALS);
+            $this->safelyExit = true;
+            return false;
+            #CLI($argv);
+        }
+
         // More cache control is given in the .htaccess File
         Request::setHeader('Cache-Control:  must-revalidate'); // TODO - not this per say (better cache)
-
-        #################   SOCKET AND SYNC    #######################
-        if (!SOCKET && ($PHP['SOCKET'] ?? false) && !getservbyport($PHP['SOCKET']['PORT'] ?? 8888, 'tcp')) {
-
-            if (($PHP['SOCKET']['WEBSOCKETD'] ?? false) === true) {
-                $CMD = '/usr/bin/websocketd --port=' . ($PHP['SOCKET']['PORT'] ?? 8888) . ' ' .
-                    (($PHP['SOCKET']['DEV'] ?? false) ? '--devconsole ' : '') .
-                    (($PHP['SOCKET']['SSL'] ?? false) ? "--ssl --sslkey={$PHP['SOCKET']['SSL']['KEY']} --sslcert={$PHP['SOCKET']['SSL']['CERT']} " : ' ') .
-                    'php ' . CARBON_ROOT . 'Extras' . DS . 'Websocketd.php ' . SERVER_ROOT . ' ' . ($PHP['SITE']['CONFIG'] ?? SERVER_ROOT) . ' 2>&1';
-            } else {
-                $CMD = 'php ' . CARBON_ROOT . 'Server.php ' . ($PHP['SITE']['CONFIG'] ?? SERVER_ROOT);
-            }
-
-            Helpers\Fork::become_daemon(function () use ($CMD) {
-                `$CMD`;
-            });
-
-            print $CMD;
-            die;
-        }
 
         #################  DATABASE  ########################
         if ($PHP['DATABASE'] ?? false) {
