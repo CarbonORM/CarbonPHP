@@ -147,6 +147,8 @@ abstract class Route
 
         $pathLength = \count($arrayToMatch);
 
+        $pathLength === 0 and $pathToMatch = '*';   // shorthand if stmt
+
         // The order of the following
         if ($pathLength < $this->uriLength && substr($pathToMatch, -1) !== '*') {
             return $this;
