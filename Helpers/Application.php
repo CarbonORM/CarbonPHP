@@ -327,11 +327,11 @@ namespace {                                     // This runs the following code 
      * @param array $argv
      * @param array $PHP
      */
-    function CLI(array $argv, array $PHP)
+    function CLI(array $PHP)
     {
-        (count($argv) < 2) AND $argv[1] = null;
+        $argv = $_SERVER['argv'] ?? ['index.php', null];
 
-        switch ($argv[1]) {
+        switch ($argv[1] ?? null) {
             case 'go':
                 $CMD = '/usr/bin/websocketd --port=' . ($PHP['SOCKET']['PORT'] ?? 8888) . ' ' .
                     (($PHP['SOCKET']['DEV'] ?? false) ? '--devconsole ' : '') .

@@ -156,11 +156,8 @@ class CarbonPHP
         */
 
         if (php_sapi_name() === 'cli') {
-
-            var_dump($GLOBALS);
-            $this->safelyExit = true;
-            return false;
-            #CLI($argv);
+            CLI($PHP);
+            return $this->safelyExit = true;
         }
 
         // More cache control is given in the .htaccess File
