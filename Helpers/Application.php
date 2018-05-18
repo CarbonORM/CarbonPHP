@@ -36,8 +36,8 @@ namespace {                                     // This runs the following code 
         static $application;
 
         if (null === $application) {
-            $application = new (BOOTSTRAP);
-
+            $application = BOOTSTRAP;
+            $application = new $application;
             if (!$application instanceof Application) {
                 print 'Your application must extend the CarbonPHP/Application::class' . PHP_EOL;
                 return false;
