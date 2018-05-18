@@ -33,10 +33,10 @@ namespace {                                     // This runs the following code 
      */
     function startApplication($reset = false): bool
     {
-        $application = BOOTSTRAP;
+        $application = new (BOOTSTRAP);
 
         if (!$application instanceof Application) {
-            print 'Your application must extend the Carbon/Route::class' . PHP_EOL;
+            print 'Your application must extend the CarbonPHP/Application::class' . PHP_EOL;
             return false;
         }
 
