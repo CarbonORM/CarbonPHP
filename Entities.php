@@ -12,7 +12,7 @@ use CarbonPHP\Helpers\Bcrypt;
 use PDO;
 use stdClass;
 use CarbonPHP\Helpers\Globals;
-use CarbonPHP\Interfaces\iTable;
+use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Error\PublicAlert;
 
 /**
@@ -55,7 +55,7 @@ abstract class Entities
     public function __construct(array &$array = null)
     {
         $this->db = Database::database();
-        if ($this instanceof iTable && $array !== null) {
+        if ($this instanceof iRest && $array !== null) {
             $this::Post($array);
         }
     }

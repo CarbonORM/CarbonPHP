@@ -14,15 +14,15 @@
   "prefer-stable": true,
   "require": {
     "php": "^7.1",
-    "psr/log": "dev-master"
+    "psr/log": "dev-master",
+    "mustache/mustache": "dev-master"
   },
   "suggest": {
     "almasaeed2010/adminlte": "^2.4",
     "bower-asset/jquery-backstretch": "^2.1.16",
     "bower-asset/jquery-form": "dev-master",
     "bower-asset/jquery-pjax": "dev-master",
-    "bower-asset/mustache.js": "dev-master",
-    "mustache/mustache": "dev-master"
+    "bower-asset/mustache.js": "dev-master"
   },
   "authors": [
     {

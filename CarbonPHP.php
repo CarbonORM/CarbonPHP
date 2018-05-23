@@ -3,6 +3,7 @@
 namespace CarbonPHP;
 
 use CarbonPHP\Helpers\Serialized;
+use Psr\Log\InvalidArgumentException;
 
 /**
  * Class Carbon
@@ -92,7 +93,7 @@ class CarbonPHP
         \defined('APP_ROOT') OR \define('APP_ROOT', CARBON_ROOT);
 
         ####################  For help loading our Carbon.js
-        \defined('CARBON_ROOT') OR  \define('CARBON_ROOT', __DIR__ . DS);
+        \defined('CARBON_ROOT') OR \define('CARBON_ROOT', __DIR__ . DS);
 
         ####################  Did we use >> php -S localhost:8080 index.php
         \defined('APP_LOCAL') OR \define('APP_LOCAL', $this->isClientServer());
@@ -155,14 +156,6 @@ class CarbonPHP
         Error\ErrorCatcher::start();            // Catch application errors and alerts
         */
 
-        if (php_sapi_name() === 'cli') {
-            CLI($PHP);
-            return $this->safelyExit = true;
-        }
-
-        // More cache control is given in the .htaccess File
-        Request::setHeader('Cache-Control:  must-revalidate'); // TODO - not this per say (better cache)
-
         #################  DATABASE  ########################
         if ($PHP['DATABASE'] ?? false) {
             Database::$dsn = $PHP['DATABASE']['DB_DSN'] ?? '';
@@ -170,6 +163,15 @@ class CarbonPHP
             Database::$password = $PHP['DATABASE']['DB_PASS'] ?? '';
             Database::$setup = $PHP['DATABASE']['DB_BUILD'] ?? '';
         }
+
+        if (php_sapi_name() === 'cli') {
+            $this->CLI($PHP);
+            return $this->safelyExit = true;
+        }
+
+        // More cache control is given in the .htaccess File
+        Request::setHeader('Cache-Control:  must-revalidate'); // TODO - not this per say (better cache)
+
 
         ##################  VALIDATE URL / URI ##################
         // Even if a request is bad, we need to store the log
@@ -241,7 +243,7 @@ class CarbonPHP
             forward_static_call_array([Serialized::class, 'start'], $PHP['SESSION']['SERIALIZE']);    // Pull theses from session, and store on shutdown
         }
         ################  Helpful Global Functions ####################
-        if (file_exists(CARBON_ROOT . 'Helpers'. DS .'Application.php') && !@include CARBON_ROOT . 'Helpers'. DS .'Application.php') {
+        if (file_exists(CARBON_ROOT . 'Helpers' . DS . 'Application.php') && !@include CARBON_ROOT . 'Helpers' . DS . 'Application.php') {
             print '<h1>Your instance of CarbonPHP appears corrupt. Please see CarbonPHP.com for Documentation.</h1>';
             die(1);
         }
@@ -348,6 +350,177 @@ class CarbonPHP
         print 'Could not establish an IP address.';
         die(1);
     }
+
+    /** Command Line Interface. Use
+     *  I pass the php array to this function
+     *  for reporting purposes.
+     * php index.php [command]
+     * @param array $PHP
+     */
+    private function CLI(array $PHP)
+    {
+        $argv = $_SERVER['argv'] ?? ['index.php', null];
+
+        switch ($argv[1] ?? null) {
+
+            case 'Search':
+
+
+                break;
+
+            case 'rest':
+
+                preg_match_all("#mysql:host=([0-9.]+);dbname=(.+);#", $PHP['DATABASE']['DB_DSN'], $matches);
+
+                $user = Database::$username;
+                $pass = Database::$password;
+                $host = $matches[1][0] ?? null;
+                $database = $matches[2][0] ?? null;
+
+                $cnf = [
+                    '[client]',
+                    "user = $user",
+                    "password = $pass",
+                    "host = $host"
+                ];
+
+                file_put_contents('mysqldump.cnf', implode(PHP_EOL, $cnf));
+
+                $mustache = function ($path, $rest) {      // This is our mustache template engine implemented in php, used for rendering user content
+                    static $mustache;
+
+                    if (SOCKET) {
+                        return 'SOCKET MUSTACHE (BOOTSTRAP -> userSettings)';
+                    }
+
+                    if (empty($mustache)) {
+                        $mustache = new \Mustache_Engine();
+                    }
+                    if (!file_exists($path)) {
+                        print "<script>Carbon(() => $.carbon.alert('Content Buffer Failed ($path), Does Not Exist!', 'danger'))</script>";
+                    }
+                    return $mustache->render(file_get_contents($path), $rest);
+                };
+
+                print 'Building Rest Api!' . PHP_EOL;
+
+                // BASH QUERY
+                `mysqldump --defaults-extra-file="./mysqldump.cnf" --no-data $database > ./mysqldump.sql`;
+
+                if (!file_exists('./mysqldump.sql')) {
+                    print 'Could not load mysql dump file!' . PHP_EOL;
+                    return;
+                }
+
+                preg_match_all('#CREATE\s+TABLE(.|\s)+?(?=ENGINE=InnoDB)#', file_get_contents('mysqldump.sql'), $matches);
+
+                $matches = $matches[0];
+
+                $table = 0;
+                $rest = [];
+                $PDO = [                                            // I guess this is it ?
+                    0 => 'PDO::PARAM_NULL',
+                    1 => 'PDO::PARAM_BOOL',
+                    2 => 'PDO::PARAM_INT',
+                    3 => 'PDO::PARAM_STR',
+                ];
+
+                // Every table insert
+                foreach ($matches as $key => $insert) {                              // Create Table
+                    $insert = explode(PHP_EOL, $insert);
+                    $column = 0;
+                    // Every line in table insert
+                    foreach ($insert as $query) {                                       // Create Columns
+                        $query = explode(' ', trim($query));
+
+                        if ($query[0] === 'CREATE') {
+                            $rest[$table]['name'] = trim($query[2], '`');        // Table Name
+
+                        } else if ($query[0][0] === '`') {
+
+
+                            $rest[$table]['implode'][] = $name = trim($query[0], '`');    // Column Names
+
+
+                            if (in_array($name, [
+                                'pageSize',
+                                ''
+                            ])) {
+                                throw new InvalidArgumentException($rest[$table]['name'] . ' Uses The ');
+                            }
+
+
+                            if ('tinyint(1)' === $type = strtolower($query[1])) {            // this is a Bool
+                                $type = $PDO[0];
+                                $length = 1;
+                            } else {
+
+                                if (count($argv = explode('(', $type)) > 1) {
+                                    [$type, $length] = $argv;
+                                    $length = trim($length, ')');
+                                } else {
+                                    $length = null;
+                                }
+
+                                // I don't care about the character count
+                                switch ($type) {
+                                    case 'tinyint':
+                                    case 'smallint':
+                                    case 'mediumint':
+                                        $type = $PDO[2];
+                                        break;
+                                    case 'varchar':
+                                    default:
+                                        $type = $PDO[3];
+                                }
+                            }
+
+                            $rest[$table]['explode'][$column] = [
+                                'name' => $name,
+                                'type' => $type,
+                                'length' => $length ?? null
+                            ];
+                            $column++;
+                        }
+                    }
+
+                    $rest[$table]['listed'] = implode(", ", $rest[$table]['implode']);
+                    $rest[$table]['implode'] = ':' . implode(", :", $rest[$table]['implode']);
+                    file_put_contents('./REST/'. $rest[$table]['name'] . '.php',
+                        $mustache(__DIR__ . '/Extras/rest.mustache', $rest[$table]));
+                    $table++;
+
+                }
+                //print_r($rest);
+
+                //print_r($matches);
+                //print implode(', ', []);
+
+
+                break;
+            case 'go':
+                $CMD = '/usr/bin/websocketd --port=' . ($PHP['SOCKET']['PORT'] ?? 8888) . ' ' .
+                    (($PHP['SOCKET']['DEV'] ?? false) ? '--devconsole ' : '') .
+                    (($PHP['SOCKET']['SSL'] ?? false) ? "--ssl --sslkey={$PHP['SOCKET']['SSL']['KEY']} --sslcert={$PHP['SOCKET']['SSL']['CERT']} " : ' ') .
+                    'php ' . CARBON_ROOT . 'Extras' . DS . 'Websocketd.php ' . APP_ROOT . ' ' . ($PHP['SITE']['CONFIG'] ?? APP_ROOT) . ' 2>&1';
+                `$CMD`;
+                break;
+            case 'php':
+                $CMD = 'php ' . CARBON_ROOT . 'Server.php ' . ($PHP['SITE']['CONFIG'] ?? APP_ROOT);
+                `$CMD`;
+                break;
+            case 'help':
+            default:
+                print "\n\n
+                    \t.$argv[0] [ :path? ] [ :command [ :args? ] ]\n
+                    \thelp\t - display a list of options
+                    \trest\t - auto generate rest api from mysqldump
+                    \tphp\t  - start a HTTP 5 web socket server written in PHP
+                    \tgo\t   - start a HTTP 5 web socket server written in Google Go\n\n";
+
+        }
+    }
+
 
 }
 

@@ -1,0 +1,88 @@
+<?php
+
+namespace Table;
+
+use CarbonPHP\Database;
+use CarbonPHP\Entities;
+use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Interfaces\iRest;
+
+class {{name}} extends Entities implements iRest
+{
+    private static const COLUMNS = [
+           {{#explode}}
+            '{{name}}',
+        {{/explode}}
+    ];
+
+    public static function Get(array &$return, string $primary = null, array $argv): bool
+   {
+
+
+        if (isset('pageSize', $argv)){
+            $pageSize = $argv['pageSize'];
+            $pageSize = $argv['pageNumber'] ?? 1;
+
+        }
+
+        $get = array_intersect(array_keys($argv), self::COLUMNS);
+
+        $where = array_intersect($get, array_merge_recursive(array_fill_keys($get, ''), $argv));
+
+        $sql = 'SELECT ' . implode(", ", $get) . ' FROM {{name}} WHERE ';
+
+        if ($primary !== null) {
+            foreach ($where as $column => $value) {
+                $sql .= "$column = $value ";
+            }
+        } else {
+            $sql .= "$column = $primary";
+        }
+        $array = self::fetch($sql);
+
+        return true;
+    }
+
+    public static function Post(array $argv)
+    {
+        $sql = 'INSERT INTO {{name}} ({{listed}})
+            VALUES ({{implode}})';
+        $stmt = Database::database()->prepare($sql);
+        {{#explode}}
+            $stmt->bindValue(':{{name}}', $argv['{{name}}'] ?? null, {{type}});
+        {{/explode}}
+        return $stmt->execute();
+    }
+
+    public static function Put(array &$return, string $id, array $argv): bool
+    {
+        $argv = array_merge($array, $argv);
+        $sql = 'UPDATE {{name}} SET ({{#explode}}{{name}} = :{{name}},{{/explode}}) WHERE ({{implode}})';
+        $stmt = Database::database()->prepare($sql);
+        {{#explode}}
+            $stmt->bindValue(':{{name}}', $argv['{{name}}'] ?? null, {{type}});
+        {{/explode}}
+        return $stmt->execute();
+    }
+
+    /**
+    * @param array $array
+    * @param array $argv
+    * @return bool
+    */
+    public static function Delete(array &$return, string $primary = null, array $argv): bool {
+    {
+        $get = array_intersect(array_keys($argv), self::COLUMNS);
+
+        $where = array_intersect($get, array_merge_recursive(array_fill_keys($get, ''), $argv));
+
+        $sql = 'DELETE * FROM {{name}} WHERE ';
+
+        foreach ($where as $column => $value) {
+        $sql .= "$column = $value";
+        }
+
+        return self::execute($sql);
+    }
+
+}

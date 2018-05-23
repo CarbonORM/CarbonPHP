@@ -8,6 +8,7 @@
       <sourceFolder url="file://$MODULE_DIR$/Interfaces" isTestSource="false" packagePrefix="CarbonPHP\Interfaces\" />
       <sourceFolder url="file://$MODULE_DIR$" isTestSource="false" packagePrefix="CarbonPHP\" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/composer" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/mustache/mustache" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/psr/log" />
     </content>
     <orderEntry type="inheritedJdk" />
