@@ -9,58 +9,59 @@ use CarbonPHP\Interfaces\iRest;
 
 class {{name}} extends Entities implements iRest
 {
-    private static const COLUMNS = [
+    const COLUMNS = [
            {{#explode}}
             '{{name}}',
         {{/explode}}
     ];
 
-    public static function Get(array &$return, string $primary = null, array $argv): bool
-   {
+    const PRIMARY = "{{primary}}";
 
-
-        if (isset('pageSize', $argv)){
+    public static function Get(array &$return, $primary = null, array $argv) : bool
+    {
+        if (isset($argv['pageSize'])){
             $pageSize = $argv['pageSize'];
-            $pageSize = $argv['pageNumber'] ?? 1;
-
+            $pageSize = isset($argv['pageNumber']) ? $argv['pageNumber'] : 1;
         }
 
         $get = array_intersect(array_keys($argv), self::COLUMNS);
 
         $where = array_intersect($get, array_merge_recursive(array_fill_keys($get, ''), $argv));
 
-        $sql = 'SELECT ' . implode(", ", $get) . ' FROM {{name}} WHERE ';
+        $sql = 'SELECT ' . implode(", ", $get) . ' FROM {{name}}';
 
         if ($primary !== null) {
+            $sql .= ' WHERE ';
             foreach ($where as $column => $value) {
-                $sql .= "$column = $value ";
+                $sql .= "(`$column` = `$value`) AND ";
             }
-        } else {
-            $sql .= "$column = $primary";
+            $sql = substr($sql, 0, strlen($sql)-4);
+        } else if (!empty(PRIMARY)){
+            $sql .= ' WHERE `' . PRIMARY . "` = `$primary`";
         }
-        $array = self::fetch($sql);
+        $return = self::fetch($sql);
 
         return true;
     }
 
     public static function Post(array $argv)
     {
-        $sql = 'INSERT INTO {{name}} ({{listed}})
-            VALUES ({{implode}})';
-        $stmt = Database::database()->prepare($sql);
+        $sql = 'INSERT INTO {{name}} ({{listed}}) VALUES ({{implode}})';
+        $stmt = self::database()->prepare($sql);
         {{#explode}}
-            $stmt->bindValue(':{{name}}', $argv['{{name}}'] ?? null, {{type}});
+            $stmt->bindValue(':{{name}}', isset($argv['{{name}}']) ? $argv['{{name}}'] : null, {{type}});
         {{/explode}}
         return $stmt->execute();
     }
 
-    public static function Put(array &$return, string $id, array $argv): bool
+    public static function Put(array &$return, $id, array $argv) : bool
     {
-        $argv = array_merge($array, $argv);
-        $sql = 'UPDATE {{name}} SET ({{#explode}}{{name}} = :{{name}},{{/explode}}) WHERE ({{implode}})';
-        $stmt = Database::database()->prepare($sql);
+        $argv = array_merge($return, $argv);
+        $sql = 'UPDATE api_key_configs SET `id` = `:id`,`api_key_id` = `:api_key_id`,`key` = `:key`,`value` = `:value`,`active_date` = `:active_date`,`inactive_date` = `:inactive_date`'
+            . ' WHERE `' . PRIMARY . "`  = $id";
+        $stmt = self::database()->prepare($sql);
         {{#explode}}
-            $stmt->bindValue(':{{name}}', $argv['{{name}}'] ?? null, {{type}});
+            $stmt->bindValue(':{{name}}', isset($argv['{{name}}']) ? $argv['{{name}}'] : null, {{type}});
         {{/explode}}
         return $stmt->execute();
     }
@@ -70,7 +71,7 @@ class {{name}} extends Entities implements iRest
     * @param array $argv
     * @return bool
     */
-    public static function Delete(array &$return, string $primary = null, array $argv): bool {
+    public static function Delete(array &$return, $primary = null, array $argv) : bool
     {
         $get = array_intersect(array_keys($argv), self::COLUMNS);
 
@@ -79,7 +80,7 @@ class {{name}} extends Entities implements iRest
         $sql = 'DELETE * FROM {{name}} WHERE ';
 
         foreach ($where as $column => $value) {
-        $sql .= "$column = $value";
+            $sql .= "$column = $value";
         }
 
         return self::execute($sql);

@@ -381,48 +381,50 @@ class CarbonPHP
                     '[client]',
                     "user = $user",
                     "password = $pass",
-                    "host = $host"
+                    "host = $host",
                 ];
 
-                file_put_contents('mysqldump.cnf', implode(PHP_EOL, $cnf));
+                file_put_contents('./mysqldump.cnf', implode(PHP_EOL, $cnf));
 
-                $mustache = function ($path, $rest) {      // This is our mustache template engine implemented in php, used for rendering user content
-                    static $mustache;
-
-                    if (SOCKET) {
-                        return 'SOCKET MUSTACHE (BOOTSTRAP -> userSettings)';
+                $mustache = function (array $rest) {      // This is our mustache template engine implemented in php, used for rendering user content
+                    $mustache = new \Mustache_Engine();
+                    if (empty($handlebars = file_get_contents(__DIR__.'/../resources/mustache/rest.mustache'))){
+                        print "Could not find rest mustache template. Searching in directory\n" .
+                            __DIR__."'/../resources/mustache/rest.mustache";
+                        exit(1);
                     }
-
-                    if (empty($mustache)) {
-                        $mustache = new \Mustache_Engine();
-                    }
-                    if (!file_exists($path)) {
-                        print "<script>Carbon(() => $.carbon.alert('Content Buffer Failed ($path), Does Not Exist!', 'danger'))</script>";
-                    }
-                    return $mustache->render(file_get_contents($path), $rest);
+                    return $mustache->render($handlebars, $rest);
                 };
 
-                print 'Building Rest Api!' . PHP_EOL;
+                print PHP_EOL . "\tBuilding Rest Api!" . PHP_EOL;
 
                 // BASH QUERY
-                `mysqldump --defaults-extra-file="./mysqldump.cnf" --no-data $database > ./mysqldump.sql`;
+                `mysqldump --defaults-extra-file="./mysqldump.cnf" --no-data $database --result-file="./mysqldump.sql"`;
+
+                `rm mysqldump.cnf`;
 
                 if (!file_exists('./mysqldump.sql')) {
                     print 'Could not load mysql dump file!' . PHP_EOL;
                     return;
                 }
 
-                preg_match_all('#CREATE\s+TABLE(.|\s)+?(?=ENGINE=InnoDB)#', file_get_contents('mysqldump.sql'), $matches);
+                if (empty($contents = file_get_contents('mysqldump.sql'))) {
+                    print "Build Failed";
+                    exit(1);
+                }
+
+
+                preg_match_all('#CREATE\s+TABLE(.|\s)+?(?=ENGINE=InnoDB)#', $contents, $matches);
 
                 $matches = $matches[0];
 
                 $table = 0;
                 $rest = [];
                 $PDO = [                                            // I guess this is it ?
-                    0 => 'PDO::PARAM_NULL',
-                    1 => 'PDO::PARAM_BOOL',
-                    2 => 'PDO::PARAM_INT',
-                    3 => 'PDO::PARAM_STR',
+                    0 => \PDO::PARAM_NULL,
+                    1 => \PDO::PARAM_BOOL,
+                    2 => \PDO::PARAM_INT,
+                    3 => \PDO::PARAM_STR,
                 ];
 
                 // Every table insert
@@ -441,23 +443,17 @@ class CarbonPHP
 
                             $rest[$table]['implode'][] = $name = trim($query[0], '`');    // Column Names
 
-
-                            if (in_array($name, [
-                                'pageSize',
-                                ''
-                            ])) {
-                                throw new InvalidArgumentException($rest[$table]['name'] . ' Uses The ');
+                            if (in_array($name, ['pageSize', 'pageNumber'])) {
+                                throw new InvalidArgumentException($rest[$table]['name'] . " uses reserved 'REST' keywords as a column identifier => $name\n");
                             }
-
 
                             if ('tinyint(1)' === $type = strtolower($query[1])) {            // this is a Bool
                                 $type = $PDO[0];
                                 $length = 1;
                             } else {
-
                                 if (count($argv = explode('(', $type)) > 1) {
-                                    [$type, $length] = $argv;
-                                    $length = trim($length, ')');
+                                    $type = $argv[0];
+                                    $length = trim($argv[1], ')');
                                 } else {
                                     $length = null;
                                 }
@@ -478,24 +474,31 @@ class CarbonPHP
                             $rest[$table]['explode'][$column] = [
                                 'name' => $name,
                                 'type' => $type,
-                                'length' => $length ?? null
+                                'length' => isset($length) ? $length : null
                             ];
                             $column++;
+                        } else if ($query[0] === 'PRIMARY'){
+                            $rest[$table]['primary'] = substr($query[2], 2, strlen($query[2]) - 5);
                         }
+                        //else {
+                            //var_dump($query);
+                        //}
                     }
+
+                    $rest[$table]['update'] = '';
+                    foreach ($rest[$table]['implode'] as $column) {
+                        $rest[$table]['update'] .= "`$column` = `:$column`,";
+                    }
+                    $rest[$table]['update'] = substr($rest[$table]['update'], 0, strlen($rest[$table]['update']) - 1);
 
                     $rest[$table]['listed'] = implode(", ", $rest[$table]['implode']);
                     $rest[$table]['implode'] = ':' . implode(", :", $rest[$table]['implode']);
-                    file_put_contents('./REST/'. $rest[$table]['name'] . '.php',
-                        $mustache(__DIR__ . '/Extras/rest.mustache', $rest[$table]));
+                    file_put_contents(__DIR__ . '/../app/Tables/' . $rest[$table]['name'] . '.php', $mustache($rest[$table]));
                     $table++;
 
                 }
-                //print_r($rest);
 
-                //print_r($matches);
-                //print implode(', ', []);
-
+                print "\tDone\n\n";
 
                 break;
             case 'go':

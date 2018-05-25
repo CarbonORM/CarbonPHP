@@ -3,7 +3,7 @@
   <component name="WebServers">
     <option name="servers">
       <webServer id="ae76d080-9ead-48b8-8f9f-efbe1ae34437" name="Vendors" url="http://localhost">
-        <fileTransfer port="0" mountedRoot="C:\Users\rmiles\Documents\GitHub\Armatus\vendor\richardtmiles\carbonphp" accessType="MOUNT" />
+        <fileTransfer port="0" mountedRoot="C:\Users\rmiles\Documents\GitHub\vendor\richardtmiles\carbonphp" accessType="MOUNT" />
       </webServer>
     </option>
   </component>

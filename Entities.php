@@ -142,6 +142,23 @@ abstract class Entities
         return $key;
     }
 
+
+    /** http://php.net/manual/en/language.operators.bitwise.php
+     * in actual system we will have to see what bit system we are using
+     * 32 bit = 28
+     * 64 biit = 60
+     * I assume this means php uses 4 bits to denote type (vzal) ?
+     * idk
+     * @param int $bitLength
+     * @return string
+     */
+    public static function genRandomHex($bitLength = 40)
+    {
+        $sudoRandom = 1;
+        for ($i = 0; $i <= $bitLength; $i++) $sudoRandom = ($sudoRandom << 1) | rand(0, 1);
+        return dechex($sudoRandom);
+    }
+
     /**
      * @param $tag_id
      * This will be inserted in out tags table, it is just a reference
@@ -160,7 +177,7 @@ abstract class Entities
         do {
             try {
                 $stmt = $db->prepare('INSERT INTO carbon (entity_pk, entity_fk) VALUE (?,?)');
-                $stmt->execute([$stmt = Bcrypt::genRandomHex(), $dependant]);
+                $stmt->execute([$stmt = self::genRandomHex(), $dependant]);
             } catch (\PDOException $e) {
                 $stmt = false;
             }
