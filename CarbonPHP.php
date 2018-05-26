@@ -377,43 +377,55 @@ class CarbonPHP
                 $host = $matches[1][0] ?? null;
                 $database = $matches[2][0] ?? null;
 
-                $cnf = [
-                    '[client]',
-                    "user = $user",
-                    "password = $pass",
-                    "host = $host",
-                ];
+                if (isset($argv[2])) {
+                    if (!file_exists($argv[2])) {
+                        print "\tCould not open ";
+                    } else {
+                        if (empty($contents = file_get_contents('mysqldump.sql'))) {
+                            print "Build Failed";
+                            exit(1);
+                        }
+                    }
 
-                file_put_contents('./mysqldump.cnf', implode(PHP_EOL, $cnf));
+                } else {
 
-                $mustache = function (array $rest) {      // This is our mustache template engine implemented in php, used for rendering user content
-                    $mustache = new \Mustache_Engine();
-                    if (empty($handlebars = file_get_contents(__DIR__.'/../resources/mustache/rest.mustache'))){
-                        print "Could not find rest mustache template. Searching in directory\n" .
-                            __DIR__."'/../resources/mustache/rest.mustache";
+                    $cnf = [
+                        '[client]',
+                        "user = $user",
+                        "password = $pass",
+                        "host = $host",
+                    ];
+
+                    file_put_contents('./mysqldump.cnf', implode(PHP_EOL, $cnf));
+
+                    $mustache = function (array $rest) {      // This is our mustache template engine implemented in php, used for rendering user content
+                        $mustache = new \Mustache_Engine();
+                        if (empty($handlebars = file_get_contents(__DIR__ . '/../resources/mustache/rest.mustache'))) {
+                            print "Could not find rest mustache template. Searching in directory\n" .
+                                __DIR__ . "'/../resources/mustache/rest.mustache";
+                            exit(1);
+                        }
+                        return $mustache->render($handlebars, $rest);
+                    };
+
+                    print PHP_EOL . "\tBuilding Rest Api!" . PHP_EOL;
+
+                    // BASH QUERY
+                    `mysqldump --defaults-extra-file="./mysqldump.cnf" --no-data $database --result-file="./mysqldump.sql"`;
+
+                    `rm mysqldump.cnf`;
+
+                    if (!file_exists('./mysqldump.sql')) {
+                        print 'Could not load mysql dump file!' . PHP_EOL;
+                        return;
+                    }
+
+                    if (empty($contents = file_get_contents('mysqldump.sql'))) {
+                        print "Build Failed";
                         exit(1);
                     }
-                    return $mustache->render($handlebars, $rest);
-                };
 
-                print PHP_EOL . "\tBuilding Rest Api!" . PHP_EOL;
-
-                // BASH QUERY
-                `mysqldump --defaults-extra-file="./mysqldump.cnf" --no-data $database --result-file="./mysqldump.sql"`;
-
-                `rm mysqldump.cnf`;
-
-                if (!file_exists('./mysqldump.sql')) {
-                    print 'Could not load mysql dump file!' . PHP_EOL;
-                    return;
                 }
-
-                if (empty($contents = file_get_contents('mysqldump.sql'))) {
-                    print "Build Failed";
-                    exit(1);
-                }
-
-
                 preg_match_all('#CREATE\s+TABLE(.|\s)+?(?=ENGINE=InnoDB)#', $contents, $matches);
 
                 $matches = $matches[0];
@@ -439,7 +451,6 @@ class CarbonPHP
                             $rest[$table]['name'] = trim($query[2], '`');        // Table Name
 
                         } else if ($query[0][0] === '`') {
-
 
                             $rest[$table]['implode'][] = $name = trim($query[0], '`');    // Column Names
 
@@ -497,7 +508,6 @@ class CarbonPHP
                     $table++;
 
                 }
-
                 print "\tDone\n\n";
 
                 break;
@@ -516,10 +526,10 @@ class CarbonPHP
             default:
                 print "\n\n
                     \t.$argv[0] [ :path? ] [ :command [ :args? ] ]\n
-                    \thelp\t - display a list of options
-                    \trest\t - auto generate rest api from mysqldump
-                    \tphp\t  - start a HTTP 5 web socket server written in PHP
-                    \tgo\t   - start a HTTP 5 web socket server written in Google Go\n\n";
+                    \thelp                          \t - display a list of options
+                    \trest [:Path to MysqlDump.sql?]\t - auto generate rest api from mysqldump
+                    \tphp                           \t  - start a HTTP 5 web socket server written in PHP
+                    \tgo                            \t   - start a HTTP 5 web socket server written in Google Go\n\n";
 
         }
     }
