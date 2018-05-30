@@ -123,7 +123,7 @@
     }
 
 //-- Minimize our resources per request
-    $.load_backStretch = load_backStretch;
+    $.fn.load_backStretch = load_backStretch;
     $.fn.load_select2 = load_select2;
     $.fn.load_datatables = load_datatables;
     $.fn.load_iCheck = load_iCheck;
@@ -133,5 +133,4 @@
     $.fn.load_timepicker = load_timepicker;
     $.fn.load_datepicker = load_datepicker;
     $.fn.load_colorpicker = load_colorpicker;
-
 }(jQuery));
