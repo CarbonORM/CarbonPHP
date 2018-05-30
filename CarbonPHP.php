@@ -516,7 +516,9 @@ class CarbonPHP
                     (($PHP['SOCKET']['DEV'] ?? false) ? '--devconsole ' : '') .
                     (($PHP['SOCKET']['SSL'] ?? false) ? "--ssl --sslkey={$PHP['SOCKET']['SSL']['KEY']} --sslcert={$PHP['SOCKET']['SSL']['CERT']} " : ' ') .
                     'php ' . CARBON_ROOT . 'Extras' . DS . 'Websocketd.php ' . APP_ROOT . ' ' . ($PHP['SITE']['CONFIG'] ?? APP_ROOT) . ' 2>&1';
-                `$CMD`;
+
+                print $CMD;
+                //`$CMD`;
                 break;
             case 'php':
                 $CMD = 'php ' . CARBON_ROOT . 'Server.php ' . ($PHP['SITE']['CONFIG'] ?? APP_ROOT);
