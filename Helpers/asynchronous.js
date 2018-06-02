@@ -122,15 +122,16 @@
             $(this).colorpicker());
     }
 
-//-- Minimize our resources per request
-    $.fn.load_backStretch = load_backStretch;
-    $.fn.load_select2 = load_select2;
-    $.fn.load_datatables = load_datatables;
-    $.fn.load_iCheck = load_iCheck;
-    $.fn.load_wysihtml5 = load_wysihtml5;
-    $.fn.load_inputmask = load_inputmask;
-    $.fn.load_knob = load_knob;
-    $.fn.load_timepicker = load_timepicker;
-    $.fn.load_datepicker = load_datepicker;
-    $.fn.load_colorpicker = load_colorpicker;
+    //-- Minimize our resources per request
+    //-- The $.fn. methods will be removed in the next major version, this is to prevent deprecation
+    $.fn.load_backStretch = $.load_backStretch = load_backStretch;
+    $.fn.load_select2  = $.load_select2 = load_select2;
+    $.fn.load_datatables = $.load_datatables = load_datatables;
+    $.fn.load_datatables = $.load_iCheck = load_iCheck;
+    $.fn.load_wysihtml5 = $.load_wysihtml5 = load_wysihtml5;
+    $.fn.load_inputmask = $.load_inputmask = load_inputmask;
+    $.fn.load_knob = $.load_knob = load_knob;
+    $.fn.load_timepicker = $.load_timepicker = load_timepicker;
+    $.fn.load_datepicker = $.load_datepicker = load_datepicker;
+    $.fn.load_colorpicker = $.load_colorpicker = load_colorpicker;
 }(jQuery));
