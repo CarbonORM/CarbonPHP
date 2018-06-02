@@ -173,8 +173,7 @@ class CarbonPHP
         }
 
         // More cache control is given in the .htaccess File
-        Request::setHeader('Cache-Control:  must-revalidate'); // TODO - not this per say (better cache)
-
+        // Request::setHeader('Cache-Control:  must-revalidate'); // TODONE - not this per say (better cache)
 
         ##################  VALIDATE URL / URI ##################
         // Even if a request is bad, we need to store the log
@@ -183,7 +182,7 @@ class CarbonPHP
             $this->IP_FILTER();
         }
 
-        $this->URI_FILTER($PHP['SITE']['URL'] ?? '', $PHP['SITE']['ALLOWED_EXTENSIONS'] ?? '');
+        $this->URI_FILTER($PHP['SITE']['URL'] ?? '', $PHP['SITE']['CACHE_CONTROL'] ?? []);
 
         if ($PHP['DATABASE']['REBUILD'] ?? false) {
             Database::setUp(false);   // redirect = false
