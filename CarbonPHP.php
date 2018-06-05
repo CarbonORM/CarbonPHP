@@ -317,15 +317,25 @@ class CarbonPHP
             return true;
         }
 
+
+        // we need to ensure valid access
+        $allowedAccess = false;
         foreach ($cacheControl as $extension => $headers) {
             if (strpos($extension, $ext) !== false) {
+                $allowedAccess = true;
                 header($headers);
                 break;
             }
         }
 
+        if (!$allowedAccess) {
+            http_response_code(403);            // This is a Forbidden response
+            exit(1);                                        // This is an exit with error
+        }
+
         // Look for versioning
         View::unVersion($_SERVER['REQUEST_URI']);           // This may exit and send a file
+
 
         // add cache control
 
