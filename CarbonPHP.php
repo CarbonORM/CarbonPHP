@@ -173,6 +173,7 @@ class CarbonPHP
         }
 
         // More cache control is given in the .htaccess File
+        // This was the dirtiest shit I've done to myself
         // Request::setHeader('Cache-Control:  must-revalidate'); // TODONE - not this per say (better cache)
 
         ##################  VALIDATE URL / URI ##################
