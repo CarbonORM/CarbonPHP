@@ -179,7 +179,7 @@ namespace {                                     // This runs the following code 
             return $argv;
         };
 
-        return (function () use ($exec, $controller, $model, &$argv) {          // TODO - this is where catch Errors is / goes
+        return catchErrors(function () use ($exec, $controller, $model, &$argv) {          // TODO - this is where catch Errors is / goes
             if (!empty($argv = $exec($controller, $argv))) {
                 if (\is_array($argv)) {
                     return $exec($model, $argv);        // array passed

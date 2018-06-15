@@ -427,7 +427,6 @@ class CarbonPHP
                     }
 
                 } else {
-
                     $cnf = [
                         '[client]',
                         "user = $user",
@@ -454,13 +453,11 @@ class CarbonPHP
                         print "Build Failed";
                         exit(1);
                     }
-
                 }
 
                 preg_match_all('#CREATE\s+TABLE(.|\s)+?(?=ENGINE=InnoDB)#', $contents, $matches);
 
                 $matches = $matches[0];
-
 
                 $PDO = [                                            // I guess this is it ?
                     0 => \PDO::PARAM_NULL,
@@ -468,7 +465,6 @@ class CarbonPHP
                     2 => \PDO::PARAM_INT,
                     3 => \PDO::PARAM_STR,
                 ];
-
 
                 // Every table insert
                 foreach ($matches as $key => $insert) {
@@ -487,13 +483,11 @@ class CarbonPHP
                         $query = explode(' ', trim($query));
 
                         if ($query[0] === 'CREATE') {
-                            $rest['name'] = trim($query[2], '`');        // Table Name
-                        } elseif ($query[0][0] === '`') {
+                            $rest['TableName'] = trim($query[2], '`');        // Table Name
+
+                        } else if ($query[0][0] === '`') {
 
                             $rest['implode'][] = $name = trim($query[0], '`');    // Column Names
-
-
-                            print $name;
 
                             if (in_array($name, ['pageSize', 'pageNumber'])) {
                                 throw new InvalidArgumentException($rest['name'] . " uses reserved 'REST' keywords as a column identifier => $name\n");
@@ -529,32 +523,17 @@ class CarbonPHP
                                 'length' => isset($length) ? $length : null
                             ];
                             $column++;
-                        } elseif ($query[0] === 'PRIMARY') {
+                        } else if ($query[0] === 'PRIMARY'){
                             $rest['primary'] = substr($query[2], 2, strlen($query[2]) - 5);
-                        } else {
-                            #var_dump($query);
-                            continue;
                         }
                     }
 
-
-                    if (!is_array($rest['implode'])) {
-                        continue;
-                    }
-
-                    // updates every column?
                     $rest['update'] = '';
                     foreach ($rest['implode'] as $column) {
                         $rest['update'] .= "`$column` = `:$column`,";
                     }
+
                     $rest['update'] = substr($rest['update'], 0, strlen($rest['update']) - 1);
-
-
-                    if (!is_array($rest['implode'])) {
-                        var_dump($rest['implode']);
-                        break;
-                    }
-
                     $rest['listed'] = implode(", ", $rest['implode']);
                     $rest['implode'] = ':' . implode(", :", $rest['implode']);
 

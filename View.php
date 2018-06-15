@@ -103,7 +103,7 @@ class View
         }
 
         if (!\is_string($buffer)) {
-            $buffer = "<script>Carbon(() => $.fn.bootstrapAlert('Content Buffer Failed ($file)', 'danger'))</script>";
+            $buffer = "<script>Carbon(() => $.carbon.bootstrapAlert('Content Buffer Failed ($file)', 'danger'))</script>";
         }
 
         if (!self::$forceWrapper && (PJAX || AJAX)):        // Send only inner content?
@@ -130,8 +130,8 @@ class View
     public static function bootstrapAlert($message, $level): void
     {
         $message = htmlentities($message);  // Im not sure how this may be used,
-        $level = htmlentities($level);      // for completeness I sanitise
-        printf('<script>Carbon(() => $.carbon.alert("%s", "%s"))</script>', $message, $level);
+        $level = htmlentities($level);      // for completeness I sanitises
+        printf('<script>Carbon(() => carbon.alert("%s", "%s"))</script>', $message, $level);
     }
 
     /**

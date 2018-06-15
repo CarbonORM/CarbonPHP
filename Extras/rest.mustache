@@ -19,26 +19,36 @@ class {{name}} extends Entities implements iRest
 
     public static function Get(array &$return, string $primary = null, array $argv) : bool
     {
-        if (isset($argv['pageSize'])){
-            $pageSize = $argv['pageSize'];
-            $pageSize = isset($argv['pageNumber']) ? $argv['pageNumber'] : 1;
+         if (isset($argv['limit'])){
+            $pos = strrpos($argv['limit'], "><");
+            if ($pos !== false) { // note: three equal signs
+                substr_replace($argv['limit'],',',$pos, 2);
+            }
+            $limit = ' LIMIT ' . $argv['limit'];
+        } else {
+            $limit = '';
         }
 
         $get = array_intersect(array_keys($argv), self::COLUMNS);
 
         $where = array_intersect($get, array_merge_recursive(array_fill_keys($get, ''), $argv));
 
-        $sql = 'SELECT ' . implode(", ", $get) . ' FROM {{name}}';
+        $get =  !empty($get) ? implode(", ", $get) : ' * ';
 
-        if ($primary !== null) {
-            $sql .= ' WHERE ';
-            foreach ($where as $column => $value) {
-                $sql .= "(`$column` = `$value`) AND ";
-            }
-            $sql = substr($sql, 0, strlen($sql)-4);
-        } else if (!empty(PRIMARY)){
-            $sql .= ' WHERE `' . PRIMARY . "` = `$primary`";
+        $sql = 'SELECT ' .  $get . ' FROM {{database}}.{{TableName}}';
+
+        if ($primary === null) {
+        $sql .= ' WHERE ';
+        foreach ($where as $column => $value) {
+        $sql .= "('$column' = '$value') AND ";
         }
+        $sql = substr($sql, 0, strlen($sql)-4);
+        } else if (!empty(self::PRIMARY)){
+        $sql .= ' WHERE ' . self::PRIMARY . "= '$primary'";
+        }
+
+        $sql .= $limit;
+
         $return = self::fetch($sql);
 
         return true;
@@ -46,24 +56,51 @@ class {{name}} extends Entities implements iRest
 
     public static function Post(array $argv)
     {
-        $sql = 'INSERT INTO {{name}} ({{listed}}) VALUES ({{implode}})';
+        $sql = 'INSERT INTO {{database}}.{{TableName}} ({{listed}}) VALUES ({{implode}})';
         $stmt = self::database()->prepare($sql);
         {{#explode}}
-            $stmt->bindValue(':{{name}}', isset($argv['{{name}}']) ? $argv['{{name}}'] : null, {{type}});
+            $stmt->bindValue(':{{name}}', isset($argv['{{name}}']) ? $argv['{{name}}'] : null, \{{type}});
         {{/explode}}
         return $stmt->execute();
     }
 
+
+
     public static function Put(array &$return, string $id, array $argv) : bool
     {
-        $argv = array_merge($return, $argv);
-        $sql = 'UPDATE api_key_configs SET `id` = `:id`,`api_key_id` = `:api_key_id`,`key` = `:key`,`value` = `:value`,`active_date` = `:active_date`,`inactive_date` = `:inactive_date`'
-            . ' WHERE `' . PRIMARY . "`  = $id";
-        $stmt = self::database()->prepare($sql);
+        $put = array_intersect(array_keys($argv), self::COLUMNS);
+
+        $sql = 'UPDATE {{database}}.{{TableName}} ';
+
+        $sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
+
         {{#explode}}
-            $stmt->bindValue(':{{name}}', isset($argv['{{name}}']) ? $argv['{{name}}'] : null, {{type}});
+            if (isset($argv['{{name}}'])) {
+            $sql .= '`{{name}}` = `:{{name}}`,';
+            }
+
         {{/explode}}
-        return $stmt->execute();
+
+        $sql .= ' WHERE `' . self::PRIMARY . "`  = $id";
+
+        $stmt = self::database()->prepare($sql);
+
+        {{#explode}}
+            if (isset($argv['{{name}}'])) {
+            $stmt->bindValue(':{{name}}', isset($argv['{{name}}']) ? $argv['{{name}}'] : null, \{{type}});
+            }
+
+        {{/explode}}
+
+
+        if (!$stmt->execute()){
+        return false;
+        }
+
+        $return = array_merge_recursive($return, $argv);
+
+        return true;
+
     }
 
     /**
@@ -77,11 +114,14 @@ class {{name}} extends Entities implements iRest
 
         $where = array_intersect($get, array_merge_recursive(array_fill_keys($get, ''), $argv));
 
-        $sql = 'DELETE * FROM {{name}} WHERE ';
+        $sql = 'DELETE * FROM {{database}}.{{TableName}} ';
+
+        $sql .= ' WHERE ';  // my editor yells at me if I don't separate this from the above stmt
 
         foreach ($where as $column => $value) {
-            $sql .= "$column = $value";
-        }s
+        $sql .= "$column = $value";
+        }
+
         return self::execute($sql);
     }
 
