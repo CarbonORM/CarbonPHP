@@ -347,7 +347,7 @@ class CarbonPHP
         if (file_exists(APP_ROOT . URI)) {      //  also may send and exit
             View::sendResource(URI, $ext);
         }
-        http_response_code(404);              // If we haven't found the request send code 404
+        http_response_code(404);           // If we haven't found the request send code 404 not found
         die(1);
     }
 

@@ -5,6 +5,14 @@
       <webServer id="ae76d080-9ead-48b8-8f9f-efbe1ae34437" name="Vendors" url="http://localhost">
         <fileTransfer port="0" mountedRoot="C:\Users\rmiles\Documents\GitHub\vendor\richardtmiles\carbonphp" accessType="MOUNT" />
       </webServer>
+      <webServer id="2b63432e-72aa-4c98-ba37-19ff49f8bc76" name="Google" url="http://35.196.103.151">
+        <fileTransfer host="35.196.103.151" port="22" privateKey="C:\Users\rmiles\.ssh\google_compute_engine" rootFolder="/var/www/vendor/richardtmiles/carbonphp" accessType="SFTP" keyPair="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
     </option>
   </component>
 </project>
