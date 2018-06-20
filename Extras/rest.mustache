@@ -7,7 +7,8 @@ use CarbonPHP\Entities;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iRest;
 
-class {{name}} extends Entities implements iRest
+
+class {{TableName}} extends Entities implements iRest
 {
     const COLUMNS = [
            {{#explode}}
@@ -17,112 +18,110 @@ class {{name}} extends Entities implements iRest
 
     const PRIMARY = "{{primary}}";
 
-    public static function Get(array &$return, string $primary = null, array $argv) : bool
+    public static function Get(array &$return, $primary = null, array $argv) // : bool
     {
-         if (isset($argv['limit'])){
+        if (isset($argv['limit'])){
             $pos = strrpos($argv['limit'], "><");
-            if ($pos !== false) { // note: three equal signs
-                substr_replace($argv['limit'],',',$pos, 2);
-            }
-            $limit = ' LIMIT ' . $argv['limit'];
-        } else {
-            $limit = '';
-        }
+if ($pos !== false) { // note: three equal signs
+substr_replace($argv['limit'],',',$pos, 2);
+}
+$limit = ' LIMIT ' . $argv['limit'];
+} else {
+$limit = '';
+}
 
-        $get = array_intersect(array_keys($argv), self::COLUMNS);
+$get = array_intersect(array_keys($argv), self::COLUMNS);
 
-        $where = array_intersect($get, array_merge_recursive(array_fill_keys($get, ''), $argv));
+$where = array_intersect($get, array_merge_recursive(array_fill_keys($get, ''), $argv));
 
-        $get =  !empty($get) ? implode(", ", $get) : ' * ';
+$get =  !empty($get) ? implode(", ", $get) : ' * ';
 
-        $sql = 'SELECT ' .  $get . ' FROM {{database}}.{{TableName}}';
+$sql = 'SELECT ' .  $get . ' FROM {{database}}.{{TableName}}';
 
-        if ($primary === null) {
-        $sql .= ' WHERE ';
-        foreach ($where as $column => $value) {
-        $sql .= "('$column' = '$value') AND ";
-        }
-        $sql = substr($sql, 0, strlen($sql)-4);
-        } else if (!empty(self::PRIMARY)){
-        $sql .= ' WHERE ' . self::PRIMARY . "= '$primary'";
-        }
+if ($primary === null) {
+$sql .= ' WHERE ';
+foreach ($where as $column => $value) {
+$sql .= "('$column' = '$value') AND ";
+}
+$sql = substr($sql, 0, strlen($sql)-4);
+} else if (!empty(self::PRIMARY)){
+$sql .= ' WHERE ' . self::PRIMARY . "= '$primary'";
+}
 
-        $sql .= $limit;
+$sql .= $limit;
 
-        $return = self::fetch($sql);
+$return = self::fetch($sql);
 
-        return true;
+return true;
+}
+
+public static function Post(array $argv)
+{
+$sql = 'INSERT INTO {{database}}.{{TableName}} ({{listed}}) VALUES ({{implode}})';
+$stmt = self::database()->prepare($sql);
+{{#explode}}
+    $stmt->bindValue(':{{name}}', isset($argv['{{name}}']) ? $argv['{{name}}'] : null, \{{type}});
+{{/explode}}
+return $stmt->execute();
+}
+
+public static function Put(array &$return, $id, array $argv) //: bool
+{
+$put = array_intersect(array_keys($argv), self::COLUMNS);
+
+$sql = 'UPDATE {{database}}.{{TableName}} ';
+
+$sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
+
+{{#explode}}
+    if (isset($argv['{{name}}'])) {
+    $sql .= '`{{name}}` = `:{{name}}`,';
     }
 
-    public static function Post(array $argv)
-    {
-        $sql = 'INSERT INTO {{database}}.{{TableName}} ({{listed}}) VALUES ({{implode}})';
-        $stmt = self::database()->prepare($sql);
-        {{#explode}}
-            $stmt->bindValue(':{{name}}', isset($argv['{{name}}']) ? $argv['{{name}}'] : null, \{{type}});
-        {{/explode}}
-        return $stmt->execute();
+{{/explode}}
+
+$sql .= ' WHERE `' . self::PRIMARY . "`  = $id";
+
+$stmt = self::database()->prepare($sql);
+
+{{#explode}}
+    if (isset($argv['{{name}}'])) {
+    $stmt->bindValue(':{{name}}', isset($argv['{{name}}']) ? $argv['{{name}}'] : null, \{{type}});
     }
 
+{{/explode}}
 
 
-    public static function Put(array &$return, string $id, array $argv) : bool
-    {
-        $put = array_intersect(array_keys($argv), self::COLUMNS);
+if (!$stmt->execute()){
+return false;
+}
 
-        $sql = 'UPDATE {{database}}.{{TableName}} ';
+$return = array_merge_recursive($return, $argv);
 
-        $sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
+return true;
 
-        {{#explode}}
-            if (isset($argv['{{name}}'])) {
-            $sql .= '`{{name}}` = `:{{name}}`,';
-            }
+}
 
-        {{/explode}}
+/**
+* @param array $array
+* @param array $argv
+* @return bool
+*/
+public static function Delete(array &$return, $primary = null, array $argv) //: bool
+{
+$get = array_intersect(array_keys($argv), self::COLUMNS);
 
-        $sql .= ' WHERE `' . self::PRIMARY . "`  = $id";
+$where = array_intersect($get, array_merge_recursive(array_fill_keys($get, ''), $argv));
 
-        $stmt = self::database()->prepare($sql);
+$sql = 'DELETE * FROM {{database}}.{{TableName}} ';
 
-        {{#explode}}
-            if (isset($argv['{{name}}'])) {
-            $stmt->bindValue(':{{name}}', isset($argv['{{name}}']) ? $argv['{{name}}'] : null, \{{type}});
-            }
+$sql .= ' WHERE ';  // my editor yells at me if I don't separate this from the above stmt
 
-        {{/explode}}
+foreach ($where as $column => $value) {
+$sql .= "$column = $value";
+}
 
-
-        if (!$stmt->execute()){
-        return false;
-        }
-
-        $return = array_merge_recursive($return, $argv);
-
-        return true;
-
-    }
-
-    /**
-    * @param array $array
-    * @param array $argv
-    * @return bool
-    */
-    public static function Delete(array &$return, string $primary = null, array $argv) : bool
-    {
-        $get = array_intersect(array_keys($argv), self::COLUMNS);
-
-        $where = array_intersect($get, array_merge_recursive(array_fill_keys($get, ''), $argv));
-
-        $sql = 'DELETE * FROM {{database}}.{{TableName}} ';
-
-        $sql .= ' WHERE ';  // my editor yells at me if I don't separate this from the above stmt
-
-        foreach ($where as $column => $value) {
-        $sql .= "$column = $value";
-        }
-
-        return self::execute($sql);
-    }
+return self::execute($sql);
+}
 
 }
