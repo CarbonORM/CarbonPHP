@@ -421,18 +421,22 @@ class CarbonPHP
             default:
                 print <<<END
 \n\n
-          .$argv[0] [ :path? ] [ :command [ :args? ] ]\n
+          Available CarbonPHP CLI Commands  
 
                            help                          - This list of options
                          [command] -help                 - display a list of options for each sub command
                            rest                          - auto generate rest api from mysqldump
                            php                           - start a HTTP 5 web socket server written in PHP
-                           go                            - start a HTTP 5 web socket server written in Google Go\n\n";
+                           go                            - start a HTTP 5 web socket server written in Google Go
+
+
+          While CarbonPHP displays this in the cli, it does not exit here. Custom functions may 
+          be written after the CarbonPHP invocation. The CLI execution will however, stop the 
+          routing of HTTP(S) request normally invoked through the (index.php). <-- Which could really 
+          be any file run in CLI with CarbonPHP invoked.
 END;
         }
     }
-
-
 }
 
 
