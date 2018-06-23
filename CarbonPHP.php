@@ -3,7 +3,6 @@
 namespace CarbonPHP;
 
 use CarbonPHP\Helpers\Serialized;
-use Psr\Log\InvalidArgumentException;
 
 /**
  * Class Carbon
