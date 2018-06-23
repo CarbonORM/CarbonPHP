@@ -41,9 +41,9 @@ class CarbonPHP
      *           'URL' => string '',                                  // Server Url name you do not need to chane in remote development
      *           'ROOT' => string '__FILE__',                         // This was defined in our ../index.php
      *           'CACHE_CONTROL' => [                                 // Key value map of $extension => $headers
-                        'png|jpg|gif|jpeg|bmp|icon|js|css' => 'Cache-Control: max-age=<seconds>',
-                        'woff|woff2|map|hbs|eotv' => 'Cache-Control: no-cache ',              // if the extension is found the headers provided will be sent
-                    ],
+     * 'png|jpg|gif|jpeg|bmp|icon|js|css' => 'Cache-Control: max-age=<seconds>',
+     * 'woff|woff2|map|hbs|eotv' => 'Cache-Control: no-cache ',              // if the extension is found the headers provided will be sent
+     * ],
      *           'CONFIG' => string __FILE__,                         // Send to sockets
      *           'TIMEZONE' => string 'America/Chicago',              // Current timezone TODO - look up php
      *           'TITLE' => string 'Carbon 6',                        // Website title
@@ -387,7 +387,9 @@ class CarbonPHP
     {
         $argv = $_SERVER['argv'] ?? ['index.php', null];
 
-        switch ($argv[1] ?? null) {
+        print "\nIt's a powerful " . array_shift($argv) . ", hu?\n\n";
+
+        switch (array_shift($argv)) {
 
             case 'Search':
 
@@ -395,157 +397,13 @@ class CarbonPHP
                 break;
 
             case 'rest':
-
-                $mustache = function (array $rest) {      // This is our mustache template engine implemented in php, used for rendering user content
-                    $mustache = new \Mustache_Engine();
-                    if (empty($handlebars = file_get_contents(__DIR__ . DS . 'Extras' . DS . 'rest.mustache'))) {
-                        print "Could not find rest mustache template. Searching in directory\n" .
-                            __DIR__ . DS . 'Extras' . DS . 'rest.mustache';
-                        exit(1);
-                    }
-                    return $mustache->render($handlebars, $rest);
-                };
-
-                print PHP_EOL . "\tBuilding Rest Api!" . PHP_EOL;
-
-                preg_match_all("#mysql:host=([0-9.]+);dbname=(.+);#", $PHP['DATABASE']['DB_DSN'], $matches);
-
-                $user = Database::$username;
-                $pass = Database::$password;
-                $host = $matches[1][0] ?? null;
-                $database = $matches[2][0] ?? null;
-
-                if (isset($argv[2])) {
-                    if (!file_exists($argv[2])) {
-                        print "\tMySQL Dump file not found.";
-                        exit(1);
-                    } else {
-                        if (empty($contents = file_get_contents($argv[2]))) {
-                            print "\tCould not open MySQL Dump file.";
-                            exit(1);
-                        }
-                    }
-
-                } else {
-                    $cnf = [
-                        '[client]',
-                        "user = $user",
-                        "password = $pass",
-                        "host = $host",
-                    ];
-
-                    file_put_contents('./mysqldump.cnf', implode(PHP_EOL, $cnf));
-
-                    // BASH QUERY
-                    //`mysqldump --defaults-extra-file="./mysqldump.cnf" --no-data $database --result-file="./mysqldump.sql"`;
-                    `"C:/tools/mysql/current/bin/mysqldump.exe" --defaults-extra-file="./mysqldump.cnf" --no-data $database --result-file="./mysqldump.sql"`;
-
-                    //`rm mysqldump.cnf`;
-
-                    if (!file_exists('./mysqldump.sql')) {
-                        print 'Could not load mysql dump file!' . PHP_EOL;
-                        return;
-                    }
-
-                    $contents = file_get_contents('mysqldump.sql');
-
-                    if (empty($contents)) {
-                        print "Build Failed";
-                        exit(1);
-                    }
-                }
-
-                preg_match_all('#CREATE\s+TABLE(.|\s)+?(?=ENGINE=InnoDB)#', $contents, $matches);
-
-                $matches = $matches[0];
-
-                $PDO = [                                            // I guess this is it ?
-                    0 => \PDO::PARAM_NULL,
-                    1 => \PDO::PARAM_BOOL,
-                    2 => \PDO::PARAM_INT,
-                    3 => \PDO::PARAM_STR,
-                ];
-
-                // Every table insert
-                foreach ($matches as $key => $insert) {
-                    $rest = [
-                        'name' => '',
-                        'implode' => [],
-                        'listed' => ''
-                    ];
-
-                    // Create Table
-                    $insert = explode(PHP_EOL, $insert);
-                    $column = 0;
-
-                    // Every line in table insert
-                    foreach ($insert as $query) {                                       // Create Columns
-                        $query = explode(' ', trim($query));
-
-                        if ($query[0] === 'CREATE') {
-                            $rest['TableName'] = trim($query[2], '`');        // Table Name
-
-                        } else if ($query[0][0] === '`') {
-
-                            $rest['implode'][] = $name = trim($query[0], '`');    // Column Names
-
-                            if (in_array($name, ['pageSize', 'pageNumber'])) {
-                                throw new InvalidArgumentException($rest['name'] . " uses reserved 'REST' keywords as a column identifier => $name\n");
-                            }
-
-                            if ('tinyint(1)' === $type = strtolower($query[1])) {            // this is a Bool
-                                $type = $PDO[0];
-                                $length = 1;
-                            } else {
-                                if (count($argv = explode('(', $type)) > 1) {
-                                    $type = $argv[0];
-                                    $length = trim($argv[1], ')');
-                                } else {
-                                    $length = null;
-                                }
-
-                                // I don't care about the character count
-                                switch ($type) {
-                                    case 'tinyint':
-                                    case 'smallint':
-                                    case 'mediumint':
-                                        $type = $PDO[2];
-                                        break;
-                                    case 'varchar':
-                                    default:
-                                        $type = $PDO[3];
-                                }
-                            }
-
-                            $rest['explode'][$column] = [
-                                'name' => $name,
-                                'type' => $type,
-                                'length' => isset($length) ? $length : null
-                            ];
-                            $column++;
-                        } else if ($query[0] === 'PRIMARY'){
-                            $rest['primary'] = substr($query[2], 2, strlen($query[2]) - 5);
-                        }
-                    }
-
-                    $rest['update'] = '';
-                    foreach ($rest['implode'] as $column) {
-                        $rest['update'] .= "`$column` = `:$column`,";
-                    }
-
-                    $rest['update'] = substr($rest['update'], 0, strlen($rest['update']) - 1);
-                    $rest['listed'] = implode(", ", $rest['implode']);
-                    $rest['implode'] = ':' . implode(", :", $rest['implode']);
-
-                    if (!file_exists(APP_ROOT . 'Tables') && !mkdir(APP_ROOT . 'Tables')) {
-                        print 'Failed to create Tables directory in ' . APP_ROOT and die(1);
-                    }
-
-                    file_put_contents(APP_ROOT . 'Tables' . DS . $rest['name'] . '.php', $mustache($rest));
-
-                }
-                print "\tDone\n\n";
-
+                /**
+                 * This is a small program inspired by my boss Scott.
+                 * - You the shit dude! ( <- That's a good thing )
+                 */
+                $argv = implode(' ', $argv);
+                /** @noinspection PhpIncludeInspection */
+                include 'Extras/rest.mustache.php ' . $argv;
                 break;
             case 'go':
                 $CMD = '/usr/bin/websocketd --port=' . ($PHP['SOCKET']['PORT'] ?? 8888) . ' ' .
@@ -562,13 +420,16 @@ class CarbonPHP
                 break;
             case 'help':
             default:
-                print "\n\n
-                    \t.$argv[0] [ :path? ] [ :command [ :args? ] ]\n
-                    \thelp                          \t - display a list of options
-                    \trest [:Path to MysqlDump.sql?]\t - auto generate rest api from mysqldump
-                    \tphp                           \t  - start a HTTP 5 web socket server written in PHP
-                    \tgo                            \t   - start a HTTP 5 web socket server written in Google Go\n\n";
+                print <<<END
+\n\n
+          .$argv[0] [ :path? ] [ :command [ :args? ] ]\n
 
+                           help                          - This list of options
+                         [command] -help                 - display a list of options for each sub command
+                           rest                          - auto generate rest api from mysqldump
+                           php                           - start a HTTP 5 web socket server written in PHP
+                           go                            - start a HTTP 5 web socket server written in Google Go\n\n";
+END;
         }
     }
 
