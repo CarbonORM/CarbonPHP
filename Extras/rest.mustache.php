@@ -241,7 +241,7 @@ foreach ($matches as $key => $insert) {// Create Table
 
     $rest['implode'] = ':' . implode(", :", $rest['implode']);
 
-    file_put_contents(__DIR__ . '/../app/Tables/' . $rest['TableName'] . '.php', $mustache($rest));
+    file_put_contents(APP_ROOT . 'table/' . $rest['TableName'] . '.php', $mustache($rest));
 }
 
 
