@@ -2,6 +2,10 @@
 
 $argv = $_SERVER['argv'];
 
+
+var_dump($argv);
+
+
 $argc = count($argv);
 
 // Check command line args, password is optional
@@ -90,7 +94,7 @@ for ($i = 1; $i < $argc; $i++) { // or for more fun $i = 0
 \t      you missed the starting gun!"
 \t
 \t      - 'Time' Pink Floyd
-\t\n\n 
+\n\n 
 END;
     }
 }
