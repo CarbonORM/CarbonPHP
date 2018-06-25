@@ -386,6 +386,7 @@ class CarbonPHP
     {
         $argv = $_SERVER['argv'] ?? ['index.php', null];
 
+        // I do this so the I can pass the argvs correctly to the php executables
         print "\nIt's a powerful " . array_shift($argv) . ", hu?\n\n";
 
         switch (array_shift($argv)) {
@@ -400,7 +401,7 @@ class CarbonPHP
                  * This is a small program inspired by my boss Scott.
                  * - You the shit dude! ( <- That's a good thing )
                  */
-                $_SERVER['argv'] = implode(' ', $argv);
+                $_SERVER['argv'] = $argv;
                 include 'Extras/rest.mustache.php';
                 break;
             case 'go':

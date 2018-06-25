@@ -2,10 +2,6 @@
 
 $argv = $_SERVER['argv'];
 
-
-var_dump($argv);
-
-
 $argc = count($argv);
 
 // Check command line args, password is optional
