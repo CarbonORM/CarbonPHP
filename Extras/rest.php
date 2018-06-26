@@ -133,15 +133,8 @@ if (empty($dump)) {
 $mustache = function (array $rest) {      // This is our mustache template engine implemented in php, used for rendering user content
     $mustache = new \Mustache_Engine();
 
-
-    // open this file
-    $fp = fopen(__FILE__, 'r');
-
-    // seek file pointer to data
-    fseek($fp, __COMPILER_HALT_OFFSET__);
-
     // and output it
-    $handlebars = stream_get_contents($fp);
+    $handlebars = file_get_contents(__DIR__ . '/rest.mustache');
 
     return $mustache->render($handlebars, $rest);
 };
