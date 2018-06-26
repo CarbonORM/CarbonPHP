@@ -133,8 +133,8 @@ namespace {                                     // This runs the following code 
                 $argv = \call_user_func_array($lambda, $argv);
             } catch (Exception | Error $e) {
                 if (!$e instanceof PublicAlert) {
-                    ErrorCatcher::generateLog($e);
                     PublicAlert::danger('Developers make mistakes, and you found a big one. We\'ve logged this event and will be investigating soon.'); // TODO - Change what is logged
+                    ErrorCatcher::generateLog($e);
                 }
                 $argv = null;
             } finally {

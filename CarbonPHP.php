@@ -89,6 +89,11 @@ class CarbonPHP
     public function __construct(string $PHP = null)
     {
         ####################  Sockets will have already claimed this global
+        \defined('TEST') OR \define('TEST', false);
+
+        TEST and $this->safelyExit = true;
+
+        ####################  Sockets will have already claimed this global
         \defined('SOCKET') OR \define('SOCKET', false);
 
         ####################  Define your own server root
@@ -166,7 +171,7 @@ class CarbonPHP
             Database::$setup = $PHP['DATABASE']['DB_BUILD'] ?? '';
         }
 
-        if (php_sapi_name() === 'cli') {
+        if (!TEST && php_sapi_name() === 'cli') {
             $this->CLI($PHP);
             return $this->safelyExit = true;
         }
@@ -178,7 +183,7 @@ class CarbonPHP
         ##################  VALIDATE URL / URI ##################
         // Even if a request is bad, we need to store the log
 
-        if (!\defined('IP')) {
+        if (!TEST && !\defined('IP')) {
             $this->IP_FILTER();
         }
 
@@ -213,7 +218,7 @@ class CarbonPHP
 
         \define('HTTP', !(HTTPS || SOCKET || AJAX));
 
-        if (HTTP && !($PHP['SITE']['HTTP'] ?? true)) {
+        if (!TEST && HTTP && !($PHP['SITE']['HTTP'] ?? true)) {
             print '<h1>Failed to switch to https, please contact the server administrator.</h1>';
             die(1);
         }
@@ -390,12 +395,9 @@ class CarbonPHP
         print "\nIt's a powerful " . array_shift($argv) . ", hu?\n\n";
 
         switch (array_shift($argv)) {
-
-            case 'Search':
-
-
+            case 'test':
+                print `phpunit --bootstrap vendor/autoload.php --testdox  tests`;
                 break;
-
             case 'rest':
                 /**
                  * This is a small program inspired by my boss Scott.

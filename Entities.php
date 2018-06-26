@@ -168,7 +168,7 @@ abstract class Entities
      * @param $dependant
      * @return bool|\PDOStatement|string
      */
-    protected static function new_entity($tag_id, $dependant)
+    protected static function new_entity($tag_id, $dependant = null)
     {
         if (\defined($tag_id)) {
             $tag_id = \constant($tag_id);

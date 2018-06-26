@@ -41,13 +41,13 @@ class {{TableName}} extends Entities implements iRest
 
         $get = $where = [];
         foreach ($argv as $column => $value) {
-            if (in_array($column, self::COLUMNS)) {
+            if (!is_int($column) && in_array($column, self::COLUMNS)) {
                 if ($value !== '') {
                     $where[$column] = $value;
                 } else {
                     $get[] = $column;
                 }
-            } elseif (in_array($value)) {
+            } elseif (in_array($value, self::COLUMNS)) {
                 $get[] = $value;
             }
         }
