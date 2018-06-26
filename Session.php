@@ -47,15 +47,15 @@ class Session implements \SessionHandlerInterface
     {
         session_write_close(); //cancel the session's auto start, important
 
-        ini_set('session.use_strict_mode', 1);
+        !TEST && ini_set('session.use_strict_mode', 1);
 
         if ($ip === false) {
-            print 'Carbon has detected ip spoofing.';
+            print 'CarbonPHP has detected ip spoofing.';
             die(0);
         }
 
         if ($dbStore) {
-            ini_set('session.gc_probability', 1);  // Clear any lingering session data in default locations
+            !TEST && ini_set('session.gc_probability', 1);  // Clear any lingering session data in default locations
             if (!session_set_save_handler($this, false)) {
                 print 'Session failed to store remotely';
                 die(1);
@@ -74,7 +74,7 @@ class Session implements \SessionHandlerInterface
 
     /**
      *   Pauses the current session. This is required if you plan to fork you process and
-     *   continue with session manipulation.
+     *   continue witSh session manipulation.
      */
     public static function pause()
     {

@@ -183,15 +183,21 @@ class CarbonPHP
         ##################  VALIDATE URL / URI ##################
         // Even if a request is bad, we need to store the log
 
-        if (!TEST && !\defined('IP')) {
-            $this->IP_FILTER();
-        }
+        if (!TEST) {
 
-        $this->URI_FILTER($PHP['SITE']['URL'] ?? '', $PHP['SITE']['CACHE_CONTROL'] ?? []);
 
-        if ($PHP['DATABASE']['REBUILD'] ?? false) {
-            Database::setUp(false);   // redirect = false
-            exit(1);                         //
+            print "INSIDE THE SHIT HOLE]\n\n";
+
+            if (!\defined('IP')) {
+                $this->IP_FILTER();
+            }
+
+            $this->URI_FILTER($PHP['SITE']['URL'] ?? '', $PHP['SITE']['CACHE_CONTROL'] ?? []);
+
+            if ($PHP['DATABASE']['REBUILD'] ?? false) {
+                Database::setUp(false);   // redirect = false
+                exit(1);                         //
+            }
         }
 
         #################  SITE  ########################
@@ -422,7 +428,6 @@ class CarbonPHP
             case 'help':
             default:
                 print <<<END
-\n\n
           Available CarbonPHP CLI Commands  
 
                            help                          - This list of options
@@ -436,7 +441,7 @@ class CarbonPHP
           While CarbonPHP displays this in the cli, it does not exit here. Custom functions may 
           be written after the CarbonPHP invocation. The CLI execution will however, stop the 
           routing of HTTP(S) request normally invoked through the (index.php). <-- Which could really 
-          be any file run in CLI with CarbonPHP invoked.
+          be any file run in CLI with CarbonPHP invoked.\n\n
 END;
         }
     }
