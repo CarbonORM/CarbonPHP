@@ -17,7 +17,7 @@ class {{TableName}} extends Entities implements iRest
 
     const PRIMARY = "{{primary}}";
 
-    public static function Get(array &$return, $primary = null, array $argv) // : bool
+    public static function Get(array &$return, string $primary = null, array $argv) : bool
     {
         if (isset($argv['limit'])){
             if ($argv['limit'] !== '') {
@@ -75,7 +75,7 @@ class {{TableName}} extends Entities implements iRest
         return $stmt->execute();
     }
 
-    public static function Put(array &$return, $id, array $argv) //: bool
+    public static function Put(array &$return, string $id, array $argv) //: bool
     {
         $put = array_intersect(array_keys($argv), self::COLUMNS);
 
@@ -116,7 +116,7 @@ class {{TableName}} extends Entities implements iRest
     * @param array $argv
     * @return bool
     */
-    public static function Delete(array &$return, $primary = null, array $argv) //: bool
+    public static function Delete(array &$return, string $primary = null, array $argv) : bool
     {
         $get = array_intersect(array_keys($argv), self::COLUMNS);
 

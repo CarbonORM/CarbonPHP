@@ -169,10 +169,14 @@ namespace {                                     // This runs the following code 
         $method = strtolower($method);          // Prevent malformed method names
 
         // Make sure our class exists
-
-        if (!class_exists($controller) || !class_exists($model)) {
-            throw new InvalidArgumentException("Invalid Class ({$class}) Passed to MVC");
+        if (!class_exists($controller)) {
+            print "Invalid Controller ({$controller}) Passed to MVC. Please ensure your namespace mappings are correct!";
         }
+
+        if (!class_exists($model)) {
+            print "Invalid Model ({$model}) Passed to MVC. Please ensure your namespace mappings are correct!";
+        }
+
         // the array $argv will be passed as arguments to the method requested, see link above
         $exec = function &(string $class, array &$argv) use ($method) {
             $argv = \call_user_func_array([new $class, "$method"], $argv);

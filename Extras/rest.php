@@ -7,6 +7,10 @@ $argc = count($argv);
 // Check command line args, password is optional
 print PHP_EOL . "\tBuilding Rest Api!" . PHP_EOL;
 
+if (!is_dir(APP_ROOT . 'table')) {
+    mkdir(APP_ROOT.'table');
+}
+
 $usage = function () use ($argv) {
     print <<<END
 \n
@@ -37,7 +41,7 @@ $onlyThese = null;
 $verbose = false;
 
 
-for ($i = 1; $i < $argc; $i++) { // or for more fun $i = 0
+for ($i = 0; $i < $argc; $i++) {
     switch ($argv[$i]) {
         case '-v':
             $verbose = true;
@@ -77,7 +81,7 @@ for ($i = 1; $i < $argc; $i++) { // or for more fun $i = 0
             $dump = $argv[++$i];
             break;
         default:
-            // for more fun during builds set $i = 0
+            print "\tInvalid flag " . $argv[$i] . PHP_EOL;
             print <<<END
 \n\n\t
 \t      "You are young 
