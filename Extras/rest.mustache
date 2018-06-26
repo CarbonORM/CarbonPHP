@@ -17,6 +17,12 @@ class {{TableName}} extends Entities implements iRest
 
     const PRIMARY = "{{primary}}";
 
+    /**
+     * @param array $return
+     * @param string|null $primary
+     * @param array $argv
+     * @return bool
+     */
     public static function Get(array &$return, string $primary = null, array $argv) : bool
     {
         if (isset($argv['limit'])){
@@ -65,19 +71,33 @@ class {{TableName}} extends Entities implements iRest
         return true;
     }
 
+    /**
+    * @param array $argv
+    * @return bool|mixed
+    */
     public static function Post(array $argv)
     {
         $sql = 'INSERT INTO {{database}}.{{TableName}} ({{listed}}) VALUES ({{implode}})';
-        $stmt = self::database()->prepare($sql);
+        $stmt = Database::database()->prepare($sql);
         {{#explode}}
             $stmt->bindValue(':{{name}}', isset($argv['{{name}}']) ? $argv['{{name}}'] : null, \{{type}});
         {{/explode}}
         return $stmt->execute();
     }
 
-    public static function Put(array &$return, string $id, array $argv) //: bool
+    /**
+    * @param array $return
+    * @param string $id
+    * @param array $argv
+    * @return bool
+    */
+    public static function Put(array &$return, string $id, array $argv) : bool
     {
-        $put = array_intersect(array_keys($argv), self::COLUMNS);
+        foreach ($argv as $key => $value) {
+            if (!in_array($key, self::COLUMNS)){
+                unset($argv[$key]);
+            }
+        }
 
         $sql = 'UPDATE {{database}}.{{TableName}} ';
 
@@ -92,7 +112,7 @@ class {{TableName}} extends Entities implements iRest
 
         $sql .= ' WHERE `' . self::PRIMARY . "`  = $id";
 
-        $stmt = self::database()->prepare($sql);
+        $stmt = Database::database()->prepare($sql);
 
         {{#explode}}
             if (isset($argv['{{name}}'])) {
@@ -112,7 +132,8 @@ class {{TableName}} extends Entities implements iRest
     }
 
     /**
-    * @param array $array
+    * @param array $return
+    * @param string|null $primary
     * @param array $argv
     * @return bool
     */
@@ -130,7 +151,7 @@ class {{TableName}} extends Entities implements iRest
         $sql .= "$column = $value";
         }
 
-        return self::execute($sql);
+        return Database::execute($sql);
     }
 
 }

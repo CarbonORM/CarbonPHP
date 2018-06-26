@@ -129,6 +129,7 @@ namespace {                                     // This runs the following code 
     {
         return function (...$argv) use ($lambda) {
             try {
+                ob_start();
                 $argv = \call_user_func_array($lambda, $argv);
             } catch (Exception | Error $e) {
                 if (!$e instanceof PublicAlert) {
@@ -138,7 +139,15 @@ namespace {                                     // This runs the following code 
                 $argv = null;
             } finally {
                 if (ob_get_status()) {
-                    ob_end_clean(); // Attempt to remove any previous in-progress output buffers
+                    if (ob_get_length()) {
+                        $out = ob_get_clean();
+                        print '<h1>You appear to printed to the screen while within the catchErrors function</h1>';
+                        print '<p>Note: All MVC routes are wrapped in this function</p>';
+                        print "<pre>$out</pre>";
+                        die(1);
+                    } else {
+                        ob_end_flush();
+                    }
                 }
                 Entities::verify();     // Check that all database commit chains have finished successfully, otherwise attempt to remove
                 return $argv;
