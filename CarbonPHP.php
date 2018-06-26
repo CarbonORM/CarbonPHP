@@ -402,7 +402,7 @@ class CarbonPHP
                  * - You the shit dude! ( <- That's a good thing )
                  */
                 $_SERVER['argv'] = $argv;
-                include 'Extras/rest.mustache.php';
+                include 'Extras/rest.php';
                 break;
             case 'go':
                 $CMD = '/usr/bin/websocketd --port=' . ($PHP['SOCKET']['PORT'] ?? 8888) . ' ' .
