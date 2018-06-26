@@ -427,6 +427,7 @@ class CarbonPHP
 
                            help                          - This list of options
                          [command] -help                 - display a list of options for each sub command
+                           test                          - Run PHPUnit tests
                            rest                          - auto generate rest api from mysqldump
                            php                           - start a HTTP 5 web socket server written in PHP
                            go                            - start a HTTP 5 web socket server written in Google Go

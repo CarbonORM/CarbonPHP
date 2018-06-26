@@ -48,7 +48,7 @@ for ($i = 0; $i < $argc; $i++) {
             break;
         case '-help':
             $usage();
-            exit(0);
+            break;          // unneeded but my editor complains
         case '-h':
             $host = $argv[++$i];
             break;
