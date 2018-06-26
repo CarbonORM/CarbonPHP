@@ -141,8 +141,9 @@ namespace {                                     // This runs the following code 
                 if (ob_get_status()) {
                     if (ob_get_length()) {
                         $out = ob_get_clean();
-                        print '<h1>You appear to printed to the screen while within the catchErrors function</h1>';
-                        print '<p>Note: All MVC routes are wrapped in this function</p>';
+                        print '<h1>You have printed to the screen while within the catchErrors() function!</h1>';
+                        print '<h2>Don\'t slip up in your production code!</h2>';
+                        print '<p>Note: All MVC routes are wrapped in this function. Output to the browser should be done within the view! Use this as a reporting tool only.</p>';
                         print "<pre>$out</pre>";
                         die(1);
                     } else {

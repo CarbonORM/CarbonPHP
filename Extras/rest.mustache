@@ -47,6 +47,8 @@ class {{TableName}} extends Entities implements iRest
                 } else {
                     $get[] = $column;
                 }
+            } elseif (in_array($value)) {
+                $get[] = $value;
             }
         }
 
