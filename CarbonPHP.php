@@ -91,7 +91,7 @@ class CarbonPHP
         ####################  Sockets will have already claimed this global
         \defined('TEST') OR \define('TEST', false);
 
-        TEST and $this->safelyExit = true;
+        TEST and $this->safelyExit = true;  // We just want the env to load, not route life :)
 
         ####################  Sockets will have already claimed this global
         \defined('SOCKET') OR \define('SOCKET', false);
@@ -153,6 +153,9 @@ class CarbonPHP
          * Questions still to test. When does the error catcher get resorted to?
          * Do Try Catch block have a higher precedence than the error catcher?
          * What if that error is thrown multiple function levels down in a block?
+         *
+         * error catcher gets resorted to when the error falls to the global scope. This should
+         * probably be implemented in a way that uses the routing + an abstract function
          **/
         /*
         Error\ErrorCatcher::$defaultLocation = REPORTS . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
@@ -171,7 +174,7 @@ class CarbonPHP
             Database::$setup = $PHP['DATABASE']['DB_BUILD'] ?? '';
         }
 
-        if (!TEST && php_sapi_name() === 'cli') {
+        if (php_sapi_name() === 'cli') {
             $this->CLI($PHP);
             return $this->safelyExit = true;
         }
@@ -182,22 +185,15 @@ class CarbonPHP
 
         ##################  VALIDATE URL / URI ##################
         // Even if a request is bad, we need to store the log
+        if (!\defined('IP')) {
+            $this->IP_FILTER();
+        }
 
-        if (!TEST) {
+        $this->URI_FILTER($PHP['SITE']['URL'] ?? '', $PHP['SITE']['CACHE_CONTROL'] ?? []);
 
-
-            print "INSIDE THE SHIT HOLE]\n\n";
-
-            if (!\defined('IP')) {
-                $this->IP_FILTER();
-            }
-
-            $this->URI_FILTER($PHP['SITE']['URL'] ?? '', $PHP['SITE']['CACHE_CONTROL'] ?? []);
-
-            if ($PHP['DATABASE']['REBUILD'] ?? false) {
-                Database::setUp(false);   // redirect = false
-                exit(1);                         //
-            }
+        if ($PHP['DATABASE']['REBUILD'] ?? false) {
+            Database::setUp(false);   // redirect = false
+            exit(1);                         //
         }
 
         #################  SITE  ########################
@@ -224,6 +220,7 @@ class CarbonPHP
 
         \define('HTTP', !(HTTPS || SOCKET || AJAX));
 
+        // PHPUnit testing should not exit on explicit http(s) requests
         if (!TEST && HTTP && !($PHP['SITE']['HTTP'] ?? true)) {
             print '<h1>Failed to switch to https, please contact the server administrator.</h1>';
             die(1);

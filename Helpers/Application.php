@@ -168,8 +168,7 @@ namespace {                                     // This runs the following code 
      * @param string $class This class name to autoload
      * @param string $method The method within the provided class
      * @param array $argv Arguments to be passed to method
-     * @return mixed          the returned value from model/$class.$method() or false | void
-     * @throws Exception
+     * @return mixed the returned value from model/$class.$method() or false | void
      */
     function CM(string $class, string &$method, array &$argv = [])
     {
@@ -193,7 +192,7 @@ namespace {                                     // This runs the following code 
             return $argv;
         };
 
-        return catchErrors(function () use ($exec, $controller, $model, &$argv) {          // TODO - this is where catch Errors is / goes
+        return function () use ($exec, $controller, $model, &$argv) {          // TODO - this is where catch Errors is / goes
             if (!empty($argv = $exec($controller, $argv))) {
                 if (\is_array($argv)) {
                     return $exec($model, $argv);        // array passed
@@ -202,7 +201,7 @@ namespace {                                     // This runs the following code 
                 return $exec($model, $controller);
             }
             return $argv;
-        })();
+        };
     }
 
     /** Stands for Controller -> Model -> View
@@ -228,7 +227,7 @@ namespace {                                     // This runs the following code 
      */
     function MVC(string $class, string $method, array &$argv = [])
     {
-        if (false === CM($class, $method, $argv)) {  // Controller -> Model
+        if (false === catchErrors(CM($class, $method, $argv))()) {  // Controller -> Model
             return false;
         }
 

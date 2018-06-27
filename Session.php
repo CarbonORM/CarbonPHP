@@ -47,7 +47,7 @@ class Session implements \SessionHandlerInterface
     {
         session_write_close(); //cancel the session's auto start, important
 
-        !TEST && ini_set('session.use_strict_mode', 1);
+        ini_set('session.use_strict_mode', 1);
 
         if ($ip === false) {
             print 'CarbonPHP has detected ip spoofing.';
@@ -55,7 +55,7 @@ class Session implements \SessionHandlerInterface
         }
 
         if ($dbStore) {
-            !TEST && ini_set('session.gc_probability', 1);  // Clear any lingering session data in default locations
+            ini_set('session.gc_probability', 1);  // Clear any lingering session data in default locations
             if (!session_set_save_handler($this, false)) {
                 print 'Session failed to store remotely';
                 die(1);
