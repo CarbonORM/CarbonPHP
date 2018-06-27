@@ -174,7 +174,10 @@ class CarbonPHP
             Database::$setup = $PHP['DATABASE']['DB_BUILD'] ?? '';
         }
 
-        if (php_sapi_name() === 'cli') {
+
+        // PHPUnit Runs in a cli to ini the 'CarbonPHP' env.
+        // We're not testing out extra resources
+        if (!TEST && php_sapi_name() === 'cli') {
             $this->CLI($PHP);
             return $this->safelyExit = true;
         }
