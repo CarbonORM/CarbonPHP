@@ -133,7 +133,7 @@ class {{TableName}} extends Entities implements iRest
             return false;
         }
 
-        $return = array_merge_recursive($return, $argv);
+        $return = array_merge($return, $argv);
 
         return true;
 
