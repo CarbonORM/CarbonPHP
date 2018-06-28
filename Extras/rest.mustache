@@ -108,7 +108,7 @@ class {{TableName}} extends Entities implements iRest
         $set = '';
         {{#explode}}
         if (isset($argv['{{name}}'])) {
-            $set .= '{{name}}=\':{{name}}\',';
+            $set .= '{{name}}=:{{name}},';
         }
         {{/explode}}
 
