@@ -105,21 +105,25 @@ class {{TableName}} extends Entities implements iRest
 
         $sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
 
+        $set = '';
         {{#explode}}
-            if (isset($argv['{{name}}'])) {
-            $sql .= '`{{name}}` = `:{{name}}`,';
-            }
-
+        if (isset($argv['{{name}}'])) {
+            $set .= '{{name}}=':{{name}}',';
+        }
         {{/explode}}
 
-        $sql .= ' WHERE `' . self::PRIMARY . "`  = $id";
+        if (empty($set)){
+            return false;
+        }
+
+        $sql .= $set . ' WHERE ' . self::PRIMARY . "='$id'";
 
         $stmt = Database::database()->prepare($sql);
 
         {{#explode}}
-            if (isset($argv['{{name}}'])) {
-                $stmt->bindValue(':{{name}}', isset($argv['{{name}}']) ? $argv['{{name}}'] : null, \{{type}});
-            }
+        if (isset($argv['{{name}}'])) {
+            $stmt->bindValue(':{{name}}', isset($argv['{{name}}']) ? $argv['{{name}}'] : null, \{{type}});
+        }
         {{/explode}}
 
 
@@ -163,8 +167,8 @@ class {{TableName}} extends Entities implements iRest
                 $sql .= " $column = '$value' AND ";
             }
             $sql = substr($sql, 0, strlen($sql)-4);
-        } else if (!empty(self::PRIMARY)){
-            $sql .= ' WHERE ' . self::PRIMARY . "= '$primary'";
+        } else if (!empty(self::PRIMARY)) {
+            $sql .= ' WHERE ' . self::PRIMARY . "='$primary'";
         }
 
         $remove = null;
