@@ -141,7 +141,7 @@ class {{TableName}} extends Entities implements iRest
     */
     public static function Delete(array &$return, string $primary = null, array $argv) : bool
     {
-        $sql = 'DELETE * FROM {{database}}.{{TableName}} ';
+        $sql = 'DELETE FROM {{database}}.{{TableName}} ';
 
         foreach($argv as $column => $constraint){
             if (!in_array($column, self::COLUMNS)){
@@ -160,7 +160,7 @@ class {{TableName}} extends Entities implements iRest
             }
             $sql .= ' WHERE ';
             foreach ($argv as $column => $value) {
-                $sql .= "($column = '$value') AND ";
+                $sql .= " $column = '$value' AND ";
             }
             $sql = substr($sql, 0, strlen($sql)-4);
         } else if (!empty(self::PRIMARY)){
