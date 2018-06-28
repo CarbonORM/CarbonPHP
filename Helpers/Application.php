@@ -15,8 +15,8 @@ namespace {                                     // This runs the following code 
     use CarbonPHP\View;                            //  Seamlessly include the DOM
 
 
-    /** Start application will start the registered bootstrap from line one.
-     *  If a string is given
+    /** Start application will start a bootstrap file passed to it. It will
+     * store that instance in a static variable and reuse it for the proccess life.
      *
      * @param $reset
      *  If a string is passed to reset then the uri of the website will be changed
@@ -36,6 +36,9 @@ namespace {                                     // This runs the following code 
         static $application;
 
         if (null === $application) {
+            if (TEST) {
+                return true;    // PHPUnit Tests Shoulnt have redirection
+            }
             $application = $reset;
             $application = new $application;
             if (!$application instanceof Application) {

@@ -141,19 +141,33 @@ class {{TableName}} extends Entities implements iRest
     */
     public static function Delete(array &$return, string $primary = null, array $argv) : bool
     {
-        $get = array_intersect(array_keys($argv), self::COLUMNS);
-
-        $where = array_intersect($get, array_merge_recursive(array_fill_keys($get, ''), $argv));
-
         $sql = 'DELETE * FROM {{database}}.{{TableName}} ';
 
-        $sql .= ' WHERE ';  // my editor yells at me if I don't separate this from the above stmt
-
-        foreach ($where as $column => $value) {
-        $sql .= "$column = $value";
+        foreach($argv as $column => $constraint){
+            if (!in_array($column, self::COLUMNS)){
+                unset($argv[$column]);
+            }
         }
 
-        return Database::execute($sql);
+        if ($primary === null) {
+            /**
+            *   While useful, we've decided to disallow full
+            *   table deletions through the rest api. For the
+            *   n00bs and future self, "I got chu."
+            */
+            if (empty($argv)) {
+                return false;
+            }
+            $sql .= ' WHERE ';
+            foreach ($argv as $column => $value) {
+                $sql .= "($column = '$value') AND ";
+            }
+            $sql = substr($sql, 0, strlen($sql)-4);
+        } else if (!empty(self::PRIMARY)){
+            $sql .= ' WHERE ' . self::PRIMARY . "= '$primary'";
+        }
+
+        return self::execute($sql);
     }
 
 }
