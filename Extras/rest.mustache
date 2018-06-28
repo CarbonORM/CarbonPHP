@@ -59,11 +59,11 @@ class {{TableName}} extends Entities implements iRest
         if ($primary === null) {
             $sql .= ' WHERE ';
             foreach ($where as $column => $value) {
-                $sql .= "($column = '$value') AND ";
+                $sql .= "($column = " . Database::database()->quote($value) . ') AND ';
             }
             $sql = substr($sql, 0, strlen($sql)-4);
         } else if (!empty(self::PRIMARY)){
-            $sql .= ' WHERE ' . self::PRIMARY . "= '$primary'";
+            $sql .= ' WHERE ' . self::PRIMARY . '=' . Database::database()->quote($primary);
         }
 
         $sql .= $limit;
@@ -124,7 +124,7 @@ class {{TableName}} extends Entities implements iRest
 
         {{#explode}}
         if (isset($argv['{{name}}'])) {
-            $stmt->bindValue(':{{name}}', isset($argv['{{name}}']) ? $argv['{{name}}'] : null, \{{type}});
+            $stmt->bindValue(':{{name}}', $argv['{{name}}'], \{{type}});
         }
         {{/explode}}
 
@@ -166,11 +166,11 @@ class {{TableName}} extends Entities implements iRest
             }
             $sql .= ' WHERE ';
             foreach ($argv as $column => $value) {
-                $sql .= " $column = '$value' AND ";
+                $sql .= " $column =" . Database::database()->quote($value) . ' AND ';
             }
             $sql = substr($sql, 0, strlen($sql)-4);
         } else if (!empty(self::PRIMARY)) {
-            $sql .= ' WHERE ' . self::PRIMARY . "='$primary'";
+            $sql .= ' WHERE ' . self::PRIMARY . '=' . Database::database()->quote($primary);
         }
 
         $remove = null;
