@@ -139,7 +139,7 @@ class {{TableName}} extends Entities implements iRest
     * @param array $argv
     * @return bool
     */
-    public static function Delete(array &$return, string $primary = null, array $argv) : bool
+    public static function Delete(array &$remove, string $primary = null, array $argv) : bool
     {
         $sql = 'DELETE FROM {{database}}.{{TableName}} ';
 
@@ -166,6 +166,8 @@ class {{TableName}} extends Entities implements iRest
         } else if (!empty(self::PRIMARY)){
             $sql .= ' WHERE ' . self::PRIMARY . "= '$primary'";
         }
+
+        $remove = null;
 
         return self::execute($sql);
     }
