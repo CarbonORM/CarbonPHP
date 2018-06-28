@@ -108,13 +108,15 @@ class {{TableName}} extends Entities implements iRest
         $set = '';
         {{#explode}}
         if (isset($argv['{{name}}'])) {
-            $set .= '{{name}}=':{{name}}',';
+            $set .= '{{name}}=\':{{name}}\',';
         }
         {{/explode}}
 
         if (empty($set)){
             return false;
         }
+
+        $set = substr($set, 0, strlen($set)-1);
 
         $sql .= $set . ' WHERE ' . self::PRIMARY . "='$id'";
 
