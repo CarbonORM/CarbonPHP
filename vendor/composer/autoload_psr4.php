@@ -6,9 +6,14 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'phpDocumentor\\Reflection\\' => array($vendorDir . '/phpdocumentor/reflection-common/src', $vendorDir . '/phpdocumentor/reflection-docblock/src', $vendorDir . '/phpdocumentor/type-resolver/src'),
+    'Webmozart\\Assert\\' => array($vendorDir . '/webmozart/assert/src'),
+    'Table\\' => array($baseDir . '/table'),
     'Psr\\Log\\' => array($vendorDir . '/psr/log/Psr/Log'),
-    'CarbonPHP\\Interfaces\\' => array($baseDir . '/Interfaces'),
-    'CarbonPHP\\Helpers\\' => array($baseDir . '/Helpers'),
-    'CarbonPHP\\Error\\' => array($baseDir . '/Error'),
+    'Interfaces\\' => array($baseDir . '/interfaces'),
+    'Helpers\\' => array($baseDir . '/helpers'),
+    'Error\\' => array($baseDir . '/error'),
+    'Doctrine\\Instantiator\\' => array($vendorDir . '/doctrine/instantiator/src/Doctrine/Instantiator'),
+    'DeepCopy\\' => array($vendorDir . '/myclabs/deep-copy/src/DeepCopy'),
     'CarbonPHP\\' => array($baseDir . '/'),
 );

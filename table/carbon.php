@@ -4,7 +4,7 @@ namespace Table;
 
 use CarbonPHP\Database;
 use CarbonPHP\Entities;
-use CarbonPHP\error\PublicAlert;
+use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\interfaces\iRest;
 
 class carbon extends Entities implements iRest
