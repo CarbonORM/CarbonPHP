@@ -28,9 +28,13 @@
   "autoload": {
     "psr-4": {
       "CarbonPHP\\": "",
-      "CarbonPHP\\Error\\": "Error/",
-      "CarbonPHP\\Helpers\\": "Helpers/",
-      "CarbonPHP\\Interfaces\\": "Interfaces/"
+      "Error\\": "error/",
+      "Helpers\\": "helpers/",
+      "Interfaces\\": "interfaces/",
+      "Table\\": "table/"
     }
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^7"
   }
 }

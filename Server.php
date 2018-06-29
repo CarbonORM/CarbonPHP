@@ -1,9 +1,9 @@
 <?php
 
-namespace CarbonPHP\Helpers;
+namespace CarbonPHP\helpers;
 
-use CarbonPHP\Error\ErrorCatcher;
-use CarbonPHP\Helpers\Pipe;
+use CarbonPHP\error\ErrorCatcher;
+use CarbonPHP\helpers\Pipe;
 use CarbonPHP\Request;
 use CarbonPHP\Session;
 use CarbonPHP\Database;

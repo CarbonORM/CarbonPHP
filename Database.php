@@ -75,9 +75,6 @@ class Database
         do {
             try {
                 return $prep(@new PDO(static::$dsn, static::$username, static::$password));
-
-
-
             } catch (\PDOException $e) {
 
                 switch ($e->getCode()) {        // Database has not been created
@@ -95,17 +92,17 @@ class Database
                             $db = $prep(@new PDO($query[0], static::$username, static::$password));
                         } catch (\PDOException $e) {
                             if ($e->getCode() === 1049){
-                                print '<h1>Auto Setup Failed!</h1><h3>Your database DSN may be slightly misformatted.</h3>';
+                                print '<h1>Auto Setup Failed!</h1><h3>Your database DSN may be slightly malformed.</h3>';
                                 print '<p>CarbonPHP requires the host come before the database in your DNS.</p>';
                                 print '<p>It should follow the following format "mysql:host=127.0.0.1;dbname=C6".</p>';
                             }
                             var_dump($e->getMessage());
-                            die(0);
+                            exit(1);
                         }
                         $stmt = "CREATE DATABASE $db_name;";
 
                         if (!$db->prepare($stmt)->execute()) {
-                            print '<h1>Failed to insert database. See Carbonphp.com for documentation.</h1>' and die;
+                            print '<h1>Failed to insert database. See CarbonPHP.com for documentation.</h1>' and die;
                         } else {
                             $db->exec("use $db_name");
                             static::setUp(true);   // this will exit
@@ -159,8 +156,8 @@ class Database
      */
     public static function setUp(bool $refresh = true) : PDO
     {
-        if (file_exists(CARBON_ROOT . 'Extras/buildDatabase.php')) {
-            include CARBON_ROOT . 'Extras/buildDatabase.php';
+        if (file_exists(CARBON_ROOT . 'Config/buildDatabase.php')) {
+            include CARBON_ROOT . 'config/buildDatabase.php';
         } else {
             print '<h1>Could not find database setup. Please see Carbonphp.com for more documentation</h1>';
             die(1);
@@ -168,7 +165,7 @@ class Database
         if (file_exists(static::$setup)) {
             include static::$setup;
         } else {
-            print '<h3>When you add a database be sure to add it to the file ["DATABASE"]["DB_BUILD"]</h3><h5>Use '. __FILE__ .' a as refrence.</h5>';
+            print '<h3>When you add a database be sure to add it to the file ["DATABASE"]["DB_BUILD"]</h3><h5>Use '. CARBON_ROOT . 'Config' . DS . 'buildDatabase.php as reference.</h5>';
         }
         if ($refresh) {
             print '<br><br><h2>Refreshing in 6 seconds</h2><script>t1 = window.setTimeout(function(){ window.location.href = \''. SITE .'\'; },6000);</script>';

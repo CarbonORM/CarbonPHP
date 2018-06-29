@@ -46,7 +46,7 @@ pcntl_signal( SIGTERM, 'signalHandler' ); // Termination ('kill' was called')
 pcntl_signal( SIGHUP, 'signalHandler' );  // Terminal log-out
 pcntl_signal( SIGINT, 'signalHandler' );  // Interrupted ( Ctrl-C is pressed)
 
-$fifoFile = \CarbonPHP\Helpers\Pipe::named(APP_ROOT . 'Data/Temp/' . session_id() . '.fifo');     // other users can notify us to update our application through this file
+$fifoFile = \CarbonPHP\helpers\Pipe::named(APP_ROOT . 'Data/Temp/' . session_id() . '.fifo');     // other users can notify us to update our application through this file
 
 $stdin = fopen( 'php://stdin', 'b' );
 

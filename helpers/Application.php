@@ -2,8 +2,6 @@
 
 namespace {                                     // This runs the following code in the global scope
 
-    use /** @noinspection PhpUndefinedNamespaceInspection */
-        App\Bootstrap;
     use CarbonPHP\Application;
     use CarbonPHP\Error\ErrorCatcher;              //  Catches development errors
     use CarbonPHP\Error\PublicAlert;               //  Displays alerts nicely

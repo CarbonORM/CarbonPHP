@@ -15,7 +15,7 @@
 
 namespace CarbonPHP;
 
-use CarbonPHP\Helpers\Serialized;
+use CarbonPHP\helpers\Serialized;
 
 class Session implements \SessionHandlerInterface
 {

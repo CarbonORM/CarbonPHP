@@ -18,7 +18,7 @@ abstract class Application extends Route
      * defaultRoute method defined below.
      * @return callable
      * @throws \Mustache_Exception_InvalidArgumentException
-     * @throws \CarbonPHP\Error\PublicAlert
+     * @throws \CarbonPHP\error\PublicAlert
      */
 
     public function fullPage() : callable

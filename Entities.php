@@ -8,12 +8,12 @@
 
 namespace CarbonPHP;
 
-use CarbonPHP\Helpers\Bcrypt;
+use CarbonPHP\helpers\Bcrypt;
 use PDO;
 use stdClass;
-use CarbonPHP\Helpers\Globals;
-use CarbonPHP\Interfaces\iRest;
-use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\helpers\Globals;
+use CarbonPHP\interfaces\iRest;
+use CarbonPHP\error\PublicAlert;
 
 /**
  * Class Entities

@@ -11,7 +11,7 @@
  * http://sam.zoy.org/wtfpl/COPYING for more details.
  */
 
-namespace CarbonPHP\Helpers;
+namespace CarbonPHP\Kelpers;
 
 abstract class Serialized {
 

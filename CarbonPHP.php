@@ -2,7 +2,7 @@
 
 namespace CarbonPHP;
 
-use CarbonPHP\Helpers\Serialized;
+use CarbonPHP\helpers\Serialized;
 
 /**
  * Class Carbon
@@ -84,7 +84,7 @@ class CarbonPHP
      *          'WRAPPER' => string '',         // View::content() will produce this
      *      ],
      * ]
-     * @throws \Exception
+     *
      */
     public function __construct(string $PHP = null)
     {
@@ -201,8 +201,6 @@ class CarbonPHP
 
         #################  SITE  ########################
         if ($PHP['SITE'] ?? false) {
-            \define('BOOTSTRAP', APP_ROOT . $PHP['SITE']['BOOTSTRAP'] ?? '');          // Routing file
-
             \define('SITE_TITLE', $PHP['SITE']['TITLE'] ?? 'CarbonPHP');                     // Carbon doesnt use
 
             \define('SITE_VERSION', $PHP['SITE']['VERSION'] ?? PHP_VERSION);                // printed in the footer
@@ -410,13 +408,13 @@ class CarbonPHP
                  * - You the shit dude! ( <- That's a good thing )
                  */
                 $_SERVER['argv'] = $argv;
-                include 'Extras/rest.php';
+                include 'programs/rest.php';
                 break;
             case 'go':
                 $CMD = '/usr/bin/websocketd --port=' . ($PHP['SOCKET']['PORT'] ?? 8888) . ' ' .
                     (($PHP['SOCKET']['DEV'] ?? false) ? '--devconsole ' : '') .
                     (($PHP['SOCKET']['SSL'] ?? false) ? "--ssl --sslkey={$PHP['SOCKET']['SSL']['KEY']} --sslcert={$PHP['SOCKET']['SSL']['CERT']} " : ' ') .
-                    'php ' . CARBON_ROOT . 'Extras' . DS . 'Websocketd.php ' . APP_ROOT . ' ' . ($PHP['SITE']['CONFIG'] ?? APP_ROOT) . ' 2>&1';
+                    'php ' . CARBON_ROOT . 'Programs' . DS . 'Websocketd.php ' . APP_ROOT . ' ' . ($PHP['SITE']['CONFIG'] ?? APP_ROOT) . ' 2>&1';
 
                 print $CMD;
                 //`$CMD`;

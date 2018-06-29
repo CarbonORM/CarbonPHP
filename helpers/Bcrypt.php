@@ -4,7 +4,7 @@
  *
 */
 
-namespace CarbonPHP\Helpers;
+namespace CarbonPHP\helpers;
 
 class Bcrypt
 {

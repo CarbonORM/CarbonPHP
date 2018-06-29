@@ -8,8 +8,8 @@
 
 namespace CarbonPHP;
 
-use CarbonPHP\Error\PublicAlert;
-use CarbonPHP\Helpers\Files;
+use CarbonPHP\error\PublicAlert;
+use CarbonPHP\helpers\Files;
 
 class Request   // requires carbon::application;
 {
