@@ -2,7 +2,7 @@
 
 namespace CarbonPHP;
 
-use CarbonPHP\helpers\Serialized;
+use CarbonPHP\Helpers\Serialized;
 
 /**
  * Class Carbon
@@ -254,7 +254,7 @@ class CarbonPHP
             forward_static_call_array([Serialized::class, 'start'], $PHP['SESSION']['SERIALIZE']);    // Pull theses from session, and store on shutdown
         }
         ################  Helpful Global Functions ####################
-        if (file_exists(CARBON_ROOT . 'Helpers' . DS . 'Application.php') && !@include CARBON_ROOT . 'Helpers' . DS . 'Application.php') {
+        if (file_exists(CARBON_ROOT . 'helpers' . DS . 'Application.php') && !@include CARBON_ROOT . 'helpers' . DS . 'Application.php') {
             print '<h1>Your instance of CarbonPHP appears corrupt. Please see CarbonPHP.com for Documentation.</h1>';
             die(1);
         }

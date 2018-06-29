@@ -13,7 +13,7 @@ return [
 
         'DB_BUILD' => '',                       // This framework sets up its-self implicitly
 
-        'REBUILD' => true                       // Initial Setup todo - remove this check
+        'REBUILD' => false                       // Initial Setup todo - remove this check
     ],
 
     'SITE' => [
