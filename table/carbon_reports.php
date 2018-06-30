@@ -4,8 +4,8 @@ namespace Table;
 
 use CarbonPHP\Database;
 use CarbonPHP\Entities;
-use CarbonPHP\error\PublicAlert;
-use CarbonPHP\interfaces\iRest;
+use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Interfaces\iRest;
 
 class carbon_reports extends Entities implements iRest
 {
@@ -42,7 +42,7 @@ class carbon_reports extends Entities implements iRest
 
         $get = $where = [];
         foreach ($argv as $column => $value) {
-            if (!is_int($column) && in_array($column, self::COLUMNS)) {
+            if (is_array($value) || !is_int($column) && in_array($column, self::COLUMNS)) {
                 if ($value !== '') {
                     $where[$column] = $value;
                 } else {
@@ -55,16 +55,27 @@ class carbon_reports extends Entities implements iRest
 
         $get =  !empty($get) ? implode(", ", $get) : ' * ';
 
-        $sql = 'SELECT ' .  $get . ' FROM carbonphp.carbon_reports';
+        $sql = 'SELECT ' .  $get . ' FROM CarbonPHP.carbon_reports';
+
+        $pdo = Database::database();
 
         if ($primary === null) {
-            $sql .= ' WHERE ';
-            foreach ($where as $column => $value) {
-                $sql .= "($column = " . Database::database()->quote($value) . ') AND ';
+            if (!empty($where)) {
+                $build_where = function (array $set, $join = 'AND') use (&$pdo, &$build_where) {
+                    $sql = '(';
+                    foreach ($set as $column => $value) {
+                        if (is_array($value)) {
+                            $build_where($value, $join === 'AND' ? 'OR' : 'AND');
+                        } else {
+                            $sql .= "($column = " . $pdo->quote($value) . ") $join ";
+                        }
+                    }
+                    return substr($sql, 0, strlen($sql) - (strlen($join) + 1)) . ')';
+                };
+                $sql .= ' WHERE ' . $build_where($where);
             }
-            $sql = substr($sql, 0, strlen($sql)-4);
         } else if (!empty(self::PRIMARY)){
-            $sql .= ' WHERE ' . self::PRIMARY . '=' . Database::database()->quote($primary);
+            $sql .= ' WHERE ' . self::PRIMARY . '=' . $pdo->quote($primary);
         }
 
         $sql .= $limit;
@@ -80,12 +91,9 @@ class carbon_reports extends Entities implements iRest
     */
     public static function Post(array $argv)
     {
-        $sql = 'INSERT INTO carbonphp.carbon_reports (log_level, report, date, call_trace) VALUES (:log_level, :report, :date, :call_trace)';
+        $sql = 'INSERT INTO CarbonPHP.carbon_reports (log_level, report, date, call_trace) VALUES (:log_level, :report, :date, :call_trace)';
         $stmt = Database::database()->prepare($sql);
-            $stmt->bindValue(':log_level', isset($argv['log_level']) ? $argv['log_level'] : null, \PDO::PARAM_STR);
-            $stmt->bindValue(':report', isset($argv['report']) ? $argv['report'] : null, \PDO::PARAM_STR);
-            $stmt->bindValue(':date', isset($argv['date']) ? $argv['date'] : null, \PDO::PARAM_STR);
-            $stmt->bindValue(':call_trace', isset($argv['call_trace']) ? $argv['call_trace'] : null, \PDO::PARAM_STR);
+        $stmt->bindValue(':log_level', isset($argv['log_level']) ? $argv['log_level'] : null, \PDO::PARAM_STR);$stmt->bindValue(':report', isset($argv['report']) ? $argv['report'] : null, \PDO::PARAM_STR);$stmt->bindValue(':date', isset($argv['date']) ? $argv['date'] : null, \PDO::PARAM_STR);$stmt->bindValue(':call_trace', isset($argv['call_trace']) ? $argv['call_trace'] : null, \PDO::PARAM_STR);
         return $stmt->execute();
     }
 
@@ -103,7 +111,7 @@ class carbon_reports extends Entities implements iRest
             }
         }
 
-        $sql = 'UPDATE carbonphp.carbon_reports ';
+        $sql = 'UPDATE CarbonPHP.carbon_reports ';
 
         $sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
 
@@ -133,17 +141,13 @@ class carbon_reports extends Entities implements iRest
 
         if (isset($argv['log_level'])) {
             $stmt->bindValue(':log_level', $argv['log_level'], \PDO::PARAM_STR);
-        }
-        if (isset($argv['report'])) {
+        }if (isset($argv['report'])) {
             $stmt->bindValue(':report', $argv['report'], \PDO::PARAM_STR);
-        }
-        if (isset($argv['date'])) {
+        }if (isset($argv['date'])) {
             $stmt->bindValue(':date', $argv['date'], \PDO::PARAM_STR);
-        }
-        if (isset($argv['call_trace'])) {
+        }if (isset($argv['call_trace'])) {
             $stmt->bindValue(':call_trace', $argv['call_trace'], \PDO::PARAM_STR);
         }
-
 
         if (!$stmt->execute()){
             return false;
@@ -163,7 +167,7 @@ class carbon_reports extends Entities implements iRest
     */
     public static function Delete(array &$remove, string $primary = null, array $argv) : bool
     {
-        $sql = 'DELETE FROM carbonphp.carbon_reports ';
+        $sql = 'DELETE FROM CarbonPHP.carbon_reports ';
 
         foreach($argv as $column => $constraint){
             if (!in_array($column, self::COLUMNS)){

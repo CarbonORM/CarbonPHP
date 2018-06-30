@@ -9,13 +9,19 @@ use CarbonPHP\Interfaces\iRest;
 
 class {{TableName}} extends Entities implements iRest
 {
+    const PRIMARY = "{{primary}}";
+
     const COLUMNS = [
            {{#explode}}
             '{{name}}',
         {{/explode}}
     ];
 
-    const PRIMARY = "{{primary}}";
+    const BINARY = [
+        {{#binary}}
+            '{{name}}',
+        {{/binary}}
+    ];
 
     /**
      * @param array $return
@@ -41,7 +47,7 @@ class {{TableName}} extends Entities implements iRest
 
         $get = $where = [];
         foreach ($argv as $column => $value) {
-            if (!is_int($column) && in_array($column, self::COLUMNS)) {
+            if (is_array($value) || !is_int($column) && in_array($column, self::COLUMNS)) {
                 if ($value !== '') {
                     $where[$column] = $value;
                 } else {
@@ -56,14 +62,25 @@ class {{TableName}} extends Entities implements iRest
 
         $sql = 'SELECT ' .  $get . ' FROM {{database}}.{{TableName}}';
 
+        $pdo = Database::database();
+
         if ($primary === null) {
-            $sql .= ' WHERE ';
-            foreach ($where as $column => $value) {
-                $sql .= "($column = " . Database::database()->quote($value) . ') AND ';
+            if (!empty($where)) {
+                $build_where = function (array $set, $join = 'AND') use (&$pdo, &$build_where) {
+                    $sql = '(';
+                    foreach ($set as $column => $value) {
+                        if (is_array($value)) {
+                            $build_where($value, $join === 'AND' ? 'OR' : 'AND');
+                        } else {
+                            $sql .= "($column = " . $pdo->quote($value) . ") $join ";
+                        }
+                    }
+                    return substr($sql, 0, strlen($sql) - (strlen($join) + 1)) . ')';
+                };
+                $sql .= ' WHERE ' . $build_where($where);
             }
-            $sql = substr($sql, 0, strlen($sql)-4);
         } else if (!empty(self::PRIMARY)){
-            $sql .= ' WHERE ' . self::PRIMARY . '=' . Database::database()->quote($primary);
+            $sql .= ' WHERE ' . self::PRIMARY . '=' . $pdo->quote($primary);
         }
 
         $sql .= $limit;
@@ -82,7 +99,10 @@ class {{TableName}} extends Entities implements iRest
         $sql = 'INSERT INTO {{database}}.{{TableName}} ({{listed}}) VALUES ({{implode}})';
         $stmt = Database::database()->prepare($sql);
         {{#explode}}
-            $stmt->bindValue(':{{name}}', isset($argv['{{name}}']) ? $argv['{{name}}'] : null, \{{type}});
+            {{^length}}$stmt->bindValue(':{{name}}',{{^default}}$argv['{{name}}']){{/default}}{{#default}}isset($argv['{{name}}']) ? $argv['{{name}}'] : {{default}}{{/default}}, \{{type}});{{/length}}
+            {{#length}}
+                ${{name}} = {{^default}}$argv['{{name}}']){{/default}}{{#default}}isset($argv['{{name}}']) ? $argv['{{name}}'] : {{default}}{{/default}};
+                $stmt->bindParam(':{{name}}',${{name}}, \{{type}}, {{length}});{{/length}}
         {{/explode}}
         return $stmt->execute();
     }
@@ -106,11 +126,10 @@ class {{TableName}} extends Entities implements iRest
         $sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
 
         $set = '';
-        {{#explode}}
-        if (isset($argv['{{name}}'])) {
+
+        {{#explode}}if (isset($argv['{{name}}'])) {
             $set .= '{{name}}=:{{name}},';
-        }
-        {{/explode}}
+        }{{/explode}}
 
         if (empty($set)){
             return false;
@@ -122,12 +141,9 @@ class {{TableName}} extends Entities implements iRest
 
         $stmt = Database::database()->prepare($sql);
 
-        {{#explode}}
-        if (isset($argv['{{name}}'])) {
+        {{#explode}}if (isset($argv['{{name}}'])) {
             $stmt->bindValue(':{{name}}', $argv['{{name}}'], \{{type}});
-        }
-        {{/explode}}
-
+        }{{/explode}}
 
         if (!$stmt->execute()){
             return false;

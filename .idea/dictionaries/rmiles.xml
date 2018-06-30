@@ -3,6 +3,7 @@
     <words>
       <w>dbname</w>
       <w>htmlentities</w>
+      <w>mysqldump</w>
       <w>sudo</w>
     </words>
   </dictionary>

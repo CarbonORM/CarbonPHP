@@ -186,10 +186,19 @@ foreach ($matches as $key => $insert) {// Create Table
             if (in_array($name, ['pageSize', 'pageNumber'])) {
                 throw new InvalidArgumentException($rest['name'] . " uses reserved 'REST' keywords as a column identifier => $name\n");
             }
+
+            /**
+             * Verify bool with the byte (or whatever it is) number attached
+             */
+
             if ('tinyint(1)' === $type = strtolower($query[1])) {            // this is a Bool
                 $type = $PDO[0];
                 $length = 1;
             } else {
+                /**
+                 * Else strip the value and keep computing
+                 */
+
                 if (count($argv = explode('(', $type)) > 1) {
                     $type = $argv[0];
                     $length = trim($argv[1], ')');
@@ -204,18 +213,38 @@ foreach ($matches as $key => $insert) {// Create Table
                     case 'mediumint':
                         $type = $PDO[2];
                         break;
+                    case 'binary':
+                        $rest['binary'][$column]['name'] = $name;
                     case 'varchar':
                     default:
                         $type = $PDO[3];
                 }
             }
+
+            $query_default = count($query) - 2;
+            if (isset($query[$query_default]) && $query[$query_default] === 'DEFAULT') {
+                $default = rtrim($query[++$query_default], ',');
+                if ($default[0] !== '\''){
+                    $default = "'$default'";
+                }
+            }
+
             $rest['explode'][$column] = [
                 'name' => $name,
                 'type' => $type,
-                'length' => isset($length) ? $length : null
             ];
+
+            if (isset($length)) {
+                $rest['explode'][$column]['length'] = $length;
+            }
+
+            if (isset($default)) {
+                $rest['explode'][$column]['default'] = $default;
+            }
+
             $column++;
-        } else if ($query[0] === 'PRIMARY') {
+        }
+        else if ($query[0] === 'PRIMARY') {
             $rest['primary'] = substr($query[2], 2, strlen($query[2]) - 5);
         }
     }
@@ -238,6 +267,7 @@ foreach ($matches as $key => $insert) {// Create Table
     file_put_contents(APP_ROOT . 'table/' . $rest['TableName'] . '.php', $mustache($rest));
 }
 
+unlink('mysqldump.sql');
 
 print "\tDone\n\n";
 

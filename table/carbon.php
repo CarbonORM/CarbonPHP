@@ -5,7 +5,7 @@ namespace Table;
 use CarbonPHP\Database;
 use CarbonPHP\Entities;
 use CarbonPHP\Error\PublicAlert;
-use CarbonPHP\interfaces\iRest;
+use CarbonPHP\Interfaces\iRest;
 
 class carbon extends Entities implements iRest
 {
@@ -40,7 +40,7 @@ class carbon extends Entities implements iRest
 
         $get = $where = [];
         foreach ($argv as $column => $value) {
-            if (!is_int($column) && in_array($column, self::COLUMNS)) {
+            if (is_array($value) || !is_int($column) && in_array($column, self::COLUMNS)) {
                 if ($value !== '') {
                     $where[$column] = $value;
                 } else {
@@ -53,16 +53,27 @@ class carbon extends Entities implements iRest
 
         $get =  !empty($get) ? implode(", ", $get) : ' * ';
 
-        $sql = 'SELECT ' .  $get . ' FROM carbonphp.carbon';
+        $sql = 'SELECT ' .  $get . ' FROM CarbonPHP.carbon';
+
+        $pdo = Database::database();
 
         if ($primary === null) {
-            $sql .= ' WHERE ';
-            foreach ($where as $column => $value) {
-                $sql .= "($column = " . Database::database()->quote($value) . ') AND ';
+            if (!empty($where)) {
+                $build_where = function (array $set, $join = 'AND') use (&$pdo, &$build_where) {
+                    $sql = '(';
+                    foreach ($set as $column => $value) {
+                        if (is_array($value)) {
+                            $build_where($value, $join === 'AND' ? 'OR' : 'AND');
+                        } else {
+                            $sql .= "($column = " . $pdo->quote($value) . ") $join ";
+                        }
+                    }
+                    return substr($sql, 0, strlen($sql) - (strlen($join) + 1)) . ')';
+                };
+                $sql .= ' WHERE ' . $build_where($where);
             }
-            $sql = substr($sql, 0, strlen($sql)-4);
         } else if (!empty(self::PRIMARY)){
-            $sql .= ' WHERE ' . self::PRIMARY . '=' . Database::database()->quote($primary);
+            $sql .= ' WHERE ' . self::PRIMARY . '=' . $pdo->quote($primary);
         }
 
         $sql .= $limit;
@@ -78,10 +89,9 @@ class carbon extends Entities implements iRest
     */
     public static function Post(array $argv)
     {
-        $sql = 'INSERT INTO carbonphp.carbon (entity_pk, entity_fk) VALUES (:entity_pk, :entity_fk)';
+        $sql = 'INSERT INTO CarbonPHP.carbon (entity_pk, entity_fk) VALUES (:entity_pk, :entity_fk)';
         $stmt = Database::database()->prepare($sql);
-            $stmt->bindValue(':entity_pk', isset($argv['entity_pk']) ? $argv['entity_pk'] : null, \PDO::PARAM_STR);
-            $stmt->bindValue(':entity_fk', isset($argv['entity_fk']) ? $argv['entity_fk'] : null, \PDO::PARAM_STR);
+        $stmt->bindValue(':entity_pk', isset($argv['entity_pk']) ? $argv['entity_pk'] : null, \PDO::PARAM_STR);$stmt->bindValue(':entity_fk', isset($argv['entity_fk']) ? $argv['entity_fk'] : null, \PDO::PARAM_STR);
         return $stmt->execute();
     }
 
@@ -99,7 +109,7 @@ class carbon extends Entities implements iRest
             }
         }
 
-        $sql = 'UPDATE carbonphp.carbon ';
+        $sql = 'UPDATE CarbonPHP.carbon ';
 
         $sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
 
@@ -123,11 +133,9 @@ class carbon extends Entities implements iRest
 
         if (isset($argv['entity_pk'])) {
             $stmt->bindValue(':entity_pk', $argv['entity_pk'], \PDO::PARAM_STR);
-        }
-        if (isset($argv['entity_fk'])) {
+        }if (isset($argv['entity_fk'])) {
             $stmt->bindValue(':entity_fk', $argv['entity_fk'], \PDO::PARAM_STR);
         }
-
 
         if (!$stmt->execute()){
             return false;
@@ -147,7 +155,7 @@ class carbon extends Entities implements iRest
     */
     public static function Delete(array &$remove, string $primary = null, array $argv) : bool
     {
-        $sql = 'DELETE FROM carbonphp.carbon ';
+        $sql = 'DELETE FROM CarbonPHP.carbon ';
 
         foreach($argv as $column => $constraint){
             if (!in_array($column, self::COLUMNS)){

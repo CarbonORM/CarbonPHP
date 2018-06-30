@@ -4,8 +4,8 @@ namespace Table;
 
 use CarbonPHP\Database;
 use CarbonPHP\Entities;
-use CarbonPHP\error\PublicAlert;
-use CarbonPHP\interfaces\iRest;
+use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Interfaces\iRest;
 
 class sessions extends Entities implements iRest
 {
@@ -44,7 +44,7 @@ class sessions extends Entities implements iRest
 
         $get = $where = [];
         foreach ($argv as $column => $value) {
-            if (!is_int($column) && in_array($column, self::COLUMNS)) {
+            if (is_array($value) || !is_int($column) && in_array($column, self::COLUMNS)) {
                 if ($value !== '') {
                     $where[$column] = $value;
                 } else {
@@ -57,16 +57,27 @@ class sessions extends Entities implements iRest
 
         $get =  !empty($get) ? implode(", ", $get) : ' * ';
 
-        $sql = 'SELECT ' .  $get . ' FROM carbonphp.sessions';
+        $sql = 'SELECT ' .  $get . ' FROM CarbonPHP.sessions';
+
+        $pdo = Database::database();
 
         if ($primary === null) {
-            $sql .= ' WHERE ';
-            foreach ($where as $column => $value) {
-                $sql .= "($column = " . Database::database()->quote($value) . ') AND ';
+            if (!empty($where)) {
+                $build_where = function (array $set, $join = 'AND') use (&$pdo, &$build_where) {
+                    $sql = '(';
+                    foreach ($set as $column => $value) {
+                        if (is_array($value)) {
+                            $build_where($value, $join === 'AND' ? 'OR' : 'AND');
+                        } else {
+                            $sql .= "($column = " . $pdo->quote($value) . ") $join ";
+                        }
+                    }
+                    return substr($sql, 0, strlen($sql) - (strlen($join) + 1)) . ')';
+                };
+                $sql .= ' WHERE ' . $build_where($where);
             }
-            $sql = substr($sql, 0, strlen($sql)-4);
         } else if (!empty(self::PRIMARY)){
-            $sql .= ' WHERE ' . self::PRIMARY . '=' . Database::database()->quote($primary);
+            $sql .= ' WHERE ' . self::PRIMARY . '=' . $pdo->quote($primary);
         }
 
         $sql .= $limit;
@@ -82,14 +93,9 @@ class sessions extends Entities implements iRest
     */
     public static function Post(array $argv)
     {
-        $sql = 'INSERT INTO carbonphp.sessions (user_id, user_ip, session_id, session_expires, session_data, user_online_status) VALUES (:user_id, :user_ip, :session_id, :session_expires, :session_data, :user_online_status)';
+        $sql = 'INSERT INTO CarbonPHP.sessions (user_id, user_ip, session_id, session_expires, session_data, user_online_status) VALUES (:user_id, :user_ip, :session_id, :session_expires, :session_data, :user_online_status)';
         $stmt = Database::database()->prepare($sql);
-            $stmt->bindValue(':user_id', isset($argv['user_id']) ? $argv['user_id'] : null, \PDO::PARAM_STR);
-            $stmt->bindValue(':user_ip', isset($argv['user_ip']) ? $argv['user_ip'] : null, \PDO::PARAM_STR);
-            $stmt->bindValue(':session_id', isset($argv['session_id']) ? $argv['session_id'] : null, \PDO::PARAM_STR);
-            $stmt->bindValue(':session_expires', isset($argv['session_expires']) ? $argv['session_expires'] : null, \PDO::PARAM_STR);
-            $stmt->bindValue(':session_data', isset($argv['session_data']) ? $argv['session_data'] : null, \PDO::PARAM_STR);
-            $stmt->bindValue(':user_online_status', isset($argv['user_online_status']) ? $argv['user_online_status'] : null, \PDO::PARAM_NULL);
+        $stmt->bindValue(':user_id', isset($argv['user_id']) ? $argv['user_id'] : null, \PDO::PARAM_STR);$stmt->bindValue(':user_ip', isset($argv['user_ip']) ? $argv['user_ip'] : null, \PDO::PARAM_STR);$stmt->bindValue(':session_id', isset($argv['session_id']) ? $argv['session_id'] : null, \PDO::PARAM_STR);$stmt->bindValue(':session_expires', isset($argv['session_expires']) ? $argv['session_expires'] : null, \PDO::PARAM_STR);$stmt->bindValue(':session_data', isset($argv['session_data']) ? $argv['session_data'] : null, \PDO::PARAM_STR);$stmt->bindValue(':user_online_status', isset($argv['user_online_status']) ? $argv['user_online_status'] : null, \PDO::PARAM_NULL);
         return $stmt->execute();
     }
 
@@ -107,7 +113,7 @@ class sessions extends Entities implements iRest
             }
         }
 
-        $sql = 'UPDATE carbonphp.sessions ';
+        $sql = 'UPDATE CarbonPHP.sessions ';
 
         $sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
 
@@ -143,23 +149,17 @@ class sessions extends Entities implements iRest
 
         if (isset($argv['user_id'])) {
             $stmt->bindValue(':user_id', $argv['user_id'], \PDO::PARAM_STR);
-        }
-        if (isset($argv['user_ip'])) {
+        }if (isset($argv['user_ip'])) {
             $stmt->bindValue(':user_ip', $argv['user_ip'], \PDO::PARAM_STR);
-        }
-        if (isset($argv['session_id'])) {
+        }if (isset($argv['session_id'])) {
             $stmt->bindValue(':session_id', $argv['session_id'], \PDO::PARAM_STR);
-        }
-        if (isset($argv['session_expires'])) {
+        }if (isset($argv['session_expires'])) {
             $stmt->bindValue(':session_expires', $argv['session_expires'], \PDO::PARAM_STR);
-        }
-        if (isset($argv['session_data'])) {
+        }if (isset($argv['session_data'])) {
             $stmt->bindValue(':session_data', $argv['session_data'], \PDO::PARAM_STR);
-        }
-        if (isset($argv['user_online_status'])) {
+        }if (isset($argv['user_online_status'])) {
             $stmt->bindValue(':user_online_status', $argv['user_online_status'], \PDO::PARAM_NULL);
         }
-
 
         if (!$stmt->execute()){
             return false;
@@ -179,7 +179,7 @@ class sessions extends Entities implements iRest
     */
     public static function Delete(array &$remove, string $primary = null, array $argv) : bool
     {
-        $sql = 'DELETE FROM carbonphp.sessions ';
+        $sql = 'DELETE FROM CarbonPHP.sessions ';
 
         foreach($argv as $column => $constraint){
             if (!in_array($column, self::COLUMNS)){
