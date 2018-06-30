@@ -9,12 +9,15 @@ use CarbonPHP\Interfaces\iRest;
 
 class carbon extends Entities implements iRest
 {
+    const PRIMARY = "entity_pk";
+
     const COLUMNS = [
             'entity_pk',
             'entity_fk',
     ];
 
-    const PRIMARY = "entity_pk";
+    const BINARY = [
+    ];
 
     /**
      * @param array $return
@@ -53,7 +56,7 @@ class carbon extends Entities implements iRest
 
         $get =  !empty($get) ? implode(", ", $get) : ' * ';
 
-        $sql = 'SELECT ' .  $get . ' FROM CarbonPHP.carbon';
+        $sql = 'SELECT ' .  $get . ' FROM carbonphp.carbon';
 
         $pdo = Database::database();
 
@@ -78,6 +81,8 @@ class carbon extends Entities implements iRest
 
         $sql .= $limit;
 
+
+
         $return = self::fetch($sql);
 
         return true;
@@ -89,9 +94,16 @@ class carbon extends Entities implements iRest
     */
     public static function Post(array $argv)
     {
-        $sql = 'INSERT INTO CarbonPHP.carbon (entity_pk, entity_fk) VALUES (:entity_pk, :entity_fk)';
+        $sql = 'INSERT INTO carbonphp.carbon (entity_pk, entity_fk) VALUES (:entity_pk, :entity_fk)';
         $stmt = Database::database()->prepare($sql);
-        $stmt->bindValue(':entity_pk', isset($argv['entity_pk']) ? $argv['entity_pk'] : null, \PDO::PARAM_STR);$stmt->bindValue(':entity_fk', isset($argv['entity_fk']) ? $argv['entity_fk'] : null, \PDO::PARAM_STR);
+            
+                $entity_pk = $argv['entity_pk'];
+                $stmt->bindParam(':entity_pk',$entity_pk, \PDO::PARAM_STR, 225);
+            
+                $entity_fk = isset($argv['entity_fk']) ? $argv['entity_fk'] : NULL;
+                $stmt->bindParam(':entity_fk',$entity_fk, \PDO::PARAM_STR, 225);
+
+
         return $stmt->execute();
     }
 
@@ -109,15 +121,15 @@ class carbon extends Entities implements iRest
             }
         }
 
-        $sql = 'UPDATE CarbonPHP.carbon ';
+        $sql = 'UPDATE carbonphp.carbon ';
 
         $sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
 
         $set = '';
+
         if (isset($argv['entity_pk'])) {
             $set .= 'entity_pk=:entity_pk,';
-        }
-        if (isset($argv['entity_fk'])) {
+        }if (isset($argv['entity_fk'])) {
             $set .= 'entity_fk=:entity_fk,';
         }
 
@@ -137,6 +149,8 @@ class carbon extends Entities implements iRest
             $stmt->bindValue(':entity_fk', $argv['entity_fk'], \PDO::PARAM_STR);
         }
 
+
+
         if (!$stmt->execute()){
             return false;
         }
@@ -155,7 +169,7 @@ class carbon extends Entities implements iRest
     */
     public static function Delete(array &$remove, string $primary = null, array $argv) : bool
     {
-        $sql = 'DELETE FROM CarbonPHP.carbon ';
+        $sql = 'DELETE FROM carbonphp.carbon ';
 
         foreach($argv as $column => $constraint){
             if (!in_array($column, self::COLUMNS)){

@@ -64,13 +64,15 @@ final class RestTest extends TestCase
         $this->assertTrue(Rest::Get($this->store, null, ['entity_pk' => 'RestTests']));
 
         if (!empty($this->store)){
-            $this->testRestApiCanDelete();
+            $this->assertTrue(Rest::Delete($this->store, $this->store['entity_pk'], []));
         }
 
         $this->assertTrue(Rest::Post(['entity_pk' => 'RestTests']));
     }
 
-
+    /**
+     * @depends testRestApiCanPost
+     */
     public function testRestApiCanGet(): void
     {
         $this->store = [];
@@ -78,11 +80,15 @@ final class RestTest extends TestCase
 
         $this->assertInternalType('array', $this->store);
 
-        $this->assertArrayHasKey('entity_fk', $this->store);
-
+        if (!empty($this->store)) {
+            $this->assertArrayHasKey('entity_fk', $this->store);
+        }
         // This route redirects to home, thus ending in false
     }
 
+    /**
+     * @depends testRestApiCanGet
+     */
     public function testRestApiCanPut(): void
     {
         $this->store = [];
@@ -98,6 +104,9 @@ final class RestTest extends TestCase
         $this->assertEquals('lil\'Rich', $this->store['entity_pk']);
     }
 
+    /**
+     * @depends testRestApiCanPut
+     */
     public function testRestApiCanDelete(): void
     {
         $this->store = [];

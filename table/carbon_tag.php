@@ -9,6 +9,8 @@ use CarbonPHP\Interfaces\iRest;
 
 class carbon_tag extends Entities implements iRest
 {
+    const PRIMARY = "";
+
     const COLUMNS = [
             'entity_id',
             'user_id',
@@ -16,7 +18,8 @@ class carbon_tag extends Entities implements iRest
             'creation_date',
     ];
 
-    const PRIMARY = "";
+    const BINARY = [
+    ];
 
     /**
      * @param array $return
@@ -55,7 +58,7 @@ class carbon_tag extends Entities implements iRest
 
         $get =  !empty($get) ? implode(", ", $get) : ' * ';
 
-        $sql = 'SELECT ' .  $get . ' FROM CarbonPHP.carbon_tag';
+        $sql = 'SELECT ' .  $get . ' FROM carbonphp.carbon_tag';
 
         $pdo = Database::database();
 
@@ -91,9 +94,20 @@ class carbon_tag extends Entities implements iRest
     */
     public static function Post(array $argv)
     {
-        $sql = 'INSERT INTO CarbonPHP.carbon_tag (entity_id, user_id, tag_id, creation_date) VALUES (:entity_id, :user_id, :tag_id, :creation_date)';
+        $sql = 'INSERT INTO carbonphp.carbon_tag (entity_id, user_id, tag_id, creation_date) VALUES (:entity_id, :user_id, :tag_id, :creation_date)';
         $stmt = Database::database()->prepare($sql);
-        $stmt->bindValue(':entity_id', isset($argv['entity_id']) ? $argv['entity_id'] : null, \PDO::PARAM_STR);$stmt->bindValue(':user_id', isset($argv['user_id']) ? $argv['user_id'] : null, \PDO::PARAM_STR);$stmt->bindValue(':tag_id', isset($argv['tag_id']) ? $argv['tag_id'] : null, \PDO::PARAM_STR);$stmt->bindValue(':creation_date', isset($argv['creation_date']) ? $argv['creation_date'] : null, \PDO::PARAM_STR);
+            
+                $entity_id = isset($argv['entity_id']) ? $argv['entity_id'] : 'NULL';
+                $stmt->bindParam(':entity_id',$entity_id, \PDO::PARAM_STR, 225);
+            
+                $user_id = isset($argv['user_id']) ? $argv['user_id'] : 'NULL';
+                $stmt->bindParam(':user_id',$user_id, \PDO::PARAM_STR, 225);
+            
+                $tag_id = isset($argv['tag_id']) ? $argv['tag_id'] : 'NULL';
+                $stmt->bindParam(':tag_id',$tag_id, \PDO::PARAM_STR, 11);
+            
+                $creation_date = isset($argv['creation_date']) ? $argv['creation_date'] : 'NULL';
+                $stmt->bindParam(':creation_date',$creation_date, \PDO::PARAM_STR, 20);
         return $stmt->execute();
     }
 
@@ -111,21 +125,19 @@ class carbon_tag extends Entities implements iRest
             }
         }
 
-        $sql = 'UPDATE CarbonPHP.carbon_tag ';
+        $sql = 'UPDATE carbonphp.carbon_tag ';
 
         $sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
 
         $set = '';
+
         if (isset($argv['entity_id'])) {
             $set .= 'entity_id=:entity_id,';
-        }
-        if (isset($argv['user_id'])) {
+        }if (isset($argv['user_id'])) {
             $set .= 'user_id=:user_id,';
-        }
-        if (isset($argv['tag_id'])) {
+        }if (isset($argv['tag_id'])) {
             $set .= 'tag_id=:tag_id,';
-        }
-        if (isset($argv['creation_date'])) {
+        }if (isset($argv['creation_date'])) {
             $set .= 'creation_date=:creation_date,';
         }
 
@@ -167,7 +179,7 @@ class carbon_tag extends Entities implements iRest
     */
     public static function Delete(array &$remove, string $primary = null, array $argv) : bool
     {
-        $sql = 'DELETE FROM CarbonPHP.carbon_tag ';
+        $sql = 'DELETE FROM carbonphp.carbon_tag ';
 
         foreach($argv as $column => $constraint){
             if (!in_array($column, self::COLUMNS)){

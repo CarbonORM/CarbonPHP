@@ -9,6 +9,8 @@ use CarbonPHP\Interfaces\iRest;
 
 class carbon_reports extends Entities implements iRest
 {
+    const PRIMARY = "";
+
     const COLUMNS = [
             'log_level',
             'report',
@@ -16,7 +18,8 @@ class carbon_reports extends Entities implements iRest
             'call_trace',
     ];
 
-    const PRIMARY = "";
+    const BINARY = [
+    ];
 
     /**
      * @param array $return
@@ -55,7 +58,7 @@ class carbon_reports extends Entities implements iRest
 
         $get =  !empty($get) ? implode(", ", $get) : ' * ';
 
-        $sql = 'SELECT ' .  $get . ' FROM CarbonPHP.carbon_reports';
+        $sql = 'SELECT ' .  $get . ' FROM carbonphp.carbon_reports';
 
         $pdo = Database::database();
 
@@ -91,9 +94,18 @@ class carbon_reports extends Entities implements iRest
     */
     public static function Post(array $argv)
     {
-        $sql = 'INSERT INTO CarbonPHP.carbon_reports (log_level, report, date, call_trace) VALUES (:log_level, :report, :date, :call_trace)';
+        $sql = 'INSERT INTO carbonphp.carbon_reports (log_level, report, date, call_trace) VALUES (:log_level, :report, :date, :call_trace)';
         $stmt = Database::database()->prepare($sql);
-        $stmt->bindValue(':log_level', isset($argv['log_level']) ? $argv['log_level'] : null, \PDO::PARAM_STR);$stmt->bindValue(':report', isset($argv['report']) ? $argv['report'] : null, \PDO::PARAM_STR);$stmt->bindValue(':date', isset($argv['date']) ? $argv['date'] : null, \PDO::PARAM_STR);$stmt->bindValue(':call_trace', isset($argv['call_trace']) ? $argv['call_trace'] : null, \PDO::PARAM_STR);
+            
+                $log_level = isset($argv['log_level']) ? $argv['log_level'] : 'NULL';
+                $stmt->bindParam(':log_level',$log_level, \PDO::PARAM_STR, 20);
+            $stmt->bindValue(':report',isset($argv['report']) ? $argv['report'] : 'NULL', \PDO::PARAM_STR);
+
+            
+                $date = isset($argv['date']) ? $argv['date'] : 'NULL';
+                $stmt->bindParam(':date',$date, \PDO::PARAM_STR, 22);
+            $stmt->bindValue(':call_trace',isset($argv['call_trace']) ? $argv['call_trace'] : 'NULL', \PDO::PARAM_STR);
+
         return $stmt->execute();
     }
 
@@ -111,21 +123,19 @@ class carbon_reports extends Entities implements iRest
             }
         }
 
-        $sql = 'UPDATE CarbonPHP.carbon_reports ';
+        $sql = 'UPDATE carbonphp.carbon_reports ';
 
         $sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
 
         $set = '';
+
         if (isset($argv['log_level'])) {
             $set .= 'log_level=:log_level,';
-        }
-        if (isset($argv['report'])) {
+        }if (isset($argv['report'])) {
             $set .= 'report=:report,';
-        }
-        if (isset($argv['date'])) {
+        }if (isset($argv['date'])) {
             $set .= 'date=:date,';
-        }
-        if (isset($argv['call_trace'])) {
+        }if (isset($argv['call_trace'])) {
             $set .= 'call_trace=:call_trace,';
         }
 
@@ -167,7 +177,7 @@ class carbon_reports extends Entities implements iRest
     */
     public static function Delete(array &$remove, string $primary = null, array $argv) : bool
     {
-        $sql = 'DELETE FROM CarbonPHP.carbon_reports ';
+        $sql = 'DELETE FROM carbonphp.carbon_reports ';
 
         foreach($argv as $column => $constraint){
             if (!in_array($column, self::COLUMNS)){
