@@ -8,7 +8,7 @@ use CarbonPHP\Database;
 
 /**
  * Class ErrorCatcher
- * @package Carbon\Error
+ * @package CarbonPHP\Error
  *
  * Provide a global error and exception handler.
  *

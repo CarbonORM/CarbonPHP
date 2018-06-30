@@ -28,10 +28,10 @@
   "autoload": {
     "psr-4": {
       "CarbonPHP\\": "",
-      "Error\\": "error/",
-      "Helpers\\": "helpers/",
-      "Interfaces\\": "interfaces/",
-      "Table\\": "table/"
+      "CarbonPHP\\Error\\": "error/",
+      "CarbonPHP\\Helpers\\": "helpers/",
+      "CarbonPHP\\Interfaces\\": "interfaces/",
+      "CarbonPHP\\Table\\": "table/"
     }
   },
   "require-dev": {
