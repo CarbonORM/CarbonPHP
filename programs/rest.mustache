@@ -5,6 +5,7 @@ namespace Table;
 use CarbonPHP\Database;
 use CarbonPHP\Entities;
 use CarbonPHP\Interfaces\iRest;
+{{#carbon_table}}use Table\carbon as Carbon;{{/carbon_table}}
 
 class {{TableName}} extends Entities implements iRest
 {
@@ -97,14 +98,21 @@ class {{TableName}} extends Entities implements iRest
     {
         $sql = 'INSERT INTO {{database}}.{{TableName}} ({{listed}}) VALUES ({{{implode}}})';
         $stmt = Database::database()->prepare($sql);
-        {{#explode}}{{^primary_binary}}
+{{#explode}}{{#foreign_key}}
+    ${{name}} = ;
+    $stmt->bindParam(':{{name}}',${{name}}, \{{type}}, {{length}});
+{{/foreign_key}}
+            {{^primary_binary}}
             {{^length}}$stmt->bindValue(':{{name}}',{{^default}}$argv['{{name}}']{{/default}}{{#default}}isset($argv['{{name}}']) ? $argv['{{name}}'] : {{default}}{{/default}}, \{{type}});{{/length}}
             {{#length}}
                 ${{name}} = {{^default}}$argv['{{name}}']{{/default}}{{#default}}isset($argv['{{name}}']) ? $argv['{{name}}'] : {{default}}{{/default}};
                 $stmt->bindParam(':{{name}}',${{name}}, \{{type}}, {{length}});
             {{/length}}
         {{/primary_binary}}{{/explode}}
-        return $stmt->execute();
+{{#carbon_table}}
+        return $stmt->execute($id = self::new_entity('{{TableName}}')) ? $id : false;{{/carbon_table}}
+{{^carbon_table}}
+        return $stmt->execute();{{/carbon_table}}
     }
 
     /**

@@ -191,6 +191,12 @@ foreach ($matches as $insert) {// Create Table
 
         } else if ($query[0] === 'PRIMARY') {
             $rest['primary'] = substr($query[2], 2, strlen($query[2]) - 5);
+
+        } else if ($query[0] === 'CONSTRAINT') {
+            if ($query[6] === '`carbon`') {
+                $foreign_key = trim($query[4], "()`");
+            }
+
         } else if ($query[0][0] === '`') {
 
             $rest['implode'][] = $name = trim($query[0], '`');            // Column Names
@@ -270,6 +276,9 @@ foreach ($matches as $insert) {// Create Table
     } else {
         foreach ($rest['explode'] as &$value) {
             if ($value['name'] === $rest['primary']) {
+                if (isset($forgein_key) && $value['name'] === $foreign_key) {
+                    $rest['carbon_table'] = $value['foreign_key'] = true;
+                }
                 $value['primary'] = true;
 
                 if (isset($value['binary'])) {
@@ -292,7 +301,11 @@ foreach ($matches as $insert) {// Create Table
     $implode = '';
     foreach ($rest['implode'] as &$value) {
         if (in_array($value, $binary) && isset($rest['primary']) && $rest['primary'] === $value) {
-            $implode .= ', (UNHEX(REPLACE(UUID(),"-","")))';
+            if ($value === $value['foreign_key']) {
+                $implode .= ', ? ';
+            } else {
+                $implode .= ', (UNHEX(REPLACE(UUID(),"-","")))';
+            }
         } else {
             $implode .= ', :' . $value;
         }

@@ -150,6 +150,9 @@ class carbon_tag extends Entities implements iRest
             $set .= 'creation_date=:creation_date,';
         }
 
+        carbon::Post([]);
+
+
         if (empty($set)){
             return false;
         }
