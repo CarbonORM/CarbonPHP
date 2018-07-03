@@ -4,7 +4,6 @@ namespace Table;
 
 use CarbonPHP\Database;
 use CarbonPHP\Entities;
-use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iRest;
 
 class carbon_tags extends Entities implements iRest
@@ -12,12 +11,11 @@ class carbon_tags extends Entities implements iRest
     const PRIMARY = "tag_id";
 
     const COLUMNS = [
-            'tag_id',
-            'tag_description',
-            'tag_name',
+    'tag_id','tag_description','tag_name',
     ];
 
     const BINARY = [
+    
     ];
 
     /**
@@ -42,22 +40,8 @@ class carbon_tags extends Entities implements iRest
             $limit = ' LIMIT 100';
         }
 
-        $get = $where = [];
-        foreach ($argv as $column => $value) {
-            if (is_array($value) || !is_int($column) && in_array($column, self::COLUMNS)) {
-                if ($value !== '') {
-                    $where[$column] = $value;
-                } else {
-                    $get[] = $column;
-                }
-            } elseif (in_array($value, self::COLUMNS)) {
-                $get[] = $value;
-            }
-        }
-
-        if (empty($get)) {
-            $get = self::COLUMNS;
-        }
+        $get = isset($argv['select']) ? $argv['select'] : self::COLUMNS;
+        $where = isset($argv['where']) ? $argv['where'] : [];
 
         $sql = '';
         foreach($get as $key => $column){
@@ -111,13 +95,17 @@ class carbon_tags extends Entities implements iRest
     */
     public static function Post(array $argv)
     {
-        $sql = 'INSERT INTO carbonphp.carbon_tags (tag_id, tag_description, tag_name) VALUES (:tag_id, :tag_description, :tag_name)';
+        $sql = 'INSERT INTO carbonphp.carbon_tags (tag_id, tag_description, tag_name) VALUES ( :tag_id, :tag_description, :tag_name)';
         $stmt = Database::database()->prepare($sql);
+        
             
-                $tag_id = isset($argv['tag_id']) ? $argv['tag_id'] : 'NULL';
+                $tag_id = $argv['tag_id'];
                 $stmt->bindParam(':tag_id',$tag_id, \PDO::PARAM_STR, 11);
-            $stmt->bindValue(':tag_description',isset($argv['tag_description']) ? $argv['tag_description'] : 'NULL', \PDO::PARAM_STR);
-            $stmt->bindValue(':tag_name',isset($argv['tag_name']) ? $argv['tag_name'] : 'NULL', \PDO::PARAM_STR);
+        
+            $stmt->bindValue(':tag_description',$argv['tag_description'], \PDO::PARAM_STR);
+        
+            $stmt->bindValue(':tag_name',$argv['tag_name'], \PDO::PARAM_STR);
+        
         return $stmt->execute();
     }
 
@@ -143,9 +131,11 @@ class carbon_tags extends Entities implements iRest
 
         if (isset($argv['tag_id'])) {
             $set .= 'tag_id=:tag_id,';
-        }if (isset($argv['tag_description'])) {
+        }
+        if (isset($argv['tag_description'])) {
             $set .= 'tag_description=:tag_description,';
-        }if (isset($argv['tag_name'])) {
+        }
+        if (isset($argv['tag_name'])) {
             $set .= 'tag_name=:tag_name,';
         }
 
@@ -160,11 +150,14 @@ class carbon_tags extends Entities implements iRest
         $stmt = Database::database()->prepare($sql);
 
         if (isset($argv['tag_id'])) {
-            $stmt->bindValue(':tag_id', $argv['tag_id'], \PDO::PARAM_STR);
-        }if (isset($argv['tag_description'])) {
-            $stmt->bindValue(':tag_description', $argv['tag_description'], \PDO::PARAM_STR);
-        }if (isset($argv['tag_name'])) {
-            $stmt->bindValue(':tag_name', $argv['tag_name'], \PDO::PARAM_STR);
+            $tag_id = $argv['tag_id'];
+            $stmt->bindParam(':tag_id',$tag_id, \PDO::PARAM_STR, 11);
+        }
+        if (isset($argv['tag_description'])) {
+            $stmt->bindValue(':tag_description',$argv['tag_description'], \PDO::PARAM_STR);
+        }
+        if (isset($argv['tag_name'])) {
+            $stmt->bindValue(':tag_name',$argv['tag_name'], \PDO::PARAM_STR);
         }
 
         if (!$stmt->execute()){
@@ -178,7 +171,7 @@ class carbon_tags extends Entities implements iRest
     }
 
     /**
-    * @param array $return
+    * @param array $remove
     * @param string|null $primary
     * @param array $argv
     * @return bool
@@ -205,20 +198,18 @@ class carbon_tags extends Entities implements iRest
             $sql .= ' WHERE ';
             foreach ($argv as $column => $value) {
                 if (in_array($column, self::BINARY)) {
-
+                    $sql .= " $column =UNHEX(" . Database::database()->quote($value) . ') AND ';
+                } else {
+                    $sql .= " $column =" . Database::database()->quote($value) . ' AND ';
                 }
-                $sql .= " $column =" . Database::database()->quote($value) . ' AND ';
             }
             $sql = substr($sql, 0, strlen($sql)-4);
         } else if (!empty(self::PRIMARY)) {
-                $sql .= ' WHERE ' . self::PRIMARY . '=' . Database::database()->quote($primary);
-            
-                $sql .= ' WHERE ' . self::PRIMARY . '=UNHEX(' . Database::database()->quote($primary) . ')';
+            $sql .= ' WHERE ' . self::PRIMARY . '=' . Database::database()->quote($primary);
         }
 
         $remove = null;
 
         return self::execute($sql);
     }
-
 }

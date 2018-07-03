@@ -4,7 +4,6 @@ namespace Table;
 
 use CarbonPHP\Database;
 use CarbonPHP\Entities;
-use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iRest;
 
 class sessions extends Entities implements iRest
@@ -12,17 +11,11 @@ class sessions extends Entities implements iRest
     const PRIMARY = "session_i";
 
     const COLUMNS = [
-            'user_id',
-            'user_ip',
-            'session_id',
-            'session_expires',
-            'session_data',
-            'user_online_status',
+    'user_id','user_ip','session_id','session_expires','session_data','user_online_status',
     ];
 
     const BINARY = [
-            'user_id',
-            'user_ip',
+    'user_id','user_ip',
     ];
 
     /**
@@ -47,22 +40,8 @@ class sessions extends Entities implements iRest
             $limit = ' LIMIT 100';
         }
 
-        $get = $where = [];
-        foreach ($argv as $column => $value) {
-            if (is_array($value) || !is_int($column) && in_array($column, self::COLUMNS)) {
-                if ($value !== '') {
-                    $where[$column] = $value;
-                } else {
-                    $get[] = $column;
-                }
-            } elseif (in_array($value, self::COLUMNS)) {
-                $get[] = $value;
-            }
-        }
-
-        if (empty($get)) {
-            $get = self::COLUMNS;
-        }
+        $get = isset($argv['select']) ? $argv['select'] : self::COLUMNS;
+        $where = isset($argv['where']) ? $argv['where'] : [];
 
         $sql = '';
         foreach($get as $key => $column){
@@ -116,22 +95,29 @@ class sessions extends Entities implements iRest
     */
     public static function Post(array $argv)
     {
-        $sql = 'INSERT INTO carbonphp.sessions (user_id, user_ip, session_id, session_expires, session_data, user_online_status) VALUES (:user_id, :user_ip, :session_id, :session_expires, :session_data, :user_online_status)';
+        $sql = 'INSERT INTO carbonphp.sessions (user_id, user_ip, session_id, session_expires, session_data, user_online_status) VALUES ( :user_id, :user_ip, :session_id, :session_expires, :session_data, :user_online_status)';
         $stmt = Database::database()->prepare($sql);
+        
             
-                $user_id = isset($argv['user_id']) ? $argv['user_id'] : 'NULL';
+                $user_id = $argv['user_id'];
                 $stmt->bindParam(':user_id',$user_id, \PDO::PARAM_STR, 16);
+        
             
-                $user_ip = isset($argv['user_ip']) ? $argv['user_ip'] : 'NULL';
+                $user_ip = $argv['user_ip'];
                 $stmt->bindParam(':user_ip',$user_ip, \PDO::PARAM_STR, 16);
+        
             
-                $session_id = isset($argv['session_id']) ? $argv['session_id'] : 'NULL';
+                $session_id = $argv['session_id'];
                 $stmt->bindParam(':session_id',$session_id, \PDO::PARAM_STR, 255);
-            $stmt->bindValue(':session_expires',isset($argv['session_expires']) ? $argv['session_expires'] : 'NULL', \PDO::PARAM_STR);
-            $stmt->bindValue(':session_data',isset($argv['session_data']) ? $argv['session_data'] : 'NULL', \PDO::PARAM_STR);
+        
+            $stmt->bindValue(':session_expires',$argv['session_expires'], \PDO::PARAM_STR);
+        
+            $stmt->bindValue(':session_data',$argv['session_data'], \PDO::PARAM_STR);
+        
             
                 $user_online_status = isset($argv['user_online_status']) ? $argv['user_online_status'] : '1';
                 $stmt->bindParam(':user_online_status',$user_online_status, \PDO::PARAM_NULL, 1);
+        
         return $stmt->execute();
     }
 
@@ -156,36 +142,21 @@ class sessions extends Entities implements iRest
         $set = '';
 
         if (isset($argv['user_id'])) {
-        $set .= 'user_id=UNHEX(:user_id),';
-        }if (isset($argv['user_id'])) {
-            $set .= 'user_id=:user_id,';
-        }if (isset($argv['user_ip'])) {
-        $set .= 'user_ip=UNHEX(:user_ip),';
-        }if (isset($argv['user_ip'])) {
-            $set .= 'user_ip=:user_ip,';
-        }if (isset($argv['user_id'])) {
-        $set .= 'user_id=UNHEX(:user_id),';
-        }if (isset($argv['user_ip'])) {
-        $set .= 'user_ip=UNHEX(:user_ip),';
-        }if (isset($argv['session_id'])) {
+            $set .= 'user_id=UNHEX(:user_id),';
+        }
+        if (isset($argv['user_ip'])) {
+            $set .= 'user_ip=UNHEX(:user_ip),';
+        }
+        if (isset($argv['session_id'])) {
             $set .= 'session_id=:session_id,';
-        }if (isset($argv['user_id'])) {
-        $set .= 'user_id=UNHEX(:user_id),';
-        }if (isset($argv['user_ip'])) {
-        $set .= 'user_ip=UNHEX(:user_ip),';
-        }if (isset($argv['session_expires'])) {
+        }
+        if (isset($argv['session_expires'])) {
             $set .= 'session_expires=:session_expires,';
-        }if (isset($argv['user_id'])) {
-        $set .= 'user_id=UNHEX(:user_id),';
-        }if (isset($argv['user_ip'])) {
-        $set .= 'user_ip=UNHEX(:user_ip),';
-        }if (isset($argv['session_data'])) {
+        }
+        if (isset($argv['session_data'])) {
             $set .= 'session_data=:session_data,';
-        }if (isset($argv['user_id'])) {
-        $set .= 'user_id=UNHEX(:user_id),';
-        }if (isset($argv['user_ip'])) {
-        $set .= 'user_ip=UNHEX(:user_ip),';
-        }if (isset($argv['user_online_status'])) {
+        }
+        if (isset($argv['user_online_status'])) {
             $set .= 'user_online_status=:user_online_status,';
         }
 
@@ -200,17 +171,26 @@ class sessions extends Entities implements iRest
         $stmt = Database::database()->prepare($sql);
 
         if (isset($argv['user_id'])) {
-            $stmt->bindValue(':user_id', $argv['user_id'], \PDO::PARAM_STR);
-        }if (isset($argv['user_ip'])) {
-            $stmt->bindValue(':user_ip', $argv['user_ip'], \PDO::PARAM_STR);
-        }if (isset($argv['session_id'])) {
-            $stmt->bindValue(':session_id', $argv['session_id'], \PDO::PARAM_STR);
-        }if (isset($argv['session_expires'])) {
-            $stmt->bindValue(':session_expires', $argv['session_expires'], \PDO::PARAM_STR);
-        }if (isset($argv['session_data'])) {
-            $stmt->bindValue(':session_data', $argv['session_data'], \PDO::PARAM_STR);
-        }if (isset($argv['user_online_status'])) {
-            $stmt->bindValue(':user_online_status', $argv['user_online_status'], \PDO::PARAM_NULL);
+            $user_id = 'UNHEX('.$argv['user_id'].')';
+            $stmt->bindParam(':user_id', $user_id, \PDO::PARAM_STR, 16);
+        }
+        if (isset($argv['user_ip'])) {
+            $user_ip = 'UNHEX('.$argv['user_ip'].')';
+            $stmt->bindParam(':user_ip', $user_ip, \PDO::PARAM_STR, 16);
+        }
+        if (isset($argv['session_id'])) {
+            $session_id = $argv['session_id'];
+            $stmt->bindParam(':session_id',$session_id, \PDO::PARAM_STR, 255);
+        }
+        if (isset($argv['session_expires'])) {
+            $stmt->bindValue(':session_expires',$argv['session_expires'], \PDO::PARAM_STR);
+        }
+        if (isset($argv['session_data'])) {
+            $stmt->bindValue(':session_data',$argv['session_data'], \PDO::PARAM_STR);
+        }
+        if (isset($argv['user_online_status'])) {
+            $user_online_status = $argv['user_online_status'];
+            $stmt->bindParam(':user_online_status',$user_online_status, \PDO::PARAM_NULL, 1);
         }
 
         if (!$stmt->execute()){
@@ -224,7 +204,7 @@ class sessions extends Entities implements iRest
     }
 
     /**
-    * @param array $return
+    * @param array $remove
     * @param string|null $primary
     * @param array $argv
     * @return bool
@@ -251,20 +231,18 @@ class sessions extends Entities implements iRest
             $sql .= ' WHERE ';
             foreach ($argv as $column => $value) {
                 if (in_array($column, self::BINARY)) {
-
+                    $sql .= " $column =UNHEX(" . Database::database()->quote($value) . ') AND ';
+                } else {
+                    $sql .= " $column =" . Database::database()->quote($value) . ' AND ';
                 }
-                $sql .= " $column =" . Database::database()->quote($value) . ' AND ';
             }
             $sql = substr($sql, 0, strlen($sql)-4);
         } else if (!empty(self::PRIMARY)) {
-                $sql .= ' WHERE ' . self::PRIMARY . '=' . Database::database()->quote($primary);
-            
-                $sql .= ' WHERE ' . self::PRIMARY . '=UNHEX(' . Database::database()->quote($primary) . ')';
+            $sql .= ' WHERE ' . self::PRIMARY . '=' . Database::database()->quote($primary);
         }
 
         $remove = null;
 
         return self::execute($sql);
     }
-
 }

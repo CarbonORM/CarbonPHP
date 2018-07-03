@@ -4,7 +4,6 @@ namespace Table;
 
 use CarbonPHP\Database;
 use CarbonPHP\Entities;
-use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iRest;
 
 class {{TableName}} extends Entities implements iRest
@@ -97,7 +96,7 @@ class {{TableName}} extends Entities implements iRest
     public static function Post(array $argv)
     {
         $sql = 'INSERT INTO {{database}}.{{TableName}} ({{listed}}) VALUES ({{{implode}}})';
-        $stmt = self::database()->prepare($sql);
+        $stmt = Database::database()->prepare($sql);
         {{#explode}}{{^primary_binary}}
             {{^length}}$stmt->bindValue(':{{name}}',{{^default}}$argv['{{name}}']{{/default}}{{#default}}isset($argv['{{name}}']) ? $argv['{{name}}'] : {{default}}{{/default}}, \{{type}});{{/length}}
             {{#length}}

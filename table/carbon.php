@@ -4,7 +4,6 @@ namespace Table;
 
 use CarbonPHP\Database;
 use CarbonPHP\Entities;
-use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iRest;
 
 class carbon extends Entities implements iRest
@@ -12,13 +11,11 @@ class carbon extends Entities implements iRest
     const PRIMARY = "entity_pk";
 
     const COLUMNS = [
-            'entity_pk',
-            'entity_fk',
+    'entity_pk','entity_fk',
     ];
 
     const BINARY = [
-            'entity_pk',
-            'entity_fk',
+    'entity_pk','entity_fk',
     ];
 
     /**
@@ -43,22 +40,8 @@ class carbon extends Entities implements iRest
             $limit = ' LIMIT 100';
         }
 
-        $get = $where = [];
-        foreach ($argv as $column => $value) {
-            if (is_array($value) || !is_int($column) && in_array($column, self::COLUMNS)) {
-                if ($value !== '') {
-                    $where[$column] = $value;
-                } else {
-                    $get[] = $column;
-                }
-            } elseif (in_array($value, self::COLUMNS)) {
-                $get[] = $value;
-            }
-        }
-
-        if (empty($get)) {
-            $get = self::COLUMNS;
-        }
+        $get = isset($argv['select']) ? $argv['select'] : self::COLUMNS;
+        $where = isset($argv['where']) ? $argv['where'] : [];
 
         $sql = '';
         foreach($get as $key => $column){
@@ -112,13 +95,13 @@ class carbon extends Entities implements iRest
     */
     public static function Post(array $argv)
     {
-        $sql = 'INSERT INTO carbonphp.carbon (entity_pk, entity_fk) VALUES (:entity_pk, :entity_fk)';
+        $sql = 'INSERT INTO carbonphp.carbon (entity_pk, entity_fk) VALUES ( (UNHEX(REPLACE(UUID(),"-",""))), :entity_fk)';
         $stmt = Database::database()->prepare($sql);
-
-                    $stmt->bindValue(':entity_pk', '(UNHEX(REPLACE(UUID(),"-","")))');
-
-                $entity_fk = isset($argv['entity_fk']) ? $argv['entity_fk'] : 'NULL';
+        
+            
+                $entity_fk = $argv['entity_fk'];
                 $stmt->bindParam(':entity_fk',$entity_fk, \PDO::PARAM_STR, 16);
+        
         return $stmt->execute();
     }
 
@@ -143,11 +126,10 @@ class carbon extends Entities implements iRest
         $set = '';
 
         if (isset($argv['entity_pk'])) {
-        $set .= 'entity_pk=UNHEX(:entity_pk),';
-        }if (isset($argv['entity_fk'])) {
-        $set .= 'entity_fk=UNHEX(:entity_fk),';
-        }if (isset($argv['entity_fk'])) {
-            $set .= 'entity_fk=:entity_fk,';
+            $set .= 'entity_pk=UNHEX(:entity_pk),';
+        }
+        if (isset($argv['entity_fk'])) {
+            $set .= 'entity_fk=UNHEX(:entity_fk),';
         }
 
         if (empty($set)){
@@ -161,9 +143,12 @@ class carbon extends Entities implements iRest
         $stmt = Database::database()->prepare($sql);
 
         if (isset($argv['entity_pk'])) {
-            $stmt->bindValue(':entity_pk', $argv['entity_pk'], \PDO::PARAM_STR);
-        }if (isset($argv['entity_fk'])) {
-            $stmt->bindValue(':entity_fk', $argv['entity_fk'], \PDO::PARAM_STR);
+            $entity_pk = 'UNHEX('.$argv['entity_pk'].')';
+            $stmt->bindParam(':entity_pk', $entity_pk, \PDO::PARAM_STR, 16);
+        }
+        if (isset($argv['entity_fk'])) {
+            $entity_fk = 'UNHEX('.$argv['entity_fk'].')';
+            $stmt->bindParam(':entity_fk', $entity_fk, \PDO::PARAM_STR, 16);
         }
 
         if (!$stmt->execute()){
@@ -177,7 +162,7 @@ class carbon extends Entities implements iRest
     }
 
     /**
-    * @param array $return
+    * @param array $remove
     * @param string|null $primary
     * @param array $argv
     * @return bool
@@ -204,20 +189,18 @@ class carbon extends Entities implements iRest
             $sql .= ' WHERE ';
             foreach ($argv as $column => $value) {
                 if (in_array($column, self::BINARY)) {
-
+                    $sql .= " $column =UNHEX(" . Database::database()->quote($value) . ') AND ';
+                } else {
+                    $sql .= " $column =" . Database::database()->quote($value) . ' AND ';
                 }
-                $sql .= " $column =" . Database::database()->quote($value) . ' AND ';
             }
             $sql = substr($sql, 0, strlen($sql)-4);
         } else if (!empty(self::PRIMARY)) {
-                $sql .= ' WHERE ' . self::PRIMARY . '=' . Database::database()->quote($primary);
-
-                $sql .= ' WHERE ' . self::PRIMARY . '=UNHEX(' . Database::database()->quote($primary) . ')';
+            $sql .= ' WHERE ' . self::PRIMARY . '=UNHEX(' . Database::database()->quote($primary) . ')';
         }
 
         $remove = null;
 
         return self::execute($sql);
     }
-
 }

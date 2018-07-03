@@ -226,7 +226,7 @@ foreach ($matches as $insert) {// Create Table
                         break;
                     case 'binary':
                         $binary[] = $name;
-                        $rest[''][] = ['name' => $name];
+                        $rest['binary_list'][] = ['name' => $name];
                         $rest['explode'][$column]['binary'] = true;
                     case 'varchar':
                     default:
@@ -250,7 +250,7 @@ foreach ($matches as $insert) {// Create Table
             }
 
             if (isset($default)) {
-                $rest['explode'][$column]['default'] = $default === "'NULL'" ? "''" : $default;
+                $rest['explode'][$column]['default'] = $default === "'NULL'" ? null : $default;
             }
 
             $column++;
@@ -291,7 +291,7 @@ foreach ($matches as $insert) {// Create Table
 
     $implode = '';
     foreach ($rest['implode'] as &$value) {
-        if (in_array($value, $binary)) {
+        if (in_array($value, $binary) && isset($rest['primary']) && $rest['primary'] === $value) {
             $implode .= ', (UNHEX(REPLACE(UUID(),"-","")))';
         } else {
             $implode .= ', :' . $value;
