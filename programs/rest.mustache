@@ -68,9 +68,9 @@ class {{TableName}} extends Entities implements iRest
                 $sql .= ', ';
             }
             if (in_array($column, self::BINARY)) {
-                $sql = "HEX($column)";
+                $sql .= "HEX($column) as $column";
             } else {
-                $sql = $column;
+                $sql .= $column;
             }
         }
 
@@ -98,7 +98,7 @@ class {{TableName}} extends Entities implements iRest
                 $sql .= ' WHERE ' . $build_where($where);
             }
         } else if (!empty(self::PRIMARY)){
-            $sql .= ' WHERE ' . self::PRIMARY . '=' . $pdo->quote($primary);
+            {{#binary_primary}}$sql .= ' WHERE ' . self::PRIMARY . '=UNHEX(' . $pdo->quote($primary) . ')';{{/binary_primary}}{{^binary_primary}}$sql .= ' WHERE ' . self::PRIMARY . '=' . $pdo->quote($primary);{{/binary_primary}}
         }
 
         $sql .= $limit;

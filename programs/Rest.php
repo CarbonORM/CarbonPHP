@@ -187,6 +187,9 @@ foreach ($matches as $key => $insert) {// Create Table
             }
 
         }
+        else if ($query[0] === 'PRIMARY') {
+            $rest['primary'] = substr($query[2], 2, strlen($query[2]) - 5);
+        }
         else if ($query[0][0] === '`') {
 
             $rest['implode'][] = $name = trim($query[0], '`');            // Column Names
@@ -214,7 +217,6 @@ foreach ($matches as $key => $insert) {// Create Table
                     $length = null;
                 }
 
-                // I don't care about the character count
                 switch ($type) {
                     case 'tinyint':
                     case 'smallint':
@@ -222,7 +224,8 @@ foreach ($matches as $key => $insert) {// Create Table
                         $type = $PDO[2];
                         break;
                     case 'binary':
-                        $rest['binary'][$column]['name'] = $name;
+                        $rest['binary'][] = [ 'name' => $name ];
+                        $rest['explode'][$column]['binary'] = true;
                     case 'varchar':
                     default:
                         $type = $PDO[3];
@@ -237,10 +240,8 @@ foreach ($matches as $key => $insert) {// Create Table
                 }
             }
 
-            $rest['explode'][$column] = [
-                'name' => $name,
-                'type' => $type,
-            ];
+            $rest['explode'][$column]['name'] = $name;
+            $rest['explode'][$column]['type'] = $type;
 
             if (isset($length)) {
                 $rest['explode'][$column]['length'] = $length;
@@ -252,13 +253,26 @@ foreach ($matches as $key => $insert) {// Create Table
 
             $column++;
         }
-        else if ($query[0] === 'PRIMARY') {
-            $rest['primary'] = substr($query[2], 2, strlen($query[2]) - 5);
-        }
     }
     if ($skipTable) {                // We need to break from this table too if the table is not in ( -l -f )
         $skipTable = false;         // This is so we can stop analysing a full table
         continue;
+    }
+
+    if (!isset($rest['primary'])) {
+        print 'The table ' . $rest['TableName'] . ' does not have a primary key. Skipping...' . PHP_EOL;
+        continue;
+    }
+
+    foreach ($rest['explode'] as &$value) {
+        if ($value['name'] === $rest['primary']) {
+            $value['primary'] = true;
+
+            if (isset($value['binary'])) {
+                $value['primary_binary'] = true;
+                $rest['binary_primary'] = true;
+            }
+        }
     }
 
     $rest['update'] = '';
@@ -272,11 +286,17 @@ foreach ($matches as $key => $insert) {// Create Table
 
     $rest['implode'] = ':' . implode(", :", $rest['implode']);
 
-    file_put_contents(APP_ROOT . 'table/' . $rest['TableName'] . '.php', $mustache($rest));
+    $verbose and var_dump($rest);
+
+    file_put_contents(__DIR__ . '/../app/Tables/' . $rest['TableName'] . '.php', $mustache($rest));
 }
 
-unlink('mysqldump.sql');
 
 print "\tDone\n\n";
 
-exit(0);
+unlink('./mysqldump.sql');
+
+return 0;
+
+
+
