@@ -259,10 +259,10 @@ foreach ($matches as $key => $insert) {// Create Table
         continue;
     }
 
-    if (!isset($rest['primary'])) {
-        print 'The table ' . $rest['TableName'] . ' does not have a primary key. Skipping...' . PHP_EOL;
-        continue;
-    }
+//    if (!isset($rest['primary'])) {
+//        print 'The table ' . $rest['TableName'] . ' does not have a primary key. Skipping...' . PHP_EOL;
+//        continue;
+//    }
 
     foreach ($rest['explode'] as &$value) {
         if ($value['name'] === $rest['primary']) {
