@@ -170,7 +170,7 @@ abstract class Entities
      */
     protected static function new_entity($tag_id, $dependant = null)
     {
-        do {
+        do {        // TODO - log the tag
             try {
                 $stmt = \Table\carbon::Post([]);
             } catch (\PDOException $e) {

@@ -157,14 +157,14 @@ class CarbonPHP
          * error catcher gets resorted to when the error falls to the global scope. This should
          * probably be implemented in a way that uses the routing + an abstract function
          **/
-        /*
+
         Error\ErrorCatcher::$defaultLocation = REPORTS . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
         Error\ErrorCatcher::$fullReports = $PHP['ERROR']['STORE'] ?? false;
         Error\ErrorCatcher::$printToScreen = $PHP['ERROR']['SHOW'] ?? true;
         Error\ErrorCatcher::$storeReport = $PHP['ERROR']['FULL'] ?? true;
         Error\ErrorCatcher::$level = $PHP['ERROR']['LEVEL'] ?? ' E_ALL | E_STRICT';
         Error\ErrorCatcher::start();            // Catch application errors and alerts
-        */
+
 
         #################  DATABASE  ########################
         if ($PHP['DATABASE'] ?? false) {
