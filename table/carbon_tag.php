@@ -19,6 +19,8 @@ class carbon_tag extends Entities implements iRest
     ];
 
     const BINARY = [
+            'entity_id',
+            'user_id',
     ];
 
     /**
@@ -56,9 +58,23 @@ class carbon_tag extends Entities implements iRest
             }
         }
 
-        $get =  !empty($get) ? implode(", ", $get) : ' * ';
+        if (empty($get)) {
+            $get = self::COLUMNS;
+        }
 
-        $sql = 'SELECT ' .  $get . ' FROM carbonphp.carbon_tag';
+        $sql = '';
+        foreach($get as $key => $column){
+            if (!empty($sql)) {
+                $sql .= ', ';
+            }
+            if (in_array($column, self::BINARY)) {
+                $sql .= "HEX($column) as $column";
+            } else {
+                $sql .= $column;
+            }
+        }
+
+        $sql = 'SELECT ' .  $sql . ' FROM carbonphp.carbon_tag';
 
         $pdo = Database::database();
 
@@ -70,7 +86,11 @@ class carbon_tag extends Entities implements iRest
                         if (is_array($value)) {
                             $build_where($value, $join === 'AND' ? 'OR' : 'AND');
                         } else {
-                            $sql .= "($column = " . $pdo->quote($value) . ") $join ";
+                            if (in_array($column, self::BINARY)) {
+                                $sql .= "($column = UNHEX(" . $pdo->quote($value) . ")) $join ";
+                            } else {
+                                $sql .= "($column = " . $pdo->quote($value) . ") $join ";
+                            }
                         }
                     }
                     return substr($sql, 0, strlen($sql) - (strlen($join) + 1)) . ')';
@@ -98,10 +118,10 @@ class carbon_tag extends Entities implements iRest
         $stmt = Database::database()->prepare($sql);
             
                 $entity_id = isset($argv['entity_id']) ? $argv['entity_id'] : 'NULL';
-                $stmt->bindParam(':entity_id',$entity_id, \PDO::PARAM_STR, 225);
+                $stmt->bindParam(':entity_id',$entity_id, \PDO::PARAM_STR, 16);
             
                 $user_id = isset($argv['user_id']) ? $argv['user_id'] : 'NULL';
-                $stmt->bindParam(':user_id',$user_id, \PDO::PARAM_STR, 225);
+                $stmt->bindParam(':user_id',$user_id, \PDO::PARAM_STR, 16);
             
                 $tag_id = isset($argv['tag_id']) ? $argv['tag_id'] : 'NULL';
                 $stmt->bindParam(':tag_id',$tag_id, \PDO::PARAM_STR, 11);
@@ -132,11 +152,23 @@ class carbon_tag extends Entities implements iRest
         $set = '';
 
         if (isset($argv['entity_id'])) {
+        $set .= 'entity_id=UNHEX(:entity_id),';
+        }if (isset($argv['entity_id'])) {
             $set .= 'entity_id=:entity_id,';
         }if (isset($argv['user_id'])) {
+        $set .= 'user_id=UNHEX(:user_id),';
+        }if (isset($argv['user_id'])) {
             $set .= 'user_id=:user_id,';
+        }if (isset($argv['entity_id'])) {
+        $set .= 'entity_id=UNHEX(:entity_id),';
+        }if (isset($argv['user_id'])) {
+        $set .= 'user_id=UNHEX(:user_id),';
         }if (isset($argv['tag_id'])) {
             $set .= 'tag_id=:tag_id,';
+        }if (isset($argv['entity_id'])) {
+        $set .= 'entity_id=UNHEX(:entity_id),';
+        }if (isset($argv['user_id'])) {
+        $set .= 'user_id=UNHEX(:user_id),';
         }if (isset($argv['creation_date'])) {
             $set .= 'creation_date=:creation_date,';
         }
@@ -198,11 +230,16 @@ class carbon_tag extends Entities implements iRest
             }
             $sql .= ' WHERE ';
             foreach ($argv as $column => $value) {
+                if (in_array($column, self::BINARY)) {
+
+                }
                 $sql .= " $column =" . Database::database()->quote($value) . ' AND ';
             }
             $sql = substr($sql, 0, strlen($sql)-4);
         } else if (!empty(self::PRIMARY)) {
-            $sql .= ' WHERE ' . self::PRIMARY . '=' . Database::database()->quote($primary);
+                $sql .= ' WHERE ' . self::PRIMARY . '=' . Database::database()->quote($primary);
+            
+                $sql .= ' WHERE ' . self::PRIMARY . '=UNHEX(' . Database::database()->quote($primary) . ')';
         }
 
         $remove = null;

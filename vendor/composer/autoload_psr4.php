@@ -10,10 +10,10 @@ return array(
     'Webmozart\\Assert\\' => array($vendorDir . '/webmozart/assert/src'),
     'Table\\' => array($baseDir . '/table'),
     'Psr\\Log\\' => array($vendorDir . '/psr/log/Psr/Log'),
-    'Interfaces\\' => array($baseDir . '/interfaces'),
-    'Helpers\\' => array($baseDir . '/helpers'),
-    'Error\\' => array($baseDir . '/error'),
     'Doctrine\\Instantiator\\' => array($vendorDir . '/doctrine/instantiator/src/Doctrine/Instantiator'),
     'DeepCopy\\' => array($vendorDir . '/myclabs/deep-copy/src/DeepCopy'),
+    'CarbonPHP\\Interfaces\\' => array($baseDir . '/interfaces'),
+    'CarbonPHP\\Helpers\\' => array($baseDir . '/helpers'),
+    'CarbonPHP\\Error\\' => array($baseDir . '/error'),
     'CarbonPHP\\' => array($baseDir . '/'),
 );

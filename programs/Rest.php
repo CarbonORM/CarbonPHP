@@ -24,6 +24,7 @@ $usage = function () use ($argv) {
 \t       -s [?SCHEMA]                  - Its that table schema!!!! 
 \t       -u [?USER]                    - mysql username
 \t       -p [?PASSWORD]                - if ya got one
+\t       -r                            - specify that a primary key is required for generation
 \t       -l [?tableName(s),[...?,[]]]  - comma separated list of specific tables to capture  
 \t       -v                            - Verbose output 
 \t       -f [?file_of_Tables]          - file of table names separated by eol ("\n")
@@ -56,6 +57,7 @@ for ($i = 0; $i < $argc; $i++) {
             break;
         case '-r':
             $primary_required = true;
+            break;
         case '-u':
             $user = $argv[++$i];
             break;
@@ -162,13 +164,13 @@ $PDO = [                                            // I guess this is it ?
 
 $skipTable = false;
 
-foreach ($matches as $key => $insert) {// Create Table
+foreach ($matches as $insert) {// Create Table
     $insert = explode(PHP_EOL, $insert);
     $column = 0;
+    $binary = [];
     $rest = [
         'database' => $schema
     ];
-
 
     // Every line in table insert
     foreach ($insert as $query) {                                                  // Create Columns
@@ -213,7 +215,7 @@ foreach ($matches as $key => $insert) {// Create Table
                     $type = $argv[0];
                     $length = trim($argv[1], ')');
                 } else {
-                    $length = null;
+                    unset($length);
                 }
 
                 switch ($type) {
@@ -223,7 +225,8 @@ foreach ($matches as $key => $insert) {// Create Table
                         $type = $PDO[2];
                         break;
                     case 'binary':
-                        $rest['binary'][] = ['name' => $name];
+                        $binary[] = $name;
+                        $rest[''][] = ['name' => $name];
                         $rest['explode'][$column]['binary'] = true;
                     case 'varchar':
                     default:
@@ -247,7 +250,7 @@ foreach ($matches as $key => $insert) {// Create Table
             }
 
             if (isset($default)) {
-                $rest['explode'][$column]['default'] = $default;
+                $rest['explode'][$column]['default'] = $default === "'NULL'" ? "''" : $default;
             }
 
             $column++;
@@ -259,9 +262,9 @@ foreach ($matches as $key => $insert) {// Create Table
     }
 
     if (!isset($rest['primary'])) {
-        print 'The table ' . $rest['TableName'] . ' does not have a primary key' . PHP_EOL;
+        $verbose and print "The table {$rest['TableName']} does not have a primary key.\n";
         if ($primary_required) {
-            print 'Skipping...' . PHP_EOL;
+            print " \tSkipping...\n ";
             continue;
         }
     } else {
@@ -286,15 +289,26 @@ foreach ($matches as $key => $insert) {// Create Table
 
     $rest['listed'] = implode(", ", $rest['implode']);
 
-    $rest['implode'] = ':' . implode(", :", $rest['implode']);
+    $implode = '';
+    foreach ($rest['implode'] as &$value) {
+        if (in_array($value, $binary)) {
+            $implode .= ', (UNHEX(REPLACE(UUID(),"-","")))';
+        } else {
+            $implode .= ', :' . $value;
+        }
+    }
+    $rest['implode'] = substr($implode, 1);
+
+    $verbose and var_dump($rest);
 
     file_put_contents(APP_ROOT . 'table/' . $rest['TableName'] . '.php', $mustache($rest));
 }
 
-
 print "\tDone\n\n";
 
 unlink('./mysqldump.sql');
+
+//ncurses_end();
 
 return 0;
 

@@ -402,6 +402,8 @@ class CarbonPHP
             case 'test':
                 print `phpunit --bootstrap vendor/autoload.php --testdox  tests`;
                 break;
+            case 'mysqldump':
+                return `"C:\tools\mysql\current\bin\mysqldump.exe"`;
             case 'rest':
                 /**
                  * This is a small program inspired by my boss Scott.

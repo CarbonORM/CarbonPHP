@@ -12,15 +12,11 @@ class {{TableName}} extends Entities implements iRest
     const PRIMARY = "{{primary}}";
 
     const COLUMNS = [
-           {{#explode}}
-            '{{name}}',
-        {{/explode}}
+    {{#explode}}'{{name}}',{{/explode}}
     ];
 
     const BINARY = [
-        {{#binary}}
-            '{{name}}',
-        {{/binary}}
+    {{#binary_list}}'{{name}}',{{/binary_list}}
     ];
 
     /**
@@ -45,22 +41,8 @@ class {{TableName}} extends Entities implements iRest
             $limit = ' LIMIT 100';
         }
 
-        $get = $where = [];
-        foreach ($argv as $column => $value) {
-            if (is_array($value) || !is_int($column) && in_array($column, self::COLUMNS)) {
-                if ($value !== '') {
-                    $where[$column] = $value;
-                } else {
-                    $get[] = $column;
-                }
-            } elseif (in_array($value, self::COLUMNS)) {
-                $get[] = $value;
-            }
-        }
-
-        if (empty($get)) {
-            $get = self::COLUMNS;
-        }
+        $get = isset($argv['select']) ? $argv['select'] : self::COLUMNS;
+        $where = isset($argv['where']) ? $argv['where'] : [];
 
         $sql = '';
         foreach($get as $key => $column){
@@ -114,20 +96,15 @@ class {{TableName}} extends Entities implements iRest
     */
     public static function Post(array $argv)
     {
-        $sql = 'INSERT INTO {{database}}.{{TableName}} ({{listed}}) VALUES ({{implode}})';
-        $stmt = Database::database()->prepare($sql);
-        {{#explode}}
-            {{^length}}$stmt->bindValue(':{{name}}',{{^default}}$argv['{{name}}']){{/default}}{{#default}}isset($argv['{{name}}']) ? $argv['{{name}}'] : {{default}}{{/default}}, \{{type}});{{/length}}
+        $sql = 'INSERT INTO {{database}}.{{TableName}} ({{listed}}) VALUES ({{{implode}}})';
+        $stmt = self::database()->prepare($sql);
+        {{#explode}}{{^primary_binary}}
+            {{^length}}$stmt->bindValue(':{{name}}',{{^default}}$argv['{{name}}']{{/default}}{{#default}}isset($argv['{{name}}']) ? $argv['{{name}}'] : {{default}}{{/default}}, \{{type}});{{/length}}
             {{#length}}
-                {{#primary_binary}}
-                    $stmt->bindValue(':{{name}}', '(UNHEX(REPLACE(UUID(),"-","")))');
-                {{/primary_binary}}
-                {{^primary_binary}}
                 ${{name}} = {{^default}}$argv['{{name}}']{{/default}}{{#default}}isset($argv['{{name}}']) ? $argv['{{name}}'] : {{default}}{{/default}};
                 $stmt->bindParam(':{{name}}',${{name}}, \{{type}}, {{length}});
-                {{/primary_binary}}
-                {{/length}}
-        {{/explode}}
+            {{/length}}
+        {{/primary_binary}}{{/explode}}
         return $stmt->execute();
     }
 
@@ -151,11 +128,11 @@ class {{TableName}} extends Entities implements iRest
 
         $set = '';
 
-        {{#explode}}{{#binary}}if (isset($argv['{{name}}'])) {
-        $set .= '{{name}}=UNHEX(:{{name}}),';
-        }{{/binary}}{{^primary_binary}}if (isset($argv['{{name}}'])) {
-            $set .= '{{name}}=:{{name}},';
-        }{{/primary_binary}}{{/explode}}
+        {{#explode}}
+        if (isset($argv['{{name}}'])) {
+            $set .= '{{name}}={{#binary}}UNHEX(:{{name}}){{/binary}}{{^binary}}:{{name}}{{/binary}},';
+        }
+        {{/explode}}
 
         if (empty($set)){
             return false;
@@ -167,9 +144,23 @@ class {{TableName}} extends Entities implements iRest
 
         $stmt = Database::database()->prepare($sql);
 
-        {{#explode}}if (isset($argv['{{name}}'])) {
-            $stmt->bindValue(':{{name}}', $argv['{{name}}'], \{{type}});
-        }{{/explode}}
+    {{#explode}}
+        if (isset($argv['{{name}}'])) {
+    {{^length}}
+            $stmt->bindValue(':{{name}}',$argv['{{name}}'], \{{type}});
+    {{/length}}
+    {{#length}}
+        {{#binary}}
+            ${{name}} = 'UNHEX('.$argv['{{name}}'].')';
+            $stmt->bindParam(':{{name}}', ${{name}}, \{{type}}, {{length}});
+        {{/binary}}
+        {{^binary}}
+            ${{name}} = $argv['{{name}}'];
+            $stmt->bindParam(':{{name}}',${{name}}, \{{type}}, {{length}});
+        {{/binary}}
+    {{/length}}
+        }
+    {{/explode}}
 
         if (!$stmt->execute()){
             return false;
@@ -182,7 +173,7 @@ class {{TableName}} extends Entities implements iRest
     }
 
     /**
-    * @param array $return
+    * @param array $remove
     * @param string|null $primary
     * @param array $argv
     * @return bool
@@ -209,22 +200,18 @@ class {{TableName}} extends Entities implements iRest
             $sql .= ' WHERE ';
             foreach ($argv as $column => $value) {
                 if (in_array($column, self::BINARY)) {
-
+                    $sql .= " $column =UNHEX(" . Database::database()->quote($value) . ') AND ';
+                } else {
+                    $sql .= " $column =" . Database::database()->quote($value) . ' AND ';
                 }
-                $sql .= " $column =" . Database::database()->quote($value) . ' AND ';
             }
             $sql = substr($sql, 0, strlen($sql)-4);
         } else if (!empty(self::PRIMARY)) {
-            {{^primary_binary}}
-                $sql .= ' WHERE ' . self::PRIMARY . '=' . Database::database()->quote($primary);
-            {{/primary_binary}}{{^primary_binary}}
-                $sql .= ' WHERE ' . self::PRIMARY . '=UNHEX(' . Database::database()->quote($primary) . ')';
-            {{/primary_binary}}
+            {{^binary_primary}}$sql .= ' WHERE ' . self::PRIMARY . '=' . Database::database()->quote($primary);{{/binary_primary}}{{#binary_primary}}$sql .= ' WHERE ' . self::PRIMARY . '=UNHEX(' . Database::database()->quote($primary) . ')';{{/binary_primary}}
         }
 
         $remove = null;
 
         return self::execute($sql);
     }
-
 }

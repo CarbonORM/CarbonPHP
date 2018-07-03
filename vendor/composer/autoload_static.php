@@ -27,18 +27,6 @@ class ComposerStaticInitf7bcaf88814232fa6202e75e65efaeed
         array (
             'Psr\\Log\\' => 8,
         ),
-        'I' => 
-        array (
-            'Interfaces\\' => 11,
-        ),
-        'H' => 
-        array (
-            'Helpers\\' => 8,
-        ),
-        'E' => 
-        array (
-            'Error\\' => 6,
-        ),
         'D' => 
         array (
             'Doctrine\\Instantiator\\' => 22,
@@ -46,6 +34,9 @@ class ComposerStaticInitf7bcaf88814232fa6202e75e65efaeed
         ),
         'C' => 
         array (
+            'CarbonPHP\\Interfaces\\' => 21,
+            'CarbonPHP\\Helpers\\' => 18,
+            'CarbonPHP\\Error\\' => 16,
             'CarbonPHP\\' => 10,
         ),
     );
@@ -69,18 +60,6 @@ class ComposerStaticInitf7bcaf88814232fa6202e75e65efaeed
         array (
             0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
         ),
-        'Interfaces\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/interfaces',
-        ),
-        'Helpers\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/helpers',
-        ),
-        'Error\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/error',
-        ),
         'Doctrine\\Instantiator\\' => 
         array (
             0 => __DIR__ . '/..' . '/doctrine/instantiator/src/Doctrine/Instantiator',
@@ -88,6 +67,18 @@ class ComposerStaticInitf7bcaf88814232fa6202e75e65efaeed
         'DeepCopy\\' => 
         array (
             0 => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy',
+        ),
+        'CarbonPHP\\Interfaces\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/interfaces',
+        ),
+        'CarbonPHP\\Helpers\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/helpers',
+        ),
+        'CarbonPHP\\Error\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/error',
         ),
         'CarbonPHP\\' => 
         array (
