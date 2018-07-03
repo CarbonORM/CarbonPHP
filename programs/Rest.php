@@ -8,7 +8,7 @@ $argc = count($argv);
 print PHP_EOL . "\tBuilding Rest Api!" . PHP_EOL;
 
 if (!is_dir(APP_ROOT . 'table')) {
-    mkdir(APP_ROOT.'table');
+    mkdir(APP_ROOT . 'table');
 }
 
 $usage = function () use ($argv) {
@@ -38,8 +38,7 @@ $argc < 3 and $usage();    // quick if stmt
 
 $pass = '';
 $onlyThese = null;
-$verbose = false;
-
+$verbose = $primary_required = false;
 
 for ($i = 0; $i < $argc; $i++) {
     switch ($argv[$i]) {
@@ -55,6 +54,8 @@ for ($i = 0; $i < $argc; $i++) {
         case '-s':
             $schema = $argv[++$i];
             break;
+        case '-r':
+            $primary_required = true;
         case '-u':
             $user = $argv[++$i];
             break;
@@ -186,11 +187,9 @@ foreach ($matches as $key => $insert) {// Create Table
                 var_dump($insert);
             }
 
-        }
-        else if ($query[0] === 'PRIMARY') {
+        } else if ($query[0] === 'PRIMARY') {
             $rest['primary'] = substr($query[2], 2, strlen($query[2]) - 5);
-        }
-        else if ($query[0][0] === '`') {
+        } else if ($query[0][0] === '`') {
 
             $rest['implode'][] = $name = trim($query[0], '`');            // Column Names
 
@@ -224,7 +223,7 @@ foreach ($matches as $key => $insert) {// Create Table
                         $type = $PDO[2];
                         break;
                     case 'binary':
-                        $rest['binary'][] = [ 'name' => $name ];
+                        $rest['binary'][] = ['name' => $name];
                         $rest['explode'][$column]['binary'] = true;
                     case 'varchar':
                     default:
@@ -235,7 +234,7 @@ foreach ($matches as $key => $insert) {// Create Table
             $query_default = count($query) - 2;
             if (isset($query[$query_default]) && $query[$query_default] === 'DEFAULT') {
                 $default = rtrim($query[++$query_default], ',');
-                if ($default[0] !== '\''){
+                if ($default[0] !== '\'') {
                     $default = "'$default'";
                 }
             }
@@ -259,10 +258,12 @@ foreach ($matches as $key => $insert) {// Create Table
         continue;
     }
 
-//    if (!isset($rest['primary'])) {
-//        print 'The table ' . $rest['TableName'] . ' does not have a primary key. Skipping...' . PHP_EOL;
-//        continue;
-//    }
+    if (!isset($rest['primary'])) {
+        print 'The table ' . $rest['TableName'] . ' does not have a primary key. Skipping...' . PHP_EOL;
+        if ($primary_required) {
+            continue;
+        }
+    }
 
     foreach ($rest['explode'] as &$value) {
         if ($value['name'] === $rest['primary']) {
