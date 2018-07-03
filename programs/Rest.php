@@ -167,6 +167,8 @@ foreach ($matches as $key => $insert) {// Create Table
     $rest = [
         'database' => $schema
     ];
+
+
     // Every line in table insert
     foreach ($insert as $query) {                                                  // Create Columns
         $query = explode(' ', trim($query));
@@ -178,8 +180,14 @@ foreach ($matches as $key => $insert) {// Create Table
                 $skipTable = true;                                                      // and the parent loop
                 continue;
             }
-            $verbose and print 'Generating ' . $rest['TableName'] . PHP_EOL;
-        } else if ($query[0][0] === '`') {
+
+            if ($verbose) {
+                print 'Generating ' . $rest['TableName'] . PHP_EOL;
+                var_dump($insert);
+            }
+
+        }
+        else if ($query[0][0] === '`') {
 
             $rest['implode'][] = $name = trim($query[0], '`');            // Column Names
 

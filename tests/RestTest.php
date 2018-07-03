@@ -26,7 +26,7 @@ final class RestTest extends TestCase
         define('TEST', true);
 
         $_SERVER = [
-            "DOCUMENT_ROOT" => "C:\Users\rmiles\Documents\GitHub\Stats.Coach",
+            "DOCUMENT_ROOT" => "C:\Users\\rmiles\Documents\GitHub\CarbonPHP",
             "REMOTE_ADDR" => "::1",
             "REMOTE_PORT" => "53950",
             "SERVER_SOFTWARE" => "PHP 7.2.3 Development Server",
@@ -54,8 +54,6 @@ final class RestTest extends TestCase
         ];
 
         include_once __DIR__ . './../index.php';
-
-
     }
 
     public function testRestApiCanPost(): void

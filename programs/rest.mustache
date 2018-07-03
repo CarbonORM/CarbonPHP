@@ -58,9 +58,23 @@ class {{TableName}} extends Entities implements iRest
             }
         }
 
-        $get =  !empty($get) ? implode(", ", $get) : ' * ';
+        if (empty($get)) {
+            $get = self::COLUMNS;
+        }
 
-        $sql = 'SELECT ' .  $get . ' FROM {{database}}.{{TableName}}';
+        $sql = '';
+        foreach($get as $key => $column){
+            if (!empty($sql)) {
+                $sql .= ', ';
+            }
+            if (in_array($column, self::BINARY)) {
+                $sql = "HEX($column)";
+            } else {
+                $sql = $column;
+            }
+        }
+
+        $sql = 'SELECT ' .  $sql . ' FROM {{database}}.{{TableName}}';
 
         $pdo = Database::database();
 
@@ -72,7 +86,11 @@ class {{TableName}} extends Entities implements iRest
                         if (is_array($value)) {
                             $build_where($value, $join === 'AND' ? 'OR' : 'AND');
                         } else {
-                            $sql .= "($column = " . $pdo->quote($value) . ") $join ";
+                            if (in_array($column, self::BINARY)) {
+                                $sql .= "($column = UNHEX(" . $pdo->quote($value) . ")) $join ";
+                            } else {
+                                $sql .= "($column = " . $pdo->quote($value) . ") $join ";
+                            }
                         }
                     }
                     return substr($sql, 0, strlen($sql) - (strlen($join) + 1)) . ')';
@@ -101,8 +119,14 @@ class {{TableName}} extends Entities implements iRest
         {{#explode}}
             {{^length}}$stmt->bindValue(':{{name}}',{{^default}}$argv['{{name}}']){{/default}}{{#default}}isset($argv['{{name}}']) ? $argv['{{name}}'] : {{default}}{{/default}}, \{{type}});{{/length}}
             {{#length}}
+                {{#primary_binary}}
+                    $stmt->bindValue(':{{name}}', '(UNHEX(REPLACE(UUID(),"-","")))');
+                {{/primary_binary}}
+                {{^primary_binary}}
                 ${{name}} = {{^default}}$argv['{{name}}']{{/default}}{{#default}}isset($argv['{{name}}']) ? $argv['{{name}}'] : {{default}}{{/default}};
-                $stmt->bindParam(':{{name}}',${{name}}, \{{type}}, {{length}});{{/length}}
+                $stmt->bindParam(':{{name}}',${{name}}, \{{type}}, {{length}});
+                {{/primary_binary}}
+                {{/length}}
         {{/explode}}
         return $stmt->execute();
     }
@@ -127,9 +151,11 @@ class {{TableName}} extends Entities implements iRest
 
         $set = '';
 
-        {{#explode}}if (isset($argv['{{name}}'])) {
+        {{#explode}}{{#binary}}if (isset($argv['{{name}}'])) {
+        $set .= '{{name}}=UNHEX(:{{name}}),';
+        }{{/binary}}{{^primary_binary}}if (isset($argv['{{name}}'])) {
             $set .= '{{name}}=:{{name}},';
-        }{{/explode}}
+        }{{/primary_binary}}{{/explode}}
 
         if (empty($set)){
             return false;
@@ -182,11 +208,18 @@ class {{TableName}} extends Entities implements iRest
             }
             $sql .= ' WHERE ';
             foreach ($argv as $column => $value) {
+                if (in_array($column, self::BINARY)) {
+
+                }
                 $sql .= " $column =" . Database::database()->quote($value) . ' AND ';
             }
             $sql = substr($sql, 0, strlen($sql)-4);
         } else if (!empty(self::PRIMARY)) {
-            $sql .= ' WHERE ' . self::PRIMARY . '=' . Database::database()->quote($primary);
+            {{^primary_binary}}
+                $sql .= ' WHERE ' . self::PRIMARY . '=' . Database::database()->quote($primary);
+            {{/primary_binary}}{{^primary_binary}}
+                $sql .= ' WHERE ' . self::PRIMARY . '=UNHEX(' . Database::database()->quote($primary) . ')';
+            {{/primary_binary}}
         }
 
         $remove = null;
