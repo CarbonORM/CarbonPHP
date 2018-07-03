@@ -21,6 +21,7 @@ $usage = function () use ($argv) {
 \t $argv[0] 
 \t       -help                         - this dialogue 
 \t       -h [?HOST]                    - IP address
+\t       -d                            - delete dump
 \t       -s [?SCHEMA]                  - Its that table schema!!!! 
 \t       -u [?USER]                    - mysql username
 \t       -p [?PASSWORD]                - if ya got one
@@ -39,7 +40,7 @@ $argc < 3 and $usage();    // quick if stmt
 
 $pass = '';
 $onlyThese = null;
-$verbose = $primary_required = false;
+$verbose = $primary_required = $delete_dump = false;
 
 for ($i = 0; $i < $argc; $i++) {
     switch ($argv[$i]) {
@@ -49,6 +50,9 @@ for ($i = 0; $i < $argc; $i++) {
         case '-help':
             $usage();
             break;          // unneeded but my editor complains
+        case '-d':
+            $delete_dump = true;
+            break;
         case '-h':
             $host = $argv[++$i];
             break;
@@ -117,21 +121,21 @@ if (empty($dump)) {
     file_put_contents('mysqldump.cnf', implode(PHP_EOL, $cnf));
 
 
-    $runMe = (empty($executable) ? 'mysqldump' : "\"$executable\"") . ' --defaults-extra-file="./mysqldump.cnf" --no-data ' . $schema . ' > ./mysqldump.sql';
+    $runMe = (empty($executable) ? 'mysqldump' : "\"$executable\"") . ' --defaults-extra-file="./mysqldump.cnf" --no-data ' . $schema . ' > ./config/mysqldump.sql';
     // BASH QUERY
     $verbose and print $runMe . PHP_EOL;
 
     `$runMe`;
 
-    `rm mysqldump.cnf`;
+    unlink('mysqldump.cnf');
 
 
-    if (!file_exists('./mysqldump.sql')) {
+    if (!file_exists(APP_ROOT . '/config/mysqldump.sql')) {
         print 'Could not load mysql dump file!' . PHP_EOL;
         return;
     }
 
-    if (empty($dump = file_get_contents('mysqldump.sql'))) {
+    if (empty($dump = file_get_contents(APP_ROOT . '/config/mysqldump.sql'))) {
         print "Build Failed";
         exit(1);
     }
@@ -165,6 +169,9 @@ $PDO = [                                            // I guess this is it ?
 $skipTable = false;
 
 foreach ($matches as $insert) {// Create Table
+    if (isset($foreign_key)) {
+        unset($foreign_key);
+    }
     $insert = explode(PHP_EOL, $insert);
     $column = 0;
     $binary = [];
@@ -181,7 +188,7 @@ foreach ($matches as $insert) {// Create Table
             if (!empty($onlyThese) && !in_array($rest['TableName'], $onlyThese)) {      // If this condition = true
                 $verbose and print 'Skipping ' . $rest['TableName'] . PHP_EOL;                       // Break from this loop
                 $skipTable = true;                                                      // and the parent loop
-                continue;
+                break;
             }
 
             if ($verbose) {
@@ -192,9 +199,10 @@ foreach ($matches as $insert) {// Create Table
         } else if ($query[0] === 'PRIMARY') {
             $rest['primary'] = substr($query[2], 2, strlen($query[2]) - 5);
 
-        } else if ($query[0] === 'CONSTRAINT') {
-            if ($query[6] === '`carbon`') {
-                $foreign_key = trim($query[4], "()`");
+        } else if ($query[0] === 'CONSTRAINT' && $query[6] === '`carbon`' && isset($rest['primary'])) {
+            if ($rest['primary'] === $fk = trim($query[4], "()`")) {
+                $foreign_key = $fk;
+                $rest['carbon_table'] = true;
             }
 
         } else if ($query[0][0] === '`') {
@@ -276,9 +284,6 @@ foreach ($matches as $insert) {// Create Table
     } else {
         foreach ($rest['explode'] as &$value) {
             if ($value['name'] === $rest['primary']) {
-                if (isset($forgein_key) && $value['name'] === $foreign_key) {
-                    $rest['carbon_table'] = $value['foreign_key'] = true;
-                }
                 $value['primary'] = true;
 
                 if (isset($value['binary'])) {
@@ -319,7 +324,7 @@ foreach ($matches as $insert) {// Create Table
 
 print "\tDone\n\n";
 
-unlink('./mysqldump.sql');
+$delete_dump and unlink('./config/mysqldump.sql');
 
 //ncurses_end();
 
