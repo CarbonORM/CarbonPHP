@@ -98,7 +98,7 @@ class {{TableName}} extends Entities implements iRest
         $sql = 'INSERT INTO {{database}}.{{TableName}} ({{listed}}) VALUES ({{{implode}}})';
         $stmt = Database::database()->prepare($sql);
 {{#explode}}{{#primary_binary}}
-    ${{name}} = $id = self::new_entity('carbon_users');
+    ${{name}} = $id = self::new_entity('{{TableName}}');
     $stmt->bindParam(':{{name}}',${{name}}, \{{type}}, {{length}});
 {{/primary_binary}}
             {{^primary_binary}}

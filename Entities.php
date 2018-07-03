@@ -170,19 +170,13 @@ abstract class Entities
      */
     protected static function new_entity($tag_id, $dependant = null)
     {
-        if (\defined($tag_id)) {
-            $tag_id = \constant($tag_id);
-        }
-        $db = Database::database();
         do {
             try {
-                $stmt = $db->prepare('INSERT INTO carbon (entity_pk, entity_fk) VALUE (?,?)');
-                $stmt->execute([$stmt = self::genRandomHex(), $dependant]);
+                $stmt = \Table\carbon::Post([]);
             } catch (\PDOException $e) {
                 $stmt = false;
             }
         } while (!$stmt);
-        $db->prepare('INSERT INTO carbon_tag (entity_id, user_id, tag_id, creation_date) VALUES (?,?,?,?)')->execute([$stmt, (!empty($_SESSION['id']) ? $_SESSION['id'] : $stmt), $tag_id, time()]);
         self::$entityTransactionKeys[] = $stmt;
         return $stmt;
     }
