@@ -20,9 +20,9 @@ try {
         $sql = <<<END
 CREATE TABLE carbon
 (
-	entity_pk VARCHAR(225) NOT NULL
+	entity_pk BINARY(16) NOT NULL
 		PRIMARY KEY,
-	entity_fk VARCHAR(225) NULL,
+	entity_fk BINARY(16) NULL,
 	CONSTRAINT entity_entity_pk_uindex
 		UNIQUE (entity_pk),
 	CONSTRAINT entity_entity_entity_pk_fk
@@ -67,8 +67,8 @@ END;
         
 CREATE TABLE sessions
 (
-	user_id VARCHAR(225) NOT NULL,
-	user_ip VARCHAR(255) NULL,
+	user_id BINARY(16) NOT NULL,
+	user_ip BINARY(16) NULL,
 	session_id VARCHAR(255) NOT NULL
 		PRIMARY KEY,
 	session_expires DATETIME NOT NULL,
@@ -121,8 +121,8 @@ END;
         $sql = <<<END
 CREATE TABLE carbon_tag
 (
-	entity_id VARCHAR(225) NOT NULL,
-	user_id VARCHAR(225) NULL,
+	entity_id BINARY(16) NOT NULL,
+	user_id BINARY(16) NULL,
 	tag_id INT NOT NULL,
 	creation_date INT(20) NOT NULL,
 	CONSTRAINT entity_tag_entity_entity_pk_fk
