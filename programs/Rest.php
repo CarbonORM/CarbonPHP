@@ -259,19 +259,20 @@ foreach ($matches as $key => $insert) {// Create Table
     }
 
     if (!isset($rest['primary'])) {
-        print 'The table ' . $rest['TableName'] . ' does not have a primary key. Skipping...' . PHP_EOL;
+        print 'The table ' . $rest['TableName'] . ' does not have a primary key' . PHP_EOL;
         if ($primary_required) {
+            print 'Skipping...' . PHP_EOL;
             continue;
         }
-    }
+    } else {
+        foreach ($rest['explode'] as &$value) {
+            if ($value['name'] === $rest['primary']) {
+                $value['primary'] = true;
 
-    foreach ($rest['explode'] as &$value) {
-        if ($value['name'] === $rest['primary']) {
-            $value['primary'] = true;
-
-            if (isset($value['binary'])) {
-                $value['primary_binary'] = true;
-                $rest['binary_primary'] = true;
+                if (isset($value['binary'])) {
+                    $value['primary_binary'] = true;
+                    $rest['binary_primary'] = true;
+                }
             }
         }
     }
