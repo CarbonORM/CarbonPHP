@@ -48,11 +48,16 @@ class ErrorCatcher
         ini_set('track_errors', 1);
         error_reporting(self::$level);
         $closure = function (...$argv) {
+
             self::generateLog($argv);
-            if (APP_LOCAL) {
-                sortDump('An error has occurred');
-            }
-            if (!SOCKET && \function_exists('startApplication')) {     // TODO - do we really want to reset?
+
+
+
+
+            if (!SOCKET && !APP_LOCAL && \function_exists('startApplication')) {     // TODO - do we really want to reset?
+
+                print "HOLY SHIT WHAT THE ACTUAL FUCK";
+                exit(1);
                 startApplication(true);
             }
             exit(1);
@@ -87,6 +92,9 @@ class ErrorCatcher
         }
 
         if (self::$storeReport) {       // TODO - store to file?
+
+
+
             $sql = 'INSERT INTO carbon_reports (date, log_level, report, call_trace) VALUES (?, ?, ?, ?)';
             $sql = Database::database()->prepare($sql);
             if (!$sql->execute([date('Y-m-d H:i:s'), $level, $output, $trace]))

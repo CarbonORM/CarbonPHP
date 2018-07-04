@@ -31,6 +31,7 @@
       "CarbonPHP\\Error\\": "error/",
       "CarbonPHP\\Helpers\\": "helpers/",
       "CarbonPHP\\Interfaces\\": "interfaces/",
+      "CarbonPHP\\Table\\": "table/",
       "Table\\": "table/"
     }
   },

@@ -34,6 +34,7 @@ class ComposerStaticInitf7bcaf88814232fa6202e75e65efaeed
         ),
         'C' => 
         array (
+            'CarbonPHP\\Table\\' => 16,
             'CarbonPHP\\Interfaces\\' => 21,
             'CarbonPHP\\Helpers\\' => 18,
             'CarbonPHP\\Error\\' => 16,
@@ -67,6 +68,10 @@ class ComposerStaticInitf7bcaf88814232fa6202e75e65efaeed
         'DeepCopy\\' => 
         array (
             0 => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy',
+        ),
+        'CarbonPHP\\Table\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/table',
         ),
         'CarbonPHP\\Interfaces\\' => 
         array (

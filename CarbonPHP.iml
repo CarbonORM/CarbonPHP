@@ -3,7 +3,7 @@
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/table" isTestSource="false" packagePrefix="Table\" />
+      <sourceFolder url="file://$MODULE_DIR$/table" isTestSource="false" packagePrefix="CarbonPHP\Table\" />
       <sourceFolder url="file://$MODULE_DIR$/error" isTestSource="false" packagePrefix="CarbonPHP\Error\" />
       <sourceFolder url="file://$MODULE_DIR$/interfaces" isTestSource="false" packagePrefix="CarbonPHP\Interfaces\" />
       <sourceFolder url="file://$MODULE_DIR$/helpers" isTestSource="false" packagePrefix="CarbonPHP\Helpers\" />
