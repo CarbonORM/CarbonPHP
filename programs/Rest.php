@@ -176,7 +176,8 @@ foreach ($matches as $insert) {// Create Table
     $column = 0;
     $binary = [];
     $rest = [
-        'database' => $schema
+        'database' => $schema,
+        'carbon_table' => false
     ];
 
     // Every line in table insert
@@ -202,7 +203,7 @@ foreach ($matches as $insert) {// Create Table
         } else if ($query[0] === 'CONSTRAINT' && $query[6] === '`carbon`' && isset($rest['primary'])) {
             if ($rest['primary'] === $fk = trim($query[4], "()`")) {
                 $foreign_key = $fk;
-                $rest['carbon_table'] = true;
+                $rest['carbon_table'] = $rest['TableName'] !== 'carbon';
             }
 
         } else if ($query[0][0] === '`') {
