@@ -97,15 +97,13 @@ class carbon_tags extends Entities implements iRest
     {
         $sql = 'INSERT INTO carbonphp.carbon_tags (tag_id, tag_description, tag_name) VALUES ( :tag_id, :tag_description, :tag_name)';
         $stmt = Database::database()->prepare($sql);
-        
             
-                $tag_id = $argv['tag_id'];
+                $tag_id = isset($argv['tag_id']) ? $argv['tag_id'] : null;
                 $stmt->bindParam(':tag_id',$tag_id, \PDO::PARAM_STR, 11);
+                    $stmt->bindValue(':tag_description',isset($argv['tag_description']) ? $argv['tag_description'] : null, \PDO::PARAM_STR);
+                    $stmt->bindValue(':tag_name',isset($argv['tag_name']) ? $argv['tag_name'] : null, \PDO::PARAM_STR);
         
-            $stmt->bindValue(':tag_description',$argv['tag_description'], \PDO::PARAM_STR);
-        
-            $stmt->bindValue(':tag_name',$argv['tag_name'], \PDO::PARAM_STR);
-        
+
         return $stmt->execute();
     }
 
@@ -151,13 +149,13 @@ class carbon_tags extends Entities implements iRest
 
         if (isset($argv['tag_id'])) {
             $tag_id = $argv['tag_id'];
-            $stmt->bindParam(':tag_id',$tag_id, \PDO::PARAM_STR, 11);
+            $stmt->bindParam(':tag_id',$tag_id, \PDO::PARAM_STR, 11 );
         }
         if (isset($argv['tag_description'])) {
-            $stmt->bindValue(':tag_description',$argv['tag_description'], \PDO::PARAM_STR);
+            $stmt->bindValue(':tag_description',$argv['tag_description'], \PDO::PARAM_STR );
         }
         if (isset($argv['tag_name'])) {
-            $stmt->bindValue(':tag_name',$argv['tag_name'], \PDO::PARAM_STR);
+            $stmt->bindValue(':tag_name',$argv['tag_name'], \PDO::PARAM_STR );
         }
 
         if (!$stmt->execute()){

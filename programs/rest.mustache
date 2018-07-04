@@ -107,7 +107,7 @@ class {{TableName}} extends Entities implements iRest
     {{^primary_binary}}
             {{^length}}$stmt->bindValue(':{{name}}',{{^default}}$argv['{{name}}']{{/default}}{{#default}}isset($argv['{{name}}']) ? $argv['{{name}}'] : {{default}}{{/default}}, \{{type}});{{/length}}
             {{#length}}
-                ${{name}} = {{^default}}$argv['{{name}}']{{/default}}{{#default}}isset($argv['{{name}}']) ? $argv['{{name}}'] : {{default}}{{/default}};
+                ${{name}} = {{^default}}$argv['{{name}}']{{/default}}{{#default}}isset($argv['{{name}}']) ? $argv['{{name}}'] : {{{default}}}{{/default}};
                 $stmt->bindParam(':{{name}}',${{name}}, \{{type}}, {{length}});
             {{/length}}
         {{/primary_binary}}{{/explode}}
@@ -156,7 +156,7 @@ class {{TableName}} extends Entities implements iRest
     {{#explode}}
         if (isset($argv['{{name}}'])) {
     {{^length}}
-            $stmt->bindValue(':{{name}}',$argv['{{name}}'], \{{type}});
+            $stmt->bindValue(':{{name}}',$argv['{{name}}'], \{{type}} );
     {{/length}}
     {{#length}}
         {{#binary}}
@@ -165,7 +165,7 @@ class {{TableName}} extends Entities implements iRest
         {{/binary}}
         {{^binary}}
             ${{name}} = $argv['{{name}}'];
-            $stmt->bindParam(':{{name}}',${{name}}, \{{type}}, {{length}});
+            $stmt->bindParam(':{{name}}',${{name}}, \{{type}}, {{length}} );
         {{/binary}}
     {{/length}}
         }

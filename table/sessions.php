@@ -8,7 +8,7 @@ use CarbonPHP\Interfaces\iRest;
 
 class sessions extends Entities implements iRest
 {
-    const PRIMARY = "session_i";
+    const PRIMARY = "session_id";
 
     const COLUMNS = [
     'user_id','user_ip','session_id','session_expires','session_data','user_online_status',
@@ -97,27 +97,22 @@ class sessions extends Entities implements iRest
     {
         $sql = 'INSERT INTO carbonphp.sessions (user_id, user_ip, session_id, session_expires, session_data, user_online_status) VALUES ( :user_id, :user_ip, :session_id, :session_expires, :session_data, :user_online_status)';
         $stmt = Database::database()->prepare($sql);
-        
             
-                $user_id = $argv['user_id'];
+                $user_id = isset($argv['user_id']) ? $argv['user_id'] : null;
                 $stmt->bindParam(':user_id',$user_id, \PDO::PARAM_STR, 16);
-        
-            
-                $user_ip = $argv['user_ip'];
+                    
+                $user_ip = isset($argv['user_ip']) ? $argv['user_ip'] : null;
                 $stmt->bindParam(':user_ip',$user_ip, \PDO::PARAM_STR, 16);
-        
-            
-                $session_id = $argv['session_id'];
+                    
+                $session_id = isset($argv['session_id']) ? $argv['session_id'] : null;
                 $stmt->bindParam(':session_id',$session_id, \PDO::PARAM_STR, 255);
-        
-            $stmt->bindValue(':session_expires',$argv['session_expires'], \PDO::PARAM_STR);
-        
-            $stmt->bindValue(':session_data',$argv['session_data'], \PDO::PARAM_STR);
-        
-            
+                    $stmt->bindValue(':session_expires',isset($argv['session_expires']) ? $argv['session_expires'] : null, \PDO::PARAM_STR);
+                    $stmt->bindValue(':session_data',isset($argv['session_data']) ? $argv['session_data'] : null, \PDO::PARAM_STR);
+                    
                 $user_online_status = isset($argv['user_online_status']) ? $argv['user_online_status'] : '1';
                 $stmt->bindParam(':user_online_status',$user_online_status, \PDO::PARAM_NULL, 1);
         
+
         return $stmt->execute();
     }
 
@@ -180,17 +175,17 @@ class sessions extends Entities implements iRest
         }
         if (isset($argv['session_id'])) {
             $session_id = $argv['session_id'];
-            $stmt->bindParam(':session_id',$session_id, \PDO::PARAM_STR, 255);
+            $stmt->bindParam(':session_id',$session_id, \PDO::PARAM_STR, 255 );
         }
         if (isset($argv['session_expires'])) {
-            $stmt->bindValue(':session_expires',$argv['session_expires'], \PDO::PARAM_STR);
+            $stmt->bindValue(':session_expires',$argv['session_expires'], \PDO::PARAM_STR );
         }
         if (isset($argv['session_data'])) {
-            $stmt->bindValue(':session_data',$argv['session_data'], \PDO::PARAM_STR);
+            $stmt->bindValue(':session_data',$argv['session_data'], \PDO::PARAM_STR );
         }
         if (isset($argv['user_online_status'])) {
             $user_online_status = $argv['user_online_status'];
-            $stmt->bindParam(':user_online_status',$user_online_status, \PDO::PARAM_NULL, 1);
+            $stmt->bindParam(':user_online_status',$user_online_status, \PDO::PARAM_NULL, 1 );
         }
 
         if (!$stmt->execute()){

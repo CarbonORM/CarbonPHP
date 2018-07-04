@@ -97,23 +97,20 @@ class carbon_tag extends Entities implements iRest
     {
         $sql = 'INSERT INTO carbonphp.carbon_tag (entity_id, user_id, tag_id, creation_date) VALUES ( :entity_id, :user_id, :tag_id, :creation_date)';
         $stmt = Database::database()->prepare($sql);
-        
             
-                $entity_id = $argv['entity_id'];
+                $entity_id = isset($argv['entity_id']) ? $argv['entity_id'] : null;
                 $stmt->bindParam(':entity_id',$entity_id, \PDO::PARAM_STR, 16);
-        
-            
-                $user_id = $argv['user_id'];
+                    
+                $user_id = isset($argv['user_id']) ? $argv['user_id'] : null;
                 $stmt->bindParam(':user_id',$user_id, \PDO::PARAM_STR, 16);
-        
-            
-                $tag_id = $argv['tag_id'];
+                    
+                $tag_id = isset($argv['tag_id']) ? $argv['tag_id'] : null;
                 $stmt->bindParam(':tag_id',$tag_id, \PDO::PARAM_STR, 11);
-        
-            
-                $creation_date = $argv['creation_date'];
+                    
+                $creation_date = isset($argv['creation_date']) ? $argv['creation_date'] : null;
                 $stmt->bindParam(':creation_date',$creation_date, \PDO::PARAM_STR, 20);
         
+
         return $stmt->execute();
     }
 
@@ -170,11 +167,11 @@ class carbon_tag extends Entities implements iRest
         }
         if (isset($argv['tag_id'])) {
             $tag_id = $argv['tag_id'];
-            $stmt->bindParam(':tag_id',$tag_id, \PDO::PARAM_STR, 11);
+            $stmt->bindParam(':tag_id',$tag_id, \PDO::PARAM_STR, 11 );
         }
         if (isset($argv['creation_date'])) {
             $creation_date = $argv['creation_date'];
-            $stmt->bindParam(':creation_date',$creation_date, \PDO::PARAM_STR, 20);
+            $stmt->bindParam(':creation_date',$creation_date, \PDO::PARAM_STR, 20 );
         }
 
         if (!$stmt->execute()){

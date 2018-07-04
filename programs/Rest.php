@@ -166,8 +166,8 @@ $PDO = [                                            // I guess this is it ?
 
 // Every table insert
 
-$skipTable = false;
 
+$skipTable = false;
 foreach ($matches as $insert) {// Create Table
     if (isset($foreign_key)) {
         unset($foreign_key);
@@ -175,6 +175,7 @@ foreach ($matches as $insert) {// Create Table
     $insert = explode(PHP_EOL, $insert);
     $column = 0;
     $binary = [];
+
     $rest = [
         'database' => $schema,
         'carbon_table' => false
@@ -182,6 +183,7 @@ foreach ($matches as $insert) {// Create Table
 
     // Every line in table insert
     foreach ($insert as $query) {                                                  // Create Columns
+        $cast_default = false;
         $query = explode(' ', trim($query));
 
         if ($query[0] === 'CREATE') {
@@ -198,7 +200,7 @@ foreach ($matches as $insert) {// Create Table
             }
 
         } else if ($query[0] === 'PRIMARY') {
-            $rest['primary'] = substr($query[2], 2, strlen($query[2]) - 5);
+            $rest['primary'] = trim($query[2], "(`),");
 
         } else if ($query[0] === 'CONSTRAINT' && $query[6] === '`carbon`' && isset($rest['primary'])) {
             if ($rest['primary'] === $fk = trim($query[4], "()`")) {
@@ -228,7 +230,7 @@ foreach ($matches as $insert) {// Create Table
 
                 if (count($argv = explode('(', $type)) > 1) {
                     $type = $argv[0];
-                    $length = trim($argv[1], ')');
+                    $length = trim($argv[1], '),');
                 } else {
                     unset($length);
                 }
@@ -243,6 +245,7 @@ foreach ($matches as $insert) {// Create Table
                         $binary[] = $name;
                         $rest['binary_list'][] = ['name' => $name];
                         $rest['explode'][$column]['binary'] = true;
+                        $cast_default = true;
                     case 'varchar':
                     default:
                         $type = $PDO[3];
@@ -265,7 +268,8 @@ foreach ($matches as $insert) {// Create Table
             }
 
             if (isset($default)) {
-                $rest['explode'][$column]['default'] = $default === "'NULL'" ? null : $default;
+                // nested ternary, sorry guys
+                $rest['explode'][$column]['default'] = $default === "'NULL'" ? 'null' : $cast_default ? 'null' : $default;
             }
 
             $column++;
