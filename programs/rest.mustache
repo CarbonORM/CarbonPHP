@@ -100,7 +100,7 @@ class {{TableName}} extends Entities implements iRest
 {{#explode}}
     {{#primary_binary}}
         {{^carbon_table}}
-            ${{name}} = $id = self::fetchColumn('SELECT (REPLACE(UUID(),"-",""))')[0];
+            ${{name}} = $id = isset($argv['{{name}}']) ? $argv['{{name}}'] : self::fetchColumn('SELECT (REPLACE(UUID(),"-",""))')[0];
             $stmt->bindParam(':{{name}}',${{name}}, \{{type}}, {{length}});
         {{/carbon_table}}
         {{#carbon_table}}
