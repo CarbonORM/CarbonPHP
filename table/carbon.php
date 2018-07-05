@@ -103,7 +103,7 @@ class carbon extends Entities implements iRest
                 $entity_fk = isset($argv['entity_fk']) ? $argv['entity_fk'] : null;
                 $stmt->bindParam(':entity_fk',$entity_fk, \PDO::PARAM_STR, 16);
         
-
+        return $stmt->execute() ? $id : false;
         return $stmt->execute();
     }
 

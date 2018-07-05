@@ -18,6 +18,7 @@ use CarbonPHP\Table\Carbon as Rest;
 final class RestTest extends TestCase
 {
     public $store;
+    public $user_id;
 
     public function setUp()/* The :void return type declaration that should be here would cause a BC issue */
     {
@@ -65,7 +66,8 @@ final class RestTest extends TestCase
             $this->assertTrue(Rest::Delete($this->store, $this->store['entity_pk'], []));
         }
 
-        $this->assertTrue(Rest::Post(['entity_pk' => 'RestTests']));
+        // Should return a hex id
+        $this->assertTrue(is_string($this->user_id = Rest::Post(['entity_pk' => 'RestTests'])));
     }
 
     /**

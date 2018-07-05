@@ -115,8 +115,8 @@ class {{TableName}} extends Entities implements iRest
                 $stmt->bindParam(':{{name}}',${{name}}, \{{type}}, {{length}});
             {{/length}}
         {{/primary_binary}}{{/explode}}
-{{#carbon_table}}
-        return $stmt->execute() ? $id : false;{{/carbon_table}}
+{{#binary_primary}}
+        return $stmt->execute() ? $id : false;{{/binary_primary}}
 {{^carbon_table}}
         return $stmt->execute();{{/carbon_table}}
     }
