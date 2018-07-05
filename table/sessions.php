@@ -99,10 +99,10 @@ class sessions extends Entities implements iRest
         $stmt = Database::database()->prepare($sql);
             
                 $user_id = isset($argv['user_id']) ? $argv['user_id'] : null;
-                $stmt->bindParam(':user_id',$user_id, \PDO::PARAM_STR, 16);
+                $stmt->bindParam(':user_id',$user_id, \PDO::PARAM_STR, 32);
                     
                 $user_ip = isset($argv['user_ip']) ? $argv['user_ip'] : null;
-                $stmt->bindParam(':user_ip',$user_ip, \PDO::PARAM_STR, 16);
+                $stmt->bindParam(':user_ip',$user_ip, \PDO::PARAM_STR, 32);
                     
                 $session_id = isset($argv['session_id']) ? $argv['session_id'] : null;
                 $stmt->bindParam(':session_id',$session_id, \PDO::PARAM_STR, 255);
@@ -167,11 +167,11 @@ class sessions extends Entities implements iRest
 
         if (isset($argv['user_id'])) {
             $user_id = 'UNHEX('.$argv['user_id'].')';
-            $stmt->bindParam(':user_id', $user_id, \PDO::PARAM_STR, 16);
+            $stmt->bindParam(':user_id', $user_id, \PDO::PARAM_STR, 32);
         }
         if (isset($argv['user_ip'])) {
             $user_ip = 'UNHEX('.$argv['user_ip'].')';
-            $stmt->bindParam(':user_ip', $user_ip, \PDO::PARAM_STR, 16);
+            $stmt->bindParam(':user_ip', $user_ip, \PDO::PARAM_STR, 32);
         }
         if (isset($argv['session_id'])) {
             $session_id = $argv['session_id'];

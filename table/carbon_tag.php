@@ -99,10 +99,10 @@ class carbon_tag extends Entities implements iRest
         $stmt = Database::database()->prepare($sql);
             
                 $entity_id = isset($argv['entity_id']) ? $argv['entity_id'] : null;
-                $stmt->bindParam(':entity_id',$entity_id, \PDO::PARAM_STR, 16);
+                $stmt->bindParam(':entity_id',$entity_id, \PDO::PARAM_STR, 32);
                     
                 $user_id = isset($argv['user_id']) ? $argv['user_id'] : null;
-                $stmt->bindParam(':user_id',$user_id, \PDO::PARAM_STR, 16);
+                $stmt->bindParam(':user_id',$user_id, \PDO::PARAM_STR, 32);
                     
                 $tag_id = isset($argv['tag_id']) ? $argv['tag_id'] : null;
                 $stmt->bindParam(':tag_id',$tag_id, \PDO::PARAM_STR, 11);
@@ -159,11 +159,11 @@ class carbon_tag extends Entities implements iRest
 
         if (isset($argv['entity_id'])) {
             $entity_id = 'UNHEX('.$argv['entity_id'].')';
-            $stmt->bindParam(':entity_id', $entity_id, \PDO::PARAM_STR, 16);
+            $stmt->bindParam(':entity_id', $entity_id, \PDO::PARAM_STR, 32);
         }
         if (isset($argv['user_id'])) {
             $user_id = 'UNHEX('.$argv['user_id'].')';
-            $stmt->bindParam(':user_id', $user_id, \PDO::PARAM_STR, 16);
+            $stmt->bindParam(':user_id', $user_id, \PDO::PARAM_STR, 32);
         }
         if (isset($argv['tag_id'])) {
             $tag_id = $argv['tag_id'];

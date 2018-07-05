@@ -98,13 +98,13 @@ class carbon extends Entities implements iRest
         $sql = 'INSERT INTO carbonphp.carbon (entity_pk, entity_fk) VALUES ( UNHEX(:entity_pk), :entity_fk)';
         $stmt = Database::database()->prepare($sql);
             $entity_pk = $id = self::fetchColumn('SELECT (REPLACE(UUID(),"-",""))')[0];
-            $stmt->bindParam(':entity_pk',$entity_pk, \PDO::PARAM_STR, 16);
+            $stmt->bindParam(':entity_pk',$entity_pk, \PDO::PARAM_STR, 32);
             
                 $entity_fk = isset($argv['entity_fk']) ? $argv['entity_fk'] : null;
-                $stmt->bindParam(':entity_fk',$entity_fk, \PDO::PARAM_STR, 16);
+                $stmt->bindParam(':entity_fk',$entity_fk, \PDO::PARAM_STR, 32);
         
         return $stmt->execute() ? $id : false;
-        return $stmt->execute();
+
     }
 
     /**
@@ -146,11 +146,11 @@ class carbon extends Entities implements iRest
 
         if (isset($argv['entity_pk'])) {
             $entity_pk = 'UNHEX('.$argv['entity_pk'].')';
-            $stmt->bindParam(':entity_pk', $entity_pk, \PDO::PARAM_STR, 16);
+            $stmt->bindParam(':entity_pk', $entity_pk, \PDO::PARAM_STR, 32);
         }
         if (isset($argv['entity_fk'])) {
             $entity_fk = 'UNHEX('.$argv['entity_fk'].')';
-            $stmt->bindParam(':entity_fk', $entity_fk, \PDO::PARAM_STR, 16);
+            $stmt->bindParam(':entity_fk', $entity_fk, \PDO::PARAM_STR, 32);
         }
 
         if (!$stmt->execute()){
