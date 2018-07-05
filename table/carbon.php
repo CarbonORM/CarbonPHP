@@ -1,6 +1,6 @@
 <?php
 
-namespace Table;
+namespace CarbonPHP\Table;
 
 use CarbonPHP\Database;
 use CarbonPHP\Entities;

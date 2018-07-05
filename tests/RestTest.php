@@ -9,7 +9,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
-use Table\Carbon as Rest;
+use CarbonPHP\Table\Carbon as Rest;
 
 
 /**

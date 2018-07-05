@@ -40,12 +40,15 @@ $argc < 3 and $usage();    // quick if stmt
 
 $pass = '';
 $onlyThese = null;
-$verbose = $primary_required = $delete_dump = false;
+$verbose = $primary_required = $delete_dump = $carbon_namespace = false;
 
 for ($i = 0; $i < $argc; $i++) {
     switch ($argv[$i]) {
         case '-v':
             $verbose = true;
+            break;
+        case '-carbon':
+            $carbon_namespace = true;
             break;
         case '-help':
             $usage();
@@ -178,7 +181,8 @@ foreach ($matches as $insert) {// Create Table
 
     $rest = [
         'database' => $schema,
-        'carbon_table' => false
+        'carbon_table' => false,
+        'carbon_namespace' => $carbon_namespace
     ];
 
     // Every line in table insert
