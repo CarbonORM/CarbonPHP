@@ -318,7 +318,7 @@ foreach ($matches as $insert) {// Create Table
             if (isset($foreign_key) && $rest['TableName'] !== 'carbon' && $value === $foreign_key) {
                 $implode .= ', :' . $value;
             } else {
-                $implode .= ', :' . $value;
+                $implode .= ', UNHEX(:' . $value.')';
                 //$implode .= ', (UNHEX(REPLACE(UUID(),"-","")))';
             }
         } else {
