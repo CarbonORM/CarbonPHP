@@ -246,6 +246,7 @@ foreach ($matches as $insert) {// Create Table
                         $type = $PDO[2];
                         break;
                     case 'binary':
+                        $length *= 2;           // so php can check the right string length that mysql will convert
                         $binary[] = $name;
                         $rest['binary_list'][] = ['name' => $name];
                         $rest['explode'][$column]['binary'] = true;
