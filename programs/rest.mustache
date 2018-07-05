@@ -194,6 +194,10 @@ class {{TableName}} extends Entities implements iRest
     */
     public static function Delete(array &$remove, string $primary = null, array $argv) : bool
     {
+{{#carbon_table}}
+        return \CarbonPHP\Table\carbon::Delete($remove, $primary, $argv);
+{{/carbon_table}}
+{{^carbon_table}}
         $sql = 'DELETE FROM {{database}}.{{TableName}} ';
 
         foreach($argv as $column => $constraint){
@@ -221,11 +225,13 @@ class {{TableName}} extends Entities implements iRest
             }
             $sql = substr($sql, 0, strlen($sql)-4);
         } else if (!empty(self::PRIMARY)) {
-            {{^binary_primary}}$sql .= ' WHERE ' . self::PRIMARY . '=' . Database::database()->quote($primary);{{/binary_primary}}{{#binary_primary}}$sql .= ' WHERE ' . self::PRIMARY . '=UNHEX(' . Database::database()->quote($primary) . ')';{{/binary_primary}}
+
+    {{^binary_primary}}$sql .= ' WHERE ' . self::PRIMARY . '=' . Database::database()->quote($primary);{{/binary_primary}}{{#binary_primary}}$sql .= ' WHERE ' . self::PRIMARY . '=UNHEX(' . Database::database()->quote($primary) . ')';{{/binary_primary}}
         }
 
         $remove = null;
 
         return self::execute($sql);
+{{/carbon_table}}
     }
 }
