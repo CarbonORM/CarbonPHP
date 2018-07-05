@@ -195,7 +195,7 @@ class {{TableName}} extends Entities implements iRest
     public static function Delete(array &$remove, string $primary = null, array $argv) : bool
     {
 {{#carbon_table}}
-        return \CarbonPHP\Table\carbon::Delete($remove, $primary, $argv);
+        return \Table\carbon::Delete($remove, $primary, $argv);
 {{/carbon_table}}
 {{^carbon_table}}
         $sql = 'DELETE FROM {{database}}.{{TableName}} ';
