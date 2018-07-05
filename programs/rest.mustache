@@ -99,6 +99,10 @@ class {{TableName}} extends Entities implements iRest
         $stmt = Database::database()->prepare($sql);
 {{#explode}}
     {{#primary_binary}}
+        {{^carbon_table}}
+            ${{name}} = $id = self::fetchColumn('SELECT (REPLACE(UUID(),"-",""))')[0];
+            $stmt->bindParam(':{{name}}',${{name}}, \{{type}}, {{length}});
+        {{/carbon_table}}
         {{#carbon_table}}
             ${{name}} = $id = self::new_entity('{{TableName}}');
             $stmt->bindParam(':{{name}}',${{name}}, \{{type}}, {{length}});

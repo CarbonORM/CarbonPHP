@@ -95,8 +95,10 @@ class carbon extends Entities implements iRest
     */
     public static function Post(array $argv)
     {
-        $sql = 'INSERT INTO carbonphp.carbon (entity_pk, entity_fk) VALUES ( (UNHEX(REPLACE(UUID(),"-",""))), :entity_fk)';
+        $sql = 'INSERT INTO carbonphp.carbon (entity_pk, entity_fk) VALUES ( :entity_pk, :entity_fk)';
         $stmt = Database::database()->prepare($sql);
+            $entity_pk = $id = self::fetchColumn('SELECT (REPLACE(UUID(),"-",""))')[0];
+            $stmt->bindParam(':entity_pk',$entity_pk, \PDO::PARAM_STR, 16);
             
                 $entity_fk = isset($argv['entity_fk']) ? $argv['entity_fk'] : null;
                 $stmt->bindParam(':entity_fk',$entity_fk, \PDO::PARAM_STR, 16);
