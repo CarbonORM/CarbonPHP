@@ -117,8 +117,9 @@ class {{TableName}} extends Entities implements iRest
         {{/primary_binary}}{{/explode}}
 {{#binary_primary}}
         return $stmt->execute() ? $id : false;{{/binary_primary}}
+{{^binary_primary}}
 {{^carbon_table}}
-        return $stmt->execute();{{/carbon_table}}
+        return $stmt->execute();{{/carbon_table}}{{/binary_primary}}
     }
 
     /**
