@@ -80,10 +80,10 @@ class {{TableName}} extends Entities implements iRest
                 };
                 $sql .= ' WHERE ' . $build_where($where);
             }
-        } {{#primary}}else {
+        } {{#primary}}{{#sql}}else {
             $primary = $pdo->quote($primary);
             {{{sql}}}
-        }{{/primary}}
+        }{{/sql}}{{/primary}}
 
         $sql .= $limit;
 
@@ -135,7 +135,7 @@ class {{TableName}} extends Entities implements iRest
 {{#binary_primary}}
         return $stmt->execute() ? $id : false;{{/binary_primary}}
 {{^binary_primary}}
-{{^carbon_table}}
+    {{^carbon_table}}
         return $stmt->execute();{{/carbon_table}}{{/binary_primary}}
     }
 

@@ -212,15 +212,16 @@ foreach ($matches as $insert) {// Create Table
         } else if ($query[0] === 'PRIMARY') {
             $primary = explode('`,`', trim($query[2], "(`),"));
 
+            $sql = [];
             foreach ($primary as $key) {
                 if (in_array($key, $binary)) {
-                    $rest['primary']['sql'][] = ' ' . $key . '=UNHEX(\' . $primary .\')';
+                    $sql[] = ' ' . $key . '=UNHEX(\' . $primary .\')';
                 } else {
-                    $rest['primary']['sql'][] = ' ' . $key . '=\' . $primary .\'';
+                    $sql[] = ' ' . $key . '=\' . $primary .\'';
                 }
                 $rest['primary'][] = ['name' => $key];
             }
-            $rest['primary']['sql'] = '$sql .= \' WHERE ' . implode($rest['primary']['sql'], ' OR ') . "';";
+            $rest['primary'][] = ['sql' => '$sql .= \' WHERE ' . implode($sql, ' OR ') . "';" ];
 
         } else if ($query[0] === 'CONSTRAINT' && $query[6] === '`carbon`' && isset($rest['primary'])) {
             if (in_array($fk = trim($query[4], "()`"), $rest['primary'])) {
