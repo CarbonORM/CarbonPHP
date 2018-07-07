@@ -242,7 +242,7 @@ class {{TableName}} extends Entities implements iRest
             }
             $sql = substr($sql, 0, strlen($sql)-4);
         } {{#primary}}else {
-            $primary = $pdo->quote($primary);
+            $primary = Database::database()->quote($primary);
             {{{sql}}}
         }{{/primary}}
 

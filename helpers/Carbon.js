@@ -359,6 +359,7 @@
 
             this.start = invoke;
             this.app = startApplication;
+            this.startApplication = startApplication;
             this.js = loadJS;
             this.sleep = sleep;
             this.alert = bootstrapAlert;

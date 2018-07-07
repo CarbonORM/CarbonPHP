@@ -135,17 +135,23 @@ namespace {                                     // This runs the following code 
             } catch (Exception | Error $e) {
                 if (!$e instanceof PublicAlert) {
                     PublicAlert::danger('Developers make mistakes, and you found a big one. We\'ve logged this event and will be investigating soon.'); // TODO - Change what is logged
-                    ErrorCatcher::generateLog($e);
+                    //ErrorCatcher::generateLog($e);
+
+                    var_dump($e);  // TODO -- clean this up when rest is working
+
                 }
                 $argv = null;
             } finally {
                 if (ob_get_status()) {
                     if (ob_get_length()) {
                         $out = ob_get_clean();
-                        print '<h1>You have printed to the screen while within the catchErrors() function!</h1>';
-                        print '<h2>Don\'t slip up in your production code!</h2>';
-                        print '<p>Note: All MVC routes are wrapped in this function. Output to the browser should be done within the view! Use this as a reporting tool only.</p>';
-                        print "<pre>$out</pre>";
+                        print <<<END
+                                <div class="callout callout-info">
+                                <h4>You have printed to the screen while within the catchErrors() function!</h4>
+                                Don't slip up in your production code!
+                                <a href="http://getbootstrap.com/javascript/#modals">Note: All MVC routes are wrapped in this function. Output to the browser should be done within the view! Use this as a reporting tool only.</a>
+                                </div><pre>$out</pre>
+END;
                         die(1);
                     } else {
                         ob_end_flush();
