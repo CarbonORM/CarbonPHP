@@ -241,10 +241,10 @@ class {{TableName}} extends Entities implements iRest
                 }
             }
             $sql = substr($sql, 0, strlen($sql)-4);
-        } {{#primary}}else {
+        } {{#primary}}{{#sql}}else {
             $primary = Database::database()->quote($primary);
             {{{sql}}}
-        }{{/primary}}
+        }{{/sql}}{{/primary}}
 
         $remove = null;
 
