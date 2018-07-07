@@ -223,7 +223,7 @@ foreach ($matches as $insert) {// Create Table
             $rest['primary']['sql'] = '$sql .= \' WHERE ' . implode($rest['primary']['sql'], ' OR ') . "';";
 
         } else if ($query[0] === 'CONSTRAINT' && $query[6] === '`carbon`' && isset($rest['primary'])) {
-            if ($rest['primary'] === $fk = trim($query[4], "()`")) {
+            if (in_array($fk = trim($query[4], "()`"), $rest['primary'])) {
                 $foreign_key = $fk;
                 $rest['carbon_table'] = $rest['TableName'] !== 'carbon';
             }
@@ -326,7 +326,7 @@ foreach ($matches as $insert) {// Create Table
         }
     } else {
         foreach ($rest['explode'] as &$value) {
-            if ($value['name'] === $rest['primary']) {
+            if (in_array($value['name'],$rest['primary'])) {
                 $value['primary'] = true;
 
                 if (isset($value['binary'])) {
@@ -351,7 +351,7 @@ foreach ($matches as $insert) {// Create Table
 
             $rest['listed'] .= $value . ', ';
 
-            if (in_array($value, $binary) && isset($rest['primary']) && $rest['primary'] === $value) {
+            if (in_array($value, $binary) && isset($rest['primary']) && in_array($value,$rest['primary'])) {
                 if (isset($foreign_key) && $rest['TableName'] !== 'carbon' && $value === $foreign_key) {
                     $implode .= ', UNHEX(:' . $value . ')';
                 } else {
