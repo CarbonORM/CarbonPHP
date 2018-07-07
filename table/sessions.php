@@ -1,6 +1,6 @@
 <?php
+namespace Table;
 
-namespace CarbonPHP\Table;
 
 use CarbonPHP\Database;
 use CarbonPHP\Entities;
@@ -8,14 +8,16 @@ use CarbonPHP\Interfaces\iRest;
 
 class sessions extends Entities implements iRest
 {
-    const PRIMARY = "session_id";
+    const PRIMARY = [
+    'session_id',
+    ];
 
     const COLUMNS = [
     'user_id','user_ip','session_id','session_expires','session_data','user_online_status',
     ];
 
     const BINARY = [
-    'user_id','user_ip',
+    'user_id',
     ];
 
     /**
@@ -55,7 +57,7 @@ class sessions extends Entities implements iRest
             }
         }
 
-        $sql = 'SELECT ' .  $sql . ' FROM carbonphp.sessions';
+        $sql = 'SELECT ' .  $sql . ' FROM statscoach.sessions';
 
         $pdo = Database::database();
 
@@ -78,13 +80,26 @@ class sessions extends Entities implements iRest
                 };
                 $sql .= ' WHERE ' . $build_where($where);
             }
-        } else if (!empty(self::PRIMARY)){
-            $sql .= ' WHERE ' . self::PRIMARY . '=' . $pdo->quote($primary);
+        } else {
+            $primary = $pdo->quote($primary);
+            $sql .= ' WHERE  session_id=' . $primary .'';
         }
 
         $sql .= $limit;
 
         $return = self::fetch($sql);
+
+        /**
+        *   The next part is so every response from the rest api
+        *   formats to a set of rows. Even if only one row is returned.
+        *   You must set the third parameter to true, otherwise '0' is
+        *   apparently in the self::COLUMNS
+        */
+
+
+        if (count($return) && in_array(array_keys($return)[0], self::COLUMNS, true)) {  // You must set tr
+            $return = [$return];
+        }
 
         return true;
     }
@@ -95,19 +110,19 @@ class sessions extends Entities implements iRest
     */
     public static function Post(array $argv)
     {
-        $sql = 'INSERT INTO carbonphp.sessions (user_id, user_ip, session_id, session_expires, session_data, user_online_status) VALUES ( :user_id, :user_ip, :session_id, :session_expires, :session_data, :user_online_status)';
+        $sql = 'INSERT INTO statscoach.sessions (user_id, user_ip, session_id, session_expires, session_data, user_online_status) VALUES ( :user_id, :user_ip, :session_id, :session_expires, :session_data, :user_online_status)';
         $stmt = Database::database()->prepare($sql);
             
-                $user_id = isset($argv['user_id']) ? $argv['user_id'] : null;
-                $stmt->bindParam(':user_id',$user_id, \PDO::PARAM_STR, 32);
+                $user_id = $argv['user_id'];
+                $stmt->bindParam(':user_id',$user_id, \PDO::PARAM_STR, 16);
                     
                 $user_ip = isset($argv['user_ip']) ? $argv['user_ip'] : null;
-                $stmt->bindParam(':user_ip',$user_ip, \PDO::PARAM_STR, 32);
+                $stmt->bindParam(':user_ip',$user_ip, \PDO::PARAM_STR, 16);
                     
-                $session_id = isset($argv['session_id']) ? $argv['session_id'] : null;
+                $session_id = $argv['session_id'];
                 $stmt->bindParam(':session_id',$session_id, \PDO::PARAM_STR, 255);
-                    $stmt->bindValue(':session_expires',isset($argv['session_expires']) ? $argv['session_expires'] : null, \PDO::PARAM_STR);
-                    $stmt->bindValue(':session_data',isset($argv['session_data']) ? $argv['session_data'] : null, \PDO::PARAM_STR);
+                    $stmt->bindValue(':session_expires',$argv['session_expires'], \PDO::PARAM_STR);
+                    $stmt->bindValue(':session_data',$argv['session_data'], \PDO::PARAM_STR);
                     
                 $user_online_status = isset($argv['user_online_status']) ? $argv['user_online_status'] : '1';
                 $stmt->bindParam(':user_online_status',$user_online_status, \PDO::PARAM_NULL, 1);
@@ -130,7 +145,7 @@ class sessions extends Entities implements iRest
             }
         }
 
-        $sql = 'UPDATE carbonphp.sessions ';
+        $sql = 'UPDATE statscoach.sessions ';
 
         $sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
 
@@ -140,7 +155,7 @@ class sessions extends Entities implements iRest
             $set .= 'user_id=UNHEX(:user_id),';
         }
         if (isset($argv['user_ip'])) {
-            $set .= 'user_ip=UNHEX(:user_ip),';
+            $set .= 'user_ip=:user_ip,';
         }
         if (isset($argv['session_id'])) {
             $set .= 'session_id=:session_id,';
@@ -167,25 +182,25 @@ class sessions extends Entities implements iRest
 
         if (isset($argv['user_id'])) {
             $user_id = 'UNHEX('.$argv['user_id'].')';
-            $stmt->bindParam(':user_id', $user_id, \PDO::PARAM_STR, 32);
+            $stmt->bindParam(':user_id', $user_id, \PDO::PARAM_STR, 16);
         }
         if (isset($argv['user_ip'])) {
-            $user_ip = 'UNHEX('.$argv['user_ip'].')';
-            $stmt->bindParam(':user_ip', $user_ip, \PDO::PARAM_STR, 32);
+            $user_ip = $argv['user_ip'];
+            $stmt->bindParam(':user_ip',$user_ip, \PDO::PARAM_STR, 16);
         }
         if (isset($argv['session_id'])) {
             $session_id = $argv['session_id'];
-            $stmt->bindParam(':session_id',$session_id, \PDO::PARAM_STR, 255 );
+            $stmt->bindParam(':session_id',$session_id, \PDO::PARAM_STR, 255);
         }
         if (isset($argv['session_expires'])) {
-            $stmt->bindValue(':session_expires',$argv['session_expires'], \PDO::PARAM_STR );
+            $stmt->bindValue(':session_expires',$argv['session_expires'], \PDO::PARAM_STR);
         }
         if (isset($argv['session_data'])) {
-            $stmt->bindValue(':session_data',$argv['session_data'], \PDO::PARAM_STR );
+            $stmt->bindValue(':session_data',$argv['session_data'], \PDO::PARAM_STR);
         }
         if (isset($argv['user_online_status'])) {
             $user_online_status = $argv['user_online_status'];
-            $stmt->bindParam(':user_online_status',$user_online_status, \PDO::PARAM_NULL, 1 );
+            $stmt->bindParam(':user_online_status',$user_online_status, \PDO::PARAM_NULL, 1);
         }
 
         if (!$stmt->execute()){
@@ -206,7 +221,7 @@ class sessions extends Entities implements iRest
     */
     public static function Delete(array &$remove, string $primary = null, array $argv) : bool
     {
-        $sql = 'DELETE FROM carbonphp.sessions ';
+        $sql = 'DELETE FROM statscoach.sessions ';
 
         foreach($argv as $column => $constraint){
             if (!in_array($column, self::COLUMNS)){
@@ -232,8 +247,9 @@ class sessions extends Entities implements iRest
                 }
             }
             $sql = substr($sql, 0, strlen($sql)-4);
-        } else if (!empty(self::PRIMARY)) {
-            $sql .= ' WHERE ' . self::PRIMARY . '=' . Database::database()->quote($primary);
+        } else {
+            $primary = Database::database()->quote($primary);
+            $sql .= ' WHERE  session_id=' . $primary .'';
         }
 
         $remove = null;

@@ -190,6 +190,7 @@ foreach ($matches as $insert) {// Create Table
         'carbon_namespace' => $carbon_namespace
     ];
     $skipping_col = [];
+    $primary = [];
 
     // Every line in table insert
     foreach ($insert as $query) {                                                  // Create Columns
@@ -327,9 +328,8 @@ foreach ($matches as $insert) {// Create Table
         }
     } else {
         foreach ($rest['explode'] as &$value) {
-            if (in_array($value['name'],$rest['primary'])) {
+            if (false !== in_array($value['name'], $primary)) {
                 $value['primary'] = true;
-
                 if (isset($value['binary'])) {
                     $value['primary_binary'] = true;
                     $rest['binary_primary'] = true;
@@ -352,7 +352,7 @@ foreach ($matches as $insert) {// Create Table
 
             $rest['listed'] .= $value . ', ';
 
-            if (in_array($value, $binary) && isset($rest['primary']) && in_array($value,$rest['primary'])) {
+            if (in_array($value, $binary) && in_array($value,$primary)) {
                 if (isset($foreign_key) && $rest['TableName'] !== 'carbon' && $value === $foreign_key) {
                     $implode .= ', UNHEX(:' . $value . ')';
                 } else {

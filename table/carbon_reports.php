@@ -1,6 +1,6 @@
 <?php
+namespace Table;
 
-namespace CarbonPHP\Table;
 
 use CarbonPHP\Database;
 use CarbonPHP\Entities;
@@ -8,7 +8,9 @@ use CarbonPHP\Interfaces\iRest;
 
 class carbon_reports extends Entities implements iRest
 {
-    const PRIMARY = "";
+    const PRIMARY = [
+    
+    ];
 
     const COLUMNS = [
     'log_level','report','date','call_trace',
@@ -55,7 +57,7 @@ class carbon_reports extends Entities implements iRest
             }
         }
 
-        $sql = 'SELECT ' .  $sql . ' FROM carbonphp.carbon_reports';
+        $sql = 'SELECT ' .  $sql . ' FROM statscoach.carbon_reports';
 
         $pdo = Database::database();
 
@@ -78,13 +80,23 @@ class carbon_reports extends Entities implements iRest
                 };
                 $sql .= ' WHERE ' . $build_where($where);
             }
-        } else if (!empty(self::PRIMARY)){
-            $sql .= ' WHERE ' . self::PRIMARY . '=' . $pdo->quote($primary);
-        }
+        } 
 
         $sql .= $limit;
 
         $return = self::fetch($sql);
+
+        /**
+        *   The next part is so every response from the rest api
+        *   formats to a set of rows. Even if only one row is returned.
+        *   You must set the third parameter to true, otherwise '0' is
+        *   apparently in the self::COLUMNS
+        */
+
+
+        if (count($return) && in_array(array_keys($return)[0], self::COLUMNS, true)) {  // You must set tr
+            $return = [$return];
+        }
 
         return true;
     }
@@ -95,16 +107,16 @@ class carbon_reports extends Entities implements iRest
     */
     public static function Post(array $argv)
     {
-        $sql = 'INSERT INTO carbonphp.carbon_reports (log_level, report, date, call_trace) VALUES ( :log_level, :report, :date, :call_trace)';
+        $sql = 'INSERT INTO statscoach.carbon_reports (log_level, report, date, call_trace) VALUES ( :log_level, :report, :date, :call_trace)';
         $stmt = Database::database()->prepare($sql);
             
                 $log_level = isset($argv['log_level']) ? $argv['log_level'] : null;
                 $stmt->bindParam(':log_level',$log_level, \PDO::PARAM_STR, 20);
-                    $stmt->bindValue(':report',isset($argv['report']) ? $argv['report'] : null, \PDO::PARAM_STR);
+                    $stmt->bindValue(':report',$argv['report'], \PDO::PARAM_STR);
                     
-                $date = isset($argv['date']) ? $argv['date'] : null;
+                $date = $argv['date'];
                 $stmt->bindParam(':date',$date, \PDO::PARAM_STR, 22);
-                    $stmt->bindValue(':call_trace',isset($argv['call_trace']) ? $argv['call_trace'] : null, \PDO::PARAM_STR);
+                    $stmt->bindValue(':call_trace',$argv['call_trace'], \PDO::PARAM_STR);
         
 
         return $stmt->execute();
@@ -124,7 +136,7 @@ class carbon_reports extends Entities implements iRest
             }
         }
 
-        $sql = 'UPDATE carbonphp.carbon_reports ';
+        $sql = 'UPDATE statscoach.carbon_reports ';
 
         $sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
 
@@ -155,17 +167,17 @@ class carbon_reports extends Entities implements iRest
 
         if (isset($argv['log_level'])) {
             $log_level = $argv['log_level'];
-            $stmt->bindParam(':log_level',$log_level, \PDO::PARAM_STR, 20 );
+            $stmt->bindParam(':log_level',$log_level, \PDO::PARAM_STR, 20);
         }
         if (isset($argv['report'])) {
-            $stmt->bindValue(':report',$argv['report'], \PDO::PARAM_STR );
+            $stmt->bindValue(':report',$argv['report'], \PDO::PARAM_STR);
         }
         if (isset($argv['date'])) {
             $date = $argv['date'];
-            $stmt->bindParam(':date',$date, \PDO::PARAM_STR, 22 );
+            $stmt->bindParam(':date',$date, \PDO::PARAM_STR, 22);
         }
         if (isset($argv['call_trace'])) {
-            $stmt->bindValue(':call_trace',$argv['call_trace'], \PDO::PARAM_STR );
+            $stmt->bindValue(':call_trace',$argv['call_trace'], \PDO::PARAM_STR);
         }
 
         if (!$stmt->execute()){
@@ -186,7 +198,7 @@ class carbon_reports extends Entities implements iRest
     */
     public static function Delete(array &$remove, string $primary = null, array $argv) : bool
     {
-        $sql = 'DELETE FROM carbonphp.carbon_reports ';
+        $sql = 'DELETE FROM statscoach.carbon_reports ';
 
         foreach($argv as $column => $constraint){
             if (!in_array($column, self::COLUMNS)){
@@ -212,9 +224,7 @@ class carbon_reports extends Entities implements iRest
                 }
             }
             $sql = substr($sql, 0, strlen($sql)-4);
-        } else if (!empty(self::PRIMARY)) {
-            $sql .= ' WHERE ' . self::PRIMARY . '=' . Database::database()->quote($primary);
-        }
+        } 
 
         $remove = null;
 

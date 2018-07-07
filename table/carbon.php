@@ -1,6 +1,6 @@
 <?php
+namespace Table;
 
-namespace CarbonPHP\Table;
 
 use CarbonPHP\Database;
 use CarbonPHP\Entities;
@@ -8,7 +8,9 @@ use CarbonPHP\Interfaces\iRest;
 
 class carbon extends Entities implements iRest
 {
-    const PRIMARY = "entity_pk";
+    const PRIMARY = [
+    'entity_pk',
+    ];
 
     const COLUMNS = [
     'entity_pk','entity_fk',
@@ -55,7 +57,7 @@ class carbon extends Entities implements iRest
             }
         }
 
-        $sql = 'SELECT ' .  $sql . ' FROM carbonphp.carbon';
+        $sql = 'SELECT ' .  $sql . ' FROM statscoach.carbon';
 
         $pdo = Database::database();
 
@@ -78,13 +80,26 @@ class carbon extends Entities implements iRest
                 };
                 $sql .= ' WHERE ' . $build_where($where);
             }
-        } else if (!empty(self::PRIMARY)){
-            $sql .= ' WHERE ' . self::PRIMARY . '=UNHEX(' . $pdo->quote($primary) . ')';
+        } else {
+            $primary = $pdo->quote($primary);
+            $sql .= ' WHERE  entity_pk=UNHEX(' . $primary .')';
         }
 
         $sql .= $limit;
 
         $return = self::fetch($sql);
+
+        /**
+        *   The next part is so every response from the rest api
+        *   formats to a set of rows. Even if only one row is returned.
+        *   You must set the third parameter to true, otherwise '0' is
+        *   apparently in the self::COLUMNS
+        */
+
+
+        if (count($return) && in_array(array_keys($return)[0], self::COLUMNS, true)) {  // You must set tr
+            $return = [$return];
+        }
 
         return true;
     }
@@ -95,13 +110,13 @@ class carbon extends Entities implements iRest
     */
     public static function Post(array $argv)
     {
-        $sql = 'INSERT INTO carbonphp.carbon (entity_pk, entity_fk) VALUES ( UNHEX(:entity_pk), :entity_fk)';
+        $sql = 'INSERT INTO statscoach.carbon (entity_pk, entity_fk) VALUES ( UNHEX(:entity_pk), :entity_fk)';
         $stmt = Database::database()->prepare($sql);
-            $entity_pk = $id = self::fetchColumn('SELECT (REPLACE(UUID(),"-",""))')[0];
-            $stmt->bindParam(':entity_pk',$entity_pk, \PDO::PARAM_STR, 32);
+            $entity_pk = $id = isset($argv['entity_pk']) ? $argv['entity_pk'] : self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
+            $stmt->bindParam(':entity_pk',$entity_pk, \PDO::PARAM_STR, 16);
             
                 $entity_fk = isset($argv['entity_fk']) ? $argv['entity_fk'] : null;
-                $stmt->bindParam(':entity_fk',$entity_fk, \PDO::PARAM_STR, 32);
+                $stmt->bindParam(':entity_fk',$entity_fk, \PDO::PARAM_STR, 16);
         
         return $stmt->execute() ? $id : false;
 
@@ -121,7 +136,7 @@ class carbon extends Entities implements iRest
             }
         }
 
-        $sql = 'UPDATE carbonphp.carbon ';
+        $sql = 'UPDATE statscoach.carbon ';
 
         $sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
 
@@ -146,11 +161,11 @@ class carbon extends Entities implements iRest
 
         if (isset($argv['entity_pk'])) {
             $entity_pk = 'UNHEX('.$argv['entity_pk'].')';
-            $stmt->bindParam(':entity_pk', $entity_pk, \PDO::PARAM_STR, 32);
+            $stmt->bindParam(':entity_pk', $entity_pk, \PDO::PARAM_STR, 16);
         }
         if (isset($argv['entity_fk'])) {
             $entity_fk = 'UNHEX('.$argv['entity_fk'].')';
-            $stmt->bindParam(':entity_fk', $entity_fk, \PDO::PARAM_STR, 32);
+            $stmt->bindParam(':entity_fk', $entity_fk, \PDO::PARAM_STR, 16);
         }
 
         if (!$stmt->execute()){
@@ -171,7 +186,7 @@ class carbon extends Entities implements iRest
     */
     public static function Delete(array &$remove, string $primary = null, array $argv) : bool
     {
-        $sql = 'DELETE FROM carbonphp.carbon ';
+        $sql = 'DELETE FROM statscoach.carbon ';
 
         foreach($argv as $column => $constraint){
             if (!in_array($column, self::COLUMNS)){
@@ -197,8 +212,9 @@ class carbon extends Entities implements iRest
                 }
             }
             $sql = substr($sql, 0, strlen($sql)-4);
-        } else if (!empty(self::PRIMARY)) {
-            $sql .= ' WHERE ' . self::PRIMARY . '=UNHEX(' . Database::database()->quote($primary) . ')';
+        } else {
+            $primary = Database::database()->quote($primary);
+            $sql .= ' WHERE  entity_pk=UNHEX(' . $primary .')';
         }
 
         $remove = null;
