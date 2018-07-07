@@ -130,10 +130,6 @@ namespace {                                     // This runs the following code 
     {
         return function (...$argv) use ($lambda) {
             try {
-                if (ob_get_status()) {
-                    ob_end_flush();
-                    exit(1);
-                }
                 ob_start(null,null,  PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
                 $argv = \call_user_func_array($lambda, $argv);
             } catch (Exception | Error $e) {
