@@ -1,6 +1,6 @@
 <?php
-namespace Table;
 
+namespace CarbonPHP\Table;
 
 use CarbonPHP\Database;
 use CarbonPHP\Entities;
@@ -57,7 +57,7 @@ class carbon_tags extends Entities implements iRest
             }
         }
 
-        $sql = 'SELECT ' .  $sql . ' FROM statscoach.carbon_tags';
+        $sql = 'SELECT ' .  $sql . ' FROM carbonphp.carbon_tags';
 
         $pdo = Database::database();
 
@@ -96,8 +96,9 @@ class carbon_tags extends Entities implements iRest
         *   apparently in the self::COLUMNS
         */
 
-
-        if (count($return) && in_array(array_keys($return)[0], self::COLUMNS, true)) {  // You must set tr
+        if ($primary === null && count($return) && in_array(array_keys($return)[0], self::COLUMNS, true)) {  // You must set tr
+            $return = [$return];
+        }        if ($primary === null && count($return) && in_array(array_keys($return)[0], self::COLUMNS, true)) {  // You must set tr
             $return = [$return];
         }
 
@@ -110,7 +111,7 @@ class carbon_tags extends Entities implements iRest
     */
     public static function Post(array $argv)
     {
-        $sql = 'INSERT INTO statscoach.carbon_tags (tag_description, tag_name) VALUES ( :tag_description, :tag_name)';
+        $sql = 'INSERT INTO carbonphp.carbon_tags (tag_description, tag_name) VALUES ( :tag_description, :tag_name)';
         $stmt = Database::database()->prepare($sql);
                     $stmt->bindValue(':tag_description',$argv['tag_description'], \PDO::PARAM_STR);
                     $stmt->bindValue(':tag_name',$argv['tag_name'], \PDO::PARAM_STR);
@@ -121,11 +122,11 @@ class carbon_tags extends Entities implements iRest
 
     /**
     * @param array $return
-    * @param string $id
+    * @param string $primary
     * @param array $argv
     * @return bool
     */
-    public static function Put(array &$return, string $id, array $argv) : bool
+    public static function Put(array &$return, string $primary, array $argv) : bool
     {
         foreach ($argv as $key => $value) {
             if (!in_array($key, self::COLUMNS)){
@@ -133,7 +134,7 @@ class carbon_tags extends Entities implements iRest
             }
         }
 
-        $sql = 'UPDATE statscoach.carbon_tags ';
+        $sql = 'UPDATE carbonphp.carbon_tags ';
 
         $sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
 
@@ -153,11 +154,15 @@ class carbon_tags extends Entities implements iRest
             return false;
         }
 
-        $set = substr($set, 0, strlen($set)-1);
+        $sql .= substr($set, 0, strlen($set)-1);
 
-        $sql .= $set . ' WHERE ' . self::PRIMARY . "='$id'";
+        $db = Database::database();
 
-        $stmt = Database::database()->prepare($sql);
+        
+        $primary = $db->quote($primary);
+        $sql .= ' WHERE  tag_id=' . $primary .'';
+
+        $stmt = $db->prepare($sql);
 
         if (isset($argv['tag_id'])) {
             $tag_id = $argv['tag_id'];
@@ -188,7 +193,7 @@ class carbon_tags extends Entities implements iRest
     */
     public static function Delete(array &$remove, string $primary = null, array $argv) : bool
     {
-        $sql = 'DELETE FROM statscoach.carbon_tags ';
+        $sql = 'DELETE FROM carbonphp.carbon_tags ';
 
         foreach($argv as $column => $constraint){
             if (!in_array($column, self::COLUMNS)){

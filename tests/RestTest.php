@@ -59,15 +59,8 @@ final class RestTest extends TestCase
 
     public function testRestApiCanPost(): void
     {
-        $this->store = [];
-        $this->assertTrue(Rest::Get($this->store, null, ['entity_pk' => 'RestTests']));
-
-        if (!empty($this->store)){
-            $this->assertTrue(Rest::Delete($this->store, $this->store['entity_pk'], []));
-        }
-
-        // Should return a hex id
-        $this->assertTrue(is_string($this->user_id = Rest::Post(['entity_pk' => 'RestTests'])));
+        // Should return a unique hex id
+        $this->assertTrue(is_string($this->user_id = Rest::Post(['entity_pk' => '8544e3d581ba11e8942cd89ef3fc55fa'])));
     }
 
     /**
@@ -76,13 +69,17 @@ final class RestTest extends TestCase
     public function testRestApiCanGet(): void
     {
         $this->store = [];
-        $this->assertTrue(Rest::Get($this->store, null, ['entity_pk' => 'RestTests']));
+        $this->assertTrue(Rest::Get($this->store, '8544e3d581ba11e8942cd89ef3fc55fa', []));
 
         $this->assertInternalType('array', $this->store);
 
         if (!empty($this->store)) {
             $this->assertArrayHasKey('entity_fk', $this->store);
         }
+
+        $this->assertTrue(Rest::Get($this->store, null, ['entity_pk' => '8544e3d581ba11e8942cd89ef3fc55fa']));
+
+
         // This route redirects to home, thus ending in false
     }
 
@@ -101,8 +98,9 @@ final class RestTest extends TestCase
 
         $uuid = $quickAccess->uuid();
 
-        $this->assertTrue(Rest::Get($this->store, null, [
-            'entity_pk' => $uuid]));
+        $this->assertTrue(Rest::Get($this->store, '8544e3d581ba11e8942cd89ef3fc55fa', []));
+
+        var_dump($this->store);
 
         $this->assertArrayHasKey('entity_fk', $this->store);
 
@@ -111,6 +109,10 @@ final class RestTest extends TestCase
                 'entity_pk' => $uuid]));
 
         $this->assertEquals($uuid, $this->store['entity_pk']);
+
+        $this->assertTrue(Rest::Get($this->store, $uuid, []));
+
+        var_dump($this->store);
     }
 
     /**

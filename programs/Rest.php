@@ -37,11 +37,14 @@ END;
     exit(1);
 };
 
-$argc < 3 and $usage();    // quick if stmt
+$argc < 2 and $usage();    // quick if stmt
 
 $pass = '';
 $onlyThese = null;
 $verbose = $primary_required = $delete_dump = $carbon_namespace = false;
+
+$host = '127.0.0.1';
+$user = 'root';
 
 for ($i = 0; $i < $argc; $i++) {
     switch ($argv[$i]) {
@@ -224,7 +227,9 @@ foreach ($matches as $insert) {// Create Table
                 }
                 $rest['primary'][] = ['name' => $key];
             }
-            $rest['primary'][] = ['sql' => '$sql .= \' WHERE ' . implode($sql, ' OR ') . "';" ];
+            $rest['primary'][] = [
+                'sql' => '$sql .= \' WHERE ' . implode($sql, ' OR ') . "';",
+                ];
 
         } else if ($query[0] === 'CONSTRAINT') {
 
@@ -377,7 +382,7 @@ foreach ($matches as $insert) {// Create Table
     file_put_contents(APP_ROOT . 'table/' . $rest['TableName'] . '.php', $mustache($rest));
 }
 
-print "\tDone\n\n";
+print "\tSuccess!\n\n";
 
 $delete_dump and unlink('./config/mysqldump.sql');
 

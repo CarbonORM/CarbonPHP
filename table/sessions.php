@@ -1,6 +1,6 @@
 <?php
-namespace Table;
 
+namespace CarbonPHP\Table;
 
 use CarbonPHP\Database;
 use CarbonPHP\Entities;
@@ -17,7 +17,7 @@ class sessions extends Entities implements iRest
     ];
 
     const BINARY = [
-    'user_id',
+    'user_id','user_ip',
     ];
 
     /**
@@ -57,7 +57,7 @@ class sessions extends Entities implements iRest
             }
         }
 
-        $sql = 'SELECT ' .  $sql . ' FROM statscoach.sessions';
+        $sql = 'SELECT ' .  $sql . ' FROM carbonphp.sessions';
 
         $pdo = Database::database();
 
@@ -96,8 +96,9 @@ class sessions extends Entities implements iRest
         *   apparently in the self::COLUMNS
         */
 
-
-        if (count($return) && in_array(array_keys($return)[0], self::COLUMNS, true)) {  // You must set tr
+        if ($primary === null && count($return) && in_array(array_keys($return)[0], self::COLUMNS, true)) {  // You must set tr
+            $return = [$return];
+        }        if ($primary === null && count($return) && in_array(array_keys($return)[0], self::COLUMNS, true)) {  // You must set tr
             $return = [$return];
         }
 
@@ -110,7 +111,7 @@ class sessions extends Entities implements iRest
     */
     public static function Post(array $argv)
     {
-        $sql = 'INSERT INTO statscoach.sessions (user_id, user_ip, session_id, session_expires, session_data, user_online_status) VALUES ( :user_id, :user_ip, :session_id, :session_expires, :session_data, :user_online_status)';
+        $sql = 'INSERT INTO carbonphp.sessions (user_id, user_ip, session_id, session_expires, session_data, user_online_status) VALUES ( :user_id, :user_ip, :session_id, :session_expires, :session_data, :user_online_status)';
         $stmt = Database::database()->prepare($sql);
             
                 $user_id = $argv['user_id'];
@@ -133,11 +134,11 @@ class sessions extends Entities implements iRest
 
     /**
     * @param array $return
-    * @param string $id
+    * @param string $primary
     * @param array $argv
     * @return bool
     */
-    public static function Put(array &$return, string $id, array $argv) : bool
+    public static function Put(array &$return, string $primary, array $argv) : bool
     {
         foreach ($argv as $key => $value) {
             if (!in_array($key, self::COLUMNS)){
@@ -145,7 +146,7 @@ class sessions extends Entities implements iRest
             }
         }
 
-        $sql = 'UPDATE statscoach.sessions ';
+        $sql = 'UPDATE carbonphp.sessions ';
 
         $sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
 
@@ -155,7 +156,7 @@ class sessions extends Entities implements iRest
             $set .= 'user_id=UNHEX(:user_id),';
         }
         if (isset($argv['user_ip'])) {
-            $set .= 'user_ip=:user_ip,';
+            $set .= 'user_ip=UNHEX(:user_ip),';
         }
         if (isset($argv['session_id'])) {
             $set .= 'session_id=:session_id,';
@@ -174,19 +175,23 @@ class sessions extends Entities implements iRest
             return false;
         }
 
-        $set = substr($set, 0, strlen($set)-1);
+        $sql .= substr($set, 0, strlen($set)-1);
 
-        $sql .= $set . ' WHERE ' . self::PRIMARY . "='$id'";
+        $db = Database::database();
 
-        $stmt = Database::database()->prepare($sql);
+        
+        $primary = $db->quote($primary);
+        $sql .= ' WHERE  session_id=' . $primary .'';
+
+        $stmt = $db->prepare($sql);
 
         if (isset($argv['user_id'])) {
             $user_id = 'UNHEX('.$argv['user_id'].')';
             $stmt->bindParam(':user_id', $user_id, \PDO::PARAM_STR, 16);
         }
         if (isset($argv['user_ip'])) {
-            $user_ip = $argv['user_ip'];
-            $stmt->bindParam(':user_ip',$user_ip, \PDO::PARAM_STR, 16);
+            $user_ip = 'UNHEX('.$argv['user_ip'].')';
+            $stmt->bindParam(':user_ip', $user_ip, \PDO::PARAM_STR, 16);
         }
         if (isset($argv['session_id'])) {
             $session_id = $argv['session_id'];
@@ -221,7 +226,7 @@ class sessions extends Entities implements iRest
     */
     public static function Delete(array &$remove, string $primary = null, array $argv) : bool
     {
-        $sql = 'DELETE FROM statscoach.sessions ';
+        $sql = 'DELETE FROM carbonphp.sessions ';
 
         foreach($argv as $column => $constraint){
             if (!in_array($column, self::COLUMNS)){

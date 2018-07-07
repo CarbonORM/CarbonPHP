@@ -1,6 +1,6 @@
 <?php
-namespace Table;
 
+namespace CarbonPHP\Table;
 
 use CarbonPHP\Database;
 use CarbonPHP\Entities;
@@ -57,7 +57,7 @@ class carbon extends Entities implements iRest
             }
         }
 
-        $sql = 'SELECT ' .  $sql . ' FROM statscoach.carbon';
+        $sql = 'SELECT ' .  $sql . ' FROM carbonphp.carbon';
 
         $pdo = Database::database();
 
@@ -96,8 +96,9 @@ class carbon extends Entities implements iRest
         *   apparently in the self::COLUMNS
         */
 
-
-        if (count($return) && in_array(array_keys($return)[0], self::COLUMNS, true)) {  // You must set tr
+        if ($primary === null && count($return) && in_array(array_keys($return)[0], self::COLUMNS, true)) {  // You must set tr
+            $return = [$return];
+        }        if ($primary === null && count($return) && in_array(array_keys($return)[0], self::COLUMNS, true)) {  // You must set tr
             $return = [$return];
         }
 
@@ -110,7 +111,7 @@ class carbon extends Entities implements iRest
     */
     public static function Post(array $argv)
     {
-        $sql = 'INSERT INTO statscoach.carbon (entity_pk, entity_fk) VALUES ( UNHEX(:entity_pk), :entity_fk)';
+        $sql = 'INSERT INTO carbonphp.carbon (entity_pk, entity_fk) VALUES ( UNHEX(:entity_pk), :entity_fk)';
         $stmt = Database::database()->prepare($sql);
             $entity_pk = $id = isset($argv['entity_pk']) ? $argv['entity_pk'] : self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
             $stmt->bindParam(':entity_pk',$entity_pk, \PDO::PARAM_STR, 16);
@@ -124,11 +125,11 @@ class carbon extends Entities implements iRest
 
     /**
     * @param array $return
-    * @param string $id
+    * @param string $primary
     * @param array $argv
     * @return bool
     */
-    public static function Put(array &$return, string $id, array $argv) : bool
+    public static function Put(array &$return, string $primary, array $argv) : bool
     {
         foreach ($argv as $key => $value) {
             if (!in_array($key, self::COLUMNS)){
@@ -136,7 +137,7 @@ class carbon extends Entities implements iRest
             }
         }
 
-        $sql = 'UPDATE statscoach.carbon ';
+        $sql = 'UPDATE carbonphp.carbon ';
 
         $sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
 
@@ -153,11 +154,15 @@ class carbon extends Entities implements iRest
             return false;
         }
 
-        $set = substr($set, 0, strlen($set)-1);
+        $sql .= substr($set, 0, strlen($set)-1);
 
-        $sql .= $set . ' WHERE ' . self::PRIMARY . "='$id'";
+        $db = Database::database();
 
-        $stmt = Database::database()->prepare($sql);
+        
+        $primary = $db->quote($primary);
+        $sql .= ' WHERE  entity_pk=UNHEX(' . $primary .')';
+
+        $stmt = $db->prepare($sql);
 
         if (isset($argv['entity_pk'])) {
             $entity_pk = 'UNHEX('.$argv['entity_pk'].')';
@@ -186,7 +191,7 @@ class carbon extends Entities implements iRest
     */
     public static function Delete(array &$remove, string $primary = null, array $argv) : bool
     {
-        $sql = 'DELETE FROM statscoach.carbon ';
+        $sql = 'DELETE FROM carbonphp.carbon ';
 
         foreach($argv as $column => $constraint){
             if (!in_array($column, self::COLUMNS)){

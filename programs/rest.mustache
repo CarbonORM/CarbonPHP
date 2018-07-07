@@ -141,11 +141,11 @@ class {{TableName}} extends Entities implements iRest
 
     /**
     * @param array $return
-    * @param string $id
+    * @param string $primary
     * @param array $argv
     * @return bool
     */
-    public static function Put(array &$return, string $id, array $argv) : bool
+    public static function Put(array &$return, string $primary, array $argv) : bool
     {
         foreach ($argv as $key => $value) {
             if (!in_array($key, self::COLUMNS)){
@@ -169,11 +169,15 @@ class {{TableName}} extends Entities implements iRest
             return false;
         }
 
-        $set = substr($set, 0, strlen($set)-1);
+        $sql .= substr($set, 0, strlen($set)-1);
 
-        $sql .= $set . ' WHERE ' . self::PRIMARY . "='$id'";
+        $db = Database::database();
 
-        $stmt = Database::database()->prepare($sql);
+        {{#primary}}{{#sql}}
+        $primary = $db->quote($primary);
+        {{{sql}}}{{/sql}}{{/primary}}
+
+        $stmt = $db->prepare($sql);
 
     {{#explode}}
         if (isset($argv['{{name}}'])) {
