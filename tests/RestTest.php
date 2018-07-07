@@ -92,16 +92,25 @@ final class RestTest extends TestCase
     public function testRestApiCanPut(): void
     {
         $this->store = [];
+
+         $quickAccess = new class extends \CarbonPHP\Entities {
+             public function uuid(){
+                 return self::fetchColumn('SELECT (REPLACE(UUID(),"-",""))')[0];
+             }
+         };
+
+        $uuid = $quickAccess->uuid();
+
         $this->assertTrue(Rest::Get($this->store, null, [
-            'entity_pk' => 'RestTests']));
+            'entity_pk' => $uuid]));
 
         $this->assertArrayHasKey('entity_fk', $this->store);
 
         $this->assertTrue(
             Rest::Put($this->store, $this->store['entity_pk'], [
-                'entity_pk' => 'lil\'Rich']));
+                'entity_pk' => $uuid]));
 
-        $this->assertEquals('lil\'Rich', $this->store['entity_pk']);
+        $this->assertEquals($uuid, $this->store['entity_pk']);
     }
 
     /**

@@ -8,7 +8,9 @@ use CarbonPHP\Interfaces\iRest;
 
 class {{TableName}} extends Entities implements iRest
 {
-    const PRIMARY = "{{primary}}";
+    const PRIMARY = [
+    {{#primary}}'{{name}}',{{/primary}}
+    ];
 
     const COLUMNS = [
     {{#explode}}'{{name}}',{{/explode}}
@@ -78,13 +80,26 @@ class {{TableName}} extends Entities implements iRest
                 };
                 $sql .= ' WHERE ' . $build_where($where);
             }
-        } else if (!empty(self::PRIMARY)){
-            {{#binary_primary}}$sql .= ' WHERE ' . self::PRIMARY . '=UNHEX(' . $pdo->quote($primary) . ')';{{/binary_primary}}{{^binary_primary}}$sql .= ' WHERE ' . self::PRIMARY . '=' . $pdo->quote($primary);{{/binary_primary}}
-        }
+        } {{#primary}}else {
+            $primary = $pdo->quote($primary);
+            {{{sql}}}
+        }{{/primary}}
 
         $sql .= $limit;
 
         $return = self::fetch($sql);
+
+        /**
+        *   The next part is so every response from the rest api
+        *   formats to a set of rows. Even if only one row is returned.
+        *   You must set the third parameter to true, otherwise '0' is
+        *   apparently in the self::COLUMNS
+        */
+
+
+        if (count($return) && in_array(array_keys($return)[0], self::COLUMNS, true)) {  // You must set tr
+            $return = [$return];
+        }
 
         return true;
     }
@@ -100,7 +115,7 @@ class {{TableName}} extends Entities implements iRest
 {{#explode}}
     {{#primary_binary}}
         {{^carbon_table}}
-            ${{name}} = $id = isset($argv['{{name}}']) ? $argv['{{name}}'] : self::fetchColumn('SELECT (REPLACE(UUID(),"-",""))')[0];
+            ${{name}} = $id = isset($argv['{{name}}']) ? $argv['{{name}}'] : self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
             $stmt->bindParam(':{{name}}',${{name}}, \{{type}}, {{length}});
         {{/carbon_table}}
         {{#carbon_table}}
@@ -109,11 +124,13 @@ class {{TableName}} extends Entities implements iRest
         {{/carbon_table}}
     {{/primary_binary}}
     {{^primary_binary}}
+    {{^skip}}
             {{^length}}$stmt->bindValue(':{{name}}',{{^default}}$argv['{{name}}']{{/default}}{{#default}}isset($argv['{{name}}']) ? $argv['{{name}}'] : {{default}}{{/default}}, \{{type}});{{/length}}
             {{#length}}
                 ${{name}} = {{^default}}$argv['{{name}}']{{/default}}{{#default}}isset($argv['{{name}}']) ? $argv['{{name}}'] : {{{default}}}{{/default}};
                 $stmt->bindParam(':{{name}}',${{name}}, \{{type}}, {{length}});
             {{/length}}
+            {{/skip}}
         {{/primary_binary}}{{/explode}}
 {{#binary_primary}}
         return $stmt->execute() ? $id : false;{{/binary_primary}}
@@ -161,7 +178,7 @@ class {{TableName}} extends Entities implements iRest
     {{#explode}}
         if (isset($argv['{{name}}'])) {
     {{^length}}
-            $stmt->bindValue(':{{name}}',$argv['{{name}}'], \{{type}} );
+            $stmt->bindValue(':{{name}}',$argv['{{name}}'], \{{type}});
     {{/length}}
     {{#length}}
         {{#binary}}
@@ -170,7 +187,7 @@ class {{TableName}} extends Entities implements iRest
         {{/binary}}
         {{^binary}}
             ${{name}} = $argv['{{name}}'];
-            $stmt->bindParam(':{{name}}',${{name}}, \{{type}}, {{length}} );
+            $stmt->bindParam(':{{name}}',${{name}}, \{{type}}, {{length}});
         {{/binary}}
     {{/length}}
         }
@@ -224,10 +241,10 @@ class {{TableName}} extends Entities implements iRest
                 }
             }
             $sql = substr($sql, 0, strlen($sql)-4);
-        } else if (!empty(self::PRIMARY)) {
-
-    {{^binary_primary}}$sql .= ' WHERE ' . self::PRIMARY . '=' . Database::database()->quote($primary);{{/binary_primary}}{{#binary_primary}}$sql .= ' WHERE ' . self::PRIMARY . '=UNHEX(' . Database::database()->quote($primary) . ')';{{/binary_primary}}
-        }
+        } {{#primary}}else {
+            $primary = $pdo->quote($primary);
+            {{{sql}}}
+        }{{/primary}}
 
         $remove = null;
 

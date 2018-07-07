@@ -28,7 +28,7 @@ $usage = function () use ($argv) {
 \t       -r                            - specify that a primary key is required for generation
 \t       -l [?tableName(s),[...?,[]]]  - comma separated list of specific tables to capture  
 \t       -v                            - Verbose output 
-\t       -f [?file_of_Tables]          - file of table names separated by eol ("\n")
+\t       -f [?file_of_Tables]          - file of table names separated by eol
 \t       -e [?executable]              - path to mysqldump command 
 \t       -dump [?dump]                 - path to a mysqldump sql export 
 \n
@@ -76,7 +76,7 @@ for ($i = 0; $i < $argc; $i++) {
             $onlyThese = explode(',', $argv[++$i]);
             break;
         case '-f':
-            if (empty($file = file_get_contents($argv[++$i]))) {
+            if (empty($file = file_get_contents("{$argv[++$i]}"))) {
                 print "Could not open file [ " . $argv[$i] . " ] for input\n\n";
                 exit(1);
             }
@@ -109,6 +109,11 @@ END;
     }
 }
 
+
+if (empty($schema)) {
+    print 'You must specify the table schema!';
+    exit(1);
+}
 
 if (empty($dump)) {
     if (empty($host) || empty($schema) || empty($user)) $usage();
@@ -169,7 +174,6 @@ $PDO = [                                            // I guess this is it ?
 
 // Every table insert
 
-
 $skipTable = false;
 foreach ($matches as $insert) {// Create Table
     if (isset($foreign_key)) {
@@ -180,10 +184,12 @@ foreach ($matches as $insert) {// Create Table
     $binary = [];
 
     $rest = [
+        'primary' => [],
         'database' => $schema,
         'carbon_table' => false,
         'carbon_namespace' => $carbon_namespace
     ];
+    $skipping_col = [];
 
     // Every line in table insert
     foreach ($insert as $query) {                                                  // Create Columns
@@ -204,7 +210,17 @@ foreach ($matches as $insert) {// Create Table
             }
 
         } else if ($query[0] === 'PRIMARY') {
-            $rest['primary'] = trim($query[2], "(`),");
+            $primary = explode('`,`', trim($query[2], "(`),"));
+
+            foreach ($primary as $key) {
+                if (in_array($key, $binary)) {
+                    $rest['primary']['sql'][] = ' ' . $key . '=UNHEX(\' . $primary .\')';
+                } else {
+                    $rest['primary']['sql'][] = ' ' . $key . '=\' . $primary .\'';
+                }
+                $rest['primary'][] = ['name' => $key];
+            }
+            $rest['primary']['sql'] = '$sql .= \' WHERE ' . implode($rest['primary']['sql'], ' OR ') . "';";
 
         } else if ($query[0] === 'CONSTRAINT' && $query[6] === '`carbon`' && isset($rest['primary'])) {
             if ($rest['primary'] === $fk = trim($query[4], "()`")) {
@@ -259,11 +275,27 @@ foreach ($matches as $insert) {// Create Table
             }
 
             $query_default = count($query) - 2;
-            if (isset($query[$query_default]) && $query[$query_default] === 'DEFAULT') {
-                $default = rtrim($query[++$query_default], ',');
-                if ($default[0] !== '\'') {
+
+            $key = array_search('DEFAULT', $query);
+            if ($key !== false) {
+                $default = rtrim($query[++$key], ',');
+                if ($default == 'CURRENT_TIMESTAMP') {
+                    $skipping_col[] = $name;
+                    $rest['explode'][$column]['skip'] = true;
+                } else if ($default[0] !== '\'') {
                     $default = "'$default'";
                 }
+            } else {
+                unset($default);
+            }
+
+            $auto_inc = count($query) - 1;
+            if (isset($query[$auto_inc]) && $query[$auto_inc] === 'AUTO_INCREMENT,') {
+                $skipping_col[] = $name;
+                $rest['explode'][$column]['skip'] = true;
+
+                #var_dump($auto_inc_col);
+
             }
 
             $rest['explode'][$column]['name'] = $name;
@@ -312,21 +344,28 @@ foreach ($matches as $insert) {// Create Table
     }
     $rest['update'] = substr($rest['update'], 0, strlen($rest['update']) - 1);  // but remove the last comma
 
-    $rest['listed'] = implode(", ", $rest['implode']);
+    $rest['listed'] = $implode = '';
 
-    $implode = '';
     foreach ($rest['implode'] as &$value) {
-        if (in_array($value, $binary) && isset($rest['primary']) && $rest['primary'] === $value) {
-            if (isset($foreign_key) && $rest['TableName'] !== 'carbon' && $value === $foreign_key) {
-                $implode .= ', UNHEX(:' . $value.')';
+        if (!in_array($value, $skipping_col)) {
+
+            $rest['listed'] .= $value . ', ';
+
+            if (in_array($value, $binary) && isset($rest['primary']) && $rest['primary'] === $value) {
+                if (isset($foreign_key) && $rest['TableName'] !== 'carbon' && $value === $foreign_key) {
+                    $implode .= ', UNHEX(:' . $value . ')';
+                } else {
+                    $implode .= ', UNHEX(:' . $value . ')';
+                    //$implode .= ', (UNHEX(REPLACE(UUID(),"-","")))';
+                }
             } else {
-                $implode .= ', UNHEX(:' . $value.')';
-                //$implode .= ', (UNHEX(REPLACE(UUID(),"-","")))';
+                $implode .= ', :' . $value;
             }
-        } else {
-            $implode .= ', :' . $value;
         }
     }
+
+    $rest['listed'] = trim($rest['listed'], ', ');
+
     $rest['implode'] = substr($implode, 1);
 
     $verbose and var_dump($rest);
