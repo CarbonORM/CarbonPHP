@@ -130,12 +130,17 @@ namespace {                                     // This runs the following code 
     {
         return function (...$argv) use ($lambda) {
             try {
-                ob_start();
+                if (ob_get_status()) {
+                    ob_end_flush();
+                    exit(1);
+                }
+                ob_start(null,null,  PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
                 $argv = \call_user_func_array($lambda, $argv);
             } catch (Exception | Error $e) {
                 if (!$e instanceof PublicAlert) {
                     PublicAlert::danger('Developers make mistakes, and you found a big one. We\'ve logged this event and will be investigating soon.'); // TODO - Change what is logged
-                    //ErrorCatcher::generateLog($e);
+
+                    #ErrorCatcher::generateLog($e);     // TODO -- we didnt log it noooooo
 
                     var_dump($e);  // TODO -- clean this up when rest is working
 
@@ -149,13 +154,12 @@ namespace {                                     // This runs the following code 
                                 <div class="callout callout-info">
                                 <h4>You have printed to the screen while within the catchErrors() function!</h4>
                                 Don't slip up in your production code!
-                                <a href="http://getbootstrap.com/javascript/#modals">Note: All MVC routes are wrapped in this function. Output to the browser should be done within the view! Use this as a reporting tool only.</a>
+                                <a href="http://carbonphp.com/">Note: All MVC routes are wrapped in this function. Output to the browser should be done within the view! Use this as a reporting tool only.</a>
                                 </div><pre>$out</pre>
 END;
-                        die(1);
-                    } else {
-                        ob_end_flush();
+
                     }
+                    ob_end_flush();
                 }
                 Entities::verify();     // Check that all database commit chains have finished successfully, otherwise attempt to remove
                 return $argv;
@@ -234,12 +238,30 @@ END;
      */
     function MVC(string $class, string $method, array &$argv = [])
     {
+        /** @noinspection PhpUnusedLocalVariableInspection */
+        static $APPLICATION, $CLASS, $METHOD; // This MAY run recursively
+
+        $CLASS = $class;
+        $METHOD = $method;
+
+        if (!isset($APPLICATION)) {
+            $APPLICATION = $recurse = 0;
+        } else {
+            $recurse = $APPLICATION;
+        }
+
+        $APPLICATION++;
+
         if (false === catchErrors(CM($class, $method, $argv))()) {  // Controller -> Model
             return false;
         }
 
+        if ($recurse !== 0) {
+            return true;
+        }
+
         // This could cache or send
-        $file = APP_VIEW . "$class/$method";
+        $file = APP_VIEW . "$CLASS/$METHOD";
 
         if (!file_exists(APP_ROOT . $file . ($ext = '.php')) && !file_exists(APP_ROOT . $file . ($ext = '.hbs'))) {
             $ext = '';
