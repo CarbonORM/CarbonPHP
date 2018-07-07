@@ -96,10 +96,10 @@ class {{TableName}} extends Entities implements iRest
         *   apparently in the self::COLUMNS
         */
 
-
-        if (count($return) && in_array(array_keys($return)[0], self::COLUMNS, true)) {  // You must set tr
+        {{#primary}}
+        if ($primary === null && count($return) && in_array(array_keys($return)[0], self::COLUMNS, true)) {  // You must set tr
             $return = [$return];
-        }
+        }{{/primary}}
 
         return true;
     }
