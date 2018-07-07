@@ -9,7 +9,7 @@ use CarbonPHP\Interfaces\iRest;
 class {{TableName}} extends Entities implements iRest
 {
     const PRIMARY = [
-    {{#primary}}'{{name}}',{{/primary}}
+    {{#primary}}{{#name}}'{{name}}',{{/name}}{{/primary}}
     ];
 
     const COLUMNS = [
