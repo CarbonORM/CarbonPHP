@@ -189,8 +189,8 @@ DROP TABLE IF EXISTS `carbon_users`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `carbon_users` (
   `user_id` binary(16) NOT NULL,
-  `user_type` varchar(20) NOT NULL,
-  `user_sport` varchar(20) DEFAULT NULL,
+  `user_type` varchar(20) NOT NULL DEFAULT 'Athlete',
+  `user_sport` varchar(20) DEFAULT 'GOLF',
   `user_session_id` varchar(225) DEFAULT NULL,
   `user_facebook_id` varchar(225) DEFAULT NULL,
   `user_username` varchar(25) NOT NULL,
@@ -199,9 +199,9 @@ CREATE TABLE `carbon_users` (
   `user_profile_pic` varchar(225) DEFAULT NULL,
   `user_profile_uri` varchar(225) DEFAULT NULL,
   `user_cover_photo` varchar(225) DEFAULT NULL,
-  `user_birthday` text,
+  `user_birthday` datetime DEFAULT NULL,
   `user_gender` varchar(25) DEFAULT NULL,
-  `user_about_me` text,
+  `user_about_me` varchar(236) DEFAULT NULL,
   `user_rank` int(8) DEFAULT '0',
   `user_password` varchar(225) DEFAULT NULL,
   `user_email` varchar(50) DEFAULT NULL,
@@ -213,7 +213,7 @@ CREATE TABLE `carbon_users` (
   `user_ip` varchar(20) NOT NULL,
   `user_education_history` text,
   `user_location` text,
-  `user_creation_date` varchar(14) DEFAULT NULL,
+  `user_creation_date` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `carbon_users_user_id_uindex` (`user_id`),
   UNIQUE KEY `carbon_users_user_username_uindex` (`user_username`),
@@ -491,4 +491,4 @@ CREATE TABLE `user_tasks` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-07-07  1:35:45
+-- Dump completed on 2018-07-07  1:59:00

@@ -12,13 +12,14 @@ if (!is_dir(APP_ROOT . 'table')) {
 }
 
 $usage = function () use ($argv) {
+    $argv = isset($argv[0]) ? $argv[0] : 'php index.php rest';
     print <<<END
 \n
 \t           Question Marks Denote Optional Parameters  
 \t           Order does not matter. 
 \t           Flags do not stack ie. not -edf, this -e -f -d
 \t Usage:: 
-\t $argv[0] 
+\t $argv 
 \t       -help                         - this dialogue 
 \t       -h [?HOST]                    - IP address
 \t       -d                            - delete dump
@@ -106,6 +107,7 @@ for ($i = 0; $i < $argc; $i++) {
 \t      - 'Time' Pink Floyd
 \n\n 
 END;
+            exit(1);
     }
 }
 
@@ -224,8 +226,9 @@ foreach ($matches as $insert) {// Create Table
             }
             $rest['primary'][] = ['sql' => '$sql .= \' WHERE ' . implode($sql, ' OR ') . "';" ];
 
-        } else if ($query[0] === 'CONSTRAINT' && $query[6] === '`carbon`' && isset($rest['primary'])) {
-            if (in_array($fk = trim($query[4], "()`"), $rest['primary'])) {
+        } else if ($query[0] === 'CONSTRAINT') {
+
+            if ($query[6] === '`carbon`' & in_array($fk = trim($query[4], "()`"), $primary)) {
                 $foreign_key = $fk;
                 $rest['carbon_table'] = $rest['TableName'] !== 'carbon';
             }
