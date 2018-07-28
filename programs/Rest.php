@@ -4,12 +4,72 @@ $argv = $_SERVER['argv'];
 
 $argc = count($argv);
 
-// Check command line args, password is optional
-print PHP_EOL . "\tBuilding Rest Api!" . PHP_EOL;
-
 if (!is_dir(APP_ROOT . 'table')) {
     mkdir(APP_ROOT . 'table');
 }
+// Check command line args, password is optional
+
+print "\tBuilding Rest Api!\n";
+
+
+$trigger = function ($table, $columns, $primary) {
+
+    $json_mysql = function ($op = 'NEW') use ($columns) {
+        $mid = 'SET @json = "{";';
+        foreach ($columns as $key => &$column) {
+            $column = <<<END
+\nSET @json = CONCAT(@json, "\"$column\"", ":", "\"", $op.$column, "\"");
+END;
+        }
+
+        $mid .= implode('SET @json = CONCAT(@json, ",");', $columns);
+
+        $mid .= <<<END
+SET @json = CONCAT(@json, "}");
+END;
+        return $mid;
+    };
+    $history_sql = function ($operation_type = 'POST') use ($table, $primary) {
+        $relative_time = $operation_type === "POST" ? 'NEW' : $operation_type === 'PUT' ? 'NEW' : 'OLD';
+        return <<<END
+INSERT INTO resource_history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`) 
+VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,"-","")), '$table', $relative_time.$primary , '$operation_type', @json);
+END;
+    };
+
+    //
+    return <<<END
+DELIMITER ;;
+DROP TRIGGER IF EXISTS `trigger_{$table}_before_delete`;
+CREATE TRIGGER `trigger_{$table}_before_delete` BEFORE DELETE ON `$table` FOR EACH ROW
+BEGIN
+{$json_mysql('OLD')}    
+      -- Insert record into audit table
+{$history_sql('DELETE')}
+END;;
+
+DROP TRIGGER IF EXISTS `trigger_{$table}_after_update`;
+CREATE TRIGGER `trigger_{$table}_after_update` AFTER UPDATE ON `$table` FOR EACH ROW
+BEGIN
+
+{$json_mysql()}    
+      -- Insert record into audit table
+{$history_sql('PUT')}
+
+END;;
+
+DROP TRIGGER IF EXISTS `trigger_{$table}_after_insert`;
+CREATE TRIGGER `trigger_{$table}_after_insert` AFTER INSERT ON `$table` FOR EACH ROW
+BEGIN
+
+{$json_mysql()}    
+      -- Insert record into audit table
+{$history_sql('POST')}
+
+END;;
+DELIMITER ;
+END;
+};
 
 $usage = function () use ($argv) {
     $argv = isset($argv[0]) ? $argv[0] : 'php index.php rest';
@@ -124,24 +184,17 @@ if (empty($dump)) {
     if (empty($host) || empty($schema) || empty($user)) $usage();
 
     // Mysql needs this to access the server
-    $cnf = [
-        '[client]',
-        "user = $user",
-        "password = $pass",
-        "host = $host"
-    ];
+    $cnf = ['[client]', "user = $user", "password = $pass", "host = $host"];
 
     file_put_contents('mysqldump.cnf', implode(PHP_EOL, $cnf));
 
-
-    $runMe = (empty($executable) ? 'mysqldump' : "\"$executable\"") . ' --defaults-extra-file="./mysqldump.cnf" --no-data ' . $schema . ' > ./config/mysqldump.sql';
+    $runMe = (empty($executable) ? 'mysqldump' : "\"$executable\"") . ' --defaults-extra-file="./mysqldump.cnf" --no-data ' . $schema . ' > ./mysqldump.sql';
     // BASH QUERY
     $verbose and print $runMe . PHP_EOL;
 
-    `$runMe`;
+    `$runMe`;   // execute mysqldump
 
-    unlink('mysqldump.cnf');
-
+    unlink('mysqldump.cnf');    // remove dumpfile
 
     if (!file_exists(APP_ROOT . '/config/mysqldump.sql')) {
         print 'Could not load mysql dump file!' . PHP_EOL;

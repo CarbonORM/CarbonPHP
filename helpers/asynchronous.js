@@ -54,7 +54,7 @@
 
 //-- jQuery Knob -->
     function load_knob() {
-        $.carbon.js(TEMPLATE+"bower_components/jquery-knob/js/jquery.knob.js", () => {
+        carbon.js(TEMPLATE+"bower_components/jquery-knob/js/jquery.knob.js", () => {
             $(this).knob({
                 draw: function () {
                     // "tron" case
