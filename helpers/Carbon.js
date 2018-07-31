@@ -125,7 +125,7 @@ function CarbonPHP() {
                     template = Mustache.render(mustache, json);       // render json with mustache lib
 
                     if (json.hasOwnProperty('ALERT') && self.isset(json.ALERT)) {
-                        self.alerts = json.ALERT;
+                        self.alerting = json.ALERT;
                     }
 
                     if (json.hasOwnProperty('scroll')) {                        // use slim scroll to move to bottom of chats (lifo)
@@ -215,9 +215,7 @@ function CarbonPHP() {
                     $(json.Widget).html(template);       // render json with mustache lib
 
                     if (json.hasOwnProperty('ALERT') && self.isset(json.ALERT)) {
-
-                        alerts(json.ALERT);
-
+                        self.alerts(json.ALERT);
                     }
 
                     if (json.hasOwnProperty('scroll')) {                        // use slim scroll to move to bottom of chats (lifo)
@@ -229,7 +227,7 @@ function CarbonPHP() {
                 console.log(json);                              // log ( object ) - seperating them will print nicely
 
                 if (json.hasOwnProperty('ALERT') && self.isset(json.ALERT)) {
-                    alerts(json.ALERT);
+                    self.alerts(json.ALERT);
                 }
 
             } else {
@@ -252,7 +250,7 @@ function CarbonPHP() {
 
         self.address = address;
 
-        self.alerts = {};
+        self.alerting = {};
 
         // Google's loadDeferredStyles
         let loadDeferredStyles = function () {
@@ -301,9 +299,9 @@ function CarbonPHP() {
 
         $(document).on('pjax:success', () => {
 
-            console.log(self.alerts);
+            console.log(self.alerting);
 
-            self.alerts(self.alerts);
+            self.alerts(self.alerting);
 
             console.log("Successfully loaded " + window.location.href)
         });

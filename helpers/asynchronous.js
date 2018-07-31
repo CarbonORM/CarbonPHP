@@ -127,7 +127,7 @@
     $.fn.load_backStretch = $.load_backStretch = load_backStretch;
     $.fn.load_select2  = $.load_select2 = load_select2;
     $.fn.load_datatables = $.load_datatables = load_datatables;
-    $.fn.load_datatables = $.load_iCheck = load_iCheck;
+    $.fn.load_iCheck = $.load_iCheck = load_iCheck;
     $.fn.load_wysihtml5 = $.load_wysihtml5 = load_wysihtml5;
     $.fn.load_inputmask = $.load_inputmask = load_inputmask;
     $.fn.load_knob = $.load_knob = load_knob;
