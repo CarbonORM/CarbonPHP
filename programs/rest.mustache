@@ -162,7 +162,7 @@ class {{TableName}} extends Entities implements iRest
     public static function Post(array $argv)
     {
         $sql = 'INSERT INTO {{database}}.{{TableName}} ({{listed}}) VALUES ({{{implode}}})';
-        $stmt = sDatabaseelf::database()->prepare($sql);
+        $stmt = Database::database()->prepare($sql);
 
         global $json;
 
