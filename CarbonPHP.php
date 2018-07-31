@@ -390,6 +390,7 @@ class CarbonPHP
      *  for reporting purposes.
      * php index.php [command]
      * @param array $PHP
+     * @return mixed
      */
     private function CLI(array $PHP)
     {

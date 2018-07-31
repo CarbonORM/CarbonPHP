@@ -16,6 +16,8 @@ class {{TableName}} extends Entities implements iRest
     {{#explode}}'{{name}}',{{/explode}}
     ];
 
+    {{^validation}}const VALIDATION = [];{{/validation}}{{#validation}}{{{validation}}}{{/validation}}
+
     const BINARY = [
     {{#binary_list}}'{{name}}',{{/binary_list}}
     ];
@@ -99,7 +101,7 @@ class {{TableName}} extends Entities implements iRest
 
         $pdo = Database::database();
 
-        if ($primary === null) {
+        if (empty($primary)) {
             if (!empty($where)) {
                 $build_where = function (array $set, $join = 'AND') use (&$pdo, &$build_where) {
                     $sql = '(';
@@ -131,6 +133,13 @@ class {{TableName}} extends Entities implements iRest
 
         $return = self::fetch($sql);
 
+        global $json;
+
+        if (!isset($json['sql'])) {
+            $json['sql'] = [];
+        }
+        $json['sql'][] = $sql;
+
         /**
         *   The next part is so every response from the rest api
         *   formats to a set of rows. Even if only one row is returned.
@@ -139,7 +148,7 @@ class {{TableName}} extends Entities implements iRest
         */
 
         {{#primary}}{{#sql}}
-        if ($primary === null && count($return) && in_array(array_keys($return)[0], self::COLUMNS, true)) {  // You must set tr
+        if (empty($primary) && count($return) && in_array(array_keys($return)[0], self::COLUMNS, true)) {  // You must set tr
             $return = [$return];
         }{{/sql}}{{/primary}}
 
@@ -153,16 +162,24 @@ class {{TableName}} extends Entities implements iRest
     public static function Post(array $argv)
     {
         $sql = 'INSERT INTO {{database}}.{{TableName}} ({{listed}}) VALUES ({{{implode}}})';
-        $stmt = Database::database()->prepare($sql);
+        $stmt = sDatabaseelf::database()->prepare($sql);
+
+        global $json;
+
+        if (!isset($json['sql'])) {
+            $json['sql'] = [];
+        }
+        $json['sql'][] = $sql;
+
 {{#explode}}
     {{#primary_binary}}
         {{^carbon_table}}
             ${{name}} = $id = isset($argv['{{name}}']) ? $argv['{{name}}'] : self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
-            $stmt->bindParam(':{{name}}',${{name}}, \{{type}}, {{length}});
+            $stmt->bindParam(':{{name}}',${{name}}, {{type}}, {{length}});
         {{/carbon_table}}
         {{#carbon_table}}
             ${{name}} = $id = isset($argv['{{name}}']) ? $argv['{{name}}'] : self::new_entity('{{TableName}}');
-            $stmt->bindParam(':{{name}}',${{name}}, \{{type}}, {{length}});
+            $stmt->bindParam(':{{name}}',${{name}}, {{type}}, {{length}});
         {{/carbon_table}}
     {{/primary_binary}}
     {{^primary_binary}}
@@ -170,7 +187,7 @@ class {{TableName}} extends Entities implements iRest
             {{^length}}$stmt->bindValue(':{{name}}',{{^default}}$argv['{{name}}']{{/default}}{{#default}}isset($argv['{{name}}']) ? $argv['{{name}}'] : {{default}}{{/default}}, \{{type}});{{/length}}
             {{#length}}
                 ${{name}} = {{^default}}$argv['{{name}}']{{/default}}{{#default}}isset($argv['{{name}}']) ? $argv['{{name}}'] : {{{default}}}{{/default}};
-                $stmt->bindParam(':{{name}}',${{name}}, \{{type}}, {{length}});
+                $stmt->bindParam(':{{name}}',${{name}}, {{type}}, {{length}});
             {{/length}}
             {{/skip}}
         {{/primary_binary}}{{/explode}}
@@ -221,19 +238,27 @@ class {{TableName}} extends Entities implements iRest
 
         $stmt = $db->prepare($sql);
 
+        global $json;
+
+        if (!isset($json['sql'])) {
+            $json['sql'] = [];
+        }
+        $json['sql'][] = $sql;
+
+
     {{#explode}}
         if (isset($argv['{{name}}'])) {
     {{^length}}
-            $stmt->bindValue(':{{name}}',$argv['{{name}}'], \{{type}});
+            $stmt->bindValue(':{{name}}',$argv['{{name}}'], {{type}});
     {{/length}}
     {{#length}}
         {{#binary}}
             ${{name}} = 'UNHEX('.$argv['{{name}}'].')';
-            $stmt->bindParam(':{{name}}', ${{name}}, \{{type}}, {{length}});
+            $stmt->bindParam(':{{name}}', ${{name}}, {{type}}, {{length}});
         {{/binary}}
         {{^binary}}
             ${{name}} = $argv['{{name}}'];
-            $stmt->bindParam(':{{name}}',${{name}}, \{{type}}, {{length}});
+            $stmt->bindParam(':{{name}}',${{name}}, {{type}}, {{length}});
         {{/binary}}
     {{/length}}
         }
@@ -269,7 +294,7 @@ class {{TableName}} extends Entities implements iRest
             }
         }
 
-        if ($primary === null) {
+        if (empty($primary)) {
             /**
             *   While useful, we've decided to disallow full
             *   table deletions through the rest api. For the
@@ -293,6 +318,13 @@ class {{TableName}} extends Entities implements iRest
         }{{/sql}}{{/primary}}
 
         $remove = null;
+
+        global $json;
+
+        if (!isset($json['sql'])) {
+            $json['sql'] = [];
+        }
+        $json['sql'][] = $sql;
 
         return self::execute($sql);
 {{/carbon_table}}
