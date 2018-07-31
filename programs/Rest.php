@@ -481,6 +481,10 @@ foreach ($matches as $table) {
             $references_table = trim($words_in_insert_stmt[6], '`');
             $references_column = trim($words_in_insert_stmt[7], '()`,');
 
+            if ($references_table === 'carbon' & in_array($foreign_key, $primary)) {
+                $rest[$tableName]['carbon_table'] = $tableName !== 'carbon';
+            }
+
             // We need to catch circular dependencies as mysql dumps print schemas alphabetically
             if (!isset($rest[$references_table])) {
                 $verbose and print "\n\t\t$tableName => [$foreign_key => $references_column]\n";
