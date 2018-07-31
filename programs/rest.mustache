@@ -184,7 +184,7 @@ class {{TableName}} extends Entities implements iRest
     {{/primary_binary}}
     {{^primary_binary}}
     {{^skip}}
-            {{^length}}$stmt->bindValue(':{{name}}',{{^default}}$argv['{{name}}']{{/default}}{{#default}}isset($argv['{{name}}']) ? $argv['{{name}}'] : {{default}}{{/default}}, \{{type}});{{/length}}
+            {{^length}}$stmt->bindValue(':{{name}}',{{^default}}$argv['{{name}}']{{/default}}{{#default}}isset($argv['{{name}}']) ? $argv['{{name}}'] : {{default}}{{/default}}, {{type}});{{/length}}
             {{#length}}
                 ${{name}} = {{^default}}$argv['{{name}}']{{/default}}{{#default}}isset($argv['{{name}}']) ? $argv['{{name}}'] : {{{default}}}{{/default}};
                 $stmt->bindParam(':{{name}}',${{name}}, {{type}}, {{length}});
