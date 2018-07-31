@@ -16,6 +16,8 @@ class carbon_tag extends Entities implements iRest
     'entity_id','user_id','tag_id','creation_date',
     ];
 
+    const VALIDATION = [];
+
     const BINARY = [
     'entity_id','user_id',
     ];
@@ -28,13 +30,21 @@ class carbon_tag extends Entities implements iRest
      */
     public static function Get(array &$return, string $primary = null, array $argv) : bool
     {
-        if (isset($argv['limit'])){
-            if ($argv['limit'] !== '') {
-                $pos = strrpos($argv['limit'], "><");
+        $get = isset($argv['select']) ? $argv['select'] : self::COLUMNS;
+        $where = isset($argv['where']) ? $argv['where'] : [];
+
+        $group = $sql = '';
+
+        if (isset($argv['pagination'])) {
+            if (!empty($argv['pagination']) && !is_array($argv['pagination'])) {
+                $argv['pagination'] = json_decode($argv['pagination'], true);
+            }
+            if (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] != null) {
+                $pos = strrpos($argv['pagination']['limit'], "><");
                 if ($pos !== false) { // note: three equal signs
-                    substr_replace($argv['limit'],',',$pos, 2);
+                    substr_replace($argv['pagination']['limit'],',',$pos, 2);
                 }
-                $limit = ' LIMIT ' . $argv['limit'];
+                $limit = ' LIMIT ' . $argv['pagination']['limit'];
             } else {
                 $limit = '';
             }
@@ -42,32 +52,62 @@ class carbon_tag extends Entities implements iRest
             $limit = ' LIMIT 100';
         }
 
-        $get = isset($argv['select']) ? $argv['select'] : self::COLUMNS;
-        $where = isset($argv['where']) ? $argv['where'] : [];
-
-        $sql = '';
         foreach($get as $key => $column){
             if (!empty($sql)) {
                 $sql .= ', ';
+                $group .= ', ';
             }
             if (in_array($column, self::BINARY)) {
                 $sql .= "HEX($column) as $column";
+                $group .= "$column";
             } else {
                 $sql .= $column;
+                $group .= $column;
             }
         }
 
-        $sql = 'SELECT ' .  $sql . ' FROM carbonphp.carbon_tag';
+        if (isset($argv['aggregate']) && (is_array($argv['aggregate']) || $argv['aggregate'] = json_decode($argv['aggregate'], true))) {
+            foreach($argv['aggregate'] as $key => $value){
+                switch ($key){
+                    case 'count':
+                        if (!empty($sql)) {
+                            $sql .= ', ';
+                        }
+                        $sql .= "COUNT($value) AS count ";
+                        break;
+                    case 'AVG':
+                        if (!empty($sql)) {
+                            $sql .= ', ';
+                        }
+                        $sql .= "AVG($value) AS avg ";
+                        break;
+                    case 'MIN':
+                        if (!empty($sql)) {
+                            $sql .= ', ';
+                        }
+                        $sql .= "MIN($value) AS min ";
+                        break;
+                    case 'MAX':
+                        if (!empty($sql)) {
+                            $sql .= ', ';
+                        }
+                        $sql .= "MAX($value) AS max ";
+                        break;
+                }
+            }
+        }
+
+        $sql = 'SELECT ' .  $sql . ' FROM CarbonPHP.carbon_tag';
 
         $pdo = Database::database();
 
-        if ($primary === null) {
+        if (empty($primary)) {
             if (!empty($where)) {
                 $build_where = function (array $set, $join = 'AND') use (&$pdo, &$build_where) {
                     $sql = '(';
                     foreach ($set as $column => $value) {
                         if (is_array($value)) {
-                            $build_where($value, $join === 'AND' ? 'OR' : 'AND');
+                            $sql .= $build_where($value, $join === 'AND' ? 'OR' : 'AND');
                         } else {
                             if (in_array($column, self::BINARY)) {
                                 $sql .= "($column = UNHEX(" . $pdo->quote($value) . ")) $join ";
@@ -82,9 +122,20 @@ class carbon_tag extends Entities implements iRest
             }
         } 
 
+        if (isset($argv['aggregate'])) {
+            $sql .= ' GROUP BY ' . $group . ' ';
+        }
+
         $sql .= $limit;
 
         $return = self::fetch($sql);
+
+        global $json;
+
+        if (!isset($json['sql'])) {
+            $json['sql'] = [];
+        }
+        $json['sql'][] = $sql;
 
         /**
         *   The next part is so every response from the rest api
@@ -93,7 +144,7 @@ class carbon_tag extends Entities implements iRest
         *   apparently in the self::COLUMNS
         */
 
-
+        
 
         return true;
     }
@@ -104,20 +155,28 @@ class carbon_tag extends Entities implements iRest
     */
     public static function Post(array $argv)
     {
-        $sql = 'INSERT INTO carbonphp.carbon_tag (entity_id, user_id, tag_id, creation_date) VALUES ( :entity_id, :user_id, :tag_id, :creation_date)';
-        $stmt = Database::database()->prepare($sql);
+        $sql = 'INSERT INTO CarbonPHP.carbon_tag (entity_id, user_id, tag_id, creation_date) VALUES ( UNHEX(:entity_id), UNHEX(:user_id), :tag_id, :creation_date)';
+        $stmt = sDatabaseelf::database()->prepare($sql);
+
+        global $json;
+
+        if (!isset($json['sql'])) {
+            $json['sql'] = [];
+        }
+        $json['sql'][] = $sql;
+
             
                 $entity_id = $argv['entity_id'];
-                $stmt->bindParam(':entity_id',$entity_id, \PDO::PARAM_STR, 16);
+                $stmt->bindParam(':entity_id',$entity_id, 2, 16);
                     
                 $user_id = isset($argv['user_id']) ? $argv['user_id'] : null;
-                $stmt->bindParam(':user_id',$user_id, \PDO::PARAM_STR, 16);
+                $stmt->bindParam(':user_id',$user_id, 2, 16);
                     
                 $tag_id = $argv['tag_id'];
-                $stmt->bindParam(':tag_id',$tag_id, \PDO::PARAM_STR, 11);
+                $stmt->bindParam(':tag_id',$tag_id, 2, 11);
                     
                 $creation_date = $argv['creation_date'];
-                $stmt->bindParam(':creation_date',$creation_date, \PDO::PARAM_STR, 20);
+                $stmt->bindParam(':creation_date',$creation_date, 2, 20);
         
 
         return $stmt->execute();
@@ -137,7 +196,7 @@ class carbon_tag extends Entities implements iRest
             }
         }
 
-        $sql = 'UPDATE carbonphp.carbon_tag ';
+        $sql = 'UPDATE CarbonPHP.carbon_tag ';
 
         $sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
 
@@ -168,21 +227,29 @@ class carbon_tag extends Entities implements iRest
 
         $stmt = $db->prepare($sql);
 
+        global $json;
+
+        if (!isset($json['sql'])) {
+            $json['sql'] = [];
+        }
+        $json['sql'][] = $sql;
+
+
         if (isset($argv['entity_id'])) {
             $entity_id = 'UNHEX('.$argv['entity_id'].')';
-            $stmt->bindParam(':entity_id', $entity_id, \PDO::PARAM_STR, 16);
+            $stmt->bindParam(':entity_id', $entity_id, 2, 16);
         }
         if (isset($argv['user_id'])) {
             $user_id = 'UNHEX('.$argv['user_id'].')';
-            $stmt->bindParam(':user_id', $user_id, \PDO::PARAM_STR, 16);
+            $stmt->bindParam(':user_id', $user_id, 2, 16);
         }
         if (isset($argv['tag_id'])) {
             $tag_id = $argv['tag_id'];
-            $stmt->bindParam(':tag_id',$tag_id, \PDO::PARAM_STR, 11);
+            $stmt->bindParam(':tag_id',$tag_id, 2, 11);
         }
         if (isset($argv['creation_date'])) {
             $creation_date = $argv['creation_date'];
-            $stmt->bindParam(':creation_date',$creation_date, \PDO::PARAM_STR, 20);
+            $stmt->bindParam(':creation_date',$creation_date, 2, 20);
         }
 
         if (!$stmt->execute()){
@@ -203,7 +270,7 @@ class carbon_tag extends Entities implements iRest
     */
     public static function Delete(array &$remove, string $primary = null, array $argv) : bool
     {
-        $sql = 'DELETE FROM carbonphp.carbon_tag ';
+        $sql = 'DELETE FROM CarbonPHP.carbon_tag ';
 
         foreach($argv as $column => $constraint){
             if (!in_array($column, self::COLUMNS)){
@@ -211,7 +278,7 @@ class carbon_tag extends Entities implements iRest
             }
         }
 
-        if ($primary === null) {
+        if (empty($primary)) {
             /**
             *   While useful, we've decided to disallow full
             *   table deletions through the rest api. For the
@@ -232,6 +299,13 @@ class carbon_tag extends Entities implements iRest
         } 
 
         $remove = null;
+
+        global $json;
+
+        if (!isset($json['sql'])) {
+            $json['sql'] = [];
+        }
+        $json['sql'][] = $sql;
 
         return self::execute($sql);
     }
