@@ -565,19 +565,19 @@ foreach ($matches as $table) {
  * using the foreign key analysis
  */
 
-print "\tBuilding Triggers!\n";
-$triggers = '';
-foreach ($rest as $table) {
-    #!in_array($tableName, $only_these_tables)
-    if ($table['binary_primary']) {
-        $triggers .= $trigger($table['TableName'], $table['columns'], isset($table['binary_trigger']) ? $table['binary_trigger'] : [] ,$table['dependencies'], $table['primary'][0]['name']);
+if ($history_table_query) {
+    print "\tBuilding Triggers!\n";
+    $triggers = '';
+    foreach ($rest as $table) {
+        if ($table['binary_primary'] && ($only_these_tables === null || in_array($table['TableName'], $only_these_tables))) {
+            $triggers .= $trigger($table['TableName'], $table['columns'], isset($table['binary_trigger']) ? $table['binary_trigger'] : [], $table['dependencies'], $table['primary'][0]['name']);
+        }
     }
+
+    file_put_contents('triggers.sql', 'DELIMITER ;;' . PHP_EOL . $triggers . PHP_EOL . 'DELIMITER ;');
+
+    $buildCNF('triggers.sql');
 }
-
-file_put_contents('triggers.sql', 'DELIMITER ;;' . PHP_EOL . $triggers . PHP_EOL . 'DELIMITER ;');
-
-$buildCNF('triggers.sql');
-
 
 //if ($rest[$tableName]['binary_primary']) {
 //    // TODO - change how multiple primary keys are handled
