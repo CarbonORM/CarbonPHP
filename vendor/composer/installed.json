@@ -57,27 +57,27 @@
     },
     {
         "name": "mustache/mustache",
-        "version": "v2.12.0",
-        "version_normalized": "2.12.0.0",
+        "version": "v2.10.0",
+        "version_normalized": "2.10.0.0",
         "source": {
             "type": "git",
             "url": "https://github.com/bobthecow/mustache.php.git",
-            "reference": "fe8fe72e9d580591854de404cc59a1b83ca4d19e"
+            "reference": "0bb2f76e2f34a8864a32be34c4ec66274d76c05e"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/bobthecow/mustache.php/zipball/fe8fe72e9d580591854de404cc59a1b83ca4d19e",
-            "reference": "fe8fe72e9d580591854de404cc59a1b83ca4d19e",
+            "url": "https://api.github.com/repos/bobthecow/mustache.php/zipball/0bb2f76e2f34a8864a32be34c4ec66274d76c05e",
+            "reference": "0bb2f76e2f34a8864a32be34c4ec66274d76c05e",
             "shasum": ""
         },
         "require": {
             "php": ">=5.2.4"
         },
         "require-dev": {
-            "friendsofphp/php-cs-fixer": "~1.11",
+            "fabpot/php-cs-fixer": "~1.6",
             "phpunit/phpunit": "~3.7|~4.0|~5.0"
         },
-        "time": "2017-07-11T12:54:05+00:00",
+        "time": "2016-02-27T19:22:46+00:00",
         "type": "library",
         "installation-source": "source",
         "autoload": {
