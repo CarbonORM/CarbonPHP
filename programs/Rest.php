@@ -111,6 +111,7 @@ $usage = function () use ($argv) {
 \t       -l [?tableName(s),[...?,[]]]  - comma separated list of specific tables to capture  
 \t       -v ?debug                     - Verbose output, if === debug follows this tag even more output is given 
 \t       -f [?file_of_Tables]          - file of table names separated by eol
+\t       -x                            - Don't clean up files created for build
 \t       -mysqldump [?executable]      - path to mysqldump command 
 \t       -mysql  [?executable]         - path to mysql command 
 \t       -dump [?dump]                 - path to a mysqldump sql export
@@ -128,6 +129,7 @@ $PDO = [0 => PDO::PARAM_NULL, 1 => PDO::PARAM_BOOL, 2 => PDO::PARAM_INT, 3 => PD
 // set default values
 $rest = [];
 $pass = '';
+$clean = true;
 $only_these_tables = $schema = $history_table_query = $mysqldump = null;
 $verbose = $debug = $primary_required = $delete_dump = $carbon_namespace = $skipTable = false;
 $host = '127.0.0.1';
@@ -135,6 +137,9 @@ $user = 'root';
 
 for ($i = 0; $i < $argc; $i++) {
     switch ($argv[$i]) {
+        case '-x':
+            $clean = false;
+            break;
         case '-v':
             if (isset($argv[++$i]) && strtolower($argv[$i]) === 'debug') {
                 print "\tDebug mode is best when paired with the optional (-l or -f) flags. Use -help for more information.\n";
@@ -595,8 +600,8 @@ $debug and var_dump($rest['clients']);
 
 print "\tSuccess!\n\n";
 
-unlink('./mysqldump.sql');
-unlink($cnfFile);
+$clean and unlink('./mysqldump.sql');
+$clean and unlink($cnfFile);
 
 //ncurses_end();
 
