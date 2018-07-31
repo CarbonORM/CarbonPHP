@@ -9,7 +9,7 @@ return [
 
         'DB_USER' => 'root',                 // User
 
-        'DB_PASS' => APP_LOCAL ? '' : 'goldteamrules',          // Password
+        'DB_PASS' => APP_LOCAL ? 'goldteamrules' : 'goldteamrules',          // Password
 
         'DB_BUILD' => '',                       // This framework sets up its-self implicitly
 

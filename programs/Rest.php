@@ -94,14 +94,13 @@ END;
 };
 
 $usage = function () use ($argv) {
-    $argv = isset($argv[0]) ? $argv[0] : 'php index.php rest';
     print <<<END
 \n
 \t           Question Marks Denote Optional Parameters  
 \t           Order does not matter. 
 \t           Flags do not stack ie. not -edf, this -e -f -d
 \t Usage:: 
-\t $argv 
+\t php index.php rest  
 \t       -help                         - this dialogue 
 \t       -h [?HOST]                    - IP address
 \t       -d                            - delete dump
@@ -134,7 +133,7 @@ $verbose = $debug = $primary_required = $delete_dump = $carbon_namespace = $skip
 $host = '127.0.0.1';
 $user = 'root';
 
-for ($i = 1; $i < $argc; $i++) { // or for more fun $i = 0
+for ($i = 0; $i < $argc; $i++) {
     switch ($argv[$i]) {
         case '-v':
             if (isset($argv[++$i]) && strtolower($argv[$i]) === 'debug') {
@@ -286,9 +285,9 @@ if (empty($dump)) {
 // This is our mustache template engine implemented in php, used for rendering user content
 $mustache = function (array $rest) {
     $mustache = new \Mustache_Engine();
-    if (empty($handlebars = file_get_contents(__DIR__ . '/../resources/mustache/rest.mustache'))) {
+    if (empty($handlebars = file_get_contents(__DIR__ . '/rest.mustache'))) {
         print "Could not find rest mustache template. Searching in directory\n" .
-            __DIR__ . "'/../resources/mustache/rest.mustache";
+            __DIR__ . "/est.mustache";
         exit(1);
     }
     return $mustache->render($handlebars, $rest);
@@ -474,9 +473,9 @@ foreach ($matches as $table) {
 
         } else if ($words_in_insert_stmt[0] === 'CONSTRAINT') {
 
-            if (count($words_in_insert_stmt) !== 8) {
-                print $tableName and die;
-            }
+//            if (count($words_in_insert_stmt) !== 8) {
+//                print  PHP_EOL . $tableName  . PHP_EOL and die;
+//            }
 
             $foreign_key = trim($words_in_insert_stmt[4], '()`');
             $references_table = trim($words_in_insert_stmt[6], '`');
@@ -493,6 +492,8 @@ foreach ($matches as $table) {
             $rest[$references_table]['dependencies'][] = [$tableName => [$foreign_key => $references_column]];
         }
     }
+
+
     // We need to break from this table too if the table is not in ( -l -f )
     if ($skipTable) {
         $skipTable = false; // This is so we can stop analysing a full table
@@ -554,7 +555,8 @@ foreach ($matches as $table) {
     // Remove unneeded comma at begging of string
     $rest[$tableName]['implode'] = implode(',', $rest[$tableName]['implode']);
 
-    file_put_contents(__DIR__ . '/../app/MVC/Tables/' . $rest[$tableName]['TableName'] . '.php', $mustache($rest[$tableName]));
+
+    file_put_contents(APP_ROOT . '/table/' . $rest[$tableName]['TableName'] . '.php', $mustache($rest[$tableName]));
 }
 
 
