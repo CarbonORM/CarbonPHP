@@ -30,7 +30,11 @@ class CarbonPHP
      */
     public function __invoke($application)
     {
-        return $this->safelyExit ?: startApplication($application);
+        return $this->safelyExit ?:
+            Database::TryCatch(
+                function () use ($application) {
+                    return \startApplication($application);
+                });
     }
 
     /**
@@ -177,7 +181,7 @@ class CarbonPHP
 
         // PHPUnit Runs in a cli to ini the 'CarbonPHP' env.
         // We're not testing out extra resources
-        if (!TEST && php_sapi_name() === 'cli') {
+        if (!TEST && !SOCKET && php_sapi_name() === 'cli') {
             $this->CLI($PHP);
             return $this->safelyExit = true;
         }
@@ -325,7 +329,6 @@ class CarbonPHP
             return true;
         }
 
-
         // we need to ensure valid access
         $allowedAccess = false;
         foreach ($cacheControl as $extension => $headers) {
@@ -400,6 +403,9 @@ class CarbonPHP
         print "\nIt's a powerful " . array_shift($argv) . ", hu?\n\n";
 
         switch (array_shift($argv)) {
+            case 'check':
+                $cmd = 'netstat -a -n -o | find "' . ( $PHP['SOCKET']['PORT'] ?? 8888 ) . '\"';
+                print `$cmd`;
             case 'test':
                 print `phpunit --bootstrap vendor/autoload.php --testdox  tests`;
                 break;
@@ -414,17 +420,18 @@ class CarbonPHP
                 include 'programs/rest.php';
                 break;
             case 'go':
-                $CMD = '/usr/bin/websocketd --port=' . ($PHP['SOCKET']['PORT'] ?? 8888) . ' ' .
+                $CMD = 'websocketd --port=' . ($PHP['SOCKET']['PORT'] ?? 8888) . ' ' .
                     (($PHP['SOCKET']['DEV'] ?? false) ? '--devconsole ' : '') .
                     (($PHP['SOCKET']['SSL'] ?? false) ? "--ssl --sslkey={$PHP['SOCKET']['SSL']['KEY']} --sslcert={$PHP['SOCKET']['SSL']['CERT']} " : ' ') .
-                    'php ' . CARBON_ROOT . 'Programs' . DS . 'Websocketd.php ' . APP_ROOT . ' ' . ($PHP['SITE']['CONFIG'] ?? APP_ROOT) . ' 2>&1';
+                    'php "' . CARBON_ROOT . 'Programs' . DS . 'Websocketd.php" "' . APP_ROOT . '" "' . ($PHP['SITE']['CONFIG'] ?? APP_ROOT) . '" 2>&1';
 
                 print $CMD;
                 //`$CMD`;
                 break;
             case 'php':
-                $CMD = 'php ' . CARBON_ROOT . 'Server.php ' . ($PHP['SITE']['CONFIG'] ?? APP_ROOT);
-                `$CMD`;
+                print 'Starting PHP Websocket'.PHP_EOL;
+                $CMD = 'php ' . CARBON_ROOT . 'Server.php ' . APP_ROOT . ' ' . $PHP['SITE']['CONFIG'];
+                print `$CMD`;
                 break;
             case 'help':
             default:

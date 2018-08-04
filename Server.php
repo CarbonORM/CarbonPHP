@@ -29,12 +29,13 @@ ob_implicit_flush();
 
 dir(APP_ROOT);
 
+// TODO - make vendor automatic
 if (false === (include APP_ROOT . 'vendor/autoload.php')) {     // Load the autoload() for composer dependencies located in the Services folder
     print '<h1>Loading Composer Failed. See Carbonphp.com for documentation.</h1>' and die;     // Composer autoload
 }
 
 if (!\extension_loaded('pcntl')) {
-    print '<h1>CarbonPHP Websockets require the PCNTL library. See CarbonPHP.com for more Documentation</h1>';
+    print '<h1>CarbonPHP Websockets require the PCNTL library. See CarbonPHP.com for more Documentation</h1>' and die;
 }
 
 new CarbonPHP($opts = include $argv[2]);

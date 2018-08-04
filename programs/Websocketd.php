@@ -16,9 +16,7 @@ if (!is_dir($argv[1])) {
 
 define('APP_ROOT', $argv[1]);    // expressions not allowed in const
 
-const APP_ROOT = APP_ROOT;  // I would like to change to only using app_root soon
-
-if (false === (include APP_ROOT . 'Data/Vendors/autoload.php'))
+if (false === (include APP_ROOT . 'vendor/autoload.php'))
 {   // Load the autoload() for composer dependencies located in the Services folder
     print '<h1>Loading Composer Failed. See Carbonphp.com for documentation.</h1>' and die;
     // Composer autoload
