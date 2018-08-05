@@ -8,12 +8,13 @@
 
 namespace CarbonPHP;
 
-use CarbonPHP\helpers\Bcrypt;
+use CarbonPHP\Table\carbon_tag;
 use PDO;
 use stdClass;
 use CarbonPHP\helpers\Globals;
 use CarbonPHP\interfaces\iRest;
 use CarbonPHP\error\PublicAlert;
+use CarbonPHP\Table\carbon;
 
 /**
  * Class Entities
@@ -172,7 +173,14 @@ abstract class Entities
     {
         do {        // TODO - log the tag
             try {
-                $stmt = \Table\carbon::Post([]);
+                $stmt = carbon::Post([
+                    'entity_fk'=>$dependant
+                ]);
+                $stmt = carbon_tag::Post([
+                    'tag_id'=>$stmt,
+                    'entity_id'=>$tag_id,
+                    'user_id'=>$_SESSION['id'],
+                ]);
             } catch (\PDOException $e) {
                 $stmt = false;
             }
@@ -189,7 +197,8 @@ abstract class Entities
      */
     protected static function remove_entity($id) : bool
     {
-        return Database::database()->prepare('DELETE FROM carbon WHERE entity_pk = ?')->execute([$id]);
+        $ref = [];
+        return carbon::Delete($ref,$id,[]); //Database::database()->prepare('DELETE FROM carbon WHERE entity_pk = ?')->execute([$id]);
     }
 
 
