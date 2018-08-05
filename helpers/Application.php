@@ -177,7 +177,7 @@ END;
      * @param array $argv Arguments to be passed to method
      * @return mixed the returned value from model/$class.$method() or false | void
      */
-    function CM(string $class, string &$method, array &$argv = [])
+    function CM(string $class, string &$method, array &$argv = []) : callable
     {
         $class = ucfirst(strtolower($class));   // Prevent malformed class names
         $controller = "Controller\\$class";     // add namespace for autoloader

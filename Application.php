@@ -47,12 +47,12 @@ abstract class Application extends Route
         };
     }
 
-    public function events($selector = '')
+    public function events($selector = '#pjax-content')
     {
         return function ($class, $method, $argv) use ($selector) {
             global $alert, $json;
 
-            if (false === $argv = catchErrors(CM($class, $method, $argv))) {
+            if (false === $argv = catchErrors(CM($class, $method, $argv))()) {
                 return false;
             }
 
