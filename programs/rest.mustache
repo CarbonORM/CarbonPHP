@@ -40,14 +40,26 @@ class {{TableName}} extends Entities implements iRest
                 $argv['pagination'] = json_decode($argv['pagination'], true);
             }
             if (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] != null) {
-                $pos = strrpos($argv['pagination']['limit'], "><");
-                if ($pos !== false) { // note: three equal signs
-                    substr_replace($argv['pagination']['limit'],',',$pos, 2);
-                }
                 $limit = ' LIMIT ' . $argv['pagination']['limit'];
             } else {
                 $limit = '';
             }
+
+            if (!empty($limit)) {
+
+                $limit .= ' ORDER BY ';
+
+                if (isset($argv['order']) && $argv['order'] != null) {
+                    if (is_array($argv['order'])) {
+                        foreach ($argv['order'] as $item => $sort) {
+                            $limit .= $item .' '. $sort;
+                        }
+                    } else {
+                        $limit .= self::PRIMARY[0] . ' DESC';
+                    }
+                }
+            }
+
         } else {
             $limit = ' LIMIT 100';
         }
@@ -148,7 +160,7 @@ class {{TableName}} extends Entities implements iRest
         */
 
         {{#primary}}{{#sql}}
-        if (empty($primary) && count($return) && in_array(array_keys($return)[0], self::COLUMNS, true)) {  // You must set tr
+        if (empty($primary) && $argv['pagination']['limit'] !== 0 && count($return) && in_array(array_keys($return)[0], self::COLUMNS, true)) {  // You must set tr
             $return = [$return];
         }{{/sql}}{{/primary}}
 
