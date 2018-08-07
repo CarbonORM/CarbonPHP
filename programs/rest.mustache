@@ -163,7 +163,7 @@ class {{TableName}} extends Entities implements iRest
         */
 
         {{#primary}}{{#sql}}
-        if (empty($primary) && $argv['pagination']['limit'] !== 0 && count($return) && in_array(array_keys($return)[0], self::COLUMNS, true)) {  // You must set tr
+        if (empty($primary) && $argv['pagination']['limit'] !== 1 && count($return) && in_array(array_keys($return)[0], self::COLUMNS, true)) {  // You must set tr
             $return = [$return];
         }{{/sql}}{{/primary}}
 
