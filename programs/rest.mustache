@@ -55,8 +55,10 @@ class {{TableName}} extends Entities implements iRest
                             $limit .= $item .' '. $sort;
                         }
                     } else {
-                        $limit .= self::PRIMARY[0] . ' DESC';
+                        $limit .= $argv['pagination']['order'];
                     }
+                } else {
+                    $limit .= self::PRIMARY[0] . ' DESC';
                 }
             }
 
