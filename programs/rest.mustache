@@ -49,9 +49,9 @@ class {{TableName}} extends Entities implements iRest
 
                 $limit .= ' ORDER BY ';
 
-                if (isset($argv['order']) && $argv['order'] != null) {
-                    if (is_array($argv['order'])) {
-                        foreach ($argv['order'] as $item => $sort) {
+                if (isset($argv['pagination']['order']) && $argv['pagination']['order'] != null) {
+                    if (is_array($argv['pagination']['order'])) {
+                        foreach ($argv['pagination']['order'] as $item => $sort) {
                             $limit .= $item .' '. $sort;
                         }
                     } else {
