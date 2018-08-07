@@ -316,6 +316,19 @@ class Request   // requires carbon::application;
         })($array);
     }
 
+
+    /**Check for character(s) / array members / representing a hexadecimal digit
+     * @link http://php.net/manual/en/function.ctype-xdigit.php
+     * @return mixed
+     */
+    public function hex()
+    {
+        $array = [];
+        return $this->closure(function ($key) use (&$array) {
+            return $array[] = (ctype_xdigit($key) ? $key : false);
+        })($array);
+    }
+
     /** Removes HTML chars from a given set
      * @param bool $complete if set to true than $this
      * will be returned
