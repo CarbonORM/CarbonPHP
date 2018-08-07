@@ -45,25 +45,26 @@ class {{TableName}} extends Entities implements iRest
                 $limit = '';
             }
 
+            $order = '';
             if (!empty($limit)) {
 
-                $limit .= ' ORDER BY ';
+                 $order = ' ORDER BY ';
 
                 if (isset($argv['pagination']['order']) && $argv['pagination']['order'] != null) {
                     if (is_array($argv['pagination']['order'])) {
                         foreach ($argv['pagination']['order'] as $item => $sort) {
-                            $limit .= $item .' '. $sort;
+                            $order .= $item .' '. $sort;
                         }
                     } else {
-                        $limit .= $argv['pagination']['order'];
+                        $order .= $argv['pagination']['order'];
                     }
                 } else {
-                    $limit .= self::PRIMARY[0] . ' DESC';
+                    $order .= self::PRIMARY[0] . ' DESC';
                 }
             }
-
+            $limit = $order .' '. $limit;
         } else {
-            $limit = ' LIMIT 100';
+            $limit = ' ORDER BY ' . self::PRIMARY[0] . ' DESC LIMIT 100';
         }
 
         foreach($get as $key => $column){
