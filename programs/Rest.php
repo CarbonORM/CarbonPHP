@@ -467,7 +467,7 @@ foreach ($matches as $table) {
             foreach ($primary as $key) {
                 if (in_array($key, $binary)) {
                     // binary data is expected as hex @ rest call (GET,PUT,DELETE)
-                    $sql[] = ' ' . $key . '=UNHEX(:primary)';
+                    $sql[] = ' ' . $key . '=UNHEX(\' . $primary .\')';
                 } else {
                     // otherwise just create the stmt normally
                     $sql[] = ' ' . $key . '=\' . $primary .\'';

@@ -260,8 +260,6 @@ class {{TableName}} extends Entities implements iRest
         }
         $json['sql'][] = $sql;
 
-        $stmt->bindParam(':primary',$primary, 2, 1);
-
 {{#explode}}
         if (!empty($argv['{{name}}'])) {
     {{^length}}
