@@ -163,7 +163,7 @@ class {{TableName}} extends Entities implements iRest
         */
 
         {{#primary}}{{#sql}}
-        if (empty($primary) && $argv['pagination']['limit'] !== 1 && count($return) && in_array(array_keys($return)[0], self::COLUMNS, true)) {  // You must set tr
+        if (empty($primary) && ($argv['pagination']['limit'] ?? false) !== 1 && count($return) && in_array(array_keys($return)[0], self::COLUMNS, true)) {  // You must set tr
             $return = [$return];
         }{{/sql}}{{/primary}}
 
@@ -234,7 +234,7 @@ class {{TableName}} extends Entities implements iRest
         $set = '';
 
         {{#explode}}
-        if (isset($argv['{{name}}'])) {
+        if (!empty($argv['{{name}}'])) {
             $set .= '{{name}}={{#binary}}UNHEX(:{{name}}){{/binary}}{{^binary}}:{{name}}{{/binary}},';
         }
         {{/explode}}
@@ -255,26 +255,23 @@ class {{TableName}} extends Entities implements iRest
 
         global $json;
 
-        if (!isset($json['sql'])) {
+        if (empty($json['sql'])) {
             $json['sql'] = [];
         }
         $json['sql'][] = $sql;
 
 
-    {{#explode}}
-        if (isset($argv['{{name}}'])) {
+        $stmt->bindParam(':primary',$primary, 2, 1);
+
+
+{{#explode}}
+        if (!empty($argv['{{name}}'])) {
     {{^length}}
             $stmt->bindValue(':{{name}}',$argv['{{name}}'], {{type}});
     {{/length}}
     {{#length}}
-        {{#binary}}
-            ${{name}} = 'UNHEX('.$argv['{{name}}'].')';
-            $stmt->bindParam(':{{name}}', ${{name}}, {{type}}, {{length}});
-        {{/binary}}
-        {{^binary}}
             ${{name}} = $argv['{{name}}'];
             $stmt->bindParam(':{{name}}',${{name}}, {{type}}, {{length}});
-        {{/binary}}
     {{/length}}
         }
     {{/explode}}
