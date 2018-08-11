@@ -292,7 +292,7 @@ $mustache = function (array $rest) {
     $mustache = new \Mustache_Engine();
     if (empty($handlebars = file_get_contents(__DIR__ . '/rest.mustache'))) {
         print "Could not find rest mustache template. Searching in directory\n" .
-            __DIR__ . "/est.mustache";
+            __DIR__ . "/rest.mustache";
         exit(1);
     }
     return $mustache->render($handlebars, $rest);
@@ -501,8 +501,6 @@ foreach ($matches as $table) {
             $rest[$references_table]['dependencies'][] = [$tableName => [$foreign_key => $references_column]];
         }
     }
-
-
     // We need to break from this table too if the table is not in ( -l -f )
     if ($skipTable) {
         $skipTable = false; // This is so we can stop analysing a full table

@@ -21,7 +21,7 @@ $app = new CarbonPHP\CarbonPHP('Config'.DS.'config.php');
  */
 
 
-# $app( App\C6::class);
+#$app( App\C6::class);
 
 
 return true;
