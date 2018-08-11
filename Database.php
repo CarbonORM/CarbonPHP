@@ -71,6 +71,18 @@ class Database
                     }
 
                     Try {
+                        $prep = function (PDO $db): PDO {
+                            $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+                            $db->setAttribute(PDO::ATTR_PERSISTENT, SOCKET);
+
+                            $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
+
+                            static::$database = $db;
+
+                            return static::$database;
+                        };
+
                         $db = $prep(@new PDO($query[0], static::$username, static::$password));
                     } catch (\PDOException $e) {
                         if ($e->getCode() === 1049) {
