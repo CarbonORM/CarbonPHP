@@ -423,7 +423,7 @@ class CarbonPHP
                 $CMD = 'websocketd --port=' . ($PHP['SOCKET']['PORT'] ?? 8888) . ' ' .
                     (($PHP['SOCKET']['DEV'] ?? false) ? '--devconsole ' : '') .
                     (($PHP['SOCKET']['SSL'] ?? false) ? "--ssl --sslkey='{$PHP['SOCKET']['SSL']['KEY']}' --sslcert='{$PHP['SOCKET']['SSL']['CERT']}' " : ' ') .
-                    'php "' . CARBON_ROOT . 'Programs' . DS . 'Websocketd.php" "' . APP_ROOT . '" "' . ($PHP['SITE']['CONFIG'] ?? APP_ROOT) . '" 2>&1' . PHP_EOL . PHP_EOL;
+                    'php "' . CARBON_ROOT . 'programs' . DS . 'Websocketd.php" "' . APP_ROOT . '" "' . ($PHP['SITE']['CONFIG'] ?? APP_ROOT) . '" 2>&1' . PHP_EOL . PHP_EOL;
 
                 print $CMD;
                 //`$CMD`;
