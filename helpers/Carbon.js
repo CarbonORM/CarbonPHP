@@ -1,5 +1,7 @@
 function CarbonPHP() {
     let self = this;
+    let address = '';
+    let statsSocket = '';
     let JSLoaded = new Set();
 
     self.js = (sc, cb) => {
@@ -215,7 +217,9 @@ function CarbonPHP() {
                     $(json.Widget).html(template);       // render json with mustache lib
 
                     if (json.hasOwnProperty('ALERT') && self.isset(json.ALERT)) {
-                        self.alerts(json.ALERT);
+
+                        alerts(json.ALERT);
+
                     }
 
                     if (json.hasOwnProperty('scroll')) {                        // use slim scroll to move to bottom of chats (lifo)
@@ -227,16 +231,12 @@ function CarbonPHP() {
                 console.log(json);                              // log ( object ) - seperating them will print nicely
 
                 if (json.hasOwnProperty('ALERT') && self.isset(json.ALERT)) {
-                    self.alerts(json.ALERT);
+                    alerts(json.ALERT);
                 }
 
             } else {
-                if (data === "" || data === undefined) {
-                    console.log("BAD STASH :: EMPTY STASH");
-                } else {
-                    console.log("BAD STASH :: ", data);
-                    $("body").html(data);                           //
-                }
+                console.log("BAD STASH :: ", data);
+                $("html").html(data);                           //
             }
         } else {
             console.log('RECEIVED NOTHING ?? ' + data);
@@ -254,7 +254,7 @@ function CarbonPHP() {
 
         self.address = address;
 
-        self.alerting = {};
+        self.alerts = {};
 
         // Google's loadDeferredStyles
         let loadDeferredStyles = function () {
@@ -303,9 +303,9 @@ function CarbonPHP() {
 
         $(document).on('pjax:success', () => {
 
-            console.log(self.alerting);
+            console.log(self.alerts);
 
-            self.alerts(self.alerting);
+            self.alerts(self.alerts);
 
             console.log("Successfully loaded " + window.location.href)
         });
@@ -328,24 +328,24 @@ function CarbonPHP() {
 
         // Socket Connection
         self.defaultOnSocket = false;
-        let statsSocket = self.statsSocket = undefined;
+        self.statsSocket = undefined;
 
         if (self.isset(address)) {
             if (self.isset(options)) {
                 self.defaultOnSocket = options;
             }
-            statsSocket = new WebSocket(address);
+            self.statsSocket = new WebSocket(address);
         }
 
         if (self.isset(address)) {
-            statsSocket.onmessage = (data) => {
+            self.statsSocket.onmessage = (data) => {
                 console.log('Socket Sent An Update');
                 (self.isJson(data.data) ? self.MustacheWidgets(JSON.parse(data.data)) : console.log('Not Json', data.data));
             };
-            statsSocket.onerror = () => console.log('Web Socket Error');
-            statsSocket.onopen = () => {
+            self.statsSocket.onerror = () => console.log('Web Socket Error');
+            self.statsSocket.onopen = () => {
                 console.log('Socket Started');
-                statsSocket.onclose = () => {                 // prevent the race condition
+                self.statsSocket.onclose = () => {                 // prevent the race condition
                     console.log('Closed Socket');
                     self.trySocket();
                 };
