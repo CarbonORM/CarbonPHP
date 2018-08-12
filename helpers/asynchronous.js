@@ -1,7 +1,7 @@
 (function ($) {
 
     function load_backStretch(img, selector) {
-        carbon.js(APP_VIEW + "Layout/jquery.backstretch.js", () => {
+        carbon.js('/node_modules/jquery-backstretch/jquery.backstretch.js', () => {
             $(selector).length ? $(selector).backstretch(img) : $.backstretch(img)
         })
     }

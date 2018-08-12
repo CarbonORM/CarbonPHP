@@ -53,13 +53,23 @@ namespace {                                     // This runs the following code 
             else:
                 Request::changeURI($uri = $reset);
             endif;
+            $application->changeURI($uri);    // So our routing file knows what to match
             $reset = true;
             $_POST = [];                      // Only PJAX + AJAX can post
         endif;
 
         Session::update($reset);              // Check wrapper / session callback
 
-        return $application->startApplication($uri ?? null);  // Routing file
+        $application->matched = false;        // We can assume your in need of route matching again
+
+        $uri = $uri ?? null;
+
+        if ($uri === '/') {
+            $application->defaultRoute();
+            return true;
+        }
+
+        return $application->startApplication($uri);  // Routing file
     }
 
     /** This extends the PHP's built-in highlight function to highlight
@@ -145,7 +155,7 @@ namespace {                                     // This runs the following code 
             } finally {
                 if (ob_get_status()) {
                     if (ob_get_length()) {
-                        $out = ob_get_clean();
+                        $out = ob_end_clean();
                         print <<<END
                                 <div class="callout callout-info">
                                 <h4>You have printed to the screen while within the catchErrors() function!</h4>
@@ -153,9 +163,8 @@ namespace {                                     // This runs the following code 
                                 <a href="http://carbonphp.com/">Note: All MVC routes are wrapped in this function. Output to the browser should be done within the view! Use this as a reporting tool only.</a>
                                 </div><pre>$out</pre>
 END;
-
                     }
-                    ob_end_flush();
+
                 }
                 Entities::verify();     // Check that all database commit chains have finished successfully, otherwise attempt to remove
                 return $argv;
@@ -177,7 +186,7 @@ END;
      * @param array $argv Arguments to be passed to method
      * @return mixed the returned value from model/$class.$method() or false | void
      */
-    function CM(string $class, string &$method, array &$argv = []) : callable
+    function CM(string $class, string &$method, array &$argv = []): callable
     {
         $class = ucfirst(strtolower($class));   // Prevent malformed class names
         $controller = "Controller\\$class";     // add namespace for autoloader

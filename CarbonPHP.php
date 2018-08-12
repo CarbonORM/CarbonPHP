@@ -227,7 +227,11 @@ class CarbonPHP
 
         // PHPUnit testing should not exit on explicit http(s) requests
         if (!TEST && HTTP && !($PHP['SITE']['HTTP'] ?? true)) {
-            print '<h1>Failed to switch to https, please contact the server administrator.</h1>';
+            if (headers_sent()) {
+                print '<h1>Failed to switch to https, headers already sent! Please contact the server administrator.</h1>';
+            } else {
+                header('Location: https://'. SITE);
+            }
             die(1);
         }
 
