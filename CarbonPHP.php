@@ -230,7 +230,7 @@ class CarbonPHP
             if (headers_sent()) {
                 print '<h1>Failed to switch to https, headers already sent! Please contact the server administrator.</h1>';
             } else {
-                header('Location: https://'. SITE);
+                header("Location: https://" . $_SERVER["HTTP_HOST"] . $_SERVER["REQUEST_URI"]);
             }
             die(1);
         }
