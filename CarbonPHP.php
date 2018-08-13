@@ -221,7 +221,7 @@ class CarbonPHP
         // (PJAX == true) return required, else (!PJAX && AJAX) return optional (socket valid)
         \define('AJAX', SOCKET ? false : PJAX || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'));
 
-        \define('HTTPS', SOCKET ? false : $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? false) === 'https' || (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+        \define('HTTPS', SOCKET ? false : ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? false) === 'https' || ($_SERVER['HTTPS']??false) !== 'off');
 
         \define('HTTP', !(HTTPS || SOCKET || AJAX));
 
@@ -245,6 +245,8 @@ class CarbonPHP
         ########################  Session Management ######################
 
         if (($PHP['SESSION'] ?? true)) {
+
+
             if ($PHP['SESSION']['PATH'] ?? false) {
                 session_save_path($PHP['SESSION']['PATH'] ?? '');   // Manually Set where the Users Session Data is stored
             }

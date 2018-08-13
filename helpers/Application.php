@@ -43,6 +43,9 @@ namespace {                                     // This runs the following code 
                 print 'Your application must extend the CarbonPHP/Application::class' . PHP_EOL;
                 return false;
             }
+            if (SOCKET) {
+                return true;
+            }
             $reset = false;
         }
 
