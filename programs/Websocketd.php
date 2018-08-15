@@ -16,13 +16,17 @@ if (!is_dir($argv[1])) {
 
 define('APP_ROOT', $argv[1]);    // expressions not allowed in const
 
-if (false === (include APP_ROOT . 'vendor/autoload.php'))
-{   // Load the autoload() for composer dependencies located in the Services folder
-    print '<h1>Loading Composer Failed. See Carbonphp.com for documentation.</h1>' and die;
-    // Composer autoload
+
+if (!file_exists(APP_ROOT . 'index.php')) {
+    print 'The APP_ROOT should be the directory your index is located. Currently there is no index.php in '. APP_ROOT;
+    exit(1);
 }
 
-$app = new CarbonPHP\CarbonPHP($argv[2]);
+if (false === (include APP_ROOT . 'index.php'))
+{   // Load the autoload() for composer dependencies located in the Services folder
+    print '<h1>Loading Your Index Failed! See Carbonphp.com for documentation.</h1>';
+    exit(1); // Composer autoload
+}
 
 if (!($_SESSION ?? false)) {
     print "You must be logged in to use this API\n";
@@ -44,7 +48,10 @@ pcntl_signal( SIGTERM, 'signalHandler' ); // Termination ('kill' was called')
 pcntl_signal( SIGHUP, 'signalHandler' );  // Terminal log-out
 pcntl_signal( SIGINT, 'signalHandler' );  // Interrupted ( Ctrl-C is pressed)
 
-$fifoFile = \CarbonPHP\helpers\Pipe::named(APP_ROOT . 'Data/Temp/' . session_id() . '.fifo');     // other users can notify us to update our application through this file
+$fifoFile = \CarbonPHP\helpers\Pipe::named( '/tmp/' . session_id() . '.fifo');     // other users can notify us to update our application through this file
+
+$fifoFile or die;
+
 
 $stdin = fopen( 'php://stdin', 'b' );
 
@@ -86,7 +93,7 @@ while (true)
 
                     print "startApplication('$string')\n";
 
-                    $app( $string );
+                    startApplication( $string );
 
                     exit( 1 );
                 } $handshake++;
@@ -109,7 +116,7 @@ while (true)
 
                             print "Update startApplication('$uri')\n";
 
-                            $app( $uri );
+                            startApplication( $uri );
 
                             exit( 1 );  // but if we decide to change that...  (we decided to change that!)
                         }

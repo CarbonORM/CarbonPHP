@@ -2,6 +2,7 @@ function CarbonPHP() {
     let self = this;
     let address = '';
     let statsSocket = '';
+    let alerting = [];
     let JSLoaded = new Set();
 
     self.js = (sc, cb) => {
@@ -254,7 +255,7 @@ function CarbonPHP() {
 
         self.address = address;
 
-        self.alerts = {};
+        self.alerting = {};
 
         // Google's loadDeferredStyles
         let loadDeferredStyles = function () {
@@ -303,9 +304,9 @@ function CarbonPHP() {
 
         $(document).on('pjax:success', () => {
 
-            console.log(self.alerts);
+            console.log(self.alerting);
 
-            self.alerts(self.alerts);
+            self.alerts(self.alerting);
 
             console.log("Successfully loaded " + window.location.href)
         });

@@ -42,7 +42,7 @@ class Pipe
 
         if (!posix_mkfifo($fifoPath, 0666)) {
             print 'Failed to create named Pipe' . PHP_EOL;
-            return null;
+            return false;
         }                   // create a named pipe 0644
 
         $user = get_current_user();                    // get current process user

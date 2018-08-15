@@ -3,6 +3,7 @@
 namespace CarbonPHP;
 
 use CarbonPHP\Helpers\Serialized;
+use PHPUnit\Runner\Exception;
 
 /**
  * Class Carbon
@@ -221,7 +222,7 @@ class CarbonPHP
         // (PJAX == true) return required, else (!PJAX && AJAX) return optional (socket valid)
         \define('AJAX', SOCKET ? false : PJAX || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'));
 
-        \define('HTTPS', SOCKET ? false : ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? false) === 'https' || ($_SERVER['HTTPS']??false) !== 'off');
+        \define('HTTPS', SOCKET ? false : ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? false) === 'https' || ($_SERVER['HTTPS'] ?? false) !== 'off');
 
         \define('HTTP', !(HTTPS || SOCKET || AJAX));
 
@@ -408,9 +409,25 @@ class CarbonPHP
         // I do this so the I can pass the argvs correctly to the php executables
         print "\nIt's a powerful " . array_shift($argv) . ", hu?\n\n";
 
+        $background = function ($cmd, $outputFile) {
+            try {
+                if (substr(php_uname(), 0, 7) == 'Windows') {
+                    $cmd = "start /B $cmd > $outputFile";
+                    print $cmd . PHP_EOL . PHP_EOL;
+                    pclose(popen($cmd, 'r'));
+                } else {
+                    $cmd = sprintf("sudo %s > %s 2>$1 & echo $! ",$cmd, $outputFile);
+                    print $cmd . PHP_EOL . PHP_EOL;
+                    exec($cmd, $pid);
+                }
+            } catch (Exception $e) {
+            }
+            return $pid[0] ?? 'Failed to execute cmd!';
+        };
+
         switch (array_shift($argv)) {
             case 'check':
-                $cmd = 'netstat -a -n -o | find "' . ( $PHP['SOCKET']['PORT'] ?? 8888 ) . '\"';
+                $cmd = 'netstat -a -n -o | find "' . ($PHP['SOCKET']['PORT'] ?? 8888) . '\"';
                 print `$cmd`;
             case 'test':
                 print `phpunit --bootstrap vendor/autoload.php --testdox  tests`;
@@ -429,13 +446,14 @@ class CarbonPHP
                 $CMD = 'websocketd --port=' . ($PHP['SOCKET']['PORT'] ?? 8888) . ' ' .
                     (($PHP['SOCKET']['DEV'] ?? false) ? '--devconsole ' : '') .
                     (($PHP['SOCKET']['SSL'] ?? false) ? "--ssl --sslkey='{$PHP['SOCKET']['SSL']['KEY']}' --sslcert='{$PHP['SOCKET']['SSL']['CERT']}' " : ' ') .
-                    'php "' . CARBON_ROOT . 'programs' . DS . 'Websocketd.php" "' . APP_ROOT . '" "' . ($PHP['SITE']['CONFIG'] ?? APP_ROOT) . '" 2>&1' . PHP_EOL . PHP_EOL;
+                    'php "' . CARBON_ROOT . 'programs' . DS . 'Websocketd.php" "' . APP_ROOT . '" "' . ($PHP['SITE']['CONFIG'] ?? APP_ROOT) . '" ';
 
-                print $CMD;
+                print 'pid == ' . $background($CMD, APP_ROOT . 'websocketd_log.txt');
+                print "\n\n\tDONE!\n\n";
                 //`$CMD`;
                 break;
             case 'php':
-                print 'Starting PHP Websocket'.PHP_EOL;
+                print 'Starting PHP Websocket' . PHP_EOL;
                 $CMD = 'php ' . CARBON_ROOT . 'Server.php ' . APP_ROOT . ' ' . $PHP['SITE']['CONFIG'];
                 print `$CMD`;
                 break;
