@@ -40,16 +40,31 @@ class carbon_tags extends Entities implements iRest
                 $argv['pagination'] = json_decode($argv['pagination'], true);
             }
             if (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] != null) {
-                $pos = strrpos($argv['pagination']['limit'], "><");
-                if ($pos !== false) { // note: three equal signs
-                    substr_replace($argv['pagination']['limit'],',',$pos, 2);
-                }
                 $limit = ' LIMIT ' . $argv['pagination']['limit'];
             } else {
                 $limit = '';
             }
+
+            $order = '';
+            if (!empty($limit)) {
+
+                 $order = ' ORDER BY ';
+
+                if (isset($argv['pagination']['order']) && $argv['pagination']['order'] != null) {
+                    if (is_array($argv['pagination']['order'])) {
+                        foreach ($argv['pagination']['order'] as $item => $sort) {
+                            $order .= $item .' '. $sort;
+                        }
+                    } else {
+                        $order .= $argv['pagination']['order'];
+                    }
+                } else {
+                    $order .= self::PRIMARY[0] . ' ASC';
+                }
+            }
+            $limit = $order .' '. $limit;
         } else {
-            $limit = ' LIMIT 100';
+            $limit = ' ORDER BY ' . self::PRIMARY[0] . ' ASC LIMIT 100';
         }
 
         foreach($get as $key => $column){
@@ -116,7 +131,7 @@ class carbon_tags extends Entities implements iRest
                             }
                         }
                     }
-                    return substr($sql, 0, strlen($sql) - (strlen($join) + 1)) . ')';
+                    return rtrim($sql, " $join") . ')';
                 };
                 $sql .= ' WHERE ' . $build_where($where);
             }
@@ -148,7 +163,7 @@ class carbon_tags extends Entities implements iRest
         */
 
         
-        if (empty($primary) && count($return) && in_array(array_keys($return)[0], self::COLUMNS, true)) {  // You must set tr
+        if (empty($primary) && ($argv['pagination']['limit'] ?? false) !== 1 && count($return) && in_array(array_keys($return)[0], self::COLUMNS, true)) {  // You must set tr
             $return = [$return];
         }
 
@@ -162,7 +177,7 @@ class carbon_tags extends Entities implements iRest
     public static function Post(array $argv)
     {
         $sql = 'INSERT INTO CarbonPHP.carbon_tags (tag_description, tag_name) VALUES ( :tag_description, :tag_name)';
-        $stmt = sDatabaseelf::database()->prepare($sql);
+        $stmt = Database::database()->prepare($sql);
 
         global $json;
 
@@ -171,8 +186,8 @@ class carbon_tags extends Entities implements iRest
         }
         $json['sql'][] = $sql;
 
-                    $stmt->bindValue(':tag_description',$argv['tag_description'], \2);
-                    $stmt->bindValue(':tag_name',$argv['tag_name'], \2);
+                    $stmt->bindValue(':tag_description',$argv['tag_description'], 2);
+                    $stmt->bindValue(':tag_name',$argv['tag_name'], 2);
         
 
         return $stmt->execute();
@@ -186,6 +201,10 @@ class carbon_tags extends Entities implements iRest
     */
     public static function Put(array &$return, string $primary, array $argv) : bool
     {
+        if (empty($primary)) {
+            return false;
+        }
+
         foreach ($argv as $key => $value) {
             if (!in_array($key, self::COLUMNS)){
                 unset($argv[$key]);
@@ -198,13 +217,13 @@ class carbon_tags extends Entities implements iRest
 
         $set = '';
 
-        if (isset($argv['tag_id'])) {
+        if (!empty($argv['tag_id'])) {
             $set .= 'tag_id=:tag_id,';
         }
-        if (isset($argv['tag_description'])) {
+        if (!empty($argv['tag_description'])) {
             $set .= 'tag_description=:tag_description,';
         }
-        if (isset($argv['tag_name'])) {
+        if (!empty($argv['tag_name'])) {
             $set .= 'tag_name=:tag_name,';
         }
 
@@ -224,20 +243,19 @@ class carbon_tags extends Entities implements iRest
 
         global $json;
 
-        if (!isset($json['sql'])) {
+        if (empty($json['sql'])) {
             $json['sql'] = [];
         }
         $json['sql'][] = $sql;
 
-
-        if (isset($argv['tag_id'])) {
+        if (!empty($argv['tag_id'])) {
             $tag_id = $argv['tag_id'];
             $stmt->bindParam(':tag_id',$tag_id, 2, 11);
         }
-        if (isset($argv['tag_description'])) {
+        if (!empty($argv['tag_description'])) {
             $stmt->bindValue(':tag_description',$argv['tag_description'], 2);
         }
-        if (isset($argv['tag_name'])) {
+        if (!empty($argv['tag_name'])) {
             $stmt->bindValue(':tag_name',$argv['tag_name'], 2);
         }
 
@@ -276,15 +294,24 @@ class carbon_tags extends Entities implements iRest
             if (empty($argv)) {
                 return false;
             }
-            $sql .= ' WHERE ';
-            foreach ($argv as $column => $value) {
-                if (in_array($column, self::BINARY)) {
-                    $sql .= " $column =UNHEX(" . Database::database()->quote($value) . ') AND ';
-                } else {
-                    $sql .= " $column =" . Database::database()->quote($value) . ' AND ';
+            $pdo = self::database();
+
+            $build_where = function (array $set, $join = 'AND') use (&$pdo, &$build_where) {
+                $sql = '(';
+                foreach ($set as $column => $value) {
+                    if (is_array($value)) {
+                        $sql .= $build_where($value, $join === 'AND' ? 'OR' : 'AND');
+                    } else {
+                        if (in_array($column, self::BINARY)) {
+                            $sql .= "($column = UNHEX(" . $pdo->quote($value) . ")) $join ";
+                        } else {
+                            $sql .= "($column = " . $pdo->quote($value) . ") $join ";
+                        }
+                    }
                 }
-            }
-            $sql = substr($sql, 0, strlen($sql)-4);
+                return rtrim($sql, " $join") . ')';
+            };
+            $sql .= ' WHERE ' . $build_where($argv);
         } else {
             $primary = Database::database()->quote($primary);
             $sql .= ' WHERE  tag_id=' . $primary .'';

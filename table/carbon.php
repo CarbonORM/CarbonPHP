@@ -40,16 +40,31 @@ class carbon extends Entities implements iRest
                 $argv['pagination'] = json_decode($argv['pagination'], true);
             }
             if (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] != null) {
-                $pos = strrpos($argv['pagination']['limit'], "><");
-                if ($pos !== false) { // note: three equal signs
-                    substr_replace($argv['pagination']['limit'],',',$pos, 2);
-                }
                 $limit = ' LIMIT ' . $argv['pagination']['limit'];
             } else {
                 $limit = '';
             }
+
+            $order = '';
+            if (!empty($limit)) {
+
+                 $order = ' ORDER BY ';
+
+                if (isset($argv['pagination']['order']) && $argv['pagination']['order'] != null) {
+                    if (is_array($argv['pagination']['order'])) {
+                        foreach ($argv['pagination']['order'] as $item => $sort) {
+                            $order .= $item .' '. $sort;
+                        }
+                    } else {
+                        $order .= $argv['pagination']['order'];
+                    }
+                } else {
+                    $order .= self::PRIMARY[0] . ' ASC';
+                }
+            }
+            $limit = $order .' '. $limit;
         } else {
-            $limit = ' LIMIT 100';
+            $limit = ' ORDER BY ' . self::PRIMARY[0] . ' ASC LIMIT 100';
         }
 
         foreach($get as $key => $column){
@@ -116,7 +131,7 @@ class carbon extends Entities implements iRest
                             }
                         }
                     }
-                    return substr($sql, 0, strlen($sql) - (strlen($join) + 1)) . ')';
+                    return rtrim($sql, " $join") . ')';
                 };
                 $sql .= ' WHERE ' . $build_where($where);
             }
@@ -148,7 +163,7 @@ class carbon extends Entities implements iRest
         */
 
         
-        if (empty($primary) && count($return) && in_array(array_keys($return)[0], self::COLUMNS, true)) {  // You must set tr
+        if (empty($primary) && ($argv['pagination']['limit'] ?? false) !== 1 && count($return) && in_array(array_keys($return)[0], self::COLUMNS, true)) {  // You must set tr
             $return = [$return];
         }
 
@@ -162,7 +177,7 @@ class carbon extends Entities implements iRest
     public static function Post(array $argv)
     {
         $sql = 'INSERT INTO CarbonPHP.carbon (entity_pk, entity_fk) VALUES ( UNHEX(:entity_pk), UNHEX(:entity_fk))';
-        $stmt = sDatabaseelf::database()->prepare($sql);
+        $stmt = Database::database()->prepare($sql);
 
         global $json;
 
@@ -189,6 +204,10 @@ class carbon extends Entities implements iRest
     */
     public static function Put(array &$return, string $primary, array $argv) : bool
     {
+        if (empty($primary)) {
+            return false;
+        }
+
         foreach ($argv as $key => $value) {
             if (!in_array($key, self::COLUMNS)){
                 unset($argv[$key]);
@@ -201,10 +220,10 @@ class carbon extends Entities implements iRest
 
         $set = '';
 
-        if (isset($argv['entity_pk'])) {
+        if (!empty($argv['entity_pk'])) {
             $set .= 'entity_pk=UNHEX(:entity_pk),';
         }
-        if (isset($argv['entity_fk'])) {
+        if (!empty($argv['entity_fk'])) {
             $set .= 'entity_fk=UNHEX(:entity_fk),';
         }
 
@@ -224,19 +243,18 @@ class carbon extends Entities implements iRest
 
         global $json;
 
-        if (!isset($json['sql'])) {
+        if (empty($json['sql'])) {
             $json['sql'] = [];
         }
         $json['sql'][] = $sql;
 
-
-        if (isset($argv['entity_pk'])) {
-            $entity_pk = 'UNHEX('.$argv['entity_pk'].')';
-            $stmt->bindParam(':entity_pk', $entity_pk, 2, 16);
+        if (!empty($argv['entity_pk'])) {
+            $entity_pk = $argv['entity_pk'];
+            $stmt->bindParam(':entity_pk',$entity_pk, 2, 16);
         }
-        if (isset($argv['entity_fk'])) {
-            $entity_fk = 'UNHEX('.$argv['entity_fk'].')';
-            $stmt->bindParam(':entity_fk', $entity_fk, 2, 16);
+        if (!empty($argv['entity_fk'])) {
+            $entity_fk = $argv['entity_fk'];
+            $stmt->bindParam(':entity_fk',$entity_fk, 2, 16);
         }
 
         if (!$stmt->execute()){
@@ -274,15 +292,24 @@ class carbon extends Entities implements iRest
             if (empty($argv)) {
                 return false;
             }
-            $sql .= ' WHERE ';
-            foreach ($argv as $column => $value) {
-                if (in_array($column, self::BINARY)) {
-                    $sql .= " $column =UNHEX(" . Database::database()->quote($value) . ') AND ';
-                } else {
-                    $sql .= " $column =" . Database::database()->quote($value) . ' AND ';
+            $pdo = self::database();
+
+            $build_where = function (array $set, $join = 'AND') use (&$pdo, &$build_where) {
+                $sql = '(';
+                foreach ($set as $column => $value) {
+                    if (is_array($value)) {
+                        $sql .= $build_where($value, $join === 'AND' ? 'OR' : 'AND');
+                    } else {
+                        if (in_array($column, self::BINARY)) {
+                            $sql .= "($column = UNHEX(" . $pdo->quote($value) . ")) $join ";
+                        } else {
+                            $sql .= "($column = " . $pdo->quote($value) . ") $join ";
+                        }
+                    }
                 }
-            }
-            $sql = substr($sql, 0, strlen($sql)-4);
+                return rtrim($sql, " $join") . ')';
+            };
+            $sql .= ' WHERE ' . $build_where($argv);
         } else {
             $primary = Database::database()->quote($primary);
             $sql .= ' WHERE  entity_pk=UNHEX(' . $primary .')';

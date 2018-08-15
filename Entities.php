@@ -47,6 +47,10 @@ abstract class Entities
     private static $entityTransactionKeys;
 
 
+    public static function database() : PDO {
+        return Database::database();
+    }
+
     /**
      * Entities constructor.
      * @param array|null $array
@@ -55,7 +59,7 @@ abstract class Entities
      */
     public function __construct(array &$array = null)
     {
-        $this->db = Database::database();
+        $this->db = self::database();
         if ($this instanceof iRest && $array !== null) {
             $this::Post($array);
         }

@@ -147,7 +147,7 @@ namespace {                                     // This runs the following code 
                 $argv = \call_user_func_array($lambda, $argv);
             } catch (Exception | Error $e) {
                 if (!$e instanceof PublicAlert) {
-                    PublicAlert::danger('Developers make mistakes, and you found a big one. We\'ve logged this event and will be investigating soon.'); // TODO - Change what is logged
+                    PublicAlert::danger('Developers make mistakes, and you found a big one! We\'ve logged this event and will be investigating soon.'); // TODO - Change what is logged
 
                     #ErrorCatcher::generateLog($e);     // TODO -- we didnt log it noooooo
 
@@ -158,7 +158,8 @@ namespace {                                     // This runs the following code 
             } finally {
                 if (ob_get_status()) {
                     if (ob_get_length()) {
-                        $out = ob_end_clean();
+                        $out = ob_get_contents();
+                        ob_end_clean();
                         print <<<END
                                 <div class="callout callout-info">
                                 <h4>You have printed to the screen while within the catchErrors() function!</h4>

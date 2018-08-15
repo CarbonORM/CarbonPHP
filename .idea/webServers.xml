@@ -13,6 +13,9 @@
       <webServer id="896de224-b294-4019-8750-5f619df3d17d" name="rootprerogative" url="http://localhost">
         <fileTransfer port="0" mountedRoot="$PROJECT_DIR$/../RootPrerogative.com/vendor/richardtmiles/carbonphp" accessType="MOUNT" />
       </webServer>
+      <webServer id="b4d7e9db-b7e8-48f2-96bc-4b493b2aea26" name="onthewll" url="http://localhost">
+        <fileTransfer port="0" mountedRoot="$PROJECT_DIR$/../OnTheWallArts/vendor/richardtmiles/carbonphp" accessType="MOUNT" />
+      </webServer>
     </option>
   </component>
 </project>
