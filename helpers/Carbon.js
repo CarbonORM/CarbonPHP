@@ -1,11 +1,12 @@
-function CarbonPHP() {
-    let self = this;
-    let address = '';
-    let statsSocket = '';
-    let alerting = [];
-    let JSLoaded = new Set();
+function CarbonPHP(selector, address, options) {
+    this.address = address;
+    this.selector = selector
+    this.options = options;
+    this.statsSocket = '';
+    this.alerting = [];
+    this.JSLoaded = new Set();
 
-    self.js = (sc, cb) => {
+    this.js = (sc, cb) => {
         function load(src, cb) {
             "use strict";
             let ref = window.document.getElementsByTagName("script")[0];
@@ -17,11 +18,12 @@ function CarbonPHP() {
                 script.onload = cb;
             return script;
         }
-        return (!JSLoaded.has(sc) ? load(sc, cb) : cb());
+
+        return (!this.JSLoaded.has(sc) ? load(sc, cb) : cb());
     };
 
 //-- milliseconds -->
-    self.sleep = (milliseconds) => {
+    this.sleep = (milliseconds) => {
         let start = new Date().getTime();
         for (let i = 0; i < 1e7; i++) {
             if ((new Date().getTime() - start) > milliseconds) {
@@ -31,17 +33,17 @@ function CarbonPHP() {
     };
 
 //-- I need php
-    self.isset = (v) => {
+    this.isset = (v) => {
         return (v !== '' && v !== null && v !== undefined);
     };
 
 //-- $().exists returns bool
-    $.fn.exists = () => {
+    this.exists = () => {
         return this.length !== 0;
     };
 
 //-- Json, no beef -->
-    self.isJson = (str) => {
+    this.isJson = (str) => {
         try {
             return JSON.parse(str)
         } catch (e) {
@@ -49,35 +51,35 @@ function CarbonPHP() {
         }
     };
 
-    self.app = self.start = self.startApplication = (url) => {
+    this.app = this.start = this.startApplication = (url) => {
         if (url.charAt(0) !== '/') {
             url = '/' + url;
         }
         console.log('JavaScript startApplication(' + url + ')');
-        if (self.defaultOnSocket && self.trySocket) {           //defaultOnSocket &&
+        if (this.defaultOnSocket && this.trySocket) {           //defaultOnSocket &&
             console.log('Socket::' + url);
-            self.statsSocket.send(JSON.stringify(url));
-        } else $.get(url, (data) => self.MustacheWidgets(data, url));
-        //$.pjax.reload(self.selector, {url: url})
+            this.statsSocket.send(JSON.stringify(url));
+        } else $.get(url, (data) => this.MustacheWidgets(data, url));
+        //$.pjax.reload(this.selector, {url: url})
     };
 
-    self.alerts = (a) => {
+    this.alerts = (a) => {
         for (let key in a) {
             // skip loop if the property is from prototype
             if (!a.hasOwnProperty(key)) continue;
-            bootstrapAlert(a[key], key);
+            this.bootstrapAlert(a[key], key);
         }
         a = null;
     };
 
 //-- Bootstrap Alert -->
-    self.alert = self.bootstrapAlert = (message, level) => {
-        if (!self.isset(level)) {
+    this.alert = this.bootstrapAlert = (message, level) => {
+        if (!this.isset(level)) {
             level = 'info';
         }
         let container, node = document.createElement("DIV"), text;
         text = level.charAt(0).toUpperCase() + level.slice(1);
-        container = self.selector + " div#alert";
+        container = this.selector + " div#alert";
 
         if (!$(container).length) {
             if (!$("#alert").length)
@@ -94,17 +96,17 @@ function CarbonPHP() {
     };
 
 // PJAX Forum Request
-    self.handlebars = (data) => {
+    this.handlebars = (data) => {
         console.log('handlebars', data);
 
         let template = undefined, json = undefined;
 
-        if (!self.isset(data)) {
+        if (!this.isset(data)) {
             console.log('No Json to Handlebars');
             return null;
         }
 
-        json = (typeof data === "string" ? self.isJson(data) : false);
+        json = (typeof data === "string" ? this.isJson(data) : false);
 
         if (json) {
             console.log(json);
@@ -112,7 +114,7 @@ function CarbonPHP() {
             if (json.hasOwnProperty('Mustache')) {
 
                 if (!json.hasOwnProperty('Widget')) {
-                    json.Widget = self.selector;
+                    json.Widget = this.selector;
                 }
 
                 console.log('Valid Mustache $( ' + json.Widget + ' ).render( ' + json.Mustache + ', ... ); \n');
@@ -127,8 +129,8 @@ function CarbonPHP() {
 
                     template = Mustache.render(mustache, json);       // render json with mustache lib
 
-                    if (json.hasOwnProperty('ALERT') && self.isset(json.ALERT)) {
-                        self.alerting = json.ALERT;
+                    if (json.hasOwnProperty('ALERT') && this.isset(json.ALERT)) {
+                        this.alerting = json.ALERT;
                     }
 
                     if (json.hasOwnProperty('scroll')) {                        // use slim scroll to move to bottom of chats (lifo)
@@ -142,8 +144,8 @@ function CarbonPHP() {
                 console.log("JSON RESPONSE :: ");                    // log ( string )
                 console.log(json);                              // log ( object ) - seperating them will print nicely
 
-                if (json.hasOwnProperty('ALERT') && self.isset(json.ALERT)) {
-                    bootstrapAlert(json.ALERT);
+                if (json.hasOwnProperty('ALERT') && this.isset(json.ALERT)) {
+                    this.bootstrapAlert(json.ALERT);
                 }
                 return '';
             }
@@ -152,7 +154,7 @@ function CarbonPHP() {
         return data;
     };
 
-    self.event=self.runEvent = (ev) => {
+    this.event = this.runEvent = (ev) => {
         let event;
         if (document.createEvent) {
             event = document.createEvent("HTMLEvents");
@@ -166,33 +168,33 @@ function CarbonPHP() {
             document.fireEvent("on" + event.eventType, event);
     };
 
-    self.trySocket = () => {
+    this.trySocket = () => {
 
         while (!navigator.onLine) {
         }
         // TODO - This blocks a full cpu if the wifi drops.. we should non-block
 
-        if (address === null || address === '' || self.statsSocket.readyState === 0)
+        if (address === null || address === '' || this.statsSocket.readyState === 0)
             return 0;
 
-        if (self.statsSocket.readyState === 1)
+        if (this.statsSocket.readyState === 1)
             return 1;
 
         let count = 0;
         console.log('Attempting Reconnect');
         do {
-            if (self.statsSocket !== null && typeof self.statsSocket === 'object' && self.statsSocket.readyState === 1)
+            if (this.statsSocket !== null && typeof this.statsSocket === 'object' && this.statsSocket.readyState === 1)
                 break;            // help avoid race
-            self.statsSocket = new WebSocket(address);
-        } while (self.statsSocket.readyState === 3 && ++count <= 3);  // 6 seconds 3 attempts
-        if (self.statsSocket.readyState === 3)
-            console.log = "Could not reconnect to socket. Connection aborted.";
-        return (self.statsSocket.readyState === 1);
+            this.statsSocket = new WebSocket(address);
+        } while (this.statsSocket.readyState === 3 && ++count <= 3);  // 6 seconds 3 attempts
+        if (this.statsSocket.readyState === 3)
+            console.log("Could not reconnect to socket. Connection aborted.");
+        return (this.statsSocket.readyState === 1);
     };
 
-    self.MustacheWidgets = (data, url) => {
+    this.MustacheWidgets = (data, url) => {
         if (data !== null) {
-            let json = (typeof data === "string" ? self.isJson(data) : data);
+            let json = (typeof data === "string" ? this.isJson(data) : data);
 
             console.log('MustacheWidgets');
             console.log(json);
@@ -217,9 +219,9 @@ function CarbonPHP() {
 
                     $(json.Widget).html(template);       // render json with mustache lib
 
-                    if (json.hasOwnProperty('ALERT') && self.isset(json.ALERT)) {
+                    if (json.hasOwnProperty('ALERT') && this.isset(json.ALERT)) {
 
-                        alerts(json.ALERT);
+                        this.alerts(json.ALERT);
 
                     }
 
@@ -231,8 +233,8 @@ function CarbonPHP() {
                 console.log("JSON (NO MUSTACHE):: ");                    // log ( string )
                 console.log(json);                              // log ( object ) - seperating them will print nicely
 
-                if (json.hasOwnProperty('ALERT') && self.isset(json.ALERT)) {
-                    alerts(json.ALERT);
+                if (json.hasOwnProperty('ALERT') && this.isset(json.ALERT)) {
+                    this.alerts(json.ALERT);
                 }
 
             } else {
@@ -243,116 +245,108 @@ function CarbonPHP() {
             console.log('RECEIVED NOTHING ?? ' + data);
             if (typeof data === "object" && url !== '') {
                 console.log('Re-attempting Connection');
-                setTimeout(() => startApplication(url), 2000); // wait 2 seconds
+                setTimeout(() => this.startApplication(url), 2000); // wait 2 seconds
             }
         }
-        self.runEvent("Carbon");
+        this.runEvent("Carbon");
     };
 
-    self.invoke = (selector, address, options) => {
 
-        self.selector = selector;
+    // Google's loadDeferredStyles
+    let loadDeferredStyles = function () {
+        let addStylesNode = document.getElementById("deferred-styles");
+        let replacement = document.createElement("div");
+        replacement.innerHTML = addStylesNode.textContent;
+        document.body.appendChild(replacement)
+        addStylesNode.parentElement.removeChild(addStylesNode);
+    };
+    let raf = requestAnimationFrame || mozRequestAnimationFrame ||
+        webkitRequestAnimationFrame || msRequestAnimationFrame;
+    if (raf) raf(function () {
+        window.setTimeout(loadDeferredStyles, 0);
+    });
+    else window.addEventListener('load', loadDeferredStyles);
 
-        self.address = address;
-
-        self.alerting = {};
-
-        // Google's loadDeferredStyles
-        let loadDeferredStyles = function () {
-            let addStylesNode = document.getElementById("deferred-styles");
-            let replacement = document.createElement("div");
-            replacement.innerHTML = addStylesNode.textContent;
-            document.body.appendChild(replacement)
-            addStylesNode.parentElement.removeChild(addStylesNode);
-        };
-        let raf = requestAnimationFrame || mozRequestAnimationFrame ||
-            webkitRequestAnimationFrame || msRequestAnimationFrame;
-        if (raf) raf(function () {
-            window.setTimeout(loadDeferredStyles, 0);
-        });
-        else window.addEventListener('load', loadDeferredStyles);
-
-        // PJAX content now with json (mustache) support
-        $(document).on('submit', 'form', function (event) {        // TODO - remove this pos
-            $.pjax.submit(event, selector, {
-                async: false,
-                push: false,
-                accepts: {
-                    mustacheTemplate: "html"
-                },
-                // deserialize a custom type
-                converters: {
-                    '* mustacheTemplate': self.handlebars,
-                },
-                dataType: "mustacheTemplate",
-            });
-        });
-
-        // All links will be sent with ajax
-        $(document).pjax('a', selector, {
+    // PJAX content now with json (mustache) support
+    $(document).on('submit', 'form', (event)=>{        // TODO - remove this pos
+        $.pjax.submit(event, selector, {
             async: false,
+            push: false,
             accepts: {
                 mustacheTemplate: "html"
             },
             // deserialize a custom type
             converters: {
-                '* mustacheTemplate': self.handlebars,
+                '* mustacheTemplate': this.handlebars,
             },
             dataType: "mustacheTemplate",
-
         });
+    });
 
-        $(document).on('pjax:success', () => {
+    // All links will be sent with ajax
+    $(document).pjax('a', selector, {
+        async: false,
+        accepts: {
+            mustacheTemplate: "html"
+        },
+        // deserialize a custom type
+        converters: {
+            '* mustacheTemplate': this.handlebars,
+        },
+        dataType: "mustacheTemplate",
 
-            console.log(self.alerting);
+    });
 
-            self.alerts(self.alerting);
+    $(document).on('pjax:success', () => {
 
-            console.log("Successfully loaded " + window.location.href)
-        });
+        console.log(this.alerting);
 
-        $(document).on('pjax:timeout', (event) => event.preventDefault());
+        this.alerts(this.alerting);
 
-        $(document).on('pjax:error', (xhr, textStatus, error, options) => {
-            console.log("Could not load " + window.location.href);
-            console.log(xhr, textStatus, error, options);
-            // TODO - this is a very bad quick fix
-            //$.pjax.reload(selector);
-        });
+        console.log("Successfully loaded " + window.location.href)
+    });
 
-        $(document).on('pjax:complete', function () {
-            // Set up Box Annotations
-            self.runEvent("Carbon");
-        });
+    $(document).on('pjax:timeout', (event) => event.preventDefault());
 
-        $(document).on('pjax:popstate', () => $.pjax.reload(selector)); // refresh our state always!!
+    $(document).on('pjax:error', (xhr, textStatus, error, options) => {
+        console.log("Could not load " + window.location.href);
+        console.log(xhr, textStatus, error, options);
+        // TODO - this is a very bad quick fix
+        //$.pjax.reload(selector);
+    });
 
-        // Socket Connection
-        self.defaultOnSocket = false;
-        self.statsSocket = undefined;
+    $(document).on('pjax:complete', () => {
+        // Set up Box Annotations
+        this.runEvent("Carbon");
+    });
 
-        if (self.isset(address)) {
-            if (self.isset(options)) {
-                self.defaultOnSocket = options;
-            }
-            self.statsSocket = new WebSocket(address);
+    $(document).on('pjax:popstate', () => $.pjax.reload(selector)); // refresh our state always!!
+
+    // Socket Connection
+    this.defaultOnSocket = false;
+    this.statsSocket = undefined;
+
+    if (this.isset(address)) {
+        if (this.isset(options)) {
+            this.defaultOnSocket = options;
         }
+        this.statsSocket = new WebSocket(address);
+    }
 
-        if (self.isset(address)) {
-            self.statsSocket.onmessage = (data) => {
-                console.log('Socket Sent An Update');
-                (self.isJson(data.data) ? self.MustacheWidgets(JSON.parse(data.data)) : console.log('Not Json', data.data));
+    if (this.isset(address)) {
+        this.statsSocket.onmessage = (data) => {
+            console.log('Socket Sent An Update');
+            (this.isJson(data.data) ? this.MustacheWidgets(JSON.parse(data.data)) : console.log('Not Json', data.data));
+        };
+        this.statsSocket.onerror = () => console.log('Web Socket Error');
+        this.statsSocket.onopen = () => {
+            console.log('Socket Started');
+            this.statsSocket.onclose = () => {                 // prevent the race condition
+                console.log('Closed Socket');
+                this.trySocket();
             };
-            self.statsSocket.onerror = () => console.log('Web Socket Error');
-            self.statsSocket.onopen = () => {
-                console.log('Socket Started');
-                self.statsSocket.onclose = () => {                 // prevent the race condition
-                    console.log('Closed Socket');
-                    self.trySocket();
-                };
-            };
-        }
-        return self;
-    };
-    return self;
+        };
+    }
+    return this;
+
 }

@@ -72,6 +72,10 @@ class View
             return true;
         }
 
+        $ext = pathinfo($file, PATHINFO_EXTENSION);
+
+        if ($ext)
+
         if (pathinfo($file, PATHINFO_EXTENSION) === 'hbs') {
             $mustache = new \Mustache_Engine();
 
@@ -90,7 +94,9 @@ class View
             $buffer = $buffer();
         }
 
-        // Make sure our buffer didn't fail
+        // Make sure our buffer didn't fail TODO -
+
+
 
         if (!file_exists(self::$wrapper)) {
             print '<h1>The content wrapper (' . self::$wrapper . ') was not found.</h1>';

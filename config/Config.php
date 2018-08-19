@@ -19,7 +19,7 @@ return [
     'SITE' => [
         'URL' => 'example.com',    // Evaluated and if not the accurate redirect. Local php server okay. Remove for any domain
 
-        'ROOT' => SERVER_ROOT,     // This was defined in our ../index.php
+        'ROOT' => APP_ROOT,     // This was defined in our ../index.php
 
         'ALLOWED_EXTENSIONS' => 'png|jpg|gif|jpeg|bmp|icon|js|css|woff|woff2|map|hbs|eotv',     // File ending in these extensions will be served
 

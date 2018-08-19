@@ -130,7 +130,7 @@ $PDO = [0 => PDO::PARAM_NULL, 1 => PDO::PARAM_BOOL, 2 => PDO::PARAM_INT, 3 => PD
 $rest = [];
 $pass = '';
 $clean = true;
-$only_these_tables = $schema = $history_table_query = $mysqldump = null;
+$only_these_tables = $schema = $history_table_query = $mysqldump = $mysql = null;
 $verbose = $debug = $primary_required = $delete_dump = $carbon_namespace = $skipTable = false;
 $host = '127.0.0.1';
 $user = 'root';
@@ -241,7 +241,7 @@ if (empty($schema)) {
 }
 
 // We're going to use this function to execute mysql from the command line
-$buildCNF = function ($query, $type = 'mysql') use ($host, $verbose, $schema, $user, $pass, $usage, &$cnfFile) {
+$buildCNF = function ($query, $type = 'mysql') use ($mysqldump, $mysql, $host, $verbose, $schema, $user, $pass, $usage, &$cnfFile) {
     if (empty($host) || empty($user)) $usage();
 
     if (empty($cnfFile)) {
@@ -252,7 +252,7 @@ $buildCNF = function ($query, $type = 'mysql') use ($host, $verbose, $schema, $u
     }
 
     if ($type === 'mysqldump') {
-        $runMe = (empty($mysqldump) ? 'mysqldump' : "\"$mysqldump\"") . ' --defaults-extra-file="' . $cnfFile . '" --no-data ' . $schema . ' > ./mysqldump.sql';
+        $runMe = (empty($mysqldump) ? 'mysqldump' : $mysqldump) . ' --defaults-extra-file="' . $cnfFile . '" --no-data ' . $schema . ' > ./mysqldump.sql';
     } else if ($type === 'mysql') {
         $runMe = (empty($mysql) ? 'mysql' : "\"$mysql\"") . ' --defaults-extra-file="' . $cnfFile . '" ' . $schema . ' < "' . $query . '"';
     } else {
