@@ -3,7 +3,6 @@
 namespace CarbonPHP;
 
 use CarbonPHP\Helpers\Serialized;
-use PHPUnit\Runner\Exception;
 
 /**
  * Class Carbon
@@ -246,8 +245,6 @@ class CarbonPHP
         ########################  Session Management ######################
 
         if (($PHP['SESSION'] ?? true)) {
-
-
             if ($PHP['SESSION']['PATH'] ?? false) {
                 session_save_path($PHP['SESSION']['PATH'] ?? '');   // Manually Set where the Users Session Data is stored
             }
