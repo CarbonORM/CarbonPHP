@@ -238,8 +238,12 @@ function CarbonPHP(selector, address, options) {
                 }
 
             } else {
-                console.log("BAD STASH :: ", data);
-                $("html").html(data);                           //
+                if (data === "" || data === undefined) {
+                    console.log("BAD STASH :: EMPTY STASH");
+                } else {
+                    console.log("BAD STASH :: ", data);
+                    $("body").html(data);                           //
+                }
             }
         } else {
             console.log('RECEIVED NOTHING ?? ' + data);

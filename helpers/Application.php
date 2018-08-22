@@ -150,7 +150,6 @@ namespace {                                     // This runs the following code 
                     PublicAlert::danger('Developers make mistakes, and you found a big one! We\'ve logged this event and will be investigating soon.'); // TODO - Change what is logged
 
                     #ErrorCatcher::generateLog($e);     // TODO -- we didnt log it noooooo
-
                     var_dump($e);  // TODO -- clean this up when rest is working
 
                 }
