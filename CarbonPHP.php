@@ -236,7 +236,8 @@ class CarbonPHP
             die(1);
         }
 
-        AJAX OR $_POST = []; // We only allow post requests through ajax/pjax
+        // TODO - I think we should remove this
+        #AJAX OR $_POST = []; // We only allow post requests through ajax/pjax
 
         #######################   VIEW             #####################
         \define('APP_VIEW', $PHP['VIEW']['VIEW'] ?? DS);         // Public Folder
