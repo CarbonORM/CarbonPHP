@@ -106,7 +106,7 @@ abstract class Serialized {
 			return true;
 		}
 
-		$length = strlen( $value );
+		$length = \strlen( $value );
 		$end = '';
 
 		switch ($value[0]) {

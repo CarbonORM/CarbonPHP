@@ -148,11 +148,10 @@ namespace {                                     // This runs the following code 
             } catch (Exception | Error $e) {
                 if (!$e instanceof PublicAlert) {
                     PublicAlert::danger('Developers make mistakes, and you found a big one! We\'ve logged this event and will be investigating soon.'); // TODO - Change what is logged
-
-                    #ErrorCatcher::generateLog($e);     // TODO -- we didnt log it noooooo
-                    var_dump($e);  // TODO -- clean this up when rest is working
-
+                    ErrorCatcher::generateLog($e);     // TODO -- we didnt log it noooooo
+                    sortDump($e);  // TODO -- clean this up when rest is working
                 }
+                /** @noinspection CallableParameterUseCaseInTypeContextInspection */
                 $argv = null;
             } finally {
                 if (ob_get_status()) {
