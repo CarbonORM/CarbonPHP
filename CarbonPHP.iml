@@ -9,6 +9,7 @@
       <sourceFolder url="file://$MODULE_DIR$/helpers" isTestSource="false" packagePrefix="CarbonPHP\Helpers\" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/composer" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/mustache/mustache" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/psr/log" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
@@ -17,11 +18,13 @@
         <CLASSES>
           <root url="file://$MODULE_DIR$/vendor/composer" />
           <root url="file://$MODULE_DIR$/vendor/mustache/mustache" />
+          <root url="file://$MODULE_DIR$/vendor/psr/log" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
           <root url="file://$MODULE_DIR$/vendor/composer" />
           <root url="file://$MODULE_DIR$/vendor/mustache/mustache" />
+          <root url="file://$MODULE_DIR$/vendor/psr/log" />
         </SOURCES>
       </library>
     </orderEntry>
