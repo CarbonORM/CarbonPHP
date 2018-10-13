@@ -6,13 +6,6 @@ namespace CarbonPHP;
  * Class View
  * @package Carbon
  */
-
-use CarbonPHP\helpers\Files;
-
-/**
- * Class View
- * @package Carbon
- */
 class View
 {
     /**
@@ -72,10 +65,6 @@ class View
             return true;
         }
 
-        $ext = pathinfo($file, PATHINFO_EXTENSION);
-
-        if ($ext)
-
         if (pathinfo($file, PATHINFO_EXTENSION) === 'hbs') {
             $mustache = new \Mustache_Engine();
 
@@ -94,9 +83,7 @@ class View
             $buffer = $buffer();
         }
 
-        // Make sure our buffer didn't fail TODO -
-
-
+        // Make sure our buffer didn't fail
 
         if (!file_exists(self::$wrapper)) {
             print '<h1>The content wrapper (' . self::$wrapper . ') was not found.</h1>';
@@ -232,7 +219,7 @@ class View
     {
         #self::generateUpToDateMimeArray() and die;
 
-        $mime_types = include CARBON_ROOT . 'extras/mimeTypes.php';
+        $mime_types = include CARBON_ROOT . 'Extras/mimeTypes.php';
 
         if (array_key_exists($ext, $mime_types)) {
             return $mime_types[$ext];

@@ -15,7 +15,7 @@
 
 namespace CarbonPHP;
 
-use CarbonPHP\helpers\Serialized;
+use CarbonPHP\Helpers\Serialized;
 
 class Session implements \SessionHandlerInterface
 {
@@ -50,7 +50,7 @@ class Session implements \SessionHandlerInterface
         ini_set('session.use_strict_mode', 1);
 
         if ($ip === false) {
-            print 'CarbonPHP has detected ip spoofing.';
+            print 'Carbon has detected ip spoofing.';
             die(0);
         }
 
@@ -74,7 +74,7 @@ class Session implements \SessionHandlerInterface
 
     /**
      *   Pauses the current session. This is required if you plan to fork you process and
-     *   continue witSh session manipulation.
+     *   continue with session manipulation.
      */
     public static function pause()
     {
@@ -253,7 +253,7 @@ class Session implements \SessionHandlerInterface
         $NewDateTime = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . ' + 1 d,lay'));  // so from time of last write and whenever the gc_collector hits
 
         try {
-            $db->prepare('REPLACE INTO sessions SET session_id = ?, user_id = UNHEX(?), user_ip = ?,  session_expires = ?, session_data = ?')->execute([
+            $db->prepare('REPLACE INTO sessions SET session_id = ?, user_id = ?, user_ip = ?,  session_expires = ?, session_data = ?')->execute([
                 $id, static::$user_id, IP, $NewDateTime, $data]);
         } catch (\PDOException $e) {
             sortDump($e);
@@ -269,7 +269,7 @@ class Session implements \SessionHandlerInterface
     public function destroy($id)
     {
         $db = Database::database();
-        return $db->prepare('DELETE FROM sessions WHERE user_id = UNHEX(?) OR session_id = ?')->execute([self::$user_id, $id]) ?
+        return $db->prepare('DELETE FROM sessions WHERE user_id = ? OR session_id = ?')->execute([self::$user_id, $id]) ?
             true : false;
     }
 

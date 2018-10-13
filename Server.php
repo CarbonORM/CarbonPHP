@@ -1,14 +1,9 @@
 <?php
 
-/**
- * I've never gotten wss to work programmatically.
- * You'd be my hero forever if you did this!
- */
+namespace CarbonPHP\Helpers;
 
-namespace CarbonPHP\helpers;
-
-use CarbonPHP\error\ErrorCatcher;
-use CarbonPHP\helpers\Pipe;
+use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Helpers\Pipe;
 use CarbonPHP\Request;
 use CarbonPHP\Session;
 use CarbonPHP\Database;
@@ -39,11 +34,12 @@ if (false === (include APP_ROOT . 'vendor/autoload.php')) {     // Load the auto
     print '<h1>Loading Composer Failed. See Carbonphp.com for documentation.</h1>' and die;     // Composer autoload
 }
 
-/*if (!\extension_loaded('pcntl')) {
-    print '<h1>CarbonPHP Websockets require the PCNTL library. See CarbonPHP.com for more Documentation</h1>' and die;
-}*/
+if (!\extension_loaded('pcntl')) {
+    print '<h1>CarbonPHP Websockets require the PCNTL library. See CarbonPHP.com for more Documentation</h1>';
+}
 
 new CarbonPHP($opts = include $argv[2]);
+
 
 $signal = function ($signal) {
     print "Signal :: $signal\n";
@@ -84,9 +80,8 @@ class Server extends Request
 
     public function __construct($config)
     {
-        \define('URL', $config['SITE']['SITE'] ?? LOCAL_SERVER);  // todo what was this
+        \define('URL', $config['SITE']['SITE'] ?? LOCAL_SERVER);
 
-        // NOT URI // URL
         if (!URL) {
             print 'Your url must be set for Sockets';
             exit(1);
@@ -96,7 +91,6 @@ class Server extends Request
 
         #\define('URI', '');
 
-        // TODO - see if I can get this working
         if (self::SSL) {
             $context = stream_context_create([
                 'ssl' => [
@@ -121,11 +115,9 @@ class Server extends Request
 
         $sock_fd = [$socket];
 
-        for (; ;) {
-            // Wait for a child to connect
+        for (; ;) {                         // should
             do {
-                $clientList = $sock_fd; // I still don't remember why I have to do this
-
+                $clientList = $sock_fd;
                 $number = stream_select($clientList, $write, $error, 5);
             } while (!$number);
 
@@ -142,7 +134,6 @@ class Server extends Request
                 continue;
             }
 
-            // TODO - MAKE WORK ON WINDOWS
             if (($pid = pcntl_fork()) > 0) {                     // if parent restart looking for incomming connections
                 continue;
             }
@@ -201,9 +192,8 @@ class Server extends Request
 
                         if (!empty($uri)) {
 
-                            #if (pcntl_fork() === 0) {
-                                // needs the full namespace in a fork
-                                #\CarbonPHP\Session::resume();
+                            if (pcntl_fork() === 0) {
+
                                 \CarbonPHP\Session::resume();
 
                                 $run(trim($uri));
@@ -212,8 +202,8 @@ class Server extends Request
 
                                 startApplication($uri); // will DO NOT exit in view
 
-                                #exit(1);    // but if we decide to change that...  (we decided to change that!)
-                            #}
+                                exit(1);    // but if we decide to change that...  (we decided to change that!)
+                            }
                         }
                     }
 

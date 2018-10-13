@@ -11,18 +11,17 @@ namespace CarbonPHP;
 
 abstract class Application extends Route
 {
-    abstract public function startApplication($uri = null): bool;
-
+    abstract public function startApplication($uri = null) : bool;
     /**
      * App constructor. If no uri is set than
      * the Route constructor will execute the
      * defaultRoute method defined below.
      * @return callable
      * @throws \Mustache_Exception_InvalidArgumentException
-     * @throws \CarbonPHP\error\PublicAlert
+     * @throws \CarbonPHP\Error\PublicAlert
      */
 
-    public function fullPage(): callable
+    public function fullPage() : callable
     {
         return catchErrors(function (string $file) {
             return include APP_VIEW . $file;
@@ -44,35 +43,7 @@ abstract class Application extends Route
     public function MVC()
     {
         return function (string $class, string $method, array &$argv = []) {
-            /** @noinspection PhpUnusedLocalVariableInspection */
-            static $APPLICATION, $CLASS, $METHOD; // This MAY run recursively
-
-            $CLASS = $class;
-            $METHOD = $method;
-
-            if (!isset($APPLICATION)) {
-                $APPLICATION = $recurse = 0;
-            } else {
-                $recurse = $APPLICATION;
-            }
-
-            $APPLICATION++;
-
-            if (false === catchErrors(CM($class, $method, $argv))()) {  // Controller -> Model
-                return false;
-            }
-
-            if ($recurse !== 0) {
-                return true;
-            }
-
-            // This could cache or send
-            $file = APP_VIEW . "$CLASS/$METHOD";
-
-            if (!file_exists(APP_ROOT . $file . ($ext = '.php')) && !file_exists(APP_ROOT . $file . ($ext = '.hbs'))) {
-                $ext = '';
-            }
-            return View::content($file . $ext);  // View TODO add ext param to view
+            return MVC($class, $method, $argv);         // So I can throw in ->structure($route->MVC())-> anywhere
         };
     }
 

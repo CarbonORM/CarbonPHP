@@ -8,8 +8,8 @@
 
 namespace CarbonPHP;
 
-use CarbonPHP\error\PublicAlert;
-use CarbonPHP\helpers\Files;
+use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Helpers\Files;
 
 class Request   // requires carbon::application;
 {
@@ -92,6 +92,7 @@ class Request   // requires carbon::application;
     {
         if (!(\defined('SOCKET') && SOCKET)) {
             if (headers_sent()) {
+                /** @noinspection UnsupportedStringOffsetOperationsInspection */
                 $_SESSION['Headers'][] = $string;
             } else {
                 header($string);

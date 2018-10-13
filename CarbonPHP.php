@@ -30,11 +30,7 @@ class CarbonPHP
      */
     public function __invoke($application)
     {
-        return $this->safelyExit ?:
-            Database::TryCatch(
-                function () use ($application) {
-                    return \startApplication($application);
-                });
+        return $this->safelyExit ?: startApplication($application);
     }
 
     /**
@@ -88,7 +84,7 @@ class CarbonPHP
      *          'WRAPPER' => string '',         // View::content() will produce this
      *      ],
      * ]
-     *
+     * @throws \Exception
      */
     public function __construct(string $PHP = null)
     {
@@ -119,7 +115,7 @@ class CarbonPHP
             } elseif ($PHP !== null) {
                 print 'Invalid configuration path given! ' . $PHP;
                 $this->safelyExit = true;
-                return null;
+                return;
             }
         }
 
@@ -157,18 +153,15 @@ class CarbonPHP
          * Questions still to test. When does the error catcher get resorted to?
          * Do Try Catch block have a higher precedence than the error catcher?
          * What if that error is thrown multiple function levels down in a block?
-         *
-         * error catcher gets resorted to when the error falls to the global scope. This should
-         * probably be implemented in a way that uses the routing + an abstract function
          **/
-
+        /*
         Error\ErrorCatcher::$defaultLocation = REPORTS . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
         Error\ErrorCatcher::$fullReports = $PHP['ERROR']['STORE'] ?? false;
         Error\ErrorCatcher::$printToScreen = $PHP['ERROR']['SHOW'] ?? true;
         Error\ErrorCatcher::$storeReport = $PHP['ERROR']['FULL'] ?? true;
         Error\ErrorCatcher::$level = $PHP['ERROR']['LEVEL'] ?? ' E_ALL | E_STRICT';
         Error\ErrorCatcher::start();            // Catch application errors and alerts
-
+        */
 
         #################  DATABASE  ########################
         if ($PHP['DATABASE'] ?? false) {
@@ -183,7 +176,8 @@ class CarbonPHP
         // We're not testing out extra resources
         if (!TEST && !SOCKET && php_sapi_name() === 'cli') {
             $this->CLI($PHP);
-            return $this->safelyExit = true;
+            $this->safelyExit = true;
+            return;
         }
 
         // More cache control is given in the .htaccess File
@@ -205,6 +199,8 @@ class CarbonPHP
 
         #################  SITE  ########################
         if ($PHP['SITE'] ?? false) {
+            \define('BOOTSTRAP', APP_ROOT . $PHP['SITE']['BOOTSTRAP'] ?? '');          // Routing file
+
             \define('SITE_TITLE', $PHP['SITE']['TITLE'] ?? 'CarbonPHP');                     // Carbon doesnt use
 
             \define('SITE_VERSION', $PHP['SITE']['VERSION'] ?? PHP_VERSION);                // printed in the footer
@@ -230,7 +226,7 @@ class CarbonPHP
             if (headers_sent()) {
                 print '<h1>Failed to switch to https, headers already sent! Please contact the server administrator.</h1>';
             } else {
-                header("Location: https://" . $_SERVER["HTTP_HOST"] . $_SERVER["REQUEST_URI"]);
+                header('Location: https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
             }
             die(1);
         }
@@ -245,7 +241,7 @@ class CarbonPHP
 
         ########################  Session Management ######################
 
-        if (($PHP['SESSION'] ?? true)) {
+        if ($PHP['SESSION'] ?? true) {
             if ($PHP['SESSION']['PATH'] ?? false) {
                 session_save_path($PHP['SESSION']['PATH'] ?? '');   // Manually Set where the Users Session Data is stored
             }
@@ -263,11 +259,11 @@ class CarbonPHP
             forward_static_call_array([Serialized::class, 'start'], $PHP['SESSION']['SERIALIZE']);    // Pull theses from session, and store on shutdown
         }
         ################  Helpful Global Functions ####################
-        if (file_exists(CARBON_ROOT . 'helpers' . DS . 'Application.php') && !@include CARBON_ROOT . 'helpers' . DS . 'Application.php') {
+        if (file_exists(CARBON_ROOT . 'Helpers' . DS . 'Application.php') && !@include CARBON_ROOT . 'Helpers' . DS . 'Application.php') {
             print '<h1>Your instance of CarbonPHP appears corrupt. Please see CarbonPHP.com for Documentation.</h1>';
             die(1);
         }
-        return null;
+        return;
     }
 
 
@@ -333,6 +329,7 @@ class CarbonPHP
         if (empty($ext)) {              // We're requesting a file
             return true;
         }
+
 
         // we need to ensure valid access
         $allowedAccess = false;
@@ -409,7 +406,7 @@ class CarbonPHP
 
         $background = function ($cmd, $outputFile) {
             try {
-                if (substr(php_uname(), 0, 7) == 'Windows') {
+                if (strpos(PHP_OS, 'Windows') === 0) {
                     $cmd = "start /B $cmd > $outputFile";
                     print $cmd . PHP_EOL . PHP_EOL;
                     pclose(popen($cmd, 'r'));
@@ -437,8 +434,9 @@ class CarbonPHP
                  * This is a small program inspired by my boss Scott.
                  * - You the shit dude! ( <- That's a good thing )
                  */
-                $_SERVER['argv'] = $argv;
-                include 'programs/rest.php';
+                $argv = implode(' ', $argv);
+                /** @noinspection PhpIncludeInspection */
+                include 'Extras/rest.mustache.php ' . $argv;
                 break;
             case 'go':
                 $CMD = 'websocketd --port=' . ($PHP['SOCKET']['PORT'] ?? 8888) . ' ' .

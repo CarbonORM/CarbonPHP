@@ -10,11 +10,19 @@
   ],
   "homepage": "https://github.com/richardtmiles/carbonphp",
   "description": "Edit the DOM in PHP. A PHP 7+ tool kit designed for SEO optimization.",
+  "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
     "php": "^7.1",
-    "psr/log": "1.0.*",
-    "mustache/mustache": "2.9.*"
+    "psr/log": "dev-master",
+    "mustache/mustache": "dev-master"
+  },
+  "suggest": {
+    "almasaeed2010/adminlte": "^2.4",
+    "bower-asset/jquery-backstretch": "^2.1.16",
+    "bower-asset/jquery-form": "dev-master",
+    "bower-asset/jquery-pjax": "dev-master",
+    "bower-asset/mustache.js": "dev-master"
   },
   "authors": [
     {
@@ -27,13 +35,9 @@
   "autoload": {
     "psr-4": {
       "CarbonPHP\\": "",
-      "CarbonPHP\\Error\\": "error/",
-      "CarbonPHP\\Helpers\\": "helpers/",
-      "CarbonPHP\\Interfaces\\": "interfaces/",
-      "CarbonPHP\\Table\\": "table/"
+      "CarbonPHP\\Error\\": "Error/",
+      "CarbonPHP\\Helpers\\": "Helpers/",
+      "CarbonPHP\\Interfaces\\": "Interfaces/"
     }
-  },
-  "require-dev": {
-    "phpunit/phpunit": "^7"
   }
 }

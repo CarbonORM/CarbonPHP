@@ -8,13 +8,15 @@
 
 namespace CarbonPHP;
 
-use CarbonPHP\Table\carbon_tag;
 use PDO;
 use stdClass;
-use CarbonPHP\helpers\Globals;
-use CarbonPHP\interfaces\iRest;
-use CarbonPHP\error\PublicAlert;
+use CarbonPHP\Helpers\Globals;
+use CarbonPHP\Interfaces\iRest;
+use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Table\carbon;
+use CarbonPHP\Table\carbon_tag;
+
+
 
 /**
  * Class Entities
@@ -159,9 +161,11 @@ abstract class Entities
      */
     public static function genRandomHex($bitLength = 40)
     {
-        $sudoRandom = 1;
-        for ($i = 0; $i <= $bitLength; $i++) $sudoRandom = ($sudoRandom << 1) | rand(0, 1);
-        return dechex($sudoRandom);
+        $r = 1;
+        for ($i = 0; $i <= $bitLength; $i++) {
+            $r = ($r << 1) | rand(0, 1);
+        }
+        return dechex($r);
     }
 
     /**

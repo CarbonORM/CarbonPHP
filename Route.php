@@ -9,7 +9,7 @@
 namespace CarbonPHP;
 
 
-use CarbonPHP\error\PublicAlert;
+use CarbonPHP\Error\PublicAlert;
 
 abstract class Route
 {
