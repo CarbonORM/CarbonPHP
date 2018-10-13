@@ -33,12 +33,31 @@ SET json = CONCAT(json, '}');
 END;
         return $mid;
     };
+
+    // sys_resource_creation_logs sys_resource_history_logs
+
     $history_sql = function ($operation_type = 'POST') use ($table, $primary) {
+        $query = '';
         $relative_time = $operation_type === "POST" ? 'NEW' : $operation_type === 'PUT' ? 'NEW' : 'OLD';
-        return <<<END
-INSERT INTO resource_history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`) 
-VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), '$table', $relative_time.$primary , '$operation_type', json);
-END;
+        switch ($operation_type) {
+          case 'POST':
+            $query = "INSERT INTO sys_resource_creation_logs (`uuid`, `resource_type`, `resource_uuid`)
+            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), '$table', $relative_time.$primary);\n";
+          case 'PUT':
+            $query .= "INSERT INTO sys_resource_history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
+            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), '$table', $relative_time.$primary , '$operation_type', json);";
+            break;
+          case 'DELETE':
+            $query = "INSERT INTO sys_resource_history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
+            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), '$table', $relative_time.$primary , '$operation_type', json);";
+            break;
+          case 'GET':
+            break;
+          default:
+            break;
+        }
+
+        return $query;
     };
 
     $delete_children = function () use ($dependencies) {
@@ -58,14 +77,14 @@ END;
     };
 
     return <<<END
-    
+
 DROP TRIGGER IF EXISTS `trigger_{$table}_b_d`;;
 CREATE TRIGGER `trigger_{$table}_b_d` BEFORE DELETE ON `$table` FOR EACH ROW
 BEGIN
-{$json_mysql('OLD')}    
+{$json_mysql('OLD')}
       -- Insert record into audit table
 {$history_sql('DELETE')}
-      -- Delete Children 
+      -- Delete Children
 {$delete_children()}
 
 END;;
@@ -74,7 +93,7 @@ DROP TRIGGER IF EXISTS `trigger_{$table}_a_u`;;
 CREATE TRIGGER `trigger_{$table}_a_u` AFTER UPDATE ON `$table` FOR EACH ROW
 BEGIN
 
-{$json_mysql()}    
+{$json_mysql()}
       -- Insert record into audit table
 {$history_sql('PUT')}
 
@@ -84,7 +103,7 @@ DROP TRIGGER IF EXISTS `trigger_{$table}_a_i`;;
 CREATE TRIGGER `trigger_{$table}_a_i` AFTER INSERT ON `$table` FOR EACH ROW
 BEGIN
 
-{$json_mysql()}    
+{$json_mysql()}
       -- Insert record into audit table
 {$history_sql('POST')}
 
@@ -96,27 +115,28 @@ END;
 $usage = function () use ($argv) {
     print <<<END
 \n
-\t           Question Marks Denote Optional Parameters  
-\t           Order does not matter. 
+\t           Question Marks Denote Optional Parameters
+\t           Order does not matter.
 \t           Flags do not stack ie. not -edf, this -e -f -d
 \t Usage:: 
 \t php index.php rest  
 \t       -help                         - this dialogue 
 \t       -h [?HOST]                    - IP address
 \t       -d                            - delete dump
-\t       -s [?SCHEMA]                  - Its that table schema!!!! 
+\t       -s [?SCHEMA]                  - Its that table schema!!!!
 \t       -u [?USER]                    - mysql username
 \t       -p [?PASSWORD]                - if ya got one
+\t       -json                         - enable global json reporting 
 \t       -r                            - specify that a primary key is required for generation
-\t       -l [?tableName(s),[...?,[]]]  - comma separated list of specific tables to capture  
-\t       -v ?debug                     - Verbose output, if === debug follows this tag even more output is given 
+\t       -l [?tableName(s),[...?,[]]]  - comma separated list of specific tables to capture
+\t       -v ?debug                     - Verbose output, if === debug follows this tag even more output is given
 \t       -f [?file_of_Tables]          - file of table names separated by eol
 \t       -x                            - Don't clean up files created for build
-\t       -mysqldump [?executable]      - path to mysqldump command 
-\t       -mysql  [?executable]         - path to mysql command 
+\t       -mysqldump [?executable]      - path to mysqldump command
+\t       -mysql  [?executable]         - path to mysql command
 \t       -dump [?dump]                 - path to a mysqldump sql export
 \t       -cnf [?cnf_path]              - path to a mysql cnf file
-\t       -trigger                      - build triggers and history table for binary primary keys 
+\t       -trigger                      - build triggers and history table for binary primary keys
 \n
 END;
     exit(1);
@@ -131,12 +151,15 @@ $rest = [];
 $pass = '';
 $clean = true;
 $only_these_tables = $schema = $history_table_query = $mysqldump = $mysql = null;
-$verbose = $debug = $primary_required = $delete_dump = $carbon_namespace = $skipTable = false;
+$verbose = $debug = $json = $primary_required = $delete_dump = $carbon_namespace = $skipTable = false;
 $host = '127.0.0.1';
 $user = 'root';
 
 for ($i = 0; $i < $argc; $i++) {
     switch ($argv[$i]) {
+        case '-json':
+            $json = true;
+            break;
         case '-x':
             $clean = false;
             break;
@@ -153,7 +176,7 @@ for ($i = 0; $i < $argc; $i++) {
         case '-trigger':
             $history_table_query = true;
             $query = <<<QUERY
-CREATE TABLE IF NOT EXISTS resource_history_logs
+CREATE TABLE IF NOT EXISTS sys_resource_history_logs
 (
   uuid binary(16) null,
   resource_type varchar(10) null,
@@ -218,17 +241,17 @@ QUERY;
             print "\tInvalid flag " . $argv[$i] . PHP_EOL;
             print <<<END
 \n\n\t
-\t      "You are young 
+\t      "You are young
 \t      and life is long
-\t      and there is time 
-\t      to kill today. 
-\t      And then one day you find 
+\t      and there is time
+\t      to kill today.
+\t      And then one day you find
 \t      ten years have got behind you.
 \t      No one told you when to run,
 \t      you missed the starting gun!"
 \t
 \t      - 'Time' Pink Floyd
-\n\n 
+\n\n
 END;
             exit(1);
     }
@@ -334,6 +357,7 @@ foreach ($matches as $table) {
             // TRY to load previous validation functions
 
             $rest[$tableName] = [
+                'json' => $json,
                 'binary_primary' => false,
                 'carbon_namespace' => $carbon_namespace,
                 'carbon_table' => false,
@@ -343,6 +367,7 @@ foreach ($matches as $table) {
                     $rest[$tableName]['dependencies'] :
                     [],
                 'TableName' => $tableName,
+                'primarySort' => '',
                 'primary' => [],
             ];
 
@@ -393,6 +418,8 @@ foreach ($matches as $table) {
                 // This being set determines what type of PDO stmt we use
                 $rest[$tableName]['explode'][$column]['length'] = $length;
             }
+
+            $rest[$tableName]['explode'][$column]['mysql_type'] = $type;
 
             switch ($type) {                // Use pdo for what it can actually do
                 case 'tinyint':
@@ -462,19 +489,21 @@ foreach ($matches as $table) {
                 print $tableName . PHP_EOL;
             }*/
 
+            $rest[$tableName]['primarySort'] = implode(',', $primary);
+
             // Build the insert stmt
             $sql = [];
             foreach ($primary as $key) {
                 if (in_array($key, $binary)) {
                     // binary data is expected as hex @ rest call (GET,PUT,DELETE)
-                    $sql[] = ' ' . $key . '=UNHEX(\' . $primary .\')';
+                    $sql[] = ' ' . $key . '=UNHEX(".self::addInjection($primary, $pdo).")';
                 } else {
                     // otherwise just create the stmt normally
-                    $sql[] = ' ' . $key . '=\' . $primary .\'';
+                    $sql[] = ' ' . $key . '=".self::addInjection($primary, $pdo)."';
                 }
                 $rest[$tableName]['primary'][] = ['name' => $key];
             }
-            $rest[$tableName]['primary'][] = ['sql' => '$sql .= \' WHERE ' . implode($sql, ' OR ') . "';"];
+            $rest[$tableName]['primary'][] = ['sql' => '$sql .= \' WHERE ' . implode($sql, ' OR ') . '\';'];
 
         } else if ($words_in_insert_stmt[0] === 'CONSTRAINT') {
 
@@ -486,7 +515,7 @@ foreach ($matches as $table) {
             $references_table = trim($words_in_insert_stmt[6], '`');
             $references_column = trim($words_in_insert_stmt[7], '()`,');
 
-            if ($references_table === 'carbon' & in_array($foreign_key, $primary)) {
+            if ($references_table === 'carbon' && in_array($foreign_key, $primary)) {
                 $rest[$tableName]['carbon_table'] = $tableName !== 'carbon';
             }
 
@@ -574,8 +603,12 @@ foreach ($matches as $table) {
 
 if ($history_table_query) {
     print "\tBuilding Triggers!\n";
+
     $triggers = '';
     foreach ($rest as $table) {
+        if (in_array($table['TableName'], ['sys_resource_creation_logs', 'sys_resource_history_logs'])) {
+            continue;
+        }
         if ($table['binary_primary'] && ($only_these_tables === null || in_array($table['TableName'], $only_these_tables))) {
             $triggers .= $trigger($table['TableName'], $table['columns'], isset($table['binary_trigger']) ? $table['binary_trigger'] : [], $table['dependencies'], $table['primary'][0]['name']);
         }

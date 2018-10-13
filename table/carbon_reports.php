@@ -2,44 +2,142 @@
 
 namespace CarbonPHP\Table;
 
-use CarbonPHP\Database;
 use CarbonPHP\Entities;
 use CarbonPHP\Interfaces\iRest;
+use Psr\Log\InvalidArgumentException;
+
 
 class carbon_reports extends Entities implements iRest
 {
-    const PRIMARY = [
+    public const PRIMARY = [
     
     ];
 
-    const COLUMNS = [
-    'log_level','report','date','call_trace',
+    public const COLUMNS = [
+        'log_level' => [ 'varchar', '2', '20' ],'report' => [ 'text,', '2', '' ],'date' => [ 'varchar', '2', '22' ],'call_trace' => [ 'text', '2', '' ],
     ];
 
-    const VALIDATION = [];
+    public const VALIDATION = [];
 
-    const BINARY = [
-    
-    ];
+
+    public static $injection = [];
+
+
+    public static function jsonSQLReporting($argv, $sql) : void {
+        global $json;
+        if (!\is_array($json)) {
+            $json = [];
+        } elseif (!isset($json['sql'])) {
+            $json['sql'] = [];
+        }
+        $json['sql'][] = [
+            $argv,
+            $sql
+        ];
+    }
+
+    public static function buildWhere(array $set, \PDO $pdo, $join = 'AND') : string
+    {
+        $sql = '(';
+        foreach ($set as $column => $value) {
+            if (\is_array($value)) {
+                $sql .= self::buildWhere($value, $pdo, $join === 'AND' ? 'OR' : 'AND');
+            } else if (isset(self::COLUMNS[$column])) {
+                if (self::COLUMNS[$column][0] === 'binary') {
+                    $sql .= "($column = UNHEX(:" . $column . ")) $join ";
+                } else {
+                    $sql .= "($column = :" . $column . ") $join ";
+                }
+            } else {
+                $sql .= "($column = " . self::addInjection($value, $pdo) . ") $join ";
+            }
+
+        }
+        return rtrim($sql, " $join") . ')';
+    }
+
+    public static function addInjection($value, \PDO $pdo, $quote = false) : string
+    {
+        $inject = ':injection' . \count(self::$injection) . 'buildWhere';
+        self::$injection[$inject] = $quote ? $pdo->quote($value) : $value;
+        return $inject;
+    }
+
+    public static function bind(\PDOStatement $stmt, array $argv) {
+        if (!empty($argv['log_level'])) {
+            $log_level = $argv['log_level'];
+            $stmt->bindParam(':log_level',$log_level, 2, 20);
+        }
+        if (!empty($argv['report'])) {
+            $stmt->bindValue(':report',$argv['report'], 2);
+        }
+        if (!empty($argv['date'])) {
+            $date = $argv['date'];
+            $stmt->bindParam(':date',$date, 2, 22);
+        }
+        if (!empty($argv['call_trace'])) {
+            $stmt->bindValue(':call_trace',$argv['call_trace'], 2);
+        }
+
+        foreach (self::$injection as $key => $value) {
+            $stmt->bindValue($key,$value);
+        }
+
+        return $stmt->execute();
+    }
+
 
     /**
-     * @param array $return
-     * @param string|null $primary
-     * @param array $argv
-     * @return bool
-     */
+    *
+    *   $argv = [
+    *       'select' => [
+    *                          '*column name array*', 'etc..'
+    *        ],
+    *
+    *       'where' => [
+    *              'Column Name' => 'Value To Constrain',
+    *              'Defaults to AND' => 'Nesting array switches to OR',
+    *              [
+    *                  'Column Name' => 'Value To Constrain',
+    *                  'This array is OR'ed togeather' => 'Another sud array would `AND`'
+    *                  [ etc... ]
+    *              ]
+    *        ],
+    *
+    *        'pagination' => [
+    *              'limit' => (int) 90, // The maximum number of rows to return,
+    *                       setting the limit explicitly to 1 will return a key pair array of only the
+    *                       singular result. SETTING THE LIMIT TO NULL WILL ALLOW INFINITE RESULTS (NO LIMIT).
+    *                       The limit defaults to 100 by design.
+    *
+    *              'order' => '*column name* [ASC|DESC]',  // i.e.  'username ASC' or 'username, email DESC'
+    *
+    *
+    *         ],
+    *
+    *   ];
+    *
+    *
+    * @param array $return
+    * @param string|null $primary
+    * @param array $argv
+    * @return bool
+    * @throws \Exception
+    */
     public static function Get(array &$return, string $primary = null, array $argv) : bool
     {
-        $get = isset($argv['select']) ? $argv['select'] : self::COLUMNS;
-        $where = isset($argv['where']) ? $argv['where'] : [];
-
+        $aggregate = false;
         $group = $sql = '';
+        $pdo = self::database();
+
+        $get = $argv['select'] ?? array_keys(self::COLUMNS);
+        $where = $argv['where'] ?? [];
 
         if (isset($argv['pagination'])) {
-            if (!empty($argv['pagination']) && !is_array($argv['pagination'])) {
+            if (!empty($argv['pagination']) && !\is_array($argv['pagination'])) {
                 $argv['pagination'] = json_decode($argv['pagination'], true);
             }
-            if (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] != null) {
+            if (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] !== null) {
                 $limit = ' LIMIT ' . $argv['pagination']['limit'];
             } else {
                 $limit = '';
@@ -48,109 +146,73 @@ class carbon_reports extends Entities implements iRest
             $order = '';
             if (!empty($limit)) {
 
-                 $order = ' ORDER BY ';
+                $order = ' ORDER BY ';
 
-                if (isset($argv['pagination']['order']) && $argv['pagination']['order'] != null) {
-                    if (is_array($argv['pagination']['order'])) {
+                if (isset($argv['pagination']['order']) && $argv['pagination']['order'] !== null) {
+                    if (\is_array($argv['pagination']['order'])) {
                         foreach ($argv['pagination']['order'] as $item => $sort) {
-                            $order .= $item .' '. $sort;
+                            $order .= "$item $sort";
                         }
                     } else {
                         $order .= $argv['pagination']['order'];
                     }
                 } else {
-                    $order .= self::PRIMARY[0] . ' ASC';
+                    $order .= ' ASC';
                 }
             }
-            $limit = $order .' '. $limit;
+            $limit = "$order $limit";
         } else {
-            $limit = ' ORDER BY ' . self::PRIMARY[0] . ' ASC LIMIT 100';
+            $limit = ' ORDER BY  ASC LIMIT 100';
         }
 
         foreach($get as $key => $column){
             if (!empty($sql)) {
                 $sql .= ', ';
-                $group .= ', ';
-            }
-            if (in_array($column, self::BINARY)) {
-                $sql .= "HEX($column) as $column";
-                $group .= "$column";
-            } else {
-                $sql .= $column;
-                $group .= $column;
-            }
-        }
-
-        if (isset($argv['aggregate']) && (is_array($argv['aggregate']) || $argv['aggregate'] = json_decode($argv['aggregate'], true))) {
-            foreach($argv['aggregate'] as $key => $value){
-                switch ($key){
-                    case 'count':
-                        if (!empty($sql)) {
-                            $sql .= ', ';
-                        }
-                        $sql .= "COUNT($value) AS count ";
-                        break;
-                    case 'AVG':
-                        if (!empty($sql)) {
-                            $sql .= ', ';
-                        }
-                        $sql .= "AVG($value) AS avg ";
-                        break;
-                    case 'MIN':
-                        if (!empty($sql)) {
-                            $sql .= ', ';
-                        }
-                        $sql .= "MIN($value) AS min ";
-                        break;
-                    case 'MAX':
-                        if (!empty($sql)) {
-                            $sql .= ', ';
-                        }
-                        $sql .= "MAX($value) AS max ";
-                        break;
+                if (!empty($group)) {
+                    $group .= ', ';
                 }
             }
+            $columnExists = isset(self::COLUMNS[$column]);
+            if ($columnExists && self::COLUMNS[$column][0] === 'binary') {
+                $sql .= "HEX($column) as $column";
+                $group .= $column;
+            } elseif ($columnExists) {
+                $sql .= $column;
+                $group .= $column;
+            } else {
+                if (!preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|\-|\/| |log_level|report|date|call_trace))+\)*)+ *(as [a-z]+)?#i', $column)) {
+                    /** @noinspection PhpUndefinedClassInspection */
+                    throw new InvalidArgumentException('Arguments passed in SELECT failed the REGEX test!');
+                }
+                $sql .= $column;
+                $aggregate = true;
+            }
         }
 
-        $sql = 'SELECT ' .  $sql . ' FROM CarbonPHP.carbon_reports';
+        $sql = 'SELECT ' .  $sql . ' FROM carbon_reports';
 
-        $pdo = Database::database();
-
-        if (empty($primary)) {
+        if (null === $primary) {
+            /** @noinspection NestedPositiveIfStatementsInspection */
             if (!empty($where)) {
-                $build_where = function (array $set, $join = 'AND') use (&$pdo, &$build_where) {
-                    $sql = '(';
-                    foreach ($set as $column => $value) {
-                        if (is_array($value)) {
-                            $sql .= $build_where($value, $join === 'AND' ? 'OR' : 'AND');
-                        } else {
-                            if (in_array($column, self::BINARY)) {
-                                $sql .= "($column = UNHEX(" . $pdo->quote($value) . ")) $join ";
-                            } else {
-                                $sql .= "($column = " . $pdo->quote($value) . ") $join ";
-                            }
-                        }
-                    }
-                    return rtrim($sql, " $join") . ')';
-                };
-                $sql .= ' WHERE ' . $build_where($where);
+                $sql .= ' WHERE ' . self::buildWhere($where, $pdo);
             }
         } 
 
-        if (isset($argv['aggregate'])) {
+        if ($aggregate  && !empty($group)) {
             $sql .= ' GROUP BY ' . $group . ' ';
         }
 
         $sql .= $limit;
 
-        $return = self::fetch($sql);
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
-        global $json;
+        $stmt = $pdo->prepare($sql);
 
-        if (!isset($json['sql'])) {
-            $json['sql'] = [];
+        if (!self::bind($stmt, $argv['where'] ?? [])) {
+            return false;
         }
-        $json['sql'][] = $sql;
+
+        $return = $stmt->fetchAll();
 
         /**
         *   The next part is so every response from the rest api
@@ -170,27 +232,26 @@ class carbon_reports extends Entities implements iRest
     */
     public static function Post(array $argv)
     {
-        $sql = 'INSERT INTO CarbonPHP.carbon_reports (log_level, report, date, call_trace) VALUES ( :log_level, :report, :date, :call_trace)';
-        $stmt = Database::database()->prepare($sql);
+    /** @noinspection SqlResolve */
+    $sql = 'INSERT INTO carbon_reports (log_level, report, date, call_trace) VALUES ( :log_level, :report, :date, :call_trace)';
 
-        global $json;
+    self::jsonSQLReporting(\func_get_args(), $sql);
 
-        if (!isset($json['sql'])) {
-            $json['sql'] = [];
-        }
-        $json['sql'][] = $sql;
+    $stmt = self::database()->prepare($sql);
 
-            
-                $log_level = isset($argv['log_level']) ? $argv['log_level'] : null;
-                $stmt->bindParam(':log_level',$log_level, 2, 20);
-                    $stmt->bindValue(':report',$argv['report'], 2);
-                    
-                $date = $argv['date'];
-                $stmt->bindParam(':date',$date, 2, 22);
-                    $stmt->bindValue(':call_trace',$argv['call_trace'], 2);
+                
+                    $log_level =  $argv['log_level'] ?? null;
+                    $stmt->bindParam(':log_level',$log_level, 2, 20);
+                        $stmt->bindValue(':report',$argv['report'], 2);
+                        
+                    $date = $argv['date'];
+                    $stmt->bindParam(':date',$date, 2, 22);
+                        $stmt->bindValue(':call_trace',$argv['call_trace'], 2);
         
 
-        return $stmt->execute();
+
+
+            return $stmt->execute();
     }
 
     /**
@@ -206,65 +267,45 @@ class carbon_reports extends Entities implements iRest
         }
 
         foreach ($argv as $key => $value) {
-            if (!in_array($key, self::COLUMNS)){
+            if (!\in_array($key, self::COLUMNS, true)){
                 unset($argv[$key]);
             }
         }
 
-        $sql = 'UPDATE CarbonPHP.carbon_reports ';
+        $sql = 'UPDATE carbon_reports ';
 
         $sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
 
         $set = '';
 
-        if (!empty($argv['log_level'])) {
-            $set .= 'log_level=:log_level,';
-        }
-        if (!empty($argv['report'])) {
-            $set .= 'report=:report,';
-        }
-        if (!empty($argv['date'])) {
-            $set .= 'date=:date,';
-        }
-        if (!empty($argv['call_trace'])) {
-            $set .= 'call_trace=:call_trace,';
-        }
+            if (!empty($argv['log_level'])) {
+                $set .= 'log_level=:log_level,';
+            }
+            if (!empty($argv['report'])) {
+                $set .= 'report=:report,';
+            }
+            if (!empty($argv['date'])) {
+                $set .= 'date=:date,';
+            }
+            if (!empty($argv['call_trace'])) {
+                $set .= 'call_trace=:call_trace,';
+            }
 
         if (empty($set)){
             return false;
         }
 
-        $sql .= substr($set, 0, strlen($set)-1);
+        $sql .= substr($set, 0, -1);
 
-        $db = Database::database();
+        $pdo = self::database();
 
         
 
-        $stmt = $db->prepare($sql);
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
-        global $json;
+        $stmt = $pdo->prepare($sql);
 
-        if (empty($json['sql'])) {
-            $json['sql'] = [];
-        }
-        $json['sql'][] = $sql;
-
-        if (!empty($argv['log_level'])) {
-            $log_level = $argv['log_level'];
-            $stmt->bindParam(':log_level',$log_level, 2, 20);
-        }
-        if (!empty($argv['report'])) {
-            $stmt->bindValue(':report',$argv['report'], 2);
-        }
-        if (!empty($argv['date'])) {
-            $date = $argv['date'];
-            $stmt->bindParam(':date',$date, 2, 22);
-        }
-        if (!empty($argv['call_trace'])) {
-            $stmt->bindValue(':call_trace',$argv['call_trace'], 2);
-        }
-
-        if (!$stmt->execute()){
+        if (!self::bind($stmt, $argv)){
             return false;
         }
 
@@ -282,52 +323,34 @@ class carbon_reports extends Entities implements iRest
     */
     public static function Delete(array &$remove, string $primary = null, array $argv) : bool
     {
-        $sql = 'DELETE FROM CarbonPHP.carbon_reports ';
+        /** @noinspection SqlResolve */
+        $sql = 'DELETE FROM carbon_reports ';
 
-        foreach($argv as $column => $constraint){
-            if (!in_array($column, self::COLUMNS)){
-                unset($argv[$column]);
-            }
+        $pdo = self::database();
+
+        if (null === $primary) {
+        /**
+        *   While useful, we've decided to disallow full
+        *   table deletions through the rest api. For the
+        *   n00bs and future self, "I got chu."
+        */
+        if (empty($argv)) {
+            return false;
         }
 
-        if (empty($primary)) {
-            /**
-            *   While useful, we've decided to disallow full
-            *   table deletions through the rest api. For the
-            *   n00bs and future self, "I got chu."
-            */
-            if (empty($argv)) {
-                return false;
-            }
-            $pdo = self::database();
 
-            $build_where = function (array $set, $join = 'AND') use (&$pdo, &$build_where) {
-                $sql = '(';
-                foreach ($set as $column => $value) {
-                    if (is_array($value)) {
-                        $sql .= $build_where($value, $join === 'AND' ? 'OR' : 'AND');
-                    } else {
-                        if (in_array($column, self::BINARY)) {
-                            $sql .= "($column = UNHEX(" . $pdo->quote($value) . ")) $join ";
-                        } else {
-                            $sql .= "($column = " . $pdo->quote($value) . ") $join ";
-                        }
-                    }
-                }
-                return rtrim($sql, " $join") . ')';
-            };
-            $sql .= ' WHERE ' . $build_where($argv);
+        $sql .= ' WHERE ' . self::buildWhere($argv, $pdo);
         } 
 
-        $remove = null;
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
-        global $json;
+        $stmt = $pdo->prepare($sql);
 
-        if (!isset($json['sql'])) {
-            $json['sql'] = [];
-        }
-        $json['sql'][] = $sql;
+        $r = self::bind($stmt, $argv);
 
-        return self::execute($sql);
+        /** @noinspection CallableParameterUseCaseInTypeContextInspection */
+        $r and $remove = null;
+
+        return $r;
     }
 }
