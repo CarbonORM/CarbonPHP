@@ -183,7 +183,7 @@ abstract class Entities
             'entity_fk' => $dependant
         ]);
         carbon_tag::Post([
-            'tag_id' => $tag_id,
+            'tag_id' => (int) $tag_id,
             'entity_id' => $id,
             'user_id' => $_SESSION['id'],
         ]);
