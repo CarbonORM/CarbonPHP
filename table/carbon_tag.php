@@ -1,6 +1,6 @@
 <?php
+namespace Table;
 
-namespace CarbonPHP\Table;
 
 use CarbonPHP\Entities;
 use CarbonPHP\Interfaces\iRest;
@@ -14,7 +14,7 @@ class carbon_tag extends Entities implements iRest
     ];
 
     public const COLUMNS = [
-        'entity_id' => [ 'binary', '2', '16' ],'user_id' => [ 'binary', '2', '16' ],'tag_id' => [ 'int', '2', '11' ],'creation_date' => [ 'int', '2', '20' ],
+        'entity_id' => [ 'binary', '2', '16' ],'user_id' => [ 'binary', '2', '16' ],'tag_id' => [ 'int', '2', '11' ],'creation_date' => [ 'timestamp', '2', '' ],
     ];
 
     public const VALIDATION = [];
@@ -77,8 +77,7 @@ class carbon_tag extends Entities implements iRest
             $stmt->bindParam(':tag_id',$tag_id, 2, 11);
         }
         if (!empty($argv['creation_date'])) {
-            $creation_date = $argv['creation_date'];
-            $stmt->bindParam(':creation_date',$creation_date, 2, 20);
+            $stmt->bindValue(':creation_date',$argv['creation_date'], 2);
         }
 
         foreach (self::$injection as $key => $value) {
@@ -191,7 +190,7 @@ class carbon_tag extends Entities implements iRest
             }
         }
 
-        $sql = 'SELECT ' .  $sql . ' FROM carbon_tag';
+        $sql = 'SELECT ' .  $sql . ' FROM CarbonPHP.carbon_tag';
 
         if (null === $primary) {
             /** @noinspection NestedPositiveIfStatementsInspection */
@@ -235,7 +234,7 @@ class carbon_tag extends Entities implements iRest
     public static function Post(array $argv)
     {
     /** @noinspection SqlResolve */
-    $sql = 'INSERT INTO carbon_tag (entity_id, user_id, tag_id, creation_date) VALUES ( UNHEX(:entity_id), UNHEX(:user_id), :tag_id, :creation_date)';
+    $sql = 'INSERT INTO CarbonPHP.carbon_tag (entity_id, user_id, tag_id) VALUES ( UNHEX(:entity_id), UNHEX(:user_id), :tag_id)';
 
     self::jsonSQLReporting(\func_get_args(), $sql);
 
@@ -250,10 +249,7 @@ class carbon_tag extends Entities implements iRest
                         
                     $tag_id = $argv['tag_id'];
                     $stmt->bindParam(':tag_id',$tag_id, 2, 11);
-                        
-                    $creation_date = $argv['creation_date'];
-                    $stmt->bindParam(':creation_date',$creation_date, 2, 20);
-        
+                
 
 
 
@@ -278,7 +274,7 @@ class carbon_tag extends Entities implements iRest
             }
         }
 
-        $sql = 'UPDATE carbon_tag ';
+        $sql = 'UPDATE CarbonPHP.carbon_tag ';
 
         $sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
 
@@ -330,7 +326,7 @@ class carbon_tag extends Entities implements iRest
     public static function Delete(array &$remove, string $primary = null, array $argv) : bool
     {
         /** @noinspection SqlResolve */
-        $sql = 'DELETE FROM carbon_tag ';
+        $sql = 'DELETE FROM CarbonPHP.carbon_tag ';
 
         $pdo = self::database();
 

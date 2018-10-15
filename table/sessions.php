@@ -1,6 +1,6 @@
 <?php
+namespace Table;
 
-namespace CarbonPHP\Table;
 
 use CarbonPHP\Entities;
 use CarbonPHP\Interfaces\iRest;
@@ -197,7 +197,7 @@ class sessions extends Entities implements iRest
             }
         }
 
-        $sql = 'SELECT ' .  $sql . ' FROM sessions';
+        $sql = 'SELECT ' .  $sql . ' FROM CarbonPHP.sessions';
 
         if (null === $primary) {
             /** @noinspection NestedPositiveIfStatementsInspection */
@@ -247,7 +247,7 @@ class sessions extends Entities implements iRest
     public static function Post(array $argv)
     {
     /** @noinspection SqlResolve */
-    $sql = 'INSERT INTO sessions (user_id, user_ip, session_id, session_expires, session_data, user_online_status) VALUES ( UNHEX(:user_id), UNHEX(:user_ip), :session_id, :session_expires, :session_data, :user_online_status)';
+    $sql = 'INSERT INTO CarbonPHP.sessions (user_id, user_ip, session_id, session_expires, session_data, user_online_status) VALUES ( UNHEX(:user_id), UNHEX(:user_ip), :session_id, :session_expires, :session_data, :user_online_status)';
 
     self::jsonSQLReporting(\func_get_args(), $sql);
 
@@ -292,7 +292,7 @@ class sessions extends Entities implements iRest
             }
         }
 
-        $sql = 'UPDATE sessions ';
+        $sql = 'UPDATE CarbonPHP.sessions ';
 
         $sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
 
@@ -350,7 +350,7 @@ class sessions extends Entities implements iRest
     public static function Delete(array &$remove, string $primary = null, array $argv) : bool
     {
         /** @noinspection SqlResolve */
-        $sql = 'DELETE FROM sessions ';
+        $sql = 'DELETE FROM CarbonPHP.sessions ';
 
         $pdo = self::database();
 

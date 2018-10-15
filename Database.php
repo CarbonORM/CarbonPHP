@@ -38,7 +38,6 @@ class Database
      */
     public static function database(): PDO
     {
-
         if (null === self::$database || !self::$database instanceof PDO) {
             return static::reset();
         }

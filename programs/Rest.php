@@ -242,7 +242,7 @@ QUERY;
             print <<<END
 \n\n\t
 \t      "You are young
-\t      and life is long
+\t      and life is long 
 \t      and there is time
 \t      to kill today.
 \t      And then one day you find

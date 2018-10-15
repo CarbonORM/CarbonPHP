@@ -434,9 +434,9 @@ class CarbonPHP
                  * This is a small program inspired by my boss Scott.
                  * - You the shit dude! ( <- That's a good thing )
                  */
-                $argv = implode(' ', $argv);
+                $_SERVER['argv'] = $argv;
                 /** @noinspection PhpIncludeInspection */
-                include 'Extras/rest.mustache.php ' . $argv;
+                include 'programs/Rest.php';
                 break;
             case 'go':
                 $CMD = 'websocketd --port=' . ($PHP['SOCKET']['PORT'] ?? 8888) . ' ' .
