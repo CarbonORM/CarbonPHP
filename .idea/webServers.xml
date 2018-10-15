@@ -10,7 +10,7 @@
           <option name="port" value="22" />
         </fileTransfer>
       </webServer>
-      <webServer id="896de224-b294-4019-8750-5f619df3d17d" name="rootprerogative" url="http://localhost">
+      <webServer id="896de224-b294-4019-8750-5f619df3d17d" name="StatsCoach" url="http://localhost">
         <fileTransfer port="0" mountedRoot="$PROJECT_DIR$/../../GitHub/Stats.Coach/vendor/richardtmiles/carbonphp" accessType="MOUNT" />
       </webServer>
       <webServer id="b4d7e9db-b7e8-48f2-96bc-4b493b2aea26" name="onthewll" url="http://localhost">

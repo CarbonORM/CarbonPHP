@@ -154,14 +154,14 @@ class CarbonPHP
          * Do Try Catch block have a higher precedence than the error catcher?
          * What if that error is thrown multiple function levels down in a block?
          **/
-        /*
+
         Error\ErrorCatcher::$defaultLocation = REPORTS . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
         Error\ErrorCatcher::$fullReports = $PHP['ERROR']['STORE'] ?? false;
         Error\ErrorCatcher::$printToScreen = $PHP['ERROR']['SHOW'] ?? true;
         Error\ErrorCatcher::$storeReport = $PHP['ERROR']['FULL'] ?? true;
         Error\ErrorCatcher::$level = $PHP['ERROR']['LEVEL'] ?? ' E_ALL | E_STRICT';
         Error\ErrorCatcher::start();            // Catch application errors and alerts
-        */
+
 
         #################  DATABASE  ########################
         if ($PHP['DATABASE'] ?? false) {

@@ -52,10 +52,9 @@ class ErrorCatcher
             self::generateLog($argv);
 
             if (!SOCKET && !APP_LOCAL && \function_exists('startApplication')) {     // TODO - do we really want to reset?
-
-                print "HOLY SHIT WHAT THE ACTUAL FUCK";
+                print 'HOLY SHIT WHAT THE ACTUAL FUCK >> ERROR CATCHER';
                 exit(1);
-                startApplication(true);
+                # startApplication(true);
             }
             exit(1);
         };

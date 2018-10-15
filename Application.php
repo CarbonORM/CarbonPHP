@@ -28,7 +28,7 @@ abstract class Application extends Route
         });
     }
 
-    public function wrap()
+    public function wrap() : callable
     {
         /**
          * @throws \Mustache_Exception_InvalidArgumentException
@@ -40,14 +40,14 @@ abstract class Application extends Route
         };
     }
 
-    public function MVC()
+    public function MVC() : callable
     {
         return function (string $class, string $method, array &$argv = []) {
             return MVC($class, $method, $argv);         // So I can throw in ->structure($route->MVC())-> anywhere
         };
     }
 
-    public function events($selector = '#pjax-content')
+    public function events($selector = '#pjax-content') : callable
     {
         return function ($class, $method, $argv) use ($selector) {
             global $alert, $json;

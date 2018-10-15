@@ -1,6 +1,6 @@
 <?php
-namespace Table;
 
+namespace CarbonPHP\Table;
 
 use CarbonPHP\Entities;
 use CarbonPHP\Interfaces\iRest;
@@ -189,7 +189,7 @@ class carbon_reports extends Entities implements iRest
             }
         }
 
-        $sql = 'SELECT ' .  $sql . ' FROM CarbonPHP.carbon_reports';
+        $sql = 'SELECT ' .  $sql . ' FROM carbon_reports';
 
         if (null === $primary) {
             /** @noinspection NestedPositiveIfStatementsInspection */
@@ -233,7 +233,7 @@ class carbon_reports extends Entities implements iRest
     public static function Post(array $argv)
     {
     /** @noinspection SqlResolve */
-    $sql = 'INSERT INTO CarbonPHP.carbon_reports (log_level, report, date, call_trace) VALUES ( :log_level, :report, :date, :call_trace)';
+    $sql = 'INSERT INTO carbon_reports (log_level, report, date, call_trace) VALUES ( :log_level, :report, :date, :call_trace)';
 
     self::jsonSQLReporting(\func_get_args(), $sql);
 
@@ -272,7 +272,7 @@ class carbon_reports extends Entities implements iRest
             }
         }
 
-        $sql = 'UPDATE CarbonPHP.carbon_reports ';
+        $sql = 'UPDATE carbon_reports ';
 
         $sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
 
@@ -324,7 +324,7 @@ class carbon_reports extends Entities implements iRest
     public static function Delete(array &$remove, string $primary = null, array $argv) : bool
     {
         /** @noinspection SqlResolve */
-        $sql = 'DELETE FROM CarbonPHP.carbon_reports ';
+        $sql = 'DELETE FROM carbon_reports ';
 
         $pdo = self::database();
 
