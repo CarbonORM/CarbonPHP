@@ -17,7 +17,6 @@ use CarbonPHP\Table\carbon;
 use CarbonPHP\Table\carbon_tag;
 
 
-
 /**
  * Class Entities
  * @link https://en.wikipedia.org/wiki/Entity–component–system
@@ -49,7 +48,8 @@ abstract class Entities
     private static $entityTransactionKeys;
 
 
-    public static function database() : PDO {
+    public static function database(): PDO
+    {
         return Database::database();
     }
 
@@ -179,22 +179,17 @@ abstract class Entities
      */
     protected static function new_entity($tag_id, $dependant = null)
     {
-        do {        // TODO - log the tag
-            try {
-                $stmt = carbon::Post([
-                    'entity_fk'=>$dependant
-                ]);
-                $stmt = carbon_tag::Post([
-                    'tag_id'=>$stmt,
-                    'entity_id'=>$tag_id,
-                    'user_id'=>$_SESSION['id'],
-                ]);
-            } catch (\PDOException $e) {
-                $stmt = false;
-            }
-        } while (!$stmt);
-        self::$entityTransactionKeys[] = $stmt;
-        return $stmt;
+        $id = carbon::Post([
+            'entity_fk' => $dependant
+        ]);
+        carbon_tag::Post([
+            'tag_id' => $tag_id,
+            'entity_id' => $id,
+            'user_id' => $_SESSION['id'],
+        ]);
+
+        self::$entityTransactionKeys[] = $id;
+        return $id;
     }
 
     /**
@@ -203,14 +198,14 @@ abstract class Entities
      * @param $id - Remove entity_pk form carbon
      * @return bool
      */
-    protected static function remove_entity($id) : bool
+    protected static function remove_entity($id): bool
     {
         $ref = [];
-        return carbon::Delete($ref,$id,[]); //Database::database()->prepare('DELETE FROM carbon WHERE entity_pk = ?')->execute([$id]);
+        return carbon::Delete($ref, $id, []); //Database::database()->prepare('DELETE FROM carbon WHERE entity_pk = ?')->execute([$id]);
     }
 
 
-    protected static function execute(string $sql, ...$execute) : bool
+    protected static function execute(string $sql, ...$execute): bool
     {
         return Database::database()->prepare($sql)->execute($execute);
     }
