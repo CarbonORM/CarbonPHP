@@ -251,7 +251,7 @@ class {{TableName}} extends Entities implements iRest
                 $stmt->bindParam(':{{name}}',${{name}}, {{type}}, {{length}});
             {{/carbon_table}}
             {{#carbon_table}}
-                ${{name}} = $id = $argv['{{name}}'] ?? self::new_entity('{{TableName}}');
+                ${{name}} = $id = $argv['{{name}}'] ?? self::beginTransaction('{{TableName}}');
                 $stmt->bindParam(':{{name}}',${{name}}, {{type}}, {{length}});
             {{/carbon_table}}
         {{/primary_binary}}
