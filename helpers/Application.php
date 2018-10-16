@@ -148,15 +148,13 @@ namespace {                                     // This runs the following code 
             } catch (Exception | Error $e) {
                 if (!$e instanceof PublicAlert) {
                     PublicAlert::danger('Developers make mistakes, and you found a big one! We\'ve logged this event and will be investigating soon.'); // TODO - Change what is logged
-                    PublicAlert::info($e->getMessage()); // TODO - Change what is logged
-                    ErrorCatcher::generateLog($e);     // TODO -- we didnt log it noooooo
-                    //sortDump($e);  // TODO -- clean this up when rest is working
+                    PublicAlert::info($e->getMessage());
+                    ErrorCatcher::generateLog($e);
                 }
                 /** @noinspection CallableParameterUseCaseInTypeContextInspection */
                 $argv = null;
             } finally {
-                if (ob_get_status()) {
-                    if (ob_get_length()) {
+                if (ob_get_status() && ob_get_length()) {
                         $out = ob_get_contents();
                         ob_end_clean();
                         print <<<END
@@ -166,7 +164,6 @@ namespace {                                     // This runs the following code 
                                 <a href="http://carbonphp.com/">Note: All MVC routes are wrapped in this function. Output to the browser should be done within the view! Use this as a reporting tool only.</a>
                                 </div><pre>$out</pre>
 END;
-                    }
 
                 }
                 Entities::verify();     // Check that all database commit chains have finished successfully, otherwise attempt to remove
@@ -260,7 +257,8 @@ END;
 
         $APPLICATION++;
 
-        if (false === catchErrors(CM($class, $method, $argv))()) {  // Controller -> Model
+        if (false === (APP_LOCAL ?
+                CM($class, $method, $argv) : catchErrors(CM($class, $method, $argv))())) {  // Controller -> Model
             return false;
         }
 

@@ -496,10 +496,10 @@ foreach ($matches as $table) {
             foreach ($primary as $key) {
                 if (in_array($key, $binary)) {
                     // binary data is expected as hex @ rest call (GET,PUT,DELETE)
-                    $sql[] = ' ' . $key . '=UNHEX(".self::addInjection($primary, $pdo).")';
+                    $sql[] = ' ' . $key . '=UNHEX(\'.self::addInjection($primary, $pdo).\')';
                 } else {
                     // otherwise just create the stmt normally
-                    $sql[] = ' ' . $key . '=".self::addInjection($primary, $pdo)."';
+                    $sql[] = ' ' . $key . '=\'.self::addInjection($primary, $pdo).\'';
                 }
                 $rest[$tableName]['primary'][] = ['name' => $key];
             }

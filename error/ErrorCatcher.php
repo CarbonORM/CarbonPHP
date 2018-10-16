@@ -75,9 +75,11 @@ class ErrorCatcher
         ob_start();     // start a new buffer for saving errors
         $trace = self::generateCallTrace();
         print $trace . PHP_EOL;
-        if (count($argv) >= 4)
+        if (\count($argv) >= 4) {
             print 'Message: ' . $argv[1] . PHP_EOL . 'line: ' . $argv[2] . '(' . $argv[3] . ')';
-        else var_dump($argv);
+        } else {
+            var_dump($argv);
+        }
         $output = ob_get_contents();
         ob_end_clean();
 
@@ -91,10 +93,11 @@ class ErrorCatcher
 
 
 
-            $sql = 'INSERT INTO carbon_reports (date, log_level, report, call_trace) VALUES (?, ?, ?, ?)';
+            $sql = 'INSERT INTO carbon_reports (log_level, report, call_trace) VALUES (?, ?, ?)';
             $sql = Database::database()->prepare($sql);
-            if (!$sql->execute([date('Y-m-d H:i:s'), $level, $output, $trace]))
+            if (!$sql->execute([$level, $output, $trace])) {
                 print 'Failed to store error log, nothing works... Why does nothing work?' and die(1);
+            }
         }
         return $output;
     }
