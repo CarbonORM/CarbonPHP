@@ -67,7 +67,7 @@ class {{TableName}} extends Entities implements iRest
 
     public static function bind(\PDOStatement $stmt, array $argv) {
     {{#explode}}
-        if (!empty($argv['{{name}}'])) {
+        if (array_key_exists('{{name}}', $argv)) {
         {{^length}}
             $stmt->bindValue(':{{name}}',$argv['{{name}}'], {{type}});
         {{/length}}
@@ -125,6 +125,7 @@ class {{TableName}} extends Entities implements iRest
     */
     public static function Get(array &$return, string $primary = null, array $argv) : bool
     {
+        self::$injection = [];
         $aggregate = false;
         $group = $sql = '';
         $pdo = self::database();
@@ -213,7 +214,7 @@ class {{TableName}} extends Entities implements iRest
             return false;
         }
 
-        $return = $stmt->fetchAll();
+        $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
         /**
         *   The next part is so every response from the rest api
@@ -237,6 +238,7 @@ class {{TableName}} extends Entities implements iRest
     */
     public static function Post(array $argv)
     {
+        self::$injection = [];
     /** @noinspection SqlResolve */
     $sql = 'INSERT INTO {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}{{TableName}} ({{listed}}) VALUES ({{{implode}}})';
 
@@ -257,7 +259,7 @@ class {{TableName}} extends Entities implements iRest
         {{/primary_binary}}
         {{^primary_binary}}
             {{^skip}}
-                {{^length}}$stmt->bindValue(':{{name}}',{{^default}}$argv['{{name}}']{{/default}}{{#default}}isset($argv['{{name}}']) ? $argv['{{name}}'] : {{default}}{{/default}}, {{type}});{{/length}}
+                {{^length}}$stmt->bindValue(':{{name}}',{{^default}}{{#json}}json_encode($argv['{{name}}']){{/json}}{{^json}}$argv['{{name}}']{{/json}}{{/default}}{{#default}}isset($argv['{{name}}']) ? $argv['{{name}}'] : {{default}}{{/default}}, {{type}});{{/length}}
                 {{#length}}
                     ${{name}} = {{^default}}$argv['{{name}}']{{/default}}{{#default}} $argv['{{name}}'] ?? {{{default}}}{{/default}};
                     $stmt->bindParam(':{{name}}',${{name}}, {{type}}, {{length}});
@@ -281,6 +283,7 @@ class {{TableName}} extends Entities implements iRest
     */
     public static function Put(array &$return, string $primary, array $argv) : bool
     {
+        self::$injection = [];
         if (empty($primary)) {
             return false;
         }
@@ -339,6 +342,7 @@ class {{TableName}} extends Entities implements iRest
         return \Table\carbon::Delete($remove, $primary, $argv);
     {{/carbon_table}}
     {{^carbon_table}}
+        self::$injection = [];
         /** @noinspection SqlResolve */
         $sql = 'DELETE FROM {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}{{TableName}} ';
 

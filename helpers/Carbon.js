@@ -95,7 +95,7 @@ function CarbonPHP(selector, address, options) {
         $(container).html(node.innerHTML + $(container).html());
     };
 
-// PJAX Forum Request
+    // PJAX Forum Request
     this.handlebars = (data) => {
         console.log('handlebars', data);
 
@@ -103,7 +103,7 @@ function CarbonPHP(selector, address, options) {
 
         if (!this.isset(data)) {
             console.log('No Json to Handlebars');
-            return null;
+            return data;
         }
 
         json = (typeof data === "string" ? this.isJson(data) : false);
@@ -271,11 +271,37 @@ function CarbonPHP(selector, address, options) {
     });
     else window.addEventListener('load', loadDeferredStyles);
 
+    $(document).on('pjax:error', function(event, xhr, textStatus, errorThrown, options) {
+        options.success(xhr.responseText, textStatus, xhr);
+        return false;
+    });
+
     // PJAX content now with json (mustache) support
     $(document).on('submit', 'form', (event)=>{        // TODO - remove this pos
-        $.pjax.submit(event, selector, {
-            async: false,
-            push: false,
+        event.preventDefault();
+        $.fn.serializeFormJSON = function () {
+            var o = {};
+            var a = this.serializeArray();
+            $.each(a, function () {
+                if (o[this.name]) {
+                    if (!o[this.name].push) {
+                        o[this.name] = [o[this.name]];
+                    }
+                    o[this.name].push(this.value || '');
+                } else {
+                    o[this.name] = this.value || '';
+                }
+            });
+            return o;
+        };
+
+        $.pjax({
+            type: "POST",
+            url: $(event.target).attr('action'),
+            container: this.selector,
+            timeout: 2000,
+            //contentType: 'json',
+            data: $(event.target).serializeFormJSON(),
             accepts: {
                 mustacheTemplate: "html"
             },

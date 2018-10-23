@@ -105,10 +105,10 @@ abstract class Entities
 
     /** Commit the current transaction to the database.
      * @link http://php.net/manual/en/pdo.rollback.php
-     * @param callable|null $lambda
+     * @param callable|mixed $lambda
      * @return bool
      */
-    protected static function commit(callable $lambda = null): bool
+    protected static function commit(callable $lambda = null)
     {
         if (!Database::database()->commit()) {
             return static::verify();
@@ -163,7 +163,7 @@ abstract class Entities
     {
         $r = 1;
         for ($i = 0; $i <= $bitLength; $i++) {
-            $r = ($r << 1) | rand(0, 1);
+            $r = ($r << 1) | random_int(0, 1);
         }
         return dechex($r);
     }
@@ -230,7 +230,7 @@ abstract class Entities
         if (!$stmt->execute($execute) && !$stmt->execute($execute)) { // try it twice, you never know..
             return [];
         }
-        return (\count($stmt = $stmt->fetchAll()) === 1 ?
+        return (\count($stmt = $stmt->fetchAll(PDO::FETCH_ASSOC)) === 1 ?
             (\is_array($stmt['0']) ? $stmt['0'] : $stmt) : $stmt);   // promise this is needed and will still return the desired array
     }
 
@@ -311,7 +311,7 @@ abstract class Entities
     {
         $stmt = Database::database()->prepare($sql);
         $stmt->execute($execute);
-        $array = $stmt->fetchAll();
+        $array = $stmt->fetchAll(PDO::FETCH_ASSOC);
         foreach ($array as $key => $value) {
             $object->$key = $value;
         }

@@ -61,7 +61,11 @@ abstract class Application extends Route
             }
 
             if (!\is_array($alert)) {
-                $alert = array();
+                $alert = [];
+            }
+
+            if (!\is_array($json)){
+                $json = [];
             }
 
             $json = array_merge($json, [

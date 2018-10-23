@@ -4,8 +4,8 @@ $argv = $_SERVER['argv'];
 
 $argc = count($argv);
 
-if (!is_dir(APP_ROOT . 'table')) {
-    mkdir(APP_ROOT . 'table');
+if (!is_dir($concurrentDirectory = APP_ROOT . 'table') && !mkdir($concurrentDirectory) && !is_dir($concurrentDirectory)) {
+    throw new \RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
 }
 // Check command line args, password is optional
 
@@ -215,8 +215,8 @@ QUERY;
             $only_these_tables = explode(',', $argv[++$i]);
             break;
         case '-f':
-            if (empty($file = file_get_contents("{$argv[++$i]}"))) {
-                print "Could not open file [ " . $argv[$i] . " ] for input\n\n";
+            if (empty($file = file_get_contents((string)$argv[++$i]))) {
+                print 'Could not open file [ ' . $argv[$i] . " ] for input\n\n";
                 exit(1);
             }
             $only_these_tables = explode(PHP_EOL, $file);
@@ -315,7 +315,7 @@ $mustache = function (array $rest) {
     $mustache = new \Mustache_Engine();
     if (empty($handlebars = file_get_contents(__DIR__ . '/rest.mustache'))) {
         print "Could not find rest mustache template. Searching in directory\n" .
-            __DIR__ . "/rest.mustache";
+            __DIR__ . '/rest.mustache';
         exit(1);
     }
     return $mustache->render($handlebars, $rest);
@@ -421,6 +421,8 @@ foreach ($matches as $table) {
 
             $rest[$tableName]['explode'][$column]['mysql_type'] = $type;
 
+            $rest[$tableName]['explode'][$column]['json'] = $type === 'json';
+
             switch ($type) {                // Use pdo for what it can actually do
                 case 'tinyint':
                     $type = $PDO[0];
@@ -452,7 +454,8 @@ foreach ($matches as $table) {
             $rest[$tableName]['explode'][$column]['type'] = $type;
 
             // Lets check if a default value is set for column
-            $key = array_search('DEFAULT', $words_in_insert_stmt);
+            $key = array_search('DEFAULT', $words_in_insert_stmt, true);
+
             if ($key !== false) {
                 ++$key; // move from the word default to the default value
                 $default = rtrim($words_in_insert_stmt[$key], ',');

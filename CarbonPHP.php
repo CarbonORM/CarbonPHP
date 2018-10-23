@@ -214,6 +214,11 @@ class CarbonPHP
         // Must return a non empty value
         \define('PJAX', SOCKET ? false : isset($_GET['_pjax']) || (isset($_SERVER['HTTP_X_PJAX']) && $_SERVER['HTTP_X_PJAX']));
 
+        if (PJAX && empty($_POST)) {
+            # try to json encode
+            $_POST = json_decode(file_get_contents('php://input'), true);
+        }
+
         // (PJAX == true) return required, else (!PJAX && AJAX) return optional (socket valid)
         \define('AJAX', SOCKET ? false : PJAX || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'));
 

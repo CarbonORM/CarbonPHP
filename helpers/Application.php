@@ -31,6 +31,7 @@ namespace {                                     // This runs the following code 
      */
     function startApplication($reset = false): bool
     {
+        #global $json;
         static $application;
 
         if (null === $application) {
@@ -47,7 +48,12 @@ namespace {                                     // This runs the following code 
                 return true;
             }
             $reset = false;
-        }
+        } #else {
+            #sort($json);
+           # $json['header'] = null;
+            #sortDump($json);
+        #}
+
 
         if ($reset):                                    // This will always be se in a socket
             if ($reset === true):
@@ -148,8 +154,17 @@ namespace {                                     // This runs the following code 
             } catch (Exception | Error $e) {
                 if (!$e instanceof PublicAlert) {
                     PublicAlert::danger('Developers make mistakes, and you found a big one! We\'ve logged this event and will be investigating soon.'); // TODO - Change what is logged
-                    PublicAlert::info($e->getMessage());
-                    ErrorCatcher::generateLog($e);
+                    if (APP_LOCAL) {
+                        PublicAlert::warning($e->getMessage());
+                    }
+                    try {
+                        ErrorCatcher::generateLog($e);
+                    } catch (\Throwable $e) {
+                        PublicAlert::danger('Error handling failed.');
+                        print $e->getMessage();
+                        PublicAlert::info(json_encode($e));
+
+                    }
                 }
                 /** @noinspection CallableParameterUseCaseInTypeContextInspection */
                 $argv = null;
@@ -249,7 +264,7 @@ END;
         $CLASS = $class;
         $METHOD = $method;
 
-        if (!isset($APPLICATION)) {
+        if ($APPLICATION === null) {
             $APPLICATION = $recurse = 0;
         } else {
             $recurse = $APPLICATION;
@@ -257,8 +272,7 @@ END;
 
         $APPLICATION++;
 
-        if (false === (APP_LOCAL ?
-                CM($class, $method, $argv) : catchErrors(CM($class, $method, $argv))())) {  // Controller -> Model
+        if (false === catchErrors(CM($class, $method, $argv))()) {  // Controller -> Model
             return false;
         }
 
@@ -337,16 +351,23 @@ END;
 
         // Generate Report
         ob_start();
-        print '####################### VAR DUMP ########################<br><pre>';
+        print '<pre>';
+        /** @noinspection ForgottenDebugOutputInspection */
+        var_dump(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,2)[1]);
+        print '</pre>';
+        print PHP_EOL . '####################### VAR DUMP ########################<br><pre>';
+        /** @noinspection ForgottenDebugOutputInspection */
         var_dump($mixed);
         print '</pre><br><br><br>';
         if ($fullReport) {
             echo '####################### MIXED DUMP ########################<br><pre>';
             $mixed = (\is_array($mixed) && \count($mixed) === 1 ? array_pop($mixed) : $mixed);
             echo '<pre>';
+            /** @noinspection ForgottenDebugOutputInspection */
             debug_zval_dump($mixed ?: $GLOBALS);
             echo '</pre><br><br>';
             echo '####################### BACK TRACE ########################<br><pre>';
+            /** @noinspection ForgottenDebugOutputInspection */
             var_dump(debug_backtrace());
             echo '</pre>';
         }

@@ -35,9 +35,9 @@
   "autoload": {
     "psr-4": {
       "CarbonPHP\\": "",
-      "CarbonPHP\\Error\\": "Error/",
-      "CarbonPHP\\Helpers\\": "Helpers/",
-      "CarbonPHP\\Interfaces\\": "Interfaces/"
+      "CarbonPHP\\Error\\": "error/",
+      "CarbonPHP\\Helpers\\": "helpers/",
+      "CarbonPHP\\Interfaces\\": "interfaces/"
     }
   }
 }

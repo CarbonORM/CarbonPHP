@@ -37,7 +37,7 @@ class PublicAlert extends CustomException {
         if ($code !== 'success' && $code !== 'info') {
             $message .= ' Contact us if problem persists.';
         }
-        $json['alert'][$code] = $message;
+        $json['alert'][$code][] = $message;
     }
 
     /**
@@ -46,7 +46,7 @@ class PublicAlert extends CustomException {
     public static function success(string $message)
     {
         global $json;
-        $json['alert']['success'] = $message;
+        $json['alert']['success'][] = $message;
     }
 
     /**
@@ -55,7 +55,7 @@ class PublicAlert extends CustomException {
     public static function info(string $message)
     {
         global $json;
-        $json['alert']['info'] = $message;
+        $json['alert']['info'][] = $message;
     }
 
     /**
@@ -64,7 +64,7 @@ class PublicAlert extends CustomException {
     public static function danger(string $message)
     {
         global $json;
-        $json['alert']['danger'] = $message;
+        $json['alert']['danger'][] = $message;
 
     }
 
@@ -74,7 +74,7 @@ class PublicAlert extends CustomException {
     public static function warning(string $message)
     {
         global $json;
-        $json['alert']['warning'] = $message;
+        $json['alert']['warning'][] = $message;
     }
 
     /**
