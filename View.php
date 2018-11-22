@@ -30,6 +30,7 @@ class View
     {
         global $json;
 
+
         $buffer = function () use ($file) : string {         // closure  $buffer();
 
             global $json;              // Buffer contents may not need to be run if AJAX or SOCKET
@@ -55,12 +56,11 @@ class View
                     'Mustache' => SITE . $file,
                     'Widget' => '#pjax-content'
                 ], $json);
-                #print_r($json);
+                //print_r($json);
                 print PHP_EOL;
             }
             return ob_get_clean();
         };
-
 
         if (SOCKET) {
             print $buffer() . PHP_EOL;
@@ -71,6 +71,9 @@ class View
             $mustache = new \Mustache_Engine();
 
             if (SOCKET || (!self::$forceWrapper && PJAX && AJAX)) {        // Send JSON To Socket
+
+                //sortDump('pj ax en');
+
                 $json = array_merge([
                     'Mustache' => SITE . $file,
                     'Widget' => '#pjax-content'
@@ -101,20 +104,21 @@ class View
         }
 
         if (!\is_string($buffer)) {
-            $buffer = "<script>Carbon(() => $.carbon.bootstrapAlert('Content Buffer Failed ($file)', 'danger'))</script>";
+            $buffer = "<script>Carbon(() => carbon.alert('Content Buffer Failed ($file)', 'danger'))</script>";
         }
 
         if (!self::$forceWrapper && (PJAX || AJAX)):        // Send only inner content?
             print $buffer;
 
 
-        #################### Send the Outter Wrapper
+        #################### Send the Outer Wrapper
         elseif (pathinfo(self::$wrapper, PATHINFO_EXTENSION) === 'hbs'):   // Outer Wrapper is Mustache
             $json['content'] = $buffer;
             $mustache = $mustache ?? new \Mustache_Engine();
             print $mustache->render(file_get_contents(self::$wrapper), $json);
         else:                                                                       // Outer Wrapper is PHP?
             self::$bufferedContent = $buffer;
+            /** @noinspection PhpIncludeInspection */
             include_once self::$wrapper;
         endif;
 

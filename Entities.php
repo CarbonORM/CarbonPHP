@@ -110,6 +110,10 @@ abstract class Entities
      */
     protected static function commit(callable $lambda = null)
     {
+        if (!self::$inTransaction) {
+            return true;
+        }
+
         if (!Database::database()->commit()) {
             return static::verify();
         }

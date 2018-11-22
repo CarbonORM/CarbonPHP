@@ -358,7 +358,6 @@ class Request   // requires carbon::application;
      */
     public function int(int $min = null, int $max = null)   // inclusive max and min
     {
-
         $array = [];
         return $this->closure(function ($key) use (&$array, $min, $max) {
             if (($key = (int)$key) === false) {
@@ -372,7 +371,6 @@ class Request   // requires carbon::application;
             }
             return $array[] = $key;
         })($array);
-
     }
 
     /** Runs a regex expression to find dates matching the pattern
@@ -410,6 +408,12 @@ class Request   // requires carbon::application;
      * @return array|bool|mixed
      */
     public function word()
+    {
+        return $this->regex('/^[A-Za-z]+$/');
+    }
+
+
+    public function words()
     {
         return $this->regex('/^[\w]+$/');
     }

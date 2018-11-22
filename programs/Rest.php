@@ -126,6 +126,8 @@ $usage = function () use ($argv) {
 \t       -s [?SCHEMA]                  - Its that table schema!!!!
 \t       -u [?USER]                    - mysql username
 \t       -p [?PASSWORD]                - if ya got one
+\t       -target                       - the dir to store the rest generated api
+\t                                              Defaults to __DIR__ . '/../app/MVC/Tables/'
 \t       -json                         - enable global json reporting 
 \t       -r                            - specify that a primary key is required for generation
 \t       -l [?tableName(s),[...?,[]]]  - comma separated list of specific tables to capture
@@ -154,11 +156,15 @@ $only_these_tables = $schema = $history_table_query = $mysqldump = $mysql = null
 $verbose = $debug = $json = $primary_required = $delete_dump = $carbon_namespace = $skipTable = false;
 $host = '127.0.0.1';
 $user = 'root';
+$targetDir = __DIR__ . '/../app/MVC/Tables/';
 
 for ($i = 0; $i < $argc; $i++) {
     switch ($argv[$i]) {
         case '-json':
             $json = true;
+            break;
+        case '-target':
+            $targetDir = $argv[++$i];
             break;
         case '-x':
             $clean = false;
@@ -242,7 +248,7 @@ QUERY;
             print <<<END
 \n\n\t
 \t      "You are young
-\t      and life is long 
+\t      and life is long
 \t      and there is time
 \t      to kill today.
 \t      And then one day you find
@@ -460,7 +466,7 @@ foreach ($matches as $table) {
                 ++$key; // move from the word default to the default value
                 $default = rtrim($words_in_insert_stmt[$key], ',');
 
-                if ($default == 'CURRENT_TIMESTAMP') {
+                if ($default === 'CURRENT_TIMESTAMP') {
                     // Were going to skip columns with this set as the default value
                     // Trying to insert this condition w/ PDO is problematic
                     $skipping_col[] = $name;
@@ -497,7 +503,7 @@ foreach ($matches as $table) {
             // Build the insert stmt
             $sql = [];
             foreach ($primary as $key) {
-                if (in_array($key, $binary)) {
+                if (in_array($key, $binary, true)) {
                     // binary data is expected as hex @ rest call (GET,PUT,DELETE)
                     $sql[] = ' ' . $key . '=UNHEX(\'.self::addInjection($primary, $pdo).\')';
                 } else {
@@ -518,7 +524,7 @@ foreach ($matches as $table) {
             $references_table = trim($words_in_insert_stmt[6], '`');
             $references_column = trim($words_in_insert_stmt[7], '()`,');
 
-            if ($references_table === 'carbon' && in_array($foreign_key, $primary)) {
+            if ($references_table === 'carbon' & in_array($foreign_key, $primary, true)) {
                 $rest[$tableName]['carbon_table'] = $tableName !== 'carbon';
             }
 
@@ -553,7 +559,7 @@ foreach ($matches as $table) {
                 die(1);
             }
 
-            if (false !== in_array($value['name'], $primary)) {
+            if (false !== in_array($value['name'], $primary, true)) {
                 $value['primary'] = true;
                 if (isset($value['binary'])) {
                     $value['primary_binary'] = true;
@@ -569,12 +575,12 @@ foreach ($matches as $table) {
     // The final value of implode is only used in the POST method
     foreach ($rest[$tableName]['implode'] as $key => &$value) {
 
-        if (!in_array($value, $skipping_col)) {
+        if (!in_array($value, $skipping_col, true)) {
 
             // This suffixes an extra comma
             $rest[$tableName]['listed'] .= $value . ', ';
 
-            if (in_array($value, $binary)) {
+            if (in_array($value, $binary, true)) {
                 $value = ' UNHEX(:' . $value . ')';
             } else {
                 $value = ' :' . $value;
@@ -594,8 +600,7 @@ foreach ($matches as $table) {
     // Remove unneeded comma at begging of string
     $rest[$tableName]['implode'] = implode(',', $rest[$tableName]['implode']);
 
-
-    file_put_contents(APP_ROOT . '/table/' . $rest[$tableName]['TableName'] . '.php', $mustache($rest[$tableName]));
+    file_put_contents($targetDir . $rest[$tableName]['TableName'] . '.php', $mustache($rest[$tableName]));
 }
 
 

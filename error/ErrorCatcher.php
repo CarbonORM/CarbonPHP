@@ -98,8 +98,11 @@ class ErrorCatcher
 
         if ($e instanceof \Throwable) {
             $trace = self::generateCallTrace($e);
-
-            print '(set_error_handler || set_exception_handler) caught this error. #Bubbled up#' . PHP_EOL;
+            if (!$e instanceof PublicAlert) {
+                print '(set_error_handler || set_exception_handler) caught this error. #Bubbled up#' . PHP_EOL;
+            } else {
+                print 'Public Alert Thrown!' . PHP_EOL;
+            }
             print PHP_EOL . $e->getMessage() . PHP_EOL;
 
         } else {

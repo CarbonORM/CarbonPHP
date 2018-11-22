@@ -215,7 +215,7 @@ class CarbonPHP
         \define('PJAX', SOCKET ? false : isset($_GET['_pjax']) || (isset($_SERVER['HTTP_X_PJAX']) && $_SERVER['HTTP_X_PJAX']));
 
         if (PJAX && empty($_POST)) {
-            # try to json encode
+            # try to json encode TODO - could probably make this better
             $_POST = json_decode(file_get_contents('php://input'), true);
         }
 

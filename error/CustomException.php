@@ -10,7 +10,6 @@ use CarbonPHP\interfaces\iException;
 
 abstract class CustomException extends \Exception implements iException
 {
-
     protected $message = 'Unknown exception';     // Exception message
     private   $string;                            // Unknown
     protected $code    = 0;                       // User-defined exception code
@@ -23,14 +22,13 @@ abstract class CustomException extends \Exception implements iException
     public function __construct($message = null, $code = 0)
     {
         if (!$message) {
-            throw new $this('Unknown '. get_class($this));
+            throw new $this('Unknown '. \get_class($this));
         }
         parent::__construct($message, $code);
     }
 
     public function __toString()
     {
-        return get_class($this) . " '{$this->message}' in {$this->file}({$this->line})\n"
-        . "{$this->getTraceAsString()}";
+        return \get_class($this) . " '{$this->message}' in {$this->file}({$this->line})\n" . $this->getTraceAsString();
     }
 }

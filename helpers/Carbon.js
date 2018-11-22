@@ -97,19 +97,22 @@ function CarbonPHP(selector, address, options) {
 
     // PJAX Forum Request
     this.handlebars = (data) => {
-        console.log('handlebars', data);
-
         let template = undefined, json = undefined;
+
+        console.log('handlebars', data);
 
         if (!this.isset(data)) {
             console.log('No Json to Handlebars');
+            console.log(data);
             return data;
         }
 
         json = (typeof data === "string" ? this.isJson(data) : false);
 
+        console.log(json);
+
         if (json) {
-            console.log(json);
+            this.alerting = json.alert;
 
             if (json.hasOwnProperty('Mustache')) {
 
@@ -128,10 +131,6 @@ function CarbonPHP(selector, address, options) {
                     Mustache.parse(mustache);                                   // cache
 
                     template = Mustache.render(mustache, json);       // render json with mustache lib
-
-                    if (json.hasOwnProperty('ALERT') && this.isset(json.ALERT)) {
-                        this.alerting = json.ALERT;
-                    }
 
                     if (json.hasOwnProperty('scroll')) {                        // use slim scroll to move to bottom of chats (lifo)
                         $(json.scroll).slimscroll({start: json.scrollTo});
@@ -209,9 +208,9 @@ function CarbonPHP(selector, address, options) {
 
                 $.get(json.Mustache, (template) => {
 
-                    //console.log('HBS-Template::');                            // log
+                    console.log('HBS-Template::');                            // log
 
-                    //console.log(template);                                    // TODO - comment out
+                    console.log(template);                                    // TODO - comment out
 
                     Mustache.parse(template);                                   // cache
 
@@ -271,37 +270,34 @@ function CarbonPHP(selector, address, options) {
     });
     else window.addEventListener('load', loadDeferredStyles);
 
-    $(document).on('pjax:error', function(event, xhr, textStatus, errorThrown, options) {
+    $(document).on('pjax:error', function (event, xhr, textStatus, errorThrown, options) {
         options.success(xhr.responseText, textStatus, xhr);
         return false;
     });
 
     // PJAX content now with json (mustache) support
-    $(document).on('submit', 'form', (event)=>{        // TODO - remove this pos
+    $(document).on('submit', 'form', (event) => {        // TODO - remove this pos
         event.preventDefault();
-        $.fn.serializeFormJSON = function () {
-            var o = {};
-            var a = this.serializeArray();
-            $.each(a, function () {
-                if (o[this.name]) {
-                    if (!o[this.name].push) {
-                        o[this.name] = [o[this.name]];
-                    }
-                    o[this.name].push(this.value || '');
-                } else {
-                    o[this.name] = this.value || '';
-                }
-            });
-            return o;
-        };
 
-        $.pjax({
-            type: "POST",
-            url: $(event.target).attr('action'),
-            container: this.selector,
-            timeout: 2000,
-            //contentType: 'json',
-            data: $(event.target).serializeFormJSON(),
+
+        $.fn.serializeAllArray = function () {
+            var obj = {};
+
+            $('input', this).each(function () {
+                obj[this.name] = $(this).val();
+            });
+            $('select', this).each(function () {
+                obj[this.name] = $(this).val();
+            });
+            return obj;
+        }
+
+        console.log($(event.target).serializeAllArray())
+
+        /*
+        $.pjax.submit(event, selector, {
+            //async: false,
+            push: false,
             accepts: {
                 mustacheTemplate: "html"
             },
@@ -311,6 +307,25 @@ function CarbonPHP(selector, address, options) {
             },
             dataType: "mustacheTemplate",
         });
+        */
+
+        $.pjax({
+            type: "POST",
+            url: $(event.target).attr('action'),
+            container: this.selector,
+            timeout: 2000,
+            //contentType: 'json',
+            data: $(event.target).serializeAllArray(),
+            accepts: {
+                mustacheTemplate: "html"
+            },
+            // deserialize a custom type
+            converters: {
+                '* mustacheTemplate': this.handlebars,
+            },
+            dataType: "mustacheTemplate",
+        });
+
     });
 
     // All links will be sent with ajax
@@ -324,10 +339,18 @@ function CarbonPHP(selector, address, options) {
             '* mustacheTemplate': this.handlebars,
         },
         dataType: "mustacheTemplate",
-
     });
 
     $(document).on('pjax:success', () => {
+        let container = $(this.selector + " div#alert"),
+            alert = $("#alert");
+
+        if (container.length) {
+            container.empty();
+        }
+        if (alert.length) {
+            alert.empty();
+        } // else we're defaulting to popup alerts
 
         console.log(this.alerting);
 

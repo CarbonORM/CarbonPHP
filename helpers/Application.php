@@ -48,11 +48,12 @@ namespace {                                     // This runs the following code 
                 return true;
             }
             $reset = false;
-        } #else {
+        } else {
+            $_POST = [];
             #sort($json);
            # $json['header'] = null;
             #sortDump($json);
-        #}
+        }
 
 
         if ($reset):                                    // This will always be se in a socket
@@ -151,11 +152,11 @@ namespace {                                     // This runs the following code 
             try {
                 ob_start(null,null,  PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
                 $argv = \call_user_func_array($lambda, $argv);
-            } catch (Exception | Error $e) {
+            } catch (\Throwable $e) {
                 if (!$e instanceof PublicAlert) {
                     PublicAlert::danger('Developers make mistakes, and you found a big one! We\'ve logged this event and will be investigating soon.'); // TODO - Change what is logged
                     if (APP_LOCAL) {
-                        PublicAlert::warning($e->getMessage());
+                        PublicAlert::warning(\get_class($e) . $e->getMessage());
                     }
                     try {
                         ErrorCatcher::generateLog($e);
@@ -165,6 +166,8 @@ namespace {                                     // This runs the following code 
                         PublicAlert::info(json_encode($e));
 
                     }
+                } elseif (APP_LOCAL) {
+                    ErrorCatcher::generateLog($e);
                 }
                 /** @noinspection CallableParameterUseCaseInTypeContextInspection */
                 $argv = null;
@@ -219,7 +222,7 @@ END;
 
         // the array $argv will be passed as arguments to the method requested, see link above
         $exec = function &(string $class, array &$argv) use ($method) {
-            $argv = \call_user_func_array([new $class, "$method"], $argv);
+            $argv = \call_user_func_array([new $class, $method], $argv);
             return $argv;
         };
 
@@ -286,6 +289,7 @@ END;
         if (!file_exists(APP_ROOT . $file . ($ext = '.php')) && !file_exists(APP_ROOT . $file . ($ext = '.hbs'))) {
             $ext = '';
         }
+
         return View::content($file . $ext);  // View
     }
 
@@ -320,6 +324,7 @@ END;
     function dump(...$argv)
     {
         echo '<pre>';
+        /** @noinspection ForgottenDebugOutputInspection */
         var_dump(\count($argv) === 1 ? array_shift($argv) : $argv);
         echo '</pre>';
     }
@@ -379,7 +384,6 @@ END;
         #Files::storeContent($file, $report);
 
         print $report . PHP_EOL;
-
         // Output to browser
         if (AJAX) {
             print $report;

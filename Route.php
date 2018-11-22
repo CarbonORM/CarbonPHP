@@ -100,7 +100,7 @@ abstract class Route
     /**
      * @param string $uri
      */
-    public function changeURI(string $uri) : void
+    public function changeURI(string $uri): void
     {
         $this->uri = explode('/', $uri = trim($uri, '/'));
         $this->uriLength = substr_count($uri, '/') + 1;
@@ -114,7 +114,7 @@ abstract class Route
      */
     public function __invoke()
     {
-        return (bool) $this->matched;
+        return (bool)$this->matched;
     }
 
     /** This sets a default route to execute immediately when

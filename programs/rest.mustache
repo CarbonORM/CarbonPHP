@@ -3,6 +3,7 @@
 {{#carbon_namespace}}namespace CarbonPHP\Table;{{/carbon_namespace}}
 
 use CarbonPHP\Entities;
+use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iRest;
 use Psr\Log\InvalidArgumentException;
 
@@ -28,7 +29,8 @@ class {{TableName}} extends Entities implements iRest
         global $json;
         if (!\is_array($json)) {
             $json = [];
-        } elseif (!isset($json['sql'])) {
+        }
+        if (!isset($json['sql'])) {
             $json['sql'] = [];
         }
         $json['sql'][] = [
@@ -53,7 +55,6 @@ class {{TableName}} extends Entities implements iRest
             } else {
                 $sql .= "($column = " . self::addInjection($value, $pdo) . ") $join ";
             }
-
         }
         return rtrim($sql, " $join") . ')';
     }
@@ -69,7 +70,7 @@ class {{TableName}} extends Entities implements iRest
     {{#explode}}
         if (array_key_exists('{{name}}', $argv)) {
         {{^length}}
-            $stmt->bindValue(':{{name}}',$argv['{{name}}'], {{type}});
+            $stmt->bindValue(':{{name}}',{{#json}}json_encode($argv['{{name}}']){{/json}}{{^json}}$argv['{{name}}']{{/json}}, {{type}});
         {{/length}}
         {{#length}}
             ${{name}} = $argv['{{name}}'];
@@ -133,11 +134,11 @@ class {{TableName}} extends Entities implements iRest
         $get = $argv['select'] ?? array_keys(self::COLUMNS);
         $where = $argv['where'] ?? [];
 
-        if (isset($argv['pagination'])) {
-            if (!empty($argv['pagination']) && !\is_array($argv['pagination'])) {
+        if (array_key_exists('pagination',$argv)) {
+            if (!empty($argv['pagination']) && !is_array($argv['pagination'])) {
                 $argv['pagination'] = json_decode($argv['pagination'], true);
             }
-            if (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] !== null) {
+            if (array_key_exists('limit',$argv['pagination']) && $argv['pagination']['limit'] != null) {
                 $limit = ' LIMIT ' . $argv['pagination']['limit'];
             } else {
                 $limit = '';
@@ -148,8 +149,8 @@ class {{TableName}} extends Entities implements iRest
 
                 $order = ' ORDER BY ';
 
-                if (isset($argv['pagination']['order']) && $argv['pagination']['order'] !== null) {
-                    if (\is_array($argv['pagination']['order'])) {
+                if (array_key_exists('order',$argv['pagination']) && $argv['pagination']['order'] != null) {
+                    if (is_array($argv['pagination']['order'])) {
                         foreach ($argv['pagination']['order'] as $item => $sort) {
                             $order .= "$item $sort";
                         }
@@ -172,7 +173,7 @@ class {{TableName}} extends Entities implements iRest
                     $group .= ', ';
                 }
             }
-            $columnExists = isset(self::COLUMNS[$column]);
+            $columnExists = array_key_exists($column, self::COLUMNS);
             if ($columnExists && self::COLUMNS[$column][0] === 'binary') {
                 $sql .= "HEX($column) as $column";
                 $group .= $column;
@@ -224,10 +225,14 @@ class {{TableName}} extends Entities implements iRest
         */
 
         {{#primary}}{{#sql}}
-            if (!empty($primary) || (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] === 1)) {
-            $return = (\count($return) === 1 ?
-            (\is_array($return['0']) ? $return['0'] : $return) : $return);   // promise this is needed and will still return the desired array except for a single record will not be an array
-            }{{/sql}}{{/primary}}
+        if ($primary !== null || (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] === 1 && \count($return) === 1)) {
+            $return = \is_array($return[0] ?? false) ? $return[0] : $return;
+            // promise this is needed and will still return the desired array except for a single record will not be an array
+        {{#explode}}{{#json}}if (array_key_exists('{{name}}', $return)) {
+                $return['{{name}}'] = json_decode($return['{{name}}'], true);
+            }
+        {{/json}}{{/explode}}
+        }{{/sql}}{{/primary}}
 
         return true;
     }
@@ -239,12 +244,12 @@ class {{TableName}} extends Entities implements iRest
     public static function Post(array $argv)
     {
         self::$injection = [];
-    /** @noinspection SqlResolve */
-    $sql = 'INSERT INTO {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}{{TableName}} ({{listed}}) VALUES ({{{implode}}})';
+        /** @noinspection SqlResolve */
+        $sql = 'INSERT INTO {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}{{TableName}} ({{listed}}) VALUES ({{{implode}}})';
 
-    {{#json}}self::jsonSQLReporting(\func_get_args(), $sql);{{/json}}
+        {{#json}}self::jsonSQLReporting(\func_get_args(), $sql);{{/json}}
 
-    $stmt = self::database()->prepare($sql);
+        $stmt = self::database()->prepare($sql);
 
     {{#explode}}
         {{#primary_binary}}
@@ -259,7 +264,7 @@ class {{TableName}} extends Entities implements iRest
         {{/primary_binary}}
         {{^primary_binary}}
             {{^skip}}
-                {{^length}}$stmt->bindValue(':{{name}}',{{^default}}{{#json}}json_encode($argv['{{name}}']){{/json}}{{^json}}$argv['{{name}}']{{/json}}{{/default}}{{#default}}isset($argv['{{name}}']) ? $argv['{{name}}'] : {{default}}{{/default}}, {{type}});{{/length}}
+                {{^length}}$stmt->bindValue(':{{name}}',{{#json}}json_encode($argv['{{name}}']){{/json}}{{^json}}{{^default}}$argv['{{name}}']{{/default}}{{#default}}array_key_exists('{{name}}',$argv) ? $argv['{{name}}'] : {{default}}{{/default}}{{/json}}, {{type}});{{/length}}
                 {{#length}}
                     ${{name}} = {{^default}}$argv['{{name}}']{{/default}}{{#default}} $argv['{{name}}'] ?? {{{default}}}{{/default}};
                     $stmt->bindParam(':{{name}}',${{name}}, {{type}}, {{length}});
@@ -289,8 +294,9 @@ class {{TableName}} extends Entities implements iRest
         }
 
         foreach ($argv as $key => $value) {
-            if (!\in_array($key, self::COLUMNS, true)){
-                unset($argv[$key]);
+            if (!\array_key_exists($key, self::COLUMNS)){
+                throw new PublicAlert('The key {' . $key . '} does not exist.');
+                #unset($argv[$key]);
             }
         }
 
@@ -301,7 +307,7 @@ class {{TableName}} extends Entities implements iRest
         $set = '';
 
         {{#explode}}
-            if (!empty($argv['{{name}}'])) {
+            if (array_key_exists('{{name}}', $argv)) {
                 $set .= '{{name}}={{#binary}}UNHEX(:{{name}}){{/binary}}{{^binary}}:{{name}}{{/binary}},';
             }
         {{/explode}}
@@ -339,7 +345,7 @@ class {{TableName}} extends Entities implements iRest
     public static function Delete(array &$remove, string $primary = null, array $argv) : bool
     {
     {{#carbon_table}}
-        return \Table\carbon::Delete($remove, $primary, $argv);
+        return carbon::Delete($remove, $primary, $argv);
     {{/carbon_table}}
     {{^carbon_table}}
         self::$injection = [];

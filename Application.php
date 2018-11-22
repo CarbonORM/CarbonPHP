@@ -9,6 +9,8 @@
 namespace CarbonPHP;
 
 
+use CarbonPHP\Error\PublicAlert;
+
 abstract class Application extends Route
 {
     abstract public function startApplication($uri = null) : bool;
@@ -78,7 +80,12 @@ abstract class Application extends Route
 
             header('Content-Type: application/json'); // Send as JSON
 
-            print PHP_EOL . json_encode($json) . PHP_EOL; // new line ensures it sends through the socket
+            if (false === $json = json_encode($json)) {
+                PublicAlert::danger('Json Failed to encode, this may occur when trying to encode binary content.');
+                $json = json_encode($json);
+            }
+
+            print PHP_EOL . $json . PHP_EOL; // new line ensures it sends through the socket
 
             return true;
         };

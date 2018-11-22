@@ -176,7 +176,7 @@ class Session implements \SessionHandlerInterface
             $_SERVER['REMOTE_ADDR'] = $ip;
         }
 
-        preg_match ('#PHPSESSID=([^;\s]+)#', $_SERVER['HTTP_COOKIE'], $array, PREG_OFFSET_CAPTURE);
+        preg_match ('#PHPSESSID=([^;\s]+)#', $_SERVER['HTTP_COOKIE'] ?? false, $array, PREG_OFFSET_CAPTURE);
 
         $session_id = $array[1][0] ?? false;
 
