@@ -27,15 +27,15 @@ class ComposerStaticInitf7bcaf88814232fa6202e75e65efaeed
         ),
         'CarbonPHP\\Interfaces\\' => 
         array (
-            0 => __DIR__ . '/../..' . '/Interfaces',
+            0 => __DIR__ . '/../..' . '/interfaces',
         ),
         'CarbonPHP\\Helpers\\' => 
         array (
-            0 => __DIR__ . '/../..' . '/Helpers',
+            0 => __DIR__ . '/../..' . '/helpers',
         ),
         'CarbonPHP\\Error\\' => 
         array (
-            0 => __DIR__ . '/../..' . '/Error',
+            0 => __DIR__ . '/../..' . '/error',
         ),
         'CarbonPHP\\' => 
         array (

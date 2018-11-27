@@ -7,8 +7,8 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Psr\\Log\\' => array($vendorDir . '/psr/log/Psr/Log'),
-    'CarbonPHP\\Interfaces\\' => array($baseDir . '/Interfaces'),
-    'CarbonPHP\\Helpers\\' => array($baseDir . '/Helpers'),
-    'CarbonPHP\\Error\\' => array($baseDir . '/Error'),
+    'CarbonPHP\\Interfaces\\' => array($baseDir . '/interfaces'),
+    'CarbonPHP\\Helpers\\' => array($baseDir . '/helpers'),
+    'CarbonPHP\\Error\\' => array($baseDir . '/error'),
     'CarbonPHP\\' => array($baseDir . '/'),
 );
