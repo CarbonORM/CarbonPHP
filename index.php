@@ -21,6 +21,7 @@ $app = new CarbonPHP\CarbonPHP('Config'.DS.'config.php');
  */
 
 
+// This is used for testing, and running the auto builds - no need to remove
 #$app( App\C6::class);
 
 
