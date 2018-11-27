@@ -38,7 +38,6 @@ class Database
      */
     public static function database(): PDO
     {
-
         if (null === self::$database || !self::$database instanceof PDO) {
             return static::reset();
         }
@@ -53,10 +52,81 @@ class Database
         }
     }
 
+    public static function TryCatch(callable $closure)
+    {
+        try {
+            return $closure();
+        } catch (\PDOException $e) {
+
+            switch ($e->getCode()) {        // Database has not been created
+
+                case 1049:
+                    $query = explode(';', static::$dsn);
+
+                    $db_name = explode('=', $query[1])[1];
+
+                    if (empty($db_name)) {
+                        print '<h1>Could not determine a database to create. See Carbonphp.com for documentation.</h1>' and die;
+                    }
+
+                    Try {
+                        $prep = function (PDO $db): PDO {
+                            $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+                            $db->setAttribute(PDO::ATTR_PERSISTENT, SOCKET);
+
+                            $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
+
+                            static::$database = $db;
+
+                            return static::$database;
+                        };
+
+                        $db = $prep(@new PDO($query[0], static::$username, static::$password));
+                    } catch (\PDOException $e) {
+                        if ($e->getCode() === 1049) {
+                            print '<h1>Auto Setup Failed!</h1><h3>Your database DSN may be slightly malformed.</h3>';
+                            print '<p>CarbonPHP requires the host come before the database in your DNS.</p>';
+                            print '<p>It should follow the following format "mysql:host=127.0.0.1;dbname=C6".</p>';
+                        }
+                        var_dump($e->getMessage());
+                        exit(1);
+                    }
+                    $stmt = "CREATE DATABASE $db_name;";
+
+                    if (!$db->prepare($stmt)->execute()) {
+                        print '<h1>Failed to insert database. See CarbonPHP.com for documentation.</h1>' and die;
+                    } else {
+                        $db->exec("use $db_name");
+                        static::setUp(true);   // this will exit
+                    }
+                    break;
+                case '42S02':
+                    print $e->getMessage() . PHP_EOL . '<br />';
+
+                    static::setUp(true);
+                    break;
+
+                default:
+                    if (empty(static::$username)) {
+                        print '<h2>You must set a database user name. See CarbonPHP.com for documentation</h2>';
+                    }
+                    if (empty(static::$password)) {
+                        print '<h2>You may need to set a database password. See CarbonPHP.com for documentation</h2>';
+                    }
+                    print $e->getMessage() . '<br>';    // This may print twice if the error catcher is trying to
+
+                    die(0);                            // but don't fear, die works...
+
+            }
+        }
+    }
+
+
     /** Clears and restarts the PDO connection
      * @return PDO
      */
-    public static function reset() : PDO // built to help preserve database in sockets and forks
+    public static function reset(): PDO // built to help preserve database in sockets and forks
     {
         $attempts = 0;
 
@@ -74,60 +144,10 @@ class Database
 
         do {
             try {
-                return $prep(@new PDO(static::$dsn, static::$username, static::$password));
-
-
-
-            } catch (\PDOException $e) {
-
-                switch ($e->getCode()) {        // Database has not been created
-
-                    case 1049:
-                        $query = explode(';', static::$dsn);
-
-                        $db_name = explode('=', $query[1])[1];
-
-                        if (empty($db_name)) {
-                            print '<h1>Could not determine a database to create. See Carbonphp.com for documentation.</h1>' and die;
-                        }
-
-                        Try {
-                            $db = $prep(@new PDO($query[0], static::$username, static::$password));
-                        } catch (\PDOException $e) {
-                            if ($e->getCode() === 1049){
-                                print '<h1>Auto Setup Failed!</h1><h3>Your database DSN may be slightly misformatted.</h3>';
-                                print '<p>CarbonPHP requires the host come before the database in your DNS.</p>';
-                                print '<p>It should follow the following format "mysql:host=127.0.0.1;dbname=C6".</p>';
-                            }
-                            var_dump($e->getMessage());
-                            die(0);
-                        }
-                        $stmt = "CREATE DATABASE $db_name;";
-
-                        if (!$db->prepare($stmt)->execute()) {
-                            print '<h1>Failed to insert database. See Carbonphp.com for documentation.</h1>' and die;
-                        } else {
-                            $db->exec("use $db_name");
-                            static::setUp(true);   // this will exit
-                        }
-                        break;
-                    case '42S02':
-                        static::setUp(true);
-                        break;
-
-                    default:
-                        if (empty(static::$username)) {
-                            print '<h2>You must set a database user name. See CarbonPHP.com for documentation</h2>';
-                        }
-                        if (empty(static::$password)) {
-                            print '<h2>You may need to set a database password. See CarbonPHP.com for documentation</h2>';
-                        }
-                        print $e->getMessage() . '<br>';    // This may print twice if the error catcher is trying to
-
-                        die(0);                            // but don't fear, die works...
-
-                }
-
+                return self::TryCatch(
+                    function () use ($prep) {
+                        return $prep(@new PDO(static::$dsn, static::$username, static::$password));
+                    });
             } catch (\Error $e) {                   // The error catcher
                 $attempts++;
             }
@@ -142,7 +162,7 @@ class Database
      * connection to the database will be closed
      * @param PDO|null $database
      */
-    public static function setDatabase(PDO $database = null) : void
+    public static function setDatabase(PDO $database = null): void
     {
         self::$database = $database;
     }
@@ -157,10 +177,10 @@ class Database
      * to refresh the browser using SITE constant
      * @return PDO
      */
-    public static function setUp(bool $refresh = true) : PDO
+    public static function setUp(bool $refresh = true): PDO
     {
-        if (file_exists(CARBON_ROOT . 'Extras/buildDatabase.php')) {
-            include CARBON_ROOT . 'Extras/buildDatabase.php';
+        if (file_exists(CARBON_ROOT . 'Config/buildDatabase.php')) {
+            include CARBON_ROOT . 'config/buildDatabase.php';
         } else {
             print '<h1>Could not find database setup. Please see Carbonphp.com for more documentation</h1>';
             die(1);
@@ -168,10 +188,10 @@ class Database
         if (file_exists(static::$setup)) {
             include static::$setup;
         } else {
-            print '<h3>When you add a database be sure to add it to the file ["DATABASE"]["DB_BUILD"]</h3><h5>Use '. __FILE__ .' a as refrence.</h5>';
+            print '<h3>When you add a database be sure to add it to the file ["DATABASE"]["DB_BUILD"]</h3><h5>Use ' . CARBON_ROOT . 'Config' . DS . 'buildDatabase.php as reference.</h5>';
         }
         if ($refresh) {
-            print '<br><br><h2>Refreshing in 6 seconds</h2><script>t1 = window.setTimeout(function(){ window.location.href = \''. SITE .'\'; },6000);</script>';
+            print '<br><br><h2>Refreshing in 6 seconds</h2><script>t1 = window.setTimeout(function(){ window.location.href = \'' . SITE . '\'; },6000);</script>';
             exit(1);
         }
         return static::database();

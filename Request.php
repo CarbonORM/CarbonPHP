@@ -92,6 +92,7 @@ class Request   // requires carbon::application;
     {
         if (!(\defined('SOCKET') && SOCKET)) {
             if (headers_sent()) {
+                /** @noinspection UnsupportedStringOffsetOperationsInspection */
                 $_SESSION['Headers'][] = $string;
             } else {
                 header($string);
@@ -316,6 +317,19 @@ class Request   // requires carbon::application;
         })($array);
     }
 
+
+    /**Check for character(s) / array members / representing a hexadecimal digit
+     * @link http://php.net/manual/en/function.ctype-xdigit.php
+     * @return mixed
+     */
+    public function hex()
+    {
+        $array = [];
+        return $this->closure(function ($key) use (&$array) {
+            return $array[] = (ctype_xdigit($key) ? $key : false);
+        })($array);
+    }
+
     /** Removes HTML chars from a given set
      * @param bool $complete if set to true than $this
      * will be returned
@@ -344,7 +358,6 @@ class Request   // requires carbon::application;
      */
     public function int(int $min = null, int $max = null)   // inclusive max and min
     {
-
         $array = [];
         return $this->closure(function ($key) use (&$array, $min, $max) {
             if (($key = (int)$key) === false) {
@@ -358,7 +371,6 @@ class Request   // requires carbon::application;
             }
             return $array[] = $key;
         })($array);
-
     }
 
     /** Runs a regex expression to find dates matching the pattern
@@ -396,6 +408,12 @@ class Request   // requires carbon::application;
      * @return array|bool|mixed
      */
     public function word()
+    {
+        return $this->regex('/^[A-Za-z]+$/');
+    }
+
+
+    public function words()
     {
         return $this->regex('/^[\w]+$/');
     }

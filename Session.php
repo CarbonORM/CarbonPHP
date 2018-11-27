@@ -16,6 +16,7 @@
 namespace CarbonPHP;
 
 use CarbonPHP\Helpers\Serialized;
+use CarbonPHP\Table\sessions;
 
 class Session implements \SessionHandlerInterface
 {
@@ -154,8 +155,9 @@ class Session implements \SessionHandlerInterface
             $id = session_id();
             $_SESSION = array();
             session_write_close();
-            $db = Database::database();
-            $db->prepare('DELETE FROM sessions WHERE session_id = ?')->execute([$id]);
+            # $db = Database::database();
+            # $db->prepare('DELETE FROM sessions WHERE session_id = ?')->execute([$id]);
+            sessions::Delete($_SESSION,$id,[]);
             session_start();
         } catch (\PDOException $e) {
             sortDump($e);
@@ -174,7 +176,7 @@ class Session implements \SessionHandlerInterface
             $_SERVER['REMOTE_ADDR'] = $ip;
         }
 
-        preg_match ('#PHPSESSID=([^;\s]+)#', $_SERVER['HTTP_COOKIE'], $array, PREG_OFFSET_CAPTURE);
+        preg_match ('#PHPSESSID=([^;\s]+)#', $_SERVER['HTTP_COOKIE'] ?? false, $array, PREG_OFFSET_CAPTURE);
 
         $session_id = $array[1][0] ?? false;
 
@@ -253,7 +255,7 @@ class Session implements \SessionHandlerInterface
         $NewDateTime = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . ' + 1 d,lay'));  // so from time of last write and whenever the gc_collector hits
 
         try {
-            $db->prepare('REPLACE INTO sessions SET session_id = ?, user_id = ?, user_ip = ?,  session_expires = ?, session_data = ?')->execute([
+            $db->prepare('REPLACE INTO sessions SET session_id = ?, user_id = UNHEX(?), user_ip = ?,  session_expires = ?, session_data = ?')->execute([
                 $id, static::$user_id, IP, $NewDateTime, $data]);
         } catch (\PDOException $e) {
             sortDump($e);
@@ -269,7 +271,7 @@ class Session implements \SessionHandlerInterface
     public function destroy($id)
     {
         $db = Database::database();
-        return $db->prepare('DELETE FROM sessions WHERE user_id = ? OR session_id = ?')->execute([self::$user_id, $id]) ?
+        return $db->prepare('DELETE FROM sessions WHERE user_id = UNHEX(?) OR session_id = ?')->execute([self::$user_id, $id]) ?
             true : false;
     }
 

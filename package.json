@@ -1,0 +1,29 @@
+{
+  "name": "carbonphp",
+  "version": "1.0.0",
+  "description": "A stats website for coaches",
+  "main": "index.php",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "admin-lte": "2.4",
+    "jquery-backstretch": "2.1.16",
+    "jquery-form": "^4.2.2",
+    "jquery-pjax": "^2.0.1",
+    "mustache": "^2.3.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RichardTMiles/CarbonPHP.git"
+  },
+  "keywords": [
+    "golf"
+  ],
+  "author": "Richard Miles",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/RichardTMiles/CarbonPHP/issues"
+  },
+  "homepage": "https://CarbonPHP.com/"
+}

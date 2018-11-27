@@ -6,13 +6,6 @@ namespace CarbonPHP;
  * Class View
  * @package Carbon
  */
-
-use CarbonPHP\Helpers\Files;
-
-/**
- * Class View
- * @package Carbon
- */
 class View
 {
     /**
@@ -37,6 +30,7 @@ class View
     {
         global $json;
 
+
         $buffer = function () use ($file) : string {         // closure  $buffer();
 
             global $json;              // Buffer contents may not need to be run if AJAX or SOCKET
@@ -44,14 +38,16 @@ class View
             ob_start();                 // closure of a buffer is kinda like a double buffer
 
             if (($json['alert'] ?? false) && \is_array($json['alert']) && !empty($json['alert'])) {
-                foreach ($json['alert'] as $level => $message) {
-                    self::bootstrapAlert($message, $level);
+                foreach ($json['alert'] as $level => $stack) {
+                    foreach ($stack as $item => $message) {
+                        self::bootstrapAlert($message, $level);
+                    }
                 }   // If a public alert is set it will be processed here.
                 $alert = null;
             }
 
-
             if (!file_exists($file) && !file_exists($file = APP_ROOT . $file)) {
+                // It was already handled if it was an hbs, but lets remind people that both are supported
                 self::bootstrapAlert("The file ($file.(hbs|php))requested could not be found.", 'danger');
             } else if (!SOCKET) {
                 include $file;          // TODO - remove socket check?
@@ -60,12 +56,11 @@ class View
                     'Mustache' => SITE . $file,
                     'Widget' => '#pjax-content'
                 ], $json);
-                print_r($json);
+                //print_r($json);
                 print PHP_EOL;
             }
             return ob_get_clean();
         };
-
 
         if (SOCKET) {
             print $buffer() . PHP_EOL;
@@ -75,16 +70,22 @@ class View
         if (pathinfo($file, PATHINFO_EXTENSION) === 'hbs') {
             $mustache = new \Mustache_Engine();
 
-            if (SOCKET || (!self::$forceWrapper && !PJAX && AJAX)) {        // Send JSON To Socket
+            if (SOCKET || (!self::$forceWrapper && PJAX && AJAX)) {        // Send JSON To Socket
+
+                //sortDump('pj ax en');
+
                 $json = array_merge([
                     'Mustache' => SITE . $file,
                     'Widget' => '#pjax-content'
                 ], $json);
 
+                headers_sent() or header('Content-Type: application/json');
+
                 print json_encode($json) . PHP_EOL . PHP_EOL;
 
                 return true;
             }
+
             $buffer = $mustache->render($buffer(), $json);                  // Render Inner Content
         } else {
             $buffer = $buffer();
@@ -103,20 +104,21 @@ class View
         }
 
         if (!\is_string($buffer)) {
-            $buffer = "<script>Carbon(() => $.carbon.bootstrapAlert('Content Buffer Failed ($file)', 'danger'))</script>";
+            $buffer = "<script>Carbon(() => carbon.alert('Content Buffer Failed ($file)', 'danger'))</script>";
         }
 
         if (!self::$forceWrapper && (PJAX || AJAX)):        // Send only inner content?
             print $buffer;
 
 
-        #################### Send the Outter Wrapper
+        #################### Send the Outer Wrapper
         elseif (pathinfo(self::$wrapper, PATHINFO_EXTENSION) === 'hbs'):   // Outer Wrapper is Mustache
             $json['content'] = $buffer;
             $mustache = $mustache ?? new \Mustache_Engine();
             print $mustache->render(file_get_contents(self::$wrapper), $json);
         else:                                                                       // Outer Wrapper is PHP?
             self::$bufferedContent = $buffer;
+            /** @noinspection PhpIncludeInspection */
             include_once self::$wrapper;
         endif;
 
@@ -205,14 +207,17 @@ class View
     }
 
     //Josh Sean
-    public static function generateUpToDateMimeArray()
+    public static function generateUpToDateMimeArray(): void
     {
         \defined('APACHE_MIME_TYPES_URL') OR \define('APACHE_MIME_TYPES_URL', 'http://svn.apache.org/repos/asf/httpd/httpd/trunk/docs/conf/mime.types');
         $s = array();
-        foreach (@explode("\n", @file_get_contents(APACHE_MIME_TYPES_URL)) as $x)
-            if (isset($x[0]) && $x[0] !== '#' && preg_match_all('#([^\s]+)#', $x, $out) && isset($out[1]) && ($c = count($out[1])) > 1)
-                for ($i = 1; $i < $c; $i++)
+        foreach (@explode("\n", @file_get_contents(APACHE_MIME_TYPES_URL)) as $x) {
+            if (isset($x[0]) && $x[0] !== '#' && preg_match_all('#([^\s]+)#', $x, $out) && isset($out[1]) && ($c = count($out[1])) > 1) {
+                for ($i = 1; $i < $c; $i++) {
                     $s[] = '&nbsp;&nbsp;&nbsp;\'' . $out[1][$i] . '\' => \'' . $out[1][0] . '\'';
+                }
+            }
+        }
         print @sort($s) ? 'return array(<br />' . implode($s, ',<br />') . '<br />);' : false;
     }
 

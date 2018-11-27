@@ -1,15 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="Google">
+  <component name="PublishConfigData" autoUpload="Always" serverName="StatsCoach">
     <serverData>
-      <paths name="Google">
+      <paths name="StatsCoach">
         <serverdata>
           <mappings>
             <mapping deploy="/" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
-      <paths name="Vendors">
+      <paths name="google">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/var/www/rootprerogative.com/vendor/richardtmiles/carbonphp" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="onthewll">
         <serverdata>
           <mappings>
             <mapping deploy="/" local="$PROJECT_DIR$" web="/" />

@@ -9,6 +9,8 @@
 namespace CarbonPHP;
 
 
+use CarbonPHP\Error\PublicAlert;
+
 abstract class Application extends Route
 {
     abstract public function startApplication($uri = null) : bool;
@@ -28,7 +30,7 @@ abstract class Application extends Route
         });
     }
 
-    public function wrap()
+    public function wrap() : callable
     {
         /**
          * @throws \Mustache_Exception_InvalidArgumentException
@@ -40,19 +42,19 @@ abstract class Application extends Route
         };
     }
 
-    public function MVC()
+    public function MVC() : callable
     {
         return function (string $class, string $method, array &$argv = []) {
             return MVC($class, $method, $argv);         // So I can throw in ->structure($route->MVC())-> anywhere
         };
     }
 
-    public function events($selector = '')
+    public function events($selector = '#pjax-content') : callable
     {
         return function ($class, $method, $argv) use ($selector) {
             global $alert, $json;
 
-            if (false === $argv = CM($class, $method, $argv)) {
+            if (false === $argv = catchErrors(CM($class, $method, $argv))()) {
                 return false;
             }
 
@@ -61,7 +63,11 @@ abstract class Application extends Route
             }
 
             if (!\is_array($alert)) {
-                $alert = array();
+                $alert = [];
+            }
+
+            if (!\is_array($json)){
+                $json = [];
             }
 
             $json = array_merge($json, [
@@ -74,7 +80,12 @@ abstract class Application extends Route
 
             header('Content-Type: application/json'); // Send as JSON
 
-            print PHP_EOL . json_encode($json) . PHP_EOL; // new line ensures it sends through the socket
+            if (false === $json = json_encode($json)) {
+                PublicAlert::danger('Json Failed to encode, this may occur when trying to encode binary content.');
+                $json = json_encode($json);
+            }
+
+            print PHP_EOL . $json . PHP_EOL; // new line ensures it sends through the socket
 
             return true;
         };

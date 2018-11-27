@@ -3,7 +3,6 @@
 namespace CarbonPHP;
 
 use CarbonPHP\Helpers\Serialized;
-use Psr\Log\InvalidArgumentException;
 
 /**
  * Class Carbon
@@ -90,6 +89,11 @@ class CarbonPHP
     public function __construct(string $PHP = null)
     {
         ####################  Sockets will have already claimed this global
+        \defined('TEST') OR \define('TEST', false);
+
+        TEST and $this->safelyExit = true;  // We just want the env to load, not route life :)
+
+        ####################  Sockets will have already claimed this global
         \defined('SOCKET') OR \define('SOCKET', false);
 
         ####################  Define your own server root
@@ -111,7 +115,7 @@ class CarbonPHP
             } elseif ($PHP !== null) {
                 print 'Invalid configuration path given! ' . $PHP;
                 $this->safelyExit = true;
-                return null;
+                return;
             }
         }
 
@@ -150,14 +154,14 @@ class CarbonPHP
          * Do Try Catch block have a higher precedence than the error catcher?
          * What if that error is thrown multiple function levels down in a block?
          **/
-        /*
+
         Error\ErrorCatcher::$defaultLocation = REPORTS . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
         Error\ErrorCatcher::$fullReports = $PHP['ERROR']['STORE'] ?? false;
         Error\ErrorCatcher::$printToScreen = $PHP['ERROR']['SHOW'] ?? true;
         Error\ErrorCatcher::$storeReport = $PHP['ERROR']['FULL'] ?? true;
         Error\ErrorCatcher::$level = $PHP['ERROR']['LEVEL'] ?? ' E_ALL | E_STRICT';
         Error\ErrorCatcher::start();            // Catch application errors and alerts
-        */
+
 
         #################  DATABASE  ########################
         if ($PHP['DATABASE'] ?? false) {
@@ -167,9 +171,13 @@ class CarbonPHP
             Database::$setup = $PHP['DATABASE']['DB_BUILD'] ?? '';
         }
 
-        if (php_sapi_name() === 'cli') {
+
+        // PHPUnit Runs in a cli to ini the 'CarbonPHP' env.
+        // We're not testing out extra resources
+        if (!TEST && !SOCKET && php_sapi_name() === 'cli') {
             $this->CLI($PHP);
-            return $this->safelyExit = true;
+            $this->safelyExit = true;
+            return;
         }
 
         // More cache control is given in the .htaccess File
@@ -178,7 +186,6 @@ class CarbonPHP
 
         ##################  VALIDATE URL / URI ##################
         // Even if a request is bad, we need to store the log
-
         if (!\defined('IP')) {
             $this->IP_FILTER();
         }
@@ -207,19 +214,30 @@ class CarbonPHP
         // Must return a non empty value
         \define('PJAX', SOCKET ? false : isset($_GET['_pjax']) || (isset($_SERVER['HTTP_X_PJAX']) && $_SERVER['HTTP_X_PJAX']));
 
+        if (PJAX && empty($_POST)) {
+            # try to json encode TODO - could probably make this better
+            $_POST = json_decode(file_get_contents('php://input'), true);
+        }
+
         // (PJAX == true) return required, else (!PJAX && AJAX) return optional (socket valid)
         \define('AJAX', SOCKET ? false : PJAX || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'));
 
-        \define('HTTPS', SOCKET ? false : $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? false) === 'https' || (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+        \define('HTTPS', SOCKET ? false : ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? false) === 'https' || ($_SERVER['HTTPS'] ?? false) !== 'off');
 
         \define('HTTP', !(HTTPS || SOCKET || AJAX));
 
-        if (HTTP && !($PHP['SITE']['HTTP'] ?? true)) {
-            print '<h1>Failed to switch to https, please contact the server administrator.</h1>';
+        // PHPUnit testing should not exit on explicit http(s) requests
+        if (!TEST && HTTP && !($PHP['SITE']['HTTP'] ?? true)) {
+            if (headers_sent()) {
+                print '<h1>Failed to switch to https, headers already sent! Please contact the server administrator.</h1>';
+            } else {
+                header('Location: https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
+            }
             die(1);
         }
 
-        AJAX OR $_POST = []; // We only allow post requests through ajax/pjax
+        // TODO - I think we should remove this
+        #AJAX OR $_POST = []; // We only allow post requests through ajax/pjax
 
         #######################   VIEW             #####################
         \define('APP_VIEW', $PHP['VIEW']['VIEW'] ?? DS);         // Public Folder
@@ -228,7 +246,7 @@ class CarbonPHP
 
         ########################  Session Management ######################
 
-        if (($PHP['SESSION'] ?? true)) {
+        if ($PHP['SESSION'] ?? true) {
             if ($PHP['SESSION']['PATH'] ?? false) {
                 session_save_path($PHP['SESSION']['PATH'] ?? '');   // Manually Set where the Users Session Data is stored
             }
@@ -250,7 +268,7 @@ class CarbonPHP
             print '<h1>Your instance of CarbonPHP appears corrupt. Please see CarbonPHP.com for Documentation.</h1>';
             die(1);
         }
-        return null;
+        return;
     }
 
 
@@ -382,58 +400,84 @@ class CarbonPHP
      *  for reporting purposes.
      * php index.php [command]
      * @param array $PHP
+     * @return mixed
      */
     private function CLI(array $PHP)
     {
         $argv = $_SERVER['argv'] ?? ['index.php', null];
 
+        // I do this so the I can pass the argvs correctly to the php executables
         print "\nIt's a powerful " . array_shift($argv) . ", hu?\n\n";
 
+        $background = function ($cmd, $outputFile) {
+            try {
+                if (strpos(PHP_OS, 'Windows') === 0) {
+                    $cmd = "start /B $cmd > $outputFile";
+                    print $cmd . PHP_EOL . PHP_EOL;
+                    pclose(popen($cmd, 'r'));
+                } else {
+                    $cmd = sprintf("sudo %s > %s 2>$1 & echo $! ",$cmd, $outputFile);
+                    print $cmd . PHP_EOL . PHP_EOL;
+                    exec($cmd, $pid);
+                }
+            } catch (Exception $e) {
+            }
+            return $pid[0] ?? 'Failed to execute cmd!';
+        };
+
         switch (array_shift($argv)) {
-
-            case 'Search':
-
-
+            case 'check':
+                $cmd = 'netstat -a -n -o | find "' . ($PHP['SOCKET']['PORT'] ?? 8888) . '\"';
+                print `$cmd`;
+            case 'test':
+                print `phpunit --bootstrap vendor/autoload.php --testdox  tests`;
                 break;
-
+            case 'mysqldump':
+                return `"C:\tools\mysql\current\bin\mysqldump.exe"`;
             case 'rest':
                 /**
                  * This is a small program inspired by my boss Scott.
                  * - You the shit dude! ( <- That's a good thing )
                  */
-                $argv = implode(' ', $argv);
+                $_SERVER['argv'] = $argv;
                 /** @noinspection PhpIncludeInspection */
-                include 'Extras/rest.mustache.php ' . $argv;
+                include 'programs/Rest.php';
                 break;
             case 'go':
-                $CMD = '/usr/bin/websocketd --port=' . ($PHP['SOCKET']['PORT'] ?? 8888) . ' ' .
+                $CMD = 'websocketd --port=' . ($PHP['SOCKET']['PORT'] ?? 8888) . ' ' .
                     (($PHP['SOCKET']['DEV'] ?? false) ? '--devconsole ' : '') .
-                    (($PHP['SOCKET']['SSL'] ?? false) ? "--ssl --sslkey={$PHP['SOCKET']['SSL']['KEY']} --sslcert={$PHP['SOCKET']['SSL']['CERT']} " : ' ') .
-                    'php ' . CARBON_ROOT . 'Extras' . DS . 'Websocketd.php ' . APP_ROOT . ' ' . ($PHP['SITE']['CONFIG'] ?? APP_ROOT) . ' 2>&1';
+                    (($PHP['SOCKET']['SSL'] ?? false) ? "--ssl --sslkey='{$PHP['SOCKET']['SSL']['KEY']}' --sslcert='{$PHP['SOCKET']['SSL']['CERT']}' " : ' ') .
+                    'php "' . CARBON_ROOT . 'programs' . DS . 'Websocketd.php" "' . APP_ROOT . '" "' . ($PHP['SITE']['CONFIG'] ?? APP_ROOT) . '" ';
 
-                print $CMD;
+                print 'pid == ' . $background($CMD, APP_ROOT . 'websocketd_log.txt');
+                print "\n\n\tDONE!\n\n";
                 //`$CMD`;
                 break;
             case 'php':
-                $CMD = 'php ' . CARBON_ROOT . 'Server.php ' . ($PHP['SITE']['CONFIG'] ?? APP_ROOT);
-                `$CMD`;
+                print 'Starting PHP Websocket' . PHP_EOL;
+                $CMD = 'php ' . CARBON_ROOT . 'Server.php ' . APP_ROOT . ' ' . $PHP['SITE']['CONFIG'];
+                print `$CMD`;
                 break;
             case 'help':
             default:
                 print <<<END
-\n\n
-          .$argv[0] [ :path? ] [ :command [ :args? ] ]\n
+          Available CarbonPHP CLI Commands  
 
                            help                          - This list of options
                          [command] -help                 - display a list of options for each sub command
+                           test                          - Run PHPUnit tests
                            rest                          - auto generate rest api from mysqldump
                            php                           - start a HTTP 5 web socket server written in PHP
-                           go                            - start a HTTP 5 web socket server written in Google Go\n\n";
+                           go                            - start a HTTP 5 web socket server written in Google Go
+
+
+          While CarbonPHP displays this in the cli, it does not exit here. Custom functions may 
+          be written after the CarbonPHP invocation. The CLI execution will however, stop the 
+          routing of HTTP(S) request normally invoked through the (index.php). <-- Which could really 
+          be any file run in CLI with CarbonPHP invoked.\n\n
 END;
         }
     }
-
-
 }
 
 

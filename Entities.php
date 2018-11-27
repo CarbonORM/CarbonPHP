@@ -8,12 +8,14 @@
 
 namespace CarbonPHP;
 
-use CarbonPHP\Helpers\Bcrypt;
 use PDO;
 use stdClass;
 use CarbonPHP\Helpers\Globals;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Table\carbon;
+use CarbonPHP\Table\carbon_tag;
+
 
 /**
  * Class Entities
@@ -46,6 +48,11 @@ abstract class Entities
     private static $entityTransactionKeys;
 
 
+    public static function database(): PDO
+    {
+        return Database::database();
+    }
+
     /**
      * Entities constructor.
      * @param array|null $array
@@ -54,7 +61,7 @@ abstract class Entities
      */
     public function __construct(array &$array = null)
     {
-        $this->db = Database::database();
+        $this->db = self::database();
         if ($this instanceof iRest && $array !== null) {
             $this::Post($array);
         }
@@ -98,11 +105,15 @@ abstract class Entities
 
     /** Commit the current transaction to the database.
      * @link http://php.net/manual/en/pdo.rollback.php
-     * @param callable|null $lambda
+     * @param callable|mixed $lambda
      * @return bool
      */
-    protected static function commit(callable $lambda = null): bool
+    protected static function commit(callable $lambda = null)
     {
+        if (!self::$inTransaction) {
+            return true;
+        }
+
         if (!Database::database()->commit()) {
             return static::verify();
         }
@@ -154,9 +165,11 @@ abstract class Entities
      */
     public static function genRandomHex($bitLength = 40)
     {
-        $sudoRandom = 1;
-        for ($i = 0; $i <= $bitLength; $i++) $sudoRandom = ($sudoRandom << 1) | rand(0, 1);
-        return dechex($sudoRandom);
+        $r = 1;
+        for ($i = 0; $i <= $bitLength; $i++) {
+            $r = ($r << 1) | random_int(0, 1);
+        }
+        return dechex($r);
     }
 
     /**
@@ -168,23 +181,19 @@ abstract class Entities
      * @param $dependant
      * @return bool|\PDOStatement|string
      */
-    protected static function new_entity($tag_id, $dependant)
+    protected static function new_entity($tag_id, $dependant = null)
     {
-        if (\defined($tag_id)) {
-            $tag_id = \constant($tag_id);
-        }
-        $db = Database::database();
-        do {
-            try {
-                $stmt = $db->prepare('INSERT INTO carbon (entity_pk, entity_fk) VALUE (?,?)');
-                $stmt->execute([$stmt = self::genRandomHex(), $dependant]);
-            } catch (\PDOException $e) {
-                $stmt = false;
-            }
-        } while (!$stmt);
-        $db->prepare('INSERT INTO carbon_tag (entity_id, user_id, tag_id, creation_date) VALUES (?,?,?,?)')->execute([$stmt, (!empty($_SESSION['id']) ? $_SESSION['id'] : $stmt), $tag_id, time()]);
-        self::$entityTransactionKeys[] = $stmt;
-        return $stmt;
+        $id = carbon::Post([
+            'entity_fk' => $dependant
+        ]);
+        carbon_tag::Post([
+            'tag_id' => (int) $tag_id,
+            'entity_id' => $id,
+            'user_id' => $_SESSION['id'],
+        ]);
+
+        self::$entityTransactionKeys[] = $id;
+        return $id;
     }
 
     /**
@@ -193,13 +202,14 @@ abstract class Entities
      * @param $id - Remove entity_pk form carbon
      * @return bool
      */
-    protected static function remove_entity($id) : bool
+    protected static function remove_entity($id): bool
     {
-        return Database::database()->prepare('DELETE FROM carbon WHERE entity_pk = ?')->execute([$id]);
+        $ref = [];
+        return carbon::Delete($ref, $id, []); //Database::database()->prepare('DELETE FROM carbon WHERE entity_pk = ?')->execute([$id]);
     }
 
 
-    protected static function execute(string $sql, ...$execute) : bool
+    protected static function execute(string $sql, ...$execute): bool
     {
         return Database::database()->prepare($sql)->execute($execute);
     }
@@ -224,7 +234,7 @@ abstract class Entities
         if (!$stmt->execute($execute) && !$stmt->execute($execute)) { // try it twice, you never know..
             return [];
         }
-        return (\count($stmt = $stmt->fetchAll()) === 1 ?
+        return (\count($stmt = $stmt->fetchAll(PDO::FETCH_ASSOC)) === 1 ?
             (\is_array($stmt['0']) ? $stmt['0'] : $stmt) : $stmt);   // promise this is needed and will still return the desired array
     }
 
@@ -305,7 +315,7 @@ abstract class Entities
     {
         $stmt = Database::database()->prepare($sql);
         $stmt->execute($execute);
-        $array = $stmt->fetchAll();
+        $array = $stmt->fetchAll(PDO::FETCH_ASSOC);
         foreach ($array as $key => $value) {
             $object->$key = $value;
         }
