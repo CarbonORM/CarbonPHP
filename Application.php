@@ -49,7 +49,7 @@ abstract class Application extends Route
         };
     }
 
-    public function events($selector = '#pjax-content') : callable
+    public function JSON($selector = '#pjax-content') : callable
     {
         return function ($class, $method, $argv) use ($selector) {
             global $alert, $json;

@@ -131,6 +131,7 @@ trait Singleton
      * @param array $arguments
      * @return Singleton|mixed
      * @throws \InvalidArgumentException
+     * @noinspection PhpUnusedPrivateMethodInspection
      */
     private function Skeleton(string $methodName, array $arguments = [])
     {

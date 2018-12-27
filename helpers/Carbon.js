@@ -59,8 +59,9 @@ function CarbonPHP(selector, address, options) {
         if (this.defaultOnSocket && this.trySocket) {           //defaultOnSocket &&
             console.log('Socket::' + url);
             this.statsSocket.send(JSON.stringify(url));
-        } else $.get(url, (data) => this.MustacheWidgets(data, url));
-        //$.pjax.reload(this.selector, {url: url})
+        } else {
+            $.get(url, (data) => this.MustacheWidgets(data, url));
+        }
     };
 
     this.alerts = (a) => {
@@ -95,7 +96,6 @@ function CarbonPHP(selector, address, options) {
         $(container).html(node.innerHTML + $(container).html());
     };
 
-    // PJAX Forum Request
     this.handlebars = (data) => {
         let template = undefined, json = undefined;
 
@@ -123,7 +123,7 @@ function CarbonPHP(selector, address, options) {
                 console.log('Valid Mustache $( ' + json.Widget + ' ).render( ' + json.Mustache + ', ... ); \n');
 
                 $.ajax({
-                    async: false,
+                    async: true,
                     //cache: false,
                     url: json.Mustache,
                 }).done((mustache) => {
@@ -133,12 +133,13 @@ function CarbonPHP(selector, address, options) {
                     template = Mustache.render(mustache, json);       // render json with mustache lib
 
                     if (json.hasOwnProperty('scroll')) {                        // use slim scroll to move to bottom of chats (lifo)
-                        $(json.scroll).slimscroll({start: json.scrollTo});
+                        $(json.scroll).slimscroll({
+                            start: json.scrollTo
+                        });
                     }
 
                 });
-                return template;
-
+                return '';
             } else {
                 console.log("JSON RESPONSE :: ");                    // log ( string )
                 console.log(json);                              // log ( object ) - seperating them will print nicely
@@ -195,15 +196,14 @@ function CarbonPHP(selector, address, options) {
         if (data !== null) {
             let json = (typeof data === "string" ? this.isJson(data) : data);
 
-            console.log('MustacheWidgets');
-            console.log(json);
+            console.log('MustacheWidgets', json);
 
             if (json && json.hasOwnProperty('Mustache')) {
 
                 if (!json.hasOwnProperty('Widget')) {
                     json.Widget = selector;
                 }
-
+                // this.MustacheWidgets(data, url)
                 console.log('Valid Mustache $( ' + json.Widget + ' ).render( ' + json.Mustache + ', ... ); \n');
 
                 $.get(json.Mustache, (template) => {
@@ -216,12 +216,12 @@ function CarbonPHP(selector, address, options) {
 
                     template = Mustache.render(template, json);
 
+                    console.log(json.Widget);
+
                     $(json.Widget).html(template);       // render json with mustache lib
 
                     if (json.hasOwnProperty('ALERT') && this.isset(json.ALERT)) {
-
                         this.alerts(json.ALERT);
-
                     }
 
                     if (json.hasOwnProperty('scroll')) {                        // use slim scroll to move to bottom of chats (lifo)
@@ -235,13 +235,12 @@ function CarbonPHP(selector, address, options) {
                 if (json.hasOwnProperty('ALERT') && this.isset(json.ALERT)) {
                     this.alerts(json.ALERT);
                 }
-
             } else {
                 if (data === "" || data === undefined) {
                     console.log("BAD STASH :: EMPTY STASH");
                 } else {
-                    console.log("BAD STASH :: ", data);
-                    $("body").html(data);                           //
+                    console.log("FULL STASH :: ", data);
+                    $(selector).html(data);
                 }
             }
         } else {
@@ -352,10 +351,10 @@ function CarbonPHP(selector, address, options) {
             alert.empty();
         } // else we're defaulting to popup alerts
 
-        console.log(this.alerting);
-
-        this.alerts(this.alerting);
-
+        if (this.alerting === null) {
+            console.log(this.alerting);
+            this.alerts(this.alerting);
+        }
         console.log("Successfully loaded " + window.location.href)
     });
 

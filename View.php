@@ -72,8 +72,6 @@ class View
 
             if (SOCKET || (!self::$forceWrapper && PJAX && AJAX)) {        // Send JSON To Socket
 
-                //sortDump('pj ax en');
-
                 $json = array_merge([
                     'Mustache' => SITE . $file,
                     'Widget' => '#pjax-content'
@@ -110,6 +108,8 @@ class View
         if (!self::$forceWrapper && (PJAX || AJAX)):        // Send only inner content?
             print $buffer;
 
+
+        //sortDump([PJAX, AJAX]);
 
         #################### Send the Outer Wrapper
         elseif (pathinfo(self::$wrapper, PATHINFO_EXTENSION) === 'hbs'):   // Outer Wrapper is Mustache

@@ -3,15 +3,14 @@
 namespace CarbonPHP\Helpers;
 
 use CarbonPHP\Error\ErrorCatcher;
-use CarbonPHP\Helpers\Pipe;
 use CarbonPHP\Request;
 use CarbonPHP\Session;
 use CarbonPHP\Database;
 use CarbonPHP\CarbonPHP;
 
-define('SOCKET', true);
+\define('SOCKET', true);
 
-define('DS', DIRECTORY_SEPARATOR);
+\define('DS', DIRECTORY_SEPARATOR);
 
 
 if (\count($argv) < 2) {

@@ -46,7 +46,7 @@ class {{TableName}} extends Entities implements iRest
         foreach ($set as $column => $value) {
             if (\is_array($value)) {
                 $sql .= self::buildWhere($value, $pdo, $join === 'AND' ? 'OR' : 'AND');
-            } else if (isset(self::COLUMNS[$column])) {
+            } else if (array_key_exists($column, self::COLUMNS)) {
                 if (self::COLUMNS[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(:" . $column . ")) $join ";
                 } else {
@@ -138,7 +138,7 @@ class {{TableName}} extends Entities implements iRest
             if (!empty($argv['pagination']) && !is_array($argv['pagination'])) {
                 $argv['pagination'] = json_decode($argv['pagination'], true);
             }
-            if (array_key_exists('limit',$argv['pagination']) && $argv['pagination']['limit'] != null) {
+            if (array_key_exists('limit',$argv['pagination']) && $argv['pagination']['limit'] !== null) {
                 $limit = ' LIMIT ' . $argv['pagination']['limit'];
             } else {
                 $limit = '';
@@ -149,7 +149,7 @@ class {{TableName}} extends Entities implements iRest
 
                 $order = ' ORDER BY ';
 
-                if (array_key_exists('order',$argv['pagination']) && $argv['pagination']['order'] != null) {
+                if (array_key_exists('order',$argv['pagination']) && $argv['pagination']['order'] !== null) {
                     if (is_array($argv['pagination']['order'])) {
                         foreach ($argv['pagination']['order'] as $item => $sort) {
                             $order .= "$item $sort";
@@ -226,7 +226,7 @@ class {{TableName}} extends Entities implements iRest
 
         {{#primary}}{{#sql}}
         if ($primary !== null || (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] === 1 && \count($return) === 1)) {
-            $return = \is_array($return[0] ?? false) ? $return[0] : $return;
+            $return = isset($return[0]) && \is_array($return[0]) ? $return[0] : $return;
             // promise this is needed and will still return the desired array except for a single record will not be an array
         {{#explode}}{{#json}}if (array_key_exists('{{name}}', $return)) {
                 $return['{{name}}'] = json_decode($return['{{name}}'], true);

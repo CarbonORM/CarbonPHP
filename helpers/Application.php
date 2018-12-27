@@ -51,7 +51,7 @@ namespace {                                     // This runs the following code 
         } else {
             $_POST = [];
             #sort($json);
-           # $json['header'] = null;
+            #$json['header'] = null;
             #sortDump($json);
         }
 
@@ -324,7 +324,6 @@ END;
     function dump(...$argv)
     {
         echo '<pre>';
-        /** @noinspection ForgottenDebugOutputInspection */
         var_dump(\count($argv) === 1 ? array_shift($argv) : $argv);
         echo '</pre>';
     }

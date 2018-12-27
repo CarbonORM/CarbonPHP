@@ -37,17 +37,16 @@ class Pipe
             unlink($fifoPath);          // We are always the master, hopefully we'll catch the kill this time
         }
 
-
         umask(0000);
 
         if (!posix_mkfifo($fifoPath, 0666)) {
             print 'Failed to create named Pipe' . PHP_EOL;
             return false;
-        }                   // create a named pipe 0644
+        }                   # create a named pipe 0644
 
-        $user = get_current_user();                    // get current process user
+        #$user = get_current_user();                            // get current process user
 
-        //exec("chown -R {$user} $fifoPath");    // We need to modify the permissions so users can write to it
+        #exec("chown -R {$user} $fifoPath");                    // We need to modify the permissions so users can write to it
 
         $fifoFile = fopen($fifoPath, 'rb+');              // Now we open the named pipe we Already created
 

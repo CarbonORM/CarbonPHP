@@ -17,7 +17,7 @@ $trigger = function ($table, $columns, $binary, $dependencies, $primary) {
     $json_mysql = function ($op = 'NEW') use ($columns, $binary) {
         $mid = "DECLARE json text;\n SET json = '{';";
         foreach ($columns as $key => &$column) {
-            $column = in_array($column, $binary)
+            $column = in_array($column, $binary, true)
                 ? <<<END
 \nSET json = CONCAT(json,'"$column":"', HEX($op.$column), '"');
 END
@@ -25,6 +25,7 @@ END
 \nSET json = CONCAT(json,'"$column":"', COALESCE($op.$column,''), '"');
 END;
         }
+        unset($column);
 
         $mid .= implode("\nSET json = CONCAT(json, ',');", $columns);
 
@@ -40,21 +41,21 @@ END;
         $query = '';
         $relative_time = $operation_type === "POST" ? 'NEW' : $operation_type === 'PUT' ? 'NEW' : 'OLD';
         switch ($operation_type) {
-          case 'POST':
-            $query = "INSERT INTO sys_resource_creation_logs (`uuid`, `resource_type`, `resource_uuid`)
+            case 'POST':
+                $query = "INSERT INTO sys_resource_creation_logs (`uuid`, `resource_type`, `resource_uuid`)
             VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), '$table', $relative_time.$primary);\n";
-          case 'PUT':
-            $query .= "INSERT INTO sys_resource_history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
+            case 'PUT':
+                $query .= "INSERT INTO sys_resource_history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
             VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), '$table', $relative_time.$primary , '$operation_type', json);";
-            break;
-          case 'DELETE':
-            $query = "INSERT INTO sys_resource_history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
+                break;
+            case 'DELETE':
+                $query = "INSERT INTO sys_resource_history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
             VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), '$table', $relative_time.$primary , '$operation_type', json);";
-            break;
-          case 'GET':
-            break;
-          default:
-            break;
+                break;
+            case 'GET':
+                break;
+            default:
+                break;
         }
 
         return $query;
@@ -112,7 +113,7 @@ END;;
 END;
 };
 
-$usage = function () use ($argv) {
+$usage = function () {
     print <<<END
 \n
 \t           Question Marks Denote Optional Parameters
@@ -152,7 +153,7 @@ $PDO = [0 => PDO::PARAM_NULL, 1 => PDO::PARAM_BOOL, 2 => PDO::PARAM_INT, 3 => PD
 $rest = [];
 $pass = '';
 $clean = true;
-$only_these_tables = $schema = $history_table_query = $mysqldump = $mysql = null;
+$only_these_tables = $targetDir = $schema = $history_table_query = $mysqldump = $mysql = null;
 $verbose = $debug = $json = $primary_required = $delete_dump = $carbon_namespace = $skipTable = false;
 $host = '127.0.0.1';
 $user = 'root';
@@ -263,9 +264,16 @@ END;
     }
 }
 
+if (empty($targetDir)) {
+    print 'You must provide a target directory.' . PHP_EOL;
+    $usage();
+} else {
+    var_dump($targetDir);
+    exit(1);
+}
 
 if (empty($schema)) {
-    print 'You must specify the table schema!';
+    print 'You must specify the table schema!' . PHP_EOL;
     exit(1);
 }
 
@@ -301,7 +309,9 @@ if ($history_table_query) {
 
 // check if dump file was given
 if (empty($dump)) {
-    if (empty($host) || empty($schema) || empty($user)) $usage();
+    if (empty($host) || empty($schema) || empty($user)) {
+        $usage();
+    }
 
     $buildCNF('', 'mysqldump');
 
@@ -311,7 +321,7 @@ if (empty($dump)) {
     }
 
     if (empty($dump = file_get_contents('mysqldump.sql'))) {
-        print "Build Failed";
+        print 'Build Failed';
         exit(1);
     }
 }
@@ -327,6 +337,7 @@ $mustache = function (array $rest) {
     return $mustache->render($handlebars, $rest);
 };
 
+/** @noinspection ForgottenDebugOutputInspection */
 $verbose and var_dump($dump);
 
 // match all tables from a mysql dump
@@ -369,9 +380,7 @@ foreach ($matches as $table) {
                 'carbon_table' => false,
                 'database' => $schema,
                 // We need to catch circular dependencies
-                'dependencies' => isset($rest[$tableName]) && isset($rest[$tableName]['dependencies']) ?
-                    $rest[$tableName]['dependencies'] :
-                    [],
+                'dependencies' => $rest[$tableName]['dependencies'] ?? [],
                 'TableName' => $tableName,
                 'primarySort' => '',
                 'primary' => [],
@@ -389,11 +398,10 @@ foreach ($matches as $table) {
 
 
             // 'only these tables' is specified in the command line arguments (via file or comma list)
-            if (!empty($only_these_tables) && !in_array($tableName, $only_these_tables)) {
+            if (!empty($only_these_tables) && !in_array($tableName, $only_these_tables, true)) {
                 // Break from this loop (every line in the create) and the parent loop (the table)
                 $verbose and print 'Skipping ' . $tableName . PHP_EOL;
                 // this is our condition to check right after this table is executed
-                // TODO - should I parse the whole thing to make the tree?
                 $skipTable = true;
                 // We may need to analyse for foreign keys, we will still break after this foreach loop
                 if (!$history_table_query) {
@@ -403,6 +411,7 @@ foreach ($matches as $table) {
 
             if ($verbose) {
                 print "\tGenerating {$tableName}\n";
+                /** @noinspection ForgottenDebugOutputInspection */
                 $debug and var_dump($table);
             }
 
@@ -420,7 +429,11 @@ foreach ($matches as $table) {
             // exploding strings like 'mediumint(9)' and 'binary(16)'
             if (count($argv = explode('(', $type)) > 1) {
                 $type = $argv[0];
-                $length = trim($argv[1], '),');
+                if ($type === 'enum') {
+                    $length = '';               // enums define strings where im expecting int length
+                } else {
+                    $length = trim($argv[1], '),');
+                }
                 // This being set determines what type of PDO stmt we use
                 $rest[$tableName]['explode'][$column]['length'] = $length;
             }
@@ -600,6 +613,10 @@ foreach ($matches as $table) {
     // Remove unneeded comma at begging of string
     $rest[$tableName]['implode'] = implode(',', $rest[$tableName]['implode']);
 
+
+    var_dump($targetDir . $rest[$tableName]['TableName'] . '.php') and die;
+
+
     file_put_contents($targetDir . $rest[$tableName]['TableName'] . '.php', $mustache($rest[$tableName]));
 }
 
@@ -617,7 +634,7 @@ if ($history_table_query) {
         if (in_array($table['TableName'], ['sys_resource_creation_logs', 'sys_resource_history_logs'])) {
             continue;
         }
-        if ($table['binary_primary'] && ($only_these_tables === null || in_array($table['TableName'], $only_these_tables))) {
+        if ($table['binary_primary'] && ($only_these_tables === null || in_array($table['TableName'], $only_these_tables, true))) {
             $triggers .= $trigger($table['TableName'], $table['columns'], isset($table['binary_trigger']) ? $table['binary_trigger'] : [], $table['dependencies'], $table['primary'][0]['name']);
         }
     }
@@ -627,14 +644,8 @@ if ($history_table_query) {
     $buildCNF('triggers.sql');
 }
 
-//if ($rest[$tableName]['binary_primary']) {
-//    // TODO - change how multiple primary keys are handled
-//    $rest[$tableName]['trigger'] = $trigger($rest[$tableName]['TableName'], $rest[$tableName]['columns'], $rest[$references_table]['dependencies'],$rest[$tableName]['primary'][0]['name']);
-//    $debug and print $rest[$tableName]['trigger'];
-//}
-
-
 // debug is a subset of the verbose flag
+/** @noinspection ForgottenDebugOutputInspection */
 $debug and var_dump($rest['clients']);
 
 print "\tSuccess!\n\n";
