@@ -3,6 +3,7 @@
 namespace CarbonPHP;
 
 use CarbonPHP\Helpers\Serialized;
+use CarbonPHP\programs\CLI;
 
 /**
  * Class Carbon
@@ -108,6 +109,9 @@ class CarbonPHP
         ####################  May as well make composer a dependency
         \defined('COMPOSER_ROOT') OR \define('COMPOSER_ROOT', \dirname(CARBON_ROOT, 2) . DS);
 
+        ####################  Template Root
+        \defined('TEMPLATE_ROOT') OR \define('TEMPLATE_ROOT', CARBON_ROOT);
+
         ####################  Now load config file so globals above & stacktrace security
         if ($PHP !== null) {
             if (file_exists($PHP)) {
@@ -165,7 +169,7 @@ class CarbonPHP
 
         #################  DATABASE  ########################
         if ($PHP['DATABASE'] ?? false) {
-            Database::$dsn = $PHP['DATABASE']['DB_DSN'] ?? '';
+            Database::$dsn = 'mysql:host='.($PHP['DATABASE']['DB_HOST'] ?? '').';dbname='. ($PHP['DATABASE']['DB_NAME'] ?? '') .';';
             Database::$username = $PHP['DATABASE']['DB_USER'] ?? '';
             Database::$password = $PHP['DATABASE']['DB_PASS'] ?? '';
             Database::$setup = $PHP['DATABASE']['DB_BUILD'] ?? '';
@@ -174,15 +178,17 @@ class CarbonPHP
 
         // PHPUnit Runs in a cli to ini the 'CarbonPHP' env.
         // We're not testing out extra resources
-        if (!TEST && !SOCKET && php_sapi_name() === 'cli') {
-            $this->CLI($PHP);
+        if (!TEST && !SOCKET && PHP_SAPI === 'cli') { // PHP_SAPI
             $this->safelyExit = true;
+            $cli = new CLI($PHP);
+            $cli->run($_SERVER['argv'] ?? ['index.php', null]);
+            $cli->cleanUp($PHP);
             return;
         }
 
         // More cache control is given in the .htaccess File
         // This was the dirtiest shit I've done to myself
-        // Request::setHeader('Cache-Control:  must-revalidate'); // TODONE - not this per say (better cache)
+        // Request::setHeader('Cache-Control:  must-revalidate'); // TO DONE - not this per say (better cache)
 
         ##################  VALIDATE URL / URI ##################
         // Even if a request is bad, we need to store the log
@@ -194,12 +200,12 @@ class CarbonPHP
 
         if ($PHP['DATABASE']['REBUILD'] ?? false) {
             Database::setUp(false);   // redirect = false
-            exit(1);                         //
+            // does exit(1); rollback? what take is this touching?
+            return;                        //
         }
 
         #################  SITE  ########################
         if ($PHP['SITE'] ?? false) {
-            \define('BOOTSTRAP', APP_ROOT . $PHP['SITE']['BOOTSTRAP'] ?? '');          // Routing file
 
             \define('SITE_TITLE', $PHP['SITE']['TITLE'] ?? 'CarbonPHP');                     // Carbon doesnt use
 
@@ -236,7 +242,7 @@ class CarbonPHP
             die(1);
         }
 
-        // TODO - I think we should remove this
+        // TODO - I think we should make this optional
         #AJAX OR $_POST = []; // We only allow post requests through ajax/pjax
 
         #######################   VIEW             #####################
@@ -373,8 +379,7 @@ class CarbonPHP
      * @link http://blackbe.lt/advanced-method-to-obtain-the-client-ip-in-php/
      * @return mixed|string
      */
-    private
-    function IP_FILTER()
+    private function IP_FILTER()
     {
         $ip_keys = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR');
         foreach ($ip_keys as $key) {
@@ -393,89 +398,7 @@ class CarbonPHP
         die(1);
     }
 
-    /** Command Line Interface. Use
-     *  I pass the php array to this function
-     *  for reporting purposes.
-     * php index.php [command]
-     * @param array $PHP
-     * @return mixed
-     */
-    private function CLI(array $PHP)
-    {
-        $argv = $_SERVER['argv'] ?? ['index.php', null];
 
-        // I do this so the I can pass the argvs correctly to the php executables
-        print "\nIt's a powerful " . array_shift($argv) . ", hu?\n\n";
-
-        $background = function ($cmd, $outputFile) {
-            try {
-                if (strpos(PHP_OS, 'Windows') === 0) {
-                    $cmd = "start /B $cmd > $outputFile";
-                    print $cmd . PHP_EOL . PHP_EOL;
-                    pclose(popen($cmd, 'r'));
-                } else {
-                    $cmd = sprintf("sudo %s > %s 2>$1 & echo $! ",$cmd, $outputFile);
-                    print $cmd . PHP_EOL . PHP_EOL;
-                    exec($cmd, $pid);
-                }
-            } catch (Exception $e) {
-            }
-            return $pid[0] ?? 'Failed to execute cmd!';
-        };
-
-        switch (array_shift($argv)) {
-            case 'check':
-                $cmd = 'netstat -a -n -o | find "' . ($PHP['SOCKET']['PORT'] ?? 8888) . '\"';
-                print `$cmd`;
-            case 'test':
-                print `phpunit --bootstrap vendor/autoload.php --testdox  tests`;
-                break;
-            case 'mysqldump':
-                return `"C:\tools\mysql\current\bin\mysqldump.exe"`;
-            case 'rest':
-                /**
-                 * This is a small program inspired by my boss Scott.
-                 * - You the shit dude! ( <- That's a good thing )
-                 */
-                $_SERVER['argv'] = $argv;
-                /** @noinspection PhpIncludeInspection */
-                include 'programs/Rest.php';
-                break;
-            case 'go':
-                $CMD = 'websocketd --port=' . ($PHP['SOCKET']['PORT'] ?? 8888) . ' ' .
-                    (($PHP['SOCKET']['DEV'] ?? false) ? '--devconsole ' : '') .
-                    (($PHP['SOCKET']['SSL'] ?? false) ? "--ssl --sslkey='{$PHP['SOCKET']['SSL']['KEY']}' --sslcert='{$PHP['SOCKET']['SSL']['CERT']}' " : ' ') .
-                    'php "' . CARBON_ROOT . 'programs' . DS . 'Websocketd.php" "' . APP_ROOT . '" "' . ($PHP['SITE']['CONFIG'] ?? APP_ROOT) . '" ';
-
-                print 'pid == ' . $background($CMD, APP_ROOT . 'websocketd_log.txt');
-                print "\n\n\tDONE!\n\n";
-                //`$CMD`;
-                break;
-            case 'php':
-                print 'Starting PHP Websocket' . PHP_EOL;
-                $CMD = 'php ' . CARBON_ROOT . 'Server.php ' . APP_ROOT . ' ' . $PHP['SITE']['CONFIG'];
-                print `$CMD`;
-                break;
-            case 'help':
-            default:
-                print <<<END
-          Available CarbonPHP CLI Commands  
-
-                           help                          - This list of options
-                         [command] -help                 - display a list of options for each sub command
-                           test                          - Run PHPUnit tests
-                           rest                          - auto generate rest api from mysqldump
-                           php                           - start a HTTP 5 web socket server written in PHP
-                           go                            - start a HTTP 5 web socket server written in Google Go
-
-
-          While CarbonPHP displays this in the cli, it does not exit here. Custom functions may 
-          be written after the CarbonPHP invocation. The CLI execution will however, stop the 
-          routing of HTTP(S) request normally invoked through the (index.php). <-- Which could really 
-          be any file run in CLI with CarbonPHP invoked.\n\n
-END;
-        }
-    }
 }
 
 

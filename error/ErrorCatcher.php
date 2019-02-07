@@ -72,7 +72,10 @@ class ErrorCatcher
                 }
                 startApplication(true);
             } else {
-                print 'CarbonPHP Failed to initialize.';
+                /** @noinspection ForgottenDebugOutputInspection
+                 * TODO - fix this? */
+                print_r($argv);
+                print 'CarbonPHP Failed to initialize.' . PHP_EOL;
                 die(1);
             }
             exit(1);
@@ -127,11 +130,16 @@ class ErrorCatcher
         }
 
         if (self::$storeReport === true || self::$storeReport === 'file') {       // TODO - store to file?
-            $file = fopen(REPORTS . '/Log_' . time() . '.log', 'ab');
-            if (!fwrite($file, $output)) {
+            if (!is_dir(REPORTS) && !mkdir($concurrentDirectory = REPORTS) && !is_dir($concurrentDirectory)) {
                 PublicAlert::danger('Failed Storing Log');
+            } else {
+                $file = fopen(REPORTS . '/Log_' . time() . '.log', 'ab');
+
+                if (!\is_resource($file) || !fwrite($file, $output)) {
+                    PublicAlert::danger('Failed Storing Log');
+                }
+                fclose($file);
             }
-            fclose($file);
         }
 
         if (self::$storeReport === true || self::$storeReport === 'database') {       // TODO - store to file?

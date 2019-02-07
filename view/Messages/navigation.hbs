@@ -1,0 +1,27 @@
+<a href="#" class="dropdown-toggle" data-toggle="dropdown" onclick="this.removeChild(document.getElementById('NewMessagesSpan'))">
+    <i class="fa fa-envelope-o"></i>
+    {{#newMessages}}
+    <span id="NewMessagesSpan" class="label label-success">{{newMessages}}</span>
+    {{/newMessages}}
+</a>
+<ul class="dropdown-menu">
+    <li class="header">You have {{newMessages}}{{^newMessages}}0{{/newMessages}} new messages</li>
+    <!-- inner menu: contains the actual data -->
+    <li><ul class="menu">
+            {{#users}}
+            <li><!-- start message -->
+                <a href="{{user_uri}}">
+                    <div class="pull-left">
+                        <img src="{{user_profile_picture}}" class="img-circle" alt="User Image"/>
+                    </div>
+                    <h4>
+                        {{first_name}} {{last_name}}
+                        <small><i class="fa fa-clock-o"></i>{{creation_date}}</small>
+                    </h4>
+                    <p>{{message}}</p>
+                </a>
+            </li><!-- end message -->
+            {{/users}}
+        </ul></li>
+    <li class="footer"><a href="#">See All Messages</a></li>
+</ul>

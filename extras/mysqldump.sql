@@ -16,7 +16,7 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `carbon`
+-- Table structure for tables `carbon`
 --
 
 DROP TABLE IF EXISTS `carbon`;
@@ -33,7 +33,7 @@ CREATE TABLE `carbon` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `carbon_reports`
+-- Table structure for tables `carbon_reports`
 --
 
 DROP TABLE IF EXISTS `carbon_reports`;
@@ -48,7 +48,7 @@ CREATE TABLE `carbon_reports` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `carbon_tag`
+-- Table structure for tables `carbon_tag`
 --
 
 DROP TABLE IF EXISTS `carbon_tag`;
@@ -69,7 +69,7 @@ CREATE TABLE `carbon_tag` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `carbon_tags`
+-- Table structure for tables `carbon_tags`
 --
 
 DROP TABLE IF EXISTS `carbon_tags`;
@@ -85,7 +85,7 @@ CREATE TABLE `carbon_tags` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `sessions`
+-- Table structure for tables `sessions`
 --
 
 DROP TABLE IF EXISTS `sessions`;

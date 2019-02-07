@@ -11,7 +11,13 @@ if (false === (include  'vendor' . DS . 'autoload.php')) {     // Load the autol
     print '<h1>Loading Composer Failed. See Carbonphp.com for documentation.</h1>' and die;     // Composer autoload
 }
 
-$app = new CarbonPHP\CarbonPHP('Config'.DS.'config.php');
+try {
+    $app = new CarbonPHP\CarbonPHP('config' . DS . 'Config.php');
+} catch (Throwable $e) {
+    print_r($e);
+    print 'Carbon Failed' . PHP_EOL;
+    die(1);
+}
 
 /** At one point I returned the invocation of $app to show that
  * the application will not exit on completion, but rather return
@@ -22,7 +28,7 @@ $app = new CarbonPHP\CarbonPHP('Config'.DS.'config.php');
 
 
 // This is used for testing, and running the auto builds - no need to remove
-#$app( App\C6::class);
+$app( CarbonPHP\C6::class);
 
 
 return true;

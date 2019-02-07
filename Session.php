@@ -130,7 +130,7 @@ class Session implements \SessionHandlerInterface
             $_SESSION['X_PJAX_Version'] = SITE_VERSION;     // static::$user_id, keep this static
         }
 
-        Request::setHeader('X-PJAX-Version: ' . $_SESSION['X_PJAX_Version']);
+        Controller::setHeader('X-PJAX-Version: ' . $_SESSION['X_PJAX_Version']);
 
         /* If the session variable changes from the constant we will
          * send the full html page and notify the pjax js to reload
@@ -138,12 +138,13 @@ class Session implements \SessionHandlerInterface
          * */
 
         if (\is_callable(self::$callback)) {
+            /** @noinspection OnlyWritesOnParameterInspection */
             ($lambda = self::$callback)($clear);    // you must have callable in a variable in fn scope
         }
         if (!\defined('X_PJAX_VERSION')) {
             \define('X_PJAX_VERSION', $_SESSION['X_PJAX_Version']);
         }
-        Request::sendHeaders();  // Send any stored headers
+        Controller::sendHeaders();  // Send any stored headers
     }
 
     /**

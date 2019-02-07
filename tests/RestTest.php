@@ -90,7 +90,7 @@ final class RestTest extends TestCase
     {
         $this->store = [];
 
-         $quickAccess = new class extends \CarbonPHP\Entities {
+         $quickAccess = new class extends \CarbonPHP\Model {
              public function uuid(){
                  return self::fetchColumn('SELECT (REPLACE(UUID(),"-",""))')[0];
              }

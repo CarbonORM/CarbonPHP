@@ -5,13 +5,28 @@ namespace {                                     // This runs the following code 
     use CarbonPHP\Application;
     use CarbonPHP\Error\ErrorCatcher;              //  Catches development errors
     use CarbonPHP\Error\PublicAlert;               //  Displays alerts nicely
-    use CarbonPHP\Entities;                        //  Manages table relations
+    use CarbonPHP\Model;                        //  Manages tables relations
     use CarbonPHP\Helpers\Files;
     use CarbonPHP\Session;                         //  Automatically stores session
-    use CarbonPHP\Request;                         //  Sterilizes input
+    use CarbonPHP\Controller;                         //  Sterilizes input
     use CarbonPHP\Route;                           //  Easily route app
     use CarbonPHP\View;                            //  Seamlessly include the DOM
 
+
+
+    /**
+     * @param $message
+     * @param $title
+     * @param string $type
+     * @param null $icon
+     * @param int $status
+     * @param bool $intercept
+     * @param bool $stack
+     */
+    function JsonAlert($message, $title = 'danger', $type = 'danger', $icon = null, $status = 500, $intercept = true, $stack = true)
+    {
+        PublicAlert::JsonAlert($message, $title, $type, $icon, $status, $intercept, $stack);
+    }
 
     /** Start application will start a bootstrap file passed to it. It will
      * store that instance in a static variable and reuse it for the proccess life.
@@ -59,9 +74,9 @@ namespace {                                     // This runs the following code 
         if ($reset):                                    // This will always be se in a socket
             if ($reset === true):
                 View::$forceWrapper = true;
-                Request::changeURI($uri = '/');         // Dynamically using pjax + headers
+                Controller::changeURI($uri = '/');         // Dynamically using pjax + headers
             else:
-                Request::changeURI($uri = $reset);
+                Controller::changeURI($uri = $reset);
             endif;
             $application->changeURI($uri);    // So our routing file knows what to match
             $reset = true;
@@ -184,7 +199,7 @@ namespace {                                     // This runs the following code 
 END;
 
                 }
-                Entities::verify();     // Check that all database commit chains have finished successfully, otherwise attempt to remove
+                Model::verify();     // Check that all database commit chains have finished successfully, otherwise attempt to remove
                 return $argv;
             }
         };
@@ -226,7 +241,7 @@ END;
             return $argv;
         };
 
-        return function () use ($exec, $controller, $model, &$argv) {          // TODO - this is where catch Errors is / goes
+        return function () use ($exec, $controller, $model, &$argv) {
             if (!empty($argv = $exec($controller, $argv))) {
                 if (\is_array($argv)) {
                     return $exec($model, $argv);        // array passed

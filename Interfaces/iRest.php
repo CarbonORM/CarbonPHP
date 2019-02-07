@@ -14,8 +14,8 @@ namespace CarbonPHP\Interfaces;
  *
  * This should be implemented on all tables in
  * Application/Tables/ folder. Table files should
- * be named exactly that of the database table. If
- * a table contains, or may contain, foreign keys
+ * be named exactly that of the database tables. If
+ * a tables contains, or may contain, foreign keys
  * then its primary key must be generated with
  *      Carbon\Entities.beginTransaction() : string
  *
@@ -28,7 +28,7 @@ interface iRest
      * @param array $argv
      * @return bool
      */
-    public static function Delete(array &$return, string $primary = null, array $argv): bool;      // Delete all data from a table given its primary key
+    public static function Delete(array &$return, string $primary = null, array $argv): bool;      // Delete all data from a tables given its primary key
 
     /**
      * @param array $return
@@ -36,7 +36,7 @@ interface iRest
      * @param array $argv - column names desired to be in our array
      * @return bool
      */
-    public static function Get(array &$return, string $primary = null, array $argv): bool;   // Get table columns given in argv (usually an array) and place them into our array
+    public static function Get(array &$return, string $primary = null, array $argv): bool;   // Get tables columns given in argv (usually an array) and place them into our array
 
     /**
      * @param array $data

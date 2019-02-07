@@ -37,7 +37,8 @@
       "CarbonPHP\\": "",
       "CarbonPHP\\Error\\": "error/",
       "CarbonPHP\\Helpers\\": "helpers/",
-      "CarbonPHP\\Interfaces\\": "interfaces/"
+      "CarbonPHP\\Interfaces\\": "interfaces/",
+      "CarbonPHP\\Programs\\": "programs/"
     }
   }
 }

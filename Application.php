@@ -54,8 +54,9 @@ abstract class Application extends Route
         return function ($class, $method, $argv) use ($selector) {
             global $alert, $json;
 
-            if (false === $argv = catchErrors(CM($class, $method, $argv))()) {
-                return false;
+
+            if (false === $return = catchErrors(CM($class, $method, $argv))()) {
+                return null;
             }
 
             if (!file_exists(APP_ROOT . $file = (APP_VIEW . $class . DS . $method . '.hbs'))) {
@@ -70,22 +71,25 @@ abstract class Application extends Route
                 $json = [];
             }
 
-            $json = array_merge($json, [
-                'Errors' => $alert,
-                'Event' => 'Controller->Model',   // This doesn't do anything.. Its just a mental note when I look at the json's in console (controller->model only)
-                'Model' => $argv,
-                'Mustache' => DS . $file,
-                'Widget' => $selector
+            $json = array_merge_recursive($json, [
+                'errors' => $alert,
+                'controller->model' => $class,
+                'method' => $method,
+                'argv' => $argv,
+                'return' => $return,
+                'widget' => $selector
             ]);
 
-            header('Content-Type: application/json'); // Send as JSON
+            header('Content-Type: application/json', true, 200); // Send as JSON
 
             if (false === $json = json_encode($json)) {
                 PublicAlert::danger('Json Failed to encode, this may occur when trying to encode binary content.');
                 $json = json_encode($json);
             }
 
-            print PHP_EOL . $json . PHP_EOL; // new line ensures it sends through the socket
+            SOCKET and $json = PHP_EOL . $json . PHP_EOL;
+
+            print $json; // new line ensures it sends through the socket
 
             return true;
         };

@@ -109,8 +109,6 @@ class View
             print $buffer;
 
 
-        //sortDump([PJAX, AJAX]);
-
         #################### Send the Outer Wrapper
         elseif (pathinfo(self::$wrapper, PATHINFO_EXTENSION) === 'hbs'):   // Outer Wrapper is Mustache
             $json['content'] = $buffer;
@@ -182,6 +180,9 @@ class View
 
             if (file_exists(APP_ROOT . $uri)) {
                 self::sendResource($uri, $matches[2][0]);
+            }
+            if (file_exists(TEMPLATE_ROOT . $uri)) {
+                self::sendResource(TEMPLATE_ROOT . $uri, $matches[2][0]);
             }
             if (file_exists(COMPOSER_ROOT . $uri)) {
                 self::sendResource(COMPOSER_ROOT . $uri, $matches[2][0]);

@@ -27,6 +27,41 @@ namespace CarbonPHP\Error;
 
 class PublicAlert extends CustomException {
 
+
+    public static function JsonAlert($message, $title, $type = 'danger', $icon = null, $status = 500, $intercept = true, $stack = true) : void
+    {
+        global $json;
+
+        if (!\is_array($json)) {
+            $json = [];
+        } elseif ($stack) {
+            $json = [
+                'previous_json' => $json,
+                'sql' => [],
+                'status' => $status,
+            ];
+        } else {
+            $json['status'] = $status;
+        }
+
+        if (!\in_array($type, ['default', 'info', 'success', 'warning', 'danger', 'error', 'input', 'custom'])) {
+            $message .= " The React Alert type given `$type` is not supported.";
+            $type = 'danger';
+        }
+
+        if ($title === null) {
+            $title = 'Danger!';
+        }
+
+        $json['alert'][] = [
+            'message' => $message,
+            'type' => $type,
+            'title' => $title,
+            'icon' => $icon,
+            'intercept' => $intercept
+        ];
+    }
+
     /** Add an alert to the array. If the view is not executed, CarbonPHP will not
      * handle the global alert.
      * @param string $message the message to be stored in the alert variable

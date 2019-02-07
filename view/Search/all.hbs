@@ -1,0 +1,173 @@
+<section class="content-header" style="color: ghostwhite">
+    <h1>
+        Search
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="#" style="color: ghostwhite"><i class="fa fa-dashboard"></i>Home</a></li>
+        <li class="active" style="color: ghostwhite"><a href="#" style="color: ghostwhite">Profile</a></li>
+    </ol>
+    <p>
+    </p>
+</section>
+
+<div class="col-xs-12" style="overflow-y:scroll">
+    <div class="box">
+        <div class="box-header">
+            <h3 class="box-title">Teams </h3>
+        </div>
+        <!-- /.box-header -->
+        <div class="box-body">
+            <div id="example2_wrapper" class="dataTables_wrapper form-inline dt-bootstrap">
+                <div class="row">
+                    <div class="col-sm-6"></div>
+                    <div class="col-sm-6"></div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <table id="TeamSearch" class="table table-bordered table-hover">
+                            <thead>
+                            <tr role="row">
+                                <th>Team Name</th>
+                                <th>Team Coach</th>
+                                <th>Team School</th>
+                                <th>Team code</th>
+                            </thead>
+                            <tfoot>
+                            <tr>
+                                <th>Team Name</th>
+                                <th>Team Coach</th>
+                                <th>Team School</th>
+                                <th>Team code</th>
+                            </tr>
+                            </tfoot>
+
+                            <tbody>{{#Teams}}
+                                <tr role="row">
+                                    <th>{{TeamName}}</th>
+                                    <th>{{TeamCoach}}</th>
+                                    <th>{{TeamSchool}}</th>
+                                    <th>{{TeamCode}}</th>
+                                </tr>{{/Teams}}
+                            </tbody>
+
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /.box-body -->
+    </div>
+    <!-- /.box -->
+</div>
+
+<div class="col-xs-12" style="overflow-y:scroll">
+    <div class="box">
+        <div class="box-header">
+            <h3 class="box-title">Users </h3>
+        </div>
+        <!-- /.box-header -->
+        <div class="box-body">
+            <div id="example2_wrapper" class="dataTables_wrapper form-inline dt-bootstrap">
+                <div class="row">
+                    <div class="col-sm-6"></div>
+                    <div class="col-sm-6"></div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <table id="UserSearch" class="table table-bordered table-hover">
+                            <thead>
+                            <tr role="row">
+                                <th>First Name</th>
+                                <th>Last Name</th>
+                                <th>Account Type</th>
+                                <th>Active Sports</th>
+                                <th>About ME</th>
+                            </thead>
+                            <tfoot>
+                            <tr>
+                                <th>First Name</th>
+                                <th>Last Name</th>
+                                <th>Account Type</th>
+                                <th>Active Sports</th>
+                                <th>About ME</th>
+                            </tr>
+                            </tfoot>
+
+                            <tbody>{{#Users}}
+                                <tr role="row">
+                                    <th>{{FirstName}}</th>
+                                    <th>{{LastName}}</th>
+                                    <th>{{Type}}</th>
+                                    <th>{{Sport}}</th>
+                                    <th>{{About}}</th>
+                                </tr>{{/Users}}
+                            </tbody>
+
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /.box-body -->
+    </div>
+    <!-- /.box -->
+</div>
+
+<div class="col-xs-12" style="overflow-y:scroll">
+    <div class="box">
+        <div class="box-header">
+            <h3 class="box-title">Courses</h3>
+        </div>
+        <!-- /.box-header -->
+        <div class="box-body">
+            <div id="example2_wrapper" class="dataTables_wrapper form-inline dt-bootstrap">
+                <div class="row">
+                    <div class="col-sm-6"></div>
+                    <div class="col-sm-6"></div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <table id="CourseSearch" class="table table-bordered table-hover">
+                            <thead>
+                            <tr role="row">
+                                <th> Course Name</th>
+                                <th> Par</th>
+                                <th> Holes</th>
+                                <th> Phone</th>
+                                <th> Web</th>
+                            </thead>
+                            <tfoot>
+                            <tr>
+                                <th> Course Name</th>
+                                <th> Par</th>
+                                <th> Holes</th>
+                                <th> Phone</th>
+                                <th> Web</th>
+                            </tr>
+                            </tfoot>
+
+                            <tbody>{{#Courses}}
+                                <tr role="row">
+                                    <th>{{Name}}</th>
+                                    <th>{{Par}}</th>
+                                    <th>{{Holes}}</th>
+                                    <th>{{Phone}}</th>
+                                    <th>{{Web}}</th>
+                                </tr>{{/Courses}}
+                            </tbody>
+
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /.box-body -->
+    </div>
+    <!-- /.box -->
+</div>
+
+<script> Carbon((e) => {
+    $.fn.load_datatables('#TeamSearch');
+    $.fn.load_datatables('#UserSearch');
+    $.fn.load_datatables('#CourseSearch');
+}); </script>

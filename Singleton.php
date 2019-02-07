@@ -2,7 +2,6 @@
 
 namespace CarbonPHP;
 
-use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Helpers\Serialized;
 
 /**
@@ -46,7 +45,7 @@ trait Singleton
     /**
      * @var array
      */
-    protected $methods = array();   // Anonymous Function Declarations
+    private $methods = array();   // Anonymous Function Declarations
 
     /**
      * @param $methodName
@@ -162,6 +161,7 @@ trait Singleton
      * not the class which uses the Singelton trait
      * @param $name
      * @param $closure
+     * @noinspection PhpUnusedPrivateMethodInspection
      */
     private function addMethod(string $name, callable $closure): void
     {
