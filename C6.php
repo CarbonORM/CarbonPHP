@@ -82,7 +82,7 @@ class C6 extends Application
         ###################################### AdminLTE DOC
         if ($this->match('UIElements/{AdminLTE?}', function ($AdminLTE) use ($uri) {
 
-            $AdminLTE = (new Controller())->set($AdminLTE)->word();  // must be validated
+            $AdminLTE = (new Request())->set($AdminLTE)->word();  // must be validated
 
             if (!$AdminLTE) {
                 View::$forceWrapper = true;

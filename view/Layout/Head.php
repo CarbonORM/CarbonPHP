@@ -1,12 +1,12 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title><?= SITE_TITLE ?></title>
+    <title><?=SITE_TITLE?></title>
     <!-- Tell the browser to be responsive to screen width -->
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
 
     <!-- PJAX Content Control -->
-    <meta http-equiv="x-pjax-version" content="<?= $_SESSION['X_PJAX_Version'] ?>">
+    <meta http-equiv="x-pjax-version" content="<?=$_SESSION['X_PJAX_Version']?>">
     <!-- Google -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-100885582-1"></script>
 

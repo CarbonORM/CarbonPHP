@@ -4,6 +4,7 @@
 
 namespace CarbonPHP\Error;
 
+use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
 
 /**
@@ -47,6 +48,11 @@ class ErrorCatcher
         ini_set('display_errors', 1);
         ini_set('track_errors', 1);
         error_reporting(self::$level);
+
+        if (TEST) {
+            return;
+        }
+
         /**
          * if you return true from here it will continue script execution from the point of the error..
          * this is not wanted. Die and Exit are equivalent in execution. I ran across a post once that
@@ -65,20 +71,21 @@ class ErrorCatcher
 
             self::generateLog($argv);
 
-            if (!SOCKET && !APP_LOCAL && \function_exists('startApplication')) {     // TODO - do we really want to reset?
+            if (!SOCKET && !APP_LOCAL && CarbonPHP::$setupComplete) {     // TODO - do we really want to reset?
                 if ($count > 1) {
                     print 'A recursive error has occurred in (or at least affecting) your $app->defaultRoute();';
                     die(1);
                 }
                 startApplication(true);
-            } else {
-                /** @noinspection ForgottenDebugOutputInspection
-                 * TODO - fix this? */
-                print_r($argv);
-                print 'CarbonPHP Failed to initialize.' . PHP_EOL;
-                die(1);
+                exit(1);
             }
-            exit(1);
+
+            /** @noinspection ForgottenDebugOutputInspection
+             * TODO - fix this? */
+            print_r($argv);
+            print "\n\nCarbonPHP Caught This Error.\n\n";
+            die(1);
+
         };
         set_error_handler($closure);
         set_exception_handler($closure);

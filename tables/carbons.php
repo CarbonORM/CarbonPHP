@@ -1,12 +1,12 @@
 <?php
 
-namespace CarbonPHP\Table;
+namespace CarbonPHP\Tables;
 
-use CarbonPHP\Model;
+use CarbonPHP\Database;
 use CarbonPHP\Interfaces\iRest;
 
 
-class carbons extends Model implements iRest
+class carbons extends Database implements iRest
 {
     public const PRIMARY = [
     'entity_pk',
@@ -22,6 +22,19 @@ class carbons extends Model implements iRest
     public static $injection = [];
 
 
+    public static function jsonSQLReporting($argv, $sql) : void {
+        global $json;
+        if (!\is_array($json)) {
+            $json = [];
+        }
+        if (!isset($json['sql'])) {
+            $json['sql'] = [];
+        }
+        $json['sql'][] = [
+            $argv,
+            $sql
+        ];
+    }
 
     public static function buildWhere(array $set, \PDO $pdo, $join = 'AND') : string
     {
@@ -186,7 +199,7 @@ class carbons extends Model implements iRest
 
         $sql .= $limit;
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 
@@ -223,7 +236,7 @@ class carbons extends Model implements iRest
         /** @noinspection SqlResolve */
         $sql = 'INSERT INTO carbons (entity_pk, entity_fk) VALUES ( UNHEX(:entity_pk), UNHEX(:entity_fk))';
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = self::database()->prepare($sql);
 
@@ -281,7 +294,7 @@ class carbons extends Model implements iRest
 
         $sql .= ' WHERE  entity_pk=UNHEX('.self::addInjection($primary, $pdo).')';
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 
@@ -325,7 +338,7 @@ class carbons extends Model implements iRest
         $sql .= ' WHERE  entity_pk=UNHEX('.self::addInjection($primary, $pdo).')';
         }
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 

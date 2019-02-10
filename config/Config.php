@@ -139,13 +139,13 @@ return [
 
     // ERRORS on point
     'ERROR' => [
-        'LOCATION' => APP_ROOT . 'logs' . DS ,
+        'LOCATION' => APP_ROOT . 'logs' . DS,
 
-        'LEVEL' =>  E_ALL | E_STRICT,  // php ini level
+        'LEVEL' => E_ALL | E_STRICT,  // php ini level
 
-        'STORE' =>  true,      // Database if specified and / or File 'LOCATION' in your system
+        'STORE' => true,      // Database if specified and / or File 'LOCATION' in your system
 
-        'SHOW' =>  true,       // Show errors on browser
+        'SHOW' => true,       // Show errors on browser
 
         'FULL' => true        // Generate custom stacktrace will high detail - DO NOT set to TRUE in PRODUCTION
     ],
@@ -156,4 +156,40 @@ return [
         'WRAPPER' => 'Documentation/Wrapper.php',     // View::content() will produce this
     ],
 
+    'MINIFY' => [
+        'CSS' => [
+            CARBON_ROOT .'/node_modules/admin-lte/bower_components/bootstrap/dist/css/bootstrap.min.css',
+            CARBON_ROOT .'/node_modules/admin-lte/dist/css/AdminLTE.min.css',
+            CARBON_ROOT .'/node_modules/admin-lte/dist/css/skins/_all-skins.min.css',
+            CARBON_ROOT .'/node_modules/admin-lte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css',
+            CARBON_ROOT .'/node_modules/admin-lte/plugins/iCheck/all.css',
+            CARBON_ROOT .'/node_modules/admin-lte/bower_components/bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css',
+            CARBON_ROOT .'/node_modules/admin-lte/bower_components/Ionicons/css/ionicons.min.css',
+            CARBON_ROOT .'/node_modules/admin-lte/plugins/bootstrap-slider/slider.css',
+            CARBON_ROOT .'/node_modules/admin-lte/dist/css/skins/skin-green.css',
+            CARBON_ROOT .'/node_modules/admin-lte/bower_components/select2/dist/css/select2.min.css',
+            CARBON_ROOT .'/node_modules/admin-lte/plugins/iCheck/flat/blue.css',
+            CARBON_ROOT .'/node_modules/admin-lte/bower_components/morris.js/morris.css',
+            CARBON_ROOT .'/node_modules/admin-lte/plugins/pace/pace.css',
+            CARBON_ROOT .'/node_modules/admin-lte/bower_components/jvectormap/jquery-jvectormap.css',
+            CARBON_ROOT .'/node_modules/admin-lte/bower_components/bootstrap-datepicker/dist/css/bootstrap-datepicker.css',
+            CARBON_ROOT .'/node_modules/admin-lte/bower_components/bootstrap-daterangepicker/daterangepicker.css',
+            CARBON_ROOT .'/node_modules/admin-lte/plugins/timepicker/bootstrap-timepicker.css',
+            CARBON_ROOT .'/node_modules/admin-lte/plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.min.css',
+            CARBON_ROOT .'/node_modules/admin-lte/bower_components/font-awesome/css/font-awesome.min.css',
+            CARBON_ROOT .'/node_modules/admin-lte/bower_components/fullcalendar/dist/fullcalendar.min.css'
+        ],
+        'JS' => [
+            CARBON_ROOT .'/node_modules/admin-lte/bower_components/jquery/dist/jquery.min.js',
+            CARBON_ROOT .'/node_modules/jquery-pjax/jquery.pjax.js',
+            CARBON_ROOT .'/view/Layout/mustache.js',
+            CARBON_ROOT .'/helpers/Carbon.js',
+            CARBON_ROOT .'/helpers/asynchronous.js',
+            CARBON_ROOT .'/node_modules/jquery-form/src/jquery.form.js',
+            CARBON_ROOT .'/node_modules/admin-lte/bower_components/bootstrap/dist/js/bootstrap.min.js',
+            CARBON_ROOT .'/node_modules/admin-lte/bower_components/jquery-slimscroll/jquery.slimscroll.min.js',
+            CARBON_ROOT .'/node_modules/admin-lte/bower_components/fastclick/lib/fastclick.js',
+            CARBON_ROOT .'/node_modules/admin-lte/dist/js/adminlte.js',
+        ],
+    ]
 ];

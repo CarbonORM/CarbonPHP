@@ -1,12 +1,12 @@
 <?php
 
-namespace CarbonPHP\Table;
+namespace CarbonPHP\Tables;
 
-use CarbonPHP\Model;
+use CarbonPHP\Database;
 use CarbonPHP\Interfaces\iRest;
 
 
-class carbon_user_tasks extends Model implements iRest
+class carbon_user_tasks extends Database implements iRest
 {
     public const PRIMARY = [
     'user_id',
@@ -22,6 +22,19 @@ class carbon_user_tasks extends Model implements iRest
     public static $injection = [];
 
 
+    public static function jsonSQLReporting($argv, $sql) : void {
+        global $json;
+        if (!\is_array($json)) {
+            $json = [];
+        }
+        if (!isset($json['sql'])) {
+            $json['sql'] = [];
+        }
+        $json['sql'][] = [
+            $argv,
+            $sql
+        ];
+    }
 
     public static function buildWhere(array $set, \PDO $pdo, $join = 'AND') : string
     {
@@ -208,7 +221,7 @@ class carbon_user_tasks extends Model implements iRest
 
         $sql .= $limit;
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 
@@ -245,7 +258,7 @@ class carbon_user_tasks extends Model implements iRest
         /** @noinspection SqlResolve */
         $sql = 'INSERT INTO carbon_user_tasks (task_id, user_id, from_id, task_name, task_description, percent_complete, start_date, end_date) VALUES ( UNHEX(:task_id), UNHEX(:user_id), UNHEX(:from_id), :task_name, :task_description, :percent_complete, :start_date, :end_date)';
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = self::database()->prepare($sql);
 
@@ -335,7 +348,7 @@ class carbon_user_tasks extends Model implements iRest
 
         $sql .= ' WHERE  user_id=UNHEX('.self::addInjection($primary, $pdo).')';
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 

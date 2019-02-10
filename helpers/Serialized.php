@@ -28,11 +28,12 @@ abstract class Serialized {
      */
     public static function start(...$argv) : void
 	{
+	    //TODO - make base64 optional
         self::$sessionVar = $argv;
 		foreach (self::$sessionVar as $value){
 			if (isset($_SESSION[__CLASS__][$value])) {
                 $GLOBALS[$value] = $_SESSION[__CLASS__][$value];
-                //self::is_serialized( base64_decode(  $_SESSION[__CLASS__][$value] ), $GLOBALS[$value] );
+                #self::is_serialized( base64_decode(  $_SESSION[__CLASS__][$value] ), $GLOBALS[$value] );
             }
 		}
 
@@ -45,7 +46,7 @@ abstract class Serialized {
                 foreach ($argv as $value) {
                     if (isset($GLOBALS[$value])) {
                         $_SESSION[__CLASS__][$value] = $GLOBALS[$value];
-                        /// $_SESSION[__CLASS__][$value] = base64_encode( serialize( $GLOBALS[$value] ) );
+                        #$_SESSION[__CLASS__][$value] = base64_encode( serialize( $GLOBALS[$value] ) );
                     }
                 }
             }
@@ -95,8 +96,9 @@ abstract class Serialized {
 	public static function is_serialized($value, &$result = null) : bool
 	{
 		// Bit of a give away this one
-		if (!\is_string( $value ))
-			return false;
+		if (!\is_string( $value )) {
+            return false;
+        }
 
 		// Serialized false, return true. unserialize() returns false on an
 		// invalid string or it could return false if the string is serialized

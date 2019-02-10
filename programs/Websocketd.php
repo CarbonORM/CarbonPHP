@@ -55,7 +55,7 @@ $fifoFile or die;
 
 $stdin = fopen( 'php://stdin', 'b' );
 
-$request = new class extends CarbonPHP\Controller
+$request = new class extends CarbonPHP\Request
 {
     public function is_json($string)
     {

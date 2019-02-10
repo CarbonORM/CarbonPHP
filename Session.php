@@ -16,7 +16,7 @@
 namespace CarbonPHP;
 
 use CarbonPHP\Helpers\Serialized;
-use CarbonPHP\Table\sessions;
+use CarbonPHP\Tables\sessions;
 
 class Session implements \SessionHandlerInterface
 {
@@ -48,18 +48,16 @@ class Session implements \SessionHandlerInterface
     {
         session_write_close(); //cancel the session's auto start, important
 
-        ini_set('session.use_strict_mode', 1);
+        headers_sent() or ini_set('session.use_strict_mode', 1);
 
         if ($ip === false) {
-            print 'Carbon has detected ip spoofing.';
-            die(0);
+            die('Carbon has detected ip spoofing.');
         }
 
         if ($dbStore) {
-            ini_set('session.gc_probability', 1);  // Clear any lingering session data in default locations
+            headers_sent() or ini_set('session.gc_probability', 1);  // Clear any lingering session data in default locations
             if (!session_set_save_handler($this, false)) {
-                print 'Session failed to store remotely';
-                die(1);
+                die('Session failed to store remotely');
             }
         }
 
@@ -68,8 +66,7 @@ class Session implements \SessionHandlerInterface
         }
 
         if (false === @session_start()) {
-            print 'Carbon failed to start your session';
-            die(2);
+            die('Carbon failed to start your session');
         }
     }
 
@@ -130,7 +127,7 @@ class Session implements \SessionHandlerInterface
             $_SESSION['X_PJAX_Version'] = SITE_VERSION;     // static::$user_id, keep this static
         }
 
-        Controller::setHeader('X-PJAX-Version: ' . $_SESSION['X_PJAX_Version']);
+        Request::setHeader('X-PJAX-Version: ' . $_SESSION['X_PJAX_Version']);
 
         /* If the session variable changes from the constant we will
          * send the full html page and notify the pjax js to reload
@@ -144,7 +141,7 @@ class Session implements \SessionHandlerInterface
         if (!\defined('X_PJAX_VERSION')) {
             \define('X_PJAX_VERSION', $_SESSION['X_PJAX_Version']);
         }
-        Controller::sendHeaders();  // Send any stored headers
+        Request::sendHeaders();  // Send any stored headers
     }
 
     /**

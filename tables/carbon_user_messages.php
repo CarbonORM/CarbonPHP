@@ -1,12 +1,12 @@
 <?php
 
-namespace CarbonPHP\Table;
+namespace CarbonPHP\Tables;
 
-use CarbonPHP\Model;
+use CarbonPHP\Database;
 use CarbonPHP\Interfaces\iRest;
 
 
-class carbon_user_messages extends Model implements iRest
+class carbon_user_messages extends Database implements iRest
 {
     public const PRIMARY = [
     'to_user_id',
@@ -22,6 +22,19 @@ class carbon_user_messages extends Model implements iRest
     public static $injection = [];
 
 
+    public static function jsonSQLReporting($argv, $sql) : void {
+        global $json;
+        if (!\is_array($json)) {
+            $json = [];
+        }
+        if (!isset($json['sql'])) {
+            $json['sql'] = [];
+        }
+        $json['sql'][] = [
+            $argv,
+            $sql
+        ];
+    }
 
     public static function buildWhere(array $set, \PDO $pdo, $join = 'AND') : string
     {
@@ -193,7 +206,7 @@ class carbon_user_messages extends Model implements iRest
 
         $sql .= $limit;
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 
@@ -230,7 +243,7 @@ class carbon_user_messages extends Model implements iRest
         /** @noinspection SqlResolve */
         $sql = 'INSERT INTO carbon_user_messages (message_id, to_user_id, message, message_read) VALUES ( UNHEX(:message_id), UNHEX(:to_user_id), :message, :message_read)';
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = self::database()->prepare($sql);
 
@@ -298,7 +311,7 @@ class carbon_user_messages extends Model implements iRest
 
         $sql .= ' WHERE  to_user_id=UNHEX('.self::addInjection($primary, $pdo).')';
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 

@@ -9,17 +9,35 @@
 namespace CarbonPHP\Programs;
 
 
+use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iCommand;
 
 class CLI implements iCommand
 {
 
     private $CONFIG;
-
+    private $programs;
 
     public function __construct($CONFIG)
     {
         $this->CONFIG = $CONFIG;
+        $this->programList();
+    }
+
+
+    public function programList() {
+
+        $program = array_diff(scandir(CARBON_ROOT . 'programs', null), array('.', '..'));
+
+        $clean = function (&$program) {
+            $program = strtolower(basename($program, '.php'));
+        };
+
+        if (!array_walk($program, $clean)) {
+            throw new PublicAlert('array_walk failed in Cli::run()');
+        }
+
+        $this->programs = $program;
     }
 
     /** Command Line Interface. Use
@@ -38,16 +56,15 @@ class CLI implements iCommand
 
         $program = strtolower(array_shift($argv));
 
-        $files = array_diff(scandir(CARBON_ROOT . 'programs', null), array('.', '..'));
-
-        foreach ($files as $file) {
+        foreach ($this->programs as $name) {
             // I prefer this loop so I catch
-            if ($program !== strtolower(basename($file, '.php'))) {
+            if ($program !== $name) {
                 continue;
             }
 
-            if (false === include($file)) {
-                die('Failed loading file ' . $file . '. Please no syntax errors exist in this file.');
+            /** @noinspection PhpIncludeInspection */
+            if (false === include $name . '.php') {
+                die('Failed loading file "' . $name . '.php". Please no syntax errors exist in this file.');
             }
 
             $classes = get_declared_classes();
@@ -73,6 +90,9 @@ class CLI implements iCommand
         }
 
         switch ($program) {
+            case 'minify':
+                    print "\n\nminify\n\n";
+                break;
             case 'check':
                 $cmd = 'netstat -a -n -o | find "' . ($PHP['SOCKET']['PORT'] ?? 8888) . '\"';
                 print PHP_EOL . $cmd . PHP_EOL;
@@ -97,15 +117,24 @@ class CLI implements iCommand
 
     public function usage()
     {
+        // common knowledge tabs do not work well across os
+        $this->programs = implode("\n                        ", $this->programs);
+
         print <<<END
           Available CarbonPHP CLI Commands  
+            
+          User Defined Commands :: 
 
-                           help                          - This list of options
-                         [command] -help                 - display a list of options for each sub command
-                           test                          - Run PHPUnit tests
-                           rest                          - auto generate rest api from mysqldump
-                           php                           - start a HTTP 5 web socket server written in PHP
-                           go                            - start a HTTP 5 web socket server written in Google Go
+                        $this->programs
+
+          CarbonPHP Built-in commands ::
+        
+                        help                          - This list of options
+                        [command] -help               - display a list of options for each sub command
+                        test                          - Run PHPUnit tests
+                        rest                          - auto generate rest api from mysqldump
+                        php                           - start a HTTP 5 web socket server written in PHP
+                        go                            - start a HTTP 5 web socket server written in Google Go
 
 
           While CarbonPHP displays this in the cli, it does not exit here. Custom functions may 

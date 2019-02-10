@@ -68,7 +68,7 @@ $profile = (!$myAccountBool ? $user[$user_id] : $my);
                             }
                         </script>
                     <?php } else { ?>
-                        <a href="<?= SITE ?>Messages/" class="btn btn-success btn-block">Messages</a>
+                        <a href="/Messages/" class="btn btn-success btn-block">Messages</a>
                     <?php } ?>
                 </div><!-- /.box-body -->
             </div><!-- /.box -->

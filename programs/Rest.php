@@ -197,7 +197,7 @@ END;
             print 'You must provide a target directory.' . PHP_EOL;
             $this->usage();
         } else if (!is_dir($targetDir)) {
-            print 'The target directory appears invalid' . PHP_EOL;
+            print 'The target directory appears invalid "' . $targetDir . '"' . PHP_EOL;
             exit(1);
         } else if ('/' !== substr($targetDir, -1)) {
             $targetDir .= DS;
@@ -638,13 +638,13 @@ END;
         return <<<STRING
 <?php
 {{^carbon_namespace}}namespace Tables;{{/carbon_namespace}}
-{{#carbon_namespace}}namespace CarbonPHP\Table;{{/carbon_namespace}}
+{{#carbon_namespace}}namespace CarbonPHP\Tables;{{/carbon_namespace}}
 
-use CarbonPHP\Model;
+use CarbonPHP\Database;
 use CarbonPHP\Interfaces\iRest;
 
 
-class {{TableName}} extends Model implements iRest
+class {{TableName}} extends Database implements iRest
 {
     public const PRIMARY = [
     {{#primary}}{{#name}}'{{name}}',{{/name}}{{/primary}}

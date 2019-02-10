@@ -15,7 +15,10 @@
   "require": {
     "php": "^7.1",
     "mustache/mustache": "v2.12.0",
-    "psr/log": "^1.0"
+    "psr/log": "^1.0",
+    "phpunit/phpunit-selenium": "^4.1",
+    "matthiasmullie/minify": "dev-master",
+    "patchwork/jsqueeze": "^2.0"
   },
   "suggest": {
     "almasaeed2010/adminlte": "^2.4",

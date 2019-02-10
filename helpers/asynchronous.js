@@ -6,13 +6,11 @@
         })
     }
 
-//-- Select 2 -->
     function load_select2() {
         carbon.js(TEMPLATE + "bower_components/select2/dist/js/select2.full.min.js", () =>
             $(this).select2());
     }
 
-//-- Data tables -->
     function load_datatables() {
         carbon.js(TEMPLATE + "bower_components/datatables.net-bs/js/dataTables.bootstrap.js", () => {
             try {
@@ -23,26 +21,23 @@
         });
     }
 
-//-- iCheak -->
     function load_iCheck() {
         carbon.js(TEMPLATE + "plugins/iCheck/icheck.min.js", () => {
             $(this).iCheck({
                 checkboxClass: 'icheckbox_square-blue',
                 radioClass: 'iradio_square-blue',
-                increaseArea: '20%' // optional
+                increaseArea: '20%'
             });
         });
     }
 
 
-//-- WYSIHTML5 -->
     function load_wysihtml5() {
         carbon.js(TEMPLATE + "plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.all.min.js", () => {
             $(this).wysihtml5();
         });
     }
 
-//-- Input Mask -->
     function load_inputmask() {
         carbon.js(TEMPLATE + "plugins/input-mask/jquery.inputmask.js", () => {
             carbon.js(TEMPLATE + "plugins/input-mask/jquery.inputmask.date.extensions.js",
@@ -52,19 +47,18 @@
         }, () => $(this).inputmask());
     }
 
-//-- jQuery Knob -->
     function load_knob() {
         carbon.js(TEMPLATE+"bower_components/jquery-knob/js/jquery.knob.js", () => {
             $(this).knob({
                 draw: function () {
-                    // "tron" case
+                    /* "tron" case*/
                     if (this.$.data('skin') === 'tron') {
 
-                        let a = this.angle(this.cv)  // Angle
-                            , sa = this.startAngle          // Previous start angle
-                            , sat = this.startAngle         // Start angle
-                            , ea                            // Previous end angle
-                            , eat = sat + a                 // End angle
+                        let a = this.angle(this.cv)  /* Angle */
+                            , sa = this.startAngle          /* Previous start angle */
+                            , sat = this.startAngle         /* Start angle */
+                            , ea                            /* Previous end angle*/
+                            , eat = sat + a                 /* End angle */
                             , r = true;
 
                         this.g.lineWidth = this.lineWidth;
@@ -102,28 +96,23 @@
         });
     }
 
-//-- Bootstrap Time Picker -->
     function load_timepicker() {
         carbon.js(TEMPLATE + "plugins/timepicker/bootstrap-timepicker.min.js", () => {
             $(this).timepicker({showInputs: false});
         });
     }
 
-//--Bootstrap Datepicker -->
     function load_datepicker() {
         carbon.js(TEMPLATE + "bower_components/bootstrap-datepicker/js/bootstrap-datepicker.js", () => {
             $(this).datepicker({autoclose: true});
         });
     }
 
-//--Bootstrap Color Picker -->
     function load_colorpicker() {
         carbon.js(TEMPLATE + "bower_components/bootstrap-colorpicker/dist/js/bootstrap-colorpicker.min.js", () =>
             $(this).colorpicker());
     }
 
-    //-- Minimize our resources per request
-    //-- The $.fn. methods will be removed in the next major version, this is to prevent deprecation
     $.fn.load_backStretch = $.load_backStretch = load_backStretch;
     $.fn.load_select2  = $.load_select2 = load_select2;
     $.fn.load_datatables = $.load_datatables = load_datatables;

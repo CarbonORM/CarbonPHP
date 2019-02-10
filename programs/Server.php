@@ -3,7 +3,7 @@
 namespace CarbonPHP\Programs;
 
 use CarbonPHP\Error\ErrorCatcher;
-use CarbonPHP\Controller;
+use CarbonPHP\Request;
 use CarbonPHP\Session;
 use CarbonPHP\Database;
 use CarbonPHP\CarbonPHP;
@@ -58,7 +58,7 @@ pcntl_signal(SIGHUP, $signal);  // Terminal log-out
 pcntl_signal(SIGINT, $signal);  // Interrupted ( Ctrl-C is pressed)
 
 
-class Server extends Controller
+class Server extends Request
 {
     private const TEXT = 0x1;
     private const BINARY = 0x2;

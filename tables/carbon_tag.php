@@ -1,19 +1,19 @@
 <?php
 
-namespace CarbonPHP\Table;
+namespace CarbonPHP\Tables;
 
-use CarbonPHP\Model;
+use CarbonPHP\Database;
 use CarbonPHP\Interfaces\iRest;
 
 
-class carbon_tag extends Model implements iRest
+class carbon_tag extends Database implements iRest
 {
     public const PRIMARY = [
     
     ];
 
     public const COLUMNS = [
-        'entity_id' => [ 'binary', '2', '16' ],'user_id' => [ 'binary', '2', '16' ],'tag_id' => [ 'int', '2', '11' ],'creation_date' => [ 'timestamp', '2', '' ],
+        'entity_id' => [ 'binary', '2', '16' ],'user_id' => [ 'binary', '2', '16' ],'tag_id' => [ 'varchar', '2', '80' ],'creation_date' => [ 'timestamp', '2', '' ],
     ];
 
     public const VALIDATION = [];
@@ -22,6 +22,19 @@ class carbon_tag extends Model implements iRest
     public static $injection = [];
 
 
+    public static function jsonSQLReporting($argv, $sql) : void {
+        global $json;
+        if (!\is_array($json)) {
+            $json = [];
+        }
+        if (!isset($json['sql'])) {
+            $json['sql'] = [];
+        }
+        $json['sql'][] = [
+            $argv,
+            $sql
+        ];
+    }
 
     public static function buildWhere(array $set, \PDO $pdo, $join = 'AND') : string
     {
@@ -60,7 +73,7 @@ class carbon_tag extends Model implements iRest
         }
         if (array_key_exists('tag_id', $argv)) {
             $tag_id = $argv['tag_id'];
-            $stmt->bindParam(':tag_id',$tag_id, 2, 11);
+            $stmt->bindParam(':tag_id',$tag_id, 2, 80);
         }
         if (array_key_exists('creation_date', $argv)) {
             $stmt->bindValue(':creation_date',$argv['creation_date'], 2);
@@ -191,7 +204,7 @@ class carbon_tag extends Model implements iRest
 
         $sql .= $limit;
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 
@@ -223,7 +236,7 @@ class carbon_tag extends Model implements iRest
         /** @noinspection SqlResolve */
         $sql = 'INSERT INTO carbon_tag (entity_id, user_id, tag_id) VALUES ( UNHEX(:entity_id), UNHEX(:user_id), :tag_id)';
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = self::database()->prepare($sql);
 
@@ -235,7 +248,7 @@ class carbon_tag extends Model implements iRest
                     $stmt->bindParam(':user_id',$user_id, 2, 16);
                         
                     $tag_id = $argv['tag_id'];
-                    $stmt->bindParam(':tag_id',$tag_id, 2, 11);
+                    $stmt->bindParam(':tag_id',$tag_id, 2, 80);
                 
 
 
@@ -291,7 +304,7 @@ class carbon_tag extends Model implements iRest
 
         
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 
@@ -333,7 +346,7 @@ class carbon_tag extends Model implements iRest
         $sql .= ' WHERE ' . self::buildWhere($argv, $pdo);
         } 
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 

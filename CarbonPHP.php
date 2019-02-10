@@ -23,6 +23,7 @@ class CarbonPHP
      */
     private $safelyExit = false;
 
+    public static $setupComplete = false;
 
     /** If safely exit is false run startApplication(), otherwise return $safelyExit
      * @link http://php.net/manual/en/language.oop5.magic.php#object.invoke
@@ -89,11 +90,40 @@ class CarbonPHP
      */
     public function __construct(string $PHP = null)
     {
+        // TODO - make a cache of these consts
+
         ####################  Sockets will have already claimed this global
-        \defined('TEST') OR \define('TEST', false);
+        \defined('TEST') OR \define('TEST', $_ENV['TEST'] ?? false);
 
-        TEST and $this->safelyExit = true;  // We just want the env to load, not route life :)
-
+        if (TEST) {
+            $this->safelyExit = true;  // We just want the env to load, not route life :)
+            $_SERVER = [
+                'REMOTE_ADDR' => '::1',
+                'REMOTE_PORT' => '53950',
+                'SERVER_SOFTWARE' => 'PHP 7.2.3 Development Server',
+                'SERVER_PROTOCOL' => 'HTTP/1.1',
+                'SERVER_NAME' => 'localhost',
+                'SERVER_PORT' => '80',
+                'REQUEST_URI' => '/login/',
+                'REQUEST_METHOD' => 'GET',
+                'SCRIPT_NAME' => '/index.php',
+                'SCRIPT_FILENAME' => "C:\Users\rmiles\Documents\GitHub\Stats.Coach\index.php",
+                'PATH_INFO' => '/login/',
+                'PHP_SELF' => '/index.php/login/',
+                'HTTP_HOST' => 'localhost:88',
+                'HTTP_CONNECTION' => 'keep-alive',
+                'HTTP_CACHE_CONTROL' => 'max-age=0',
+                'HTTP_UPGRADE_INSECURE_REQUESTS' => '1',
+                'HTTP_USER_AGENT' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36',
+                'HTTP_ACCEPT' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+                'HTTP_REFERER' => 'http://localhost:88/',
+                'HTTP_ACCEPT_ENCODING' => 'gzip, deflate, br',
+                'HTTP_ACCEPT_LANGUAGE' => 'en-US,en;q=0.9',
+                'HTTP_COOKIE' => 'PHPSESSID=gn4amaq3el5giekaboa29q27gp; _gid=GA1.1.1938536140.1530039320',
+                'REQUEST_TIME_FLOAT' => 1530054388.652,
+                'REQUEST_TIME' => 1530054388,
+            ];
+        }
         ####################  Sockets will have already claimed this global
         \defined('SOCKET') OR \define('SOCKET', false);
 
@@ -112,6 +142,13 @@ class CarbonPHP
         ####################  Template Root
         \defined('TEMPLATE_ROOT') OR \define('TEMPLATE_ROOT', CARBON_ROOT);
 
+
+        ################  Helpful Global Functions ####################
+        if (!file_exists(CARBON_ROOT . 'helpers' . DS . 'Application.php') || !include CARBON_ROOT . 'helpers' . DS . 'Application.php') {
+            print '<h1>Your instance of CarbonPHP appears corrupt. Please see CarbonPHP.com for Documentation.</h1>';
+            die(1);
+        }
+
         ####################  Now load config file so globals above & stacktrace security
         if ($PHP !== null) {
             if (file_exists($PHP)) {
@@ -122,6 +159,11 @@ class CarbonPHP
                 return;
             }
         }
+
+        #######################   VIEW      ######################
+        \define('APP_VIEW', $PHP['VIEW']['VIEW'] ?? DS);         // Public Folder
+
+        View::$wrapper = APP_ROOT . APP_VIEW . $PHP['VIEW']['WRAPPER'] ?? '';
 
         ####################  GENERAL CONF  ######################
         error_reporting($PHP['ERROR']['LEVEL'] ?? E_ALL | E_STRICT);
@@ -137,10 +179,8 @@ class CarbonPHP
         \define('REPORTS', $PHP['ERROR']['LOCATION'] ?? APP_ROOT);
 
         #####################   AUTOLOAD    #######################
-        if (array_key_exists('AUTOLOAD', $PHP) && $PHP['AUTOLOAD']) {
-
+        if ($PHP['AUTOLOAD'] ?? false) {
             $PSR4 = include CARBON_ROOT . 'AutoLoad.php';
-
             if (\is_array($PHP['AUTOLOAD'] ?? false)) {
                 foreach ($PHP['AUTOLOAD'] as $name => $path) {
                     $PSR4->addNamespace($name, $path);
@@ -159,12 +199,14 @@ class CarbonPHP
          * What if that error is thrown multiple function levels down in a block?
          **/
 
-        Error\ErrorCatcher::$defaultLocation = REPORTS . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
-        Error\ErrorCatcher::$fullReports = $PHP['ERROR']['STORE'] ?? false;
-        Error\ErrorCatcher::$printToScreen = $PHP['ERROR']['SHOW'] ?? true;
-        Error\ErrorCatcher::$storeReport = $PHP['ERROR']['FULL'] ?? true;
-        Error\ErrorCatcher::$level = $PHP['ERROR']['LEVEL'] ?? ' E_ALL | E_STRICT';
-        Error\ErrorCatcher::start();            // Catch application errors and alerts
+        if ($PHP['ERROR'] ?? false) {
+            Error\ErrorCatcher::$defaultLocation = REPORTS . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
+            Error\ErrorCatcher::$fullReports = $PHP['ERROR']['STORE'] ?? false;
+            Error\ErrorCatcher::$printToScreen = $PHP['ERROR']['SHOW'] ?? true;
+            Error\ErrorCatcher::$storeReport = $PHP['ERROR']['FULL'] ?? true;
+            Error\ErrorCatcher::$level = $PHP['ERROR']['LEVEL'] ?? ' E_ALL | E_STRICT';
+            Error\ErrorCatcher::start();
+        } // Catch application errors and alerts
 
 
         #################  DATABASE  ########################
@@ -175,10 +217,18 @@ class CarbonPHP
             Database::$setup = $PHP['DATABASE']['DB_BUILD'] ?? '';
         }
 
+        #################  SITE  ########################
+        if ($PHP['SITE'] ?? false) {
+            \define('SITE_TITLE', $PHP['SITE']['TITLE'] ?? 'CarbonPHP');                     // Carbon doesnt use
+            \define('SITE_VERSION', $PHP['SITE']['VERSION'] ?? PHP_VERSION);                // printed in the footer
+            \define('SYSTEM_EMAIL', $PHP['SEND_EMAIL'] ?? '');                               // server email system
+            \define('REPLY_EMAIL', $PHP['REPLY_EMAIL'] ?? '');                               // I give you options :P
+        }
 
+        // TODO - move to app invocation
         // PHPUnit Runs in a cli to ini the 'CarbonPHP' env.
         // We're not testing out extra resources
-        if (!TEST && !SOCKET && PHP_SAPI === 'cli') { // PHP_SAPI
+        if (PHP_SAPI === 'cli' && !TEST && !SOCKET) {
             $this->safelyExit = true;
             $cli = new CLI($PHP);
             $cli->run($_SERVER['argv'] ?? ['index.php', null]);
@@ -186,34 +236,22 @@ class CarbonPHP
             return;
         }
 
-        // More cache control is given in the .htaccess File
-        // This was the dirtiest shit I've done to myself
-        // Request::setHeader('Cache-Control:  must-revalidate'); // TO DONE - not this per say (better cache)
-
         ##################  VALIDATE URL / URI ##################
+        // This is the first step that could kick users out of our application.
         // Even if a request is bad, we need to store the log
         if (!\defined('IP')) {
             $this->IP_FILTER();
         }
 
+        // This is the first event that could resolve the request (to a file), respond, and exit safely
         $this->URI_FILTER($PHP['SITE']['URL'] ?? '', $PHP['SITE']['CACHE_CONTROL'] ?? []);
 
+
+        // TODO - I'm probably going to move this to the cli
         if ($PHP['DATABASE']['REBUILD'] ?? false) {
             Database::setUp(false);   // redirect = false
-            // does exit(1); rollback? what take is this touching?
-            return;                        //
-        }
-
-        #################  SITE  ########################
-        if ($PHP['SITE'] ?? false) {
-
-            \define('SITE_TITLE', $PHP['SITE']['TITLE'] ?? 'CarbonPHP');                     // Carbon doesnt use
-
-            \define('SITE_VERSION', $PHP['SITE']['VERSION'] ?? PHP_VERSION);                // printed in the footer
-
-            \define('SYSTEM_EMAIL', $PHP['SEND_EMAIL'] ?? '');                               // server email system
-
-            \define('REPLY_EMAIL', $PHP['REPLY_EMAIL'] ?? '');                               // I give you options :P
+            $this->safelyExit = true;
+            return;
         }
 
         #######################   Pjax Ajax Refresh  ######################
@@ -221,7 +259,7 @@ class CarbonPHP
         \define('PJAX', SOCKET ? false : isset($_GET['_pjax']) || (isset($_SERVER['HTTP_X_PJAX']) && $_SERVER['HTTP_X_PJAX']));
 
         if (PJAX && empty($_POST)) {
-            # try to json encode TODO - could probably make this better
+            # try to json decode. Json payloads ar sent to the input stream
             $_POST = json_decode(file_get_contents('php://input'), true);
         }
 
@@ -245,13 +283,7 @@ class CarbonPHP
         // TODO - I think we should make this optional
         #AJAX OR $_POST = []; // We only allow post requests through ajax/pjax
 
-        #######################   VIEW             #####################
-        \define('APP_VIEW', $PHP['VIEW']['VIEW'] ?? DS);         // Public Folder
-
-        View::$wrapper = APP_ROOT . APP_VIEW . $PHP['VIEW']['WRAPPER'] ?? '';
-
         ########################  Session Management ######################
-
         if ($PHP['SESSION'] ?? true) {
             if ($PHP['SESSION']['PATH'] ?? false) {
                 session_save_path($PHP['SESSION']['PATH'] ?? '');   // Manually Set where the Users Session Data is stored
@@ -269,11 +301,8 @@ class CarbonPHP
         if (\is_array($PHP['SESSION']['SERIALIZE'] ?? false)) {
             forward_static_call_array([Serialized::class, 'start'], $PHP['SESSION']['SERIALIZE']);    // Pull theses from session, and store on shutdown
         }
-        ################  Helpful Global Functions ####################
-        if (!file_exists(CARBON_ROOT . 'helpers' . DS . 'Application.php') || !include CARBON_ROOT . 'helpers' . DS . 'Application.php') {
-            print '<h1>Your instance of CarbonPHP appears corrupt. Please see CarbonPHP.com for Documentation.</h1>';
-            die(1);
-        }
+
+        self::$setupComplete = true;
     }
 
 
@@ -311,7 +340,8 @@ class CarbonPHP
     {
         if (!empty($URL = strtolower($URL)) && $_SERVER['SERVER_NAME'] !== $URL && !APP_LOCAL) {
             header("Refresh:0; url=$URL");
-            print '<html><head><meta http-equiv="refresh" content="5; url=' . $URL . '"></head><body>' .
+            print '<html><head><!--suppress InjectedReferences -->
+    <meta http-equiv="refresh" content="5; url=' . $URL . '"></head><body>' .
                 IP . '<h1>You appear to be lost.</h1><h2>Moving to <a href="' . $URL . '"> ' . $URL . '</a></h2>' .
                 "<script>window.location.type = $URL</script></body></html>";
             $this->safelyExit = true;

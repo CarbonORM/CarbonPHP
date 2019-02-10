@@ -3,12 +3,12 @@
 namespace {                                     // This runs the following code in the global scope
 
     use CarbonPHP\Application;
+    use CarbonPHP\Database;
     use CarbonPHP\Error\ErrorCatcher;              //  Catches development errors
     use CarbonPHP\Error\PublicAlert;               //  Displays alerts nicely
-    use CarbonPHP\Model;                        //  Manages tables relations
     use CarbonPHP\Helpers\Files;
     use CarbonPHP\Session;                         //  Automatically stores session
-    use CarbonPHP\Controller;                         //  Sterilizes input
+    use CarbonPHP\Request;                         //  Sterilizes input
     use CarbonPHP\Route;                           //  Easily route app
     use CarbonPHP\View;                            //  Seamlessly include the DOM
 
@@ -74,9 +74,9 @@ namespace {                                     // This runs the following code 
         if ($reset):                                    // This will always be se in a socket
             if ($reset === true):
                 View::$forceWrapper = true;
-                Controller::changeURI($uri = '/');         // Dynamically using pjax + headers
+                Request::changeURI($uri = '/');         // Dynamically using pjax + headers
             else:
-                Controller::changeURI($uri = $reset);
+                Request::changeURI($uri = $reset);
             endif;
             $application->changeURI($uri);    // So our routing file knows what to match
             $reset = true;
@@ -199,7 +199,7 @@ namespace {                                     // This runs the following code 
 END;
 
                 }
-                Model::verify();     // Check that all database commit chains have finished successfully, otherwise attempt to remove
+                Database::verify();     // Check that all database commit chains have finished successfully, otherwise attempt to remove
                 return $argv;
             }
         };
