@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/CarbonPHP.iml" filepath="$PROJECT_DIR$/CarbonPHP.iml" />
+      <module fileurl="file://$PROJECT_DIR$/view/react/material-dashboard-react-c6/material-dashboard-react-c6.iml" filepath="$PROJECT_DIR$/view/react/material-dashboard-react-c6/material-dashboard-react-c6.iml" />
     </modules>
   </component>
 </project>

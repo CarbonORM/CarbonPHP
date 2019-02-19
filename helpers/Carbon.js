@@ -124,7 +124,7 @@ function CarbonPHP(selector, address, options) {
         console.log('handlebars', data);
 
         if (!this.isset(data)) {
-            console.log('No Json to Handlebars');
+            console.log('No data to handlebars');
             console.log(data);
             return data;
         }
@@ -361,7 +361,7 @@ function CarbonPHP(selector, address, options) {
         },
         /* deserialize a custom type */
         converters: {
-            '* mustacheTemplate': this.handlebars,
+            '* mustacheTemplate': this.handlebars
         },
         dataType: "mustacheTemplate",
     });

@@ -25,9 +25,10 @@ abstract class Application extends Route
 
     public function fullPage() : callable
     {
-        return catchErrors(function (string $file) {
+        return function (string $file) {
+            $this->matched = true;
             return include APP_VIEW . $file;
-        });
+        };
     }
 
     public function wrap() : callable
@@ -38,6 +39,7 @@ abstract class Application extends Route
          * @return bool
          */
         return function (string $file): bool {
+            $this->matched = true;
             return View::content(APP_VIEW . $file);
         };
     }
@@ -45,6 +47,7 @@ abstract class Application extends Route
     public function MVC() : callable
     {
         return function (string $class, string $method, array &$argv = []) {
+            $this->matched = true;
             return MVC($class, $method, $argv);         // So I can throw in ->structure($route->MVC())-> anywhere
         };
     }
@@ -54,6 +57,7 @@ abstract class Application extends Route
         return function ($class, $method, $argv) use ($selector) {
             global $alert, $json;
 
+            $this->matched = true;
 
             if (false === $return = catchErrors(CM($class, $method, $argv))()) {
                 return null;

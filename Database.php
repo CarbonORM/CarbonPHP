@@ -246,14 +246,15 @@ class Database
             return true;
         }
 
-        if (!empty(self::$entityTransactionKeys)) {
-            foreach (self::$entityTransactionKeys as $key) {
-                static::remove_entity($key);
-            }
-        }
-
         try {
-            self::database()->rollBack();
+            self::database()->rollBack();  // this transaction was started after our keys were inserted..
+
+            if (!empty(self::$entityTransactionKeys)) {
+                foreach (self::$entityTransactionKeys as $key) {
+                    static::remove_entity($key);
+                }
+            }
+
         } catch (\PDOException $e) {
             PublicAlert::danger($e->getMessage());
         } finally {
@@ -399,9 +400,9 @@ class Database
             return $stmt;
         }
 
-        while (\is_array($stmt)) {
-            $stmt = array_shift($stmt);
-        }
+         \is_array($stmt) and
+            $stmt = \array_shift($stmt);
+
 
         return $stmt;   // promise this is needed and will still return the desired array
     }

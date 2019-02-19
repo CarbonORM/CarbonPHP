@@ -2,8 +2,38 @@
 
 namespace CarbonPHP;
 
+use CarbonPHP\Error\PublicAlert;
+
 class C6 extends Application
 {
+    private static $adminLTE = [
+        'Home/' => 'mustache/Documentation/Home.php',
+        'CarbonPHP' => 'mustache/Documentation/Introduction.php',
+        'Installation' => 'mustache/Documentation/Installation.php',
+        'Implementations' => 'mustache/Documentation/Implementations.php',
+        'Dependencies' => 'mustache/Documentation/Dependencies.php',
+        'FileStructure' => 'mustache/Documentation/QuickStart/FileStructure.php',
+        'Environment' => 'mustache/Documentation/QuickStart/Environment.php',
+        'Options' => 'mustache/Documentation/QuickStart/Options.php',
+        'Bootstrap' => 'mustache/Documentation/QuickStart/Bootstrap.php',
+        'Wrapper' => 'mustache/Documentation/QuickStart/Wrapper.php',
+        'Parallel' => 'mustache/Documentation/QuickStart/ParallelProcessing.php',
+        'Overview' => 'mustache/Documentation/PHP/Overview.php',
+        'Entities' => 'mustache/Documentation/PHP/Entities.php',
+        'Request' => 'mustache/Documentation/PHP/Request.php',
+        'Route' => 'mustache/Documentation/PHP/Route.php',
+        'Server' => 'mustache/Documentation/PHP/Server.php',
+        'Session' => 'mustache/Documentation/PHP/Session.php',
+        'Singleton' => 'mustache/Documentation/PHP/Singleton.php',
+        'View' => 'mustache/Documentation/PHP/View.php',
+        'OSSupport' => 'mustache/Documentation/PlatformSupport.php',
+        'UpgradeGuide' => 'mustache/Documentation/PlatformSupport.php',
+        'Support' => 'mustache/Documentation/Support.php',
+        'License' => 'mustache/Documentation/License.php',
+        'AdminLTE' => 'mustache/Documentation/AdminLTE.php',
+        'N00B' => 'mustache/Documentation/N00B.php'
+    ];
+
 
     /**
      *  constructor.
@@ -26,7 +56,7 @@ class C6 extends Application
     public function defaultRoute()  // Sockets will not execute this
     {
         View::$forceWrapper = true; // this will hard refresh the wrapper
-        return $this->wrap()('Documentation/Home.php');  // don't change how wrap works, I know it looks funny
+        return $this->wrap()('mustache/Documentation/Home.php');  // don't change how wrap works, I know it looks funny
 
         /*
         if (!$_SESSION['id']):
@@ -44,40 +74,51 @@ class C6 extends Application
      */
     public function startApplication($uri = null): bool
     {
+        global $json;
 
         \defined('TEMPLATE') or \define('TEMPLATE', 'node_modules/admin-lte/');
 
-        $this->structure($this->wrap());
 
-        #################################### CarbonPHP Doc
-        if ($this->match('Home/', 'Documentation/Home.php')() ||
-            $this->match('CarbonPHP', 'Documentation/Introduction.php')() ||
-            $this->match('Installation', 'Documentation/Installation.php')() ||
-            $this->match('Implementations', 'Documentation/Implementations.php')() ||
-            $this->match('Dependencies', 'Documentation/Dependencies.php')() ||
-            $this->match('FileStructure', 'Documentation/QuickStart/FileStructure.php')() ||
-            $this->match('Environment', 'Documentation/QuickStart/Environment.php')() ||
-            $this->match('Options', 'Documentation/QuickStart/Options.php')() ||
-            $this->match('Bootstrap', 'Documentation/QuickStart/Bootstrap.php')() ||
-            $this->match('Wrapper', 'Documentation/QuickStart/Wrapper.php')() ||
-            $this->match('Parallel', 'Documentation/QuickStart/ParallelProcessing.php')() ||
-            $this->match('Overview', 'Documentation/PHP/Overview.php')() ||
-            $this->match('Entities', 'Documentation/PHP/Entities.php')() ||
-            $this->match('Request', 'Documentation/PHP/Request.php')() ||
-            $this->match('Route', 'Documentation/PHP/Route.php')() ||
-            $this->match('Server', 'Documentation/PHP/Server.php')() ||
-            $this->match('Session', 'Documentation/PHP/Session.php')() ||
-            $this->match('Singleton', 'Documentation/PHP/Singleton.php')() ||
-            $this->match('View', 'Documentation/PHP/View.php')() ||
-            $this->match('OSSupport', 'Documentation/PlatformSupport.php')() ||
-            $this->match('UpgradeGuide', 'Documentation/PlatformSupport.php')() ||
-            $this->match('Support', 'Documentation/Support.php')() ||
-            $this->match('License', 'Documentation/License.php')() ||
-            $this->match('AdminLTE', 'Documentation/AdminLTE.php')() ||
-            $this->match('N00B', 'Documentation/N00B.php')()) {
+        if ($version = ($this->uri[0] ?? false)) {
+            switch ($version) {
+                case '2.0':
+                    $json['VersionTWO'] = true;
+                    $page = $this->uri[1] ?? false;
+                    if ($page && array_key_exists($page, self::$adminLTE)) {
+                        $this->matched = true;
+                        $this->wrap()(self::$adminLTE[$page]);
+                        return true;
+                    }
+                    break;
+                case '5.0':
+                    $this->fullPage()('react/material-dashboard-react-c6/build/index.html');
+                    return true;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        # $this->structure($this->JSON());
+
+        if ($this->match('carbon/authenticated', function () {
+            global $json;
+
+            header('Content-Type: application/json', true, 200); // Send as JSON
+
+            # PublicAlert::JsonAlert('Test', 'Success', 'success', 'success');
+
+            $json['success'] = false;
+
+            print json_encode($json);
+
+            return true;
+        })()) {
             return true;
         }
 
+
+        $this->structure($this->wrap());
 
         ###################################### AdminLTE DOC
         if ($this->match('UIElements/{AdminLTE?}', function ($AdminLTE) use ($uri) {
@@ -89,16 +130,16 @@ class C6 extends Application
                 $AdminLTE = 'widgets';
             }
 
-            if (file_exists(SERVER_ROOT . APP_VIEW . $path = 'AdminLTE' . DS . $AdminLTE . '.php') ||
-                file_exists(SERVER_ROOT . APP_VIEW . $path = 'AdminLTE' . DS . 'Charts' . DS . $AdminLTE . '.php') ||
-                file_exists(SERVER_ROOT . APP_VIEW . $path = 'AdminLTE' . DS . 'Examples' . DS . $AdminLTE . '.php') ||
-                file_exists(SERVER_ROOT . APP_VIEW . $path = 'AdminLTE' . DS . 'Forms' . DS . $AdminLTE . '.php') ||
-                file_exists(SERVER_ROOT . APP_VIEW . $path = 'AdminLTE' . DS . 'Layout' . DS . $AdminLTE . '.php') ||
-                file_exists(SERVER_ROOT . APP_VIEW . $path = 'AdminLTE' . DS . 'Mailbox' . DS . $AdminLTE . '.php') ||
-                file_exists(SERVER_ROOT . APP_VIEW . $path = 'AdminLTE' . DS . 'Tables' . DS . $AdminLTE . '.php') ||
-                file_exists(SERVER_ROOT . APP_VIEW . $path = 'AdminLTE' . DS . 'UI' . DS . $AdminLTE . '.php')) {
+            if (file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . $AdminLTE . '.php') ||
+                file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Charts' . DS . $AdminLTE . '.php') ||
+                file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Examples' . DS . $AdminLTE . '.php') ||
+                file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Forms' . DS . $AdminLTE . '.php') ||
+                file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Layout' . DS . $AdminLTE . '.php') ||
+                file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Mailbox' . DS . $AdminLTE . '.php') ||
+                file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Tables' . DS . $AdminLTE . '.php') ||
+                file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'UI' . DS . $AdminLTE . '.php')) {
 
-                View::$wrapper = SERVER_ROOT . APP_VIEW . 'AdminLTE/wrapper.php';
+                View::$wrapper = SERVER_ROOT . APP_VIEW . 'mustache/AdminLTE/wrapper.php';
 
                 $this->wrap()($path);
             }

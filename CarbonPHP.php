@@ -249,7 +249,7 @@ class CarbonPHP
 
         // TODO - I'm probably going to move this to the cli
         if ($PHP['DATABASE']['REBUILD'] ?? false) {
-            Database::setUp(false);   // redirect = false
+            Database::setUp(false);   // Redirect = false
             $this->safelyExit = true;
             return;
         }
@@ -329,7 +329,7 @@ class CarbonPHP
      * appropriate headers.
      * @param string $URL by the user configuration file.
      * If the url is not equal to the server url, and we are not
-     * on a local development server, then redirect to url provided.
+     * on a local development server, then Redirect to url provided.
      *
      *
      * @param array|null $cacheControl

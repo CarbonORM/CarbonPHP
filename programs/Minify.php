@@ -21,7 +21,7 @@ class Minify implements iCommand
         $this->PHP = $PHP;
     }
 
-    public function usage()
+    public function usage() : void
     {
         //TODO - adjust for app view
         print <<<USE
@@ -73,7 +73,12 @@ USE;
         if (empty($files)) {
             $this->usage();
         }
-        $minifiedPath = APP_ROOT . APP_VIEW . 'css/style.css';
+        $minifiedPath = $files['OUT'] ?? APP_ROOT . APP_VIEW . 'css/style.css';
+
+        unset($files['OUT']);
+
+        $files = array_values($files);
+
         if (file_exists($minifiedPath)) {
             unlink($minifiedPath);
         }
@@ -87,7 +92,10 @@ USE;
         if (empty($files)) {
             $this->usage();
         }
-        $minifiedPath = APP_ROOT . APP_VIEW . 'js/javascript.js';
+        $minifiedPath = $files['OUT'] ?? APP_ROOT . APP_VIEW . 'js/javascript.js';
+
+        unset($files['OUT']);
+
         if (file_exists($minifiedPath)) {
             unlink($minifiedPath);
         }
