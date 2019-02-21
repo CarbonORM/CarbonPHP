@@ -7,7 +7,7 @@
   "homepage": "https://dev.carbonphp.com/view/react/material-dashboard-react-c6/build/#/5.0",
   "proxy": {
     "/carbon": {
-      "target": "http://[::1]:80",
+      "target": "http://[::1]:8881",
       "secure": false
     }
   },

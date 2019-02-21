@@ -8,10 +8,8 @@ import {Link} from "react-router-dom";
 import withStyles from "@material-ui/core/styles/withStyles";
 // @material-ui/icons
 // core components
-import GridContainer from "components/Grid/GridContainer.jsx";
 import GridItem from "components/Grid/GridItem.jsx";
 import Button from "components/CustomButtons/Button.jsx";
-import Parallax from "components/Parallax/Parallax.jsx";
 // sections for this page
 import SectionBasics from "./Sections/SectionBasics.jsx";
 import SectionNavbars from "./Sections/SectionNavbars.jsx";
@@ -27,7 +25,7 @@ import SectionDownload from "./Sections/SectionDownload.jsx";
 
 import componentsStyle from "assets/jss/material-kit-react/views/components.jsx";
 
-
+import Navbar from "views/Documentation/Navbar";
 
 class Documentation extends React.Component {
     constructor() {
@@ -46,69 +44,59 @@ class Documentation extends React.Component {
 
         console.log(this.props);
 
-        const {classes, subRoutingSwitch, ...rest} = this.props;
+        const {classes, ...rest} = this.props;
 
         let publicDocumentationRoutes = [
             {
-                path: "/SectionNavbars",    // I'm leaving this here for the time being as an example
-                name: "/SectionNavbars",    // This should be loaded under a different wrapper
-                navbarName: "/SectionNavbars",
+                path: "/5.0/SectionNavbars",    // I'm leaving this here for the time being as an example
+                name: "Section Navbars",    // This should be loaded under a different wrapper
                 component: SectionNavbars
             },
             {
-                path: "SectionBasics",
-                name: "/SectionBasics",
-                navbarName: "/SectionBasics",
+                path: "/5.0SectionBasics",
+                name: "Section Basics",
                 component: SectionBasics
             },
             {
-                path: "/SectionTabs",
-                name: "/SectionTabs",
-                navbarName: "/SectionTabs",
+                path: "/5.0/SectionTabs",
+                name: "Section Tabs",
                 component: SectionTabs
             },
             {
-                path: "/SectionPills",
-                name: "/SectionPills",
-                navbarName: "/SectionPills",
+                path: "/5.0/SectionPills",
+                name: "Section Pills",
                 component: SectionPills
             },
             {
-                path: "/SectionNotifications",
-                name: "/SectionNotifications",
-                navbarName: "/SectionNotifications",
+                path: "/5.0/SectionNotifications",
+                name: "Section Notifications",
                 component: SectionNotifications
             },
             {
-                path: "/SectionTypography",
-                name: "/SectionTypography",
-                navbarName: "/SectionTypography",
+                path: "/5.0/SectionTypography",
+                name: "Section Typography",
                 component: SectionTypography
             },
             {
-                path: "/SectionJavascript",
-                name: "/SectionJavascript",
-                navbarName: "/SectionJavascript",
+                path: "/5.0/SectionJavascript",
+                name: "Section Javascript",
                 component: SectionJavascript
             },
             {
-                path: "/SectionCompletedExamples",
-                name: "/SectionCompletedExamples",
-                navbarName: "/SectionCompletedExamples",
+                path: "/5.0/SectionCompletedExamples",
+                name: "Section Completed Examples",
                 component: SectionCompletedExamples
             },
             {
-                path: "/SectionLogin",
-                name: "/SectionLogin",
-                navbarName: "/SectionLogin",
+                path: "/5.0/SectionLogin",
+                name: "Section Login",
                 component: SectionLogin
             },
             {
-                path: "/ViewLoginPage",
-                name: "/ViewLoginPage",
-                navbarName: "/ViewLoginPage",
+                path: "/5.0/ViewLoginPage",
+                name: "View Login Page",
                 component: (<GridItem md={12} className={classes.textCenter}>
-                    <Link to={"/login-page"} className={classes.link}>
+                    <Link to={"/5.0/login-page"} className={classes.link}>
                         <Button color="primary" size="lg" simple>
                             View Login Page
                         </Button>
@@ -116,56 +104,46 @@ class Documentation extends React.Component {
                 </GridItem>)
             },
             {
-                path: "/SectionExamples",
-                name: "/SectionExamples",
-                navbarName: "/SectionExamples",
+                path: "/5.0/SectionExamples",
+                name: "Section Examples",
                 component: SectionExamples
             },
             {
-                path: "/SectionDownload",
-                name: "/SectionDownload",
-                navbarName: "/SectionDownload",
+                path: "/5.0/SectionDownload",
+                name: "Section Download",
                 component: SectionDownload
             },
             {
                 redirect: true,
+                path: "/5.0",
+                pathTo: "/5.0/SectionExamples",
+                name: "SectionExamples"
+            },
+            {
+                redirect: true,
                 path: "/",
-                pathTo: "/SectionNavbars",
-                navbarName: "SectionNavbars"
+                pathTo: "/5.0/SectionExamples",
+                name: "SectionExamples"
             }
         ];
 
-        let root = '/5.0';
-
-        publicDocumentationRoutes = publicDocumentationRoutes.map(o => {
-            if ('path' in o) {
-                o.path = root + o.path;
-            }
-            if ('pathTo' in o) {
-                o.pathTo = root + o.pathTo;
-            }
-            return o;
-        });
+        // let root = '/5.0';
+        //
+        // publicDocumentationRoutes = publicDocumentationRoutes.map(o => {
+        //     if ('path' in o) {
+        //         o.path = root + o.path;
+        //     }
+        //     if ('pathTo' in o) {
+        //         o.pathTo = root + o.pathTo;
+        //     }
+        //     return o;
+        // });
 
         return (
             <div>
-                <Parallax image={require("assets/img/Carbon-teal-180.png")}>
-                    <div className={classes.container}>
-                        <GridContainer>
-                            <GridItem>
-                                <div className={classes.brand}>
-                                    <h1 className={classes.title}>CarbonPHP [C6]</h1>
-                                    <h3 className={classes.subtitle}>
-                                        Build full scale applications in minutes.
-                                    </h3>
-                                </div>
-                            </GridItem>
-                        </GridContainer>
-                    </div>
-                </Parallax>
-
+                <Navbar routes={publicDocumentationRoutes}/>
                 <div className={classNames(classes.main, classes.mainRaised)}>
-                    {subRoutingSwitch(publicDocumentationRoutes, this.props)}
+                    {this.props.subRoutingSwitch(publicDocumentationRoutes, rest)}
                 </div>
             </div>
         );
