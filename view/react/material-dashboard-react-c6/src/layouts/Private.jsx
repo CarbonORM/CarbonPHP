@@ -21,22 +21,6 @@ import appStyle from "assets/jss/material-dashboard-react/layouts/dashboardStyle
 import image from "assets/img/Carbon-teal-180.png";
 import logo from "assets/img/reactlogo.png";
 
-const switchRoutes = (
-  <Switch>
-    {privateRoutes.map((prop, key) => {
-      if (prop.redirect)
-        return <Redirect from={prop.path} to={prop.pathTo} key={key} />;
-      if (prop.collapse)
-        return prop.views.map((prop, key) => {
-          return (
-            <Route path={prop.path} component={prop.component} key={key} />
-          );
-        });
-      return <Route path={prop.path} component={prop.component} key={key} />;
-    })}
-  </Switch>
-);
-
 var ps;
 
 class Private extends React.Component {
@@ -76,7 +60,7 @@ class Private extends React.Component {
     this.setState({ miniActive: !this.state.miniActive });
   }
   render() {
-    const { classes, ...rest } = this.props;
+    const { classes, subRoutingSwitch, ...rest } = this.props;
     const mainPanel =
       classes.mainPanel +
       " " +
@@ -110,10 +94,10 @@ class Private extends React.Component {
           {/* On the /maps/full-screen-maps route we want the map to be on full screen - this is not possible if the content and conatiner classes are present because they have some paddings which would make the map smaller */}
           {this.getRoute() ? (
             <div className={classes.content}>
-              <div className={classes.container}>{switchRoutes}</div>
+              <div className={classes.container}>{subRoutingSwitch(privateRoutes)}</div>
             </div>
           ) : (
-            <div className={classes.map}>{switchRoutes}</div>
+            <div className={classes.map}>{subRoutingSwitch(privateRoutes)}</div>
           )}
           {this.getRoute() ? <Footer fluid /> : null}
         </div>

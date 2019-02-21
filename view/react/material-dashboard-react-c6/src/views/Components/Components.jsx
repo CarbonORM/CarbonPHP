@@ -3,12 +3,11 @@ import React from "react";
 import classNames from "classnames";
 // react components for routing our app without refresh
 
-import { Link } from "react-router-dom";
+import {Link} from "react-router-dom";
 // @material-ui/core components
 import withStyles from "@material-ui/core/styles/withStyles";
 // @material-ui/icons
 // core components
-import Footer from "components/Footer/Footer.jsx";
 import GridContainer from "components/Grid/GridContainer.jsx";
 import GridItem from "components/Grid/GridItem.jsx";
 import Button from "components/CustomButtons/Button.jsx";
@@ -28,50 +27,50 @@ import SectionDownload from "./Sections/SectionDownload.jsx";
 
 import componentsStyle from "assets/jss/material-kit-react/views/components.jsx";
 
-
 class Components extends React.Component {
-  render() {
-    const { classes, ...rest } = this.props;
-    return (
-      <div>
-        <Parallax image={require("assets/img/Carbon-teal-180.png")}>
-          <div className={classes.container}>
-            <GridContainer>
-              <GridItem>
-                <div className={classes.brand}>
-                  <h1 className={classes.title}>CarbonPHP [C6]</h1>
-                  <h3 className={classes.subtitle}>
-                    Build full scale applications in minutes.
-                  </h3>
-                </div>
-              </GridItem>
-            </GridContainer>
-          </div>
-        </Parallax>
+    render() {
+        const {classes} = this.props;
+        return (
+            <div>
+                <Parallax image={require("assets/img/Carbon-teal-180.png")}>
+                    <div className={classes.container}>
+                        <GridContainer>
+                            <GridItem>
+                                <div className={classes.brand}>
+                                    <h1 className={classes.title}>CarbonPHP [C6]</h1>
+                                    <h3 className={classes.subtitle}>
+                                        Build full scale applications in minutes.
+                                    </h3>
+                                </div>
+                            </GridItem>
+                        </GridContainer>
+                    </div>
+                </Parallax>
+                <div className={classNames(classes.main, classes.mainRaised)}>
 
-        <div className={classNames(classes.main, classes.mainRaised)}>
-          <SectionBasics />
-          <SectionNavbars />
-          <SectionTabs />
-          <SectionPills />
-          <SectionNotifications />
-          <SectionTypography />
-          <SectionJavascript />
-          <SectionCompletedExamples />
-          <SectionLogin />
-          <GridItem md={12} className={classes.textCenter}>
-            <Link to={"/login-page"} className={classes.link}>
-              <Button color="primary" size="lg" simple>
-                View Login Page
-              </Button>
-            </Link>
-          </GridItem>
-          <SectionExamples />
-          <SectionDownload />
-        </div>
-      </div>
-    );
-  }
+                    <SectionNavbars/>
+                    <SectionBasics/>
+                    <SectionTabs/>
+                    <SectionPills/>
+                    <SectionNotifications/>
+                    <SectionTypography/>
+                    <SectionJavascript/>
+                    <SectionCompletedExamples/>
+                    <SectionLogin/>
+                    <GridItem md={12} className={classes.textCenter}>
+                        <Link to={"/login-page"} className={classes.link}>
+                            <Button color="primary" size="lg" simple>
+                                View Login Page
+                            </Button>
+                        </Link>
+                    </GridItem>
+                    <SectionExamples/>
+                    <SectionDownload/>
+
+                </div>
+            </div>
+        );
+    }
 }
 
 export default withStyles(componentsStyle)(Components);

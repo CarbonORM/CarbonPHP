@@ -1,5 +1,5 @@
 import React from "react";
-import {Route} from "react-router-dom";
+import {Redirect, Route, Switch} from "react-router-dom";
 
 import SweetAlert from "react-bootstrap-sweetalert";
 
@@ -8,10 +8,9 @@ import sweetAlertStyle from "assets/jss/material-dashboard-react/views/sweetAler
 
 import context from "variables/carbonphp";
 
-//import Public from "routes/publicRoutes";
 import Public from "layouts/Public";
-//import Private from "routes/privateRoutes";
 import Private from "layouts/Private";
+import PageNotFound from "views/Errors/PageNotFound";
 
 // This is our ajax class
 import withStyles from "@material-ui/core/styles/withStyles";
@@ -20,6 +19,7 @@ const styles = theme => ({
     ...appStyle(theme),
     ...sweetAlertStyle
 });
+
 
 class login extends React.Component {
     constructor(props) {
@@ -32,10 +32,52 @@ class login extends React.Component {
         };
         this.handleResponceCodes = this.handleResponceCodes.bind(this);
         this.authenticate = this.authenticate.bind(this);
+        this.subRoutingSwitch = this.subRoutingSwitch.bind(this);
     }
 
     changeLoggedInStatus = () => {
         this.setState({authenticated: !this.state.authenticated});
+    };
+
+    subRoutingSwitch = (route, rest) => {
+        if (rest === undefined){
+            rest = [];
+        }
+        return <Switch>
+            {route.map((prop, key) => {
+                if (prop.redirect)
+                    return <Redirect
+                        exact
+                        from={prop.path}
+                        to={prop.pathTo}
+                        key={key} />;
+                if (prop.collapse)
+                    return prop.views.map((prop, key) => {
+                        return (
+                            <Route
+                                exact
+                                path={prop.path}
+                                render={props => (
+                                    <prop.component
+                                        {...prop}
+                                        {...props}
+                                        {...rest} />
+                                )}
+                                key={key} />
+                        );
+                    });
+                return <Route
+                    path={prop.path}
+                    render={props => (
+                        <prop.component
+                            {...prop}
+                            {...props}
+                            {...rest} />
+                    )}
+                    key={key} />;
+            })}
+            <Route component={PageNotFound} />
+        </Switch>
     };
 
     authenticate = () => {
@@ -157,7 +199,7 @@ class login extends React.Component {
     }
 
     render() {
-        // console.log("ARMATUS JSX RENDER");
+        console.log("LOGIN JSX RENDER");
 
         const {error, isLoaded, authenticated, carbon, alert} = this.state;
 
@@ -187,9 +229,10 @@ class login extends React.Component {
                         render={props => (
                             <RouteType
                                 carbon={carbon}
+                                subRoutingSwitch={this.subRoutingSwitch}
                                 authenticated={authenticated}
                                 authenticate={this.authenticate}
-                                changeLoggedInStatus={() => this.changeLoggedInStatus()}
+                                changeLoggedInStatus={this.changeLoggedInStatus}
                                 path={path}
                                 {...props}
                             />
@@ -201,7 +244,7 @@ class login extends React.Component {
             return (
                 <div>
                     {alert}
-                    {Routes.map((closure, key) => closure(key))};
+                    {Routes.map((closure, key) => closure(key))}
                 </div>
             );
         }

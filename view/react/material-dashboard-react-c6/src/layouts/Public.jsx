@@ -1,16 +1,11 @@
 import React from "react";
 import PropTypes from "prop-types";
 import cx from "classnames";
-import { Switch, Route, Redirect } from "react-router-dom";
 
 // @material-ui/core components
 import withStyles from "@material-ui/core/styles/withStyles";
 
 // core components
-// import PagesHeader from "praesidium/common/components/layouts/Header/PagesHeader.jsx";
-import HeaderTop from "components/HeaderTop/HeaderTop";
-import HeaderLinks from "components/HeaderTop/HeaderLinks.jsx";
-
 import Footer from "components/Footer/Footer";
 import pagesRoutes from "routes/publicRoutes";
 
@@ -18,14 +13,16 @@ import sweetAlertStyle from "assets/jss/material-dashboard-react/views/sweetAler
 import appStyle from "assets/jss/material-dashboard-react/layouts/carbonPHPStyles";
 
 
-// import bgImage from "assets/img/register.jpeg";
-import PageNotFound from "views/Errors/PageNotFound";
+import HeaderTop from "components/HeaderTop/HeaderTop";
+import HeaderLinks from "components/HeaderTop/HeaderLinks.jsx";
+import publicRoutes from "../routes/publicRoutes";
 
 // var ps;
 const styles = theme => ({
   ...appStyle(theme),
   ...sweetAlertStyle
 });
+
 
 class Public extends React.Component {
   constructor() {
@@ -40,7 +37,9 @@ class Public extends React.Component {
     });
   }
   render() {
-    const { classes, ...rest } = this.props;
+      console.log("Public JSX RENDER");
+
+      const { classes, subRoutingSwitch, ...rest } = this.props;
     const mainPanel =
       classes.mainPanel +
       " " +
@@ -53,6 +52,8 @@ class Public extends React.Component {
     if (!this.state.isLoaded) {
       return null;
     }
+
+    // transparent here seems to work 50% the time, replace with dark if trouble persists
     return (
       <div>
         <HeaderTop
@@ -62,40 +63,14 @@ class Public extends React.Component {
             color="transparent"
             changeColorOnScroll={{
                 height: 400,
-                color: "rose"
+                color: "dark"
             }}
+            routes={pagesRoutes}
             {...rest}
         />
         <div className={classes.wrapper} ref="wrapper">
           <div className={mainPanel} ref="mainPanel">
-            <Switch>
-              {pagesRoutes.map((prop, key) => {
-                if (prop.collapse) {
-                  return null;
-                }
-                if (prop.redirect) {
-                  return (
-                    <Redirect
-                      exact
-                      from={prop.path}
-                      to={prop.pathTo}
-                      key={key}
-                    />
-                  );
-                }
-                return (
-                  <Route
-                    path={prop.path}
-                    exact
-                    render={props => (
-                      <prop.component {...prop} {...props} {...rest} />
-                    )}
-                    key={key}
-                  />
-                );
-              })}
-              <Route component={PageNotFound} />
-            </Switch>
+              {subRoutingSwitch(publicRoutes, this.props)}
             <Footer fluid />
           </div>
         </div>
