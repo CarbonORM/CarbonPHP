@@ -9,45 +9,38 @@ import LoginPage from "views/LoginPage/LoginPage";
 let publicRoutes = [
     {
          path: "/Dashboard",    // I'm leaving this here for the time being as an example
-         name: "/Dashboard",    // This should be loaded under a different wrapper
-         navbarName: "/Dashboard",
+         name: "Dashboard",    // This should be loaded under a different wrapper
          component: Dashboard
     },
     {
         path: "/landing-page",
-        name: "/LandingPage",
-        navbarName: "/LandingPage",
+        name: "Landing Page",
         component: LandingPage
     },
     {
         path: "/profile-page",
-        name: "/ProfilePage",
-        navbarName: "/ProfilePage",
+        name: "Profile Page",
         component: ProfilePage
     },
     {
         path: "/login-page",
-        name: "/LoginPage",
-        navbarName: "/LoginPage",
+        name: "Login Page",
         component: LoginPage
     },
     {
         path: "/5.0",
-        name: "/Documentation",
-        navbarName: "Components",
+        name: "Documentation",
         component: Documentation
     },
     {
         redirect: true,
         path: "/2.0",
         to: "http://dev.carbonphp.com:80/2.0",
-        navbarName: "Version 2.0"
     },
     {
         redirect: true,
         path: "/",
         pathTo: "/5.0",
-        navbarName: "Documentation"
     }
 ];
 
