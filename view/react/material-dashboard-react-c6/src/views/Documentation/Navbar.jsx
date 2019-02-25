@@ -4,19 +4,8 @@ import React from "react";
 import withStyles from "@material-ui/core/styles/withStyles";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
-import Icon from "@material-ui/core/Icon";
-// @material-ui/icons
-import Search from "@material-ui/icons/Search";
-import Email from "@material-ui/icons/Email";
-import Face from "@material-ui/icons/Face";
-import AccountCircle from "@material-ui/icons/AccountCircle";
-import Explore from "@material-ui/icons/Explore";
-// core components
-
 import HeaderTop from "components/HeaderTop/HeaderTop.jsx";
-import CustomInput from "components/CustomInput/CustomInput.jsx";
 import CustomDropdown from "components/CustomDropdown/CustomDropdown.jsx";
-import Button from "components/CustomButtons/Button.jsx";
 
 import navbarsStyle from "assets/jss/material-kit-react/views/componentsSections/navbarsStyle.jsx";
 
@@ -27,20 +16,54 @@ class Navbar extends React.Component {
     render() {
         const {classes, routes} = this.props;
 
-        let tabs = routes;
+        let tabs = [];
 
-        tabs = tabs.map((o, key) => {
-            return (<ListItem className={classes.listItem}>
-                <NavLink
-                    to={o.path}
-                    className={classes.navLink + " " + classes.navLinkActive}
-                    key={key}
-                >
+        routes.forEach((o, key) => {
+                // 'pathTo' aka not a redirect
+                if (!('pathTo' in o)) {
+                    // doesn't need a sub menu
+                    if (!('views' in o)) {
+                        tabs.push(<ListItem className={classes.listItem}>
+                            <NavLink
+                                to={o.path}
+                                className={classes.navLink + " " + classes.navLinkActive}
+                                key={key}
+                            >
+                                {o.name}
+                            </NavLink>
+                        </ListItem>)
+                    } else {
+                        tabs.push(
+                            <ListItem className={classes.listItem}>
+                                <CustomDropdown
+                                    left
+                                    key={key}
+                                    caret={true}
+                                    hoverColor="black"
+                                    dropdownHeader={o.name}
+                                    buttonText={o.name}
+                                    buttonProps={{
+                                        className: classes.navLink + " " + classes.navLinkActive,
+                                    }}
+                                    dropdownList={o.views.map((m, key) => {
+                                        return <ListItem className={classes.listItem}>
+                                            <NavLink
+                                                to={m.path}
+                                                className={classes.navLink + " " + classes.navLinkActive}
+                                                key={key}
+                                            >
+                                                {m.name}
+                                            </NavLink>
+                                        </ListItem>
+                                    })}
+                                />
+                            </ListItem>
+                        );
+                    }
+                }
+            }
+        );
 
-                        {o.name}
-                </NavLink>
-            </ListItem>)
-        });
 
         return (
             <div className={classes.section}>
@@ -54,7 +77,6 @@ class Navbar extends React.Component {
                             </List>
                         }
                     />
-
                 </div>
             </div>
         );
@@ -62,3 +84,6 @@ class Navbar extends React.Component {
 }
 
 export default withStyles(navbarsStyle)(Navbar);
+
+
+// thur feb 21 1140

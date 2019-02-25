@@ -35,6 +35,8 @@ import cx from "classnames";
 
 import HeaderTop from "components/HeaderTop/HeaderTop";
 import HeaderLinks from "components/HeaderTop/HeaderLinks.jsx";
+import ProfilePage from "../ProfilePage/ProfilePage";
+import LandingPage from "../LandingPage/LandingPage";
 // import Sections from "views/Documentation/Sections/Sections";
 
 
@@ -70,96 +72,99 @@ class Documentation extends React.Component {
 
         let publicDocumentationRoutes = [
             {
-                path: "/5.0/SectionNavbars",    // I'm leaving this here for the time being as an example
+                path: "/SectionNavbars",    // I'm leaving this here for the time being as an example
                 name: "Navbars",    // This should be loaded under a different wrapper
                 component: SectionNavbars
             },
             {
-                path: "/5.0/SectionBasics",
+                path: "/SectionBasics",
                 name: "Basics",
                 component: SectionBasics
             },
             {
-                path: "/5.0/SectionTabs",
+                path: "/SectionTabs",
                 name: "Tabs",
                 component: SectionTabs
             },
             {
-                path: "/5.0/SectionPills",
+                path: "/SectionPills",
                 name: "Pills",
                 component: SectionPills
             },
             {
-                path: "/5.0/SectionNotifications",
+                path: "/SectionNotifications",
                 name: "Notifications",
                 component: SectionNotifications
             },
             {
-                path: "/5.0/SectionTypography",
+                path: "/SectionTypography",
                 name: "Typography",
                 component: SectionTypography
             },
             {
-                path: "/5.0/SectionJavascript",
+                path: "/SectionJavascript",
                 name: "Javascript",
                 component: SectionJavascript
             },
             {
-                path: "/5.0/SectionCompletedExamples",
-                name: "Completed Examples",
+                path: "/SectionCompletedExamples",
+                name: "Text",
                 component: SectionCompletedExamples
             },
             {
-                path: "/5.0/SectionLogin",
+                path: "/SectionLogin",
                 name: "Login",
                 component: SectionLogin
+            }, {
+                path: "/Profile",
+                name: "Profile",
+                component: ProfilePage
             },
             {
-                path: "/5.0/ViewLoginPage",
-                name: "View Login Page",
-                component: (<GridItem md={12} className={classes.textCenter}>
-                    <Link to={"/login-page"} className={classes.link}>
-                        <Button color="primary" size="lg" simple>
-                            View Login Page
-                        </Button>
-                    </Link>
-                </GridItem>)
+                path: "/Landing",
+                name: "Landing",
+                component: LandingPage
             },
+            // {
+            //     path: "/ViewLoginPage",
+            //     name: "View Login Page",
+            //     component: (<GridItem md={12} className={classes.textCenter}>
+            //         <Link to={"/login-page"} className={classes.link}>
+            //             <Button color="primary" size="lg" simple>
+            //                 View Login Page
+            //             </Button>
+            //         </Link>
+            //     </GridItem>)
+            // },
             {
-                path: "/5.0/SectionExamples",
+                path: "/SectionExamples",
                 name: "Examples",
                 component: SectionExamples
             },
             {
-                path: "/5.0/SectionDownload",
+                path: "/SectionDownload",
                 name: "Download",
                 component: SectionDownload
             },
             {
                 redirect: true,
-                path: "/5.0",
-                pathTo: "/5.0/SectionExamples",
-                name: "Examples"
-            },
-            {
-                redirect: true,
                 path: "/",
-                pathTo: "/5.0/SectionExamples",
+                pathTo: "/SectionExamples",
                 name: "Examples"
             }
         ];
 
-        // let root = '/5.0';
-        //
-        // publicDocumentationRoutes = publicDocumentationRoutes.map(o => {
-        //     if ('path' in o) {
-        //         o.path = root + o.path;
-        //     }
-        //     if ('pathTo' in o) {
-        //         o.pathTo = root + o.pathTo;
-        //     }
-        //     return o;
-        // });
+        let root = '/5.0/UI/Material-Kit';
+
+        publicDocumentationRoutes = publicDocumentationRoutes.map(o => {
+            if ('path' in o) {
+                o.path = root + o.path;
+            }
+            if ('pathTo' in o) {
+                o.pathTo = root + o.pathTo;
+            }
+            return o;
+        });
 
         // transparent here seems to work 50% the time, replace with dark if trouble persists
         return (

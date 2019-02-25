@@ -1,17 +1,13 @@
 import context from "variables/carbonphp";
-import Dashboard from "views/Dashboard/Dashboard";
+import Dashboard from "views/UI/Dashboard"
 import Documentation from "views/Documentation/Documentation";
 import LandingPage from "views/LandingPage/LandingPage";
 import ProfilePage from "views/ProfilePage/ProfilePage";
 import LoginPage from "views/LoginPage/LoginPage";
+import Components from "views/UI/Documentation";
 
 
 let publicRoutes = [
-    {
-         path: "/Dashboard",    // I'm leaving this here for the time being as an example
-         name: "Dashboard",    // This should be loaded under a different wrapper
-         component: Dashboard
-    },
     {
         path: "/landing-page",
         name: "Landing Page",
@@ -26,6 +22,16 @@ let publicRoutes = [
         path: "/login-page",
         name: "Login Page",
         component: LoginPage
+    },
+    {
+        path: "/5.0/UI/Material-Kit",
+        name: "Material Kit",
+        component: Components
+    },
+    {
+        path: "/5.0/UI/Material-Dashboard",
+        name: "Material Dashboard",
+        component: Dashboard
     },
     {
         path: "/5.0",

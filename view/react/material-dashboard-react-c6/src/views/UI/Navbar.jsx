@@ -12,14 +12,15 @@ import Face from "@material-ui/icons/Face";
 import AccountCircle from "@material-ui/icons/AccountCircle";
 import Explore from "@material-ui/icons/Explore";
 // core components
-import GridContainer from "components/Grid/GridContainer.jsx";
-import GridItem from "components/Grid/GridItem.jsx";
+
 import HeaderTop from "components/HeaderTop/HeaderTop.jsx";
 import CustomInput from "components/CustomInput/CustomInput.jsx";
 import CustomDropdown from "components/CustomDropdown/CustomDropdown.jsx";
 import Button from "components/CustomButtons/Button.jsx";
 
 import navbarsStyle from "assets/jss/material-kit-react/views/componentsSections/navbarsStyle.jsx";
+
+import {NavLink} from "react-router-dom";
 
 
 class Navbar extends React.Component {
@@ -28,30 +29,31 @@ class Navbar extends React.Component {
 
         let tabs = routes;
 
-        tabs = tabs.map(o => {
+        tabs = tabs.map((o, key) => {
             return (<ListItem className={classes.listItem}>
-                <Button
-                    href={o.path}
+                <NavLink
+                    to={o.path}
                     className={classes.navLink + " " + classes.navLinkActive}
-                    color="transparent"
+                    key={key}
                 >
-                    {o.name}
-                </Button>
+
+                        {o.name}
+                </NavLink>
             </ListItem>)
         });
 
         return (
             <div className={classes.section}>
                 <div className={classes.container}>
-                            <HeaderTop
-                                brand="Documentation"
-                                color="info"
-                                rightLinks={
-                                    <List className={classes.list}>
-                                        {tabs}
-                                    </List>
-                                }
-                            />
+                    <HeaderTop
+                        brand="Documentation"
+                        color="info"
+                        rightLinks={
+                            <List className={classes.list}>
+                                {tabs}
+                            </List>
+                        }
+                    />
 
                 </div>
             </div>

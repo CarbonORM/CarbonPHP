@@ -3,26 +3,27 @@ import React from "react";
 import classNames from "classnames";
 // react components for routing our app without refresh
 
-import {Link} from "react-router-dom";
+
 // @material-ui/core components
 import withStyles from "@material-ui/core/styles/withStyles";
 // @material-ui/icons
 // core components
-import GridItem from "components/Grid/GridItem.jsx";
-import Button from "components/CustomButtons/Button.jsx";
-// sections for this page
-import SectionBasics from "./Sections/SectionBasics.jsx";
-import SectionNavbars from "./Sections/SectionNavbars.jsx";
-import SectionTabs from "./Sections/SectionTabs.jsx";
-import SectionPills from "./Sections/SectionPills.jsx";
-import SectionNotifications from "./Sections/SectionNotifications.jsx";
-import SectionTypography from "./Sections/SectionTypography.jsx";
-import SectionJavascript from "./Sections/SectionJavascript.jsx";
-import SectionCompletedExamples from "./Sections/SectionCompletedExamples.jsx";
-import SectionLogin from "./Sections/SectionLogin.jsx";
-import SectionExamples from "./Sections/SectionExamples.jsx";
-import SectionDownload from "./Sections/SectionDownload.jsx";
 
+import GridItem from "components/Grid/GridItem.jsx";
+
+// sections for this page
+
+import CarbonPHP from "./Sections/CarbonPHP";
+import Dependencies from "./Sections/Dependencies";
+import Environment from "./Sections/Environment.jsx";
+import Installation from "./Sections/Installation.jsx";
+import FileStructure from "./Sections/FileStructure.jsx";
+import OptionsIndex from "./Sections/OptionsIndex.jsx";
+import Bootstrap from "./Sections/Bootstrap.jsx";
+import Wrapper from "./Sections/Wrapper.jsx";
+import ParallelProcessing from "./Sections/ParallelProcessing.jsx";
+
+// FileStructure OptionsIndex Bootstrap Wrapper ParallelProcessing
 import componentsStyle from "assets/jss/material-kit-react/views/components.jsx";
 
 import Navbar from "views/Documentation/Navbar";
@@ -36,6 +37,24 @@ import cx from "classnames";
 import HeaderTop from "components/HeaderTop/HeaderTop";
 import HeaderLinks from "components/HeaderTop/HeaderLinks.jsx";
 // import Sections from "views/Documentation/Sections/Sections";
+
+
+
+import DashboardIcon from "@material-ui/icons/Dashboard";
+import Routing from "./Sections/Routing";
+import Requests from "./Sections/Requests";
+import DatabaseEntities from "./Sections/DatabaseEntities";
+import Session from "./Sections/Session";
+import Singleton from "./Sections/Singleton";
+import Server from "./Sections/Server";
+import View from "./Sections/View";
+import BrowserOSSupport from "./Sections/BrowserOSSupport";
+import UIElements from "./Sections/UIElements";
+import Implementations from "./Sections/Implementations";
+import Support from "./Sections/Support";
+import License from "./Sections/License";
+import MaterialUI from "./Sections/MaterialUI";
+
 
 
 class Documentation extends React.Component {
@@ -70,96 +89,158 @@ class Documentation extends React.Component {
 
         let publicDocumentationRoutes = [
             {
-                path: "/5.0/SectionNavbars",    // I'm leaving this here for the time being as an example
-                name: "Navbars",    // This should be loaded under a different wrapper
-                component: SectionNavbars
+                path: "/5.0/Documentation/",     // I'm leaving this here for the time being as an example
+                name: "Introduction",          // This should be loaded under a different wrapper
+                icon: DashboardIcon,
+                component: CarbonPHP
             },
             {
-                path: "/5.0/SectionBasics",
-                name: "Basics",
-                component: SectionBasics
+                path: "/5.0/Documentation/Dependencies",
+                name: "Dependencies",
+                icon: DashboardIcon,
+                component: Dependencies
             },
             {
-                path: "/5.0/SectionTabs",
-                name: "Tabs",
-                component: SectionTabs
+                path: "/5.0/Documentation/QuickStart",
+                name: "Quick Start",
+                icon: DashboardIcon,
+                views: [
+                    {
+                        path: "/5.0/Documentation/Environment",
+                        name: "Environment",
+                        icon: DashboardIcon,
+                        component: Environment
+                    },{
+                        path: "/5.0/Documentation/Installation",
+                        name: "Installation",
+                        icon: DashboardIcon,
+                        component: Installation
+                    },{
+                        path: "/5.0/Documentation/FileStructure",
+                        name: "File Structure",
+                        icon: DashboardIcon,
+                        component: FileStructure
+                    },{
+                        path: "/5.0/Documentation/OptionsIndex",
+                        name: "Options & Index",
+                        icon: DashboardIcon,
+                        component: OptionsIndex
+                    },{
+                        path: "/5.0/Documentation/Bootstrap",
+                        name: "Bootstrap",
+                        icon: DashboardIcon,
+                        component: Bootstrap
+                    },{
+                        path: "/5.0/Documentation/Wrapper",
+                        name: "Wrapper",
+                        icon: DashboardIcon,
+                        component: Wrapper
+                    },{
+                        path: "/5.0/Documentation/ParallelProcessing",
+                        name: "Parallel Processing",
+                        icon: DashboardIcon,
+                        component: ParallelProcessing
+                    },
+                ]
             },
             {
-                path: "/5.0/SectionPills",
-                name: "Pills",
-                component: SectionPills
+                path: "/5.0/Documentation/PHPApplications",
+                name: "PHP Applications",
+                icon: DashboardIcon,
+                views: [
+                    {
+                        path: "/5.0/Documentation/PHPApplications/Overview",
+                        name: "Overview",
+                        icon: DashboardIcon,
+                        component: Environment
+                    },{
+                        path: "/5.0/Documentation/PHPApplications/Route",
+                        name: "Routing",
+                        icon: DashboardIcon,
+                        component: Routing
+                    },{
+                        path: "/5.0/Documentation/PHPApplications/Requests",
+                        name: "Requests",
+                        icon: DashboardIcon,
+                        component: Requests
+                    },{
+                        path: "/5.0/Documentation/PHPApplications/DatabaseEntities",
+                        name: "Database & Entities",
+                        icon: DashboardIcon,
+                        component: DatabaseEntities
+                    },{
+                        path: "/5.0/Documentation/PHPApplications/Session",
+                        name: "Session",
+                        icon: DashboardIcon,
+                        component: Session
+                    },{
+                        path: "/5.0/Documentation/PHPApplications/Singleton",
+                        name: "Singleton",
+                        icon: DashboardIcon,
+                        component: Singleton
+                    },{
+                        path: "/5.0/Documentation/PHPApplications/Server",
+                        name: "Server",
+                        icon: DashboardIcon,
+                        component: Server
+                    },{
+                        path: "/5.0/Documentation/PHPApplications/View",
+                        name: "View",
+                        icon: DashboardIcon,
+                        component: View
+                    }
+                ]
             },
             {
-                path: "/5.0/SectionNotifications",
-                name: "Notifications",
-                component: SectionNotifications
+                path: "/5.0/Documentation/BrowserOSSupport",
+                name: "Browser & OS Support",
+                icon: DashboardIcon,
+                component: BrowserOSSupport
             },
             {
-                path: "/5.0/SectionTypography",
-                name: "Typography",
-                component: SectionTypography
+                path: "/5.0/Documentation/UIElements",
+                name: "UI Elements",
+                icon: DashboardIcon,
+                component: UIElements
             },
             {
-                path: "/5.0/SectionJavascript",
-                name: "Javascript",
-                component: SectionJavascript
+                path: "/5.0/Documentation/Implementations",
+                name: "Implementations",
+                icon: DashboardIcon,
+                component: Implementations
             },
             {
-                path: "/5.0/SectionCompletedExamples",
-                name: "Completed Examples",
-                component: SectionCompletedExamples
+                path: "/5.0/Documentation/Support",
+                name: "Support",
+                icon: DashboardIcon,
+                component: Support
             },
             {
-                path: "/5.0/SectionLogin",
-                name: "Login",
-                component: SectionLogin
+                path: "/5.0/Documentation/License",
+                name: "License",
+                icon: DashboardIcon,
+                component: License
             },
             {
-                path: "/5.0/ViewLoginPage",
-                name: "View Login Page",
-                component: (<GridItem md={12} className={classes.textCenter}>
-                    <Link to={"/login-page"} className={classes.link}>
-                        <Button color="primary" size="lg" simple>
-                            View Login Page
-                        </Button>
-                    </Link>
-                </GridItem>)
-            },
-            {
-                path: "/5.0/SectionExamples",
-                name: "Examples",
-                component: SectionExamples
-            },
-            {
-                path: "/5.0/SectionDownload",
-                name: "Download",
-                component: SectionDownload
+                path: "/5.0/Documentation/MaterialUI",
+                name: "Material UI",
+                icon: DashboardIcon,
+                component: MaterialUI
             },
             {
                 redirect: true,
                 path: "/5.0",
-                pathTo: "/5.0/SectionExamples",
+                pathTo: "/5.0/Documentation",
                 name: "Examples"
             },
             {
                 redirect: true,
                 path: "/",
-                pathTo: "/5.0/SectionExamples",
+                pathTo: "/5.0/Documentation",
                 name: "Examples"
             }
         ];
 
-        // let root = '/5.0';
-        //
-        // publicDocumentationRoutes = publicDocumentationRoutes.map(o => {
-        //     if ('path' in o) {
-        //         o.path = root + o.path;
-        //     }
-        //     if ('pathTo' in o) {
-        //         o.pathTo = root + o.pathTo;
-        //     }
-        //     return o;
-        // });
 
         // transparent here seems to work 50% the time, replace with dark if trouble persists
         return (
@@ -169,7 +250,7 @@ class Documentation extends React.Component {
                         brand="CarbonPHP.com"
                         rightLinks={<HeaderLinks/>}
                         fixed
-                        color="dark"
+                        color="transparent"
                         changeColorOnScroll={{
                             height: 400,
                             color: "dark"

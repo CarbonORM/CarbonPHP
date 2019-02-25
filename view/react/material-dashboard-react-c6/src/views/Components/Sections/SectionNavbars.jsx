@@ -382,7 +382,7 @@ class SectionNavbars extends React.Component {
                           classes.socialIcons +
                           " " +
                           classes.marginRight5 +
-                          " fab fa-twitter"
+                          " fa fa-twitter"
                         }
                       />{" "}
                       Twitter
@@ -400,7 +400,7 @@ class SectionNavbars extends React.Component {
                           classes.socialIcons +
                           " " +
                           classes.marginRight5 +
-                          " fab fa-facebook"
+                          " fa fa-facebook"
                         }
                       />{" "}
                       Facebook

@@ -13,7 +13,7 @@ import Header from "components/Header/Header.jsx";
 import Footer from "components/Footer/Footer.jsx";
 import Sidebar from "components/Sidebar/Sidebar.jsx";
 
-import privateRoutes from "routes/privateRoutes";
+import dashboardRoutes from "./dashboardRoutes";
 
 import appStyle from "assets/jss/material-dashboard-react/layouts/dashboardStyle";
 
@@ -22,7 +22,19 @@ import logo from "assets/img/reactlogo.png";
 
 var ps;
 
-class Private extends React.Component {
+let root = '/5.0/UI/Material-Dashboard';
+
+dashboardRoutes.map(o => {
+    if ('path' in o) {
+        o.path = root + o.path;
+    }
+    if ('pathTo' in o) {
+        o.pathTo = root + o.pathTo;
+    }
+    return o;
+});
+
+class Dashboard extends React.Component {
   state = {
     mobileOpen: false,
     miniActive: false
@@ -68,10 +80,14 @@ class Private extends React.Component {
         [classes.mainPanelWithPerfectScrollbar]:
           navigator.platform.indexOf("Win") > -1
       });
+
+
+      console.log(dashboardRoutes);
+
     return (
       <div className={classes.wrapper}>
         <Sidebar
-          routes={privateRoutes}
+          routes={dashboardRoutes}
           logoText={"CarbonPHP"}
           logo={logo}
           image={image}
@@ -86,17 +102,17 @@ class Private extends React.Component {
           <Header
             sidebarMinimize={this.sidebarMinimize.bind(this)}
             miniActive={this.state.miniActive}
-            routes={privateRoutes}
+            routes={dashboardRoutes}
             handleDrawerToggle={this.handleDrawerToggle}
             {...rest}
           />
           {/* On the /maps/full-screen-maps route we want the map to be on full screen - this is not possible if the content and conatiner classes are present because they have some paddings which would make the map smaller */}
           {this.getRoute() ? (
             <div className={classes.content}>
-              <div className={classes.container}>{subRoutingSwitch(privateRoutes)}</div>
+              <div className={classes.container}>{subRoutingSwitch(dashboardRoutes)}</div>
             </div>
           ) : (
-            <div className={classes.map}>{subRoutingSwitch(privateRoutes)}</div>
+            <div className={classes.map}>{subRoutingSwitch(dashboardRoutes)}</div>
           )}
           {this.getRoute() ? <Footer fluid /> : null}
         </div>
@@ -105,8 +121,8 @@ class Private extends React.Component {
   }
 }
 
-Private.propTypes = {
+Dashboard.propTypes = {
   classes: PropTypes.object.isRequired
 };
 
-export default withStyles(appStyle)(Private);
+export default withStyles(appStyle)(Dashboard);
