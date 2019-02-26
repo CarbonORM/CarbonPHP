@@ -94,7 +94,7 @@ Informal support for CarbonPHP is currently offered on https://github.com/Richar
 
 ## Legal
 
-Use of CarbonPHP implies agreement with its software license, available in the LICENSE file. This license is subject to change from release to release, so before upgrading to a new version of Hydrogen, please review its license.
+Use of CarbonPHP implies agreement with its software license, available in the LICENSE file. This license is subject to change from release to release, so before upgrading to a new version of C6, please review its license.
 
 ## Credits
 
