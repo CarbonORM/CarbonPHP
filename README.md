@@ -26,7 +26,7 @@ CarbonPHP will always try to stay upto date with the latest version of PHP. Use 
 
 ## Documentation
 
-All function should have PHPDoc-style documentation in the code, though some are more thorough than others. The best up-to-date Hydrogen guide available is here:
+All function should have PHPDoc-style documentation in the code, though some are more thorough than others. The best up-to-date c6 guide available is here: carbonphp.com
 
 ## CarbonPHP.com
 
