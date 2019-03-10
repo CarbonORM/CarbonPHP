@@ -26,6 +26,7 @@ import SectionExamples from "./Sections/SectionExamples.jsx";
 import SectionDownload from "./Sections/SectionDownload.jsx";
 
 import componentsStyle from "assets/jss/material-kit-react/views/components.jsx";
+import SectionCarousel from "./Sections/SectionCarousel";
 
 class Components extends React.Component {
     render() {
@@ -47,7 +48,7 @@ class Components extends React.Component {
                     </div>
                 </Parallax>
                 <div className={classNames(classes.main, classes.mainRaised)}>
-
+                    <SectionCarousel/>
                     <SectionNavbars/>
                     <SectionBasics/>
                     <SectionTabs/>

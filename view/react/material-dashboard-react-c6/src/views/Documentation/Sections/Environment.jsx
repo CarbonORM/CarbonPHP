@@ -10,7 +10,7 @@ import Button from "components/CustomButtons/Button.jsx";
 // core components
 import downloadStyle from "assets/jss/material-kit-react/views/componentsSections/downloadStyle.jsx";
 
-class SectionDownload extends React.Component {
+class Environment extends React.Component {
   render() {
     const { classes } = this.props;
     return (
@@ -18,7 +18,7 @@ class SectionDownload extends React.Component {
         <div className={classes.container}>
           <GridContainer className={classes.textCenter} justify="center">
             <GridItem xs={12} sm={12} md={8}>
-              <h2>Do you love this UI Kit?</h2>
+              <h2>Environment</h2>
               <h4>
                 Cause if you do, it can be yours for FREE. Hit the buttons below
                 to navigate to our website where you can find the kit. We also
@@ -105,4 +105,4 @@ class SectionDownload extends React.Component {
   }
 }
 
-export default withStyles(downloadStyle)(SectionDownload);
+export default withStyles(downloadStyle)(Environment);

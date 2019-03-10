@@ -40,6 +40,55 @@ class ErrorCatcher
      */
     public static $level;
 
+    /** Attempt to safely catch errors and public alerts in a closure
+     * @param callable $lambda
+     * @return callable
+     */
+    public static function catchErrors(callable $lambda): callable
+    {
+        return function (...$argv) use ($lambda) {
+            try {
+                ob_start(null,null,  PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
+                $argv = \call_user_func_array($lambda, $argv);
+            } catch (\Throwable $e) {
+                if (!$e instanceof PublicAlert) {
+                    PublicAlert::danger('Developers make mistakes, and you found a big one! We\'ve logged this event and will be investigating soon.'); // TODO - Change what is logged
+                    if (APP_LOCAL) {
+                        PublicAlert::warning(\get_class($e) . $e->getMessage());
+                    }
+                    try {
+                        ErrorCatcher::generateLog($e);
+                    } catch (\Throwable $e) {
+                        PublicAlert::danger('Error handling failed.');
+                        print $e->getMessage();
+                        PublicAlert::info(json_encode($e));
+
+                    }
+                } elseif (APP_LOCAL) {
+                    ErrorCatcher::generateLog($e);
+                }
+                /** @noinspection CallableParameterUseCaseInTypeContextInspection */
+                $argv = null;
+            } finally {
+                if (ob_get_status() && ob_get_length()) {
+                    $out = ob_get_contents();
+                    ob_end_clean();
+                    print <<<END
+                                <div class="callout callout-info">
+                                <h4>You have printed to the screen while within the catchErrors() function!</h4>
+                                Don't slip up in your production code!
+                                <a href="http://carbonphp.com/">Note: All MVC routes are wrapped in this function. Output to the browser should be done within the view! Use this as a reporting tool only.</a>
+                                </div><pre>$out</pre>
+END;
+
+                }
+                Database::verify();     // Check that all database commit chains have finished successfully, otherwise attempt to remove
+                return $argv;
+            }
+        };
+    }
+
+
     /**
      * ErrorCatcher constructor.
      */

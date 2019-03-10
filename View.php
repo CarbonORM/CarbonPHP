@@ -62,12 +62,15 @@ class View
             return ob_get_clean();
         };
 
+
         if (SOCKET) {
             print $buffer() . PHP_EOL;
             return true;
         }
-
         if (pathinfo($file, PATHINFO_EXTENSION) === 'hbs') {
+
+            //sortDump([PJAX , AJAX], 0, 0);
+
             $mustache = new \Mustache_Engine();
 
             if (SOCKET || (!self::$forceWrapper && PJAX && AJAX)) {        // Send JSON To Socket
@@ -80,6 +83,8 @@ class View
                 headers_sent() or header('Content-Type: application/json');
 
                 print json_encode($json) . PHP_EOL . PHP_EOL;
+
+
 
                 return true;
             }
@@ -107,8 +112,6 @@ class View
 
         if (!self::$forceWrapper && (PJAX || AJAX)):        // Send only inner content?
             print $buffer;
-
-
         #################### Send the Outer Wrapper
         elseif (pathinfo(self::$wrapper, PATHINFO_EXTENSION) === 'hbs'):   // Outer Wrapper is Mustache
             $json['content'] = $buffer;

@@ -20,13 +20,6 @@
     "matthiasmullie/minify": "dev-master",
     "patchwork/jsqueeze": "^2.0"
   },
-  "suggest": {
-    "almasaeed2010/adminlte": "^2.4",
-    "bower-asset/jquery-backstretch": "^2.1.16",
-    "bower-asset/jquery-form": "dev-master",
-    "bower-asset/jquery-pjax": "dev-master",
-    "bower-asset/mustache.js": "dev-master"
-  },
   "authors": [
     {
       "name": "Richard Miles",
@@ -41,7 +34,9 @@
       "CarbonPHP\\Error\\": "error/",
       "CarbonPHP\\Helpers\\": "helpers/",
       "CarbonPHP\\Interfaces\\": "interfaces/",
-      "CarbonPHP\\Programs\\": "programs/"
+      "CarbonPHP\\Programs\\": "programs/",
+      "CarbonPHP\\Controller\\": "controller/",
+      "CarbonPHP\\Model\\": "model/"
     }
   }
 }

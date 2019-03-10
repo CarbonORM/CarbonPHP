@@ -37,6 +37,7 @@ import HeaderTop from "components/HeaderTop/HeaderTop";
 import HeaderLinks from "components/HeaderTop/HeaderLinks.jsx";
 import ProfilePage from "../ProfilePage/ProfilePage";
 import LandingPage from "../LandingPage/LandingPage";
+import SectionCarousel from "./Sections/SectionCarousel";
 // import Sections from "views/Documentation/Sections/Sections";
 
 
@@ -81,6 +82,12 @@ class Documentation extends React.Component {
                 name: "Basics",
                 component: SectionBasics
             },
+            // I havent been able to get this to work
+            // {
+            //     path: "/SectionCarousel",
+            //     name: "Carousel",
+            //     component: SectionCarousel
+            // },
             {
                 path: "/SectionTabs",
                 name: "Tabs",
@@ -125,22 +132,6 @@ class Documentation extends React.Component {
                 name: "Landing",
                 component: LandingPage
             },
-            // {
-            //     path: "/ViewLoginPage",
-            //     name: "View Login Page",
-            //     component: (<GridItem md={12} className={classes.textCenter}>
-            //         <Link to={"/login-page"} className={classes.link}>
-            //             <Button color="primary" size="lg" simple>
-            //                 View Login Page
-            //             </Button>
-            //         </Link>
-            //     </GridItem>)
-            // },
-            {
-                path: "/SectionExamples",
-                name: "Examples",
-                component: SectionExamples
-            },
             {
                 path: "/SectionDownload",
                 name: "Download",
@@ -149,8 +140,8 @@ class Documentation extends React.Component {
             {
                 redirect: true,
                 path: "/",
-                pathTo: "/SectionExamples",
-                name: "Examples"
+                pathTo: "/SectionNavbars",
+                name: "Navbars"
             }
         ];
 

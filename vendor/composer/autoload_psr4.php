@@ -16,8 +16,10 @@ return array(
     'Doctrine\\Instantiator\\' => array($vendorDir . '/doctrine/instantiator/src/Doctrine/Instantiator'),
     'DeepCopy\\' => array($vendorDir . '/myclabs/deep-copy/src/DeepCopy'),
     'CarbonPHP\\Programs\\' => array($baseDir . '/programs'),
+    'CarbonPHP\\Model\\' => array($baseDir . '/model'),
     'CarbonPHP\\Interfaces\\' => array($baseDir . '/interfaces'),
     'CarbonPHP\\Helpers\\' => array($baseDir . '/helpers'),
     'CarbonPHP\\Error\\' => array($baseDir . '/error'),
+    'CarbonPHP\\Controller\\' => array($baseDir . '/controller'),
     'CarbonPHP\\' => array($baseDir . '/'),
 );

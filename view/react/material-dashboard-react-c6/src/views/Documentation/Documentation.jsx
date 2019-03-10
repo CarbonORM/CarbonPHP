@@ -3,7 +3,6 @@ import React from "react";
 import classNames from "classnames";
 // react components for routing our app without refresh
 
-
 // @material-ui/core components
 import withStyles from "@material-ui/core/styles/withStyles";
 // @material-ui/icons
@@ -20,7 +19,7 @@ import Installation from "./Sections/Installation.jsx";
 import FileStructure from "./Sections/FileStructure.jsx";
 import OptionsIndex from "./Sections/OptionsIndex.jsx";
 import Bootstrap from "./Sections/Bootstrap.jsx";
-import Wrapper from "./Sections/Wrapper.jsx";
+import ControllerModel from "./Sections/ControllerModel.jsx";
 import ParallelProcessing from "./Sections/ParallelProcessing.jsx";
 
 // FileStructure OptionsIndex Bootstrap Wrapper ParallelProcessing
@@ -54,6 +53,7 @@ import Implementations from "./Sections/Implementations";
 import Support from "./Sections/Support";
 import License from "./Sections/License";
 import MaterialUI from "./Sections/MaterialUI";
+import Overview from "./Sections/Overview";
 
 
 
@@ -78,6 +78,7 @@ class Documentation extends React.Component {
 
         const {classes, ...rest} = this.props;
 
+        // noinspection JSUnresolvedVariable
         const mainPanel =
             classes.mainPanel +
             " " +
@@ -89,7 +90,7 @@ class Documentation extends React.Component {
 
         let publicDocumentationRoutes = [
             {
-                path: "/5.0/Documentation/",     // I'm leaving this here for the time being as an example
+                path: "/5.0/Documentation/CarbonPHP",     // I'm leaving this here for the time being as an example
                 name: "Introduction",          // This should be loaded under a different wrapper
                 icon: DashboardIcon,
                 component: CarbonPHP
@@ -122,7 +123,7 @@ class Documentation extends React.Component {
                         component: FileStructure
                     },{
                         path: "/5.0/Documentation/OptionsIndex",
-                        name: "Options & Index",
+                        name: "Configuration",
                         icon: DashboardIcon,
                         component: OptionsIndex
                     },{
@@ -131,20 +132,19 @@ class Documentation extends React.Component {
                         icon: DashboardIcon,
                         component: Bootstrap
                     },{
-                        path: "/5.0/Documentation/Wrapper",
-                        name: "Wrapper",
+                        path: "/5.0/Documentation/ControllerModel",
+                        name: "Controller -> Model",
                         icon: DashboardIcon,
-                        component: Wrapper
+                        component: ControllerModel
                     },{
-                        path: "/5.0/Documentation/ParallelProcessing",
-                        name: "Parallel Processing",
+                        path: "/5.0/Documentation/PHPApplications/View",
+                        name: "View",
                         icon: DashboardIcon,
-                        component: ParallelProcessing
-                    },
+                        component: View
+                    }
                 ]
             },
             {
-                path: "/5.0/Documentation/PHPApplications",
                 name: "PHP Applications",
                 icon: DashboardIcon,
                 views: [
@@ -152,7 +152,7 @@ class Documentation extends React.Component {
                         path: "/5.0/Documentation/PHPApplications/Overview",
                         name: "Overview",
                         icon: DashboardIcon,
-                        component: Environment
+                        component: Overview
                     },{
                         path: "/5.0/Documentation/PHPApplications/Route",
                         name: "Routing",
@@ -184,11 +184,11 @@ class Documentation extends React.Component {
                         icon: DashboardIcon,
                         component: Server
                     },{
-                        path: "/5.0/Documentation/PHPApplications/View",
-                        name: "View",
+                        path: "/5.0/Documentation/ParallelProcessing",
+                        name: "Parallel Processing",
                         icon: DashboardIcon,
-                        component: View
-                    }
+                        component: ParallelProcessing
+                    },
                 ]
             },
             {
@@ -230,13 +230,13 @@ class Documentation extends React.Component {
             {
                 redirect: true,
                 path: "/5.0",
-                pathTo: "/5.0/Documentation",
+                pathTo: "/5.0/Documentation/CarbonPHP",
                 name: "Examples"
             },
             {
                 redirect: true,
                 path: "/",
-                pathTo: "/5.0/Documentation",
+                pathTo: "/5.0/Documentation/CarbonPHP",
                 name: "Examples"
             }
         ];
@@ -264,7 +264,7 @@ class Documentation extends React.Component {
                                     <div className={classes.brand}>
                                         <h1 className={classes.title}>CarbonPHP [C6]</h1>
                                         <h3 className={classes.subtitle}>
-                                            Build full scale applications in minutes.
+                                            Build full scale applications.
                                         </h3>
                                     </div>
                                 </GridItem>

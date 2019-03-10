@@ -7,29 +7,254 @@ import withStyles from "@material-ui/core/styles/withStyles";
 import GridContainer from "components/Grid/GridContainer.jsx";
 import GridItem from "components/Grid/GridItem.jsx";
 
+import typographyStyle from "assets/jss/material-kit-react/views/componentsSections/typographyStyle.jsx";
 import completedStyle from "assets/jss/material-kit-react/views/componentsSections/completedStyle.jsx";
+import SequenceDiagram from "assets/img/SD.png";
+
 
 class SectionCompletedExamples extends React.Component {
-  render() {
-    const { classes } = this.props;
-    return (
-      <div className={classes.section}>
-        <div className={classes.container}>
-          <GridContainer justify="center">
-            <GridItem xs={12} sm={12} md={8}>
-              <h2>Completed with examples</h2>
-              <h4>
-                The kit comes with three pre-built pages to help you get started
-                faster. You can change the text and images and you're good to
-                go. More importantly, looking at them will give you a picture of
-                what you can build with this powerful kit.
-              </h4>
-            </GridItem>
-          </GridContainer>
-        </div>
-      </div>
-    );
-  }
+    render() {
+        const {classes} = this.props;
+        return (
+            <div className={classes.section}>
+                <div className={classes.container}>
+                    <GridContainer justify="center">
+                        <GridItem xs={12} sm={12} md={8}>
+                            <h2>Overview</h2>
+                            <h4>
+                                The sequence diagram below and description even further make up a brief low level
+                                outline of the C6 internals. The diagram can be thought of as a road map to
+                                how code spreads out over multiple files and functions, stacks together, and complete
+                                the task at hand. Each block represents the major files that makeup C6. While all
+                                code is indeed important, it is sometimes useful to understand that something exist
+                                without going into to much detail. The most important takeaways are: <b>dynamic
+                                routes conforming to C6 standards will use an MVC where controllers
+                                validate all user input, model layers update and insert data into the database,
+                                and strictly views print data to the user. </b>
+                            </h4>
+                            <h4>
+                                If user input is taken it must be validated to protect against cross site scripting
+                                attacks. The guys over at OWASP do a good job explaining the complexity of protecting
+                                yourself against a XSS attack. Simply put, if the user is capable of modifying the
+                                information, a variable we need in a routine, it must be validated. The MVC pattern
+                                is simplistic in that it's separation of concerns is conducive to good validation
+                                practices.
+                            </h4>
+                            <h4>
+                                The bootstrap is where you define your application. Most bootstraps are named after the
+                                website they are running. This website uses <b>CarboPHP/C6::class</b> and
+                                https://Stats.Coach/ uses <b>StatsCoach::class</b>. It's probably worth noting each
+                                class should be in a file named the same name of the class, and if you're lost you should
+                                check out the <b>N00B Guid for beginners</b>.
+                                This bootstrap typically contains little to no business logic and simply maps urls to other methods.
+                                In a pure C6 implementation the first step after a url is matched is the controller.
+                            </h4>
+                            <b>{'$this->structure($this->MVC());'}</b>
+                            <b>{'$this->match(\'Recover/{user_email?}/{user_generated_string?}/\', \'User\', \'recover\')()'}</b>
+                            <h4>
+                                We would expect to find the above code in the bootstrap. This would move to the <b>controller/User.php</b>
+                                file. More on this later, but lets take a look at whats inside this file.
+                            </h4>
+
+
+                            <h4>
+                                or url mapping file, we phase any
+
+
+
+                                url parameters and send them to the Controller. This is not the only data that must
+                                be validated. All form data is received in the $_POST[], $_GET[], $_FILES[], $_COOKIE[], ect.. super
+                                globals predefined by
+                                PHP must also be validated.
+                            </h4>
+
+
+                            <GridItem xs={12} sm={12} className={classes.marginLeft}>
+
+                                <img
+                                    src={SequenceDiagram}
+                                    alt="..."
+                                    className={
+                                        classes.imgRaised +
+                                        " " +
+                                        classes.imgRounded +
+                                        " " +
+                                        classes.imgFluid
+                                    }
+                                />
+                            </GridItem>
+                            <p>
+                                <br/><br/>
+                                <div className={classes.typo}>
+                                    <div className={classes.note}><b>title C6 MVC Structure</b></div>
+                                    C6 MVC Structure
+                                </div>
+                                <br/>
+                                <div className={classes.typo}>
+                                    <div className={classes.note}><b>Browser->+Index: 1</b><br/></div>
+                                    <h3>1) A 'user' request is received by our server<br/></h3>
+                                </div>
+                                <br/>
+                                <br/>
+                                <div className={classes.typo}>
+                                    <div className={classes.note}><b>Index->+C6: 2</b><br/></div>
+                                    <h3>2) Send relative path to configuration file as string<br/></h3>
+                                </div>
+                                <br/>
+                                <div className={classes.typo}>
+                                    <div className={classes.note}><b>C6->C6: 3</b><br/></div>
+                                    <h3>3) Setup with option and define global helper functions<br/></h3>
+                                </div>
+                                <br/>
+                                <div className={classes.typo}>
+                                    <div className={classes.note}><b>C6->-Index: 4</b><br/></div>
+                                    <h3>4) Returns the C6 Instance<br/></h3>
+                                </div>
+                                <br/>
+                                <div className={classes.typo}>
+                                    <div className={classes.note}><b>Index->+C6: 5</b><br/></div>
+                                    5) Pass a class that extends <b>CarbonPHP/Application::class</b>.<br/>
+                                    The above implies that the following to abstractions are present in your routing
+                                    class::<br/><br/>
+                                    <b>abstract public function startApplication($uri = null) : bool;</b><br/>
+                                    <small>Defined in the <b>CarbonPHP/Application::class</b></small>
+                                    <br/><br/>
+                                    <b>abstract public function defaultRoute();</b><br/>
+                                    <small>Defined in the <b>CarbonPHP/Route::class</b> which is extend by the
+                                        <b>Application::class</b>
+                                    </small>
+                                </div>
+                                <br/><br/><br/>
+                                <div className={classes.typo}>
+                                    <div className={classes.note}><b>C6->+Bootstrap: 6</b><br/></div>
+                                    <h3>6) Runs the global function <b>startApplication( YouRoutingClass::class )</b>.</h3><br/>
+                                    <small>
+                                        This will ultimately run <br/>
+                                        <b>(new YourRoutingClass::class)->startApplication( $uri )</b><br/>
+                                        defined in your route class. <b>startApplication</b> is designed to allow
+                                        recursive program flow.<br/>
+                                        So between steps 6-15
+                                        you may run <b>startApplication</b> again, thereby repeating 6-15 within
+                                        6-15 then continuing execution
+                                        where you called <b>startApplication</b>.<br/>
+                                        The first invocation of the global <b>startApplication</b> function will
+                                        statically store the routing classes definition.<br/><br/>
+                                        With each successive call to <b>startApplication( $uri )</b>, you should path the desired
+                                        route to re-match. Keep in mind that the first call this function is done automatically with
+                                        the invocation of the CarbonPHP class object.<br/><br/>
+                                        <b>startApplication( '/profile' )</b>
+                                        <br/><br/>
+                                        The '/' page, or home page, will always run the <br/>
+                                        <b>YourRoutingClass->defaultRoute();</b><br/>
+                                        then return to the index.
+
+                                    </small>
+                                </div>
+                                <br/><br/>
+                                <div className={classes.typo}>
+                                    <div className={classes.note}><b>Bootstrap->Bootstrap: 7</b></div>
+                                    <h3>7) Set <b>$this->structure( $this->MVC() );</b> as the method to use is a match is
+                                    found.</h3>
+                                </div>
+                                <div className={classes.typo}>
+                                    <div className={classes.note}><b>Bootstrap->+Controller: 8</b></div>
+                                    7) Passes arguments provided to match followed by url variables
+                                </div>
+                                <div className={classes.typo}>
+                                    <div className={classes.note}><b>Controller-->-Bootstrap: 9</b></div>
+                                    8) Controller->Bootstrap: Responce to validation
+                                </div>
+
+                                <div className={classes.typo}>
+                                    <div className={classes.note}><b>
+                                        opt</b></div>
+                                </div>
+                                <br/>
+                                <div className={classes.typo}>
+                                    <div className={classes.note}><b>
+                                        opt</b></div>
+                                </div>
+
+                                <div className={classes.typo}>
+                                    <div className={classes.note}><b>
+                                        Bootstrap->+Model: 10</b>
+                                    </div>
+                                    10)
+                                </div>
+
+                                <div className={classes.typo}>
+                                    <div className={classes.note}><b>
+                                        Model-->-Bootstrap: 11
+                                    </b></div>
+                                    11)
+                                </div>
+                                <div className={classes.typo}>
+                                    <div className={classes.note}>
+                                        end
+                                    </div>
+                                </div>
+                                <br/>
+                                <div className={classes.typo}>
+                                    <div className={classes.note}>
+                                        opt
+                                    </div>
+                                </div>
+                                <div className={classes.typo}>
+                                    <div className={classes.note}>
+                                        Bootstrap->+View: 12
+                                    </div>
+                                    12)
+                                </div>
+                                <div className={classes.typo}>
+
+                                    <div className={classes.note}>
+                                        note over View,Browser: 13
+                                    </div>
+                                    13) Print and send the content. This could be a JSON, HTML, or any other vector of responce.
+                                </div>
+                                <div className={classes.typo}>
+
+                                    <div className={classes.note}>
+                                        View-->-Bootstrap: 14
+                                    </div>
+                                    14)
+                                </div>
+                                <div className={classes.typo}>
+                                    <div className={classes.note}>
+                                        end<br/></div>
+                                </div>
+                                <br/>
+                                <div className={classes.typo}>
+                                    <div className={classes.note}>
+                                        end
+                                    </div>
+                                </div>
+
+                                <div className={classes.typo}>
+                                    <div className={classes.note}>
+                                        Bootstrap-->-C6: 15
+                                    </div>
+                                    15)
+                                </div>
+                                <div className={classes.typo}>
+                                    <div className={classes.note}>
+                                        C6-->-Index: 16
+                                    </div>
+                                    16)
+                                </div>
+                                <div className={classes.typo}>
+                                    <div className={classes.note}>
+                                        Index->-Browser: 17
+                                    </div>
+                                    17) All code is finished and the connection is closed.
+                                </div>
+                            </p>
+                        </GridItem>
+                    </GridContainer>
+                </div>
+            </div>
+        );
+    }
 }
 
-export default withStyles(completedStyle)(SectionCompletedExamples);
+export default withStyles({...completedStyle, ...typographyStyle})(SectionCompletedExamples);

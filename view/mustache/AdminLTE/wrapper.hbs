@@ -1,17 +1,14 @@
-<?php
-$logged_in = $_SESSION['id'] ?? false;
-?>
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title><?=SITE_TITLE?></title>
+    <title>{{SITE_TITLE}}</title>
     <!-- Tell the browser to be responsive to screen width -->
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
 
     <!-- PJAX Content Control -->
-    <meta http-equiv="x-pjax-version" content="<?=$_SESSION['X_PJAX_Version']?>">
+    <meta http-equiv="x-pjax-version" content="{{X_PJAX_Version}}">
     <!-- Google -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-100885582-1"></script>
 
@@ -39,7 +36,7 @@ $logged_in = $_SESSION['id'] ?? false;
         // Facebook Analytics
         window.fbAsyncInit = function () {
             FB.init({
-                appId: '<?=FACEBOOK_APP_ID?>',
+                appId: '{{FACEBOOK_APP_ID}}',
                 xfbml: true,
                 version: 'v2.11'
             });
@@ -86,7 +83,7 @@ $logged_in = $_SESSION['id'] ?? false;
     <!-- Main Header -->
     <header class="main-header">
         <!-- Logo -->
-        <a href="<?= SITE ?>" class="logo">
+        <a href="/" class="logo">
             <!-- mini logo for sidebar mini 50x50 pixels -->
             <span class="logo-mini"><b>C</b>6</span>
             <!-- logo for regular state and mobile devices -->
@@ -118,7 +115,7 @@ $logged_in = $_SESSION['id'] ?? false;
                                     <li><!-- start message -->
                                         <a href="#">
                                             <div class="pull-left">
-                                                <img src="<?= SITE . APP_VIEW ?>Img/defaults/richard.png"
+                                                <img src="/view/mustache/img/defaults/richard.png"
                                                      class="img-circle" alt="User Image">
                                             </div>
                                             <h4>
@@ -132,7 +129,7 @@ $logged_in = $_SESSION['id'] ?? false;
                                     <li>
                                         <a href="#">
                                             <div class="pull-left">
-                                                <img src="<?= SITE . APP_VIEW ?>Img/defaults/mom.png" class="img-circle"
+                                                <img src="/view/mustache/img/defaults/mom.png" class="img-circle"
                                                      alt="User Image">
                                             </div>
                                             <h4>
@@ -145,7 +142,7 @@ $logged_in = $_SESSION['id'] ?? false;
                                     <li>
                                         <a href="#">
                                             <div class="pull-left">
-                                                <img src="<?= SITE . APP_VIEW ?>Img/defaults/morgan.png"
+                                                <img src="/view/mustache/img/defaults/morgan.png"
                                                      class="img-circle" alt="User Image">
                                             </div>
                                             <h4>
@@ -158,7 +155,7 @@ $logged_in = $_SESSION['id'] ?? false;
                                     <li>
                                         <a href="#">
                                             <div class="pull-left">
-                                                <img src="<?= SITE . APP_VIEW ?>Img/defaults/madi.png"
+                                                <img src="/view/mustache/img/defaults/madi.png"
                                                      class="img-circle" alt="User Image">
                                             </div>
                                             <h4>
@@ -171,7 +168,7 @@ $logged_in = $_SESSION['id'] ?? false;
                                     <li>
                                         <a href="#">
                                             <div class="pull-left">
-                                                <img src="<?= SITE . APP_VIEW ?>Img/defaults/summer.png"
+                                                <img src="/view/mustache/img/defaults/summer.png"
                                                      class="img-circle" alt="User Image">
                                             </div>
                                             <h4>
@@ -315,14 +312,14 @@ $logged_in = $_SESSION['id'] ?? false;
                     <!-- User Account: style can be found in dropdown.less -->
                     <li class="dropdown user user-menu">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                            <img src="<?= SITE . APP_VIEW ?>Img/defaults/richard.png" class="user-image"
+                            <img src="/view/mustache/img/defaults/richard.png" class="user-image"
                                  alt="User Image">
                             <span class="hidden-xs">Richard Miles</span>
                         </a>
                         <ul class="dropdown-menu">
                             <!-- User image -->
                             <li class="user-header">
-                                <img src="<?= SITE . APP_VIEW ?>Img/defaults/richard.png" class="img-circle"
+                                <img src="/view/mustache/img/defaults/richard.png" class="img-circle"
                                      alt="User Image">
 
                                 <p>
@@ -370,7 +367,7 @@ $logged_in = $_SESSION['id'] ?? false;
             <!-- Sidebar user panel -->
             <div class="user-panel">
                 <div class="pull-left image">
-                    <img src="<?= SITE . APP_VIEW ?>Img/defaults/richard.png" class="img-circle" alt="User Image">
+                    <img src="/view/mustache/img/defaults/richard.png" class="img-circle" alt="User Image">
                 </div>
                 <div class="pull-left info">
                     <p>Richard Miles</p>
@@ -399,12 +396,12 @@ $logged_in = $_SESSION['id'] ?? false;
             </span>
                     </a>
                     <ul class="treeview-menu">
-                        <li><a href="<?= SITE ?>UIElements/index"><i class="fa fa-circle-o"></i> Dashboard v1</a></li>
-                        <li><a href="<?= SITE ?>UIElements/index2"><i class="fa fa-circle-o"></i> Dashboard v2</a></li>
+                        <li><a href="/2.0/UIElements/index"><i class="fa fa-circle-o"></i> Dashboard v1</a></li>
+                        <li><a href="/2.0/UIElements/index2"><i class="fa fa-circle-o"></i> Dashboard v2</a></li>
                     </ul>
                 </li>
                 <li>
-                    <a href="<?= SITE ?>UIElements/widgets">
+                    <a href="/2.0/UIElements/widgets">
                         <i class="fa fa-th"></i> <span>Widgets</span>
                         <span class="pull-right-container">
               <small class="label pull-right bg-green">new</small>
@@ -420,10 +417,10 @@ $logged_in = $_SESSION['id'] ?? false;
             </span>
                     </a>
                     <ul class="treeview-menu">
-                        <li><a href="<?= SITE ?>UIElements/chartjs"><i class="fa fa-circle-o"></i> ChartJS</a></li>
+                        <li><a href="/2.0/UIElements/chartjs"><i class="fa fa-circle-o"></i> ChartJS</a></li>
                         <!--li><a href="/UIElements/morris"><i class="fa fa-circle-o"></i> Morris</a></li-->
-                        <li><a href="<?= SITE ?>UIElements/flot"><i class="fa fa-circle-o"></i> Flot</a></li>
-                        <li><a href="<?= SITE ?>UIElements/inline"><i class="fa fa-circle-o"></i> Inline charts</a></li>
+                        <li><a href="/2.0/UIElements/flot"><i class="fa fa-circle-o"></i> Flot</a></li>
+                        <li><a href="/2.0/UIElements/inline"><i class="fa fa-circle-o"></i> Inline charts</a></li>
                     </ul>
                 </li>
                 <li class="treeview">
@@ -435,12 +432,12 @@ $logged_in = $_SESSION['id'] ?? false;
             </span>
                     </a>
                     <ul class="treeview-menu">
-                        <li><a href="<?= SITE ?>UIElements/general"><i class="fa fa-circle-o"></i> General</a></li>
-                        <li><a href="<?= SITE ?>UIElements/icons"><i class="fa fa-circle-o"></i> Icons</a></li>
-                        <li><a href="<?= SITE ?>UIElements/buttons"><i class="fa fa-circle-o"></i> Buttons</a></li>
-                        <li><a href="<?= SITE ?>UIElements/sliders"><i class="fa fa-circle-o"></i> Sliders</a></li>
-                        <li><a href="<?= SITE ?>UIElements/timeline"><i class="fa fa-circle-o"></i> Timeline</a></li>
-                        <li><a href="<?= SITE ?>UIElements/modals"><i class="fa fa-circle-o"></i> Modals</a></li>
+                        <li><a href="/2.0/UIElements/general"><i class="fa fa-circle-o"></i> General</a></li>
+                        <li><a href="/2.0/UIElements/icons"><i class="fa fa-circle-o"></i> Icons</a></li>
+                        <li><a href="/2.0/UIElements/buttons"><i class="fa fa-circle-o"></i> Buttons</a></li>
+                        <li><a href="/2.0/UIElements/sliders"><i class="fa fa-circle-o"></i> Sliders</a></li>
+                        <li><a href="/2.0/UIElements/timeline"><i class="fa fa-circle-o"></i> Timeline</a></li>
+                        <li><a href="/2.0/UIElements/modals"><i class="fa fa-circle-o"></i> Modals</a></li>
                     </ul>
                 </li>
                 <li class="treeview">
@@ -451,11 +448,11 @@ $logged_in = $_SESSION['id'] ?? false;
             </span>
                     </a>
                     <ul class="treeview-menu">
-                        <li><a href="<?= SITE ?>UIElements/general"><i class="fa fa-circle-o"></i> General Elements</a>
+                        <li><a href="/2.0/UIElements/general"><i class="fa fa-circle-o"></i> General Elements</a>
                         </li>
-                        <li><a href="<?= SITE ?>UIElements/advanced"><i class="fa fa-circle-o"></i> Advanced
+                        <li><a href="/2.0/UIElements/advanced"><i class="fa fa-circle-o"></i> Advanced
                                 Elements</a></li>
-                        <li><a href="<?= SITE ?>UIElements/editors"><i class="fa fa-circle-o"></i> Editors</a></li>
+                        <li><a href="/2.0/UIElements/editors"><i class="fa fa-circle-o"></i> Editors</a></li>
                     </ul>
                 </li>
                 <li class="treeview">
@@ -466,12 +463,12 @@ $logged_in = $_SESSION['id'] ?? false;
             </span>
                     </a>
                     <ul class="treeview-menu">
-                        <li><a href="<?= SITE ?>UIElements/simple"><i class="fa fa-circle-o"></i> Simple tables</a></li>
-                        <li><a href="<?= SITE ?>UIElements/data"><i class="fa fa-circle-o"></i> Data tables</a></li>
+                        <li><a href="/2.0/UIElements/simple"><i class="fa fa-circle-o"></i> Simple tables</a></li>
+                        <li><a href="/2.0/UIElements/data"><i class="fa fa-circle-o"></i> Data tables</a></li>
                     </ul>
                 </li>
                 <li class="active">
-                    <a href="<?= SITE ?>UIElements/calendar">
+                    <a href="/2.0/UIElements/calendar">
                         <i class="fa fa-calendar"></i> <span>Calendar</span>
                         <span class="pull-right-container">
               <small class="label pull-right bg-red">3</small>
@@ -489,14 +486,14 @@ $logged_in = $_SESSION['id'] ?? false;
                     </a>
                     <ul class="treeview-menu">
                         <li class="active">
-                            <a href="<?= SITE ?>UIElements/mailbox">Inbox
+                            <a href="/2.0/UIElements/mailbox">Inbox
                                 <span class="pull-right-container">
                   <span class="label label-primary pull-right">13</span>
                 </span>
                             </a>
                         </li>
-                        <li><a href="<?= SITE ?>UIElements/compose">Compose</a></li>
-                        <li><a href="<?= SITE ?>UIElements/readmail">Read</a></li>
+                        <li><a href="/2.0/UIElements/compose">Compose</a></li>
+                        <li><a href="/2.0/UIElements/readmail">Read</a></li>
                     </ul>
                 </li>
                 <li class="treeview">
@@ -507,15 +504,15 @@ $logged_in = $_SESSION['id'] ?? false;
             </span>
                     </a>
                     <ul class="treeview-menu">
-                        <li><a href="<?= SITE ?>UIElements/invoice"><i class="fa fa-circle-o"></i> Invoice</a></li>
-                        <li><a href="<?= SITE ?>UIElements/profile"><i class="fa fa-circle-o"></i> Profile</a></li>
-                        <li><a href="<?= SITE ?>UIElements/login"><i class="fa fa-circle-o"></i> Login</a></li>
-                        <li><a href="<?= SITE ?>UIElements/register"><i class="fa fa-circle-o"></i> Register</a></li>
-                        <li><a href="<?= SITE ?>UIElements/lockscreen"><i class="fa fa-circle-o"></i> Lockscreen</a>
+                        <li><a href="/2.0/UIElements/invoice"><i class="fa fa-circle-o"></i> Invoice</a></li>
+                        <li><a href="/2.0/UIElements/profile"><i class="fa fa-circle-o"></i> Profile</a></li>
+                        <li><a href="/2.0/UIElements/login"><i class="fa fa-circle-o"></i> Login</a></li>
+                        <li><a href="/2.0/UIElements/register"><i class="fa fa-circle-o"></i> Register</a></li>
+                        <li><a href="/2.0/UIElements/lockscreen"><i class="fa fa-circle-o"></i> Lockscreen</a>
                         </li>
-                        <li><a href="<?= SITE ?>UIElements/404"><i class="fa fa-circle-o"></i> 404 Error</a></li>
-                        <li><a href="<?= SITE ?>UIElements/500"><i class="fa fa-circle-o"></i> 500 Error</a></li>
-                        <li><a href="<?= SITE ?>UIElements/blank"><i class="fa fa-circle-o"></i> Blank Page</a></li>
+                        <li><a href="/2.0/UIElements/404"><i class="fa fa-circle-o"></i> 404 Error</a></li>
+                        <li><a href="/2.0/UIElements/500"><i class="fa fa-circle-o"></i> 500 Error</a></li>
+                        <li><a href="/2.0/UIElements/blank"><i class="fa fa-circle-o"></i> Blank Page</a></li>
                     </ul>
                 </li>
                 <li class="treeview">
@@ -551,7 +548,7 @@ $logged_in = $_SESSION['id'] ?? false;
                         <li><a href="#"><i class="fa fa-circle-o"></i> Level One</a></li>
                     </ul>
                 </li>
-                <li><a href="<?=SITE?>"><i class="fa fa-book"></i> <span>Documentation</span></a></li>
+                <li><a href="/2.0/"><i class="fa fa-book"></i> <span>Documentation</span></a></li>
                 <li class="header">LABELS</li>
                 <li><a href="#"><i class="fa fa-circle-o text-red"></i> <span>Important</span></a></li>
                 <li><a href="#"><i class="fa fa-circle-o text-yellow"></i> <span>Warning</span></a></li>
@@ -647,7 +644,7 @@ $logged_in = $_SESSION['id'] ?? false;
         <!-- content -->
         <div class="col-md-offset-1 col-md-10">
             <div id="pjax-content">
-                <?= \CarbonPHP\View::$bufferedContent ?? '' ?>
+                {{{content}}}
             </div>
         </div>
         <!-- /.content -->
@@ -660,7 +657,7 @@ $logged_in = $_SESSION['id'] ?? false;
     <footer class="main-footer bg-black" style="border-top-color:black">
         <div class="container">
             <div class="pull-right hidden-xs">
-                <a href="<?= SITE ?>Privacy/" class="text-purple">Privacy Policy</a> <b>Version</b> <?= SITE_VERSION ?>
+                <a href="/2.0/Privacy/" class="text-purple">Privacy Policy</a> <b>Version</b> {{SITE_VERSION}}
             </div>
             <strong>Copyright &copy; 2014-2017 <a href="https://miles.systems/" class="text-purple">Richard
                     Miles</a>.</strong>
@@ -868,10 +865,7 @@ $logged_in = $_SESSION['id'] ?? false;
 <script src="/view/mustache/js/javascript.js"></script>
 
 <script>
-    const TEMPLATE = "/vendor/almasaeed2010/adminlte/",
-        APP_VIEW = "/view/",
-        COMPOSER = "/vendor/",
-        carbon = new CarbonPHP('#pjax-content');
+    const carbon = new CarbonPHP('#pjax-content');
 
     carbon.event("Carbon");
 
@@ -895,7 +889,7 @@ $logged_in = $_SESSION['id'] ?? false;
         $('#my-box-widget').boxRefresh('load');
     });
 
-    $.load_backStretch(APP_VIEW + 'mustache/img/Carbon-White.png');
+    $.load_backStretch('/view/mustache/img/Carbon-White.png');
 
     $('.sidebar-menu').tree();
 

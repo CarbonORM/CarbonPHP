@@ -17,22 +17,101 @@ use CarbonPHP\programs\CLI;
  */
 class CarbonPHP
 {
+    public function __construct(string $PHP = null){
+        self::make($PHP);
+    }
+
+    public function __invoke($application) : bool
+    {
+        return self::run($application);
+    }
+
     /**
      * @var bool $safelyExit determines if start application should be executed
      * when running the invoke magic method.
      */
-    private $safelyExit = false;
+    public static $safelyExit = false;
 
     public static $setupComplete = false;
+
+    /** Start application will start a bootstrap file passed to it. It will
+     * store that instance in a static variable and reuse it for the proccess life.
+     *
+     * @param $reset
+     *  If a string is passed to reset then the uri of the website will be changed
+     *  to the value of reset.
+     *
+     *  If ($reset == true) then set our uri to '/' and all variables cached using
+     *  the serialized class will be reset. The the outer html will be sent and
+     *  our session callback will be executed.
+     *
+     *  The session callback is be set in carbon's configuration
+     * @link
+     *
+     * @return bool Returns the response from the bootstrap as a bool
+     */
+    public static function startApplication($reset = false): bool
+    {
+        #global $json;
+        static $application;
+
+        if (null === $application) {
+            if (TEST) {
+                // TODO - this logic seems wrong, I think the idea is that tests don't use startApplication at all.
+                return true;    // PHPUnit Tests Shouldn't have redirection
+            }
+            $application = $reset;
+            $application = new $application;
+            if (!$application instanceof Application) {
+                print 'Your application must extend the CarbonPHP/Application::class' . PHP_EOL;
+                return false;
+            }
+            if (SOCKET) {
+                return true;
+            }
+            $reset = false;
+        } else {
+            $_POST = [];
+            #sort($json);
+            #$json['header'] = null;
+            #sortDump($json);
+        }
+
+
+        if ($reset):                                    // This will always be se in a socket
+            if ($reset === true):
+                View::$forceWrapper = true;
+                Request::changeURI($uri = '/');         // Dynamically using pjax + headers
+            else:
+                Request::changeURI($uri = $reset);
+            endif;
+            $application->changeURI($uri);    // So our routing file knows what to match
+            $reset = true;
+            $_POST = [];                      // Only PJAX + AJAX can post
+        endif;
+
+        Session::update($reset);              // Check wrapper / session callback
+
+        $application->matched = false;        // We can assume your in need of route matching again
+
+        $uri = $uri ?? null;
+
+        if ($uri === '/') {
+            $application->defaultRoute();
+            return true;
+        }
+
+        return $application->startApplication($reset ? $uri : $application->uri);  // Routing file
+    }
 
     /** If safely exit is false run startApplication(), otherwise return $safelyExit
      * @link http://php.net/manual/en/language.oop5.magic.php#object.invoke
      * @param string $application The class to execute. This must extend CarbonPHP/Application
      * @return bool
      */
-    public function __invoke($application)
+    public static function run($application): bool
     {
-        return $this->safelyExit ?: startApplication($application);
+        return self::$safelyExit ?: self::startApplication($application);
     }
 
     /**
@@ -88,7 +167,7 @@ class CarbonPHP
      * ]
      * @throws \Exception
      */
-    public function __construct(string $PHP = null)
+    public static function make(string $PHP = null) : void
     {
         // TODO - make a cache of these consts
 
@@ -96,7 +175,7 @@ class CarbonPHP
         \defined('TEST') OR \define('TEST', $_ENV['TEST'] ?? false);
 
         if (TEST) {
-            $this->safelyExit = true;  // We just want the env to load, not route life :)
+            self::$safelyExit = true;  // We just want the env to load, not route life :)
             $_SERVER = [
                 'REMOTE_ADDR' => '::1',
                 'REMOTE_PORT' => '53950',
@@ -134,7 +213,7 @@ class CarbonPHP
         \defined('CARBON_ROOT') OR \define('CARBON_ROOT', __DIR__ . DS);
 
         ####################  Did we use >> php -S localhost:8080 index.php
-        \defined('APP_LOCAL') OR \define('APP_LOCAL', $this->isClientServer());
+        \defined('APP_LOCAL') OR \define('APP_LOCAL', self::isClientServer());
 
         ####################  May as well make composer a dependency
         \defined('COMPOSER_ROOT') OR \define('COMPOSER_ROOT', \dirname(CARBON_ROOT, 2) . DS);
@@ -155,7 +234,7 @@ class CarbonPHP
                 $PHP = include $PHP;            // this file must return an array!
             } elseif ($PHP !== null) {
                 print 'Invalid configuration path given! ' . $PHP;
-                $this->safelyExit = true;
+                self::$safelyExit = true;
                 return;
             }
         }
@@ -229,7 +308,7 @@ class CarbonPHP
         // PHPUnit Runs in a cli to ini the 'CarbonPHP' env.
         // We're not testing out extra resources
         if (PHP_SAPI === 'cli' && !TEST && !SOCKET) {
-            $this->safelyExit = true;
+            self::$safelyExit = true;
             $cli = new CLI($PHP);
             $cli->run($_SERVER['argv'] ?? ['index.php', null]);
             $cli->cleanUp($PHP);
@@ -240,23 +319,25 @@ class CarbonPHP
         // This is the first step that could kick users out of our application.
         // Even if a request is bad, we need to store the log
         if (!\defined('IP')) {
-            $this->IP_FILTER();
+            self::IP_FILTER();
         }
 
         // This is the first event that could resolve the request (to a file), respond, and exit safely
-        $this->URI_FILTER($PHP['SITE']['URL'] ?? '', $PHP['SITE']['CACHE_CONTROL'] ?? []);
+        self::URI_FILTER($PHP['SITE']['URL'] ?? '', $PHP['SITE']['CACHE_CONTROL'] ?? []);
 
 
         // TODO - I'm probably going to move this to the cli
         if ($PHP['DATABASE']['REBUILD'] ?? false) {
             Database::setUp(false);   // Redirect = false
-            $this->safelyExit = true;
+            self::$safelyExit = true;
             return;
         }
 
         #######################   Pjax Ajax Refresh  ######################
         // Must return a non empty value
-        \define('PJAX', SOCKET ? false : isset($_GET['_pjax']) || (isset($_SERVER['HTTP_X_PJAX']) && $_SERVER['HTTP_X_PJAX']));
+        SOCKET or $headers = apache_request_headers();
+
+        \define('PJAX', SOCKET ? false : isset($headers['X-PJAX']) || isset($_GET['_pjax']) || (isset($_SERVER['HTTP_X_PJAX']) && $_SERVER['HTTP_X_PJAX']));
 
         if (PJAX && empty($_POST)) {
             # try to json decode. Json payloads ar sent to the input stream
@@ -264,7 +345,7 @@ class CarbonPHP
         }
 
         // (PJAX == true) return required, else (!PJAX && AJAX) return optional (socket valid)
-        \define('AJAX', SOCKET ? false : PJAX || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'));
+        \define('AJAX', SOCKET ? false : PJAX || ('XMLHttpRequest'===($headers['X-Requested-With']??false)) ||  (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'));
 
         \define('HTTPS', SOCKET ? false : ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? false) === 'https' || ($_SERVER['HTTPS'] ?? false) !== 'off');
 
@@ -311,7 +392,7 @@ class CarbonPHP
      * otherwise returns false.
      * @return bool|mixed|string
      */
-    private function isClientServer()
+    private static function isClientServer()
     {
         if (PHP_SAPI === 'cli-server' || PHP_SAPI === 'cli' || \in_array($_SERVER['REMOTE_ADDR'] ?? [], ['127.0.0.1', 'fe80::1', '::1'], false)) {
             if (SOCKET && $ip = filter_var($_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
@@ -335,8 +416,7 @@ class CarbonPHP
      * @param array|null $cacheControl
      * @return bool
      */
-    private
-    function URI_FILTER(string $URL = 'CarbonPHP.com', array $cacheControl = null): bool
+    private static function URI_FILTER(string $URL = 'CarbonPHP.com', array $cacheControl = null): bool
     {
         if (!empty($URL = strtolower($URL)) && $_SERVER['SERVER_NAME'] !== $URL && !APP_LOCAL) {
             header("Refresh:0; url=$URL");
@@ -344,7 +424,7 @@ class CarbonPHP
     <meta http-equiv="refresh" content="5; url=' . $URL . '"></head><body>' .
                 IP . '<h1>You appear to be lost.</h1><h2>Moving to <a href="' . $URL . '"> ' . $URL . '</a></h2>' .
                 "<script>window.location.type = $URL</script></body></html>";
-            $this->safelyExit = true;
+            self::$safelyExit = true;
         }
 
         \define('URI', trim(urldecode(parse_url(trim(preg_replace('/\s+/', ' ', $_SERVER['REQUEST_URI'])), PHP_URL_PATH)), '/'), true);
@@ -405,11 +485,11 @@ class CarbonPHP
 
 
     /** This function uses common keys for obtaining the users real IP.
-     * We use this for verbo se operating systems support.
+     * We use this for verbose operating systems support.
      * @link http://blackbe.lt/advanced-method-to-obtain-the-client-ip-in-php/
      * @return mixed|string
      */
-    private function IP_FILTER()
+    private static function IP_FILTER()
     {
         $ip_keys = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR');
         foreach ($ip_keys as $key) {

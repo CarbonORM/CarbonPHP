@@ -131,7 +131,8 @@ function CarbonPHP(selector, address, options) {
 
         json = (typeof data === "string" ? this.isJson(data) : false);
 
-        console.log(json);
+        console.log(JSON.stringify(json));
+        console.log(eval(json));
 
         if (json) {
             this.alerting = json.alert;
@@ -144,7 +145,6 @@ function CarbonPHP(selector, address, options) {
 
                 console.log('Valid Handlebars $( ' + json.Widget + ' ).render( ' + json.Mustache + ', ... ); \n');
 
-
                 $.ajax({
                     async: false,
                     //cache: false,
@@ -152,6 +152,8 @@ function CarbonPHP(selector, address, options) {
                 }).done((mustache) => {
 
                     Mustache.parse(mustache);                                   /* cache */
+
+                    console.log(mustache);
 
                     template = Mustache.render(mustache, json);       /* render json with mustache lib */
 
@@ -304,18 +306,20 @@ function CarbonPHP(selector, address, options) {
     $(document).on('submit', 'form', (event) => {        /* TODO - remove this pos */
         event.preventDefault();
 
-
         $.fn.serializeAllArray = function () {
             var obj = {};
 
             $('input', this).each(function () {
                 obj[this.name] = $(this).val();
             });
+            $('textarea', this).each(function () {
+                obj[this.name] = $(this).val();
+            });
             $('select', this).each(function () {
                 obj[this.name] = $(this).val();
             });
             return obj;
-        }
+        };
 
         console.log($(event.target).serializeAllArray())
 

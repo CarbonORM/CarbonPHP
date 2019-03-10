@@ -45,27 +45,33 @@ class login extends React.Component {
         }
         return <Switch>
             {route.map((prop, key) => {
-                if (prop.redirect)
+                if (prop.redirect) {
+                    if (!prop.pathTo) {
+                        console.log('bad route redirect,', prop);
+                        return;
+                    }
                     return <Redirect
                         exact
                         from={prop.path}
                         to={prop.pathTo}
-                        key={key} />;
-                if (prop.collapse)
-                    return prop.views.map((prop, key) => {
+                        key={key}/>;
+                }
+                if (prop.views) {
+                    return prop.views.map((x, key) => {
                         return (
                             <Route
                                 exact
-                                path={prop.path}
-                                render={props => (
-                                    <prop.component
-                                        {...prop}
-                                        {...props}
+                                path={x.path}
+                                render={y => (
+                                    <x.component
+                                        {...x}
+                                        {...y}
                                         {...rest} />
                                 )}
-                                key={key} />
+                                key={key}/>
                         );
                     });
+                }
                 return <Route
                     path={prop.path}
                     render={props => (

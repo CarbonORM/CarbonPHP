@@ -9,6 +9,7 @@
 namespace CarbonPHP;
 
 
+use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Error\PublicAlert;
 
 abstract class Application extends Route
@@ -44,11 +45,125 @@ abstract class Application extends Route
         };
     }
 
+
+    /**Stands for Controller -> Model .
+     *
+     * This will run the controller/$class.$method().
+     * If the method returns !empty() the model/$class.$method() will be
+     * invoked. If an array is returned from the controller its values
+     * will be passed as parameters to our model.
+     * @link http://php.net/manual/en/function.call-user-func-array.php
+     *
+     * @param string $class This class name to autoload
+     * @param string $method The method within the provided class
+     * @param array $argv Arguments to be passed to method
+     * @return mixed the returned value from model/$class.$method() or false | void
+     */
+    public static function CM(string $class, string &$method, array &$argv = []): callable
+    {
+        $class = ucfirst(strtolower($class));   // Prevent malformed class names
+        $controller = "Controller\\$class";     // add namespace for autoloader
+        $model = "Model\\$class";
+        $method = strtolower($method);          // Prevent malformed method names
+
+        // Make sure our class exists
+        if (!class_exists($controller)) {
+            print "Invalid Controller ({$controller}) Passed to MVC. Please ensure your namespace mappings are correct!";
+        }
+
+        if (!class_exists($model)) {
+            print "Invalid Model ({$model}) Passed to MVC. Please ensure your namespace mappings are correct!";
+        }
+
+        // the array $argv will be passed as arguments to the method requested, see link above
+        $exec = function &(string $class, array &$argv) use ($method) {
+            $argv = \call_user_func_array([new $class, $method], $argv);
+            return $argv;
+        };
+
+        return function () use ($exec, $controller, $model, &$argv) {
+            if (!empty($argv = $exec($controller, $argv))) {
+                if (\is_array($argv)) {
+                    return $exec($model, $argv);        // array passed
+                }
+                $controller = [&$argv];                 // allow return by reference
+                return $exec($model, $controller);
+            }
+            return $argv;
+        };
+    }
+
+    /** Stands for Controller -> Model -> View
+     *
+     * This will run the controller/$class.$method().
+     * If the method returns true the model/$class.$method() will be
+     * invoked. If an array is returned from the controller its values
+     * will be passed as parameters to our model. Finally the View will
+     * be executed. The file should be in the APP_VIEW directory (set in config)
+     * with the following naming convention
+     *
+     *  APP_VIEW / $class / $method . (php | hbs)  - We accept handlebar templates.
+     *
+     * The view will be processed server-side and returned
+     *
+     * @link http://php.net/manual/en/function.call-user-func-array.php
+     * @link http://php.net/manual/en/language.oop5.late-static-bindings.php
+     *
+     * @param string $class This class name to autoload
+     * @param string $method The method within the provided class
+     * @param array $argv Arguments to be passed to method
+     * @return mixed          the returned value from model/$class.$method() or false | void
+     */
+    public static function ControllerModelView(string $class, string $method, array &$argv = [])
+    {
+        /** @noinspection PhpUnusedLocalVariableInspection */
+        static $APPLICATION, $CLASS, $METHOD; // This MAY run recursively
+
+        $CLASS = $class;
+        $METHOD = $method;
+
+        if ($APPLICATION === null) {
+            $APPLICATION = $recurse = 0;
+        } else {
+            $recurse = $APPLICATION;
+        }
+
+        // keep track of which recursive iteration this is.
+        $APPLICATION++;
+
+        /* I use a different CM function in carbonphp because the namespace needed is CarbonPHP/Controller
+         * using the keyword static rather than self allows us to call the child implementation
+         */
+        if (false === ErrorCatcher::catchErrors(static::CM($class, $method, $argv))()) {  // Controller -> Model
+            return false;
+        }
+
+        // This is so we can clear our stack quickly if recursively called.
+        // This helps with error reporting
+        if ($recurse !== 0) {
+            return true;
+        }
+
+        // This could cache or send
+        $file = APP_VIEW . "$CLASS/$METHOD";
+
+        if (!file_exists(APP_ROOT . $file . ($ext = '.php')) && !file_exists(APP_ROOT . $file . ($ext = '.hbs'))) {
+            $ext = '';
+        }
+
+        return View::content($file . $ext);  // View
+    }
+
     public function MVC() : callable
     {
         return function (string $class, string $method, array &$argv = []) {
             $this->matched = true;
-            return MVC($class, $method, $argv);         // So I can throw in ->structure($route->MVC())-> anywhere
+            // So I can throw in ->structure($route->MVC())-> anywhere
+            // and still have static variables in the mvc function,
+            // because it needs to run as a callable..
+            // so if ControllerModelView's code was in this closure
+            // the code would not work bc static // runtime memory
+            return self::ControllerModelView($class, $method, $argv);
         };
     }
 
@@ -59,7 +174,7 @@ abstract class Application extends Route
 
             $this->matched = true;
 
-            if (false === $return = catchErrors(CM($class, $method, $argv))()) {
+            if (false === $return = ErrorCatcher::catchErrors(static::CM($class, $method, $argv))()) {
                 return null;
             }
 

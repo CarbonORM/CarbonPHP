@@ -23,7 +23,7 @@ class Navbar extends React.Component {
                 if (!('pathTo' in o)) {
                     // doesn't need a sub menu
                     if (!('views' in o)) {
-                        tabs.push(<ListItem className={classes.listItem}>
+                        tabs.push(<ListItem className={classes.listItem} key={key}>
                             <NavLink
                                 to={o.path}
                                 className={classes.navLink + " " + classes.navLinkActive}
@@ -34,7 +34,7 @@ class Navbar extends React.Component {
                         </ListItem>)
                     } else {
                         tabs.push(
-                            <ListItem className={classes.listItem}>
+                            <ListItem className={classes.listItem} key={key}>
                                 <CustomDropdown
                                     left
                                     key={key}
@@ -45,12 +45,12 @@ class Navbar extends React.Component {
                                     buttonProps={{
                                         className: classes.navLink + " " + classes.navLinkActive,
                                     }}
-                                    dropdownList={o.views.map((m, key) => {
+                                    dropdownList={o.views.map((m, key2) => {
                                         return <ListItem className={classes.listItem}>
                                             <NavLink
                                                 to={m.path}
                                                 className={classes.navLink + " " + classes.navLinkActive}
-                                                key={key}
+                                                key={key2}
                                             >
                                                 {m.name}
                                             </NavLink>

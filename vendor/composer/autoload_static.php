@@ -42,9 +42,11 @@ class ComposerStaticInitf7bcaf88814232fa6202e75e65efaeed
         'C' => 
         array (
             'CarbonPHP\\Programs\\' => 19,
+            'CarbonPHP\\Model\\' => 16,
             'CarbonPHP\\Interfaces\\' => 21,
             'CarbonPHP\\Helpers\\' => 18,
             'CarbonPHP\\Error\\' => 16,
+            'CarbonPHP\\Controller\\' => 21,
             'CarbonPHP\\' => 10,
         ),
     );
@@ -92,6 +94,10 @@ class ComposerStaticInitf7bcaf88814232fa6202e75e65efaeed
         array (
             0 => __DIR__ . '/../..' . '/programs',
         ),
+        'CarbonPHP\\Model\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/model',
+        ),
         'CarbonPHP\\Interfaces\\' => 
         array (
             0 => __DIR__ . '/../..' . '/interfaces',
@@ -103,6 +109,10 @@ class ComposerStaticInitf7bcaf88814232fa6202e75e65efaeed
         'CarbonPHP\\Error\\' => 
         array (
             0 => __DIR__ . '/../..' . '/error',
+        ),
+        'CarbonPHP\\Controller\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/controller',
         ),
         'CarbonPHP\\' => 
         array (

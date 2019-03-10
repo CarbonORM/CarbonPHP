@@ -160,7 +160,7 @@ class Dashboard extends React.Component {
             </Card>
           </GridItem>
           <GridItem xs={12} sm={12} md={4}>
-            <Card chart>
+            <Card Profile>
               <CardHeader color="warning">
                 <ChartistGraph
                   className="ct-chart"

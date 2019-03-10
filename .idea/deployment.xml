@@ -1,4 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" createEmptyFolders="true" />
+  <component name="PublishConfigData" serverName="google" createEmptyFolders="true">
+    <serverData>
+      <paths name="google">
+        <serverdata>
+          <mappings>
+            <mapping deploy="" local="$PROJECT_DIR$/view/react/material-dashboard-react-c6" web="/5.0" />
+            <mapping deploy="/var/www/carbonphp.com" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+  </component>
 </project>

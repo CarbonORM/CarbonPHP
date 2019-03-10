@@ -9,63 +9,65 @@ import Warning from "@material-ui/icons/Warning";
 import SnackbarContent from "components/Snackbar/SnackbarContent.jsx";
 import Clearfix from "components/Clearfix/Clearfix.jsx";
 import notificationsStyles from "assets/jss/material-kit-react/views/componentsSections/notificationsStyles.jsx";
+import Info from "@material-ui/icons/Info";
+import ErrorRounded from "@material-ui/icons/ErrorRounded";
 
 class SectionNotifications extends React.Component {
   render() {
     const { classes } = this.props;
     return (
-      <div className={classes.section} id="notifications">
-        <div className={classes.container}>
-          <div className={classes.title}>
-            <h3>Notifications</h3>
-          </div>
-        </div>
-        <SnackbarContent
-          message={
-            <span>
+        <div className={classes.section}>
+            <div className={classes.container}>
+                <div className={classes.title}>
+                    <h3>Notifications</h3>
+                </div>
+            </div>
+            <SnackbarContent
+                message={
+                    <span>
               <b>INFO ALERT:</b> You've got some friends nearby, stop looking at
               your phone and find them...
             </span>
-          }
-          close
-          color="info"
-          icon="info_outline"
-        />
-        <SnackbarContent
-          message={
-            <span>
+                }
+                close
+                color="info"
+                icon={Info}
+            />
+            <SnackbarContent
+                message={
+                    <span>
               <b>SUCCESS ALERT:</b> You've got some friends nearby, stop looking
               at your phone and find them...
             </span>
-          }
-          close
-          color="success"
-          icon={Check}
-        />
-        <SnackbarContent
-          message={
-            <span>
+                }
+                close
+                color="success"
+                icon={Check}
+            />
+            <SnackbarContent
+                message={
+                    <span>
               <b>WARNING ALERT:</b> You've got some friends nearby, stop looking
               at your phone and find them...
             </span>
-          }
-          close
-          color="warning"
-          icon={Warning}
-        />
-        <SnackbarContent
-          message={
-            <span>
+                }
+                close
+                color="warning"
+                icon={Warning}
+            />
+            <SnackbarContent
+                message={
+                    <span>
               <b>DANGER ALERT:</b> You've got some friends nearby, stop looking
               at your phone and find them...
             </span>
-          }
-          close
-          color="danger"
-          icon="info_outline"
-        />
-        <Clearfix />
-      </div>
+                }
+                close
+                color="danger"
+                icon={ErrorRounded}
+            />
+            <Clearfix />
+        </div>
     );
   }
 }

@@ -152,7 +152,7 @@ return [
 
     'VIEW' => [
         'VIEW' => 'view/',  // This is where the MVC() function will map the HTML.PHP and HTML.HBS . See Carbonphp.com/mvc
-        'WRAPPER' => 'mustache/Documentation/Wrapper.php',     // View::content() will produce this
+        'WRAPPER' => 'mustache/Documentation/Wrapper.hbs',     // View::content() will produce this
     ],
 
     'MINIFY' => [
