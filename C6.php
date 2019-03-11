@@ -142,11 +142,11 @@ class C6 extends Application
 
 
     /** we dont use this return value for anything
-     * @param null $uri
+     * @param string $uri
      * @return bool
      * @throws \CarbonPHP\Error\PublicAlert
      */
-    public function startApplication($uri = null): bool
+    public function startApplication(string $uri): bool
     {
         global $json;
 

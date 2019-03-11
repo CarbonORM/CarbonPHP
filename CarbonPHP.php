@@ -101,7 +101,7 @@ class CarbonPHP
             return true;
         }
 
-        return $application->startApplication($reset ? $uri : $application->uri);  // Routing file
+        return $application->startApplication($reset ? $uri : implode('/', $application->uri));  // Routing file
     }
 
     /** If safely exit is false run startApplication(), otherwise return $safelyExit

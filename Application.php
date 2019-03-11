@@ -14,7 +14,7 @@ use CarbonPHP\Error\PublicAlert;
 
 abstract class Application extends Route
 {
-    abstract public function startApplication($uri = null) : bool;
+    abstract public function startApplication(string $uri) : bool;
     /**
      * App constructor. If no uri is set than
      * the Route constructor will execute the
