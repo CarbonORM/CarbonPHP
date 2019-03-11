@@ -17,11 +17,12 @@ use CarbonPHP\programs\CLI;
  */
 class CarbonPHP
 {
-    public function __construct(string $PHP = null){
+    public function __construct(string $PHP = null)
+    {
         self::make($PHP);
     }
 
-    public function __invoke($application) : bool
+    public function __invoke($application): bool
     {
         return self::run($application);
     }
@@ -167,7 +168,7 @@ class CarbonPHP
      * ]
      * @throws \Exception
      */
-    public static function make(string $PHP = null) : void
+    public static function make(string $PHP = null): void
     {
         // TODO - make a cache of these consts
 
@@ -290,7 +291,7 @@ class CarbonPHP
 
         #################  DATABASE  ########################
         if ($PHP['DATABASE'] ?? false) {
-            Database::$dsn = 'mysql:host='.($PHP['DATABASE']['DB_HOST'] ?? '').';dbname='. ($PHP['DATABASE']['DB_NAME'] ?? '') .';';
+            Database::$dsn = 'mysql:host=' . ($PHP['DATABASE']['DB_HOST'] ?? '') . ';dbname=' . ($PHP['DATABASE']['DB_NAME'] ?? '') . ';';
             Database::$username = $PHP['DATABASE']['DB_USER'] ?? '';
             Database::$password = $PHP['DATABASE']['DB_PASS'] ?? '';
             Database::$setup = $PHP['DATABASE']['DB_BUILD'] ?? '';
@@ -335,7 +336,7 @@ class CarbonPHP
 
         #######################   Pjax Ajax Refresh  ######################
         // Must return a non empty value
-        SOCKET or $headers = apache_request_headers();
+        SOCKET or $headers = self::headers();
 
         \define('PJAX', SOCKET ? false : isset($headers['X-PJAX']) || isset($_GET['_pjax']) || (isset($_SERVER['HTTP_X_PJAX']) && $_SERVER['HTTP_X_PJAX']));
 
@@ -345,7 +346,7 @@ class CarbonPHP
         }
 
         // (PJAX == true) return required, else (!PJAX && AJAX) return optional (socket valid)
-        \define('AJAX', SOCKET ? false : PJAX || ('XMLHttpRequest'===($headers['X-Requested-With']??false)) ||  (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'));
+        \define('AJAX', SOCKET ? false : PJAX || ('XMLHttpRequest' === ($headers['X-Requested-With'] ?? false)) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'));
 
         \define('HTTPS', SOCKET ? false : ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? false) === 'https' || ($_SERVER['HTTPS'] ?? false) !== 'off');
 
@@ -509,6 +510,59 @@ class CarbonPHP
     }
 
 
+    /**
+     * @link https://stackoverflow.com/questions/2916232/call-to-undefined-function-apache-request-headers
+     * @return array
+     */
+    private static function headers(): array
+    {
+        // Drop-in replacement for apache_request_headers() when it's not available
+        if (\function_exists('apache_request_headers')) {
+            return apache_request_headers();
+        }
+
+        // Based on: http://www.iana.org/assignments/message-headers/message-headers.xml#perm-headers
+        $arrCasedHeaders = array(
+            // HTTP
+            'Dasl' => 'DASL',
+            'Dav' => 'DAV',
+            'Etag' => 'ETag',
+            'Mime-Version' => 'MIME-Version',
+            'Slug' => 'SLUG',
+            'Te' => 'TE',
+            'Www-Authenticate' => 'WWW-Authenticate',
+            // MIME
+            'Content-Md5' => 'Content-MD5',
+            'Content-Id' => 'Content-ID',
+            'Content-Features' => 'Content-features',
+        );
+        $arrHttpHeaders = array();
+
+        foreach ($_SERVER as $strKey => $mixValue) {
+            if (strpos($strKey, 'HTTP_') !== 0) {
+                continue;
+            }
+
+            $strHeaderKey = strtolower(substr($strKey, 5));
+
+            if (0 < substr_count($strHeaderKey, '_')) {
+                $arrHeaderKey = explode('_', $strHeaderKey);
+                $arrHeaderKey = array_map('ucfirst', $arrHeaderKey);
+                $strHeaderKey = implode('-', $arrHeaderKey);
+            } else {
+                $strHeaderKey = ucfirst($strHeaderKey);
+            }
+
+            if (array_key_exists($strHeaderKey, $arrCasedHeaders)) {
+                $strHeaderKey = $arrCasedHeaders[$strHeaderKey];
+            }
+
+            $arrHttpHeaders[$strHeaderKey] = $mixValue;
+        }
+
+        return $arrHttpHeaders;
+
+    }
 }
 
 
