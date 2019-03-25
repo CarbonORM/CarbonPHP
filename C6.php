@@ -71,7 +71,12 @@ class C6 extends Application
     }
 
 
-    /**Stands for Controller -> Model .
+    /**  NOTE:
+     *  This is actually overriding the CM function in Carbon/Application.
+     *  I do this because the namespace changes for other applications not
+     *  in C6 context.
+     *
+     * Stands for Controller -> Model .
      *
      * This will run the controller/$class.$method().
      * If the method returns !empty() the model/$class.$method() will be
@@ -93,11 +98,11 @@ class C6 extends Application
 
         // Make sure our class exists
         if (!class_exists($controller)) {
-            print "Invalid Controller ({$controller}) Passed to MVC. Please ensure your namespace mappings are correct!";
+            print "Invalid Controller ($controller) Passed to MVC. Please ensure your namespace mappings are correct!";
         }
 
         if (!class_exists($model)) {
-            print "Invalid Model ({$model}) Passed to MVC. Please ensure your namespace mappings are correct!";
+            print "Invalid Model ($model) Passed to MVC. Please ensure your namespace mappings are correct!";
         }
 
         // the array $argv will be passed as arguments to the method requested, see link above

@@ -117,22 +117,6 @@ CREATE TABLE `carbon_tag` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `carbon_tags`
---
-
-DROP TABLE IF EXISTS `carbon_tags`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `carbon_tags` (
-  `tag_id` int(11) NOT NULL AUTO_INCREMENT,
-  `tag_description` text NOT NULL,
-  `tag_name` text,
-  PRIMARY KEY (`tag_id`),
-  UNIQUE KEY `tag_tag_id_uindex` (`tag_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
 -- Table structure for table `carbon_user_followers`
 --
 
@@ -296,4 +280,4 @@ CREATE TABLE `tags` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-02-07 21:01:03
+-- Dump completed on 2019-03-25  0:47:51

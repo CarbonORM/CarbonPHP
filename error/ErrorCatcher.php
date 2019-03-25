@@ -64,9 +64,10 @@ class ErrorCatcher
                         PublicAlert::info(json_encode($e));
 
                     }
-                } elseif (APP_LOCAL) {
-                    ErrorCatcher::generateLog($e);
-                }
+                } //elseif (APP_LOCAL) {
+                    // Why did we do this
+                   // ErrorCatcher::generateLog($e);
+                //}
                 /** @noinspection CallableParameterUseCaseInTypeContextInspection */
                 $argv = null;
             } finally {

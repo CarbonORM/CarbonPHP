@@ -168,14 +168,14 @@ class CarbonPHP
      * ]
      * @throws \Exception
      */
-    public static function make(string $PHP = null): void
+    public static function make(string $configFilePath = null): void
     {
         // TODO - make a cache of these consts
 
         ####################  Sockets will have already claimed this global
         \defined('TEST') OR \define('TEST', $_ENV['TEST'] ?? false);
 
-        if (TEST) {
+        if (TEST) {     // TODO - remove server vars not needed in testing
             self::$safelyExit = true;  // We just want the env to load, not route life :)
             $_SERVER = [
                 'REMOTE_ADDR' => '::1',
@@ -190,7 +190,7 @@ class CarbonPHP
                 'SCRIPT_FILENAME' => "C:\Users\rmiles\Documents\GitHub\Stats.Coach\index.php",
                 'PATH_INFO' => '/login/',
                 'PHP_SELF' => '/index.php/login/',
-                'HTTP_HOST' => 'localhost:88',
+                'HTTP_HOST' => 'localhost:80',
                 'HTTP_CONNECTION' => 'keep-alive',
                 'HTTP_CACHE_CONTROL' => 'max-age=0',
                 'HTTP_UPGRADE_INSECURE_REQUESTS' => '1',
@@ -204,6 +204,7 @@ class CarbonPHP
                 'REQUEST_TIME' => 1530054388,
             ];
         }
+
         ####################  Sockets will have already claimed this global
         \defined('SOCKET') OR \define('SOCKET', false);
 
@@ -230,11 +231,13 @@ class CarbonPHP
         }
 
         ####################  Now load config file so globals above & stacktrace security
-        if ($PHP !== null) {
-            if (file_exists($PHP)) {
-                $PHP = include $PHP;            // this file must return an array!
-            } elseif ($PHP !== null) {
-                print 'Invalid configuration path given! ' . $PHP;
+        if ($configFilePath !== null) {
+            if (file_exists($configFilePath)) {
+                /** @var array $PHP */
+                $PHP = include $configFilePath;            // TODO - change the variable
+                // this file must return an array!
+            } elseif ($configFilePath !== null) {
+                print 'Invalid configuration path given! ' . $configFilePath;
                 self::$safelyExit = true;
                 return;
             }
@@ -334,7 +337,7 @@ class CarbonPHP
             return;
         }
 
-        #######################   Pjax Ajax Refresh  ######################
+        #######################   Pjax Ajax Refresh   ######################
         // Must return a non empty value
         SOCKET or $headers = self::headers();
 
@@ -343,6 +346,9 @@ class CarbonPHP
         if (PJAX && empty($_POST)) {
             # try to json decode. Json payloads ar sent to the input stream
             $_POST = json_decode(file_get_contents('php://input'), true);
+            if ($_POST == null) {
+                $_POST = [];
+            }
         }
 
         // (PJAX == true) return required, else (!PJAX && AJAX) return optional (socket valid)
