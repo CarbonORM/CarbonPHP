@@ -22,19 +22,6 @@ class carbon_reports extends Database implements iRest
     public static $injection = [];
 
 
-    public static function jsonSQLReporting($argv, $sql) : void {
-        global $json;
-        if (!\is_array($json)) {
-            $json = [];
-        }
-        if (!isset($json['sql'])) {
-            $json['sql'] = [];
-        }
-        $json['sql'][] = [
-            $argv,
-            $sql
-        ];
-    }
 
     public static function buildWhere(array $set, \PDO $pdo, $join = 'AND') : string
     {
@@ -202,7 +189,7 @@ class carbon_reports extends Database implements iRest
 
         $sql .= $limit;
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = $pdo->prepare($sql);
 
@@ -234,7 +221,7 @@ class carbon_reports extends Database implements iRest
         /** @noinspection SqlResolve */
         $sql = 'INSERT INTO carbon_reports (log_level, report, call_trace) VALUES ( :log_level, :report, :call_trace)';
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = self::database()->prepare($sql);
 
@@ -298,7 +285,7 @@ class carbon_reports extends Database implements iRest
 
         
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = $pdo->prepare($sql);
 
@@ -340,7 +327,7 @@ class carbon_reports extends Database implements iRest
         $sql .= ' WHERE ' . self::buildWhere($argv, $pdo);
         } 
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = $pdo->prepare($sql);
 

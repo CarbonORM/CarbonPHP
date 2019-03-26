@@ -22,19 +22,6 @@ class carbon_user_followers extends Database implements iRest
     public static $injection = [];
 
 
-    public static function jsonSQLReporting($argv, $sql) : void {
-        global $json;
-        if (!\is_array($json)) {
-            $json = [];
-        }
-        if (!isset($json['sql'])) {
-            $json['sql'] = [];
-        }
-        $json['sql'][] = [
-            $argv,
-            $sql
-        ];
-    }
 
     public static function buildWhere(array $set, \PDO $pdo, $join = 'AND') : string
     {
@@ -199,7 +186,7 @@ class carbon_user_followers extends Database implements iRest
 
         $sql .= $limit;
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = $pdo->prepare($sql);
 
@@ -236,7 +223,7 @@ class carbon_user_followers extends Database implements iRest
         /** @noinspection SqlResolve */
         $sql = 'INSERT INTO carbon_user_followers (follows_user_id, user_id) VALUES ( UNHEX(:follows_user_id), UNHEX(:user_id))';
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = self::database()->prepare($sql);
 
@@ -294,7 +281,7 @@ class carbon_user_followers extends Database implements iRest
 
         $sql .= ' WHERE  follows_user_id=UNHEX('.self::addInjection($primary, $pdo).')';
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = $pdo->prepare($sql);
 

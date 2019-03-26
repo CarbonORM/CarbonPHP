@@ -208,7 +208,7 @@ END;
             exit(1);
         }
 
-        $this->mysqldump = $this->MySQLDump($mysqldump);
+        $this->mysqldump = $this->MySQLDump($mysqldump ?? null);
 
         if (!file_exists($this->mysqldump)) {
             print 'Could not load mysql dump file!' . PHP_EOL;
