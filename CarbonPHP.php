@@ -434,14 +434,14 @@ class CarbonPHP
             self::$safelyExit = true;
         }
 
-        \define('URI', trim(urldecode(parse_url(trim(preg_replace('/\s+/', ' ', $_SERVER['REQUEST_URI'])), PHP_URL_PATH)), '/'), true);
+        \define('URI', trim(urldecode(parse_url(trim(preg_replace('/\s+/', ' ', $_SERVER['REQUEST_URI'])), PHP_URL_PATH)), '/'));
 
         \define('URL',
             (isset($_SERVER['SERVER_NAME']) ?
                 ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] === 443 ? 'https://' : 'http://') .
-                $_SERVER['SERVER_NAME'] . (APP_LOCAL ? ':' . $_SERVER['SERVER_PORT'] : '') : null), true);
+                $_SERVER['SERVER_NAME'] . (APP_LOCAL ? ':' . $_SERVER['SERVER_PORT'] : '') : null));
 
-        \define('SITE', url . '/', true);   // http(s)://example.com/  - URL's require a forward slash so DS may not work on os (windows)
+        \define('SITE', URL . '/');   // http(s)://example.com/  - URL's require a forward slash so DS may not work on os (windows)
 
         // It does not matter if this matches, we will take care of that in the next if.
 
