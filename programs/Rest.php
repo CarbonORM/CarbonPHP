@@ -208,7 +208,7 @@ END;
             exit(1);
         }
 
-        $this->mysqldump = $this->MySQLDump();
+        $this->mysqldump = $this->MySQLDump($mysqldump);
 
         if (!file_exists($this->mysqldump)) {
             print 'Could not load mysql dump file!' . PHP_EOL;
@@ -598,7 +598,7 @@ END;
             return $sql;
         };
 
-        return <<<END
+        return <<<TRIGGER
 DROP TRIGGER IF EXISTS `trigger_{$table}_b_d`;;
 CREATE TRIGGER `trigger_{$table}_b_d` BEFORE DELETE ON `$table` FOR EACH ROW
 BEGIN
@@ -629,7 +629,7 @@ BEGIN
 {$history_sql('POST')}
 
 END;;
-END;
+TRIGGER;
     }
 
 
