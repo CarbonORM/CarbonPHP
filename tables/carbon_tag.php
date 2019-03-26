@@ -13,7 +13,7 @@ class carbon_tag extends Database implements iRest
     ];
 
     public const COLUMNS = [
-        'entity_id' => [ 'binary', '2', '16' ],'user_id' => [ 'binary', '2', '16' ],'tag_id' => [ 'varchar', '2', '80' ],'creation_date' => [ 'timestamp', '2', '' ],
+        'entity_id' => [ 'binary', '2', '16' ],'tag_id' => [ 'varchar', '2', '80' ],'creation_date' => [ 'timestamp', '2', '' ],
     ];
 
     public const VALIDATION = [];
@@ -53,10 +53,6 @@ class carbon_tag extends Database implements iRest
         if (array_key_exists('entity_id', $argv)) {
             $entity_id = $argv['entity_id'];
             $stmt->bindParam(':entity_id',$entity_id, 2, 16);
-        }
-        if (array_key_exists('user_id', $argv)) {
-            $user_id = $argv['user_id'];
-            $stmt->bindParam(':user_id',$user_id, 2, 16);
         }
         if (array_key_exists('tag_id', $argv)) {
             $tag_id = $argv['tag_id'];
@@ -168,7 +164,7 @@ class carbon_tag extends Database implements iRest
                 $sql .= $column;
                 $group .= $column;
             } else {
-                if (!preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|\-|\/| |entity_id|user_id|tag_id|creation_date))+\)*)+ *(as [a-z]+)?#i', $column)) {
+                if (!preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|\-|\/| |entity_id|tag_id|creation_date))+\)*)+ *(as [a-z]+)?#i', $column)) {
                     return false;
                 }
                 $sql .= $column;
@@ -221,7 +217,7 @@ class carbon_tag extends Database implements iRest
     {
         self::$injection = [];
         /** @noinspection SqlResolve */
-        $sql = 'INSERT INTO carbon_tag (entity_id, user_id, tag_id) VALUES ( UNHEX(:entity_id), UNHEX(:user_id), :tag_id)';
+        $sql = 'INSERT INTO carbon_tag (entity_id, tag_id) VALUES ( UNHEX(:entity_id), :tag_id)';
 
         
 
@@ -230,9 +226,6 @@ class carbon_tag extends Database implements iRest
                 
                     $entity_id = $argv['entity_id'];
                     $stmt->bindParam(':entity_id',$entity_id, 2, 16);
-                        
-                    $user_id =  $argv['user_id'] ?? null;
-                    $stmt->bindParam(':user_id',$user_id, 2, 16);
                         
                     $tag_id = $argv['tag_id'];
                     $stmt->bindParam(':tag_id',$tag_id, 2, 80);
@@ -270,9 +263,6 @@ class carbon_tag extends Database implements iRest
 
             if (array_key_exists('entity_id', $argv)) {
                 $set .= 'entity_id=UNHEX(:entity_id),';
-            }
-            if (array_key_exists('user_id', $argv)) {
-                $set .= 'user_id=UNHEX(:user_id),';
             }
             if (array_key_exists('tag_id', $argv)) {
                 $set .= 'tag_id=:tag_id,';

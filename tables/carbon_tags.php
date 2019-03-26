@@ -13,7 +13,7 @@ class carbon_tags extends Database implements iRest
     ];
 
     public const COLUMNS = [
-        'tag_id' => [ 'int', '2', '11' ],'tag_description' => [ 'text', '2', '' ],'tag_name' => [ 'text,', '2', '' ],
+        'tag_id' => [ 'varchar', '2', '80' ],'tag_description' => [ 'text', '2', '' ],'tag_name' => [ 'text,', '2', '' ],
     ];
 
     public const VALIDATION = [];
@@ -22,19 +22,6 @@ class carbon_tags extends Database implements iRest
     public static $injection = [];
 
 
-    public static function jsonSQLReporting($argv, $sql) : void {
-        global $json;
-        if (!\is_array($json)) {
-            $json = [];
-        }
-        if (!isset($json['sql'])) {
-            $json['sql'] = [];
-        }
-        $json['sql'][] = [
-            $argv,
-            $sql
-        ];
-    }
 
     public static function buildWhere(array $set, \PDO $pdo, $join = 'AND') : string
     {
@@ -65,7 +52,7 @@ class carbon_tags extends Database implements iRest
     public static function bind(\PDOStatement $stmt, array $argv) {
         if (array_key_exists('tag_id', $argv)) {
             $tag_id = $argv['tag_id'];
-            $stmt->bindParam(':tag_id',$tag_id, 2, 11);
+            $stmt->bindParam(':tag_id',$tag_id, 2, 80);
         }
         if (array_key_exists('tag_description', $argv)) {
             $stmt->bindValue(':tag_description',$argv['tag_description'], 2);
@@ -201,7 +188,7 @@ class carbon_tags extends Database implements iRest
 
         $sql .= $limit;
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = $pdo->prepare($sql);
 
@@ -236,12 +223,15 @@ class carbon_tags extends Database implements iRest
     {
         self::$injection = [];
         /** @noinspection SqlResolve */
-        $sql = 'INSERT INTO carbon_tags (tag_description, tag_name) VALUES ( :tag_description, :tag_name)';
+        $sql = 'INSERT INTO carbon_tags (tag_id, tag_description, tag_name) VALUES ( :tag_id, :tag_description, :tag_name)';
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = self::database()->prepare($sql);
 
+                
+                    $tag_id = $argv['tag_id'];
+                    $stmt->bindParam(':tag_id',$tag_id, 2, 80);
                         $stmt->bindValue(':tag_description',$argv['tag_description'], 2);
                         $stmt->bindValue(':tag_name',$argv['tag_name'], 2);
         
@@ -296,7 +286,7 @@ class carbon_tags extends Database implements iRest
 
         $sql .= ' WHERE  tag_id='.self::addInjection($primary, $pdo).'';
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = $pdo->prepare($sql);
 
@@ -340,7 +330,7 @@ class carbon_tags extends Database implements iRest
         $sql .= ' WHERE  tag_id='.self::addInjection($primary, $pdo).'';
         }
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = $pdo->prepare($sql);
 

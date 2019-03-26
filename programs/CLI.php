@@ -52,7 +52,7 @@ class CLI implements iCommand
         $PHP = $this->CONFIG;
 
         // I do this so the I can pass the argvs correctly to the php executables
-        print "\nIt's a powerful " . array_shift($argv) . ", hu?\n\n";
+        print "\nIt's a powerful " . array_shift($argv) . ", huh?\n\n";
 
         $program = strtolower(array_shift($argv));
 
