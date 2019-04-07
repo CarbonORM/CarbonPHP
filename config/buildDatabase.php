@@ -174,15 +174,12 @@ END;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `carbon_tag` (
   `entity_id` binary(16) NOT NULL,
-  `user_id` binary(16) DEFAULT NULL,
   `tag_id` varchar(80) NOT NULL,
   `creation_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   KEY `entity_tag_entity_entity_pk_fk` (`entity_id`),
-  KEY `entity_tag_entity_user_pk_fk` (`user_id`),
   KEY `entity_tag_tag_tag_id_fk` (`tag_id`),
   CONSTRAINT `carbon_tag_tags_tag_id_fk` FOREIGN KEY (`tag_id`) REFERENCES `tags` (`tag_id`),
-  CONSTRAINT `entity_tag_entity_entity_pk_fk` FOREIGN KEY (`entity_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `entity_tag_entity_user_pk_fk` FOREIGN KEY (`user_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE SET NULL ON UPDATE CASCADE
+  CONSTRAINT `entity_tag_entity_entity_pk_fk` FOREIGN KEY (`entity_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -193,32 +190,6 @@ END;
         print $sql . '<br>';
         $db->exec($sql) === false and die(print_r($db->errorInfo(), true));
         print '<br><p style="color: green">Table `carbon_tag` Created</p>';
-    }try {
-        $db->prepare('SELECT 1 FROM carbon_tags LIMIT 1;')->execute();
-        print '<br>Table `carbon_tags` already exists</p>';
-    } catch (PDOException $e) {
-        print '<br><p style="color: red">Creating `carbon_tags`</p>';
-        $sql = <<<END
-        $head
-    DROP TABLE IF EXISTS `carbon_tags`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `carbon_tags` (
-  `tag_id` int(11) NOT NULL AUTO_INCREMENT,
-  `tag_description` text NOT NULL,
-  `tag_name` text,
-  PRIMARY KEY (`tag_id`),
-  UNIQUE KEY `tag_tag_id_uindex` (`tag_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
-
-        $foot
-END;
-
-        print $sql . '<br>';
-        $db->exec($sql) === false and die(print_r($db->errorInfo(), true));
-        print '<br><p style="color: green">Table `carbon_tags` Created</p>';
     }try {
         $db->prepare('SELECT 1 FROM carbon_user_followers LIMIT 1;')->execute();
         print '<br>Table `carbon_user_followers` already exists</p>';
@@ -455,9 +426,9 @@ END;
         print '<br><p style="color: green">Table `tags` Created</p>';
     }Try {
     $sql = <<<END
-REPLACE INTO carbon_tags (tag_id, tag_description, tag_name) VALUES (?,?,?);
+REPLACE INTO tags (tag_id, tag_description, tag_name) VALUES (?,?,?);
 END;
-     $tag = [['carbon_comments','','carbon_comments'],['carbon_locations','','carbon_locations'],['carbon_photos','','carbon_photos'],['carbon_reports','','carbon_reports'],['carbon_tag','','carbon_tag'],['carbon_tags','','carbon_tags'],['carbon_user_followers','','carbon_user_followers'],['carbon_user_messages','','carbon_user_messages'],['carbon_user_tasks','','carbon_user_tasks'],['carbon_users','','carbon_users'],['carbons','','carbons'],['sessions','','sessions'],['tags','','tags'],];
+     $tag = [['carbon_comments','','carbon_comments'],['carbon_locations','','carbon_locations'],['carbon_photos','','carbon_photos'],['carbon_reports','','carbon_reports'],['carbon_tag','','carbon_tag'],['carbon_user_followers','','carbon_user_followers'],['carbon_user_messages','','carbon_user_messages'],['carbon_user_tasks','','carbon_user_tasks'],['carbon_users','','carbon_users'],['carbons','','carbons'],['sessions','','sessions'],['tags','','tags'],];
     foreach ($tag as $key => $value) {
         $db->prepare($sql)->execute($value);
     }

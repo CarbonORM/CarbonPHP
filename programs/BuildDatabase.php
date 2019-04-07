@@ -139,7 +139,7 @@ TEXT;
         $tags = <<<TAGS
 Try {
     \$sql = <<<END
-REPLACE INTO carbon_tags (tag_id, tag_description, tag_name) VALUES (?,?,?);
+REPLACE INTO tags (tag_id, tag_description, tag_name) VALUES (?,?,?);
 END;
      \$tag = [
 TAGS;
