@@ -72,24 +72,24 @@
 return [
     'DATABASE' => [
 
-        'DB_HOST' => '127.0.0.1',                        // IP
+        'DB_HOST' => '127.0.0.1',                        /* IP */
 
-        'DB_NAME' => 'CarbonPHP',                        // Schema
+        'DB_NAME' => 'CarbonPHP',                        /* Schema */
 
-        'DB_USER' => 'root',                        // User
+        'DB_USER' => 'root',                        /* User*/
 
-        'DB_PASS' => 'Huskies!99',                        // Password
+        'DB_PASS' => 'Huskies!99',                        /* Password*/
 
-        'DB_BUILD' => '',                       // This framework sets up its-self implicitly
+        'DB_BUILD' => '',                       /* This framework sets up its-self implicitly */
 
-        'REBUILD' => false                      // Initial Setup todo - remove this check
+        'REBUILD' => false                      /* Initial Setup todo - remove this check*/
     ],
 
     'SITE' => [
 
-        'URL' => 'carbonphp.com',    // Evaluated and if not the accurate Redirect. Local php server okay. Remove for any domain
+        'URL' => 'carbonphp.com',    /* Evaluated and if not the accurate Redirect. Local php server okay. Remove for any domain */
 
-        'ROOT' => APP_ROOT,          // This was defined in our ../index.php
+        'ROOT' => APP_ROOT,          /* This was defined in our ../index.php */
 
         /*'CACHE_CONTROL' => [
             'ico|pdf|flv' => 'Cache-Control: max-age=29030400, public',

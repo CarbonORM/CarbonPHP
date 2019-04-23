@@ -1,136 +1,128 @@
 import React from "react";
+// react plugin for creating date-time-picker
+import Datetime from "react-datetime";
 // @material-ui/core components
 import withStyles from "@material-ui/core/styles/withStyles";
-import InputAdornment from "@material-ui/core/InputAdornment";
-import Icon from "@material-ui/core/Icon";
+import Slide from "@material-ui/core/Slide";
+import IconButton from "@material-ui/core/IconButton";
+import Dialog from "@material-ui/core/Dialog";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogActions from "@material-ui/core/DialogActions";
+import InputLabel from "@material-ui/core/InputLabel";
+import FormControl from "@material-ui/core/FormControl";
+import Tooltip from "@material-ui/core/Tooltip";
+import Popover from "@material-ui/core/Popover";
 // @material-ui/icons
-import People from "@material-ui/icons/People";
-import Email from "@material-ui/icons/Email";
+import LibraryBooks from "@material-ui/icons/LibraryBooks";
+import Close from "@material-ui/icons/Close";
 // core components
 import GridContainer from "components/Grid/GridContainer.jsx";
 import GridItem from "components/Grid/GridItem.jsx";
-import Card from "components/Card/Card.jsx";
-import CardHeader from "components/Card/CardHeader.jsx";
-import CardBody from "components/Card/CardBody.jsx";
-import CardFooter from "components/Card/CardFooter.jsx";
 import Button from "components/CustomButtons/Button.jsx";
-import CustomInput from "components/CustomInput/CustomInput.jsx";
+import javascriptStyles from "assets/jss/material-kit-react/views/componentsSections/javascriptStyles.jsx";
 
-import loginStyle from "assets/jss/material-kit-react/views/componentsSections/loginStyle.jsx";
-
-class SectionLogin extends React.Component {
-  render() {
-    const { classes } = this.props;
-    return (
-      <div className={classes.section}>
-        <div className={classes.container}>
-          <GridContainer justify="center">
-            <GridItem xs={12} sm={12} md={4}>
-              <Card>
-                <form className={classes.form}>
-                  <CardHeader color="primary" className={classes.cardHeader}>
-                    <h4>Login</h4>
-                    <div className={classes.socialLine}>
-                      <Button
-                        justIcon
-                        href="#pablo"
-                        target="_blank"
-                        color="transparent"
-                        onClick={e => e.preventDefault()}
-                      >
-                        <i
-                          className={classes.socialIcons + " fab fa-twitter"}
-                        />
-                      </Button>
-                      <Button
-                        justIcon
-                        href="#pablo"
-                        target="_blank"
-                        color="transparent"
-                        onClick={e => e.preventDefault()}
-                      >
-                        <i
-                          className={classes.socialIcons + " fab fa-facebook"}
-                        />
-                      </Button>
-                      <Button
-                        justIcon
-                        href="#pablo"
-                        target="_blank"
-                        color="transparent"
-                        onClick={e => e.preventDefault()}
-                      >
-                        <i
-                          className={
-                            classes.socialIcons + " fab fa-google-plus-g"
-                          }
-                        />
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <p className={classes.divider}>Or Be Classical</p>
-                  <CardBody>
-                    <CustomInput
-                      labelText="First Name..."
-                      id="first"
-                      formControlProps={{
-                        fullWidth: true
-                      }}
-                      inputProps={{
-                        type: "text",
-                        endAdornment: (
-                          <InputAdornment position="end">
-                            <People className={classes.inputIconsColor} />
-                          </InputAdornment>
-                        )
-                      }}
-                    />
-                    <CustomInput
-                      labelText="Email..."
-                      id="email"
-                      formControlProps={{
-                        fullWidth: true
-                      }}
-                      inputProps={{
-                        type: "email",
-                        endAdornment: (
-                          <InputAdornment position="end">
-                            <Email className={classes.inputIconsColor} />
-                          </InputAdornment>
-                        )
-                      }}
-                    />
-                    <CustomInput
-                      labelText="Password"
-                      id="pass"
-                      formControlProps={{
-                        fullWidth: true
-                      }}
-                      inputProps={{
-                        type: "password",
-                        endAdornment: (
-                          <InputAdornment position="end">
-                            <Icon className={classes.inputIconsColor}>
-                              lock_outline
-                            </Icon>
-                          </InputAdornment>
-                        )
-                      }}
-                    />
-                  </CardBody>
-                  <CardFooter className={classes.cardFooter}>
-                    <Button simple color="primary" size="lg">
-                      Get started
-                    </Button>
-                  </CardFooter>
-                </form>
-              </Card>
-            </GridItem>
-          </GridContainer>
-        </div>
-      </div>
-    );
-  }
+function Transition(props) {
+    return <Slide direction="down" {...props} />;
 }
 
-export default withStyles(loginStyle)(SectionLogin);
+let innerCode = "<span style=\"overflow-x: scroll\"> <span\n" +
+    "                                    style=\"color: #0000BB\">                 <br/></span><span style=\"color: #007700\">return [<br/>    </span><span\n" +
+    "                                    style=\"color: #DD0000\">'DATABASE' </span><span style=\"color: #007700\">=> [<br/><br/>        </span><span\n" +
+    "                                    style=\"color: #DD0000\">'DB_HOST' </span><span style=\"color: #007700\">=> </span><span\n" +
+    "                                    style=\"color: #DD0000\">'127.0.0.1'</span><span\n" +
+    "                                    style=\"color: #007700\">,                        </span><span style=\"color: #FF8000\">/* IP */<br/><br/>        </span><span\n" +
+    "                                    style=\"color: #DD0000\">'DB_NAME' </span><span style=\"color: #007700\">=> </span><span\n" +
+    "                                    style=\"color: #DD0000\">'CarbonPHP'</span><span\n" +
+    "                                    style=\"color: #007700\">,                        </span><span style=\"color: #FF8000\">/* Schema */<br/><br/>        </span><span\n" +
+    "                                    style=\"color: #DD0000\">'DB_USER' </span><span style=\"color: #007700\">=> </span><span\n" +
+    "                                    style=\"color: #DD0000\">'root'</span><span\n" +
+    "                                    style=\"color: #007700\">,                        </span><span style=\"color: #FF8000\">/* User*/\n" +
+    "                                    <br/><br/>        </span><span style=\"color: #DD0000\">'DB_PASS' </span><span\n" +
+    "                                    style=\"color: #007700\">=> </span><span\n" +
+    "                                    style=\"color: #DD0000\">'Huskies!99'</span><span\n" +
+    "                                    style=\"color: #007700\">,                        </span><span style=\"color: #FF8000\">/* Password*/<br/><br/>        </span><span\n" +
+    "                                    style=\"color: #DD0000\">'DB_BUILD' </span><span\n" +
+    "                                    style=\"color: #007700\">=> </span><span style=\"color: #DD0000\">''</span><span\n" +
+    "                                    style=\"color: #007700\">,                       </span><span style=\"color: #FF8000\">/* This framework sets up its-self implicitly */<br/><br/>        </span><span\n" +
+    "                                    style=\"color: #DD0000\">'REBUILD' </span><span style=\"color: #007700\">=> </span><span\n" +
+    "                                    style=\"color: #0000BB\">false                      </span><span\n" +
+    "                                    style=\"color: #FF8000\">/* Initial Setup todo - remove this check*/<br/>    </span><span\n" +
+    "                                    style=\"color: #007700\">],<br/><br/>    </span><span\n" +
+    "                                    style=\"color: #DD0000\">'SITE' </span><span style=\"color: #007700\">=> [<br/><br/>        </span><span\n" +
+    "                                    style=\"color: #DD0000\">'URL' </span><span style=\"color: #007700\">=> </span><span\n" +
+    "                                    style=\"color: #DD0000\">'carbonphp.com'</span><span\n" +
+    "                                    style=\"color: #007700\">,    </span><span style=\"color: #FF8000\">/* Evaluated and if not the accurate Redirect. Local php server okay. Remove for any domain */<br/><br/>        </span><span\n" +
+    "                                    style=\"color: #DD0000\">'ROOT' </span><span style=\"color: #007700\">=> </span><span\n" +
+    "                                    style=\"color: #0000BB\">APP_ROOT</span><span\n" +
+    "                                    style=\"color: #007700\">,          </span><span style=\"color: #FF8000\">/* This was defined in our ../index.php */<br/></span>\n" +
+    "                                </span>";
+
+
+
+class SectionJavascript extends React.Component {
+    anchorElLeft = null;
+    anchorElTop = null;
+    anchorElBottom = null;
+    anchorElRight = null;
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            classicModal: false,
+            openLeft: false,
+            openTop: false,
+            openBottom: false,
+            openRight: false
+        };
+    }
+
+    handleClickOpen(modal) {
+        var x = [];
+        x[modal] = true;
+        this.setState(x);
+    }
+
+    handleClose(modal) {
+        var x = [];
+        x[modal] = false;
+        this.setState(x);
+    }
+
+    handleClosePopover(state) {
+        this.setState({
+            [state]: false
+        });
+    }
+
+    handleClickButton(state) {
+        this.setState({
+            [state]: true
+        });
+    }
+
+    render() {
+        const {classes} = this.props;
+        return (
+            <div className={classes.section}>
+                <div className={classes.container}>
+                    <div className={classes.title}>
+                        <h2>C6 Configuration Options</h2>
+                    </div>
+                    <GridContainer>
+                        <GridItem xs={12} sm={12} md={8}>
+                            <div className={classes.title}>
+                                <h3>File Structure</h3>
+                            </div>
+                            <p>
+                                {innerCode}
+                            </p>
+                        </GridItem>
+                    </GridContainer>
+                </div>
+            </div>
+        );
+    }
+}
+
+export default withStyles(javascriptStyles)(SectionJavascript);

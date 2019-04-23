@@ -14,7 +14,11 @@ class Color
 
         global $json;
 
-        $json['colorCode'] = print_r($json, true);
+        if ($_POST['code'] ?? false) {
+            $json['colorCode'] = highlight($_POST['code'] , false);
+        } else {
+            $json['colorCode'] = '';
+        }
 
         //$_POST and sortDump($headers = apache_request_headers());
 

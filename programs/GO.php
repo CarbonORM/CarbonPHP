@@ -21,7 +21,7 @@ class GO implements iCommand
         print 'This builds a string you can execute to create a live websocket connection with your application.';
     }
 
-    public function cleanUp() : int
+    public function cleanUp($argv) : int
     {
         return 0;
     }
