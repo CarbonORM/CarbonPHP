@@ -22,11 +22,11 @@ import GridItem from "components/Grid/GridItem.jsx";
 import Button from "components/CustomButtons/Button.jsx";
 import javascriptStyles from "assets/jss/material-kit-react/views/componentsSections/javascriptStyles.jsx";
 
-function Transition(props) {
-    return <Slide direction="down" {...props} />;
-}
 
-let innerCode = "<span style=\"overflow-x: scroll\"> <span\n" +
+import renderHTML from 'react-render-html';
+
+
+const codeSnippit = "<span style=\"overflow-x: scroll\"> <span\n" +
     "                                    style=\"color: #0000BB\">                 <br/></span><span style=\"color: #007700\">return [<br/>    </span><span\n" +
     "                                    style=\"color: #DD0000\">'DATABASE' </span><span style=\"color: #007700\">=> [<br/><br/>        </span><span\n" +
     "                                    style=\"color: #DD0000\">'DB_HOST' </span><span style=\"color: #007700\">=> </span><span\n" +
@@ -56,8 +56,14 @@ let innerCode = "<span style=\"overflow-x: scroll\"> <span\n" +
     "                                    style=\"color: #DD0000\">'ROOT' </span><span style=\"color: #007700\">=> </span><span\n" +
     "                                    style=\"color: #0000BB\">APP_ROOT</span><span\n" +
     "                                    style=\"color: #007700\">,          </span><span style=\"color: #FF8000\">/* This was defined in our ../index.php */<br/></span>\n" +
-    "                                </span>";
+    "\n" +
+    "</span>";
 
+
+
+function Transition(props) {
+    return <Slide direction="down" {...props} />;
+}
 
 
 class SectionJavascript extends React.Component {
@@ -115,7 +121,7 @@ class SectionJavascript extends React.Component {
                                 <h3>File Structure</h3>
                             </div>
                             <p>
-                                {innerCode}
+                                {renderHTML(codeSnippit)}
                             </p>
                         </GridItem>
                     </GridContainer>
