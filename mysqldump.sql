@@ -139,12 +139,15 @@ DROP TABLE IF EXISTS `carbon_user_messages`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `carbon_user_messages` (
   `message_id` binary(16) DEFAULT NULL,
+  `from_user_id` binary(16) NOT NULL,
   `to_user_id` binary(16) NOT NULL,
   `message` text NOT NULL,
   `message_read` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`to_user_id`),
   KEY `messages_entity_entity_pk_fk` (`message_id`),
   KEY `messages_entity_user_from_pk_fk` (`to_user_id`),
+  KEY `carbon_user_messages_carbons_entity_pk_fk` (`from_user_id`),
+  CONSTRAINT `carbon_user_messages_carbons_entity_pk_fk` FOREIGN KEY (`from_user_id`) REFERENCES `carbons` (`entity_pk`),
   CONSTRAINT `messages_entity_entity_pk_fk` FOREIGN KEY (`message_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `messages_entity_user_from_pk_fk` FOREIGN KEY (`to_user_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -277,4 +280,4 @@ CREATE TABLE `tags` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-04-06 20:04:15
+-- Dump completed on 2019-04-16 15:27:37

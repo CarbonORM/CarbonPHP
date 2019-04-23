@@ -40,7 +40,7 @@ class login extends React.Component {
     };
 
     subRoutingSwitch = (route, rest) => {
-        if (rest === undefined){
+        if (rest === undefined) {
             rest = [];
         }
         return <Switch>
@@ -80,9 +80,9 @@ class login extends React.Component {
                             {...props}
                             {...rest} />
                     )}
-                    key={key} />;
+                    key={key}/>;
             })}
-            <Route component={PageNotFound} />
+            <Route component={PageNotFound}/>
         </Switch>
     };
 
@@ -91,10 +91,12 @@ class login extends React.Component {
             console.log("authenticate data: ", res);
             this.setState({
                 authenticated:
-                res !== undefined &&
-                "data" in res &&
-                "success" in res.data &&
-                res.data.success,
+                    res !== undefined &&
+                    res !== null &&
+                    "data" in res &&
+                    res.data !== null &&
+                    "success" in res.data &&
+                    res.data.success,
                 isLoaded: true
             });
         });

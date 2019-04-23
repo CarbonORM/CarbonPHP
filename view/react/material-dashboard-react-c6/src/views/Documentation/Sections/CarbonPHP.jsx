@@ -12,7 +12,7 @@ import GridItem from "components/Grid/GridItem.jsx";
 import CustomTabs from "components/CustomTabs/CustomTabs.jsx";
 import completedStyle from "assets/jss/material-kit-react/views/componentsSections/completedStyle.jsx";
 import NavPills from "components/NavPills/NavPills";
-import {Button, Card} from "@material-ui/core/es/index";
+import {Button, Card} from "@material-ui/core/index";
 import CardBody from "components/Card/CardBody";
 import CardFooter from "components/Card/CardFooter";
 import dashboardStyle from "assets/jss/material-dashboard-react/views/dashboardStyle.jsx";

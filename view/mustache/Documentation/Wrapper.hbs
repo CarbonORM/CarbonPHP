@@ -7,8 +7,8 @@
     <!-- Tell the browser to be responsive to screen width -->
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
 
-    <!-- PJAX Content Control -->
-    <meta http-equiv="x-pjax-version" content="<{{X_PJAX_Version}}">
+    <!-- PJAX Content Control // DO NOT ADD PREFIXES OR SUFFIXES TO THIS VARIABLE-->
+    <meta http-equiv="x-pjax-version" content="{{X_PJAX_Version}}">
     <!-- Google  TODO - uncomment analytics -->
     <!--script async src="https://www.googletagmanager.com/gtag/js?id=UA-100885582-1"></script-->
 
@@ -114,11 +114,11 @@
                 <ul class="nav navbar-nav">
 
 
-                    <!--?php if ($_SESSION['id'] ?? false): ?>
+                    <!-- ?php if ($_SESSION['id'] ?? false): ?>
                         <li><a href="/Profile">Profile</a></li>
                         <li><a href="/LiveChat">Live Chat</a></li>
                     <?php else: ?>
-                        <!--li><a href="/login">Login</a></li-- >
+                        <!-- li><a href="/login">Login</a></li-- >
                     <--?php endif; ?-->
                     <li><a href="https://github.com/RichardTMiles/CarbonPHP">Download</a></li>
                     <li><a href="http://Miles.Systems/">Miles.Systems</a></li>
@@ -377,7 +377,7 @@
         $('#my-box-widget').boxRefresh('load');
     });
 
-    $.load_backStretch('/view/mustache/img/Carbon-White.png');
+    $.load_backStretch('/view/mustache/img/Carbon-white.png');
 
     $('.sidebar-menu').tree();
 

@@ -23,318 +23,158 @@ import Button from "components/CustomButtons/Button.jsx";
 import javascriptStyles from "assets/jss/material-kit-react/views/componentsSections/javascriptStyles.jsx";
 
 function Transition(props) {
-  return <Slide direction="down" {...props} />;
+    return <Slide direction="down" {...props} />;
 }
 
 class SectionJavascript extends React.Component {
-  anchorElLeft = null;
-  anchorElTop = null;
-  anchorElBottom = null;
-  anchorElRight = null;
-  constructor(props) {
-    super(props);
-    this.state = {
-      classicModal: false,
-      openLeft: false,
-      openTop: false,
-      openBottom: false,
-      openRight: false
-    };
-  }
-  handleClickOpen(modal) {
-    var x = [];
-    x[modal] = true;
-    this.setState(x);
-  }
-  handleClose(modal) {
-    var x = [];
-    x[modal] = false;
-    this.setState(x);
-  }
-  handleClosePopover(state) {
-    this.setState({
-      [state]: false
-    });
-  }
-  handleClickButton(state) {
-    this.setState({
-      [state]: true
-    });
-  }
-  render() {
-    const { classes } = this.props;
-    return (
-      <div className={classes.section}>
-        <div className={classes.container}>
-          <div className={classes.title}>
-            <h2>Javascript components</h2>
-          </div>
-          <GridContainer>
-            <GridItem xs={12} sm={12} md={6}>
-              <div className={classes.title}>
-                <h3>Modal</h3>
-              </div>
-              <GridContainer>
-                <GridItem xs={12} sm={12} md={6} lg={4}>
-                  <Button
-                    color="primary"
-                    block
-                    onClick={() => this.handleClickOpen("classicModal")}
-                  >
-                    <LibraryBooks className={classes.icon} />Classic
-                  </Button>
-                  <Dialog
-                    classes={{
-                      root: classes.center,
-                      paper: classes.modal
-                    }}
-                    open={this.state.classicModal}
-                    TransitionComponent={Transition}
-                    keepMounted
-                    onClose={() => this.handleClose("classicModal")}
-                    aria-labelledby="classic-modal-slide-title"
-                    aria-describedby="classic-modal-slide-description"
-                  >
-                    <DialogTitle
-                      id="classic-modal-slide-title"
-                      disableTypography
-                      className={classes.modalHeader}
-                    >
-                      <IconButton
-                        className={classes.modalCloseButton}
-                        key="close"
-                        aria-label="Close"
-                        color="inherit"
-                        onClick={() => this.handleClose("classicModal")}
-                      >
-                        <Close className={classes.modalClose} />
-                      </IconButton>
-                      <h4 className={classes.modalTitle}>Modal title</h4>
-                    </DialogTitle>
-                    <DialogContent
-                      id="classic-modal-slide-description"
-                      className={classes.modalBody}
-                    >
-                      <p>
-                        Far far away, behind the word mountains, far from the
-                        countries Vokalia and Consonantia, there live the blind
-                        texts. Separated they live in Bookmarksgrove right at
-                        the coast of the Semantics, a large language ocean. A
-                        small river named Duden flows by their place and
-                        supplies it with the necessary regelialia. It is a
-                        paradisematic country, in which roasted parts of
-                        sentences fly into your mouth. Even the all-powerful
-                        Pointing has no control about the blind texts it is an
-                        almost unorthographic life One day however a small line
-                        of blind text by the name of Lorem Ipsum decided to
-                        leave for the far World of Grammar.
-                      </p>
-                    </DialogContent>
-                    <DialogActions className={classes.modalFooter}>
-                      <Button color="transparent" simple>
-                        Nice Button
-                      </Button>
-                      <Button
-                        onClick={() => this.handleClose("classicModal")}
-                        color="danger"
-                        simple
-                      >
-                        Close
-                      </Button>
-                    </DialogActions>
-                  </Dialog>
-                </GridItem>
-              </GridContainer>
-              <GridItem xs={12} sm={12} md={12}>
-                <div className={classes.title}>
-                  <h3>Datetime Picker</h3>
+    anchorElLeft = null;
+    anchorElTop = null;
+    anchorElBottom = null;
+    anchorElRight = null;
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            classicModal: false,
+            openLeft: false,
+            openTop: false,
+            openBottom: false,
+            openRight: false
+        };
+    }
+
+    handleClickOpen(modal) {
+        var x = [];
+        x[modal] = true;
+        this.setState(x);
+    }
+
+    handleClose(modal) {
+        var x = [];
+        x[modal] = false;
+        this.setState(x);
+    }
+
+    handleClosePopover(state) {
+        this.setState({
+            [state]: false
+        });
+    }
+
+    handleClickButton(state) {
+        this.setState({
+            [state]: true
+        });
+    }
+
+    render() {
+        const {classes} = this.props;
+        return (
+            <div className={classes.section}>
+                <div className={classes.container}>
+                    <div className={classes.title}>
+                        <h2>Javascript components</h2>
+                    </div>
+                    <GridContainer>
+                        <GridItem xs={12} sm={12} md={8}>
+                            <div className={classes.title}>
+                                <h3>File Structure</h3>
+                            </div>
+                            <p>
+                                I think <a
+                                href="https://framework.zend.com/manual/1.10/en/project-structure.project.html"
+                                className="text-purple">Zend
+                                Framework</a> has a very
+                                intuitive and clear file architecture. We're going to use their recommended file
+                                hierarchy with a few
+                                tweaks. We do this because
+                                The <a href="https://en.wikipedia.org/wiki/Model–view–controller"
+                                       className="text-purple">Controller ->
+                                Model -> View (MVC,
+                                rolls
+                                off the tong better) coding pattern</a>
+                                is in alphabetical order. So in most editors you can think of it as top down. I
+                                recommend viewing the
+                                files,
+                            </p>
+
+                            <ol>
+                                <li><h4><b>Controllers - accepts input and converts it to commands for the model or
+                                    view</b></h4>
+                                    <ul>
+                                        <li>If the controller returns null the model will be skipped in execution
+                                            returning only the view.
+                                            If the controller returns false neither the model code layer or view will
+                                            not be executed.
+                                        </li>
+                                        <li>Data returned by controllers will be passed as parameters to the model</li>
+                                    </ul>
+                                </li>
+                                <li><h4><b>Models - may accept data from the controller, but is not required</b></h4>
+                                    <ul>
+                                        <li>Models usually run functions provided in the Tables folder then work to
+                                            prepare it for the
+                                            view
+                                        </li>
+                                        <li>Tables should have a corresponding file of the same name as the MySQL
+                                            table
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li><h4><b>Tables - preform database operations</b></h4>
+                                    <ul>
+                                        <li>Tables should generated using the <code>php index.php rest</code> command.
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li><h4><b>View - holds all html data</b></h4>
+                                    <ul>
+                                        <li>All logic in the view should be based on presents of variables</li>
+                                        <li>React Javascript or Mustache templates are recommend</li>
+                                    </ul>
+                                </li>
+                            </ol>
+                            <p>
+                                <h4><b>File hierarchy of C6 applications</b></h4>
+                                <ul>
+                                    <li><h5>config/</h5>
+                                        <ul>
+                                            <li>This folder houses the Config.php file, this will most likely need to edited for you database credentials.</li>
+                                            <li>buildDatabase.php aslo exists in this directory. This is automatically generated and should not be directly edited.
+                                                See C6 Cli programs for more information.</li>
+                                        </ul>
+                                    </li>
+                                    <li><h5>controller/</h5>
+                                        <ul><li>Validate user input (type checks)</li></ul>
+                                    </li>
+                                    <li><h5>model/</h5>
+                                        <ul><li>Validate against database + other database operations</li></ul>
+                                    </li>
+                                    <li><h5>tables/</h5>
+                                        <ul><li>Table classes are automatically generated with REST</li></ul>
+                                    </li>
+                                    <li><h5>view/</h5>
+                                        <ul>
+                                            <li>All things related to the view go here</li>
+                                            <li>This could be HTML or React based templating</li>
+                                        </ul>
+                                    </li>
+                                    <li><h5>index.php</h5>
+                                        <ul><li>This starts composer, initiates CarbonPHP, then runs the websites routing file.</li></ul></li>
+                                    <li>
+                                        <h5>website.php</h5>
+                                        <ul>
+                                            <li>This is typically named after the domain name and is the routing bootstrap file.</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </p>
+                        </GridItem>
+                    </GridContainer>
                 </div>
-                <GridContainer>
-                  <GridItem xs={12} sm={12} md={6}>
-                    <InputLabel className={classes.label}>
-                      Datetime Picker
-                    </InputLabel>
-                    <br />
-                    <FormControl fullWidth>
-                      <Datetime
-                        inputProps={{ placeholder: "Datetime Picker Here" }}
-                      />
-                    </FormControl>
-                  </GridItem>
-                </GridContainer>
-              </GridItem>
-            </GridItem>
-            <GridItem xs={12} sm={12} md={6}>
-              <div className={classes.title}>
-                <h3>Popovers</h3>
-              </div>
-              <Button
-                buttonRef={node => {
-                  this.anchorElLeft = node;
-                }}
-                onClick={() => this.handleClickButton("openLeft")}
-              >
-                On left
-              </Button>
-              <Popover
-                classes={{
-                  paper: classes.popover
-                }}
-                open={this.state.openLeft}
-                anchorEl={this.anchorElLeft}
-                anchorReference={"anchorEl"}
-                onClose={() => this.handleClosePopover("openLeft")}
-                anchorOrigin={{
-                  vertical: "center",
-                  horizontal: "left"
-                }}
-                transformOrigin={{
-                  vertical: "center",
-                  horizontal: "right"
-                }}
-              >
-                <h3 className={classes.popoverHeader}>Popover on left</h3>
-                <div className={classes.popoverBody}>
-                  Here will be some very useful information about his popover.
-                  Here will be some very useful information about his popover.
-                </div>
-              </Popover>
-              <Button
-                buttonRef={node => {
-                  this.anchorElTop = node;
-                }}
-                onClick={() => this.handleClickButton("openTop")}
-              >
-                On top
-              </Button>
-              <Popover
-                classes={{
-                  paper: classes.popover
-                }}
-                open={this.state.openTop}
-                anchorEl={this.anchorElTop}
-                anchorReference={"anchorEl"}
-                onClose={() => this.handleClosePopover("openTop")}
-                anchorOrigin={{
-                  vertical: "top",
-                  horizontal: "center"
-                }}
-                transformOrigin={{
-                  vertical: "bottom",
-                  horizontal: "center"
-                }}
-              >
-                <h3 className={classes.popoverHeader}>Popover on top</h3>
-                <div className={classes.popoverBody}>
-                  Here will be some very useful information about his popover.
-                </div>
-              </Popover>
-              <Button
-                buttonRef={node => {
-                  this.anchorElBottom = node;
-                }}
-                onClick={() => this.handleClickButton("openBottom")}
-              >
-                On bottom
-              </Button>
-              <Popover
-                classes={{
-                  paper: classes.popover
-                }}
-                open={this.state.openBottom}
-                anchorEl={this.anchorElBottom}
-                anchorReference={"anchorEl"}
-                onClose={() => this.handleClosePopover("openBottom")}
-                anchorOrigin={{
-                  vertical: "bottom",
-                  horizontal: "center"
-                }}
-                transformOrigin={{
-                  vertical: "top",
-                  horizontal: "center"
-                }}
-              >
-                <h3 className={classes.popoverHeader}>Popover on bottom</h3>
-                <div className={classes.popoverBody}>
-                  Here will be some very useful information about his popover.
-                </div>
-              </Popover>
-              <Button
-                buttonRef={node => {
-                  this.anchorElRight = node;
-                }}
-                onClick={() => this.handleClickButton("openRight")}
-              >
-                On right
-              </Button>
-              <Popover
-                classes={{
-                  paper: classes.popover
-                }}
-                open={this.state.openRight}
-                anchorEl={this.anchorElRight}
-                anchorReference={"anchorEl"}
-                onClose={() => this.handleClosePopover("openRight")}
-                anchorOrigin={{
-                  vertical: "center",
-                  horizontal: "right"
-                }}
-                transformOrigin={{
-                  vertical: "center",
-                  horizontal: "left"
-                }}
-              >
-                <h3 className={classes.popoverHeader}>Popover on right</h3>
-                <div className={classes.popoverBody}>
-                  Here will be some very useful information about his popover.
-                </div>
-              </Popover>
-              <br />
-              <br />
-              <div className={classes.title}>
-                <h3>Tooltips</h3>
-              </div>
-              <Tooltip
-                id="tooltip-left"
-                title="Tooltip on left"
-                placement="left"
-                classes={{ tooltip: classes.tooltip }}
-              >
-                <Button>On left</Button>
-              </Tooltip>
-              <Tooltip
-                id="tooltip-top"
-                title="Tooltip on top"
-                placement="top"
-                classes={{ tooltip: classes.tooltip }}
-              >
-                <Button>On top</Button>
-              </Tooltip>
-              <Tooltip
-                id="tooltip-bottom"
-                title="Tooltip on bottom"
-                placement="bottom"
-                classes={{ tooltip: classes.tooltip }}
-              >
-                <Button>On bottom</Button>
-              </Tooltip>
-              <Tooltip
-                id="tooltip-right"
-                title="Tooltip on right"
-                placement="right"
-                classes={{ tooltip: classes.tooltip }}
-              >
-                <Button>On right</Button>
-              </Tooltip>
-            </GridItem>
-          </GridContainer>
-          <div className={classes.title}>
-            <h3>Carousel</h3>
-          </div>
-        </div>
-      </div>
-    );
-  }
+            </div>
+        );
+    }
 }
 
 export default withStyles(javascriptStyles)(SectionJavascript);

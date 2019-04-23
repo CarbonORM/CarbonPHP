@@ -341,7 +341,7 @@
                             <h4 class="box-title">
                                 <a class="text-black" data-toggle="collapse" data-parent="#accordionTwo"
                                    href="#oneCollapse">
-                                    #Caveats
+
                                 </a>
                             </h4>
                         </div>
@@ -368,41 +368,7 @@
                         </div>
                         <div id="twoCollapse" class="panel-collapse collapse">
                             <div class="box-body">
-                                <ol>
-                                    <li>Create a new <a href="cloud.google.com">Cloud Account</a> if you haven't already
-                                    </li>
-                                    <li>Select SQL from the left side menu</li>
-                                    <li>Select Create Instance
-                                        <ul>
-                                            <li>Choose MySQL and select next</li>
-                                            <li>Select 'Choose Second Generation'</li>
-                                        </ul>
-                                    </li>
-                                    <li>Name you instance and give a password before clicking next
-                                        <ul>
-                                            <li>The price will scale with work load.</li>
-                                        </ul>
-                                    </li>
-                                    <li>Copy the Instance connection name for later use</li>
-                                    <li>In the search bar type <b>Credentials</b> and select the first suggestion</li>
-                                    <li>Select the OAuth Consent Screen tab in the top menu
-                                        <ul>
-                                            <li>Fill out the required fields</li>
-                                        </ul>
-                                    </li>
-                                    <li>Select the Credentials Tab in the top navigation</li>
-                                    <li>Select the Create credentials dropdown
-                                        <ol>
-                                            <li>Choose OAuth Client Id</li>
-                                            <li>Then choose Web application and select create</li>
-                                        </ol>
-                                    </li>
-                                    <li>Save your Client ID and Client Secret</li>
-                                </ol>
-                                <p>You now have a database (Instance connection name) and password as well as
-                                    an authorization token for your app to connect to the google sql server.
-                                    Now we need to Configure our .yml files.
-                                </p>
+
                             </div>
                         </div>
                     </div>
@@ -417,41 +383,7 @@
                         </div>
                         <div id="threeCollapse" class="panel-collapse collapse">
                             <div class="box-body">
-                                <p>
-                                    The app.yml and settings.yml must be edited before we push to the App Engine.
-                                    Lets start with the <b>app.yml file.</b></p>
 
-                                <pre><code>beta_settings: cloud_sql_instances: ""</code></pre>
-
-                                <p>You should see the line above in your app.yml file. If you
-                                    have not downloaded C6 yet, <a href="<?= SITE ?>Installation">click here.</a>
-                                    Your instance connection name should go between the double quotes. We also need
-                                    to add our connection name to the environmental variables below this entry in
-                                    the app.yml file.
-                                    The <code>MYSQL_USER</code> and <code>MYSQL_PASSWORD</code> should be set
-                                    with the applicable values. Our <code>MYSQL_DSN</code> has the following format.
-                                </p>
-
-                                <pre><code>MYSQL_DSN: mysql:dbname=*;unix_socket=/cloudsql/*;</code></pre>
-
-                                <p>The first asterisk should be replaced with your desired database name. <b>You are not
-                                        required to create the database prior to launch as CarbonPHP will set it up
-                                        automatically.</b>
-                                    The second asterisk should be replaced with your instance connection name.</p>
-
-                                <h4>settings.yml</h4>
-
-                                <p>The settings file will hold our OAuth information as well as out database
-                                    information.
-                                    The <code>google_client_id</code> and <code>google_client_secret</code> should be
-                                    filled
-                                    with you OAuth credentials respectively. The <code>google_project_id</code> will
-                                    contain
-                                    the id in the first section of our instance connection name. Again, this is the
-                                    value directly
-                                    before the first colon ':' in out instance connection name. All values left should
-                                    match those
-                                    entered in our app.yml file.</p>
 
                             </div>
                         </div>

@@ -16,7 +16,7 @@ class Color
 
         $json['colorCode'] = print_r($json, true);
 
-        $_POST and sortDump($headers = apache_request_headers());
+        //$_POST and sortDump($headers = apache_request_headers());
 
         return null;
     }

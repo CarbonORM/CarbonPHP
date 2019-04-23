@@ -34,6 +34,8 @@ try {
 
 CarbonPHP\CarbonPHP::run( CarbonPHP\C6::class);
 
+//alert('stop');
+
 return true;
 
 

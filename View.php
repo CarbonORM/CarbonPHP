@@ -84,8 +84,6 @@ class View
 
                 print json_encode($json) . PHP_EOL . PHP_EOL;
 
-
-
                 return true;
             }
 

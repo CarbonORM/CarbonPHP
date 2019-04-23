@@ -222,18 +222,23 @@ END;
         if (null === $e) {
             $e = new \Exception();
             $trace = explode("\n", $e->getTraceAsString());
-            $args = array_reverse($e->getTrace());
+            $args = $e->getTrace();
+            #$args = array_reverse($e->getTrace());
             $trace = array_reverse($trace);
-            array_shift($trace); // remove {main}
-            array_pop($args); // remove call to this method
-            array_pop($args); // remove call to this method
-            array_pop($trace); // remove call to this method
-            array_pop($trace); // remove call to this method
+            array_pop($trace); // remove {main}
+            array_shift($args); // remove call to this method
+            array_shift($args); // remove call to this method
+            array_shift($trace); // remove call to this method
+            array_shift($trace); // remove call to this method
         } else {
-            $trace = explode("\n", $e->getTraceAsString());
+            /*$trace = explode("\n", $e->getTraceAsString());
             $args = array_reverse($e->getTrace());
             $trace = array_reverse($trace);
-            array_shift($trace); // remove {main}
+            array_shift($trace); // remove {main}*/
+            $trace = explode("\n", $e->getTraceAsString());
+            $args = $e->getTrace();
+            $trace = $trace;
+            array_pop($trace); // remove {main}
         }
 
 

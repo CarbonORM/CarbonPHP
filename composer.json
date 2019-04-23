@@ -16,9 +16,11 @@
     "php": "^7.1",
     "mustache/mustache": "v2.12.0",
     "psr/log": "^1.0",
-    "phpunit/phpunit-selenium": "^4.1",
     "matthiasmullie/minify": "dev-master",
     "patchwork/jsqueeze": "^2.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit-selenium": "^4.1"
   },
   "authors": [
     {

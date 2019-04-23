@@ -84,7 +84,7 @@
     Carbon(() => {
         $.fn.load_iCheck('input');
         $.fn.load_backStreach("https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?ixlib=rb-0.3.5&s=872a83ba6a07ac43b3e7176337665316&auto=format&fit=crop&w=1950&q=80");
-        let remove=()=>$.fn.load_backStreach("<?=SITE . APP_VIEW?>Img/Carbon-green.png");
+        let remove=()=>$.fn.load_backStreach("/view/mustache/img/Carbon-green.png");
         $(document).off("pjax:beforeSend", remove).on("pjax:beforeSend", remove)
     });
 </script>

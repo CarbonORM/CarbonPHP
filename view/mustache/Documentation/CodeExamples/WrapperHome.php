@@ -108,7 +108,7 @@
 
 
             loadJS("/bower-asset/jquery-backstretch/jquery.backstretch.min.js", () => {
-                $.backstretch('/Img/Carbon-green.png');
+                $.backstretch('/view/mustache/img/Carbon-green.png');
             });
 
 
