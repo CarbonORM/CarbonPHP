@@ -93,7 +93,7 @@ function CarbonPHP(selector, address, options) {
         if (url.charAt(0) !== '/') {
             url = '/' + url;
         }
-        console.log('JavaScript startApplication(' + url + ')');
+        console.log('JavaScript startApplication(' + url + ', ' + (selector?selector:this.selector) + ')');
         if (this.defaultOnSocket && this.trySocket) {           /*defaultOnSocket && */
             console.log('Socket::' + url);
             this.statsSocket.send(JSON.stringify(url));
@@ -111,12 +111,7 @@ function CarbonPHP(selector, address, options) {
                     '* mustacheTemplate': this.handlebars,
                 },
                 dataType: "mustacheTemplate",
-                success: function (data) {
-                    alert(data);
-                },
-                error: function (data) {
-                    alert(data);
-                }
+                push: false,
             });
             /*$.get(url, (data) => this.MustacheWidgets(data, url));*/
         }
@@ -159,7 +154,7 @@ function CarbonPHP(selector, address, options) {
         let template = undefined, json = undefined;
 
         console.log('handlebars');
-        console.log(data);
+        //console.log(data);
 
         if (!this.isset(data)) {
             console.log('No data to handlebars');
@@ -177,11 +172,11 @@ function CarbonPHP(selector, address, options) {
 
             if (json.hasOwnProperty('Mustache')) {
 
-                if (json.hasOwnProperty('Widget')) {
+               /* if (json.hasOwnProperty('Widget')) {
                     this.selector = json.Widget;
-                }
+                }*/
 
-                console.log('Valid Handlebars $( ' + json.Widget + ' ).render( ' + json.Mustache + ', ... ); \n');
+                console.log('Valid Widget deprecating $( ' + json.Widget + ' ).render( ' + json.Mustache + ', ... ); \n');
 
                 $.ajax({
                     async: false,
@@ -219,6 +214,7 @@ function CarbonPHP(selector, address, options) {
                 if (json.hasOwnProperty('ALERT') && this.isset(json.ALERT)) {
                     this.bootstrapAlert(json.ALERT);
                 }
+                console.log("This will cause a page refresh.");
                 return json;
             }
         }
@@ -281,10 +277,8 @@ function CarbonPHP(selector, address, options) {
 
                 $.get(json.Mustache, (template) => {
 
-                    console.log('HBS-Template::');
-
-                    console.log(template);
-                    /* TODO - comment out */
+                    //console.log('HBS-Template::');
+                    //console.log(template);
 
                     Mustache.parse(template);
                     /* cache */
@@ -437,15 +431,6 @@ function CarbonPHP(selector, address, options) {
             '* mustacheTemplate': this.handlebars
         },
         dataType: "mustacheTemplate",
-        success: function (data) {
-            console.log('<a href="... success ', data);
-            alert(data);
-            return data;
-        },
-        error: function (data) {
-            console.log('<a href="... error ', data);
-            return true;
-        }
     });
 
     $(document).on('pjax:success', () => {
@@ -481,7 +466,11 @@ function CarbonPHP(selector, address, options) {
     });
 
     // TODO - make this an option
-    $(document).on('pjax:popstate', () => $.pjax.reload(selector));
+    $(document).on('pjax:popstate', () => { //$.pjax.reload(selector)
+        console.log('pjax:popstate');
+        window.location.reload();
+        console.log('pjax:popstate Finish');
+    });
     /* refresh our state always!! */
 
     /* Socket Connection */

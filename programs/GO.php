@@ -15,6 +15,13 @@ use CarbonPHP\Interfaces\iCommand;
 
 class GO implements iCommand
 {
+    private $CONFIG;
+
+    public function __construct($CONFIG)
+    {
+        $this->CONFIG = $CONFIG;
+    }
+
     public function usage(): void
     {
         // TODO - improve documentation
@@ -35,7 +42,7 @@ class GO implements iCommand
                     print $cmd . PHP_EOL . PHP_EOL;
                     pclose(popen($cmd, 'r'));
                 } else {
-                    $cmd = sprintf('sudo %s > %s 2>$1 & echo $! ', $cmd, $outputFile);
+                    $cmd = sprintf('sudo %s ', $cmd, $outputFile); // sudo %s > %s 2>$1 & echo $!
                     print $cmd . PHP_EOL . PHP_EOL;
                     exec($cmd, $pid);
                 }
@@ -44,10 +51,11 @@ class GO implements iCommand
             return $pid[0] ?? 'Failed to execute cmd!';
         };
 
+
         $CMD = 'websocketd --port=' . ($PHP['SOCKET']['PORT'] ?? 8888) . ' ' .
-            (($PHP['SOCKET']['DEV'] ?? false) ? '--devconsole ' : '') .
-            (($PHP['SOCKET']['SSL'] ?? false) ? "--ssl --sslkey='{$PHP['SOCKET']['SSL']['KEY']}' --sslcert='{$PHP['SOCKET']['SSL']['CERT']}' " : ' ') .
-            'php "' . CARBON_ROOT . 'programs' . DS . 'Websocketd.php" "' . APP_ROOT . '" "' . ($PHP['SITE']['CONFIG'] ?? APP_ROOT) . '" ';
+            (($this->CONFIG['SOCKET']['DEV'] ?? false) ? '--devconsole ' : '') .
+            (($this->CONFIG['SOCKET']['SSL'] ?? false) ? "--ssl --sslkey='{$this->CONFIG['SOCKET']['SSL']['KEY']}' --sslcert='{$this->CONFIG['SOCKET']['SSL']['CERT']}' " : ' ') .
+            'php "' . CARBON_ROOT . 'programs' . DS . 'Websocketd.php" "' . APP_ROOT . '" "' . ($this->CONFIG['SITE']['CONFIG'] ?? APP_ROOT) . '" ';
 
         print 'pid == ' . $background($CMD, APP_ROOT . 'websocketd_log.txt');
         print "\n\n\tWebsocket started in the background, done!\n\n";
