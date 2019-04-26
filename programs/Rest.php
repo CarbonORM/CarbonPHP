@@ -531,7 +531,6 @@ END;
         return 0;
     }
 
-
     public function trigger($table, $columns, $binary, $dependencies, $primary): string
     {
 
@@ -632,7 +631,6 @@ END;;
 TRIGGER;
     }
 
-
     private function restTemplate(): string
     {
         return <<<STRING
@@ -710,32 +708,17 @@ class {{TableName}} extends Database implements iRest
     }
 
     public static function bind(\PDOStatement \$stmt, array \$argv) {
-   
-    \$bind = function (array \$argv) use (&\$bind, &\$stmt) {
-            foreach (\$argv as \$key => \$value) {
-                
-                if (is_array(\$value)) {
-                    \$bind(\$value);
-                    continue;
-                }
-                switch (\$key) {
-                
-            {{#explode}}
-                   case '{{name}}':
-                    {{^length}}
-                        \$stmt->bindValue(':{{name}}',{{#json}}json_encode(\$argv['{{name}}']){{/json}}{{^json}}\$argv['{{name}}']{{/json}}, {{type}});
-                    {{/length}}
-                    {{#length}}
-                        \${{name}} = \$argv['{{name}}'];
-                        \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
-                    {{/length}}
-                    break;
-            {{/explode}}
-            }
-          }
-        };
-        
-        \$bind(\$argv);
+    {{#explode}}
+        if (array_key_exists('{{name}}', \$argv)) {
+        {{^length}}
+            \$stmt->bindValue(':{{name}}',{{#json}}json_encode(\$argv['{{name}}']){{/json}}{{^json}}\$argv['{{name}}']{{/json}}, {{type}});
+        {{/length}}
+        {{#length}}
+            \${{name}} = \$argv['{{name}}'];
+            \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
+        {{/length}}
+        }
+    {{/explode}}
 
         foreach (self::\$injection as \$key => \$value) {
             \$stmt->bindValue(\$key,\$value);
