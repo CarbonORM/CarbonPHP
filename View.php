@@ -53,7 +53,7 @@ class View
                 include $file;          // TODO - remove socket check?
             } else {
                 $json = array_merge([
-                    'Mustache' => SITE . $file,
+                    'Mustache' => DS . $file,           // dont change this to SITE
                     'Widget' => '#pjax-content'
                 ], $json);
                 print PHP_EOL . json_encode($json) . PHP_EOL;

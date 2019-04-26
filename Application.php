@@ -114,22 +114,23 @@ abstract class Application extends Route
      * @param array $argv Arguments to be passed to method
      * @return mixed          the returned value from model/$class.$method() or false | void
      */
+    private static $APPLICATION;
+    private static $CLASS;
+    private static $METHOD;
+
     public static function ControllerModelView(string $class, string $method, array &$argv = [])
     {
-        /** @noinspection PhpUnusedLocalVariableInspection */
-        static $APPLICATION, $CLASS, $METHOD; // This MAY run recursively
+        self::$CLASS = $class;
+        self::$METHOD = $method;
 
-        $CLASS = $class;
-        $METHOD = $method;
-
-        if ($APPLICATION === null) {
-            $APPLICATION = $recurse = 0;
+        if (self::$APPLICATION === null) {
+            self::$APPLICATION = $recurse = 0;
         } else {
-            $recurse = $APPLICATION;
+            $recurse = self::$APPLICATION;
         }
 
         // keep track of which recursive iteration this is.
-        $APPLICATION++;
+        self::$APPLICATION++;
 
         /* I use a different CM function in carbonphp because the namespace needed is CarbonPHP/Controller
          * using the keyword static rather than self allows us to call the child implementation
@@ -145,7 +146,7 @@ abstract class Application extends Route
         }
 
         // This could cache or send
-        $file = APP_VIEW . "$CLASS/$METHOD";
+        $file = APP_VIEW . self::$CLASS . '/' . self::$METHOD;
 
         if (!file_exists(APP_ROOT . $file . ($ext = '.php')) && !file_exists(APP_ROOT . $file . ($ext = '.hbs'))) {
             $ext = '';
