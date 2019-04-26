@@ -215,7 +215,7 @@ END;
             exit(1);
         }
 
-        if (empty($this->mysqldump  = file_get_contents($this->mysqldump ))) {
+        if (empty($this->mysqldump = file_get_contents($this->mysqldump))) {
             print 'Contents of the mysql dump file appears empty. Build Failed!';
             exit(1);
         }
@@ -708,8 +708,17 @@ class {{TableName}} extends Database implements iRest
     }
 
     public static function bind(\PDOStatement \$stmt, array \$argv) {
-    {{#explode}}
-        if (array_key_exists('{{name}}', \$argv)) {
+   
+    \$bind = function (array \$argv) use (&\$bind, &\$stmt) {
+            foreach (\$argv as \$key => \$value) {
+                
+                if (is_numeric(\$key) && is_array(\$value)) {
+                    \$bind(\$value);
+                    continue;
+                }
+                
+            {{#explode}}
+                   if (array_key_exists('{{name}}', \$argv)) {
         {{^length}}
             \$stmt->bindValue(':{{name}}',{{#json}}json_encode(\$argv['{{name}}']){{/json}}{{^json}}\$argv['{{name}}']{{/json}}, {{type}});
         {{/length}}
@@ -718,7 +727,12 @@ class {{TableName}} extends Database implements iRest
             \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
         {{/length}}
         }
-    {{/explode}}
+            {{/explode}}
+           
+          }
+        };
+        
+        \$bind(\$argv);
 
         foreach (self::\$injection as \$key => \$value) {
             \$stmt->bindValue(\$key,\$value);
