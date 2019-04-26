@@ -4,8 +4,6 @@
 //if we wait to send output until we fork we can preserve our socket and session with the database
 const SOCKET = true;                // faster than define
 
-const DS = DIRECTORY_SEPARATOR;     // shorthand
-
 if (!($argv[1] ?? false)) {
     print "This file should not be executed statically.\n" and die;
 }
@@ -46,10 +44,9 @@ pcntl_signal( SIGTERM, 'signalHandler' ); // Termination ('kill' was called')
 pcntl_signal( SIGHUP, 'signalHandler' );  // Terminal log-out
 pcntl_signal( SIGINT, 'signalHandler' );  // Interrupted ( Ctrl-C is pressed)
 
-$fifoFile = \CarbonPHP\helpers\Pipe::named( '/tmp/' . session_id() . '.fifo');     // other users can notify us to update our application through this file
+$fifoFile = \CarbonPHP\helpers\Pipe::named( '/tmp/' . $_SESSION['id'] . '.fifo');     // other users can notify us to update our application through this file
 
 $fifoFile or die;
-
 
 $stdin = fopen( 'php://stdin', 'b' );
 

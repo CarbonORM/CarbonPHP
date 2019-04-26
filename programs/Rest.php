@@ -1001,7 +1001,38 @@ class {{TableName}} extends Database implements iRest
     public static function Delete(array &\$remove, string \$primary = null, array \$argv) : bool
     {
     {{#carbon_table}}
-        return carbons::Delete(\$remove, \$primary, \$argv);
+        if (null !== \$primary) {
+            return carbons::Delete(\$remove, \$primary, \$argv);
+        }
+
+        /**
+         *   While useful, we've decided to disallow full
+         *   table deletions through the rest api. For the
+         *   n00bs and future self, "I got chu."
+         */
+        if (empty(\$argv)) {
+            return false;
+        }
+
+        self::\$injection = [];
+        /** @noinspection SqlResolve */
+        \$sql = 'DELETE c FROM {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}carbons c 
+                JOIN {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}{{TableName}} on c.entity_pk = follower_table_id';
+
+        \$pdo = self::database();
+
+        \$sql .= ' WHERE ' . self::buildWhere(\$argv, \$pdo);
+
+        self::jsonSQLReporting(\\func_get_args(), \$sql);
+
+        \$stmt = \$pdo->prepare(\$sql);
+
+        \$r = self::bind(\$stmt, \$argv);
+
+        /** @noinspection CallableParameterUseCaseInTypeContextInspection */
+        \$r and \$remove = null;
+
+        return \$r;
     {{/carbon_table}}
     {{^carbon_table}}
         self::\$injection = [];

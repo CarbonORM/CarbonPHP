@@ -56,8 +56,7 @@ class View
                     'Mustache' => SITE . $file,
                     'Widget' => '#pjax-content'
                 ], $json);
-                //print_r($json);
-                print PHP_EOL;
+                print PHP_EOL . json_encode($json) . PHP_EOL;
             }
             return ob_get_clean();
         };

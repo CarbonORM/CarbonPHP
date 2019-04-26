@@ -83,7 +83,7 @@ class ErrorCatcher
 END;
 
                 }
-                Database::verify();     // Check that all database commit chains have finished successfully, otherwise attempt to remove
+                Database::verify('Check that all database commit chains have finished successfully. You may need to self::commit().');     // Check that all database commit chains have finished successfully, otherwise attempt to remove
                 return $argv;
             }
         };
