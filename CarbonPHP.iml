@@ -14,7 +14,7 @@
       <sourceFolder url="file://$MODULE_DIR$/controller" isTestSource="false" packagePrefix="CarbonPHP\Controller\" />
       <sourceFolder url="file://$MODULE_DIR$/helpers" isTestSource="false" packagePrefix="CarbonPHP\Helpers\" />
       <sourceFolder url="file://$MODULE_DIR$/programs" isTestSource="false" packagePrefix="CarbonPHP\Programs\" />
-      <sourceFolder url="file://$MODULE_DIR$/interfaces" isTestSource="false" packagePrefix="CarbonPHP\Interfaces\" />
+      <sourceFolder url="file://$MODULE_DIR$/Interfaces" isTestSource="false" packagePrefix="CarbonPHP\Interfaces\" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/composer" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/doctrine/instantiator" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/matthiasmullie/minify" />
