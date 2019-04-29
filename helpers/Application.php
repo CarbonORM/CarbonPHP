@@ -118,12 +118,6 @@ namespace {                                     // This runs the following code 
      */
     function console_log($data)
     {
-        ob_start();
-        echo $data;
-        $report = ob_get_clean();
-        $file = fopen(REPORTS . '/Log_' . time() . '.log', 'ab');
-        fwrite($file, $report);
-        fclose($file);
         print '<script>console.log(\'' . json_encode($data) . '\')</script>' . PHP_EOL;
     }
 

@@ -190,6 +190,9 @@ END;
             if (!is_dir(REPORTS) && !mkdir($concurrentDirectory = REPORTS) && !is_dir($concurrentDirectory)) {
                 PublicAlert::danger('Failed Storing Log');
             } else {
+
+                var_dump(self::$storeReport); die;
+
                 $file = fopen(REPORTS . 'Log_' . time() . '.log', 'ab');
 
                 if (!\is_resource($file) || !fwrite($file, $output)) {
@@ -225,20 +228,14 @@ END;
             $args = $e->getTrace();
             #$args = array_reverse($e->getTrace());
             $trace = array_reverse($trace);
-            array_pop($trace); // remove {main}
             array_shift($args); // remove call to this method
             array_shift($args); // remove call to this method
             array_shift($trace); // remove call to this method
             array_shift($trace); // remove call to this method
         } else {
-            /*$trace = explode("\n", $e->getTraceAsString());
+            $trace = explode("\n", $e->getTraceAsString());
             $args = array_reverse($e->getTrace());
             $trace = array_reverse($trace);
-            array_shift($trace); // remove {main}*/
-            $trace = explode("\n", $e->getTraceAsString());
-            $args = $e->getTrace();
-            $trace = $trace;
-            array_pop($trace); // remove {main}
         }
 
 
