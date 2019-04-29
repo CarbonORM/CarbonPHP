@@ -18,10 +18,7 @@ class carbon_user_messages extends Database implements iRest
 
     public const VALIDATION = [];
 
-
     public static $injection = [];
-
-
 
     public static function buildWhere(array $set, \PDO $pdo, $join = 'AND') : string
     {

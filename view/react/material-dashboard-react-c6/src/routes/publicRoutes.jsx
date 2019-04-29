@@ -41,7 +41,7 @@ let publicRoutes = [
     {
         redirect: true,
         path: "/2.0",
-        pathTo: "http://dev.carbonphp.com:80/2.0",
+        pathTo: "https://carbonphp.com/2.0",
     },
     {
         redirect: true,

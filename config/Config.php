@@ -70,21 +70,22 @@
  */
 
 return [
-
+    /*
     'DATABASE' => [
 
-        'DB_HOST' => '127.0.0.1',                        /* IP */
+        'DB_HOST' => '127.0.0.1',                        // IP
 
-        'DB_NAME' => 'CarbonPHP',                        /* Schema */
+        'DB_NAME' => 'CarbonPHP',                        // Schema
 
-        'DB_USER' => 'root',                        /* User*/
+        'DB_USER' => 'root',                        // User
 
-        'DB_PASS' => 'Huskies!99',                        /* Password*/
+        'DB_PASS' => 'Huskies!99',                        // Password
 
-        'DB_BUILD' => '',                       /* This framework sets up its-self implicitly */
+        'DB_BUILD' => '',                       // This framework sets up its-self implicitly
 
-        'REBUILD' => false                      /* Initial Setup todo - remove this check*/
+        'REBUILD' => false                      // Initial Setup todo - remove this check
     ],
+    */
 
     'SITE' => [
 
