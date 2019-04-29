@@ -33,6 +33,7 @@
   "autoload": {
     "psr-4": {
       "CarbonPHP\\": "",
+      "CarbonPHP\\Tables\\": "tables/",
       "CarbonPHP\\Error\\": "error/",
       "CarbonPHP\\Helpers\\": "helpers/",
       "CarbonPHP\\Interfaces\\": "interfaces/",
