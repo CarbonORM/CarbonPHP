@@ -69,7 +69,7 @@ END;
     {
         $argc = \count($argv);
 
-        if (!is_dir($concurrentDirectory = APP_ROOT . 'table') && !mkdir($concurrentDirectory) && !is_dir($concurrentDirectory)) {
+        if (!is_dir($concurrentDirectory = APP_ROOT . 'tables') && !mkdir($concurrentDirectory) && !is_dir($concurrentDirectory)) {
             throw new \RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
         }
 
@@ -688,9 +688,9 @@ class {{TableName}} extends Database implements iRest
             } else if (array_key_exists(\$column, self::COLUMNS)) {
                 \$bump = false;
                 if (self::COLUMNS[\$column][0] === 'binary') {
-                    \$sql .= "(\$column = UNHEX(:" . \$column . ")) \$join ";
+                    \$sql .= "(\$column = UNHEX(" . self::addInjection(\$value, \$pdo)  . ")) \$join ";
                 } else {
-                    \$sql .= "(\$column = :" . \$column . ") \$join ";
+                    \$sql .= "(\$column = " . self::addInjection(\$value, \$pdo) . ") \$join ";
                 }
             } else {
                 \$bump = false;
@@ -709,6 +709,7 @@ class {{TableName}} extends Database implements iRest
 
     public static function bind(\PDOStatement \$stmt, array \$argv) {
    
+   /*
     \$bind = function (array \$argv) use (&\$bind, &\$stmt) {
             foreach (\$argv as \$key => \$value) {
                 
@@ -732,7 +733,7 @@ class {{TableName}} extends Database implements iRest
           }
         };
         
-        \$bind(\$argv);
+        \$bind(\$argv); */
 
         foreach (self::\$injection as \$key => \$value) {
             \$stmt->bindValue(\$key,\$value);
