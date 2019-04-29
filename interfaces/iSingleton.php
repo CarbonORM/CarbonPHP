@@ -1,6 +1,6 @@
 <?php
 
-namespace CarbonPHP\Interfaces;
+namespace CarbonPHP\interfaces;
 
 interface iSingleton
 {

@@ -10,7 +10,7 @@
 namespace CarbonPHP\Programs;
 
 
-use CarbonPHP\Interfaces\iCommand;
+use CarbonPHP\interfaces\iCommand;
 
 
 class GO implements iCommand

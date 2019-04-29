@@ -6,7 +6,7 @@
  * Time: 6:57 PM
  */
 
-namespace CarbonPHP\Interfaces;
+namespace CarbonPHP\interfaces;
 
 /**
  * Interface iTable

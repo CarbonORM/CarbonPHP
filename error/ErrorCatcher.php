@@ -190,7 +190,7 @@ END;
             if (!is_dir(REPORTS) && !mkdir($concurrentDirectory = REPORTS) && !is_dir($concurrentDirectory)) {
                 PublicAlert::danger('Failed Storing Log');
             } else {
-                $file = fopen(REPORTS . '/Log_' . time() . '.log', 'ab');
+                $file = fopen(REPORTS . 'Log_' . time() . '.log', 'ab');
 
                 if (!\is_resource($file) || !fwrite($file, $output)) {
                     PublicAlert::danger('Failed Storing Log');

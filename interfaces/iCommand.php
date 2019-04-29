@@ -6,7 +6,7 @@
  * Time: 11:20 PM
  */
 
-namespace CarbonPHP\Interfaces;
+namespace CarbonPHP\interfaces;
 
 
 interface iCommand

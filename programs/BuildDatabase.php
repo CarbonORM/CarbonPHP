@@ -9,7 +9,7 @@
 namespace CarbonPHP\Programs;
 
 
-use CarbonPHP\Interfaces\iCommand;
+use CarbonPHP\interfaces\iCommand;
 
 class BuildDatabase implements iCommand
 {

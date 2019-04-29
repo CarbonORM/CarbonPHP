@@ -10,7 +10,7 @@ namespace CarbonPHP\Programs;
 
 
 use CarbonPHP\Error\PublicAlert;
-use CarbonPHP\Interfaces\iCommand;
+use CarbonPHP\interfaces\iCommand;
 
 class CLI implements iCommand
 {

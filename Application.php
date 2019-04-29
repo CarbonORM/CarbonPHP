@@ -146,7 +146,7 @@ abstract class Application extends Route
         }
 
         // This could cache or send
-        $file = APP_VIEW . self::$CLASS . '/' . self::$METHOD;
+        $file = APP_VIEW . strtolower(self::$CLASS) . '/' . strtolower(self::$METHOD);
 
         if (!file_exists(APP_ROOT . $file . ($ext = '.php')) && !file_exists(APP_ROOT . $file . ($ext = '.hbs'))) {
             $ext = '';

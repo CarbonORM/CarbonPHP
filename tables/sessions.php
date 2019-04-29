@@ -3,7 +3,7 @@
 namespace CarbonPHP\Tables;
 
 use CarbonPHP\Database;
-use CarbonPHP\Interfaces\iRest;
+use CarbonPHP\interfaces\iRest;
 
 
 class sessions extends Database implements iRest

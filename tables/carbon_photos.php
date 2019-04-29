@@ -3,7 +3,7 @@
 namespace CarbonPHP\Tables;
 
 use CarbonPHP\Database;
-use CarbonPHP\Interfaces\iRest;
+use CarbonPHP\interfaces\iRest;
 
 
 class carbon_photos extends Database implements iRest

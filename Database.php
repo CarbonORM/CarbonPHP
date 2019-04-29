@@ -208,7 +208,7 @@ class Database
      */
     public static function setUp(bool $refresh = true): PDO
     {
-        if (file_exists(CARBON_ROOT . 'Config/buildDatabase.php')) {
+        if (file_exists(CARBON_ROOT . 'config/buildDatabase.php')) {
             print '<h1>Connecting on </h1>'. self::$dsn . '<br>';
             include CARBON_ROOT . 'config/buildDatabase.php';
         } else {
