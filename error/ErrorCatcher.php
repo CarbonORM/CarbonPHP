@@ -191,8 +191,6 @@ END;
                 PublicAlert::danger('Failed Storing Log');
             } else {
 
-                var_dump(self::$storeReport); die;
-
                 $file = fopen(REPORTS . 'Log_' . time() . '.log', 'ab');
 
                 if (!\is_resource($file) || !fwrite($file, $output)) {

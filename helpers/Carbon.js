@@ -44,6 +44,29 @@ function CarbonPHP(selector, address, options) {
     this.alerting = [];
     this.JSLoaded = new Set();
 
+
+    $.fn.serializeAllArray = function () {
+        var obj = {};
+
+        $('input', this).each(function () {
+            obj[this.name] = $(this).val();
+        });
+
+        $("input[type='checkbox']").each(function () {
+            obj[this.name] = $(this).is(":checked");
+        });
+
+        $('textarea', this).each(function () {
+            obj[this.name] = $(this).val();
+        });
+
+        $('select', this).each(function () {
+            obj[this.name] = $(this).val();
+        });
+
+        return obj;
+    };
+
     this.js = (sc, cb) => {
         function load(src, cb) {
             "use strict";
@@ -89,7 +112,7 @@ function CarbonPHP(selector, address, options) {
         }
     };
 
-    this.app = this.start = this.startApplication = (url, selector) => {
+    this.app = this.start = this.startApplication = (url, selector, data) => {
         if (url.charAt(0) !== '/') {
             url = '/' + url;
         }
@@ -99,8 +122,9 @@ function CarbonPHP(selector, address, options) {
             this.statsSocket.send(JSON.stringify(url));
         } else {
             $.pjax({
-                type: "GET",
+                type: data ? "POST" : "GET",
                 url: url,
+                data: data,
                 container: selector?selector:this.selector,
                 timeout: 2000,
                 accepts: {
@@ -351,52 +375,19 @@ function CarbonPHP(selector, address, options) {
     $(document).on('submit', 'form', (event) => {        /* TODO - remove this pos */
         event.preventDefault();
 
+        let action = $(event.target).attr('action'),
+        target  = $(event.target).attr('target');
+
         console.log('Carbon Form Captured');
-        console.log($(event.target).attr('action'));
-
-        $.fn.serializeAllArray = function () {
-            var obj = {};
-
-            $('input', this).each(function () {
-                obj[this.name] = $(this).val();
-            });
-
-            $("input[type='checkbox']").each(function () {
-                obj[this.name] = $(this).is(":checked");
-            });
-
-            $('textarea', this).each(function () {
-                obj[this.name] = $(this).val();
-            });
-
-            $('select', this).each(function () {
-                obj[this.name] = $(this).val();
-            });
-
-            return obj;
-        };
-
-        console.log($(event.target).serializeAllArray())
-
-        /*
-        $.pjax.submit(event, selector, {
-            //async: false,
-            push: false,
-            accepts: {
-                mustacheTemplate: "html"
-            },
-            // deserialize a custom type
-            converters: {
-                '* mustacheTemplate': this.handlebars,
-            },
-            dataType: "mustacheTemplate",
-        });
-        */
+        console.log(action);
+        console.log(target);
 
         $.pjax({
             type: "POST",
-            url: $(event.target).attr('action'),
-            container: this.selector,
+            url: action,
+            container: target
+                ? target
+                : this.selector,
             timeout: 2000,
             // contentType: 'json',
             data: $(event.target).serializeAllArray(),

@@ -1,19 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="google" createEmptyFolders="true">
+  <component name="PublishConfigData" autoUpload="Always" serverName="StatsCoach" createEmptyFolders="true" showAutoUploadSettingsWarning="false">
     <serverData>
-      <paths name="google">
+      <paths name="StatsCoach">
         <serverdata>
           <mappings>
-            <mapping deploy="" local="$PROJECT_DIR$/view/react/material-dashboard-react-c6" web="/5.0" />
-            <mapping deploy="/var/www/carbonphp.com/html" local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="stats.coach">
-        <serverdata>
-          <mappings>
-            <mapping deploy="vendor/richardtmiles/carbonphp" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>

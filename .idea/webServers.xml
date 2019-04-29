@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="898a0e54-a440-422b-95b5-47c4e4223e5b" name="StatsCoach" url="https://stats.coach">
+        <fileTransfer port="0" mountedRoot="$PROJECT_DIR$/../Stats.Coach/vendor/richardtmiles/carbonphp" accessType="MOUNT" />
+      </webServer>
+    </option>
+  </component>
+</project>
