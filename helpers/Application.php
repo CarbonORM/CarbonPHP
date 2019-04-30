@@ -33,11 +33,13 @@ namespace {                                     // This runs the following code 
      *  The session callback is be set in carbon's configuration
      * @link
      *
-     * @return bool Returns the response from the bootstrap as a bool
+     * @return ?bool - if this is called recursively we want to make sure were not
+     * ruturing true to a controller function, thus causing the model to run when unneded.
+     * returning
      */
-    function startApplication($reset = false): bool
+    function startApplication($reset = false) : ?bool
     {
-        return CarbonPHP::startApplication($reset);
+        return CarbonPHP::startApplication($reset) ? null : false;
     }
 
     /** This extends the PHP's built-in highlight function to highlight

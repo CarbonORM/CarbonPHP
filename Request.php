@@ -99,7 +99,7 @@ class Request   // requires carbon::application;
                 /** @noinspection UnsupportedStringOffsetOperationsInspection */
                 $_SESSION['Headers'][] = $string;
             } else {
-                header($string);
+                header(trim($string));
             }
         }
     }

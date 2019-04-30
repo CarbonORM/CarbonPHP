@@ -111,6 +111,7 @@ END;
          * @param array $argv
          * @internal param TYPE_NAME $closure
          */
+
         $closure = function (...$argv) {
             static $count;
 
@@ -190,7 +191,6 @@ END;
             if (!is_dir(REPORTS) && !mkdir($concurrentDirectory = REPORTS) && !is_dir($concurrentDirectory)) {
                 PublicAlert::danger('Failed Storing Log');
             } else {
-
                 $file = fopen(REPORTS . 'Log_' . time() . '.log', 'ab');
 
                 if (!\is_resource($file) || !fwrite($file, $output)) {
@@ -223,17 +223,18 @@ END;
         if (null === $e) {
             $e = new \Exception();
             $trace = explode("\n", $e->getTraceAsString());
-            $args = $e->getTrace();
-            #$args = array_reverse($e->getTrace());
+            $args = array_reverse($e->getTrace());
             $trace = array_reverse($trace);
-            array_shift($args); // remove call to this method
-            array_shift($args); // remove call to this method
-            array_shift($trace); // remove call to this method
-            array_shift($trace); // remove call to this method
+            array_shift($trace); // remove {main}
+            array_pop($args); // remove call to this method
+            array_pop($args); // remove call to this method
+            array_pop($trace); // remove call to this method
+            array_pop($trace); // remove call to this method
         } else {
             $trace = explode("\n", $e->getTraceAsString());
             $args = array_reverse($e->getTrace());
             $trace = array_reverse($trace);
+            array_shift($trace); // remove {main}
         }
 
 

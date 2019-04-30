@@ -44,6 +44,7 @@ function CarbonPHP(selector, address, options) {
     this.alerting = [];
     this.JSLoaded = new Set();
 
+    $.pjax.defaults.scrollTo = false;
 
     $.fn.serializeAllArray = function () {
         var obj = {};

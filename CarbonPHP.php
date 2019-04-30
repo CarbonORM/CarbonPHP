@@ -93,15 +93,15 @@ class CarbonPHP
 
         Session::update($reset);              // Check wrapper / session callback
 
-        $application->matched = false;        // We can assume your in need of route matching again
 
         $uri = $uri ?? null;
 
         if ($uri === '/') {
+            $application->matched = true;
             $application->defaultRoute();
             return true;
         }
-
+        $application->matched = false;        // We can assume your in need of route matching again
         return $application->startApplication($reset ? $uri : implode('/', $application->uri));  // Routing file
     }
 
@@ -284,9 +284,9 @@ class CarbonPHP
 
         if ($PHP['ERROR'] ?? false) {
             Error\ErrorCatcher::$defaultLocation = REPORTS . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
-            Error\ErrorCatcher::$fullReports = $PHP['ERROR']['STORE'] ?? false;
+            Error\ErrorCatcher::$fullReports = $PHP['ERROR']['FULL'] ?? true;
             Error\ErrorCatcher::$printToScreen = $PHP['ERROR']['SHOW'] ?? true;
-            Error\ErrorCatcher::$storeReport = $PHP['ERROR']['FULL'] ?? true;
+            Error\ErrorCatcher::$storeReport = $PHP['ERROR']['STORE'] ?? false;
             Error\ErrorCatcher::$level = $PHP['ERROR']['LEVEL'] ?? ' E_ALL | E_STRICT';
             Error\ErrorCatcher::start();
         } // Catch application errors and alerts

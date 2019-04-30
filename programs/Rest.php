@@ -980,6 +980,18 @@ class {{TableName}} extends Database implements iRest
 
         \$stmt = \$pdo->prepare(\$sql);
 
+        {{#explode}}
+                   if (array_key_exists('{{name}}', \$argv)) {
+        {{^length}}
+            \$stmt->bindValue(':{{name}}',{{#json}}json_encode(\$argv['{{name}}']){{/json}}{{^json}}\$argv['{{name}}']{{/json}}, {{type}});
+        {{/length}}
+        {{#length}}
+            \${{name}} = \$argv['{{name}}'];
+            \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
+        {{/length}}
+        }
+            {{/explode}}
+
         if (!self::bind(\$stmt, \$argv)){
             return false;
         }
