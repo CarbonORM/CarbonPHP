@@ -1,10 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="StatsCoach" createEmptyFolders="true" showAutoUploadSettingsWarning="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="google stats" createEmptyFolders="true" showAutoUploadSettingsWarning="false">
     <serverData>
       <paths name="StatsCoach">
         <serverdata>
           <mappings>
+            <mapping deploy="/" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="google stats">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$/view/react/material-dashboard-react-c6" web="/" />
             <mapping deploy="/" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>

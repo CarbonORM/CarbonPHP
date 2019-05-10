@@ -5,6 +5,14 @@
       <webServer id="898a0e54-a440-422b-95b5-47c4e4223e5b" name="StatsCoach" url="https://stats.coach">
         <fileTransfer port="0" mountedRoot="$PROJECT_DIR$/../Stats.Coach/vendor/richardtmiles/carbonphp" accessType="MOUNT" />
       </webServer>
+      <webServer id="9b9ffc5f-0fec-4430-b238-37d538256650" name="google stats" url="http://35.196.103.151">
+        <fileTransfer host="35.196.103.151" port="22" privateKey="$USER_HOME$/.ssh/id_rsa" rootFolder="/var/www/stats.coach/vendor/richardtmiles/carbonphp" accessType="SFTP" keyPair="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
     </option>
   </component>
 </project>

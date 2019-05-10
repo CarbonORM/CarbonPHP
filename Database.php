@@ -24,7 +24,6 @@ use PDO;
  * must use the Entities.beginTransaction() &
  *  Entities.commit() methods to generate them.
  */
-
 class Database
 {
     /** Represents a connection between PHP and a database server.
@@ -209,7 +208,7 @@ class Database
     public static function setUp(bool $refresh = true): PDO
     {
         if (file_exists(CARBON_ROOT . 'config/buildDatabase.php')) {
-            print '<h1>Connecting on </h1>'. self::$dsn . '<br>';
+            print '<h1>Connecting on </h1>' . self::$dsn . '<br>';
             include CARBON_ROOT . 'config/buildDatabase.php';
         } else {
             print '<h1>Could not find database setup. Please see Carbonphp.com for more documentation</h1>';
@@ -424,15 +423,26 @@ class Database
             return [];
         }
 
-        if (\count($stmt = $stmt->fetchAll(PDO::FETCH_ASSOC)) !== 1){
+        $count = \count($stmt = $stmt->fetchAll(PDO::FETCH_ASSOC));
+
+        if ($count === 0) {
             return $stmt;
         }
 
-        while (\is_array($stmt)) {
-            $stmt = array_shift($stmt);
+        if ($count === 1) {
+            while (\is_array($stmt)) {
+                $stmt = array_shift($stmt);
+            }
+            return [$stmt];
         }
 
-        return [$stmt];
+        foreach ($stmt as &$value) {
+            while (is_array($value)) {
+                $value = array_shift($value);
+            }
+        }
+
+        return $stmt;
     }
 
     /** TODO - see if this even still works

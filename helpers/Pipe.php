@@ -27,6 +27,11 @@ class Pipe
      * each user can send data real time to each other using this method.
      * Keep in mind that the fifo file must be unique to the users listening
      * on it.
+     *
+     *** You need to run the Websocket server under a user who is not root.
+     * This most likely means copying Websocketd to the root of the web directory
+     * as well as any pem or key files
+     *
      * @param string $fifoPath is the location of the fifo file.
      * @return bool|resource
      */
@@ -43,6 +48,9 @@ class Pipe
             print 'Failed to create named Pipe' . PHP_EOL;
             return false;
         }                   # create a named pipe 0644
+
+
+        // future self, please read the function doc above before wondering why this is commented out
 
         #$user = get_current_user();                            // get current process user
 
@@ -77,7 +85,7 @@ class Pipe
 
             # $user = get_current_user();                    // get current process user
 
-            // exec("chown -R {$user}:{$user} $fifoPath");    // We need to modify the permissions so users can write to it
+            #exec("chown -R {$user}:{$user} $fifoPath");    // We need to modify the permissions so users can write to it
 
             #sortDump(substr(sprintf('%o', fileperms($fifoPath)), -4) . PHP_EOL);  //-- file permissions
 

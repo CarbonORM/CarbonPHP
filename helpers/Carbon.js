@@ -68,6 +68,17 @@ function CarbonPHP(selector, address, options) {
         return obj;
     };
 
+    function OneTimeEvent(ev, cb) {
+        return document.addEventListener(ev, function fn(event) {
+            document.removeEventListener(ev, fn);
+            return cb(event);
+        });
+    }
+
+    function Carbon(cb) {
+        return OneTimeEvent("Carbon", cb)
+    }
+
     this.js = (sc, cb) => {
         function load(src, cb) {
             "use strict";
@@ -117,7 +128,7 @@ function CarbonPHP(selector, address, options) {
         if (url.charAt(0) !== '/') {
             url = '/' + url;
         }
-        console.log('JavaScript startApplication(' + url + ', ' + (selector?selector:this.selector) + ')');
+        console.log('JavaScript startApplication(' + url + ', ' + (selector ? selector : this.selector) + ')');
         if (this.defaultOnSocket && this.trySocket) {           /*defaultOnSocket && */
             console.log('Socket::' + url);
             this.statsSocket.send(JSON.stringify(url));
@@ -126,7 +137,7 @@ function CarbonPHP(selector, address, options) {
                 type: data ? "POST" : "GET",
                 url: url,
                 data: data,
-                container: selector?selector:this.selector,
+                container: selector ? selector : this.selector,
                 timeout: 2000,
                 accepts: {
                     mustacheTemplate: "html"
@@ -197,9 +208,9 @@ function CarbonPHP(selector, address, options) {
 
             if (json.hasOwnProperty('Mustache')) {
 
-               /* if (json.hasOwnProperty('Widget')) {
-                    this.selector = json.Widget;
-                }*/
+                /* if (json.hasOwnProperty('Widget')) {
+                     this.selector = json.Widget;
+                 }*/
 
                 console.log('Valid Widget deprecating $( ' + json.Widget + ' ).render( ' + json.Mustache + ', ... ); \n');
 
@@ -223,8 +234,11 @@ function CarbonPHP(selector, address, options) {
                         this.alerts(json.ALERT);
                     }
 
-                    if (json.hasOwnProperty('scroll')) {                        /* use slim scroll to move to bottom of chats (lifo) */
-                        $(json.scroll).slimscroll({start: json.scrollTo});
+                    if (json.hasOwnProperty('scroll')) {
+                        /* use slim scroll to move to bottom of chats (lifo) */
+                        Carbon(() => {
+                            $(json.scroll).slimscroll({start: json.scrollTo});
+                        })
                     }
                 });
 
@@ -377,7 +391,7 @@ function CarbonPHP(selector, address, options) {
         event.preventDefault();
 
         let action = $(event.target).attr('action'),
-        target  = $(event.target).attr('target');
+            target = $(event.target).attr('target');
 
         console.log('Carbon Form Captured');
         console.log(action);
