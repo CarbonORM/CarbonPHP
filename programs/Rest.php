@@ -305,6 +305,7 @@ END;
 
                     // Explode hold all information about column
                     $rest[$tableName]['explode'][$column]['name'] = $name;
+                    $rest[$tableName]['explode'][$column]['caps'] = strtoupper($name);
 
                     $type = strtolower($words_in_insert_stmt[1]);
 
@@ -485,7 +486,6 @@ END;
             }
             unset($value);
 
-
             // Listed is located in our POST stmt, remove trailing comma
             $rest[$tableName]['listed'] = rtrim($rest[$tableName]['listed'], ', ');
 
@@ -633,7 +633,7 @@ TRIGGER;
 
     private function restTemplate(): string
     {
-        return <<<STRING
+        return /** @lang Handlebars */ <<<STRING
 <?php
 {{^carbon_namespace}}namespace Tables;{{/carbon_namespace}}
 {{#carbon_namespace}}namespace CarbonPHP\Tables;{{/carbon_namespace}}
@@ -644,6 +644,11 @@ use CarbonPHP\Interfaces\iRest;
 
 class {{TableName}} extends Database implements iRest
 {
+
+    {{#explode}}
+    public const {{caps}} = '{{name}}';
+    {{/explode}}
+
     public const PRIMARY = [
     {{#primary}}{{#name}}'{{name}}',{{/name}}{{/primary}}
     ];
@@ -658,7 +663,7 @@ class {{TableName}} extends Database implements iRest
     public static \$injection = [];
 
 
-    {{#json}}
+    {{#json}} 
     public static function jsonSQLReporting(\$argv, \$sql) : void {
         global \$json;
         if (!\is_array(\$json)) {
@@ -778,7 +783,6 @@ class {{TableName}} extends Database implements iRest
     * @param string|null \$primary
     * @param array \$argv
     * @return bool
-    * @throws \Exception
     */
     public static function Get(array &\$return, string \$primary = null, array \$argv) : bool
     {

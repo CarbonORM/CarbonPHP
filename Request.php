@@ -405,10 +405,10 @@ class Request   // requires carbon::application;
      */
     public function text()
     {
-        return $this->regex('/([\w\s])+/');   // Multiple word alpha numeric
+        return $this->regex('/([\w\s\n])+/');   // Multiple word alpha numeric and new lines
     }
 
-    /** Filter single words containing only letters
+    /** Filter single word containing only letters
      * @return array|bool|mixed
      */
     public function word()
@@ -416,10 +416,9 @@ class Request   // requires carbon::application;
         return $this->regex('/^[A-Za-z]+$/');
     }
 
-
     public function words()
     {
-        return $this->regex('/^[\w]+$/');
+        return $this->regex('/^[\w\s]+$/'); // Multiple word alpha numeric and new lines
     }
 
     /** Filters phone numbers matching the pattern

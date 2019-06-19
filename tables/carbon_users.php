@@ -162,7 +162,7 @@ class carbon_users extends Database implements iRest
         }
 
         return $stmt->execute();
-    }
+    }/** @noinspection PhpOptionalBeforeRequiredParametersInspection */
 
 
     /**
@@ -243,6 +243,12 @@ class carbon_users extends Database implements iRest
         } else {
             $limit = ' ORDER BY user_id ASC LIMIT 100';
         }
+
+
+        if (array_key_exists('join', $argv)) {
+
+        }
+
 
         foreach($get as $key => $column){
             if (!empty($sql)) {

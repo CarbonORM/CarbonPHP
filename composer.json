@@ -17,7 +17,8 @@
     "mustache/mustache": "v2.12.0",
     "psr/log": "^1.0",
     "matthiasmullie/minify": "dev-master",
-    "patchwork/jsqueeze": "^2.0"
+    "patchwork/jsqueeze": "^2.0",
+    "ext-json": "*"
   },
   "require-dev": {
     "phpunit/phpunit-selenium": "^4.1"
