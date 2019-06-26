@@ -12,7 +12,7 @@
 namespace CarbonPHP\Programs;
 
 
-use CarbonPHP\Interfaces\iCommand;
+use CarbonPHP\interfaces\iCommand;
 
 class Setup implements iCommand
 {
@@ -83,7 +83,7 @@ class Setup implements iCommand
             ],
 
             'SITE' => [
-                'URL' => 'carbonphp.com',    // Evaluated and if not the accurate redirect. Local php server okay. Remove for any domain
+                'URL' => 'carbonphp.com',    // Evaluated and if not the accurate Redirect. Local php server okay. Remove for any domain
 
                 'ROOT' => APP_ROOT,          // This was defined in our ../index.php
 

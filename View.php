@@ -53,21 +53,23 @@ class View
                 include $file;          // TODO - remove socket check?
             } else {
                 $json = array_merge([
-                    'Mustache' => SITE . $file,
+                    'Mustache' => DS . $file,           // dont change this to SITE
                     'Widget' => '#pjax-content'
                 ], $json);
-                //print_r($json);
-                print PHP_EOL;
+                print PHP_EOL . json_encode($json) . PHP_EOL;
             }
             return ob_get_clean();
         };
+
 
         if (SOCKET) {
             print $buffer() . PHP_EOL;
             return true;
         }
-
         if (pathinfo($file, PATHINFO_EXTENSION) === 'hbs') {
+
+            //sortDump([PJAX , AJAX], 0, 0);
+
             $mustache = new \Mustache_Engine();
 
             if (SOCKET || (!self::$forceWrapper && PJAX && AJAX)) {        // Send JSON To Socket
@@ -107,8 +109,6 @@ class View
 
         if (!self::$forceWrapper && (PJAX || AJAX)):        // Send only inner content?
             print $buffer;
-
-
         #################### Send the Outer Wrapper
         elseif (pathinfo(self::$wrapper, PATHINFO_EXTENSION) === 'hbs'):   // Outer Wrapper is Mustache
             $json['content'] = $buffer;

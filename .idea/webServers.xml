@@ -2,19 +2,16 @@
 <project version="4">
   <component name="WebServers">
     <option name="servers">
-      <webServer id="2511c2dd-dca9-4932-b504-649a2d3dc1db" name="google" url="http://35.196.103.151">
-        <fileTransfer host="35.196.103.151" port="22" privateKey="$USER_HOME$/.ssh/google_compute_engine" accessType="SFTP" keyPair="true">
+      <webServer id="898a0e54-a440-422b-95b5-47c4e4223e5b" name="StatsCoach" url="https://stats.coach">
+        <fileTransfer port="0" mountedRoot="$PROJECT_DIR$/../Stats.Coach/vendor/richardtmiles/carbonphp" accessType="MOUNT" />
+      </webServer>
+      <webServer id="9b9ffc5f-0fec-4430-b238-37d538256650" name="google stats" url="http://35.196.103.151">
+        <fileTransfer host="35.196.103.151" port="22" privateKey="$USER_HOME$/.ssh/id_rsa" rootFolder="/var/www/stats.coach/vendor/richardtmiles/carbonphp" accessType="SFTP" keyPair="true">
           <advancedOptions>
-            <advancedOptions dataProtectionLevel="Private" />
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>
           <option name="port" value="22" />
         </fileTransfer>
-      </webServer>
-      <webServer id="896de224-b294-4019-8750-5f619df3d17d" name="StatsCoach" url="http://localhost">
-        <fileTransfer port="0" mountedRoot="$PROJECT_DIR$/../../GitHub/Stats.Coach/vendor/richardtmiles/carbonphp" accessType="MOUNT" />
-      </webServer>
-      <webServer id="b4d7e9db-b7e8-48f2-96bc-4b493b2aea26" name="onthewll" url="http://localhost">
-        <fileTransfer port="0" mountedRoot="C:\Users\rmiles\Documents\GitHub\RootPrerogative.com\vendor\richardtmiles\carbonphp" accessType="MOUNT" />
       </webServer>
     </option>
   </component>

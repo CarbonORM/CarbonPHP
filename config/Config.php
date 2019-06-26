@@ -7,7 +7,7 @@
  *  here, I suggest you add it before the start of `new CarbonPHP('pathToThisFile')`.
  *
  *  To Update/Regenerate
- *
+ *      // TODO - make this script...
  *     >> php index.php setup
  *
  *
@@ -24,7 +24,7 @@
  *           'ROOT' => string '__FILE__',                         // This was defined in our ../index.php
  *           'CACHE_CONTROL' => [                                 // Key value map of $extension => $headers
  * 'png|jpg|gif|jpeg|bmp|icon|js|css' => 'Cache-Control: max-age=<seconds>',
- * 'woff|woff2|map|hbs|eotv' => 'Cache-Control: no-cache ',              // if the extension is found the headers provided will be sent
+ * 'woff|woff2|map|hbs|eotv' => 'Cache-Control: no-cache ',       // if the extension is found the headers provided will be sent
  * ],
  *           'CONFIG' => string __FILE__,                         // Send to sockets
  *           'TIMEZONE' => string 'America/Chicago',              // Current timezone TODO - look up php
@@ -70,6 +70,7 @@
  */
 
 return [
+    /*
     'DATABASE' => [
 
         'DB_HOST' => '127.0.0.1',                        // IP
@@ -84,11 +85,13 @@ return [
 
         'REBUILD' => false                      // Initial Setup todo - remove this check
     ],
+    */
 
     'SITE' => [
-        'URL' => 'carbonphp.com',    // Evaluated and if not the accurate redirect. Local php server okay. Remove for any domain
 
-        'ROOT' => APP_ROOT,          // This was defined in our ../index.php
+        'URL' => 'carbonphp.com',    /* Evaluated and if not the accurate Redirect. Local php server okay. Remove for any domain */
+
+        'ROOT' => APP_ROOT,          /* This was defined in our ../index.php */
 
         'CACHE_CONTROL' => [
             'ico|pdf|flv' => 'Cache-Control: max-age=29030400, public',
@@ -98,11 +101,19 @@ return [
             'html|htm|php|hbs' => 'Cache-Control: max-age=0, private, public',
         ],
 
+        'CACHE_CONTROL' => [
+            'ico|pdf|flv' => 'Cache-Control: max-age=29030400, public',
+
+            'jpg|jpeg|png|gif|swf|xml|txt|css|woff2|tff|svg' => 'Cache-Control: max-age=604800, public',
+
+            'html|htm|php|hbs|js' => 'Cache-Control: max-age=0, private, public',
+        ],
+
         'CONFIG' => __FILE__,               // Send to sockets
 
         'TIMEZONE' => 'America/Phoenix',    //  Current timezone
 
-        'TITLE' => 'Root • Prerogative',    // Website title
+        'TITLE' => 'CarbonPHP • C6',    // Website title
 
         'VERSION' => '4.9.0',               // Add link to semantic versioning
 
@@ -152,44 +163,45 @@ return [
 
     'VIEW' => [
         'VIEW' => 'view/',  // This is where the MVC() function will map the HTML.PHP and HTML.HBS . See Carbonphp.com/mvc
-
-        'WRAPPER' => 'Documentation/Wrapper.php',     // View::content() will produce this
+        'WRAPPER' => 'mustache/Documentation/Wrapper.hbs',     // View::content() will produce this
     ],
 
     'MINIFY' => [
         'CSS' => [
-            CARBON_ROOT .'/node_modules/admin-lte/bower_components/bootstrap/dist/css/bootstrap.min.css',
-            CARBON_ROOT .'/node_modules/admin-lte/dist/css/AdminLTE.min.css',
-            CARBON_ROOT .'/node_modules/admin-lte/dist/css/skins/_all-skins.min.css',
-            CARBON_ROOT .'/node_modules/admin-lte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css',
-            CARBON_ROOT .'/node_modules/admin-lte/plugins/iCheck/all.css',
-            CARBON_ROOT .'/node_modules/admin-lte/bower_components/bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css',
-            CARBON_ROOT .'/node_modules/admin-lte/bower_components/Ionicons/css/ionicons.min.css',
-            CARBON_ROOT .'/node_modules/admin-lte/plugins/bootstrap-slider/slider.css',
-            CARBON_ROOT .'/node_modules/admin-lte/dist/css/skins/skin-green.css',
-            CARBON_ROOT .'/node_modules/admin-lte/bower_components/select2/dist/css/select2.min.css',
-            CARBON_ROOT .'/node_modules/admin-lte/plugins/iCheck/flat/blue.css',
-            CARBON_ROOT .'/node_modules/admin-lte/bower_components/morris.js/morris.css',
-            CARBON_ROOT .'/node_modules/admin-lte/plugins/pace/pace.css',
-            CARBON_ROOT .'/node_modules/admin-lte/bower_components/jvectormap/jquery-jvectormap.css',
-            CARBON_ROOT .'/node_modules/admin-lte/bower_components/bootstrap-datepicker/dist/css/bootstrap-datepicker.css',
-            CARBON_ROOT .'/node_modules/admin-lte/bower_components/bootstrap-daterangepicker/daterangepicker.css',
-            CARBON_ROOT .'/node_modules/admin-lte/plugins/timepicker/bootstrap-timepicker.css',
-            CARBON_ROOT .'/node_modules/admin-lte/plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.min.css',
-            CARBON_ROOT .'/node_modules/admin-lte/bower_components/font-awesome/css/font-awesome.min.css',
-            CARBON_ROOT .'/node_modules/admin-lte/bower_components/fullcalendar/dist/fullcalendar.min.css'
+            'OUT' => APP_ROOT . 'view/mustache/css/style.css',
+            CARBON_ROOT .'node_modules/admin-lte/bower_components/bootstrap/dist/css/bootstrap.min.css',
+            CARBON_ROOT .'node_modules/admin-lte/dist/css/AdminLTE.min.css',
+            CARBON_ROOT .'node_modules/admin-lte/dist/css/skins/_all-skins.min.css',
+            CARBON_ROOT .'node_modules/admin-lte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css',
+            CARBON_ROOT .'node_modules/admin-lte/plugins/iCheck/all.css',
+            CARBON_ROOT .'node_modules/admin-lte/bower_components/bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css',
+            CARBON_ROOT .'node_modules/admin-lte/bower_components/Ionicons/css/ionicons.min.css',
+            CARBON_ROOT .'node_modules/admin-lte/plugins/bootstrap-slider/slider.css',
+            CARBON_ROOT .'node_modules/admin-lte/dist/css/skins/skin-green.css',
+            CARBON_ROOT .'node_modules/admin-lte/bower_components/select2/dist/css/select2.min.css',
+            CARBON_ROOT .'node_modules/admin-lte/plugins/iCheck/flat/blue.css',
+            CARBON_ROOT .'node_modules/admin-lte/bower_components/morris.js/morris.css',
+            CARBON_ROOT .'node_modules/admin-lte/plugins/pace/pace.css',
+            CARBON_ROOT .'node_modules/admin-lte/bower_components/jvectormap/jquery-jvectormap.css',
+            CARBON_ROOT .'node_modules/admin-lte/bower_components/bootstrap-datepicker/dist/css/bootstrap-datepicker.css',
+            CARBON_ROOT .'node_modules/admin-lte/bower_components/bootstrap-daterangepicker/daterangepicker.css',
+            CARBON_ROOT .'node_modules/admin-lte/plugins/timepicker/bootstrap-timepicker.css',
+            CARBON_ROOT .'node_modules/admin-lte/plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.min.css',
+            CARBON_ROOT .'node_modules/admin-lte/bower_components/font-awesome/css/font-awesome.min.css',
+            CARBON_ROOT .'node_modules/admin-lte/bower_components/fullcalendar/dist/fullcalendar.min.css'
         ],
         'JS' => [
-            CARBON_ROOT .'/node_modules/admin-lte/bower_components/jquery/dist/jquery.min.js',
-            CARBON_ROOT .'/node_modules/jquery-pjax/jquery.pjax.js',
-            CARBON_ROOT .'/view/Layout/mustache.js',
-            CARBON_ROOT .'/helpers/Carbon.js',
-            CARBON_ROOT .'/helpers/asynchronous.js',
-            CARBON_ROOT .'/node_modules/jquery-form/src/jquery.form.js',
-            CARBON_ROOT .'/node_modules/admin-lte/bower_components/bootstrap/dist/js/bootstrap.min.js',
-            CARBON_ROOT .'/node_modules/admin-lte/bower_components/jquery-slimscroll/jquery.slimscroll.min.js',
-            CARBON_ROOT .'/node_modules/admin-lte/bower_components/fastclick/lib/fastclick.js',
-            CARBON_ROOT .'/node_modules/admin-lte/dist/js/adminlte.js',
+            'OUT' => APP_ROOT . 'view/mustache/js/javascript.js',
+            CARBON_ROOT .'node_modules/admin-lte/bower_components/jquery/dist/jquery.min.js',
+            CARBON_ROOT .'node_modules/jquery-pjax/jquery.pjax.js',
+            CARBON_ROOT .'view/mustache/Layout/mustache.js',
+            CARBON_ROOT .'helpers/Carbon.js',
+            CARBON_ROOT .'helpers/asynchronous.js',
+            CARBON_ROOT .'node_modules/jquery-form/src/jquery.form.js',
+            CARBON_ROOT .'node_modules/admin-lte/bower_components/bootstrap/dist/js/bootstrap.min.js',
+            CARBON_ROOT .'node_modules/admin-lte/bower_components/jquery-slimscroll/jquery.slimscroll.min.js',
+            CARBON_ROOT .'node_modules/admin-lte/bower_components/fastclick/lib/fastclick.js',
+            CARBON_ROOT .'node_modules/admin-lte/dist/js/adminlte.js',
         ],
     ]
 ];

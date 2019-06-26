@@ -3,7 +3,7 @@
 namespace CarbonPHP\Tables;
 
 use CarbonPHP\Database;
-use CarbonPHP\Interfaces\iRest;
+use CarbonPHP\interfaces\iRest;
 
 
 class carbon_photos extends Database implements iRest
@@ -22,19 +22,6 @@ class carbon_photos extends Database implements iRest
     public static $injection = [];
 
 
-    public static function jsonSQLReporting($argv, $sql) : void {
-        global $json;
-        if (!\is_array($json)) {
-            $json = [];
-        }
-        if (!isset($json['sql'])) {
-            $json['sql'] = [];
-        }
-        $json['sql'][] = [
-            $argv,
-            $sql
-        ];
-    }
 
     public static function buildWhere(array $set, \PDO $pdo, $join = 'AND') : string
     {
@@ -210,7 +197,7 @@ class carbon_photos extends Database implements iRest
 
         $sql .= $limit;
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = $pdo->prepare($sql);
 
@@ -247,7 +234,7 @@ class carbon_photos extends Database implements iRest
         /** @noinspection SqlResolve */
         $sql = 'INSERT INTO carbon_photos (parent_id, photo_id, user_id, photo_path, photo_description) VALUES ( UNHEX(:parent_id), UNHEX(:photo_id), UNHEX(:user_id), :photo_path, :photo_description)';
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = self::database()->prepare($sql);
 
@@ -321,7 +308,7 @@ class carbon_photos extends Database implements iRest
 
         $sql .= ' WHERE  parent_id=UNHEX('.self::addInjection($primary, $pdo).')';
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = $pdo->prepare($sql);
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" serverName="StatsCoach">
+  <component name="PublishConfigData" autoUpload="Always" serverName="StatsCoach" createEmptyFolders="true" showAutoUploadSettingsWarning="false">
     <serverData>
       <paths name="StatsCoach">
         <serverdata>
@@ -9,20 +9,15 @@
           </mappings>
         </serverdata>
       </paths>
-      <paths name="google">
+      <paths name="google stats">
         <serverdata>
           <mappings>
-            <mapping deploy="/var/www/rootprerogative.com/vendor/richardtmiles/carbonphp" local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="onthewll">
-        <serverdata>
-          <mappings>
+            <mapping local="$PROJECT_DIR$/view/react/material-dashboard-react-c6" web="/" />
             <mapping deploy="/" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
     </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
   </component>
 </project>

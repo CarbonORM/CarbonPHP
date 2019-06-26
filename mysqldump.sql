@@ -104,31 +104,12 @@ DROP TABLE IF EXISTS `carbon_tag`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `carbon_tag` (
   `entity_id` binary(16) NOT NULL,
-  `user_id` binary(16) DEFAULT NULL,
   `tag_id` varchar(80) NOT NULL,
   `creation_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   KEY `entity_tag_entity_entity_pk_fk` (`entity_id`),
-  KEY `entity_tag_entity_user_pk_fk` (`user_id`),
   KEY `entity_tag_tag_tag_id_fk` (`tag_id`),
   CONSTRAINT `carbon_tag_tags_tag_id_fk` FOREIGN KEY (`tag_id`) REFERENCES `tags` (`tag_id`),
-  CONSTRAINT `entity_tag_entity_entity_pk_fk` FOREIGN KEY (`entity_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `entity_tag_entity_user_pk_fk` FOREIGN KEY (`user_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `carbon_tags`
---
-
-DROP TABLE IF EXISTS `carbon_tags`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `carbon_tags` (
-  `tag_id` int(11) NOT NULL AUTO_INCREMENT,
-  `tag_description` text NOT NULL,
-  `tag_name` text,
-  PRIMARY KEY (`tag_id`),
-  UNIQUE KEY `tag_tag_id_uindex` (`tag_id`)
+  CONSTRAINT `entity_tag_entity_entity_pk_fk` FOREIGN KEY (`entity_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -158,12 +139,15 @@ DROP TABLE IF EXISTS `carbon_user_messages`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `carbon_user_messages` (
   `message_id` binary(16) DEFAULT NULL,
+  `from_user_id` binary(16) NOT NULL,
   `to_user_id` binary(16) NOT NULL,
   `message` text NOT NULL,
   `message_read` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`to_user_id`),
   KEY `messages_entity_entity_pk_fk` (`message_id`),
   KEY `messages_entity_user_from_pk_fk` (`to_user_id`),
+  KEY `carbon_user_messages_carbons_entity_pk_fk` (`from_user_id`),
+  CONSTRAINT `carbon_user_messages_carbons_entity_pk_fk` FOREIGN KEY (`from_user_id`) REFERENCES `carbons` (`entity_pk`),
   CONSTRAINT `messages_entity_entity_pk_fk` FOREIGN KEY (`message_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `messages_entity_user_from_pk_fk` FOREIGN KEY (`to_user_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -296,4 +280,4 @@ CREATE TABLE `tags` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-02-07 21:01:03
+-- Dump completed on 2019-04-16 15:27:37

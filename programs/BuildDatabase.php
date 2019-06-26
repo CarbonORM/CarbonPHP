@@ -9,7 +9,7 @@
 namespace CarbonPHP\Programs;
 
 
-use CarbonPHP\Interfaces\iCommand;
+use CarbonPHP\interfaces\iCommand;
 
 class BuildDatabase implements iCommand
 {
@@ -28,6 +28,44 @@ class BuildDatabase implements iCommand
             print 'No tables matched in MySQL Dump. It does not look like CarbonPHP is setup correctly. Run `>> php index.php setup` to fix this.' . PHP_EOL;
             exit(1);
         }
+
+        $rest = [];
+
+        // From here we need a dependency graph to properly insert the tables in the right order
+
+        // TODO - intellij is actually reporting a false error, this was an attempt to fix a non-existant bug
+        // TODO - fix cyclic refernces
+//        foreach ($matches[0] as $key=> $insert) {
+//
+//            $tableName = $matches[1][$key];
+//
+//            $line = explode(PHP_EOL, $insert);
+//
+//            foreach ($line as $words_in_insert_stmt) {
+//
+//                $words_in_insert_stmt = explode(' ', trim($words_in_insert_stmt));
+//
+//                print $words_in_insert_stmt[0] . PHP_EOL;
+//
+//                if ($words_in_insert_stmt[0] === 'CONSTRAINT') {
+//
+//                    $references_table = trim($words_in_insert_stmt[6], '`');
+//
+//                    $rest[$tableName] = $rest[$tableName] ?? [];
+//
+//                    $rest[$tableName][] = $references_table;
+//
+//                }
+//
+//            }
+//
+//        }
+//
+//
+//        sortDump($rest);
+
+
+
 
         $build = <<<TEXT
 <?php
@@ -101,7 +139,7 @@ TEXT;
         $tags = <<<TAGS
 Try {
     \$sql = <<<END
-REPLACE INTO carbon_tags (tag_id, tag_description, tag_name) VALUES (?,?,?);
+REPLACE INTO tags (tag_id, tag_description, tag_name) VALUES (?,?,?);
 END;
      \$tag = [
 TAGS;

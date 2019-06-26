@@ -8,6 +8,8 @@ use CarbonPHP\Helpers\Serialized;
  * Trait Singleton
  * @package Carbon
  *
+ * @link http://php.net/manual/en/language.oop5.late-static-bindings.php
+ *
  * Singeltons are considered an anti-pattern if being utilized during runtime.
  * This class is designed to give you a lot of features for the quick and dirty.
  * PHP has magic methods that allow you to do almost anything to the syntax, even

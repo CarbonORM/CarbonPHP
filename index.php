@@ -1,35 +1,40 @@
 <?php
 #phpinfo() and exit;
 
-const DS = DIRECTORY_SEPARATOR; // All folder constants end in a trailing slash /
+// All folder constants end in a trailing slash /
+const DS = DIRECTORY_SEPARATOR;
 
-define('SERVER_ROOT', __DIR__ . DS);  // Set our root folder for the application
+// Set our root folder for the application
+define('SERVER_ROOT', __DIR__ . DS);
 
-const APP_ROOT = SERVER_ROOT;         // I would like to change to only using app_root soon
+// I would like to change to only using app_root soon
+const APP_ROOT = SERVER_ROOT;
 
+// Composer autoload
 if (false === (include  'vendor' . DS . 'autoload.php')) {     // Load the autoload() for composer dependencies located in the Services folder
-    print '<h1>Loading Composer Failed. See Carbonphp.com for documentation.</h1>' and die;     // Composer autoload
+    print '<h1>Loading Composer Failed. See Carbonphp.com for documentation.</h1>';
+    die(1);
 }
 
 try {
-    $app = new CarbonPHP\CarbonPHP('config' . DS . 'Config.php');
+    // Start CarbonPHP
+    CarbonPHP\CarbonPHP::make('config' . DS . 'Config.php');
 } catch (Throwable $e) {
     print_r($e);
     print 'Carbon Failed' . PHP_EOL;
     die(1);
 }
 
-/** At one point I returned the invocation of $app to show that
+/* At one point I returned the invocation of $app to show that
  * the application will not exit on completion, but rather return
  * back to this index file. This means you can still execute code
  * after $app(); I stopped returning the __invoke() because if false
  * is returned, the index will re-execute. This turns very bad quickly.
  */
 
+CarbonPHP\CarbonPHP::run( CarbonPHP\C6::class);
 
-// This is used for testing, and running the auto builds - no need to remove
-$app( CarbonPHP\C6::class);
-
+//alert('stop');
 
 return true;
 

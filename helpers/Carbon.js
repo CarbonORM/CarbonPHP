@@ -1,3 +1,41 @@
+/* As a mental note, I wanted pjax to handle all requests possible to
+ * allow a internal version changes (on the backend) to auto refresh the
+ * page, changing our url with headers sent, ect..
+ *
+ * I made the following snippit which uses the this.handlebars
+ *  function and was designed to replace the this.MustacheWidgets
+ *
+ *
+ * $.pjax({
+                type: "GET",
+                url: url,
+                container: container?container:this.selector,
+                timeout: 2000,
+                accepts: {
+                    mustacheTemplate: "html"
+                },
+                // deserialize a custom type
+                converters: {
+                    '* mustacheTemplate': this.handlebars,
+                },
+                dataType: "mustacheTemplate",
+                success: function (data) {
+                    alert(data);
+                },
+                error: function (data) {
+                    alert(data);
+                }
+            });
+ *
+ * The problem is that the above needs the container before the responce is
+ * returned.
+ *
+ * So the this.MustacheWidgets function, which doesnt use pjax will live on
+ * and exist only where it makes sence. The Websocket connection can be truely
+ * independant of whats currently in the DOM. IDK actually.. but thats whats
+ * going on rn
+ *
+ */
 function CarbonPHP(selector, address, options) {
     this.address = address;
     this.selector = selector
@@ -5,6 +43,41 @@ function CarbonPHP(selector, address, options) {
     this.statsSocket = '';
     this.alerting = [];
     this.JSLoaded = new Set();
+
+    $.pjax.defaults.scrollTo = false;
+
+    $.fn.serializeAllArray = function () {
+        var obj = {};
+
+        $('input', this).each(function () {
+            obj[this.name] = $(this).val();
+        });
+
+        $("input[type='checkbox']").each(function () {
+            obj[this.name] = $(this).is(":checked");
+        });
+
+        $('textarea', this).each(function () {
+            obj[this.name] = $(this).val();
+        });
+
+        $('select', this).each(function () {
+            obj[this.name] = $(this).val();
+        });
+
+        return obj;
+    };
+
+    function OneTimeEvent(ev, cb) {
+        return document.addEventListener(ev, function fn(event) {
+            document.removeEventListener(ev, fn);
+            return cb(event);
+        });
+    }
+
+    function Carbon(cb) {
+        return OneTimeEvent("Carbon", cb)
+    }
 
     this.js = (sc, cb) => {
         function load(src, cb) {
@@ -22,7 +95,7 @@ function CarbonPHP(selector, address, options) {
         return (!this.JSLoaded.has(sc) ? load(sc, cb) : cb());
     };
 
-/*-- milliseconds --*/
+    /*-- milliseconds --*/
     this.sleep = (milliseconds) => {
         let start = new Date().getTime();
         for (let i = 0; i < 1e7; i++) {
@@ -32,17 +105,17 @@ function CarbonPHP(selector, address, options) {
         }
     };
 
-/*-- I need php*/
+    /*-- I need php*/
     this.isset = (v) => {
         return (v !== '' && v !== null && v !== undefined);
     };
 
-/*-- $().exists returns bool */
+    /*-- $().exists returns bool */
     this.exists = () => {
         return this.length !== 0;
     };
 
-/*-- Json, no beef --*/
+    /*-- Json, no beef --*/
     this.isJson = (str) => {
         try {
             return JSON.parse(str)
@@ -51,19 +124,20 @@ function CarbonPHP(selector, address, options) {
         }
     };
 
-    this.app = this.start = this.startApplication = (url) => {
+    this.app = this.start = this.startApplication = (url, selector, data) => {
         if (url.charAt(0) !== '/') {
             url = '/' + url;
         }
-        console.log('JavaScript startApplication(' + url + ')');
+        console.log('JavaScript startApplication(' + url + ', ' + (selector ? selector : this.selector) + ')');
         if (this.defaultOnSocket && this.trySocket) {           /*defaultOnSocket && */
             console.log('Socket::' + url);
             this.statsSocket.send(JSON.stringify(url));
         } else {
             $.pjax({
-                type: "GET",
+                type: data ? "POST" : "GET",
                 url: url,
-                container: this.selector,
+                data: data,
+                container: selector ? selector : this.selector,
                 timeout: 2000,
                 accepts: {
                     mustacheTemplate: "html"
@@ -73,13 +147,7 @@ function CarbonPHP(selector, address, options) {
                     '* mustacheTemplate': this.handlebars,
                 },
                 dataType: "mustacheTemplate",
-                success: function (data) {
-                    alert(data);
-                },
-                error: function (data) {
-                    alert(data);
-
-                }
+                push: false,
             });
             /*$.get(url, (data) => this.MustacheWidgets(data, url));*/
         }
@@ -94,7 +162,7 @@ function CarbonPHP(selector, address, options) {
         a = null;
     };
 
-/*-- Bootstrap Alert --*/
+    /*-- Bootstrap Alert --*/
     this.alert = this.bootstrapAlert = (message, level) => {
         if (!this.isset(level)) {
             level = 'info';
@@ -121,29 +189,30 @@ function CarbonPHP(selector, address, options) {
     this.handlebars = (data) => {
         let template = undefined, json = undefined;
 
-        console.log('handlebars', data);
+        console.log('handlebars');
+        //console.log(data);
 
         if (!this.isset(data)) {
-            console.log('No Json to Handlebars');
+            console.log('No data to handlebars');
             console.log(data);
             return data;
         }
 
         json = (typeof data === "string" ? this.isJson(data) : false);
 
-        console.log(json);
+        console.log(JSON.stringify(json));
+        console.log(eval(json));
 
         if (json) {
             this.alerting = json.alert;
 
             if (json.hasOwnProperty('Mustache')) {
 
-                if (json.hasOwnProperty('Widget')) {
-                    this.selector = json.Widget;
-                }
+                /* if (json.hasOwnProperty('Widget')) {
+                     this.selector = json.Widget;
+                 }*/
 
-                console.log('Valid Handlebars $( ' + json.Widget + ' ).render( ' + json.Mustache + ', ... ); \n');
-
+                console.log('Valid Widget deprecating $( ' + json.Widget + ' ).render( ' + json.Mustache + ', ... ); \n');
 
                 $.ajax({
                     async: false,
@@ -151,9 +220,13 @@ function CarbonPHP(selector, address, options) {
                     url: json.Mustache,
                 }).done((mustache) => {
 
-                    Mustache.parse(mustache);                                   /* cache */
+                    Mustache.parse(mustache);
+                    /* cache */
 
-                    template = Mustache.render(mustache, json);       /* render json with mustache lib */
+                    console.log(mustache);
+
+                    template = Mustache.render(mustache, json);
+                    /* render json with mustache lib */
 
                     console.log(json.Widget);
 
@@ -161,10 +234,16 @@ function CarbonPHP(selector, address, options) {
                         this.alerts(json.ALERT);
                     }
 
-                    if (json.hasOwnProperty('scroll')) {                        /* use slim scroll to move to bottom of chats (lifo) */
-                        $(json.scroll).slimscroll({start: json.scrollTo});
+                    if (json.hasOwnProperty('scroll')) {
+                        /* use slim scroll to move to bottom of chats (lifo) */
+                        Carbon(() => {
+                            $(json.scroll).slimscroll({start: json.scrollTo});
+                        })
                     }
                 });
+
+                console.log('parse complete');
+
                 return template;
 
             } else {
@@ -174,6 +253,7 @@ function CarbonPHP(selector, address, options) {
                 if (json.hasOwnProperty('ALERT') && this.isset(json.ALERT)) {
                     this.bootstrapAlert(json.ALERT);
                 }
+                console.log("This will cause a page refresh.");
                 return json;
             }
         }
@@ -197,8 +277,9 @@ function CarbonPHP(selector, address, options) {
     this.trySocket = () => {
 
         while (!navigator.onLine) {
+            /* TODO - This blocks a full cpu if the wifi drops.. we should non-block */
         }
-        /* TODO - This blocks a full cpu if the wifi drops.. we should non-block */
+
 
         if (address === null || address === '' || this.statsSocket.readyState === 0)
             return 0;
@@ -210,7 +291,8 @@ function CarbonPHP(selector, address, options) {
         console.log('Attempting Reconnect');
         do {
             if (this.statsSocket !== null && typeof this.statsSocket === 'object' && this.statsSocket.readyState === 1)
-                break;            /* help avoid race*/
+                break;
+            /* help avoid race*/
             this.statsSocket = new WebSocket(address);
         } while (this.statsSocket.readyState === 3 && ++count <= 3);  // 6 seconds 3 attempts
         if (this.statsSocket.readyState === 3)
@@ -234,17 +316,18 @@ function CarbonPHP(selector, address, options) {
 
                 $.get(json.Mustache, (template) => {
 
-                    console.log('HBS-Template::');
+                    //console.log('HBS-Template::');
+                    //console.log(template);
 
-                    console.log(template);                                    /* TODO - comment out */
-
-                    Mustache.parse(template);                                   /* cache */
+                    Mustache.parse(template);
+                    /* cache */
 
                     template = Mustache.render(template, json);
 
                     console.log(json.Widget);
 
-                    $(json.Widget).html(template);       /* render json with mustache lib */
+                    $(json.Widget).html(template);
+                    /* render json with mustache lib */
 
                     if (json.hasOwnProperty('ALERT') && this.isset(json.ALERT)) {
                         this.alerts(json.ALERT);
@@ -255,8 +338,10 @@ function CarbonPHP(selector, address, options) {
                     }
                 });
             } else if (json) {
-                console.log("JSON (NO MUSTACHE):: ");                    /*log ( string )*/
-                console.log(json);                              /* log ( object ) - seperating them will print nicely */
+                console.log("JSON (NO MUSTACHE):: ");
+                /*log ( string )*/
+                console.log(json);
+                /* log ( object ) - seperating them will print nicely */
 
                 if (json.hasOwnProperty('ALERT') && this.isset(json.ALERT)) {
                     this.alerts(json.ALERT);
@@ -273,7 +358,8 @@ function CarbonPHP(selector, address, options) {
             console.log('RECEIVED NOTHING ?? ' + data);
             if (typeof data === "object" && url !== '') {
                 console.log('Re-attempting Connection');
-                setTimeout(() => this.startApplication(url), 2000); /* wait 2 seconds */
+                setTimeout(() => this.startApplication(url), 2000);
+                /* wait 2 seconds */
             }
         }
         this.runEvent("Carbon");
@@ -304,42 +390,21 @@ function CarbonPHP(selector, address, options) {
     $(document).on('submit', 'form', (event) => {        /* TODO - remove this pos */
         event.preventDefault();
 
+        let action = $(event.target).attr('action'),
+            target = $(event.target).attr('target');
 
-        $.fn.serializeAllArray = function () {
-            var obj = {};
-
-            $('input', this).each(function () {
-                obj[this.name] = $(this).val();
-            });
-            $('select', this).each(function () {
-                obj[this.name] = $(this).val();
-            });
-            return obj;
-        }
-
-        console.log($(event.target).serializeAllArray())
-
-        /*
-        $.pjax.submit(event, selector, {
-            //async: false,
-            push: false,
-            accepts: {
-                mustacheTemplate: "html"
-            },
-            // deserialize a custom type
-            converters: {
-                '* mustacheTemplate': this.handlebars,
-            },
-            dataType: "mustacheTemplate",
-        });
-        */
+        console.log('Carbon Form Captured');
+        console.log(action);
+        console.log(target);
 
         $.pjax({
             type: "POST",
-            url: $(event.target).attr('action'),
-            container: this.selector,
+            url: action,
+            container: target
+                ? target
+                : this.selector,
             timeout: 2000,
-            //contentType: 'json',
+            // contentType: 'json',
             data: $(event.target).serializeAllArray(),
             accepts: {
                 mustacheTemplate: "html"
@@ -349,6 +414,14 @@ function CarbonPHP(selector, address, options) {
                 '* mustacheTemplate': this.handlebars,
             },
             dataType: "mustacheTemplate",
+            success: function (data) {
+                console.log('post success ', data);
+                return true;
+            },
+            error: function (data) {
+                console.log('post error ', data);
+                return true;
+            }
         });
 
     });
@@ -361,7 +434,7 @@ function CarbonPHP(selector, address, options) {
         },
         /* deserialize a custom type */
         converters: {
-            '* mustacheTemplate': this.handlebars,
+            '* mustacheTemplate': this.handlebars
         },
         dataType: "mustacheTemplate",
     });
@@ -381,7 +454,7 @@ function CarbonPHP(selector, address, options) {
             console.log(this.alerting);
             this.alerts(this.alerting);
         }
-        console.log("Successfully loaded " + window.location.href)
+        console.log("pjax:success loaded " + window.location.href)
     });
 
     $(document).on('pjax:timeout', (event) => event.preventDefault());
@@ -398,7 +471,13 @@ function CarbonPHP(selector, address, options) {
         this.runEvent("Carbon");
     });
 
-    $(document).on('pjax:popstate', () => $.pjax.reload(selector)); /* refresh our state always!! */
+    // TODO - make this an option
+    $(document).on('pjax:popstate', () => { //$.pjax.reload(selector)
+        console.log('pjax:popstate');
+        window.location.reload();
+        console.log('pjax:popstate Finish');
+    });
+    /* refresh our state always!! */
 
     /* Socket Connection */
     this.defaultOnSocket = false;

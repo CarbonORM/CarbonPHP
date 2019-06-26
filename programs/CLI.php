@@ -10,7 +10,7 @@ namespace CarbonPHP\Programs;
 
 
 use CarbonPHP\Error\PublicAlert;
-use CarbonPHP\Interfaces\iCommand;
+use CarbonPHP\interfaces\iCommand;
 
 class CLI implements iCommand
 {
@@ -30,11 +30,11 @@ class CLI implements iCommand
         $program = array_diff(scandir(CARBON_ROOT . 'programs', null), array('.', '..'));
 
         $clean = function (&$program) {
-            $program = strtolower(basename($program, '.php'));
+            $program = basename($program, '.php');
         };
 
         if (!array_walk($program, $clean)) {
-            throw new PublicAlert('array_walk failed in Cli::run()');
+            exit('array_walk failed in Cli::run()');
         }
 
         $this->programs = $program;
@@ -52,9 +52,9 @@ class CLI implements iCommand
         $PHP = $this->CONFIG;
 
         // I do this so the I can pass the argvs correctly to the php executables
-        print "\nIt's a powerful " . array_shift($argv) . ", hu?\n\n";
+        print "\nIt's a powerful " . array_shift($argv) . ", huh?\n\n";
 
-        $program = strtolower(array_shift($argv));
+        $program = array_shift($argv);
 
         foreach ($this->programs as $name) {
             // I prefer this loop so I catch
@@ -132,9 +132,9 @@ class CLI implements iCommand
                         help                          - This list of options
                         [command] -help               - display a list of options for each sub command
                         test                          - Run PHPUnit tests
-                        rest                          - auto generate rest api from mysqldump
+                        Rest                          - auto generate rest api from mysqldump
                         php                           - start a HTTP 5 web socket server written in PHP
-                        go                            - start a HTTP 5 web socket server written in Google Go
+                        GO                            - start a HTTP 5 web socket server written in Google Go
 
 
           While CarbonPHP displays this in the cli, it does not exit here. Custom functions may 

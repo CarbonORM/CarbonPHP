@@ -97,7 +97,7 @@ RewriteRule (.*) index.php [QSA]
 
 # Everything to the index
 RewriteCond %{REQUEST_FILENAME} !-f
-# RewriteCond %{REQUEST_FILENAME} !-d   -- We dont want to redirect into direcotries
+# RewriteCond %{REQUEST_FILENAME} !-d   -- We dont want to Redirect into direcotries
 RewriteRule ^(.*)$ /index.php [NC,L,QSA]
 
 # God forbit an uncaught error - Display contact method

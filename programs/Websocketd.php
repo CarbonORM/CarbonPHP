@@ -4,8 +4,6 @@
 //if we wait to send output until we fork we can preserve our socket and session with the database
 const SOCKET = true;                // faster than define
 
-const DS = DIRECTORY_SEPARATOR;     // shorthand
-
 if (!($argv[1] ?? false)) {
     print "This file should not be executed statically.\n" and die;
 }
@@ -14,15 +12,13 @@ if (!is_dir($argv[1])) {
     print "The SERVER_ROOT should be a valid line argument.\n" and die;
 }
 
-define('APP_ROOT', $argv[1]);    // expressions not allowed in const
 
-
-if (!file_exists(APP_ROOT . 'index.php')) {
+if (!file_exists($argv[1] . 'index.php')) {
     print 'The APP_ROOT should be the directory your index is located. Currently there is no index.php in '. APP_ROOT;
     exit(1);
 }
 
-if (false === (include APP_ROOT . 'index.php'))
+if (false === (include $argv[1] . 'index.php'))
 {   // Load the autoload() for composer dependencies located in the Services folder
     print '<h1>Loading Your Index Failed! See Carbonphp.com for documentation.</h1>';
     exit(1); // Composer autoload
@@ -48,10 +44,9 @@ pcntl_signal( SIGTERM, 'signalHandler' ); // Termination ('kill' was called')
 pcntl_signal( SIGHUP, 'signalHandler' );  // Terminal log-out
 pcntl_signal( SIGINT, 'signalHandler' );  // Interrupted ( Ctrl-C is pressed)
 
-$fifoFile = \CarbonPHP\helpers\Pipe::named( '/tmp/' . session_id() . '.fifo');     // other users can notify us to update our application through this file
+$fifoFile = \CarbonPHP\helpers\Pipe::named( APP_ROOT . 'data/sessions/' . $_SESSION['id'] . '.fifo');     // other users can notify us to update our application through this file
 
 $fifoFile or die;
-
 
 $stdin = fopen( 'php://stdin', 'b' );
 

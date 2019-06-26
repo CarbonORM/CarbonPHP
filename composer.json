@@ -16,16 +16,12 @@
     "php": "^7.1",
     "mustache/mustache": "v2.12.0",
     "psr/log": "^1.0",
-    "phpunit/phpunit-selenium": "^4.1",
     "matthiasmullie/minify": "dev-master",
-    "patchwork/jsqueeze": "^2.0"
+    "patchwork/jsqueeze": "^2.0",
+    "ext-json": "*"
   },
-  "suggest": {
-    "almasaeed2010/adminlte": "^2.4",
-    "bower-asset/jquery-backstretch": "^2.1.16",
-    "bower-asset/jquery-form": "dev-master",
-    "bower-asset/jquery-pjax": "dev-master",
-    "bower-asset/mustache.js": "dev-master"
+  "require-dev": {
+    "phpunit/phpunit-selenium": "^4.1"
   },
   "authors": [
     {
@@ -38,10 +34,13 @@
   "autoload": {
     "psr-4": {
       "CarbonPHP\\": "",
+      "CarbonPHP\\Tables\\": "tables/",
       "CarbonPHP\\Error\\": "error/",
       "CarbonPHP\\Helpers\\": "helpers/",
       "CarbonPHP\\Interfaces\\": "interfaces/",
-      "CarbonPHP\\Programs\\": "programs/"
+      "CarbonPHP\\Programs\\": "programs/",
+      "CarbonPHP\\Controller\\": "controller/",
+      "CarbonPHP\\Model\\": "model/"
     }
   }
 }

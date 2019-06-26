@@ -2,7 +2,7 @@
 
 namespace CarbonPHP\Programs;
 
-use \CarbonPHP\Interfaces\iCommand;
+use \CarbonPHP\interfaces\iCommand;
 
 /**
  * @property string schema
@@ -69,7 +69,7 @@ END;
     {
         $argc = \count($argv);
 
-        if (!is_dir($concurrentDirectory = APP_ROOT . 'table') && !mkdir($concurrentDirectory) && !is_dir($concurrentDirectory)) {
+        if (!is_dir($concurrentDirectory = APP_ROOT . 'tables') && !mkdir($concurrentDirectory) && !is_dir($concurrentDirectory)) {
             throw new \RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
         }
 
@@ -208,14 +208,14 @@ END;
             exit(1);
         }
 
-        $this->mysqldump = $this->MySQLDump();
+        $this->mysqldump = $this->MySQLDump($mysqldump ?? null);
 
         if (!file_exists($this->mysqldump)) {
             print 'Could not load mysql dump file!' . PHP_EOL;
             exit(1);
         }
 
-        if (empty($this->mysqldump  = file_get_contents($this->mysqldump ))) {
+        if (empty($this->mysqldump = file_get_contents($this->mysqldump))) {
             print 'Contents of the mysql dump file appears empty. Build Failed!';
             exit(1);
         }
@@ -305,6 +305,7 @@ END;
 
                     // Explode hold all information about column
                     $rest[$tableName]['explode'][$column]['name'] = $name;
+                    $rest[$tableName]['explode'][$column]['caps'] = strtoupper($name);
 
                     $type = strtolower($words_in_insert_stmt[1]);
 
@@ -485,7 +486,6 @@ END;
             }
             unset($value);
 
-
             // Listed is located in our POST stmt, remove trailing comma
             $rest[$tableName]['listed'] = rtrim($rest[$tableName]['listed'], ', ');
 
@@ -530,7 +530,6 @@ END;
 
         return 0;
     }
-
 
     public function trigger($table, $columns, $binary, $dependencies, $primary): string
     {
@@ -598,7 +597,7 @@ END;
             return $sql;
         };
 
-        return <<<END
+        return <<<TRIGGER
 DROP TRIGGER IF EXISTS `trigger_{$table}_b_d`;;
 CREATE TRIGGER `trigger_{$table}_b_d` BEFORE DELETE ON `$table` FOR EACH ROW
 BEGIN
@@ -629,13 +628,12 @@ BEGIN
 {$history_sql('POST')}
 
 END;;
-END;
+TRIGGER;
     }
-
 
     private function restTemplate(): string
     {
-        return <<<STRING
+        return /** @lang Handlebars */ <<<STRING
 <?php
 {{^carbon_namespace}}namespace Tables;{{/carbon_namespace}}
 {{#carbon_namespace}}namespace CarbonPHP\Tables;{{/carbon_namespace}}
@@ -646,6 +644,11 @@ use CarbonPHP\Interfaces\iRest;
 
 class {{TableName}} extends Database implements iRest
 {
+
+    {{#explode}}
+    public const {{caps}} = '{{name}}';
+    {{/explode}}
+
     public const PRIMARY = [
     {{#primary}}{{#name}}'{{name}}',{{/name}}{{/primary}}
     ];
@@ -660,7 +663,7 @@ class {{TableName}} extends Database implements iRest
     public static \$injection = [];
 
 
-    {{#json}}
+    {{#json}} 
     public static function jsonSQLReporting(\$argv, \$sql) : void {
         global \$json;
         if (!\is_array(\$json)) {
@@ -679,16 +682,23 @@ class {{TableName}} extends Database implements iRest
     public static function buildWhere(array \$set, \PDO \$pdo, \$join = 'AND') : string
     {
         \$sql = '(';
+        \$bump = false;
         foreach (\$set as \$column => \$value) {
             if (\is_array(\$value)) {
+                if (\$bump) {
+                    \$sql .= " \$join ";
+                }
+                \$bump = true;
                 \$sql .= self::buildWhere(\$value, \$pdo, \$join === 'AND' ? 'OR' : 'AND');
             } else if (array_key_exists(\$column, self::COLUMNS)) {
+                \$bump = false;
                 if (self::COLUMNS[\$column][0] === 'binary') {
-                    \$sql .= "(\$column = UNHEX(:" . \$column . ")) \$join ";
+                    \$sql .= "(\$column = UNHEX(" . self::addInjection(\$value, \$pdo)  . ")) \$join ";
                 } else {
-                    \$sql .= "(\$column = :" . \$column . ") \$join ";
+                    \$sql .= "(\$column = " . self::addInjection(\$value, \$pdo) . ") \$join ";
                 }
             } else {
+                \$bump = false;
                 \$sql .= "(\$column = " . self::addInjection(\$value, \$pdo) . ") \$join ";
             }
         }
@@ -703,8 +713,18 @@ class {{TableName}} extends Database implements iRest
     }
 
     public static function bind(\PDOStatement \$stmt, array \$argv) {
-    {{#explode}}
-        if (array_key_exists('{{name}}', \$argv)) {
+   
+   /*
+    \$bind = function (array \$argv) use (&\$bind, &\$stmt) {
+            foreach (\$argv as \$key => \$value) {
+                
+                if (is_numeric(\$key) && is_array(\$value)) {
+                    \$bind(\$value);
+                    continue;
+                }
+                
+            {{#explode}}
+                   if (array_key_exists('{{name}}', \$argv)) {
         {{^length}}
             \$stmt->bindValue(':{{name}}',{{#json}}json_encode(\$argv['{{name}}']){{/json}}{{^json}}\$argv['{{name}}']{{/json}}, {{type}});
         {{/length}}
@@ -713,7 +733,12 @@ class {{TableName}} extends Database implements iRest
             \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
         {{/length}}
         }
-    {{/explode}}
+            {{/explode}}
+           
+          }
+        };
+        
+        \$bind(\$argv); */
 
         foreach (self::\$injection as \$key => \$value) {
             \$stmt->bindValue(\$key,\$value);
@@ -758,7 +783,6 @@ class {{TableName}} extends Database implements iRest
     * @param string|null \$primary
     * @param array \$argv
     * @return bool
-    * @throws \Exception
     */
     public static function Get(array &\$return, string \$primary = null, array \$argv) : bool
     {
@@ -960,6 +984,18 @@ class {{TableName}} extends Database implements iRest
 
         \$stmt = \$pdo->prepare(\$sql);
 
+        {{#explode}}
+                   if (array_key_exists('{{name}}', \$argv)) {
+        {{^length}}
+            \$stmt->bindValue(':{{name}}',{{#json}}json_encode(\$argv['{{name}}']){{/json}}{{^json}}\$argv['{{name}}']{{/json}}, {{type}});
+        {{/length}}
+        {{#length}}
+            \${{name}} = \$argv['{{name}}'];
+            \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
+        {{/length}}
+        }
+            {{/explode}}
+
         if (!self::bind(\$stmt, \$argv)){
             return false;
         }
@@ -979,7 +1015,38 @@ class {{TableName}} extends Database implements iRest
     public static function Delete(array &\$remove, string \$primary = null, array \$argv) : bool
     {
     {{#carbon_table}}
-        return carbons::Delete(\$remove, \$primary, \$argv);
+        if (null !== \$primary) {
+            return carbons::Delete(\$remove, \$primary, \$argv);
+        }
+
+        /**
+         *   While useful, we've decided to disallow full
+         *   table deletions through the rest api. For the
+         *   n00bs and future self, "I got chu."
+         */
+        if (empty(\$argv)) {
+            return false;
+        }
+
+        self::\$injection = [];
+        /** @noinspection SqlResolve */
+        \$sql = 'DELETE c FROM {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}carbons c 
+                JOIN {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}{{TableName}} on c.entity_pk = follower_table_id';
+
+        \$pdo = self::database();
+
+        \$sql .= ' WHERE ' . self::buildWhere(\$argv, \$pdo);
+
+        self::jsonSQLReporting(\\func_get_args(), \$sql);
+
+        \$stmt = \$pdo->prepare(\$sql);
+
+        \$r = self::bind(\$stmt, \$argv);
+
+        /** @noinspection CallableParameterUseCaseInTypeContextInspection */
+        \$r and \$remove = null;
+
+        return \$r;
     {{/carbon_table}}
     {{^carbon_table}}
         self::\$injection = [];
