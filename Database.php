@@ -284,6 +284,9 @@ class Database
         self::$entityTransactionKeys = [];
 
         if (\is_callable($lambda)) {
+            // TODO - this sucks, it should be better
+            // The end users are going to mess up and start a code search.. either do a null check
+            //  and throw a reasonable error, or the fuck with it.
             return $lambda();
         }
 

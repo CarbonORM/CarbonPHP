@@ -58,12 +58,22 @@ function HeaderLinks({...props}) {
                     }}
                     buttonIcon={Apps}
                     dropdownList={[
-                        <Link to="/5.0/UI/Material-Kit" className={classes.dropdownLink}>
+                        <Link to="/5.0/UI/Material-Kit"
+                              target="_blank"
+                              className={classes.dropdownLink}>
                             Material Kit
                         </Link>,
-                        <Link to="/5.0/UI/Material-Dashboard" className={classes.dropdownLink}>
+                        <Link to="/5.0/UI/Material-Dashboard"
+                              target="_blank"
+                              className={classes.dropdownLink}>
                             Material Dashboard
                         </Link>,
+                        <a href="https://carbonphp.com/2.0/UIElements"
+                           className={classes.dropdownLink}
+                           target="_blank"
+                        >
+                            AdminLTE
+                        </a>,
                     ]}
                 />
             </ListItem>

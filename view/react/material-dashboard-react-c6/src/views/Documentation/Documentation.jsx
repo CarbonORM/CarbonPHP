@@ -199,12 +199,6 @@ class Documentation extends React.Component {
                 component: BrowserOSSupport
             },
             {
-                path: "/5.0/Documentation/UIElements",
-                name: "UI Elements",
-                icon: DashboardIcon,
-                component: UIElements
-            },
-            {
                 path: "/5.0/Documentation/Implementations",
                 name: "Implementations",
                 icon: DashboardIcon,
@@ -221,12 +215,6 @@ class Documentation extends React.Component {
                 name: "License",
                 icon: DashboardIcon,
                 component: License
-            },
-            {
-                path: "/5.0/Documentation/MaterialUI",
-                name: "Material UI",
-                icon: DashboardIcon,
-                component: MaterialUI
             },
             {
                 redirect: true,

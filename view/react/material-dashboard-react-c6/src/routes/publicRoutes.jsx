@@ -8,6 +8,7 @@ import Components from "views/UI/Documentation";
 
 
 let publicRoutes = [
+    // TODO - The following arn't setup
     {
         path: "/landing-page",
         name: "Landing Page",
@@ -23,6 +24,7 @@ let publicRoutes = [
         name: "Login Page",
         component: LoginPage
     },
+    // These are reference's to UI layouts
     {
         path: "/5.0/UI/Material-Kit",
         name: "Material Kit",
@@ -33,6 +35,7 @@ let publicRoutes = [
         name: "Material Dashboard",
         component: Dashboard
     },
+    // These are possible redirects we have in place
     {
         path: "/5.0",
         name: "Documentation",
@@ -48,6 +51,7 @@ let publicRoutes = [
         path: "/",
         pathTo: "/5.0",
     }
+    // Past here a 404 should raise on the previous controller
 ];
 
 publicRoutes = publicRoutes.map(context.contextRoot);
