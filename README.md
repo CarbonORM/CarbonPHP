@@ -26,7 +26,7 @@ CarbonPHP will always try to stay upto date with the latest version of PHP. Use 
 
 ## Documentation
 
-All function should have PHPDoc-style documentation in the code, though some are more thorough than others. The best up-to-date Hydrogen guide available is here:
+All function should have PHPDoc-style documentation in the code, though some are more thorough than others. The best up-to-date c6 guide available is here: carbonphp.com
 
 ## CarbonPHP.com
 
@@ -94,7 +94,7 @@ Informal support for CarbonPHP is currently offered on https://github.com/Richar
 
 ## Legal
 
-Use of CarbonPHP implies agreement with its software license, available in the LICENSE file. This license is subject to change from release to release, so before upgrading to a new version of Hydrogen, please review its license.
+Use of CarbonPHP implies agreement with its software license, available in the LICENSE file. This license is subject to change from release to release, so before upgrading to a new version of C6, please review its license.
 
 ## Credits
 
