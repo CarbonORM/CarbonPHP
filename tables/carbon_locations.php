@@ -3,11 +3,20 @@
 namespace CarbonPHP\Tables;
 
 use CarbonPHP\Database;
-use CarbonPHP\interfaces\iRest;
+use CarbonPHP\Interfaces\iRest;
 
 
 class carbon_locations extends Database implements iRest
 {
+
+    public const ENTITY_ID = 'entity_id';
+    public const LATITUDE = 'latitude';
+    public const LONGITUDE = 'longitude';
+    public const STREET = 'street';
+    public const CITY = 'city';
+    public const STATE = 'state';
+    public const ELEVATION = 'elevation';
+
     public const PRIMARY = [
     'entity_id',
     ];
@@ -22,20 +31,40 @@ class carbon_locations extends Database implements iRest
     public static $injection = [];
 
 
+    public static function jsonSQLReporting($argv, $sql) : void {
+        global $json;
+        if (!\is_array($json)) {
+            $json = [];
+        }
+        if (!isset($json['sql'])) {
+            $json['sql'] = [];
+        }
+        $json['sql'][] = [
+            $argv,
+            $sql
+        ];
+    }
 
     public static function buildWhere(array $set, \PDO $pdo, $join = 'AND') : string
     {
         $sql = '(';
+        $bump = false;
         foreach ($set as $column => $value) {
             if (\is_array($value)) {
+                if ($bump) {
+                    $sql .= " $join ";
+                }
+                $bump = true;
                 $sql .= self::buildWhere($value, $pdo, $join === 'AND' ? 'OR' : 'AND');
             } else if (array_key_exists($column, self::COLUMNS)) {
+                $bump = false;
                 if (self::COLUMNS[$column][0] === 'binary') {
-                    $sql .= "($column = UNHEX(:" . $column . ")) $join ";
+                    $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo)  . ")) $join ";
                 } else {
-                    $sql .= "($column = :" . $column . ") $join ";
+                    $sql .= "($column = " . self::addInjection($value, $pdo) . ") $join ";
                 }
             } else {
+                $bump = false;
                 $sql .= "($column = " . self::addInjection($value, $pdo) . ") $join ";
             }
         }
@@ -50,33 +79,48 @@ class carbon_locations extends Database implements iRest
     }
 
     public static function bind(\PDOStatement $stmt, array $argv) {
-        if (array_key_exists('entity_id', $argv)) {
+   
+   /*
+    $bind = function (array $argv) use (&$bind, &$stmt) {
+            foreach ($argv as $key => $value) {
+                
+                if (is_numeric($key) && is_array($value)) {
+                    $bind($value);
+                    continue;
+                }
+                
+                   if (array_key_exists('entity_id', $argv)) {
             $entity_id = $argv['entity_id'];
             $stmt->bindParam(':entity_id',$entity_id, 2, 16);
         }
-        if (array_key_exists('latitude', $argv)) {
+                   if (array_key_exists('latitude', $argv)) {
             $latitude = $argv['latitude'];
             $stmt->bindParam(':latitude',$latitude, 2, 225);
         }
-        if (array_key_exists('longitude', $argv)) {
+                   if (array_key_exists('longitude', $argv)) {
             $longitude = $argv['longitude'];
             $stmt->bindParam(':longitude',$longitude, 2, 225);
         }
-        if (array_key_exists('street', $argv)) {
+                   if (array_key_exists('street', $argv)) {
             $stmt->bindValue(':street',$argv['street'], 2);
         }
-        if (array_key_exists('city', $argv)) {
+                   if (array_key_exists('city', $argv)) {
             $city = $argv['city'];
             $stmt->bindParam(':city',$city, 2, 40);
         }
-        if (array_key_exists('state', $argv)) {
+                   if (array_key_exists('state', $argv)) {
             $state = $argv['state'];
             $stmt->bindParam(':state',$state, 2, 10);
         }
-        if (array_key_exists('elevation', $argv)) {
+                   if (array_key_exists('elevation', $argv)) {
             $elevation = $argv['elevation'];
             $stmt->bindParam(':elevation',$elevation, 2, 40);
         }
+           
+          }
+        };
+        
+        $bind($argv); */
 
         foreach (self::$injection as $key => $value) {
             $stmt->bindValue($key,$value);
@@ -121,7 +165,6 @@ class carbon_locations extends Database implements iRest
     * @param string|null $primary
     * @param array $argv
     * @return bool
-    * @throws \Exception
     */
     public static function Get(array &$return, string $primary = null, array $argv) : bool
     {
@@ -205,7 +248,7 @@ class carbon_locations extends Database implements iRest
 
         $sql .= $limit;
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 
@@ -242,7 +285,7 @@ class carbon_locations extends Database implements iRest
         /** @noinspection SqlResolve */
         $sql = 'INSERT INTO carbon_locations (entity_id, latitude, longitude, street, city, state, elevation) VALUES ( UNHEX(:entity_id), :latitude, :longitude, :street, :city, :state, :elevation)';
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = self::database()->prepare($sql);
 
@@ -328,9 +371,37 @@ class carbon_locations extends Database implements iRest
 
         $sql .= ' WHERE  entity_id=UNHEX('.self::addInjection($primary, $pdo).')';
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
+
+                   if (array_key_exists('entity_id', $argv)) {
+            $entity_id = $argv['entity_id'];
+            $stmt->bindParam(':entity_id',$entity_id, 2, 16);
+        }
+                   if (array_key_exists('latitude', $argv)) {
+            $latitude = $argv['latitude'];
+            $stmt->bindParam(':latitude',$latitude, 2, 225);
+        }
+                   if (array_key_exists('longitude', $argv)) {
+            $longitude = $argv['longitude'];
+            $stmt->bindParam(':longitude',$longitude, 2, 225);
+        }
+                   if (array_key_exists('street', $argv)) {
+            $stmt->bindValue(':street',$argv['street'], 2);
+        }
+                   if (array_key_exists('city', $argv)) {
+            $city = $argv['city'];
+            $stmt->bindParam(':city',$city, 2, 40);
+        }
+                   if (array_key_exists('state', $argv)) {
+            $state = $argv['state'];
+            $stmt->bindParam(':state',$state, 2, 10);
+        }
+                   if (array_key_exists('elevation', $argv)) {
+            $elevation = $argv['elevation'];
+            $stmt->bindParam(':elevation',$elevation, 2, 40);
+        }
 
         if (!self::bind($stmt, $argv)){
             return false;
@@ -350,6 +421,37 @@ class carbon_locations extends Database implements iRest
     */
     public static function Delete(array &$remove, string $primary = null, array $argv) : bool
     {
-        return carbons::Delete($remove, $primary, $argv);
+        if (null !== $primary) {
+            return carbons::Delete($remove, $primary, $argv);
+        }
+
+        /**
+         *   While useful, we've decided to disallow full
+         *   table deletions through the rest api. For the
+         *   n00bs and future self, "I got chu."
+         */
+        if (empty($argv)) {
+            return false;
+        }
+
+        self::$injection = [];
+        /** @noinspection SqlResolve */
+        $sql = 'DELETE c FROM carbons c 
+                JOIN carbon_locations on c.entity_pk = follower_table_id';
+
+        $pdo = self::database();
+
+        $sql .= ' WHERE ' . self::buildWhere($argv, $pdo);
+
+        self::jsonSQLReporting(\func_get_args(), $sql);
+
+        $stmt = $pdo->prepare($sql);
+
+        $r = self::bind($stmt, $argv);
+
+        /** @noinspection CallableParameterUseCaseInTypeContextInspection */
+        $r and $remove = null;
+
+        return $r;
     }
 }

@@ -23,9 +23,9 @@
  *           'URL' => string '',                                  // Server Url name you do not need to chane in remote development
  *           'ROOT' => string '__FILE__',                         // This was defined in our ../index.php
  *           'CACHE_CONTROL' => [                                 // Key value map of $extension => $headers
- * 'png|jpg|gif|jpeg|bmp|icon|js|css' => 'Cache-Control: max-age=<seconds>',
- * 'woff|woff2|map|hbs|eotv' => 'Cache-Control: no-cache ',       // if the extension is found the headers provided will be sent
- * ],
+ *                  'png|jpg|gif|jpeg|bmp|icon|js|css' => 'Cache-Control: max-age=<seconds>',
+ *                  'woff|woff2|map|hbs|eotv' => 'Cache-Control: no-cache ',       // if the extension is found the headers provided will be sent
+ *            ],
  *           'CONFIG' => string __FILE__,                         // Send to sockets
  *           'TIMEZONE' => string 'America/Chicago',              // Current timezone TODO - look up php
  *           'TITLE' => string 'Carbon 6',                        // Website title
@@ -70,6 +70,7 @@
  */
 
 return [
+
     /*
     'DATABASE' => [
 
@@ -79,11 +80,11 @@ return [
 
         'DB_USER' => 'root',                        // User
 
-        'DB_PASS' => 'Huskies!99',                        // Password
+        'DB_PASS' => 'password',                        // Password
 
         'DB_BUILD' => '',                       // This framework sets up its-self implicitly
 
-        'REBUILD' => false                      // Initial Setup todo - remove this check
+        'REBUILD' => 1                      // Initial Setup todo - remove this check
     ],
     */
 
@@ -93,13 +94,7 @@ return [
 
         'ROOT' => APP_ROOT,          /* This was defined in our ../index.php */
 
-        'CACHE_CONTROL' => [
-            'ico|pdf|flv' => 'Cache-Control: max-age=29030400, public',
 
-            'jpg|jpeg|png|gif|swf|xml|txt|css|js|woff2|tff|svg' => 'Cache-Control: max-age=604800, public',
-
-            'html|htm|php|hbs' => 'Cache-Control: max-age=0, private, public',
-        ],
 
         'CACHE_CONTROL' => [
             'ico|pdf|flv' => 'Cache-Control: max-age=29030400, public',

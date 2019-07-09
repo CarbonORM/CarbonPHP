@@ -3,11 +3,17 @@
 namespace CarbonPHP\Tables;
 
 use CarbonPHP\Database;
-use CarbonPHP\interfaces\iRest;
+use CarbonPHP\Interfaces\iRest;
 
 
 class carbon_reports extends Database implements iRest
 {
+
+    public const LOG_LEVEL = 'log_level';
+    public const REPORT = 'report';
+    public const DATE = 'date';
+    public const CALL_TRACE = 'call_trace';
+
     public const PRIMARY = [
     
     ];
@@ -22,20 +28,40 @@ class carbon_reports extends Database implements iRest
     public static $injection = [];
 
 
+    public static function jsonSQLReporting($argv, $sql) : void {
+        global $json;
+        if (!\is_array($json)) {
+            $json = [];
+        }
+        if (!isset($json['sql'])) {
+            $json['sql'] = [];
+        }
+        $json['sql'][] = [
+            $argv,
+            $sql
+        ];
+    }
 
     public static function buildWhere(array $set, \PDO $pdo, $join = 'AND') : string
     {
         $sql = '(';
+        $bump = false;
         foreach ($set as $column => $value) {
             if (\is_array($value)) {
+                if ($bump) {
+                    $sql .= " $join ";
+                }
+                $bump = true;
                 $sql .= self::buildWhere($value, $pdo, $join === 'AND' ? 'OR' : 'AND');
             } else if (array_key_exists($column, self::COLUMNS)) {
+                $bump = false;
                 if (self::COLUMNS[$column][0] === 'binary') {
-                    $sql .= "($column = UNHEX(:" . $column . ")) $join ";
+                    $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo)  . ")) $join ";
                 } else {
-                    $sql .= "($column = :" . $column . ") $join ";
+                    $sql .= "($column = " . self::addInjection($value, $pdo) . ") $join ";
                 }
             } else {
+                $bump = false;
                 $sql .= "($column = " . self::addInjection($value, $pdo) . ") $join ";
             }
         }
@@ -50,19 +76,34 @@ class carbon_reports extends Database implements iRest
     }
 
     public static function bind(\PDOStatement $stmt, array $argv) {
-        if (array_key_exists('log_level', $argv)) {
+   
+   /*
+    $bind = function (array $argv) use (&$bind, &$stmt) {
+            foreach ($argv as $key => $value) {
+                
+                if (is_numeric($key) && is_array($value)) {
+                    $bind($value);
+                    continue;
+                }
+                
+                   if (array_key_exists('log_level', $argv)) {
             $log_level = $argv['log_level'];
             $stmt->bindParam(':log_level',$log_level, 2, 20);
         }
-        if (array_key_exists('report', $argv)) {
+                   if (array_key_exists('report', $argv)) {
             $stmt->bindValue(':report',$argv['report'], 2);
         }
-        if (array_key_exists('date', $argv)) {
+                   if (array_key_exists('date', $argv)) {
             $stmt->bindValue(':date',$argv['date'], 2);
         }
-        if (array_key_exists('call_trace', $argv)) {
+                   if (array_key_exists('call_trace', $argv)) {
             $stmt->bindValue(':call_trace',$argv['call_trace'], 2);
         }
+           
+          }
+        };
+        
+        $bind($argv); */
 
         foreach (self::$injection as $key => $value) {
             $stmt->bindValue($key,$value);
@@ -107,7 +148,6 @@ class carbon_reports extends Database implements iRest
     * @param string|null $primary
     * @param array $argv
     * @return bool
-    * @throws \Exception
     */
     public static function Get(array &$return, string $primary = null, array $argv) : bool
     {
@@ -189,7 +229,7 @@ class carbon_reports extends Database implements iRest
 
         $sql .= $limit;
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 
@@ -221,7 +261,7 @@ class carbon_reports extends Database implements iRest
         /** @noinspection SqlResolve */
         $sql = 'INSERT INTO carbon_reports (log_level, report, call_trace) VALUES ( :log_level, :report, :call_trace)';
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = self::database()->prepare($sql);
 
@@ -285,9 +325,23 @@ class carbon_reports extends Database implements iRest
 
         
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
+
+                   if (array_key_exists('log_level', $argv)) {
+            $log_level = $argv['log_level'];
+            $stmt->bindParam(':log_level',$log_level, 2, 20);
+        }
+                   if (array_key_exists('report', $argv)) {
+            $stmt->bindValue(':report',$argv['report'], 2);
+        }
+                   if (array_key_exists('date', $argv)) {
+            $stmt->bindValue(':date',$argv['date'], 2);
+        }
+                   if (array_key_exists('call_trace', $argv)) {
+            $stmt->bindValue(':call_trace',$argv['call_trace'], 2);
+        }
 
         if (!self::bind($stmt, $argv)){
             return false;
@@ -327,7 +381,7 @@ class carbon_reports extends Database implements iRest
         $sql .= ' WHERE ' . self::buildWhere($argv, $pdo);
         } 
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 

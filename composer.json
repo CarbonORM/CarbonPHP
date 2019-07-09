@@ -18,7 +18,9 @@
     "psr/log": "^1.0",
     "matthiasmullie/minify": "dev-master",
     "patchwork/jsqueeze": "^2.0",
-    "ext-json": "*"
+    "ext-json": "*",
+    "ext-pdo": "*",
+    "ext-curl": "*"
   },
   "require-dev": {
     "phpunit/phpunit-selenium": "^4.1"

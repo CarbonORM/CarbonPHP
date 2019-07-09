@@ -41,7 +41,7 @@ function Footer({ ...props }) {
             &copy; {1900 + new Date().getYear()}{" "}
             <a href="https://www.carbonphp.com" className={classes.a}>
               Richard T Miles
-            </a>, made for everyone
+            </a>, made free for everyone
           </span>
         </p>
       </div>

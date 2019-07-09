@@ -3,17 +3,25 @@
 namespace CarbonPHP\Tables;
 
 use CarbonPHP\Database;
-use CarbonPHP\interfaces\iRest;
+use CarbonPHP\Interfaces\iRest;
 
 
 class sessions extends Database implements iRest
 {
+
+    public const USER_ID = 'user_id';
+    public const USER_IP = 'user_ip';
+    public const SESSION_ID = 'session_id';
+    public const SESSION_EXPIRES = 'session_expires';
+    public const SESSION_DATA = 'session_data';
+    public const USER_ONLINE_STATUS = 'user_online_status';
+
     public const PRIMARY = [
     'session_id',
     ];
 
     public const COLUMNS = [
-        'user_id' => [ 'binary', '2', '16' ],'user_ip' => [ 'binary', '2', '16' ],'session_id' => [ 'varchar', '2', '255' ],'session_expires' => [ 'datetime', '2', '' ],'session_data' => [ 'text,', '2', '' ],'user_online_status' => [ 'tinyint', '0', '1' ],
+        'user_id' => [ 'binary', '2', '16' ],'user_ip' => [ 'varchar', '2', '20' ],'session_id' => [ 'varchar', '2', '255' ],'session_expires' => [ 'datetime', '2', '' ],'session_data' => [ 'text,', '2', '' ],'user_online_status' => [ 'tinyint', '0', '1' ],
     ];
 
     public const VALIDATION = [];
@@ -22,20 +30,40 @@ class sessions extends Database implements iRest
     public static $injection = [];
 
 
+    public static function jsonSQLReporting($argv, $sql) : void {
+        global $json;
+        if (!\is_array($json)) {
+            $json = [];
+        }
+        if (!isset($json['sql'])) {
+            $json['sql'] = [];
+        }
+        $json['sql'][] = [
+            $argv,
+            $sql
+        ];
+    }
 
     public static function buildWhere(array $set, \PDO $pdo, $join = 'AND') : string
     {
         $sql = '(';
+        $bump = false;
         foreach ($set as $column => $value) {
             if (\is_array($value)) {
+                if ($bump) {
+                    $sql .= " $join ";
+                }
+                $bump = true;
                 $sql .= self::buildWhere($value, $pdo, $join === 'AND' ? 'OR' : 'AND');
             } else if (array_key_exists($column, self::COLUMNS)) {
+                $bump = false;
                 if (self::COLUMNS[$column][0] === 'binary') {
-                    $sql .= "($column = UNHEX(:" . $column . ")) $join ";
+                    $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo)  . ")) $join ";
                 } else {
-                    $sql .= "($column = :" . $column . ") $join ";
+                    $sql .= "($column = " . self::addInjection($value, $pdo) . ") $join ";
                 }
             } else {
+                $bump = false;
                 $sql .= "($column = " . self::addInjection($value, $pdo) . ") $join ";
             }
         }
@@ -50,28 +78,43 @@ class sessions extends Database implements iRest
     }
 
     public static function bind(\PDOStatement $stmt, array $argv) {
-        if (array_key_exists('user_id', $argv)) {
+   
+   /*
+    $bind = function (array $argv) use (&$bind, &$stmt) {
+            foreach ($argv as $key => $value) {
+                
+                if (is_numeric($key) && is_array($value)) {
+                    $bind($value);
+                    continue;
+                }
+                
+                   if (array_key_exists('user_id', $argv)) {
             $user_id = $argv['user_id'];
             $stmt->bindParam(':user_id',$user_id, 2, 16);
         }
-        if (array_key_exists('user_ip', $argv)) {
+                   if (array_key_exists('user_ip', $argv)) {
             $user_ip = $argv['user_ip'];
-            $stmt->bindParam(':user_ip',$user_ip, 2, 16);
+            $stmt->bindParam(':user_ip',$user_ip, 2, 20);
         }
-        if (array_key_exists('session_id', $argv)) {
+                   if (array_key_exists('session_id', $argv)) {
             $session_id = $argv['session_id'];
             $stmt->bindParam(':session_id',$session_id, 2, 255);
         }
-        if (array_key_exists('session_expires', $argv)) {
+                   if (array_key_exists('session_expires', $argv)) {
             $stmt->bindValue(':session_expires',$argv['session_expires'], 2);
         }
-        if (array_key_exists('session_data', $argv)) {
+                   if (array_key_exists('session_data', $argv)) {
             $stmt->bindValue(':session_data',$argv['session_data'], 2);
         }
-        if (array_key_exists('user_online_status', $argv)) {
+                   if (array_key_exists('user_online_status', $argv)) {
             $user_online_status = $argv['user_online_status'];
             $stmt->bindParam(':user_online_status',$user_online_status, 0, 1);
         }
+           
+          }
+        };
+        
+        $bind($argv); */
 
         foreach (self::$injection as $key => $value) {
             $stmt->bindValue($key,$value);
@@ -116,7 +159,6 @@ class sessions extends Database implements iRest
     * @param string|null $primary
     * @param array $argv
     * @return bool
-    * @throws \Exception
     */
     public static function Get(array &$return, string $primary = null, array $argv) : bool
     {
@@ -200,7 +242,7 @@ class sessions extends Database implements iRest
 
         $sql .= $limit;
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 
@@ -235,9 +277,9 @@ class sessions extends Database implements iRest
     {
         self::$injection = [];
         /** @noinspection SqlResolve */
-        $sql = 'INSERT INTO sessions (user_id, user_ip, session_id, session_expires, session_data, user_online_status) VALUES ( UNHEX(:user_id), UNHEX(:user_ip), :session_id, :session_expires, :session_data, :user_online_status)';
+        $sql = 'INSERT INTO sessions (user_id, user_ip, session_id, session_expires, session_data, user_online_status) VALUES ( UNHEX(:user_id), :user_ip, :session_id, :session_expires, :session_data, :user_online_status)';
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = self::database()->prepare($sql);
 
@@ -246,7 +288,7 @@ class sessions extends Database implements iRest
                     $stmt->bindParam(':user_id',$user_id, 2, 16);
                         
                     $user_ip =  $argv['user_ip'] ?? null;
-                    $stmt->bindParam(':user_ip',$user_ip, 2, 16);
+                    $stmt->bindParam(':user_ip',$user_ip, 2, 20);
                         
                     $session_id = $argv['session_id'];
                     $stmt->bindParam(':session_id',$session_id, 2, 255);
@@ -291,7 +333,7 @@ class sessions extends Database implements iRest
                 $set .= 'user_id=UNHEX(:user_id),';
             }
             if (array_key_exists('user_ip', $argv)) {
-                $set .= 'user_ip=UNHEX(:user_ip),';
+                $set .= 'user_ip=:user_ip,';
             }
             if (array_key_exists('session_id', $argv)) {
                 $set .= 'session_id=:session_id,';
@@ -316,9 +358,32 @@ class sessions extends Database implements iRest
 
         $sql .= ' WHERE  session_id='.self::addInjection($primary, $pdo).'';
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
+
+                   if (array_key_exists('user_id', $argv)) {
+            $user_id = $argv['user_id'];
+            $stmt->bindParam(':user_id',$user_id, 2, 16);
+        }
+                   if (array_key_exists('user_ip', $argv)) {
+            $user_ip = $argv['user_ip'];
+            $stmt->bindParam(':user_ip',$user_ip, 2, 20);
+        }
+                   if (array_key_exists('session_id', $argv)) {
+            $session_id = $argv['session_id'];
+            $stmt->bindParam(':session_id',$session_id, 2, 255);
+        }
+                   if (array_key_exists('session_expires', $argv)) {
+            $stmt->bindValue(':session_expires',$argv['session_expires'], 2);
+        }
+                   if (array_key_exists('session_data', $argv)) {
+            $stmt->bindValue(':session_data',$argv['session_data'], 2);
+        }
+                   if (array_key_exists('user_online_status', $argv)) {
+            $user_online_status = $argv['user_online_status'];
+            $stmt->bindParam(':user_online_status',$user_online_status, 0, 1);
+        }
 
         if (!self::bind($stmt, $argv)){
             return false;
@@ -360,7 +425,7 @@ class sessions extends Database implements iRest
         $sql .= ' WHERE  session_id='.self::addInjection($primary, $pdo).'';
         }
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 

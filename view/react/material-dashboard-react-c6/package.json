@@ -62,7 +62,10 @@
     "url": "git+https://github.com/creativetimofficial/material-dashboard-react.git"
   },
   "keywords": [],
-  "author": "Creative Tim <hello@creative-tim.com> (https://www.creative-tim.com/)",
+  "authors": [
+    "Creative Tim <hello@creative-tim.com> (https://www.creative-tim.com/)",
+    "Richard T Miles <richard@miles.systems> (https://www.miles.systems/)"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/creativetimofficial/material-dashboard-react/issues"

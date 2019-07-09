@@ -150,9 +150,16 @@ TAGS;
         $tags .=  <<<TAGS
 ];
     foreach (\$tag as \$key => \$value) {
-        \$db->prepare(\$sql)->execute(\$value);
+            \$sql = "SELECT count(*) FROM tags WHERE tag_id = ? AND tag_description = ? AND tag_name = ?;";
+            \$query = \$db->prepare(\$sql);
+            \$query->execute(\$value);
+        if (!\$query->fetchColumn()) {
+            \$sql = "INSERT INTO tags (tag_id, tag_description, tag_name) VALUES (?,?,?);";
+            \$db->prepare(\$sql)->execute(\$value);
+            print "<br>{\$value[0]} :: tags inserted";
+        }
     }
-    print '<br>Tags inserted';
+    
 
 } catch (PDOException \$e) {
     print '<br>' . \$e->getMessage();

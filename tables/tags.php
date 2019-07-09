@@ -3,11 +3,16 @@
 namespace CarbonPHP\Tables;
 
 use CarbonPHP\Database;
-use CarbonPHP\interfaces\iRest;
+use CarbonPHP\Interfaces\iRest;
 
 
 class tags extends Database implements iRest
 {
+
+    public const TAG_ID = 'tag_id';
+    public const TAG_DESCRIPTION = 'tag_description';
+    public const TAG_NAME = 'tag_name';
+
     public const PRIMARY = [
     
     ];
@@ -22,20 +27,40 @@ class tags extends Database implements iRest
     public static $injection = [];
 
 
+    public static function jsonSQLReporting($argv, $sql) : void {
+        global $json;
+        if (!\is_array($json)) {
+            $json = [];
+        }
+        if (!isset($json['sql'])) {
+            $json['sql'] = [];
+        }
+        $json['sql'][] = [
+            $argv,
+            $sql
+        ];
+    }
 
     public static function buildWhere(array $set, \PDO $pdo, $join = 'AND') : string
     {
         $sql = '(';
+        $bump = false;
         foreach ($set as $column => $value) {
             if (\is_array($value)) {
+                if ($bump) {
+                    $sql .= " $join ";
+                }
+                $bump = true;
                 $sql .= self::buildWhere($value, $pdo, $join === 'AND' ? 'OR' : 'AND');
             } else if (array_key_exists($column, self::COLUMNS)) {
+                $bump = false;
                 if (self::COLUMNS[$column][0] === 'binary') {
-                    $sql .= "($column = UNHEX(:" . $column . ")) $join ";
+                    $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo)  . ")) $join ";
                 } else {
-                    $sql .= "($column = :" . $column . ") $join ";
+                    $sql .= "($column = " . self::addInjection($value, $pdo) . ") $join ";
                 }
             } else {
+                $bump = false;
                 $sql .= "($column = " . self::addInjection($value, $pdo) . ") $join ";
             }
         }
@@ -50,16 +75,31 @@ class tags extends Database implements iRest
     }
 
     public static function bind(\PDOStatement $stmt, array $argv) {
-        if (array_key_exists('tag_id', $argv)) {
+   
+   /*
+    $bind = function (array $argv) use (&$bind, &$stmt) {
+            foreach ($argv as $key => $value) {
+                
+                if (is_numeric($key) && is_array($value)) {
+                    $bind($value);
+                    continue;
+                }
+                
+                   if (array_key_exists('tag_id', $argv)) {
             $tag_id = $argv['tag_id'];
             $stmt->bindParam(':tag_id',$tag_id, 2, 80);
         }
-        if (array_key_exists('tag_description', $argv)) {
+                   if (array_key_exists('tag_description', $argv)) {
             $stmt->bindValue(':tag_description',$argv['tag_description'], 2);
         }
-        if (array_key_exists('tag_name', $argv)) {
+                   if (array_key_exists('tag_name', $argv)) {
             $stmt->bindValue(':tag_name',$argv['tag_name'], 2);
         }
+           
+          }
+        };
+        
+        $bind($argv); */
 
         foreach (self::$injection as $key => $value) {
             $stmt->bindValue($key,$value);
@@ -104,7 +144,6 @@ class tags extends Database implements iRest
     * @param string|null $primary
     * @param array $argv
     * @return bool
-    * @throws \Exception
     */
     public static function Get(array &$return, string $primary = null, array $argv) : bool
     {
@@ -186,7 +225,7 @@ class tags extends Database implements iRest
 
         $sql .= $limit;
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 
@@ -218,7 +257,7 @@ class tags extends Database implements iRest
         /** @noinspection SqlResolve */
         $sql = 'INSERT INTO tags (tag_id, tag_description, tag_name) VALUES ( :tag_id, :tag_description, :tag_name)';
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = self::database()->prepare($sql);
 
@@ -279,9 +318,20 @@ class tags extends Database implements iRest
 
         
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
+
+                   if (array_key_exists('tag_id', $argv)) {
+            $tag_id = $argv['tag_id'];
+            $stmt->bindParam(':tag_id',$tag_id, 2, 80);
+        }
+                   if (array_key_exists('tag_description', $argv)) {
+            $stmt->bindValue(':tag_description',$argv['tag_description'], 2);
+        }
+                   if (array_key_exists('tag_name', $argv)) {
+            $stmt->bindValue(':tag_name',$argv['tag_name'], 2);
+        }
 
         if (!self::bind($stmt, $argv)){
             return false;
@@ -321,7 +371,7 @@ class tags extends Database implements iRest
         $sql .= ' WHERE ' . self::buildWhere($argv, $pdo);
         } 
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 
