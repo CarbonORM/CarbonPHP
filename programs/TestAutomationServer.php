@@ -14,11 +14,23 @@
  *
  * You must have the curl extension enabled in php
  * @link http://www.tomjepson.co.uk/enabling-curl-in-php-php-ini-wamp-xamp-ubuntu/
- * @param $url
- * @return bool|string
+ * @param $ext
+ * @return bool|mixed
  */
 
-function get_page($url) {
+function mimeType($ext)
+{
+    $mime_types = include 'extras/mimeTypes.php';
+
+    if (array_key_exists($ext, $mime_types)) {
+        return $mime_types[$ext];
+    }
+    return false;
+
+}
+
+function get_page($url)
+{
 
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
@@ -26,12 +38,20 @@ function get_page($url) {
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_HEADER, 0);
     $data = curl_exec($ch);
-    if(false === $data)
-    {
+    if (false === $data) {
         print "\n\n\tCurl error: \t" . curl_error($ch);
         die;
     }
+
     curl_close($ch);
+
+    if (preg_match('#^(.*)\.(css|js)#', $url, $matches, PREG_OFFSET_CAPTURE)) {
+
+        if ($mime = mimeType($matches[2][0])) {
+            header('Content-type:' . $mime . '; charset: UTF-8');
+        }
+    }
+
     return $data;
 }
 
@@ -40,7 +60,8 @@ $uri = trim(urldecode(parse_url(trim(preg_replace('/\s+/', ' ', $_SERVER['REQUES
 switch ($uri) {
     case 'inject.js':
         // TODO - send correct headers
-        print /** @lang JavaScript */ <<<JAVASCRIPT
+        print /** @lang JavaScript */
+            <<<JAVASCRIPT
 window.onbeforeunload = () => {
     return 'random text that does nothing in chrome... TODO ';
 }
@@ -105,7 +126,10 @@ JAVASCRIPT;
     case 'index.php':
 
         header("Access-Control-Allow-Origin: *");
+
         $domain = $_GET['url'] ?? 'http://www.carbonphp.com';
+
+        print get_page($domain);
 
         $domainFile = fopen("domain.txt", "w");
 
@@ -119,15 +143,14 @@ JAVASCRIPT;
 
         fclose($domainFile);
 
-        print get_page($domain);
         exit(0);
     default:
         if (empty($uri)) {
             break;
         }
-        die;
 
         $domainFile = fopen("domain.txt", "r");
+
         $urlFile = fopen("urls.txt", "a+");
 
         if (false === $domainFile) {
@@ -140,15 +163,15 @@ JAVASCRIPT;
 
         $domain = ltrim(trim(fread($domainFile, filesize('domain.txt')), " /\t\n\r\0\v"), "\n");
 
-        if (false === fwrite($urlFile, PHP_EOL . $url = $domain . '/' . $uri)){
+        if (false === fwrite($urlFile, PHP_EOL . $url = $domain . '/' . $uri)) {
             die('Failed to write to file!');
         }
 
-        if (false === fclose($domainFile)){
+        if (false === fclose($domainFile)) {
             die('Failed to close the file!');
         }
 
-        if (false === fclose($urlFile)){
+        if (false === fclose($urlFile)) {
             die('Failed to close the file!');
         }
 
@@ -328,7 +351,7 @@ JAVASCRIPT;
         results.innerHTML = e.data;
     });
 
-    $('.close').on('click',()=>{
+    $('.close').on('click', () => {
         $toolWindow.hide();
     })
 </script>
