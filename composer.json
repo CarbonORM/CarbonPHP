@@ -47,7 +47,7 @@
   },
   "scripts": {
     "test": [
-      "php index.php buildDatabase",
+      "php index.php setup --rebuild",
       "php index.php minify",
       "php index.php rest -json",
       "./vendor/bin/phpunit --version",

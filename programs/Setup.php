@@ -12,6 +12,7 @@
 namespace CarbonPHP\Programs;
 
 
+use CarbonPHP\Database;
 use CarbonPHP\interfaces\iCommand;
 
 class Setup implements iCommand
@@ -31,8 +32,20 @@ class Setup implements iCommand
 
     public function run($argv) : int
     {
+        $argc = count($argv);
 
-        // print_r($this->config); die;
+        for ($i = 0; $i < $argc; $i++) {
+            switch ($argv[$i]) {
+                case '-r':
+                case '--rebuild':
+                    Database::setUp(false);   // Redirect = false
+                    // this is going to the CLI so no need to run/attach redirect scripts
+                    exit(0);
+            }
+        }
+
+        // TODO - create this setup
+
 
         if (empty($this->config['SITE']['CONFIG'])) {
             print 'The [\'SITE\'][\'CONFIG\'] option is missing. It does not look like CarbonPHP is setup correctly. Run `>> php index.php setup` to fix this.' . PHP_EOL;
@@ -55,7 +68,6 @@ class Setup implements iCommand
             }
         }
 
-        //$this->config($this->config);
         return 0;
     }
 
