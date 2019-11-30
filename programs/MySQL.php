@@ -51,9 +51,15 @@ trait MySQL
             exit(1);
         }
 
+        if (empty($this->CONFIG['DATABASE']['DB_PORT'])) {
+            print 'No [\'DATABASE\'][\'DB_HOST\'] configuration active. Using default port 3306. ';
+            $this->CONFIG['DATABASE']['DB_PORT'] = 3306;
+            exit(1);
+        }
+
         // We're going to use this function to execute mysql from the command line
         // Mysql needs this to access the server
-        $cnf = ['[client]', "user = {$this->CONFIG['DATABASE']['DB_USER']}", "password = {$this->CONFIG['DATABASE']['DB_PASS']}", "host = {$this->CONFIG['DATABASE']['DB_HOST']}"];
+        $cnf = ['[client]', "user = {$this->CONFIG['DATABASE']['DB_USER']}", "password = {$this->CONFIG['DATABASE']['DB_PASS']}", "host = {$this->CONFIG['DATABASE']['DB_HOST']}", "port = {$this->CONFIG['DATABASE']['DB_PORT']}"];
         file_put_contents('mysql.cnf', implode(PHP_EOL, $cnf));
         return $this->mysql = './mysql.cnf';
     }
