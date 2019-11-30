@@ -51,7 +51,7 @@
       "php index.php setup --rebuild",
       "php index.php minify",
       "php index.php rest -json",
-      "./vendor/bin/phpunit --testdox"
+      "./vendor/bin/phpunit"
     ]
   }
 }

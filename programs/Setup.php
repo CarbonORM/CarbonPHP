@@ -45,7 +45,7 @@ class Setup implements iCommand
             switch ($argv[$i]) {
                 case '-r':
                 case '--rebuild':
-                    Database::setUp(false);   // Redirect = false
+                    Database::setUp(false, true);   // Redirect = false
                     // this is going to the CLI so no need to run/attach redirect scripts
                     exit(0);
                 case '--mysql_native_password':
