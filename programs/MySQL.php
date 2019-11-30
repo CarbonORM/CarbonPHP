@@ -70,13 +70,13 @@ trait MySQL
         return $this->mysqldump = './mysqldump.sql';
     }
 
-    private function MySQLSource(bool $verbose, String $query, $mysql = false)
+    private function MySQLSource(bool $verbose, String $query, $mysql = false) : ?string
     {
         $cmd = ($mysql ?: 'mysql') . ' --defaults-extra-file="' . $this->buildCNF() . '" ' . $this->CONFIG['DATABASE']['DB_NAME'] . ' < "' . $query . '"';
 
         $verbose and print "\n\nRunning Command >> $cmd\n\n";
 
-        shell_exec($cmd);
+        return shell_exec($cmd);
     }
 
     /**

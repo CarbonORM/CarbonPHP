@@ -49,7 +49,10 @@ class Setup implements iCommand
                     // this is going to the CLI so no need to run/attach redirect scripts
                     exit(0);
                 case '--mysql_native_password':
-                    $query = "ALTER USER '{$this->config['DATABASE']['DB_USER']}'@'localhost' IDENTIFIED WITH mysql_native_password BY '{$this->config['DATABASE']['DB_PASS']}';";
+                    $query = <<<IDENTIFIED
+                    ALTER USER '{$this->config['DATABASE']['DB_USER']}'@'localhost' IDENTIFIED WITH mysql_native_password BY '{$this->config['DATABASE']['DB_PASS']}';
+                    ALTER USER '{$this->config['DATABASE']['DB_USER']}'@'%' IDENTIFIED WITH mysql_native_password BY '{$this->config['DATABASE']['DB_PASS']}';
+IDENTIFIED;
                     print PHP_EOL . $query . PHP_EOL;
 
                     try {
@@ -58,8 +61,9 @@ class Setup implements iCommand
                             exit(2);
                         }
                         $this->setup($this->config);
-                        $this->MySQLSource(true, 'query.txt');
+                        $out = $this->MySQLSource(true, 'query.txt');
                         $this->removeFiles();
+                        print $out . PHP_EOL;
                         exit(0);
                     } catch (Throwable $e) {
                         print 'Failed to change mysql auth method' . PHP_EOL;
