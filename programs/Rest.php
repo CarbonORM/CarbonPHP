@@ -195,7 +195,6 @@ QUERY;
                     break;
                 case '-logClasses':
                     $logClasses = true;
-                    $i++;
                 default:
                     print "\tInvalid flag " . $argv[$i] . PHP_EOL;
                     print <<<END
