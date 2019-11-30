@@ -49,7 +49,9 @@ class Setup implements iCommand
                     // this is going to the CLI so no need to run/attach redirect scripts
                     exit(0);
                 case '--mysql_native_password':
-                    $query = "ALTER USER '{$this->CONFIG['DATABASE']['DB_USER']}'@'localhost' IDENTIFIED WITH mysql_native_password BY '{$this->CONFIG['DATABASE']['DB_PASS']}';";
+                    $query = "ALTER USER '{$this->config['DATABASE']['DB_USER']}'@'localhost' IDENTIFIED WITH mysql_native_password BY '{$this->config['DATABASE']['DB_PASS']}';";
+                    print PHP_EOL . $query . PHP_EOL;
+
                     try {
                         if (!file_put_contents('query.txt', $query)){
                             print 'Failed to create query file!';
