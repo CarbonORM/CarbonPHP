@@ -50,7 +50,7 @@
       "php index.php setup --mysql_native_password",
       "php index.php setup --rebuild",
       "php index.php minify",
-      "php index.php rest -json",
+      "php index.php rest -json -logClasses",
       "./vendor/bin/phpunit"
     ]
   }

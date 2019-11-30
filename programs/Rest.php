@@ -108,7 +108,7 @@ END;
         $targetDir = APP_ROOT . 'tables/';
         $carbon_namespace = APP_ROOT === CARBON_ROOT;
         $only_these_tables = $history_table_query = $mysql = null;
-        $verbose = $debug = $json = $primary_required = $delete_dump = $skipTable = false;
+        $verbose = $debug = $json = $primary_required = $delete_dump = $skipTable = $logClasses = false;
 
         /** @noinspection ForeachInvariantsInspection - as we need $i++ */
         for ($i = 0; $i < $argc; $i++) {
@@ -193,6 +193,9 @@ QUERY;
                     // path to an sql cnf pass file
                     $this->buildCNF($argv[++$i]);
                     break;
+                case '-logClasses':
+                    $logClasses = true;
+                    $i++;
                 default:
                     print "\tInvalid flag " . $argv[$i] . PHP_EOL;
                     print <<<END
@@ -517,9 +520,12 @@ END;
             // This is our mustache template engine implemented in php, used for rendering user content
             $mustache = new \Mustache_Engine();
 
+            $logClasses && print $rest[$tableName]['TableName'] . ', ';
+
             file_put_contents($targetDir . $rest[$tableName]['TableName'] . '.php', $mustache->render($this->restTemplate(), $rest[$tableName]));
         }
 
+        $logClasses && print "\n";
 
         print "\tFinished Building REST ORM!\n\n";
         /**
@@ -611,6 +617,7 @@ END;
                 foreach ($dependencies as $array) {
                     foreach ($array as $child => $relation) {
                         foreach ($relation as $c => $keys) {
+                            /** @noinspection SqlResolve */
                             $sql .= "DELETE FROM $child WHERE $c = OLD.$keys;" . PHP_EOL;
                         }
                     }
