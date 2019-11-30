@@ -13,6 +13,14 @@
           <option name="port" value="22" />
         </fileTransfer>
       </webServer>
+      <webServer id="66b30a6d-bfa2-4e15-a3e9-653e356670c4" name="Google C6" url="http://35.196.103.151">
+        <fileTransfer host="35.196.103.151" port="22" privateKey="$USER_HOME$/.ssh/purpleteam" rootFolder="/var/www/" accessType="SFTP" keyPair="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
     </option>
   </component>
 </project>

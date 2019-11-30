@@ -232,7 +232,7 @@ class View
     {
         #self::generateUpToDateMimeArray() and die;
 
-        $mime_types = include CARBON_ROOT . 'Extras/mimeTypes.php';
+        $mime_types = include CARBON_ROOT . 'extras/mimeTypes.php';
 
         if (array_key_exists($ext, $mime_types)) {
             return $mime_types[$ext];

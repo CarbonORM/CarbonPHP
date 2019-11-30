@@ -18,7 +18,9 @@
     "psr/log": "^1.0",
     "matthiasmullie/minify": "dev-master",
     "patchwork/jsqueeze": "^2.0",
-    "ext-json": "*"
+    "ext-json": "*",
+    "ext-pdo": "*",
+    "ext-curl": "*"
   },
   "require-dev": {
     "phpunit/phpunit-selenium": "^4.1"
@@ -42,5 +44,14 @@
       "CarbonPHP\\Controller\\": "controller/",
       "CarbonPHP\\Model\\": "model/"
     }
+  },
+  "scripts": {
+    "test": [
+      "php index.php buildDatabase",
+      "php index.php minify",
+      "php index.php rest -json",
+      "./vendor/bin/phpunit --version",
+      "./vendor/bin/phpunit --testdox"
+    ]
   }
 }

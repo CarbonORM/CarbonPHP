@@ -100,7 +100,7 @@ function HeaderLinks({...props}) {
                         color="transparent"
                         className={classes.navLink}
                     >
-                        <i className={classes.socialIcons + " fab fa-twitter"}/> &nbsp;
+                        <i className={classes.socialIcons + " fab fa-twitter"}/> Twitter
                     </Button>
                 </Tooltip>
             </ListItem>
@@ -117,29 +117,34 @@ function HeaderLinks({...props}) {
                         target="_blank"
                         className={classes.navLink}
                     >
-                        <i className={classes.socialIcons + " fab fa-facebook"}/> &nbsp;
+                        <i className={classes.socialIcons + " fab fa-facebook"}/> Facebook
                     </Button>
                 </Tooltip>
             </ListItem>
-            <ListItem className={classes.listItem}>
-                <Tooltip
-                    id="instagram-tooltip"
-                    title="Follow us on instagram"
-                    placement={window.innerWidth > 959 ? "top" : "left"}
-                    classes={{tooltip: classes.tooltip}}
-                >
-                    <Button
-                        color="transparent"
-                        href="https://www.instagram.com/wookieetyler/"
-                        target="_blank"
-                        className={classes.navLink}
-                    >
-                        <i className={classes.socialIcons + " fab fa-instagram"}/> &nbsp;
-                    </Button>
-                </Tooltip>
-            </ListItem>
+
         </List>
     );
+
+
+    /**
+     <ListItem className={classes.listItem}>
+     <Tooltip
+     id="instagram-tooltip"
+     title="Follow us on instagram"
+     placement={window.innerWidth > 959 ? "top" : "left"}
+     classes={{tooltip: classes.tooltip}}
+     >
+     <Button
+     color="transparent"
+     href="https://www.instagram.com/wookieetyler/"
+     target="_blank"
+     className={classes.navLink}
+     >
+     <i className={classes.socialIcons + " fab fa-instagram"}/> &nbsp;
+     </Button>
+     </Tooltip>
+     </ListItem>
+     **/
 }
 
 export default withStyles(headerLinksStyle)(HeaderLinks);

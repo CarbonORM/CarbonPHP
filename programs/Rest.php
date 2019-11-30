@@ -3,20 +3,27 @@
 namespace CarbonPHP\Programs;
 
 use \CarbonPHP\interfaces\iCommand;
+use PDO;
+use RuntimeException;
 
-/**
- * @property string schema
- */
+
 class Rest implements iCommand
 {
     use MySQL {
         /** @noinspection ImplicitMagicMethodCallInspection */
         __construct as setup;
+        cleanUp as removeFiles;
     }
 
     private $schema;
     private $user;
     private $password;
+    private $cleanUp;
+
+    public function cleanUp($argv)
+    {
+        $this->cleanUp and $this->removeFiles($argv);
+    }
 
     public function usage(): void
     {
@@ -27,30 +34,46 @@ class Rest implements iCommand
 \t           Flags do not stack ie. not -edf, this -e -f -d
 \t Usage::
 \t  php index.php rest  
+
 \t       -help                         - this dialogue 
+
 \t       -h [?HOST]                    - IP address
-\t       -d                            - delete dump
+
 \t       -s [?SCHEMA]                  - Its that tables schema!!!!
 \t                                              Defaults to DB_NAME in config file passed to CarbonPHP
 \t                                              Currently: "$this->schema"
+
 \t       -u [?USER]                    - mysql username
 \t                                              Defaults to DB_USER in config file passed to CarbonPHP
 \t                                              Currently: "$this->user"
+
 \t       -p [?PASSWORD]                - if ya got one
 \t                                              Defaults to DB_PASS in config file passed to CarbonPHP
 \t                                              Currently: "$this->password"
+
 \t       -target                       - the dir to store the rest generated api
 \t                                              Defaults to APP_ROOT . 'tables/'
+
 \t       -json                         - enable global json reporting 
+
 \t       -r                            - specify that a primary key is required for generation
+
 \t       -l [?tableName(s),[...?,[]]]  - comma separated list of specific tables to capture
+
 \t       -v ?debug                     - Verbose output, if === debug follows this tag even more output is given
+
 \t       -f [?file_of_Tables]          - file of tables names separated by eol
-\t       -x                            - Don't clean up files created for build
+
+\t       -x                            - Stops the file clean up files created for build
+
 \t       -mysqldump [?executable]      - path to mysqldump command
+
 \t       -mysql  [?executable]         - path to mysql command
+
 \t       -dump [?dump]                 - path to a mysqldump sql export
+
 \t       -cnf [?cnf_path]              - path to a mysql cnf file
+
 \t       -trigger                      - build triggers and history tables for binary primary keys
 \n
 END;
@@ -70,14 +93,14 @@ END;
         $argc = \count($argv);
 
         if (!is_dir($concurrentDirectory = APP_ROOT . 'tables') && !mkdir($concurrentDirectory) && !is_dir($concurrentDirectory)) {
-            throw new \RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
+            throw new RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
         }
 
         // Check command line args, password is optional
         print "\tBuilding Rest Api!\n";
 
         // These are PDO const types, so we'll eliminate one complexity by evaluating them before inserting into the template
-        $PDO = [0 => \PDO::PARAM_NULL, 1 => \PDO::PARAM_BOOL, 2 => \PDO::PARAM_INT, 3 => \PDO::PARAM_STR];
+        $PDO = [0 => PDO::PARAM_NULL, 1 => PDO::PARAM_BOOL, 2 => PDO::PARAM_INT, 3 => PDO::PARAM_STR];
         // set default values
         $rest = [];
         /** @noinspection PhpUnusedLocalVariableInspection */
@@ -97,7 +120,7 @@ END;
                     $targetDir = $argv[++$i];
                     break;
                 case '-x':
-                    $clean = false;
+                    $this->cleanUp = true;
                     break;
                 case '-v':
                     if (isset($argv[++$i]) && strtolower($argv[$i]) === 'debug') {
@@ -112,7 +135,7 @@ END;
                 case '-trigger':
                     $history_table_query = true;
                     $query = <<<QUERY
-CREATE TABLE IF NOT EXISTS sys_resource_history_logs
+CREATE TABLE IF NOT EXISTS carbon_history_logs
 (
   uuid BINARY(16) NULL,
   resource_type VARCHAR(10) NULL,
@@ -128,11 +151,8 @@ QUERY;
                 case '-help':
                     $this->usage();
                     break;          // unneeded but my editor complains
-                case '-d':
-                    $delete_dump = true;
-                    break;
                 case '-h':
-                    $host = $argv[++$i];
+                    $this->CONFIG['DATABASE']['DB_HOST'] = $argv[++$i];
                     break;
                 case '-s':
                     $this->schema = $argv[++$i];
@@ -141,10 +161,10 @@ QUERY;
                     $primary_required = true;
                     break;
                 case '-u':
-                    $user = $argv[++$i];
+                    $this->CONFIG['DATABASE']['DB_USER'] = $argv[++$i];
                     break;
                 case '-p':
-                    $pass = $argv[++$i];
+                    $this->CONFIG['DATABASE']['DB_PASS'] = $argv[++$i];
                     break;
                 case '-l':
                     // This argument is for specifying the
@@ -162,7 +182,7 @@ QUERY;
                     $mysqldump = $argv[++$i];
                     break;
                 case '-mysql':
-                    // the path to the mysqldump executable
+                    // the path to the mysql executable
                     $mysql = $argv[++$i];
                     break;
                 case '-dump':
@@ -170,8 +190,8 @@ QUERY;
                     $dump = $argv[++$i];
                     break;
                 case '-cnf':
-                    // path to an sql dump file
-                    $cnfFile = $argv[++$i];
+                    // path to an sql cnf pass file
+                    $this->buildCNF($argv[++$i]);
                     break;
                 default:
                     print "\tInvalid flag " . $argv[$i] . PHP_EOL;
@@ -208,7 +228,7 @@ END;
             exit(1);
         }
 
-        $this->mysqldump = $this->MySQLDump($mysqldump ?? null);
+        $this->mysqldump = $dumpFilePath = $dump ?? $this->MySQLDump($mysqldump ?? null);
 
         if (!file_exists($this->mysqldump)) {
             print 'Could not load mysql dump file!' . PHP_EOL;
@@ -219,6 +239,8 @@ END;
             print 'Contents of the mysql dump file appears empty. Build Failed!';
             exit(1);
         }
+
+
 
         /** @noinspection ForgottenDebugOutputInspection */
         $verbose and var_dump($this->mysqldump);
@@ -499,6 +521,7 @@ END;
         }
 
 
+        print "\tFinished Building REST ORM!\n\n";
         /**
          * Now that the full dump has been parsed, we need to build our triggers
          * using the foreign key analysis
@@ -519,7 +542,7 @@ END;
 
             file_put_contents('triggers.sql', 'DELIMITER ;;' . PHP_EOL . $triggers . PHP_EOL . 'DELIMITER ;');
 
-            $this->MySQLSource('triggers.sql');
+            $this->MySQLSource($verbose, 'triggers.sql', $mysql ?? null);
         }
 
         // debug is a subset of the verbose flag
@@ -562,14 +585,12 @@ END;
             $relative_time = $operation_type === 'POST' ? 'NEW' : $operation_type === 'PUT' ? 'NEW' : 'OLD';
             switch ($operation_type) {
                 case 'POST':
-                    $query = "INSERT INTO sys_resource_creation_logs (`uuid`, `resource_type`, `resource_uuid`)
+                    $query = "INSERT INTO creation_logs (`uuid`, `resource_type`, `resource_uuid`)
             VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), '$table', $relative_time.$primary);\n";
                 case 'PUT':
-                    $query .= "INSERT INTO sys_resource_history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), '$table', $relative_time.$primary , '$operation_type', json);";
-                    break;
                 case 'DELETE':
-                    $query = "INSERT INTO sys_resource_history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
+                    /** @noinspection SqlResolve */
+                    $query .= "INSERT INTO history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
             VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), '$table', $relative_time.$primary , '$operation_type', json);";
                     break;
                 case 'GET':
@@ -581,6 +602,7 @@ END;
             return $query;
         };
 
+        // TODO - param or remove
         $delete_children = function () use ($dependencies) {
             $sql = '';
 

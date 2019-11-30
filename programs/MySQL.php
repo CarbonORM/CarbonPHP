@@ -16,7 +16,8 @@ trait MySQL
 
     private $CONFIG;
     private $mysql;
-    private $mysqldump;
+    private /** @noinspection SpellCheckingInspection */
+        $mysqldump;
 
 
     public function __construct($CONFIG)
@@ -24,8 +25,17 @@ trait MySQL
         $this->CONFIG = $CONFIG;
     }
 
-    private function buildCNF() : string
+    private function buildCNF($cnfFile = null) : string
     {
+        if ($cnfFile !== null) {
+            $this->mysql = $cnfFile;
+            return $cnfFile;
+        }
+
+        if (!empty($this->mysql)){
+            return $this->mysql;
+        }
+
         if (empty($this->CONFIG['SITE']['CONFIG'])) {
             print 'The [\'SITE\'][\'CONFIG\'] option is missing. It does not look like CarbonPHP is setup correctly. Run `>> php index.php setup` to fix this.' . PHP_EOL;
             exit(1);
@@ -54,11 +64,19 @@ trait MySQL
         return $this->mysqldump = './mysqldump.sql';
     }
 
-    private function MySQLSource(String $query, $mysql = false) : string
+    private function MySQLSource(bool $verbose, String $query, $mysql = false)
     {
-        return shell_exec(($mysql ?: 'mysql') . ' --defaults-extra-file="' . $this->buildCNF() . '" ' . $this->CONFIG['DATABASE']['DB_HOST'] . ' < "' . $query . '"');
+        $cmd = ($mysql ?: 'mysql') . ' --defaults-extra-file="' . $this->buildCNF() . '" ' . $this->CONFIG['DATABASE']['DB_NAME'] . ' < "' . $query . '"';
+
+        $verbose and print "\n\nRunning Command >> $cmd\n\n";
+
+        shell_exec($cmd);
     }
 
+    /**
+     * @noinspection PhpUnusedParameterInspection
+     * @param $PHP
+     */
     public function cleanUp($PHP) : void
     {
         $this->mysql and unlink('./mysql.cnf');

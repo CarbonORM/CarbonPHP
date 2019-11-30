@@ -82,9 +82,15 @@ USE;
         if (file_exists($minifiedPath)) {
             unlink($minifiedPath);
         }
+        foreach ($files as $file) {
+            if (!file_exists($file)){
+                print "\tFailed to find\n\t\t$file";
+            }
+        }
+
         $min = new Run\CSS(... $files);
         $min->minify($minifiedPath);
-        print "The minified cascading style sheet (css) was stored to ::\n\n\t\t\t $minifiedPath\n\n";
+        print "\tThe minified cascading style sheet (css) was stored to ::\n\n\t\t\t $minifiedPath\n\n";
     }
 
     private function JS(array $files): void
@@ -121,7 +127,7 @@ USE;
         $min = new Run\CSS(... $files);
         $min->minify($minifiedPath);
         */
-        print "The minified javascript (js) was stored to ::\n\n\t\t\t $minifiedPath\n\n";
+        print "\tThe minified javascript (js) was stored to ::\n\n\t\t\t $minifiedPath\n\n";
     }
 
 

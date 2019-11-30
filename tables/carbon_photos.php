@@ -3,11 +3,18 @@
 namespace CarbonPHP\Tables;
 
 use CarbonPHP\Database;
-use CarbonPHP\interfaces\iRest;
+use CarbonPHP\Interfaces\iRest;
 
 
 class carbon_photos extends Database implements iRest
 {
+
+    public const PARENT_ID = 'parent_id';
+    public const PHOTO_ID = 'photo_id';
+    public const USER_ID = 'user_id';
+    public const PHOTO_PATH = 'photo_path';
+    public const PHOTO_DESCRIPTION = 'photo_description';
+
     public const PRIMARY = [
     'parent_id',
     ];
@@ -22,20 +29,40 @@ class carbon_photos extends Database implements iRest
     public static $injection = [];
 
 
+    public static function jsonSQLReporting($argv, $sql) : void {
+        global $json;
+        if (!\is_array($json)) {
+            $json = [];
+        }
+        if (!isset($json['sql'])) {
+            $json['sql'] = [];
+        }
+        $json['sql'][] = [
+            $argv,
+            $sql
+        ];
+    }
 
     public static function buildWhere(array $set, \PDO $pdo, $join = 'AND') : string
     {
         $sql = '(';
+        $bump = false;
         foreach ($set as $column => $value) {
             if (\is_array($value)) {
+                if ($bump) {
+                    $sql .= " $join ";
+                }
+                $bump = true;
                 $sql .= self::buildWhere($value, $pdo, $join === 'AND' ? 'OR' : 'AND');
             } else if (array_key_exists($column, self::COLUMNS)) {
+                $bump = false;
                 if (self::COLUMNS[$column][0] === 'binary') {
-                    $sql .= "($column = UNHEX(:" . $column . ")) $join ";
+                    $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo)  . ")) $join ";
                 } else {
-                    $sql .= "($column = :" . $column . ") $join ";
+                    $sql .= "($column = " . self::addInjection($value, $pdo) . ") $join ";
                 }
             } else {
+                $bump = false;
                 $sql .= "($column = " . self::addInjection($value, $pdo) . ") $join ";
             }
         }
@@ -50,25 +77,40 @@ class carbon_photos extends Database implements iRest
     }
 
     public static function bind(\PDOStatement $stmt, array $argv) {
-        if (array_key_exists('parent_id', $argv)) {
+   
+   /*
+    $bind = function (array $argv) use (&$bind, &$stmt) {
+            foreach ($argv as $key => $value) {
+                
+                if (is_numeric($key) && is_array($value)) {
+                    $bind($value);
+                    continue;
+                }
+                
+                   if (array_key_exists('parent_id', $argv)) {
             $parent_id = $argv['parent_id'];
             $stmt->bindParam(':parent_id',$parent_id, 2, 16);
         }
-        if (array_key_exists('photo_id', $argv)) {
+                   if (array_key_exists('photo_id', $argv)) {
             $photo_id = $argv['photo_id'];
             $stmt->bindParam(':photo_id',$photo_id, 2, 16);
         }
-        if (array_key_exists('user_id', $argv)) {
+                   if (array_key_exists('user_id', $argv)) {
             $user_id = $argv['user_id'];
             $stmt->bindParam(':user_id',$user_id, 2, 16);
         }
-        if (array_key_exists('photo_path', $argv)) {
+                   if (array_key_exists('photo_path', $argv)) {
             $photo_path = $argv['photo_path'];
             $stmt->bindParam(':photo_path',$photo_path, 2, 225);
         }
-        if (array_key_exists('photo_description', $argv)) {
+                   if (array_key_exists('photo_description', $argv)) {
             $stmt->bindValue(':photo_description',$argv['photo_description'], 2);
         }
+           
+          }
+        };
+        
+        $bind($argv); */
 
         foreach (self::$injection as $key => $value) {
             $stmt->bindValue($key,$value);
@@ -113,7 +155,6 @@ class carbon_photos extends Database implements iRest
     * @param string|null $primary
     * @param array $argv
     * @return bool
-    * @throws \Exception
     */
     public static function Get(array &$return, string $primary = null, array $argv) : bool
     {
@@ -197,7 +238,7 @@ class carbon_photos extends Database implements iRest
 
         $sql .= $limit;
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 
@@ -234,7 +275,7 @@ class carbon_photos extends Database implements iRest
         /** @noinspection SqlResolve */
         $sql = 'INSERT INTO carbon_photos (parent_id, photo_id, user_id, photo_path, photo_description) VALUES ( UNHEX(:parent_id), UNHEX(:photo_id), UNHEX(:user_id), :photo_path, :photo_description)';
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = self::database()->prepare($sql);
 
@@ -308,9 +349,29 @@ class carbon_photos extends Database implements iRest
 
         $sql .= ' WHERE  parent_id=UNHEX('.self::addInjection($primary, $pdo).')';
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
+
+                   if (array_key_exists('parent_id', $argv)) {
+            $parent_id = $argv['parent_id'];
+            $stmt->bindParam(':parent_id',$parent_id, 2, 16);
+        }
+                   if (array_key_exists('photo_id', $argv)) {
+            $photo_id = $argv['photo_id'];
+            $stmt->bindParam(':photo_id',$photo_id, 2, 16);
+        }
+                   if (array_key_exists('user_id', $argv)) {
+            $user_id = $argv['user_id'];
+            $stmt->bindParam(':user_id',$user_id, 2, 16);
+        }
+                   if (array_key_exists('photo_path', $argv)) {
+            $photo_path = $argv['photo_path'];
+            $stmt->bindParam(':photo_path',$photo_path, 2, 225);
+        }
+                   if (array_key_exists('photo_description', $argv)) {
+            $stmt->bindValue(':photo_description',$argv['photo_description'], 2);
+        }
 
         if (!self::bind($stmt, $argv)){
             return false;
@@ -330,6 +391,37 @@ class carbon_photos extends Database implements iRest
     */
     public static function Delete(array &$remove, string $primary = null, array $argv) : bool
     {
-        return carbons::Delete($remove, $primary, $argv);
+        if (null !== $primary) {
+            return carbons::Delete($remove, $primary, $argv);
+        }
+
+        /**
+         *   While useful, we've decided to disallow full
+         *   table deletions through the rest api. For the
+         *   n00bs and future self, "I got chu."
+         */
+        if (empty($argv)) {
+            return false;
+        }
+
+        self::$injection = [];
+        /** @noinspection SqlResolve */
+        $sql = 'DELETE c FROM carbons c 
+                JOIN carbon_photos on c.entity_pk = follower_table_id';
+
+        $pdo = self::database();
+
+        $sql .= ' WHERE ' . self::buildWhere($argv, $pdo);
+
+        self::jsonSQLReporting(\func_get_args(), $sql);
+
+        $stmt = $pdo->prepare($sql);
+
+        $r = self::bind($stmt, $argv);
+
+        /** @noinspection CallableParameterUseCaseInTypeContextInspection */
+        $r and $remove = null;
+
+        return $r;
     }
 }

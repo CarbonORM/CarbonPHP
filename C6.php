@@ -127,13 +127,13 @@ class C6 extends Application
     {
         View::$forceWrapper = true; // this will hard refresh the wrapper
 
-        // v1
+        // v2.0
 
-        #return $this->wrap()('mustache/Documentation/Home.php');  // don't change how wrap works, I know it looks funny
+        return $this->wrap()('mustache/Documentation/Home.hbs');  // don't change how wrap works, I know it looks funny
 
-        // v2
+        // v5.0
 
-        $this->fullPage()('react/material-dashboard-react-c6/build/index.html');
+        // $this->fullPage()('react/material-dashboard-react-c6/build/index.html');
 
         // todo - context switch user session
 
@@ -155,6 +155,8 @@ class C6 extends Application
     {
         global $json;
 
+        $json['APP_LOCAL'] = APP_LOCAL;
+
         \defined('TEMPLATE') or \define('TEMPLATE', 'node_modules/admin-lte/');
 
         #color
@@ -163,34 +165,6 @@ class C6 extends Application
         if ($this->match('color', 'color', 'color')()){
             return true;
         }
-
-        ###################################### AdminLTE DOC
-        if ($this->match('2.0/UIElements/{AdminLTE?}', function ($AdminLTE) {
-
-            $AdminLTE = (new Request())->set($AdminLTE)->word();  // must be validated
-
-            if (!$AdminLTE) {
-                View::$forceWrapper = true;
-                $AdminLTE = 'widgets';
-            }
-
-            if (file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . $AdminLTE . '.php') ||
-                file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Charts' . DS . $AdminLTE . '.php') ||
-                file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Examples' . DS . $AdminLTE . '.php') ||
-                file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Forms' . DS . $AdminLTE . '.php') ||
-                file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Layout' . DS . $AdminLTE . '.php') ||
-                file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Mailbox' . DS . $AdminLTE . '.php') ||
-                file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Tables' . DS . $AdminLTE . '.php') ||
-                file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'UI' . DS . $AdminLTE . '.php')) {
-
-                View::$wrapper = SERVER_ROOT . APP_VIEW . 'mustache/AdminLTE/wrapper.hbs';
-
-                $this->wrap()($path);
-            }
-        })()) {
-            return true;
-        }
-
 
         if ($version = ($this->uri[0] ?? false)) {
 
@@ -231,10 +205,7 @@ class C6 extends Application
             return true;
         }
 
-
         $this->structure($this->wrap());
-
-
 
         return false;
     }

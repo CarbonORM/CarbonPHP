@@ -27,7 +27,17 @@ class CLI implements iCommand
 
     public function programList() {
 
-        $program = array_diff(scandir(CARBON_ROOT . 'programs', null), array('.', '..'));
+        // the following removes helper classes invalid responses and unfinished tools
+        $program = array_diff(
+            scandir(CARBON_ROOT . 'programs', null),
+            array('.', '..',
+                'CLI.php',
+                'Server.php',
+                'Background.php',
+                'MySQL.php',
+                'TestAutomationServer.php',
+                'Setup.php',
+                'testBuilder.php'));
 
         $clean = function (&$program) {
             $program = basename($program, '.php');
@@ -36,6 +46,7 @@ class CLI implements iCommand
         if (!array_walk($program, $clean)) {
             exit('array_walk failed in Cli::run()');
         }
+
 
         $this->programs = $program;
     }
@@ -52,13 +63,13 @@ class CLI implements iCommand
         $PHP = $this->CONFIG;
 
         // I do this so the I can pass the argvs correctly to the php executables
-        print "\nIt's a powerful " . array_shift($argv) . ", huh?\n\n";
+        print "\nIt's a powerful \"" . array_shift($argv) . "\", huh?\n\n";
 
         $program = array_shift($argv);
 
         foreach ($this->programs as $name) {
             // I prefer this loop so I catch
-            if ($program !== $name) {
+            if (strtolower($program) !== strtolower($name)) {
                 continue;
             }
 

@@ -20,7 +20,6 @@ const styles = theme => ({
     ...sweetAlertStyle
 });
 
-
 class login extends React.Component {
     constructor(props) {
         super(props);

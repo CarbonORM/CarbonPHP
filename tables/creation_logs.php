@@ -6,24 +6,19 @@ use CarbonPHP\Database;
 use CarbonPHP\Interfaces\iRest;
 
 
-class carbon_user_tasks extends Database implements iRest
+class creation_logs extends Database implements iRest
 {
 
-    public const TASK_ID = 'task_id';
-    public const USER_ID = 'user_id';
-    public const FROM_ID = 'from_id';
-    public const TASK_NAME = 'task_name';
-    public const TASK_DESCRIPTION = 'task_description';
-    public const PERCENT_COMPLETE = 'percent_complete';
-    public const START_DATE = 'start_date';
-    public const END_DATE = 'end_date';
+    public const UUID = 'uuid';
+    public const RESOURCE_TYPE = 'resource_type';
+    public const RESOURCE_UUID = 'resource_uuid';
 
     public const PRIMARY = [
-    'user_id',
+    
     ];
 
     public const COLUMNS = [
-        'task_id' => [ 'binary', '2', '16' ],'user_id' => [ 'binary', '2', '16' ],'from_id' => [ 'binary', '2', '16' ],'task_name' => [ 'varchar', '2', '40' ],'task_description' => [ 'varchar', '2', '225' ],'percent_complete' => [ 'int', '2', '11' ],'start_date' => [ 'datetime', '2', '' ],'end_date' => [ 'datetime', '2', '' ],
+        'uuid' => [ 'binary', '2', '16' ],'resource_type' => [ 'varchar', '2', '40' ],'resource_uuid' => [ 'binary', '2', '16' ],
     ];
 
     public const VALIDATION = [];
@@ -90,35 +85,17 @@ class carbon_user_tasks extends Database implements iRest
                     continue;
                 }
                 
-                   if (array_key_exists('task_id', $argv)) {
-            $task_id = $argv['task_id'];
-            $stmt->bindParam(':task_id',$task_id, 2, 16);
+                   if (array_key_exists('uuid', $argv)) {
+            $uuid = $argv['uuid'];
+            $stmt->bindParam(':uuid',$uuid, 2, 16);
         }
-                   if (array_key_exists('user_id', $argv)) {
-            $user_id = $argv['user_id'];
-            $stmt->bindParam(':user_id',$user_id, 2, 16);
+                   if (array_key_exists('resource_type', $argv)) {
+            $resource_type = $argv['resource_type'];
+            $stmt->bindParam(':resource_type',$resource_type, 2, 40);
         }
-                   if (array_key_exists('from_id', $argv)) {
-            $from_id = $argv['from_id'];
-            $stmt->bindParam(':from_id',$from_id, 2, 16);
-        }
-                   if (array_key_exists('task_name', $argv)) {
-            $task_name = $argv['task_name'];
-            $stmt->bindParam(':task_name',$task_name, 2, 40);
-        }
-                   if (array_key_exists('task_description', $argv)) {
-            $task_description = $argv['task_description'];
-            $stmt->bindParam(':task_description',$task_description, 2, 225);
-        }
-                   if (array_key_exists('percent_complete', $argv)) {
-            $percent_complete = $argv['percent_complete'];
-            $stmt->bindParam(':percent_complete',$percent_complete, 2, 11);
-        }
-                   if (array_key_exists('start_date', $argv)) {
-            $stmt->bindValue(':start_date',$argv['start_date'], 2);
-        }
-                   if (array_key_exists('end_date', $argv)) {
-            $stmt->bindValue(':end_date',$argv['end_date'], 2);
+                   if (array_key_exists('resource_uuid', $argv)) {
+            $resource_uuid = $argv['resource_uuid'];
+            $stmt->bindParam(':resource_uuid',$resource_uuid, 2, 16);
         }
            
           }
@@ -204,12 +181,12 @@ class carbon_user_tasks extends Database implements iRest
                         $order .= $argv['pagination']['order'];
                     }
                 } else {
-                    $order .= 'user_id ASC';
+                    $order .= ' ASC';
                 }
             }
             $limit = "$order $limit";
         } else {
-            $limit = ' ORDER BY user_id ASC LIMIT 100';
+            $limit = ' ORDER BY  ASC LIMIT 100';
         }
 
         foreach($get as $key => $column){
@@ -227,7 +204,7 @@ class carbon_user_tasks extends Database implements iRest
                 $sql .= $column;
                 $group .= $column;
             } else {
-                if (!preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|\-|\/| |task_id|user_id|from_id|task_name|task_description|percent_complete|start_date|end_date))+\)*)+ *(as [a-z]+)?#i', $column)) {
+                if (!preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|\-|\/| |uuid|resource_type|resource_uuid))+\)*)+ *(as [a-z]+)?#i', $column)) {
                     return false;
                 }
                 $sql .= $column;
@@ -235,16 +212,14 @@ class carbon_user_tasks extends Database implements iRest
             }
         }
 
-        $sql = 'SELECT ' .  $sql . ' FROM carbon_user_tasks';
+        $sql = 'SELECT ' .  $sql . ' FROM creation_logs';
 
         if (null === $primary) {
             /** @noinspection NestedPositiveIfStatementsInspection */
             if (!empty($where)) {
                 $sql .= ' WHERE ' . self::buildWhere($where, $pdo);
             }
-        } else {
-        $sql .= ' WHERE  user_id=UNHEX('.self::addInjection($primary, $pdo).')';
-        }
+        } 
 
         if ($aggregate  && !empty($group)) {
             $sql .= ' GROUP BY ' . $group . ' ';
@@ -270,11 +245,6 @@ class carbon_user_tasks extends Database implements iRest
         */
 
         
-        if ($primary !== null || (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] === 1 && \count($return) === 1)) {
-            $return = isset($return[0]) && \is_array($return[0]) ? $return[0] : $return;
-            // promise this is needed and will still return the desired array except for a single record will not be an array
-        
-        }
 
         return true;
     }
@@ -287,36 +257,26 @@ class carbon_user_tasks extends Database implements iRest
     {
         self::$injection = [];
         /** @noinspection SqlResolve */
-        $sql = 'INSERT INTO carbon_user_tasks (task_id, user_id, from_id, task_name, task_description, percent_complete, start_date, end_date) VALUES ( UNHEX(:task_id), UNHEX(:user_id), UNHEX(:from_id), :task_name, :task_description, :percent_complete, :start_date, :end_date)';
+        $sql = 'INSERT INTO creation_logs (uuid, resource_type, resource_uuid) VALUES ( UNHEX(:uuid), :resource_type, UNHEX(:resource_uuid))';
 
         self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = self::database()->prepare($sql);
 
                 
-                    $task_id = $argv['task_id'];
-                    $stmt->bindParam(':task_id',$task_id, 2, 16);
-                        $user_id = $id = $argv['user_id'] ?? self::beginTransaction('carbon_user_tasks');
-                $stmt->bindParam(':user_id',$user_id, 2, 16);
-                
-                    $from_id =  $argv['from_id'] ?? null;
-                    $stmt->bindParam(':from_id',$from_id, 2, 16);
+                    $uuid =  $argv['uuid'] ?? null;
+                    $stmt->bindParam(':uuid',$uuid, 2, 16);
                         
-                    $task_name = $argv['task_name'];
-                    $stmt->bindParam(':task_name',$task_name, 2, 40);
+                    $resource_type =  $argv['resource_type'] ?? null;
+                    $stmt->bindParam(':resource_type',$resource_type, 2, 40);
                         
-                    $task_description =  $argv['task_description'] ?? null;
-                    $stmt->bindParam(':task_description',$task_description, 2, 225);
-                        
-                    $percent_complete =  $argv['percent_complete'] ?? '0';
-                    $stmt->bindParam(':percent_complete',$percent_complete, 2, 11);
-                        $stmt->bindValue(':start_date',array_key_exists('start_date',$argv) ? $argv['start_date'] : null, 2);
-                        $stmt->bindValue(':end_date',array_key_exists('end_date',$argv) ? $argv['end_date'] : null, 2);
+                    $resource_uuid =  $argv['resource_uuid'] ?? null;
+                    $stmt->bindParam(':resource_uuid',$resource_uuid, 2, 16);
         
 
 
-        return $stmt->execute() ? $id : false;
 
+            return $stmt->execute();
     }
 
     /**
@@ -338,35 +298,20 @@ class carbon_user_tasks extends Database implements iRest
             }
         }
 
-        $sql = 'UPDATE carbon_user_tasks ';
+        $sql = 'UPDATE creation_logs ';
 
         $sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
 
         $set = '';
 
-            if (array_key_exists('task_id', $argv)) {
-                $set .= 'task_id=UNHEX(:task_id),';
+            if (array_key_exists('uuid', $argv)) {
+                $set .= 'uuid=UNHEX(:uuid),';
             }
-            if (array_key_exists('user_id', $argv)) {
-                $set .= 'user_id=UNHEX(:user_id),';
+            if (array_key_exists('resource_type', $argv)) {
+                $set .= 'resource_type=:resource_type,';
             }
-            if (array_key_exists('from_id', $argv)) {
-                $set .= 'from_id=UNHEX(:from_id),';
-            }
-            if (array_key_exists('task_name', $argv)) {
-                $set .= 'task_name=:task_name,';
-            }
-            if (array_key_exists('task_description', $argv)) {
-                $set .= 'task_description=:task_description,';
-            }
-            if (array_key_exists('percent_complete', $argv)) {
-                $set .= 'percent_complete=:percent_complete,';
-            }
-            if (array_key_exists('start_date', $argv)) {
-                $set .= 'start_date=:start_date,';
-            }
-            if (array_key_exists('end_date', $argv)) {
-                $set .= 'end_date=:end_date,';
+            if (array_key_exists('resource_uuid', $argv)) {
+                $set .= 'resource_uuid=UNHEX(:resource_uuid),';
             }
 
         if (empty($set)){
@@ -377,41 +322,23 @@ class carbon_user_tasks extends Database implements iRest
 
         $pdo = self::database();
 
-        $sql .= ' WHERE  user_id=UNHEX('.self::addInjection($primary, $pdo).')';
+        
 
         self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 
-                   if (array_key_exists('task_id', $argv)) {
-            $task_id = $argv['task_id'];
-            $stmt->bindParam(':task_id',$task_id, 2, 16);
+                   if (array_key_exists('uuid', $argv)) {
+            $uuid = $argv['uuid'];
+            $stmt->bindParam(':uuid',$uuid, 2, 16);
         }
-                   if (array_key_exists('user_id', $argv)) {
-            $user_id = $argv['user_id'];
-            $stmt->bindParam(':user_id',$user_id, 2, 16);
+                   if (array_key_exists('resource_type', $argv)) {
+            $resource_type = $argv['resource_type'];
+            $stmt->bindParam(':resource_type',$resource_type, 2, 40);
         }
-                   if (array_key_exists('from_id', $argv)) {
-            $from_id = $argv['from_id'];
-            $stmt->bindParam(':from_id',$from_id, 2, 16);
-        }
-                   if (array_key_exists('task_name', $argv)) {
-            $task_name = $argv['task_name'];
-            $stmt->bindParam(':task_name',$task_name, 2, 40);
-        }
-                   if (array_key_exists('task_description', $argv)) {
-            $task_description = $argv['task_description'];
-            $stmt->bindParam(':task_description',$task_description, 2, 225);
-        }
-                   if (array_key_exists('percent_complete', $argv)) {
-            $percent_complete = $argv['percent_complete'];
-            $stmt->bindParam(':percent_complete',$percent_complete, 2, 11);
-        }
-                   if (array_key_exists('start_date', $argv)) {
-            $stmt->bindValue(':start_date',$argv['start_date'], 2);
-        }
-                   if (array_key_exists('end_date', $argv)) {
-            $stmt->bindValue(':end_date',$argv['end_date'], 2);
+                   if (array_key_exists('resource_uuid', $argv)) {
+            $resource_uuid = $argv['resource_uuid'];
+            $stmt->bindParam(':resource_uuid',$resource_uuid, 2, 16);
         }
 
         if (!self::bind($stmt, $argv)){
@@ -432,27 +359,25 @@ class carbon_user_tasks extends Database implements iRest
     */
     public static function Delete(array &$remove, string $primary = null, array $argv) : bool
     {
-        if (null !== $primary) {
-            return carbons::Delete($remove, $primary, $argv);
-        }
+        self::$injection = [];
+        /** @noinspection SqlResolve */
+        $sql = 'DELETE FROM creation_logs ';
 
+        $pdo = self::database();
+
+        if (null === $primary) {
         /**
-         *   While useful, we've decided to disallow full
-         *   table deletions through the rest api. For the
-         *   n00bs and future self, "I got chu."
-         */
+        *   While useful, we've decided to disallow full
+        *   table deletions through the rest api. For the
+        *   n00bs and future self, "I got chu."
+        */
         if (empty($argv)) {
             return false;
         }
 
-        self::$injection = [];
-        /** @noinspection SqlResolve */
-        $sql = 'DELETE c FROM carbons c 
-                JOIN carbon_user_tasks on c.entity_pk = follower_table_id';
-
-        $pdo = self::database();
 
         $sql .= ' WHERE ' . self::buildWhere($argv, $pdo);
+        } 
 
         self::jsonSQLReporting(\func_get_args(), $sql);
 

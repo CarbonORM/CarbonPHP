@@ -6,24 +6,22 @@ use CarbonPHP\Database;
 use CarbonPHP\Interfaces\iRest;
 
 
-class carbon_user_tasks extends Database implements iRest
+class carbon_user_sessions extends Database implements iRest
 {
 
-    public const TASK_ID = 'task_id';
     public const USER_ID = 'user_id';
-    public const FROM_ID = 'from_id';
-    public const TASK_NAME = 'task_name';
-    public const TASK_DESCRIPTION = 'task_description';
-    public const PERCENT_COMPLETE = 'percent_complete';
-    public const START_DATE = 'start_date';
-    public const END_DATE = 'end_date';
+    public const USER_IP = 'user_ip';
+    public const SESSION_ID = 'session_id';
+    public const SESSION_EXPIRES = 'session_expires';
+    public const SESSION_DATA = 'session_data';
+    public const USER_ONLINE_STATUS = 'user_online_status';
 
     public const PRIMARY = [
-    'user_id',
+    'session_id',
     ];
 
     public const COLUMNS = [
-        'task_id' => [ 'binary', '2', '16' ],'user_id' => [ 'binary', '2', '16' ],'from_id' => [ 'binary', '2', '16' ],'task_name' => [ 'varchar', '2', '40' ],'task_description' => [ 'varchar', '2', '225' ],'percent_complete' => [ 'int', '2', '11' ],'start_date' => [ 'datetime', '2', '' ],'end_date' => [ 'datetime', '2', '' ],
+        'user_id' => [ 'binary', '2', '16' ],'user_ip' => [ 'binary', '2', '16' ],'session_id' => [ 'varchar', '2', '255' ],'session_expires' => [ 'datetime', '2', '' ],'session_data' => [ 'text,', '2', '' ],'user_online_status' => [ 'tinyint', '0', '1' ],
     ];
 
     public const VALIDATION = [];
@@ -90,35 +88,27 @@ class carbon_user_tasks extends Database implements iRest
                     continue;
                 }
                 
-                   if (array_key_exists('task_id', $argv)) {
-            $task_id = $argv['task_id'];
-            $stmt->bindParam(':task_id',$task_id, 2, 16);
-        }
                    if (array_key_exists('user_id', $argv)) {
             $user_id = $argv['user_id'];
             $stmt->bindParam(':user_id',$user_id, 2, 16);
         }
-                   if (array_key_exists('from_id', $argv)) {
-            $from_id = $argv['from_id'];
-            $stmt->bindParam(':from_id',$from_id, 2, 16);
+                   if (array_key_exists('user_ip', $argv)) {
+            $user_ip = $argv['user_ip'];
+            $stmt->bindParam(':user_ip',$user_ip, 2, 16);
         }
-                   if (array_key_exists('task_name', $argv)) {
-            $task_name = $argv['task_name'];
-            $stmt->bindParam(':task_name',$task_name, 2, 40);
+                   if (array_key_exists('session_id', $argv)) {
+            $session_id = $argv['session_id'];
+            $stmt->bindParam(':session_id',$session_id, 2, 255);
         }
-                   if (array_key_exists('task_description', $argv)) {
-            $task_description = $argv['task_description'];
-            $stmt->bindParam(':task_description',$task_description, 2, 225);
+                   if (array_key_exists('session_expires', $argv)) {
+            $stmt->bindValue(':session_expires',$argv['session_expires'], 2);
         }
-                   if (array_key_exists('percent_complete', $argv)) {
-            $percent_complete = $argv['percent_complete'];
-            $stmt->bindParam(':percent_complete',$percent_complete, 2, 11);
+                   if (array_key_exists('session_data', $argv)) {
+            $stmt->bindValue(':session_data',$argv['session_data'], 2);
         }
-                   if (array_key_exists('start_date', $argv)) {
-            $stmt->bindValue(':start_date',$argv['start_date'], 2);
-        }
-                   if (array_key_exists('end_date', $argv)) {
-            $stmt->bindValue(':end_date',$argv['end_date'], 2);
+                   if (array_key_exists('user_online_status', $argv)) {
+            $user_online_status = $argv['user_online_status'];
+            $stmt->bindParam(':user_online_status',$user_online_status, 0, 1);
         }
            
           }
@@ -204,12 +194,12 @@ class carbon_user_tasks extends Database implements iRest
                         $order .= $argv['pagination']['order'];
                     }
                 } else {
-                    $order .= 'user_id ASC';
+                    $order .= 'session_id ASC';
                 }
             }
             $limit = "$order $limit";
         } else {
-            $limit = ' ORDER BY user_id ASC LIMIT 100';
+            $limit = ' ORDER BY session_id ASC LIMIT 100';
         }
 
         foreach($get as $key => $column){
@@ -227,7 +217,7 @@ class carbon_user_tasks extends Database implements iRest
                 $sql .= $column;
                 $group .= $column;
             } else {
-                if (!preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|\-|\/| |task_id|user_id|from_id|task_name|task_description|percent_complete|start_date|end_date))+\)*)+ *(as [a-z]+)?#i', $column)) {
+                if (!preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|\-|\/| |user_id|user_ip|session_id|session_expires|session_data|user_online_status))+\)*)+ *(as [a-z]+)?#i', $column)) {
                     return false;
                 }
                 $sql .= $column;
@@ -235,7 +225,7 @@ class carbon_user_tasks extends Database implements iRest
             }
         }
 
-        $sql = 'SELECT ' .  $sql . ' FROM carbon_user_tasks';
+        $sql = 'SELECT ' .  $sql . ' FROM carbon_user_sessions';
 
         if (null === $primary) {
             /** @noinspection NestedPositiveIfStatementsInspection */
@@ -243,7 +233,7 @@ class carbon_user_tasks extends Database implements iRest
                 $sql .= ' WHERE ' . self::buildWhere($where, $pdo);
             }
         } else {
-        $sql .= ' WHERE  user_id=UNHEX('.self::addInjection($primary, $pdo).')';
+        $sql .= ' WHERE  session_id='.self::addInjection($primary, $pdo).'';
         }
 
         if ($aggregate  && !empty($group)) {
@@ -287,36 +277,31 @@ class carbon_user_tasks extends Database implements iRest
     {
         self::$injection = [];
         /** @noinspection SqlResolve */
-        $sql = 'INSERT INTO carbon_user_tasks (task_id, user_id, from_id, task_name, task_description, percent_complete, start_date, end_date) VALUES ( UNHEX(:task_id), UNHEX(:user_id), UNHEX(:from_id), :task_name, :task_description, :percent_complete, :start_date, :end_date)';
+        $sql = 'INSERT INTO carbon_user_sessions (user_id, user_ip, session_id, session_expires, session_data, user_online_status) VALUES ( UNHEX(:user_id), UNHEX(:user_ip), :session_id, :session_expires, :session_data, :user_online_status)';
 
         self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = self::database()->prepare($sql);
 
                 
-                    $task_id = $argv['task_id'];
-                    $stmt->bindParam(':task_id',$task_id, 2, 16);
-                        $user_id = $id = $argv['user_id'] ?? self::beginTransaction('carbon_user_tasks');
-                $stmt->bindParam(':user_id',$user_id, 2, 16);
-                
-                    $from_id =  $argv['from_id'] ?? null;
-                    $stmt->bindParam(':from_id',$from_id, 2, 16);
+                    $user_id = $argv['user_id'];
+                    $stmt->bindParam(':user_id',$user_id, 2, 16);
                         
-                    $task_name = $argv['task_name'];
-                    $stmt->bindParam(':task_name',$task_name, 2, 40);
+                    $user_ip =  $argv['user_ip'] ?? null;
+                    $stmt->bindParam(':user_ip',$user_ip, 2, 16);
                         
-                    $task_description =  $argv['task_description'] ?? null;
-                    $stmt->bindParam(':task_description',$task_description, 2, 225);
+                    $session_id = $argv['session_id'];
+                    $stmt->bindParam(':session_id',$session_id, 2, 255);
+                        $stmt->bindValue(':session_expires',$argv['session_expires'], 2);
+                        $stmt->bindValue(':session_data',$argv['session_data'], 2);
                         
-                    $percent_complete =  $argv['percent_complete'] ?? '0';
-                    $stmt->bindParam(':percent_complete',$percent_complete, 2, 11);
-                        $stmt->bindValue(':start_date',array_key_exists('start_date',$argv) ? $argv['start_date'] : null, 2);
-                        $stmt->bindValue(':end_date',array_key_exists('end_date',$argv) ? $argv['end_date'] : null, 2);
+                    $user_online_status =  $argv['user_online_status'] ?? '1';
+                    $stmt->bindParam(':user_online_status',$user_online_status, 0, 1);
         
 
 
-        return $stmt->execute() ? $id : false;
 
+            return $stmt->execute();
     }
 
     /**
@@ -338,35 +323,29 @@ class carbon_user_tasks extends Database implements iRest
             }
         }
 
-        $sql = 'UPDATE carbon_user_tasks ';
+        $sql = 'UPDATE carbon_user_sessions ';
 
         $sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
 
         $set = '';
 
-            if (array_key_exists('task_id', $argv)) {
-                $set .= 'task_id=UNHEX(:task_id),';
-            }
             if (array_key_exists('user_id', $argv)) {
                 $set .= 'user_id=UNHEX(:user_id),';
             }
-            if (array_key_exists('from_id', $argv)) {
-                $set .= 'from_id=UNHEX(:from_id),';
+            if (array_key_exists('user_ip', $argv)) {
+                $set .= 'user_ip=UNHEX(:user_ip),';
             }
-            if (array_key_exists('task_name', $argv)) {
-                $set .= 'task_name=:task_name,';
+            if (array_key_exists('session_id', $argv)) {
+                $set .= 'session_id=:session_id,';
             }
-            if (array_key_exists('task_description', $argv)) {
-                $set .= 'task_description=:task_description,';
+            if (array_key_exists('session_expires', $argv)) {
+                $set .= 'session_expires=:session_expires,';
             }
-            if (array_key_exists('percent_complete', $argv)) {
-                $set .= 'percent_complete=:percent_complete,';
+            if (array_key_exists('session_data', $argv)) {
+                $set .= 'session_data=:session_data,';
             }
-            if (array_key_exists('start_date', $argv)) {
-                $set .= 'start_date=:start_date,';
-            }
-            if (array_key_exists('end_date', $argv)) {
-                $set .= 'end_date=:end_date,';
+            if (array_key_exists('user_online_status', $argv)) {
+                $set .= 'user_online_status=:user_online_status,';
             }
 
         if (empty($set)){
@@ -377,41 +356,33 @@ class carbon_user_tasks extends Database implements iRest
 
         $pdo = self::database();
 
-        $sql .= ' WHERE  user_id=UNHEX('.self::addInjection($primary, $pdo).')';
+        $sql .= ' WHERE  session_id='.self::addInjection($primary, $pdo).'';
 
         self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 
-                   if (array_key_exists('task_id', $argv)) {
-            $task_id = $argv['task_id'];
-            $stmt->bindParam(':task_id',$task_id, 2, 16);
-        }
                    if (array_key_exists('user_id', $argv)) {
             $user_id = $argv['user_id'];
             $stmt->bindParam(':user_id',$user_id, 2, 16);
         }
-                   if (array_key_exists('from_id', $argv)) {
-            $from_id = $argv['from_id'];
-            $stmt->bindParam(':from_id',$from_id, 2, 16);
+                   if (array_key_exists('user_ip', $argv)) {
+            $user_ip = $argv['user_ip'];
+            $stmt->bindParam(':user_ip',$user_ip, 2, 16);
         }
-                   if (array_key_exists('task_name', $argv)) {
-            $task_name = $argv['task_name'];
-            $stmt->bindParam(':task_name',$task_name, 2, 40);
+                   if (array_key_exists('session_id', $argv)) {
+            $session_id = $argv['session_id'];
+            $stmt->bindParam(':session_id',$session_id, 2, 255);
         }
-                   if (array_key_exists('task_description', $argv)) {
-            $task_description = $argv['task_description'];
-            $stmt->bindParam(':task_description',$task_description, 2, 225);
+                   if (array_key_exists('session_expires', $argv)) {
+            $stmt->bindValue(':session_expires',$argv['session_expires'], 2);
         }
-                   if (array_key_exists('percent_complete', $argv)) {
-            $percent_complete = $argv['percent_complete'];
-            $stmt->bindParam(':percent_complete',$percent_complete, 2, 11);
+                   if (array_key_exists('session_data', $argv)) {
+            $stmt->bindValue(':session_data',$argv['session_data'], 2);
         }
-                   if (array_key_exists('start_date', $argv)) {
-            $stmt->bindValue(':start_date',$argv['start_date'], 2);
-        }
-                   if (array_key_exists('end_date', $argv)) {
-            $stmt->bindValue(':end_date',$argv['end_date'], 2);
+                   if (array_key_exists('user_online_status', $argv)) {
+            $user_online_status = $argv['user_online_status'];
+            $stmt->bindParam(':user_online_status',$user_online_status, 0, 1);
         }
 
         if (!self::bind($stmt, $argv)){
@@ -432,27 +403,27 @@ class carbon_user_tasks extends Database implements iRest
     */
     public static function Delete(array &$remove, string $primary = null, array $argv) : bool
     {
-        if (null !== $primary) {
-            return carbons::Delete($remove, $primary, $argv);
-        }
+        self::$injection = [];
+        /** @noinspection SqlResolve */
+        $sql = 'DELETE FROM carbon_user_sessions ';
 
+        $pdo = self::database();
+
+        if (null === $primary) {
         /**
-         *   While useful, we've decided to disallow full
-         *   table deletions through the rest api. For the
-         *   n00bs and future self, "I got chu."
-         */
+        *   While useful, we've decided to disallow full
+        *   table deletions through the rest api. For the
+        *   n00bs and future self, "I got chu."
+        */
         if (empty($argv)) {
             return false;
         }
 
-        self::$injection = [];
-        /** @noinspection SqlResolve */
-        $sql = 'DELETE c FROM carbons c 
-                JOIN carbon_user_tasks on c.entity_pk = follower_table_id';
-
-        $pdo = self::database();
 
         $sql .= ' WHERE ' . self::buildWhere($argv, $pdo);
+        } else {
+        $sql .= ' WHERE  session_id='.self::addInjection($primary, $pdo).'';
+        }
 
         self::jsonSQLReporting(\func_get_args(), $sql);
 

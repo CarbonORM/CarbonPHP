@@ -51,7 +51,7 @@ try {
         $head
     DROP TABLE IF EXISTS `carbon_comments`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `carbon_comments` (
   `parent_id` binary(16) NOT NULL,
   `comment_id` binary(16) NOT NULL,
@@ -82,7 +82,7 @@ END;
         $head
     DROP TABLE IF EXISTS `carbon_locations`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `carbon_locations` (
   `entity_id` binary(16) NOT NULL,
   `latitude` varchar(225) DEFAULT NULL,
@@ -113,7 +113,7 @@ END;
         $head
     DROP TABLE IF EXISTS `carbon_photos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `carbon_photos` (
   `parent_id` binary(16) NOT NULL,
   `photo_id` binary(16) NOT NULL,
@@ -145,7 +145,7 @@ END;
         $head
     DROP TABLE IF EXISTS `carbon_reports`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `carbon_reports` (
   `log_level` varchar(20) DEFAULT NULL,
   `report` text,
@@ -171,7 +171,7 @@ END;
         $head
     DROP TABLE IF EXISTS `carbon_tag`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `carbon_tag` (
   `entity_id` binary(16) NOT NULL,
   `tag_id` varchar(80) NOT NULL,
@@ -199,7 +199,7 @@ END;
         $head
     DROP TABLE IF EXISTS `carbon_user_followers`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `carbon_user_followers` (
   `follower_table_id` binary(16) NOT NULL,
   `follows_user_id` binary(16) NOT NULL,
@@ -229,7 +229,7 @@ END;
         $head
     DROP TABLE IF EXISTS `carbon_user_messages`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `carbon_user_messages` (
   `message_id` binary(16) NOT NULL,
   `from_user_id` binary(16) NOT NULL,
@@ -263,7 +263,7 @@ END;
         $head
     DROP TABLE IF EXISTS `carbon_user_sessions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `carbon_user_sessions` (
   `user_id` binary(16) NOT NULL,
   `user_ip` binary(16) DEFAULT NULL,
@@ -291,7 +291,7 @@ END;
         $head
     DROP TABLE IF EXISTS `carbon_user_tasks`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `carbon_user_tasks` (
   `task_id` binary(16) NOT NULL,
   `user_id` binary(16) NOT NULL COMMENT 'This is the user the task is being assigned to',
@@ -326,7 +326,7 @@ END;
         $head
     DROP TABLE IF EXISTS `carbon_users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `carbon_users` (
   `user_username` varchar(25) NOT NULL,
   `user_password` varchar(225) NOT NULL,
@@ -379,7 +379,7 @@ END;
         $head
     DROP TABLE IF EXISTS `carbons`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `carbons` (
   `entity_pk` binary(16) NOT NULL,
   `entity_fk` binary(16) DEFAULT NULL,
@@ -398,6 +398,56 @@ END;
         $db->exec($sql) === false and die(print_r($db->errorInfo(), true));
         print '<br><p style="color: green">Table `carbons` Created</p>';
     }try {
+        $db->prepare('SELECT 1 FROM creation_logs LIMIT 1;')->execute();
+        print '<br>Table `creation_logs` already exists</p>';
+    } catch (PDOException $e) {
+        print '<br><p style="color: red">Creating `creation_logs`</p>';
+        $sql = <<<END
+        $head
+    DROP TABLE IF EXISTS `creation_logs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+ SET character_set_client = utf8mb4 ;
+CREATE TABLE `creation_logs` (
+  `uuid` binary(16) DEFAULT NULL COMMENT 'not a relation to carbons',
+  `resource_type` varchar(40) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `resource_uuid` binary(16) DEFAULT NULL COMMENT 'Was a carbons ref, but no longer'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+
+        $foot
+END;
+
+        print $sql . '<br>';
+        $db->exec($sql) === false and die(print_r($db->errorInfo(), true));
+        print '<br><p style="color: green">Table `creation_logs` Created</p>';
+    }try {
+        $db->prepare('SELECT 1 FROM history_logs LIMIT 1;')->execute();
+        print '<br>Table `history_logs` already exists</p>';
+    } catch (PDOException $e) {
+        print '<br><p style="color: red">Creating `history_logs`</p>';
+        $sql = <<<END
+        $head
+    DROP TABLE IF EXISTS `history_logs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+ SET character_set_client = utf8mb4 ;
+CREATE TABLE `history_logs` (
+  `uuid` binary(16) NOT NULL,
+  `resource_type` varchar(40) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `resource_uuid` binary(16) DEFAULT NULL,
+  `operation_type` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `data` json DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+
+        $foot
+END;
+
+        print $sql . '<br>';
+        $db->exec($sql) === false and die(print_r($db->errorInfo(), true));
+        print '<br><p style="color: green">Table `history_logs` Created</p>';
+    }try {
         $db->prepare('SELECT 1 FROM sessions LIMIT 1;')->execute();
         print '<br>Table `sessions` already exists</p>';
     } catch (PDOException $e) {
@@ -406,7 +456,7 @@ END;
         $head
     DROP TABLE IF EXISTS `sessions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `sessions` (
   `user_id` binary(16) NOT NULL,
   `user_ip` varchar(20) DEFAULT NULL,
@@ -434,7 +484,7 @@ END;
         $head
     DROP TABLE IF EXISTS `tags`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `tags` (
   `tag_id` varchar(80) NOT NULL,
   `tag_description` text NOT NULL,
@@ -463,11 +513,18 @@ END;
     $sql = <<<END
 REPLACE INTO tags (tag_id, tag_description, tag_name) VALUES (?,?,?);
 END;
-     $tag = [['carbon_comments','','carbon_comments'],['carbon_golf_course_rounds','','carbon_golf_course_rounds'],['carbon_golf_courses','','carbon_golf_courses'],['carbon_golf_tournament_teams','','carbon_golf_tournament_teams'],['carbon_golf_tournaments','','carbon_golf_tournaments'],['carbon_locations','','carbon_locations'],['carbon_photos','','carbon_photos'],['carbon_reports','','carbon_reports'],['carbon_tag','','carbon_tag'],['carbon_team_members','','carbon_team_members'],['carbon_teams','','carbon_teams'],['carbon_user_followers','','carbon_user_followers'],['carbon_user_golf_stats','','carbon_user_golf_stats'],['carbon_user_messages','','carbon_user_messages'],['carbon_user_sessions','','carbon_user_sessions'],['carbon_user_tasks','','carbon_user_tasks'],['carbon_users','','carbon_users'],['carbons','','carbons'],['sessions','','sessions'],['tags','','tags'],];
+     $tag = [['carbon_comments','','carbon_comments'],['carbon_locations','','carbon_locations'],['carbon_photos','','carbon_photos'],['carbon_reports','','carbon_reports'],['carbon_tag','','carbon_tag'],['carbon_user_followers','','carbon_user_followers'],['carbon_user_messages','','carbon_user_messages'],['carbon_user_sessions','','carbon_user_sessions'],['carbon_user_tasks','','carbon_user_tasks'],['carbon_users','','carbon_users'],['carbons','','carbons'],['creation_logs','','creation_logs'],['history_logs','','history_logs'],['sessions','','sessions'],['tags','','tags'],];
     foreach ($tag as $key => $value) {
-        $db->prepare($sql)->execute($value);
+            $sql = "SELECT count(*) FROM tags WHERE tag_id = ? AND tag_description = ? AND tag_name = ?;";
+            $query = $db->prepare($sql);
+            $query->execute($value);
+        if (!$query->fetchColumn()) {
+            $sql = "INSERT INTO tags (tag_id, tag_description, tag_name) VALUES (?,?,?);";
+            $db->prepare($sql)->execute($value);
+            print "<br>{$value[0]} :: tags inserted";
+        }
     }
-    print '<br>Tags inserted';
+    
 
 } catch (PDOException $e) {
     print '<br>' . $e->getMessage();

@@ -150,9 +150,16 @@ TAGS;
         $tags .=  <<<TAGS
 ];
     foreach (\$tag as \$key => \$value) {
-        \$db->prepare(\$sql)->execute(\$value);
+            \$sql = "SELECT count(*) FROM tags WHERE tag_id = ? AND tag_description = ? AND tag_name = ?;";
+            \$query = \$db->prepare(\$sql);
+            \$query->execute(\$value);
+        if (!\$query->fetchColumn()) {
+            \$sql = "INSERT INTO tags (tag_id, tag_description, tag_name) VALUES (?,?,?);";
+            \$db->prepare(\$sql)->execute(\$value);
+            print "<br>{\$value[0]} :: tags inserted";
+        }
     }
-    print '<br>Tags inserted';
+    
 
 } catch (PDOException \$e) {
     print '<br>' . \$e->getMessage();
@@ -173,6 +180,11 @@ TAGS;
 
 }
 FOOT;
+
+        if (!is_dir(APP_ROOT . 'config') && mkdir(APP_ROOT . 'config')) {
+            print 'failed to create directory' . PHP_EOL . "\t" . APP_ROOT . 'config';
+        }
+
 
         if (!file_put_contents(APP_ROOT . 'config' . DS . 'buildDatabase.php', $build)) {
             print 'failed storing database build to file';
