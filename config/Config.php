@@ -89,14 +89,11 @@ return [
         'REBUILD' => false
     ],
 
-
     'SITE' => [
 
         'URL' => 'carbonphp.com',    /* Evaluated and if not the accurate Redirect. Local php server okay. Remove for any domain */
 
         'ROOT' => APP_ROOT,          /* This was defined in our ../index.php */
-
-
 
         'CACHE_CONTROL' => [
             'ico|pdf|flv' => 'Cache-Control: max-age=29030400, public',
@@ -120,7 +117,6 @@ return [
 
         'HTTP' => true   // I assume that HTTP is okay by default
     ],
-
 
     'SESSION' => [
         'REMOTE' => false,             // Store the session in the SQL database
