@@ -49,9 +49,14 @@ class Setup implements iCommand
                     // this is going to the CLI so no need to run/attach redirect scripts
                     exit(0);
                 case '--mysql_native_password':
+                    $query = "ALTER USER '{$this->CONFIG['DATABASE']['DB_USER']}'@'localhost' IDENTIFIED WITH mysql_native_password BY '{$this->CONFIG['DATABASE']['DB_PASS']}';";
                     try {
+                        if (!file_put_contents('query.txt', $query)){
+                            print 'Failed to create query file!';
+                            exit(2);
+                        }
                         $this->setup($this->config);
-                        $this->MySQLSource(true, "ALTER USER '{$this->CONFIG['DATABASE']['DB_USER']}'@'localhost' IDENTIFIED WITH mysql_native_password BY '{$this->CONFIG['DATABASE']['DB_PASS']}';");
+                        $this->MySQLSource(true, 'query.txt');
                         $this->removeFiles();
                         exit(0);
                     } catch (Throwable $e) {
