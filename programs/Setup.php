@@ -61,8 +61,14 @@ IDENTIFIED;
                             exit(2);
                         }
                         $this->setup($this->config);
+
                         $out = $this->MySQLSource(true, 'query.txt');
+
                         $this->removeFiles();
+
+                        if (!unlink('query.txt')) {
+                            print 'Failed to remove query.txt file' . PHP_EOL;
+                        }
                         print $out . PHP_EOL;
                         exit(0);
                     } catch (Throwable $e) {

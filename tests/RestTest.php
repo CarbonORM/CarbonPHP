@@ -8,7 +8,7 @@
 
 declare(strict_types=1);
 
-use PHPUnit\Framework\TestCase;
+use  PHPUnit\Framework\TestCase;
 use CarbonPHP\Tables\Carbons as Rest;
 
 
@@ -61,6 +61,7 @@ final class RestTest extends TestCase
 
     private function KeyExistsAndRemove(string $key) : void {
         $store = [];
+
         Rest::Get($store, $key, []);
 
         if (!empty($store)) {
@@ -74,8 +75,10 @@ final class RestTest extends TestCase
 
     public function testRestApiCanPost(): void
     {
-        $this->KeyExistsAndRemove('8544e3d581ba11e8942cd89ef3fc55fa');
-        $this->KeyExistsAndRemove('8544e3d581ba11e8942cd89ef3fc55fb');
+
+
+        $this->KeyExistsAndRemove('8544e3d581ba11e8942cd89ef3fc55fa'); //a
+        $this->KeyExistsAndRemove('8544e3d581ba11e8942cd89ef3fc55fb'); //b
 
         $store = [];
 
@@ -86,8 +89,10 @@ final class RestTest extends TestCase
             );
         }
 
+
         // Should return a unique hex id
         $this->assertInternalType('string', Rest::Post(['entity_pk' => '8544e3d581ba11e8942cd89ef3fc55fa']));
+
     }
 
     /**
@@ -95,7 +100,6 @@ final class RestTest extends TestCase
      */
     public function testRestApiCanGet(): void
     {
-
         $store = [];
         $this->assertTrue(Rest::Get($store, '8544e3d581ba11e8942cd89ef3fc55fa', []));
 
@@ -116,6 +120,7 @@ final class RestTest extends TestCase
      */
     public function testRestApiCanPut(): void
     {
+
         $this->store = [];
 
         $this->assertTrue(Rest::Get($this->store, '8544e3d581ba11e8942cd89ef3fc55fa', []));
@@ -141,6 +146,7 @@ final class RestTest extends TestCase
      */
     public function testRestApiCanDelete(): void
     {
+
         $temp = [];
 
         $this->assertTrue(Rest::Get($temp, null, [
@@ -148,7 +154,8 @@ final class RestTest extends TestCase
             'pagination' => [ 'limit' => 1 ]
         ]));
 
-        $this->assertTrue(array_key_exists('entity_fk', $temp), 'Failed asserting that ' . print_r($temp) . ' has the key \'entity_fk\'.');
+
+        $this->assertTrue(array_key_exists('entity_fk', $temp), 'Failed asserting that ' . print_r($temp, true) . ' has the key \'entity_fk\'.');
 
         $this->assertTrue(
             Rest::Delete($temp, $temp['entity_pk'], [])
