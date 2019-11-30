@@ -36,7 +36,6 @@ class CLI implements iCommand
                 'Background.php',
                 'MySQL.php',
                 'TestAutomationServer.php',
-                'Setup.php',
                 'testBuilder.php'));
 
         $clean = function (&$program) {
