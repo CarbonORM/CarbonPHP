@@ -44,5 +44,14 @@
       "CarbonPHP\\Controller\\": "controller/",
       "CarbonPHP\\Model\\": "model/"
     }
+  },
+  "scripts": {
+    "test": [
+      "php index.php buildDatabase",
+      "php index.php minify",
+      "php index.php rest -json",
+      "./vendor/bin/phpunit --version",
+      "./vendor/bin/phpunit --testdox"
+    ]
   }
 }

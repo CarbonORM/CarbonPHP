@@ -71,7 +71,7 @@
 
 return [
 
-    /*
+
     'DATABASE' => [
 
         'DB_HOST' => '127.0.0.1',                        // IP
@@ -86,7 +86,7 @@ return [
 
         'REBUILD' => 1                      // Initial Setup todo - remove this check
     ],
-    */
+
 
     'SITE' => [
 

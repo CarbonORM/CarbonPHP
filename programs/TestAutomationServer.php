@@ -38,6 +38,7 @@ function get_page($url)
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_HEADER, 0);
     $data = curl_exec($ch);
+
     if (false === $data) {
         print "\n\n\tCurl error: \t" . curl_error($ch);
         die;

@@ -181,6 +181,11 @@ TAGS;
 }
 FOOT;
 
+        if (!is_dir(APP_ROOT . 'config') && mkdir(APP_ROOT . 'config')) {
+            print 'failed to create directory' . PHP_EOL . "\t" . APP_ROOT . 'config';
+        }
+
+
         if (!file_put_contents(APP_ROOT . 'config' . DS . 'buildDatabase.php', $build)) {
             print 'failed storing database build to file';
         }

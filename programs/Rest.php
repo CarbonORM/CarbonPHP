@@ -589,6 +589,7 @@ END;
             VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), '$table', $relative_time.$primary);\n";
                 case 'PUT':
                 case 'DELETE':
+                    /** @noinspection SqlResolve */
                     $query .= "INSERT INTO history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
             VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), '$table', $relative_time.$primary , '$operation_type', json);";
                     break;
@@ -601,6 +602,7 @@ END;
             return $query;
         };
 
+        // TODO - param or remove
         $delete_children = function () use ($dependencies) {
             $sql = '';
 
