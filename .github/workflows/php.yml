@@ -14,7 +14,7 @@ jobs:
       uses: mirromutth/mysql-action@v1.1
       with:
         # The port of host
-        host port: 3306
+        host port: 7777
         # The port of container
         container port: 13036
         # --character-set-server - The character set of MySQL server
