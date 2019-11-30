@@ -10,13 +10,12 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
+    - name: Shutdown Ubuntu MySQL (SUDO)
+      run: sudo service mysql stop # Shutdown the Default MySQL, "sudo" is necessary, please not remove it
+
     - name: Setup MySQL
       uses: mirromutth/mysql-action@v1.1
       with:
-        # The port of host
-        host port: 3307
-        # The port of container
-        container port: 3800
         # --character-set-server - The character set of MySQL server
         character set server: 'utf8mb4'
         # --collation-server - The character collation of MySQL server
