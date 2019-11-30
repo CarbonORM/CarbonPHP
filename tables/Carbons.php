@@ -6,7 +6,7 @@ use CarbonPHP\Database;
 use CarbonPHP\Interfaces\iRest;
 
 
-class carbons extends Database implements iRest
+class Carbons extends Database implements iRest
 {
 
     public const ENTITY_PK = 'entity_pk';
