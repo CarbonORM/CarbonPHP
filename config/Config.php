@@ -80,13 +80,13 @@ return [
 
         'DB_NAME' => 'CarbonPHP',                        // Schema
 
-        'DB_USER' => 'root',                        // User
+        'DB_USER' => 'root',                            // User
 
         'DB_PASS' => 'password',                        // Password
 
-        'DB_BUILD' => '',                       // This framework sets up its-self implicitly
+        'DB_BUILD' => '',
 
-        'REBUILD' => 1                      // Initial Setup todo - remove this check
+        'REBUILD' => false
     ],
 
 
