@@ -289,6 +289,7 @@ END;
                         // We need to catch circular dependencies
                         'dependencies' => $rest[$tableName]['dependencies'] ?? [],
                         'TableName' => $tableName,
+                        'ucEachTableName' => implode('_', array_map( 'ucfirst', explode('_', $tableName))),
                         'primarySort' => '',
                         'primary' => [],
                     ];
@@ -522,7 +523,7 @@ END;
 
             $logClasses && print $rest[$tableName]['TableName'] . ', ';
 
-            file_put_contents($targetDir . $rest[$tableName]['TableName'] . '.php', $mustache->render($this->restTemplate(), $rest[$tableName]));
+            file_put_contents($targetDir . $rest[$tableName]['ucEachTableName'] . '.php', $mustache->render($this->restTemplate(), $rest[$tableName]));
         }
 
         $logClasses && print "\n";
@@ -671,7 +672,7 @@ use CarbonPHP\Database;
 use CarbonPHP\Interfaces\iRest;
 
 
-class {{TableName}} extends Database implements iRest
+class {{ucEachTableName}} extends Database implements iRest
 {
 
     {{#explode}}
