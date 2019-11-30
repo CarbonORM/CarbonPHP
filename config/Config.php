@@ -74,7 +74,7 @@ return [
 
     'DATABASE' => [
 
-        'DB_HOST' => '127.0.0.1',                        // IP
+        'DB_HOST' => '127.0.0.1:13036',                        // IP
 
         'DB_NAME' => 'CarbonPHP',                        // Schema
 
