@@ -14,23 +14,23 @@ jobs:
       uses: mirromutth/mysql-action@v1.1
       with:
         # The port of host
-        host port: 7777
+        host port: 3800
         # The port of container
-        container port: 13036
+        container port: 3307
         # --character-set-server - The character set of MySQL server
-        character set server: utf8mb4
+        character set server: 'utf8mb4'
         # --collation-server - The character collation of MySQL server
-        collation server: utf8mb4_general_ci
+        collation server: 'utf8mb4_general_ci'
         # Version of MySQL to use
-        mysql version: latest
+        mysql version: 'latest'
         # MYSQL_ROOT_PASSWORD - root superuser password
-        mysql root password: password
+        mysql root password: 'password'
         # MYSQL_DATABASE - name for the default database that is created
-        mysql database: CarbonPHP
+        mysql database: 'CarbonPHP'
         # MYSQL_USER - create the specified user with superuser power for created database
-        mysql user: admin 
+        mysql user: 'admin'
         # MYSQL_PASSWORD - specified superuser password which user is power for created database
-        mysql password: nimda
+        mysql password: 'nimda'
     
 
     - name: Validate composer.json and composer.lock

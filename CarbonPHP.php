@@ -294,7 +294,7 @@ class CarbonPHP
 
         #################  DATABASE  ########################
         if ($PHP['DATABASE'] ?? false) {
-            Database::$dsn = 'mysql:host=' . ($PHP['DATABASE']['DB_HOST'] ?? '') . ';dbname=' . ($PHP['DATABASE']['DB_NAME'] ?? '') . ';';
+            Database::$dsn = 'mysql:host=' . ($PHP['DATABASE']['DB_HOST'] ?? '') . ';dbname=' . ($PHP['DATABASE']['DB_NAME'] ?? '') . ';port=' . ($PHP['DATABASE']['DB_PORT'] ?? '3306');
             Database::$username = $PHP['DATABASE']['DB_USER'] ?? '';
             Database::$password = $PHP['DATABASE']['DB_PASS'] ?? '';
             Database::$setup = $PHP['DATABASE']['DB_BUILD'] ?? '';
