@@ -31,7 +31,6 @@ jobs:
         mysql user: 'admin'
         # MYSQL_PASSWORD - specified superuser password which user is power for created database
         mysql password: 'nimda'
-    
 
     - name: Validate composer.json and composer.lock
       run: composer validate

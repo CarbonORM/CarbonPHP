@@ -14,9 +14,16 @@ namespace CarbonPHP\Programs;
 
 use CarbonPHP\Database;
 use CarbonPHP\interfaces\iCommand;
+use Throwable;
 
 class Setup implements iCommand
 {
+    use MySQL {
+        /** @noinspection ImplicitMagicMethodCallInspection */
+        __construct as setup;
+        cleanUp as removeFiles;
+    }
+
     private $config;
     private $configFile;
 
@@ -41,6 +48,18 @@ class Setup implements iCommand
                     Database::setUp(false);   // Redirect = false
                     // this is going to the CLI so no need to run/attach redirect scripts
                     exit(0);
+                case '--mysql_native_password':
+                    try {
+                        $this->setup($this->config);
+                        $this->MySQLSource(true, "ALTER USER '{$this->CONFIG['DATABASE']['DB_USER']}'@'localhost' IDENTIFIED WITH mysql_native_password BY '{$this->CONFIG['DATABASE']['DB_PASS']}';");
+                        $this->removeFiles();
+                        exit(0);
+                    } catch (Throwable $e) {
+                        print 'Failed to change mysql auth method' . PHP_EOL;
+                        print_r($e);
+                        exit(1);
+                    }
+
             }
         }
 

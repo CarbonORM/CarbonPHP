@@ -81,9 +81,8 @@ trait MySQL
 
     /**
      * @noinspection PhpUnusedParameterInspection
-     * @param $PHP
      */
-    public function cleanUp($PHP) : void
+    public function cleanUp() : void
     {
         $this->mysql and unlink('./mysql.cnf');
         $this->mysqldump and unlink('./mysqldump.sql');
