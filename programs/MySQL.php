@@ -52,9 +52,8 @@ trait MySQL
         }
 
         if (empty($this->CONFIG['DATABASE']['DB_PORT'])) {
-            print 'No [\'DATABASE\'][\'DB_HOST\'] configuration active. Using default port 3306. ';
+            print 'No [\'DATABASE\'][\'DB_PORT\'] configuration active. Using default port 3306. ' . PHP_EOL;
             $this->CONFIG['DATABASE']['DB_PORT'] = 3306;
-            exit(1);
         }
 
         // We're going to use this function to execute mysql from the command line
