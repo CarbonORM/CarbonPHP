@@ -129,7 +129,7 @@ function CarbonPHP(selector, address, options) {
             url = '/' + url;
         }
         console.log('JavaScript startApplication(' + url + ', ' + (selector ? selector : this.selector) + ')');
-        if (this.defaultOnSocket && this.trySocket) {           /*defaultOnSocket && */
+        if (this.defaultOnSocket && this.trySocket) {
             console.log('Socket::' + url);
             this.statsSocket.send(JSON.stringify(url));
         } else {
@@ -142,14 +142,12 @@ function CarbonPHP(selector, address, options) {
                 accepts: {
                     mustacheTemplate: "html"
                 },
-                // deserialize a custom type
                 converters: {
                     '* mustacheTemplate': this.handlebars,
                 },
                 dataType: "mustacheTemplate",
                 push: false,
             });
-            /*$.get(url, (data) => this.MustacheWidgets(data, url));*/
         }
     };
 
@@ -448,7 +446,8 @@ function CarbonPHP(selector, address, options) {
         }
         if (alert.length) {
             alert.empty();
-        } /* else we're defaulting to popup alerts */
+        }
+        /* else we're defaulting to popup alerts - this happens procedurally in this.alerts() -> this.bootstrapAlert() */
 
         if (this.alerting !== null) {
             console.log(this.alerting);
@@ -474,7 +473,7 @@ function CarbonPHP(selector, address, options) {
     // TODO - make this an option
     $(document).on('pjax:popstate', () => { //$.pjax.reload(selector)
         console.log('pjax:popstate');
-        window.location.reload();
+        window.location.reload();               // page information maybe out of date
         console.log('pjax:popstate Finish');
     });
     /* refresh our state always!! */
