@@ -6,7 +6,7 @@
         <fileTransfer port="0" mountedRoot="$PROJECT_DIR$/../Stats.Coach/vendor/richardtmiles/carbonphp" accessType="MOUNT" />
       </webServer>
       <webServer id="9b9ffc5f-0fec-4430-b238-37d538256650" name="google stats" url="http://35.196.103.151">
-        <fileTransfer host="35.196.103.151" port="22" privateKey="$USER_HOME$/.ssh/id_rsa" rootFolder="/var/www/stats.coach/vendor/richardtmiles/carbonphp" accessType="SFTP" keyPair="true">
+        <fileTransfer host="35.196.103.151" port="22" privateKey="$USER_HOME$/.ssh/google_compute_engine" rootFolder="/var/www/stats.coach/vendor/richardtmiles/carbonphp" accessType="SFTP" keyPair="true">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>

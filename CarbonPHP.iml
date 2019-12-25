@@ -12,6 +12,8 @@
       <sourceFolder url="file://$MODULE_DIR$/tables" isTestSource="false" packagePrefix="CarbonPHP\Tables\" />
       <sourceFolder url="file://$MODULE_DIR$/programs" isTestSource="false" packagePrefix="CarbonPHP\Programs\" />
       <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/view/react/material-dashboard-react-c6" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/view/react/material-dashboard-react-c6/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/mustache/mustache" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/psr/log" />
     </content>
@@ -19,5 +21,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="html5shiv" level="application" />
     <orderEntry type="library" name="respond" level="application" />
+    <orderEntry type="library" name="react" level="project" />
   </component>
 </module>

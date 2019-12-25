@@ -46,6 +46,13 @@
     }
   },
   "scripts": {
+    "post-install-cmd": [
+      "php index.php setup --mysql_native_password",
+      "php index.php setup --rebuild",
+      "php index.php minify",
+      "php index.php rest -json -logClasses",
+      "cd view/react/material-dashboard-react-c6 && npm install && npm run build"
+    ],
     "test": [
       "php index.php setup --mysql_native_password",
       "php index.php setup --rebuild",
