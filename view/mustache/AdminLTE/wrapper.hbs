@@ -23,7 +23,7 @@
                 script.src = src;
                 script.async = true;
                 ref.parentNode.insertBefore(script, ref);
-                if (cb && typeof(cb) === "function")
+                if (cb && typeof (cb) === "function")
                     script.onload = cb;
 
                 return script;
@@ -32,37 +32,40 @@
             else w.loadJS = loadJS;
         }(typeof global !== "undefined" ? global : this));// Hierarchical PJAX Request
 
-        <?php if (defined('FACEBOOK_APP_ID') && !empty(FACEBOOK_APP_ID)): ?>
-        // Facebook Analytics
-        window.fbAsyncInit = function () {
-            FB.init({
-                appId: '{{FACEBOOK_APP_ID}}',
-                xfbml: true,
-                version: 'v2.11'
-            });
-            FB.AppEvents.logPageView();
-        };
 
-        (function (d, s, id) {
-            let js, fjs = d.getElementsByTagName(s)[0];
-            if (d.getElementById(id)) {
-                return;
-            }
-            js = d.createElement(s);
-            js.id = id;
-            js.src = "https://connect.facebook.net/en_US/sdk.js";
-            fjs.parentNode.insertBefore(js, fjs);
-        }(document, 'script', 'facebook-jssdk'));
-        <?php endif; ?>
+            {{#FACEBOOK_APP_ID}}
+            // Facebook Analytics
+            window.fbAsyncInit = function () {
+                FB.init({
+                    appId: '{{FACEBOOK_APP_ID}}',
+                    xfbml: true,
+                    version: 'v2.11'
+                });
+                FB.AppEvents.logPageView();
+            };
 
+            (function (d, s, id) {
+                let js, fjs = d.getElementsByTagName(s)[0];
+                if (d.getElementById(id)) {
+                    return;
+                }
+                js = d.createElement(s);
+                js.id = id;
+                js.src = "https://connect.facebook.net/en_US/sdk.js";
+                fjs.parentNode.insertBefore(js, fjs);
+            }(document, 'script', 'facebook-jssdk'));
+            {{/FACEBOOK_APP_ID}}
         // Document ready => jQuery => PJAX => CarbonPHP = loaded
-        function OneTimeEvent(ev, cb){
+        function OneTimeEvent(ev, cb) {
             return document.addEventListener(ev, function fn(event) {
                 document.removeEventListener(ev, fn);
                 return cb(event);
             });
         }
-        function Carbon(cb) {return OneTimeEvent("Carbon", cb)}
+
+        function Carbon(cb) {
+            return OneTimeEvent("Carbon", cb)
+        }
     </script>
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -451,7 +454,7 @@
                         <li><a href="/2.0/UIElements/general"><i class="fa fa-circle-o"></i> General Elements</a>
                         </li>
                         <li><a href="/2.0/UIElements/advanced"><i class="fa fa-circle-o"></i> Advanced
-                                Elements</a></li>
+                            Elements</a></li>
                         <li><a href="/2.0/UIElements/editors"><i class="fa fa-circle-o"></i> Editors</a></li>
                     </ul>
                 </li>
@@ -559,81 +562,81 @@
     </aside>
 
     <script>//--  Sidebar Search Engine
-        Carbon(() => {
-            let $menu = $('#left-sidebar-menu' + ' li');
+    Carbon(() => {
+        let $menu = $('#left-sidebar-menu' + ' li');
 
-            let activity = function () {
-                $("li a").filter(function () {
-                    $menu.removeClass('active');
-                    return this.href === location.href.replace(/#.*/, "");
-                }).parent().addClass("active");
-            };
-
-            activity();
-
-            $menu.click(function () {
+        let activity = function () {
+            $("li a").filter(function () {
                 $menu.removeClass('active');
-                $(this).addClass('active');
-            });
+                return this.href === location.href.replace(/#.*/, "");
+            }).parent().addClass("active");
+        };
 
-            $('#mytitle').click(function () {
-                $menu.removeClass('active');
-            });
+        activity();
 
-            $('#sidebar-form').on('submit', function (e) {
-                e.preventDefault();
-            });
+        $menu.click(function () {
+            $menu.removeClass('active');
+            $(this).addClass('active');
+        });
 
-            $('#left-sidebar-menu li.active').data('lte.pushmenu.active', true);
+        $('#mytitle').click(function () {
+            $menu.removeClass('active');
+        });
 
-            $('#search-input').on('keyup', function () {
-                let term = $('#search-input').val().trim(),
+        $('#sidebar-form').on('submit', function (e) {
+            e.preventDefault();
+        });
+
+        $('#left-sidebar-menu li.active').data('lte.pushmenu.active', true);
+
+        $('#search-input').on('keyup', function () {
+            let term = $('#search-input').val().trim(),
                     sidebar = $('#left-sidebar-menu li');
 
-                if (term.length === 0) {
-                    sidebar.each(function () {
-                        $(this).show(0);
+            if (term.length === 0) {
+                sidebar.each(function () {
+                    $(this).show(0);
+                    $(this).removeClass('active');
+                    if ($(this).data('lte.pushmenu.active')) {
+                        $(this).addClass('active');
+                    }
+                });
+                return;
+            }
+
+            sidebar.each(function () {
+                if ($(this).text().toLowerCase().indexOf(term.toLowerCase()) === -1) {
+                    $(this).hide(0);
+                    $(this).removeClass('pushmenu-search-found', false);
+
+                    if ($(this).is('.treeview')) {
                         $(this).removeClass('active');
-                        if ($(this).data('lte.pushmenu.active')) {
-                            $(this).addClass('active');
-                        }
-                    });
-                    return;
+                    }
+                } else {
+                    $(this).show(0);
+                    $(this).addClass('pushmenu-search-found');
+
+                    if ($(this).is('.treeview')) {
+                        $(this).addClass('active');
+                    }
+
+                    let parent = $(this).parents('li').first();
+                    if (parent.is('.treeview')) {
+                        parent.show(0);
+                    }
                 }
 
-                sidebar.each(function () {
-                    if ($(this).text().toLowerCase().indexOf(term.toLowerCase()) === -1) {
-                        $(this).hide(0);
-                        $(this).removeClass('pushmenu-search-found', false);
-
-                        if ($(this).is('.treeview')) {
-                            $(this).removeClass('active');
-                        }
-                    } else {
-                        $(this).show(0);
-                        $(this).addClass('pushmenu-search-found');
-
-                        if ($(this).is('.treeview')) {
-                            $(this).addClass('active');
-                        }
-
-                        let parent = $(this).parents('li').first();
-                        if (parent.is('.treeview')) {
-                            parent.show(0);
-                        }
-                    }
-
-                    if ($(this).is('.header')) {
-                        $(this).show();
-                    }
-                });
-
-                $('#left-sidebar-menu li.pushmenu-search-found.treeview').each(function () {
-                    $(this).find('.pushmenu-search-found').show(0);
-                });
+                if ($(this).is('.header')) {
+                    $(this).show();
+                }
             });
 
-        })
+            $('#left-sidebar-menu li.pushmenu-search-found.treeview').each(function () {
+                $(this).find('.pushmenu-search-found').show(0);
+            });
+        });
+
+    })
     </script>
 
 
@@ -660,7 +663,7 @@
                 <a href="/2.0/Privacy/" class="text-purple">Privacy Policy</a> <b>Version</b> {{SITE_VERSION}}
             </div>
             <strong>Copyright &copy; 2014-2017 <a href="https://miles.systems/" class="text-purple">Richard
-                    Miles</a>.</strong>
+                Miles</a>.</strong>
             <!--script type="text/javascript" src="https://cdn.ywxi.net/js/1.js" async></script-->
         </div>
         <!-- /.container -->
@@ -863,6 +866,7 @@
 </div>
 
 <script src="/view/mustache/js/javascript.js"></script>
+<script src="/helpers/asynchronous.js"></script>
 
 <script>
     const carbon = new CarbonPHP('#pjax-content');

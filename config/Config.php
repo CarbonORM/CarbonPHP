@@ -7,9 +7,7 @@
  *  here, I suggest you add it before the start of `new CarbonPHP('pathToThisFile')`.
  *
  *  To Update/Regenerate
- *      // TODO - make this script...
  *     >> php index.php setup
- *
  *
  *  This will open a menu for further options.
  *
@@ -66,11 +64,10 @@
  *          'WRAPPER' => string '',         // View::content() will produce this
  *      ],
  * ]
- * @throws \Exception
+ * @throws Exception
  */
 
 return [
-
 
     'DATABASE' => [
 
@@ -98,7 +95,7 @@ return [
         'CACHE_CONTROL' => [
             'ico|pdf|flv' => 'Cache-Control: max-age=29030400, public',
 
-            'jpg|jpeg|png|gif|swf|xml|txt|css|woff2|tff|svg' => 'Cache-Control: max-age=604800, public',
+            'jpg|jpeg|png|gif|swf|xml|txt|css|woff2|tff|ttf|svg' => 'Cache-Control: max-age=604800, public',
 
             'html|htm|php|hbs|js' => 'Cache-Control: max-age=0, private, public',
         ],
@@ -107,7 +104,7 @@ return [
 
         'TIMEZONE' => 'America/Phoenix',    //  Current timezone
 
-        'TITLE' => 'CarbonPHP • C6',    // Website title
+        'TITLE' => 'CarbonPHP • C6',        // Website title
 
         'VERSION' => '4.9.0',               // Add link to semantic versioning
 
@@ -161,7 +158,7 @@ return [
 
     'MINIFY' => [
         'CSS' => [
-            'OUT' => APP_ROOT . 'view/mustache/css/style.css',
+            'OUT' => APP_ROOT .'view/mustache/css/style.css',
             CARBON_ROOT .'node_modules/admin-lte/bower_components/bootstrap/dist/css/bootstrap.min.css',
             CARBON_ROOT .'node_modules/admin-lte/dist/css/AdminLTE.min.css',
             CARBON_ROOT .'node_modules/admin-lte/dist/css/skins/_all-skins.min.css',
@@ -184,7 +181,7 @@ return [
             CARBON_ROOT .'node_modules/admin-lte/bower_components/fullcalendar/dist/fullcalendar.min.css'
         ],
         'JS' => [
-            'OUT' => APP_ROOT . 'view/mustache/js/javascript.js',
+            'OUT' => APP_ROOT .'view/mustache/js/javascript.js',
             CARBON_ROOT .'node_modules/admin-lte/bower_components/jquery/dist/jquery.min.js',
             CARBON_ROOT .'node_modules/jquery-pjax/jquery.pjax.js',
             CARBON_ROOT .'view/mustache/Layout/mustache.js',

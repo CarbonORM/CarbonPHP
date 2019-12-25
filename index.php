@@ -16,14 +16,8 @@ if (false === (include  'vendor' . DS . 'autoload.php')) {     // Load the autol
     die(1);
 }
 
-try {
-    // Start CarbonPHP
-    CarbonPHP\CarbonPHP::make('config' . DS . 'Config.php');
-} catch (Throwable $e) {
-    print_r($e);
-    print 'Carbon Failed' . PHP_EOL;
-    die(1);
-}
+// The app can exit here if a configuration failure exists
+CarbonPHP\CarbonPHP::make('config' . DS . 'Config.php');
 
 /* At one point I returned the invocation of $app to show that
  * the application will not exit on completion, but rather return
@@ -33,8 +27,6 @@ try {
  */
 
 CarbonPHP\CarbonPHP::run( CarbonPHP\C6::class);
-
-//alert('stop');
 
 return true;
 

@@ -21,6 +21,7 @@ import dashboardStyle from "assets/jss/material-dashboard-react/views/dashboardS
 //img
 import Place from "@material-ui/icons/Place";
 import beforeMin from 'assets/img/beforeMin.png';
+import classNames from "classnames";
 
 let style = {
     ...completedStyle,
@@ -32,10 +33,10 @@ class CarbonPHP extends React.Component {
         const {classes} = this.props;
         return (
             <div className={classes.section}>
-                <div className={classes.container}>
+                <div className={classNames(classes.container)}>
                     <GridContainer justify="center">
                         <GridItem xs={12} sm={12} md={8}>
-                            <h2><b>CarbonPHP is [C6]</b></h2>
+                            <h2 className={classes.textCenter}><b>CarbonPHP is [C6]</b></h2>
                             <h4>
                                 This documentation is for C6, a PHP 7.2+ application framework.
                             </h4>
@@ -62,7 +63,7 @@ class CarbonPHP extends React.Component {
                                     {
                                         tabName: "Why?",
                                         tabContent: (
-                                            <p className={classes.textCenter}>
+                                            <p>
                                                 CarbonPHP's core objective is to load all content in a controlled
                                                 asynchronous fashion.
                                                 <br/><br/>
@@ -122,7 +123,7 @@ class CarbonPHP extends React.Component {
                                     {
                                         tabName: "Frontend",
                                         tabContent: (
-                                            <span className={classes.textCenter}>
+                                            <span >
                                                 <div id="navigation-pills">
                                                     <div className={classes.title}>
                                                         <h3>Frontend</h3>
@@ -465,7 +466,7 @@ class CarbonPHP extends React.Component {
                                     {
                                         tabName: "Backend",
                                         tabContent: (
-                                            <p className={classes.textCenter}>
+                                            <p >
                                                 <h5>Here's the gist.</h5>
                                                 CarbonPHP is a full scale development library.
                                                 <br/>
@@ -483,7 +484,7 @@ class CarbonPHP extends React.Component {
                                     {
                                         tabName: "Facts",
                                         tabContent: (
-                                            <p className={classes.textCenter}>
+                                            <p >
                                                 <h2>Did you know?</h2>
                                                 <h4>
                                                     <small>

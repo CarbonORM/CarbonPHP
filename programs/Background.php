@@ -13,7 +13,8 @@ trait Background
                 print $cmd . PHP_EOL . PHP_EOL;
                 pclose(popen($cmd, 'r'));
             } else {
-                $cmd = sprintf('sudo %s', $cmd, $outputFile); // sudo %s > %s 2>$1 & echo $!
+                // TODO - this doesn't work???
+                $cmd = sprintf('sudo %s > %s', $cmd, $outputFile); // sudo %s > %s 2>$1 & echo $!
                 print $cmd . PHP_EOL . PHP_EOL;
                 exec($cmd, $pid);
             }

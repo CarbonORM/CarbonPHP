@@ -166,13 +166,45 @@ class C6 extends Application
             return true;
         }
 
-        if ($version = ($this->uri[0] ?? false)) {
+        $this->structure($this->wrap());
 
+        ###################################### AdminLTE DOC
+        if ($this->match('2.0/UIElements/{AdminLTE?}', function ($AdminLTE) {
+
+            $AdminLTE = (new Request())->set($AdminLTE)->word();  // must be validated
+
+            if (!$AdminLTE) {
+                View::$forceWrapper = true;
+                $AdminLTE = 'widgets';
+            }
+
+            if (file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . $AdminLTE . '.php') ||
+                file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Charts' . DS . $AdminLTE . '.php') ||
+                file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Examples' . DS . $AdminLTE . '.php') ||
+                file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Forms' . DS . $AdminLTE . '.php') ||
+                file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Layout' . DS . $AdminLTE . '.php') ||
+                file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Mailbox' . DS . $AdminLTE . '.php') ||
+                file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Tables' . DS . $AdminLTE . '.php') ||
+                file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'UI' . DS . $AdminLTE . '.php')) {
+
+                View::$wrapper = SERVER_ROOT . APP_VIEW . 'mustache/AdminLTE/wrapper.hbs';
+
+                $this->wrap()($path);
+            }
+        })()) {
+            return true;
+        }
+
+
+        if ($version = ($this->uri[0] ?? false)) {
             switch ($version) {
                 case '2.0':
                     $this->matched = true;
                     $json['VersionTWO'] = true;
                     $page = $this->uri[1] ?? false;
+
+                    $page or View::$forceWrapper = true;
+
                     if ($page && array_key_exists($page, self::$adminLTE)) {
                         $this->wrap()(self::$adminLTE[$page]);
                     } else {
@@ -187,9 +219,7 @@ class C6 extends Application
             }
         }
 
-        # $this->structure($this->JSON());
-
-        if ($this->match('carbon/authenticated', function () {
+        if ($this->match('carbon/authenticated', static function () {
             global $json;
 
             header('Content-Type: application/json', true, 200); // Send as JSON

@@ -14,7 +14,7 @@
         </fileTransfer>
       </webServer>
       <webServer id="66b30a6d-bfa2-4e15-a3e9-653e356670c4" name="Google C6" url="http://35.196.103.151">
-        <fileTransfer host="35.196.103.151" port="22" privateKey="$USER_HOME$/.ssh/purpleteam" rootFolder="/var/www/" accessType="SFTP" keyPair="true">
+        <fileTransfer host="35.196.103.151" port="22" privateKey="$USER_HOME$/.ssh/google_compute_engine" rootFolder="/var/www/carbonphp.com/html" accessType="SFTP" keyPair="true">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>

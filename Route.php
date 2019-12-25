@@ -64,14 +64,6 @@ abstract class Route
             print 'Socket Left Route Class Un-Matched' . PHP_EOL;
             exit(1);
         }
-
-        /*
-        if (AJAX) {
-            print 'AJAX Left Route Class Un-Matched' . PHP_EOL;
-            exit(1);
-        }
-        */
-
         $this->matched = true;
         $this->defaultRoute();
     }
@@ -131,7 +123,14 @@ abstract class Route
     }
 
 
-    /** // TODO - comment this
+    /** This is our main uri routing mechanism.
+     *
+     *  syntactically similar to Laravel's routing, what
+     *  should probably be done with regex was implemented
+     *  by a younger novice me.
+     *
+     * TODO - use capture groups and regex to optimise
+     *
      * @param string $pathToMatch
      * @param array ...$argv
      * @return Route
@@ -175,19 +174,17 @@ abstract class Route
                     }
 
                     // Variables captured in the path to match will passed to the closure
-                    if (\is_callable($argv[0])) {
-                        $this->addMethod('routeMatched', $argv[0]);
-                        if (\call_user_func_array($this->methods['routeMatched'], $referenceVariables) === false) {
+                    if (is_callable($argv[0])) {
+                        if (call_user_func_array($argv[0], $referenceVariables) === false) {
                             throw new PublicAlert('Bad Closure Passed to Route::match()');
                         }
                         return $this;
                     }
 
                     // If variables were captured in our path to match, they will be merged with our variable list provided with $argv
-                    if (\is_callable($this->closure)) {
+                    if (is_callable($this->closure)) {
                         $argv[] = &$referenceVariables;
-                        $this->addMethod('routeMatched', $this->closure);
-                        \call_user_func_array($this->methods['routeMatched'], $argv);
+                        call_user_func_array($this->closure, $argv);
                         return $this;
                     }
                     return $this;

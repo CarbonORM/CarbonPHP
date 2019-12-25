@@ -6,8 +6,11 @@ const completedStyle = {
   },
   container: {
     ...container,
+  },
+  textCenter: {
     textAlign: "center !important"
   }
+
 };
 
 export default completedStyle;
