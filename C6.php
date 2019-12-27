@@ -106,12 +106,12 @@ class C6 extends Application
         }
 
         // the array $argv will be passed as arguments to the method requested, see link above
-        $exec = function &(string $class, array &$argv) use ($method) {
+        $exec = static function &(string $class, array &$argv) use ($method) {
             $argv = \call_user_func_array([new $class, $method], $argv);
             return $argv;
         };
 
-        return function () use ($exec, $controller, $model, &$argv) {
+        return static function () use ($exec, $controller, $model, &$argv) {
             if (!empty($argv = $exec($controller, $argv))) {
                 if (\is_array($argv)) {
                     return $exec($model, $argv);        // array passed
@@ -162,39 +162,39 @@ class C6 extends Application
         #color
         $this->structure($this->MVC());
 
-        if ($this->match('color', 'color', 'color')()){
+        if ($this->match('color', 'color', 'color')()) {
             return true;
         }
 
         $this->structure($this->wrap());
 
         ###################################### AdminLTE DOC
-        if ($this->match('2.0/UIElements/{AdminLTE?}', function ($AdminLTE) {
+        if ($this->match('2.0/UIElements/{AdminLTE?}',
+            function ($AdminLTE) {
 
-            $AdminLTE = (new Request())->set($AdminLTE)->word();  // must be validated
+                $AdminLTE = (new Request())->set($AdminLTE)->word();  // must be validated
 
-            if (!$AdminLTE) {
-                View::$forceWrapper = true;
-                $AdminLTE = 'widgets';
-            }
+                if (!$AdminLTE) {
+                    View::$forceWrapper = true;
+                    $AdminLTE = 'widgets';
+                }
 
-            if (file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . $AdminLTE . '.php') ||
-                file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Charts' . DS . $AdminLTE . '.php') ||
-                file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Examples' . DS . $AdminLTE . '.php') ||
-                file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Forms' . DS . $AdminLTE . '.php') ||
-                file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Layout' . DS . $AdminLTE . '.php') ||
-                file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Mailbox' . DS . $AdminLTE . '.php') ||
-                file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Tables' . DS . $AdminLTE . '.php') ||
-                file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'UI' . DS . $AdminLTE . '.php')) {
+                if (file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . $AdminLTE . '.php') ||
+                    file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Charts' . DS . $AdminLTE . '.php') ||
+                    file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Examples' . DS . $AdminLTE . '.php') ||
+                    file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Forms' . DS . $AdminLTE . '.php') ||
+                    file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Layout' . DS . $AdminLTE . '.php') ||
+                    file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Mailbox' . DS . $AdminLTE . '.php') ||
+                    file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Tables' . DS . $AdminLTE . '.php') ||
+                    file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'UI' . DS . $AdminLTE . '.php')) {
 
-                View::$wrapper = SERVER_ROOT . APP_VIEW . 'mustache/AdminLTE/wrapper.hbs';
+                    View::$wrapper = SERVER_ROOT . APP_VIEW . 'mustache/AdminLTE/wrapper.hbs';
 
-                $this->wrap()($path);
-            }
-        })()) {
+                    $this->wrap()($path);
+                }
+            })()) {
             return true;
         }
-
 
         if ($version = ($this->uri[0] ?? false)) {
             switch ($version) {
