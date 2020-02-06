@@ -76,7 +76,7 @@ class C6 extends Application
      *  I do this because the namespace changes for other applications not
      *  in C6 context.
      *
-     * Stands for Controller -> Model .
+     *  Stands for Controller -> Model
      *
      * This will run the controller/$class.$method().
      * If the method returns !empty() the model/$class.$method() will be
@@ -84,10 +84,16 @@ class C6 extends Application
      * will be passed as parameters to our model.
      * @link http://php.net/manual/en/function.call-user-func-array.php
      *
+     * @TODO - I remember once using the return by reference to allow the changing of model from the controller. We now just use the return value of startApplication ie. false
+     *       - while I think this is a good use case, I think the obfuscation that this logic holds isn't true to the MVC arch thus shouldn't be done. I think with this in mind
+     *       - removing the & would same time in every route.... and I do not see a valid use case for it now (logically could it be used). I think we can remove with a minor version bump
+     *
      * @param string $class This class name to autoload
      * @param string $method The method within the provided class
      * @param array $argv Arguments to be passed to method
      * @return mixed the returned value from model/$class.$method() or false | void
+     * @noinspection DuplicatedCode                    - intellij needing help (avoiding unnecessary abstraction)
+     * @noinspection UnknownInspectionInspection       - intellij not helping intellij
      */
     public static function CM(string $class, string &$method, array &$argv = []): callable
     {
@@ -112,13 +118,17 @@ class C6 extends Application
         };
 
         return static function () use ($exec, $controller, $model, &$argv) {
-            if (!empty($argv = $exec($controller, $argv))) {
+            // execute controller
+            $argv = $exec($controller, $argv);
+
+            if (!empty($argv)) {                            // continue to the model?
                 if (\is_array($argv)) {
                     return $exec($model, $argv);        // array passed
                 }
-                $controller = [&$argv];                 // allow return by reference
+                $controller = [&$argv];                     // single return, allow return by reference TODO - is this still a thing? (not imperative
                 return $exec($model, $controller);
             }
+
             return $argv;
         };
     }

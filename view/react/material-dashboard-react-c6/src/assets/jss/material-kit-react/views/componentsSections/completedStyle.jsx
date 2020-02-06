@@ -9,8 +9,13 @@ const completedStyle = {
   },
   textCenter: {
     textAlign: "center !important"
-  }
-
+  },
+  textLeft: {
+    textAlign: "left !important"
+  },
+  textRight: {
+    textAlign: "right !important"
+  },
 };
 
 export default completedStyle;

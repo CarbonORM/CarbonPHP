@@ -8,6 +8,8 @@ import GridContainer from "components/Grid/GridContainer.jsx";
 import GridItem from "components/Grid/GridItem.jsx";
 import completedStyle from "assets/jss/material-kit-react/views/componentsSections/completedStyle.jsx";
 
+
+// TODO - <GridContainer justify="center"> ?????
 class Dependencies extends React.Component {
     render() {
         const {classes} = this.props;
@@ -20,14 +22,14 @@ class Dependencies extends React.Component {
                             <h3>
                                 Composer (PHP) Dependencies
                             </h3>
-                            <p>
+                            <b>
                                 php: ^7.1,<br/>
                                 mustache/mustache: v2.12.0,<br/>
                                 psr/log: ^1.0,<br/>
                                 phpunit/phpunit-selenium: ^4.1,<br/>
                                 matthiasmullie/minify: "dev-master,<br/>
                                 patchwork/jsqueeze: ^2.0<br/>
-                            </p>
+                            </b>
                             <p>The above are required to get the full CarbonPHP backend functionality.</p>
                             <br/><br/>
                             <h3>NPM (JS) Dependencies</h3>
@@ -47,26 +49,28 @@ class Dependencies extends React.Component {
                             <p>
                                 AdminLTE can be fetched from the node package.json located at the root of C6.<br/>
                                 Run <b>>> npm install</b> from the root directory to use and edit AdminLTE's
-                                features.<br/>
+                                features.
                             </p>
+                            <br/>
                             <p>
                                 The following will be installed.
-                                <br/> <br/>
+                                <br/><br/>
+                                <b>
                                 admin-lte: 2.4,<br/>
                                 jquery-backstretch: 2.1.16,<br/>
                                 jquery-form: ^4.2.2,<br/>
                                 jquery-pjax: ^2.0.1,<br/>
                                 mustache: ^2.3.0"<br/>
-                                <br/>
+                                </b>
                             </p>
-
+                            <br/>
                             <h3><b>Material React Open Source Series</b></h3>
                             <p>
                                 Material React can be fetched from the node package.json located at of
-                                <b><br/><br/>[C6]/view/react/material-dashboard-react-c6/</b><br/><br/>
+                                <br/><br/><b>[C6]/view/react/material-dashboard-react-c6/</b><br/><br/>
                                 Run <b>>> npm install</b> from this directory to use and edit the React library.
                                 <br/>
-                                <p>
+                                <b>
                                     @material-ui/core: 3.9.2,<br/>
                                     @material-ui/icons: 3.0.2,<br/>
                                     @types/googlemaps: 3.30.13,<br/>
@@ -95,13 +99,13 @@ class Dependencies extends React.Component {
                                     react-bootstrap-sweetalert: 4.4.1,<br/>
                                     react-swipeable-views: 0.12.17,<br/>
                                     sweetalert: ^2.1.0
-                                </p>
+                                </b>
                             </p>
                         </GridItem>
                     </GridContainer>
                 </div>
             </div>
-        );
+        )
     }
 }
 

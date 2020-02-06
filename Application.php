@@ -76,12 +76,12 @@ abstract class Application extends Route
         }
 
         // the array $argv will be passed as arguments to the method requested, see link above
-        $exec = function &(string $class, array &$argv) use ($method) {
+        $exec = static function &(string $class, array &$argv) use ($method) {
             $argv = \call_user_func_array([new $class, $method], $argv);
             return $argv;
         };
 
-        return function () use ($exec, $controller, $model, &$argv) {
+        return static function () use ($exec, $controller, $model, &$argv) {
             if (!empty($argv = $exec($controller, $argv))) {
                 if (\is_array($argv)) {
                     return $exec($model, $argv);        // array passed

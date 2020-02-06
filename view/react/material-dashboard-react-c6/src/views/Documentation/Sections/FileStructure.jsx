@@ -72,16 +72,13 @@ class SectionJavascript extends React.Component {
         return (
             <div className={classes.section}>
                 <div className={classes.container}>
-                    <div className={classes.title}>
-                        <h2>Javascript components</h2>
-                    </div>
-                    <GridContainer>
+                    <GridContainer justify="center">
+                        <div className={classes.title}>
+                            <h2>File Structure & System Architecture</h2>
+                        </div>
                         <GridItem xs={12} sm={12} md={8}>
-                            <div className={classes.title}>
-                                <h3>File Structure</h3>
-                            </div>
                             <p>
-                                I think <a
+                                The <a
                                 href="https://framework.zend.com/manual/1.10/en/project-structure.project.html"
                                 className="text-purple">Zend
                                 Framework</a> has a very
@@ -90,16 +87,15 @@ class SectionJavascript extends React.Component {
                                 tweaks. We do this because
                                 The <a href="https://en.wikipedia.org/wiki/Model–view–controller"
                                        className="text-purple">Controller ->
-                                Model -> View (MVC,
+                                Model -> View (aka MVC because it
                                 rolls
                                 off the tong better) coding pattern</a>
-                                is in alphabetical order. So in most editors you can think of it as top down. I
-                                recommend viewing the
-                                files,
+                                is in alphabetical order. So in most editors you can think of it as a top down approach.
+                                The following is our
                             </p>
 
                             <ol>
-                                <li><h4><b>Controllers - accepts input and converts it to commands for the model or
+                                <li><h4><b>Controller - accept input and validates it for the model or
                                     view</b></h4>
                                     <ul>
                                         <li>If the controller returns null the model will be skipped in execution
@@ -107,27 +103,28 @@ class SectionJavascript extends React.Component {
                                             If the controller returns false neither the model code layer or view will
                                             not be executed.
                                         </li>
-                                        <li>Data returned by controllers will be passed as parameters to the model</li>
+                                        <li>Data returned by controllers will be passed as parameters to the model.</li>
                                     </ul>
                                 </li>
-                                <li><h4><b>Models - may accept data from the controller, but is not required</b></h4>
+                                <li><h4><b>Model - may accept data from the controller, but is not required</b></h4>
                                     <ul>
                                         <li>Models usually run functions provided in the Tables folder then work to
                                             prepare it for the
-                                            view
+                                            view.
                                         </li>
                                         <li>Tables should have a corresponding file of the same name as the MySQL
-                                            table
+                                            table.
                                         </li>
                                     </ul>
                                 </li>
-                                <li><h4><b>Tables - preform database operations</b></h4>
+                                <li><h4><b>Tables - Auto-Generated classes used to preform database operations</b></h4>
                                     <ul>
                                         <li>Tables should generated using the <code>php index.php rest</code> command.
                                         </li>
+                                        <li>For more information <code>php index.php rest -json</code>.</li>
                                     </ul>
                                 </li>
-                                <li><h4><b>View - holds all html data</b></h4>
+                                <li><h4><b>View - holds all front end development data</b></h4>
                                     <ul>
                                         <li>All logic in the view should be based on presents of variables</li>
                                         <li>React Javascript or Mustache templates are recommend</li>
@@ -139,19 +136,29 @@ class SectionJavascript extends React.Component {
                                 <ul>
                                     <li><h5>config/</h5>
                                         <ul>
-                                            <li>This folder houses the Config.php file, this will most likely need to edited for you database credentials.</li>
-                                            <li>buildDatabase.php aslo exists in this directory. This is automatically generated and should not be directly edited.
-                                                See C6 Cli programs for more information.</li>
+                                            <li>This folder houses the Config.php file, this will most likely need to
+                                                edited for you database credentials.
+                                            </li>
+                                            <li>buildDatabase.php aslo exists in this directory. This is automatically
+                                                generated and should not be directly edited.
+                                                See C6 Cli programs for more information.
+                                            </li>
                                         </ul>
                                     </li>
                                     <li><h5>controller/</h5>
-                                        <ul><li>Validate user input (type checks)</li></ul>
+                                        <ul>
+                                            <li>Validate user input (type checks)</li>
+                                        </ul>
                                     </li>
                                     <li><h5>model/</h5>
-                                        <ul><li>Validate against database + other database operations</li></ul>
+                                        <ul>
+                                            <li>Validate against database + other database operations</li>
+                                        </ul>
                                     </li>
                                     <li><h5>tables/</h5>
-                                        <ul><li>Table classes are automatically generated with REST</li></ul>
+                                        <ul>
+                                            <li>Table classes are automatically generated with REST</li>
+                                        </ul>
                                     </li>
                                     <li><h5>view/</h5>
                                         <ul>
@@ -160,17 +167,27 @@ class SectionJavascript extends React.Component {
                                         </ul>
                                     </li>
                                     <li><h5>index.php</h5>
-                                        <ul><li>This starts composer, initiates CarbonPHP, then runs the websites routing file.</li></ul></li>
-                                    <li>
-                                        <h5>website.php</h5>
                                         <ul>
-                                            <li>This is typically named after the domain name and is the routing bootstrap file.</li>
+                                            <li>This starts composer, initiates CarbonPHP, then runs the websites
+                                                routing file.
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        <h5>[website].php</h5>
+                                        <ul>
+                                            <li>This is typically named after the domain name and is the routing
+                                                bootstrap file.
+                                            </li>
                                         </ul>
                                     </li>
                                 </ul>
                             </p>
                         </GridItem>
                     </GridContainer>
+                    <br/>
+                    <br/>
+                    <br/>
                 </div>
             </div>
         );

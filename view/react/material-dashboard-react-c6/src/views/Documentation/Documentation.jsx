@@ -76,8 +76,6 @@ class Documentation extends React.Component {
 
         const {classes, ...rest} = this.props;
 
-
-
         let publicDocumentationRoutes = [
             {
                 path: "/5.0/Documentation/CarbonPHP",     // I'm leaving this here for the time being as an example
@@ -108,7 +106,7 @@ class Documentation extends React.Component {
                         component: Installation
                     }, {
                         path: "/5.0/Documentation/FileStructure",
-                        name: "File Structure",
+                        name: "Structure",
                         icon: DashboardIcon,
                         component: FileStructure
                     }, {
@@ -183,7 +181,7 @@ class Documentation extends React.Component {
             },
             {
                 path: "/5.0/Documentation/BrowserOSSupport",
-                name: "Browser & OS Support",
+                name: "Changelog",
                 icon: DashboardIcon,
                 component: BrowserOSSupport
             },
