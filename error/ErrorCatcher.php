@@ -49,7 +49,7 @@ class ErrorCatcher
     {
         return static function (...$argv) use ($lambda) {
             try {
-                ob_start(null,null,  PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
+                ob_start(null, null, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
                 $argv = \call_user_func_array($lambda, $argv);
             } catch (\Throwable $e) {
                 if (!$e instanceof PublicAlert) {
@@ -66,8 +66,8 @@ class ErrorCatcher
 
                     }
                 } //elseif (APP_LOCAL) {
-                    // Why did we do this
-                   // ErrorCatcher::generateLog($e);
+                // Why did we do this
+                // ErrorCatcher::generateLog($e);
                 //}
                 /** @noinspection CallableParameterUseCaseInTypeContextInspection */
                 $argv = null;
@@ -129,19 +129,28 @@ END;
             }
             die(1);
         };
+
         set_error_handler($closure);
-        set_exception_handler($closure);
+        set_exception_handler($closure);   // takes one argument
     }
 
-    /** Generate a full error log consisting of a
+    /** Generate a full error log consisting of a stack trace and arguments to each function call
+     *
+     *  The following functions point to this method by passing the arguments on via redirection.
+     *  The required method signatures are different, so it is important that we do not type hint this function.
+     *
+     *  The options to make this signatures unique are compelling, but not essential.
+     *
+     *  set_error_handler
+     *  set_exception_handler
+     *
      * @param \Throwable|array|null $e
      * @param string $level
      * @return string
      * @internal param $argv
      */
-    public static function generateLog(\Throwable $e = null, string $level = 'log'): string
+    public static function generateLog($e = null, string $level = 'log'): string
     {
-
         if (ob_get_status()) {
             // Attempt to remove any previous in-progress output buffers
             ob_end_clean();
@@ -165,12 +174,9 @@ END;
             }
         }
 
-
         print PHP_EOL . $trace . PHP_EOL;
 
-        $output = ob_get_contents();
-
-        ob_end_clean();
+        $output = ob_get_clean();
 
         /** @noinspection ForgottenDebugOutputInspection */
         error_log($output);
