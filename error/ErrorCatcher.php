@@ -117,7 +117,8 @@ END;
             static $count = 0;
             $count++;
 
-            self::generateLog(...$argv);
+            // set_error_handler vs set_exception_handler signatures
+            is_array($argv) ? self::generateLog($argv) : self::generateLog(...$argv);
 
             if (!SOCKET && !APP_LOCAL && CarbonPHP::$setupComplete) {
                 if ($count > 1) {
