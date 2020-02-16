@@ -168,7 +168,7 @@ END;
             }
             print PHP_EOL . $e->getMessage() . PHP_EOL;
         } else {
-            $trace = self::generateCallTrace();
+            $trace = self::generateCallTrace(null);
 
             if (\is_array($e) && \count($e) >= 4) {
                 print PHP_EOL . 'Carbon caught this Message: ' . $e[1] . PHP_EOL . 'line: ' . $e[2] . '(' . $e[3] . ')' . PHP_EOL;
@@ -221,8 +221,7 @@ END;
      */
     public static function generateCallTrace(\Throwable $e = null): string
     {
-
-        ob_start();
+        ob_start(null, null, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);     // start a new buffer for saving errors
         if (null === $e) {
             $e = new \Exception();
             $trace = explode("\n", $e->getTraceAsString());
@@ -252,9 +251,7 @@ END;
             print "\n\t" . implode("\n\t", $result);
         }
 
-        $output = ob_get_contents();
-        ob_end_clean();
-        return $output;
+        return ob_get_clean();
     }
 
 }

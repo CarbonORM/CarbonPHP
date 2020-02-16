@@ -46,7 +46,6 @@ class CLI implements iCommand
             exit('array_walk failed in Cli::run()');
         }
 
-
         $this->programs = $program;
     }
 

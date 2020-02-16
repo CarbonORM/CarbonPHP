@@ -182,7 +182,7 @@ return [
         ],
         'JS' => [
             'OUT' => APP_ROOT .'view/mustache/js/javascript.js',
-            CARBON_ROOT .'node_modules/admin-lte/bower_components/jquery/dist/jquery.min.js',
+            CARBON_ROOT .'node_modules/admin-lte/bower_components/jquery/dist/jquery.slim.js',
             CARBON_ROOT .'node_modules/jquery-pjax/jquery.pjax.js',
             CARBON_ROOT .'view/mustache/Layout/mustache.js',
             CARBON_ROOT .'helpers/Carbon.js',
