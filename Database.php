@@ -294,7 +294,13 @@ class Database
             // TODO - this sucks, it should be better
             // The end users are going to mess up and start a code search.. either do a null check
             //  and throw a reasonable error, or the fuck with it.
-            return $lambda();
+            $return = $lambda();
+
+            if (!is_bool($return)) {
+                throw new \Error('The return type of the lambda supplied should be a boolean');
+            }
+
+            return $return;
         }
 
         return true;
