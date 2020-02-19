@@ -10,7 +10,7 @@ import completedStyle from "assets/jss/material-kit-react/views/componentsSectio
 
 
 // TODO - <GridContainer justify="center"> ?????
-class License extends React.Component {
+class Template extends React.Component {
     render() {
         const {classes} = this.props;
         return (
@@ -18,7 +18,7 @@ class License extends React.Component {
                 <div className={classes.container}>
                     <GridContainer justify="center">
                         <GridItem xs={12} sm={12} md={8}>
-                            <h1>License </h1>
+                            <h1><b>Template</b> License </h1>
                             <p>
                                 CarbonPHP is an open source project that is licensed under the MIT license. This allows
                                 you to do pretty much anything you want as long as you include the copyright in "all
@@ -56,4 +56,4 @@ class License extends React.Component {
     }
 }
 
-export default withStyles(completedStyle)(License);
+export default withStyles(completedStyle)(Template);

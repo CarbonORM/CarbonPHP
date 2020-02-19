@@ -5,3 +5,6 @@
 .idea/workspace.xml
 .DS_Store
 /vendor/
+/node_modules/
+/*/node_modules/
+

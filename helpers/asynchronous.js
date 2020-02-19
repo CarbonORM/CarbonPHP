@@ -7,12 +7,12 @@
     }
 
     function load_select2() {
-        carbon.js(TEMPLATE + "bower_components/select2/dist/js/select2.full.min.js", () =>
+        carbon.js("/node_modules/admin-lte/bower_components/select2/dist/js/select2.full.min.js", () =>
             $(this).select2());
     }
 
     function load_datatables() {
-        carbon.js(TEMPLATE + "bower_components/datatables.net-bs/js/dataTables.bootstrap.js", () => {
+        carbon.js("/node_modules/admin-lte/bower_components/datatables.net-bs/js/dataTables.bootstrap.js", () => {
             try {
                 return $(this).DataTable()
             } catch (err) {
@@ -22,7 +22,7 @@
     }
 
     function load_iCheck() {
-        carbon.js(TEMPLATE + "plugins/iCheck/icheck.min.js", () => {
+        carbon.js("/node_modules/admin-lte/plugins/iCheck/icheck.min.js", () => {
             $(this).iCheck({
                 checkboxClass: 'icheckbox_square-blue',
                 radioClass: 'iradio_square-blue',
@@ -33,22 +33,22 @@
 
 
     function load_wysihtml5() {
-        carbon.js(TEMPLATE + "plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.all.min.js", () => {
+        carbon.js("/node_modules/admin-lte/plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.all.min.js", () => {
             $(this).wysihtml5();
         });
     }
 
     function load_inputmask() {
-        carbon.js(TEMPLATE + "plugins/input-mask/jquery.inputmask.js", () => {
-            carbon.js(TEMPLATE + "plugins/input-mask/jquery.inputmask.date.extensions.js",
+        carbon.js("/node_modules/admin-lte/plugins/input-mask/jquery.inputmask.js", () => {
+            carbon.js("/node_modules/admin-lte/plugins/input-mask/jquery.inputmask.date.extensions.js",
                 () => $(this).inputmask());
-            carbon.js(TEMPLATE + "plugins/input-mask/jquery.inputmask.extensions.js",
+            carbon.js("/node_modules/admin-lte/plugins/input-mask/jquery.inputmask.extensions.js",
                 () => $(this).inputmask());
         }, () => $(this).inputmask());
     }
 
     function load_knob() {
-        carbon.js(TEMPLATE+"bower_components/jquery-knob/js/jquery.knob.js", () => {
+        carbon.js("/node_modules/admin-lte/bower_components/jquery-knob/js/jquery.knob.js", () => {
             $(this).knob({
                 draw: function () {
                     /* "tron" case*/
@@ -97,19 +97,19 @@
     }
 
     function load_timepicker() {
-        carbon.js(TEMPLATE + "plugins/timepicker/bootstrap-timepicker.min.js", () => {
+        carbon.js("/node_modules/admin-lte/plugins/timepicker/bootstrap-timepicker.min.js", () => {
             $(this).timepicker({showInputs: false});
         });
     }
 
     function load_datepicker() {
-        carbon.js(TEMPLATE + "bower_components/bootstrap-datepicker/js/bootstrap-datepicker.js", () => {
+        carbon.js("/node_modules/admin-lte/bower_components/bootstrap-datepicker/js/bootstrap-datepicker.js", () => {
             $(this).datepicker({autoclose: true});
         });
     }
 
     function load_colorpicker() {
-        carbon.js(TEMPLATE + "bower_components/bootstrap-colorpicker/dist/js/bootstrap-colorpicker.min.js", () =>
+        carbon.js("/node_modules/admin-lte/bower_components/bootstrap-colorpicker/dist/js/bootstrap-colorpicker.min.js", () =>
             $(this).colorpicker());
     }
 

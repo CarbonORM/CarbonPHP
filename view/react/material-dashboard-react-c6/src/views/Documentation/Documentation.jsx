@@ -38,7 +38,6 @@ import HeaderLinks from "components/HeaderTop/HeaderLinks.jsx";
 // import Sections from "views/Documentation/Sections/Sections";
 
 
-
 import DashboardIcon from "@material-ui/icons/Dashboard";
 import Routing from "./Sections/Routing";
 import Requests from "./Sections/Requests";
@@ -54,8 +53,6 @@ import Support from "./Sections/Support";
 import License from "./Sections/License";
 import MaterialUI from "./Sections/MaterialUI";
 import Overview from "./Sections/Overview";
-
-
 
 
 class Documentation extends React.Component {
@@ -78,16 +75,6 @@ class Documentation extends React.Component {
         console.log(this.props);
 
         const {classes, ...rest} = this.props;
-
-        // noinspection JSUnresolvedVariable
-        const mainPanel =
-            classes.mainPanel +
-            " " +
-            cx({
-                [classes.mainPanelSidebarMini]: false,
-                [classes.mainPanelWithPerfectScrollbar]:
-                navigator.platform.indexOf("Win") > -1
-            });
 
         let publicDocumentationRoutes = [
             {
@@ -112,32 +99,32 @@ class Documentation extends React.Component {
                         name: "Environment",
                         icon: DashboardIcon,
                         component: Environment
-                    },{
+                    }, {
                         path: "/5.0/Documentation/Installation",
                         name: "Installation",
                         icon: DashboardIcon,
                         component: Installation
-                    },{
+                    }, {
                         path: "/5.0/Documentation/FileStructure",
-                        name: "File Structure",
+                        name: "Structure",
                         icon: DashboardIcon,
                         component: FileStructure
-                    },{
+                    }, {
                         path: "/5.0/Documentation/OptionsIndex",
                         name: "Configuration",
                         icon: DashboardIcon,
                         component: OptionsIndex
-                    },{
+                    }, {
                         path: "/5.0/Documentation/Bootstrap",
                         name: "Bootstrap",
                         icon: DashboardIcon,
                         component: Bootstrap
-                    },{
+                    }, {
                         path: "/5.0/Documentation/ControllerModel",
                         name: "Controller -> Model",
                         icon: DashboardIcon,
                         component: ControllerModel
-                    },{
+                    }, {
                         path: "/5.0/Documentation/PHPApplications/View",
                         name: "View",
                         icon: DashboardIcon,
@@ -154,37 +141,37 @@ class Documentation extends React.Component {
                         name: "Overview",
                         icon: DashboardIcon,
                         component: Overview
-                    },{
+                    }, {
                         path: "/5.0/Documentation/PHPApplications/Route",
                         name: "Routing",
                         icon: DashboardIcon,
                         component: Routing
-                    },{
+                    }, {
                         path: "/5.0/Documentation/PHPApplications/Requests",
                         name: "Requests",
                         icon: DashboardIcon,
                         component: Requests
-                    },{
+                    }, {
                         path: "/5.0/Documentation/PHPApplications/DatabaseEntities",
                         name: "Database & Entities",
                         icon: DashboardIcon,
                         component: DatabaseEntities
-                    },{
+                    }, {
                         path: "/5.0/Documentation/PHPApplications/Session",
                         name: "Session",
                         icon: DashboardIcon,
                         component: Session
-                    },{
+                    }, {
                         path: "/5.0/Documentation/PHPApplications/Singleton",
                         name: "Singleton",
                         icon: DashboardIcon,
                         component: Singleton
-                    },{
+                    }, {
                         path: "/5.0/Documentation/PHPApplications/Server",
                         name: "Server",
                         icon: DashboardIcon,
                         component: Server
-                    },{
+                    }, {
                         path: "/5.0/Documentation/ParallelProcessing",
                         name: "Parallel Processing",
                         icon: DashboardIcon,
@@ -194,7 +181,7 @@ class Documentation extends React.Component {
             },
             {
                 path: "/5.0/Documentation/BrowserOSSupport",
-                name: "Browser & OS Support",
+                name: "Changelog",
                 icon: DashboardIcon,
                 component: BrowserOSSupport
             },
@@ -234,42 +221,41 @@ class Documentation extends React.Component {
         // transparent here seems to work 50% the time, replace with dark if trouble persists
         return (
             <div>
-                <div className={classes.wrapper} ref="wrapper">
-                    <HeaderTop
-                        brand="CarbonPHP.com"
-                        rightLinks={<HeaderLinks/>}
-                        fixed
-                        color="transparent"
-                        changeColorOnScroll={{
-                            height: 400,
-                            color: "dark"
-                        }}
-                        {...rest}
-                    />
-                    <Parallax image={require("assets/img/Carbon-teal-180.png")}>
-                        <div className={classes.container}>
-                            <GridContainer>
-                                <GridItem>
-                                    <div className={classes.brand}>
-                                        <h1 className={classes.title}>CarbonPHP [C6]</h1>
-                                        <h3 className={classes.subtitle}>
-                                            Build full scale applications.
-                                        </h3>
-                                    </div>
-                                </GridItem>
-                            </GridContainer>
-                        </div>
-                    </Parallax>
-                    <div className={mainPanel} ref="mainPanel">
-                        <div>
-                            <Navbar routes={publicDocumentationRoutes}/>
-                            <div className={classNames(classes.main, classes.mainRaised)}>
-                                {this.props.subRoutingSwitch(publicDocumentationRoutes, rest)}
-                            </div>
+                <HeaderTop
+                    brand="CarbonPHP.com"
+                    rightLinks={<HeaderLinks/>}
+                    fixed
+                    color="transparent"
+                    changeColorOnScroll={{
+                        height: 400,
+                        color: "dark"
+                    }}
+                    {...rest}
+                />
+                <Parallax image={require("assets/img/Carbon-teal-180.png")}>
+                    <div className={classes.container}>
+                        <GridContainer>
+                            <GridItem>
+                                <div className={classes.brand}>
+                                    <h1 className={classes.title}>CarbonPHP [C6]</h1>
+                                    <h3 className={classes.subtitle}>
+                                        Build full scale applications.
+                                    </h3>
+                                </div>
+                            </GridItem>
+                        </GridContainer>
+                    </div>
+                </Parallax>
+                <div>
+                    <div>
+                        <Navbar className={classNames(classes.main, classes.mainRaised)}
+                                routes={publicDocumentationRoutes}/>
+                        <div className={classNames(classes.main, classes.mainRaised)}>
+                            {this.props.subRoutingSwitch(publicDocumentationRoutes, rest)}
                         </div>
                     </div>
-                    <Footer fluid/>
                 </div>
+                <Footer fluid/>
             </div>
         );
     }

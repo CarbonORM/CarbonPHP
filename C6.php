@@ -76,7 +76,7 @@ class C6 extends Application
      *  I do this because the namespace changes for other applications not
      *  in C6 context.
      *
-     * Stands for Controller -> Model .
+     *  Stands for Controller -> Model
      *
      * This will run the controller/$class.$method().
      * If the method returns !empty() the model/$class.$method() will be
@@ -84,10 +84,16 @@ class C6 extends Application
      * will be passed as parameters to our model.
      * @link http://php.net/manual/en/function.call-user-func-array.php
      *
+     * @TODO - I remember once using the return by reference to allow the changing of model from the controller. We now just use the return value of startApplication ie. false
+     *       - while I think this is a good use case, I think the obfuscation that this logic holds isn't true to the MVC arch thus shouldn't be done. I think with this in mind
+     *       - removing the & would same time in every route.... and I do not see a valid use case for it now (logically could it be used). I think we can remove with a minor version bump
+     *
      * @param string $class This class name to autoload
      * @param string $method The method within the provided class
      * @param array $argv Arguments to be passed to method
      * @return mixed the returned value from model/$class.$method() or false | void
+     * @noinspection DuplicatedCode                    - intellij needing help (avoiding unnecessary abstraction)
+     * @noinspection UnknownInspectionInspection       - intellij not helping intellij
      */
     public static function CM(string $class, string &$method, array &$argv = []): callable
     {
@@ -106,19 +112,23 @@ class C6 extends Application
         }
 
         // the array $argv will be passed as arguments to the method requested, see link above
-        $exec = function &(string $class, array &$argv) use ($method) {
+        $exec = static function &(string $class, array &$argv) use ($method) {
             $argv = \call_user_func_array([new $class, $method], $argv);
             return $argv;
         };
 
-        return function () use ($exec, $controller, $model, &$argv) {
-            if (!empty($argv = $exec($controller, $argv))) {
+        return static function () use ($exec, $controller, $model, &$argv) {
+            // execute controller
+            $argv = $exec($controller, $argv);
+
+            if (!empty($argv)) {                            // continue to the model?
                 if (\is_array($argv)) {
                     return $exec($model, $argv);        // array passed
                 }
-                $controller = [&$argv];                 // allow return by reference
+                $controller = [&$argv];                     // single return, allow return by reference TODO - is this still a thing? (not imperative
                 return $exec($model, $controller);
             }
+
             return $argv;
         };
     }
@@ -162,17 +172,49 @@ class C6 extends Application
         #color
         $this->structure($this->MVC());
 
-        if ($this->match('color', 'color', 'color')()){
+        if ($this->match('color', 'color', 'color')()) {
+            return true;
+        }
+
+        $this->structure($this->wrap());
+
+        ###################################### AdminLTE DOC
+        if ($this->match('2.0/UIElements/{AdminLTE?}',
+            function ($AdminLTE) {
+
+                $AdminLTE = (new Request())->set($AdminLTE)->word();  // must be validated
+
+                if (!$AdminLTE) {
+                    View::$forceWrapper = true;
+                    $AdminLTE = 'widgets';
+                }
+
+                if (file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . $AdminLTE . '.php') ||
+                    file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Charts' . DS . $AdminLTE . '.php') ||
+                    file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Examples' . DS . $AdminLTE . '.php') ||
+                    file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Forms' . DS . $AdminLTE . '.php') ||
+                    file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Layout' . DS . $AdminLTE . '.php') ||
+                    file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Mailbox' . DS . $AdminLTE . '.php') ||
+                    file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Tables' . DS . $AdminLTE . '.php') ||
+                    file_exists(SERVER_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'UI' . DS . $AdminLTE . '.php')) {
+
+                    View::$wrapper = SERVER_ROOT . APP_VIEW . 'mustache/AdminLTE/wrapper.hbs';
+
+                    $this->wrap()($path);
+                }
+            })()) {
             return true;
         }
 
         if ($version = ($this->uri[0] ?? false)) {
-
             switch ($version) {
                 case '2.0':
                     $this->matched = true;
                     $json['VersionTWO'] = true;
                     $page = $this->uri[1] ?? false;
+
+                    $page or View::$forceWrapper = true;
+
                     if ($page && array_key_exists($page, self::$adminLTE)) {
                         $this->wrap()(self::$adminLTE[$page]);
                     } else {
@@ -187,9 +229,7 @@ class C6 extends Application
             }
         }
 
-        # $this->structure($this->JSON());
-
-        if ($this->match('carbon/authenticated', function () {
+        if ($this->match('carbon/authenticated', static function () {
             global $json;
 
             header('Content-Type: application/json', true, 200); // Send as JSON

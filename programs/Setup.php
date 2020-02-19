@@ -34,15 +34,38 @@ class Setup implements iCommand
 
     public function usage()
     {
-        // TODO: Implement usage() method.
+        // TODO - create setup program
+        print <<<usage
+
+
+        The setup program can be used to initialize and update a projects configuration files. 
+        Currently it does not do this, but here is what it does do.  
+        
+        
+        -r --rebuild                 Update the projects database configurations.
+
+        --mysql_native_password      Change mysql to default to a native password.
+        
+        
+usage;
+
     }
 
     public function run($argv) : int
     {
         $argc = count($argv);
 
+        if ($argc === 0) {
+            $this->usage();
+            exit(1);
+        }
+
         for ($i = 0; $i < $argc; $i++) {
             switch ($argv[$i]) {
+                default:
+                    print 'Invalid argument ' . $argv[$i] . PHP_EOL;
+                    $this->usage();
+                    exit(1);
                 case '-r':
                 case '--rebuild':
                     Database::setUp(false, true);   // Redirect = false

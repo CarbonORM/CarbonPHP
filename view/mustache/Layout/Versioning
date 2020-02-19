@@ -72,7 +72,7 @@ use Carbon\View;
 
         //-- Background Stretch -->
         loadJS("<?= View::versionControl(COMPOSER . 'bower-asset/jquery-backstretch/jquery.backstretch.min.js') ?>", () => {
-            $.backstretch('<?=SITE?>Application/View/img/velodrome.jpg');
+            $.backstretch('<?=SITE?>Application/view/mustache/Img/velodrome.jpg');
         });
 
         //-- Slim Scroll -->

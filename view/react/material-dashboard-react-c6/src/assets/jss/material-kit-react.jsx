@@ -29,7 +29,7 @@ const conatinerFluid = {
   paddingLeft: "15px",
   marginRight: "auto",
   marginLeft: "auto",
-  width: "100%"
+  width: "100%",
 };
 const container = {
   ...conatinerFluid,
@@ -179,8 +179,14 @@ const cardSubtitle = {
   marginTop: "-.375rem"
 };
 
+
+const textCenter = {
+  textAlign: "center"
+};
+
 export {
   //variables
+  textCenter,
   drawerWidth,
   transition,
   container,

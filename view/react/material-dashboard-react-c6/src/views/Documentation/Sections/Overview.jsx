@@ -18,8 +18,8 @@ class SectionCompletedExamples extends React.Component {
         return (
             <div className={classes.section}>
                 <div className={classes.container}>
-                    <GridContainer justify="center">
-                        <GridItem xs={12} sm={12} md={8}>
+                    <GridContainer>
+                        <GridItem xs={12} sm={12} md={12}>
                             <h2>Overview</h2>
                             <h4>
                                 The sequence diagram below and description even further make up a brief low level
@@ -44,16 +44,19 @@ class SectionCompletedExamples extends React.Component {
                                 The bootstrap is where you define your application. Most bootstraps are named after the
                                 website they are running. This website uses <b>CarboPHP/C6::class</b> and
                                 https://Stats.Coach/ uses <b>StatsCoach::class</b>. It's probably worth noting each
-                                class should be in a file named the same name of the class, and if you're lost you should
+                                class should be in a file named the same name of the class, and if you're lost you
+                                should
                                 check out the <b>N00B Guid for beginners</b>.
-                                This bootstrap typically contains little to no business logic and simply maps urls to other methods.
+                                This bootstrap typically contains little to no business logic and simply maps urls to
+                                other methods.
                                 In a pure C6 implementation the first step after a url is matched is the controller.
                             </h4>
                             <b>{'$this->structure($this->MVC());'}</b>
                             <br/>
                             <b>{'$this->match(\'Recover/{user_email?}/{user_generated_string?}/\', \'User\', \'recover\')()'}</b>
                             <h4>
-                                We would expect to find the above code in the bootstrap. This would move to the <b>controller/User.php </b>
+                                We would expect to find the above code in the bootstrap. This would move to
+                                the <b>controller/User.php </b>
                                 file. More on this later, but lets take a look at whats inside this file.
                             </h4>
 
@@ -61,27 +64,29 @@ class SectionCompletedExamples extends React.Component {
                             <h4>
                                 or url mapping file, we phase any
                                 url parameters and send them to the Controller. This is not the only data that must
-                                be validated. All form data is received in the $_POST[], $_GET[], $_FILES[], $_COOKIE[], ect.. super
+                                be validated. All form data is received in the $_POST[], $_GET[], $_FILES[], $_COOKIE[],
+                                ect.. super
                                 globals predefined by
                                 PHP must also be validated.
                             </h4>
 
+                            <GridContainer justify="center">
+                                <GridItem xs={12} sm={12}>
 
-                            <GridItem xs={12} sm={12} className={classes.marginLeft}>
-
-                                <img
-                                    src={SequenceDiagram}
-                                    alt="..."
-                                    className={
-                                        classes.imgRaised +
-                                        " " +
-                                        classes.imgRounded +
-                                        " " +
-                                        classes.imgFluid
-                                    }
-                                />
-                            </GridItem>
-                            <p>
+                                    <img
+                                        src={SequenceDiagram}
+                                        alt="..."
+                                        className={
+                                            classes.imgRaised +
+                                            " " +
+                                            classes.imgRounded +
+                                            " " +
+                                            classes.imgFluid
+                                        }
+                                    />
+                                </GridItem>
+                            </GridContainer>
+                            <GridItem xs={12} sm={8}>
                                 <br/><br/>
                                 <div className={classes.typo}>
                                     <div className={classes.note}><b>title C6 MVC Structure</b></div>
@@ -111,7 +116,8 @@ class SectionCompletedExamples extends React.Component {
                                 <br/>
                                 <div className={classes.typo}>
                                     <div className={classes.note}><b>Index->+C6: 5</b><br/></div>
-                                    5) Pass a class that extends <b>CarbonPHP/Application::class</b>.<br/>
+                                    <h3>5) Pass a class that extends <b>CarbonPHP/Application::class</b>.</h3>
+                                    <br/>
                                     The above implies that the following to abstractions are present in your routing
                                     class::<br/><br/>
                                     <b>abstract public function startApplication($uri = null) : bool;</b><br/>
@@ -125,7 +131,8 @@ class SectionCompletedExamples extends React.Component {
                                 <br/><br/><br/>
                                 <div className={classes.typo}>
                                     <div className={classes.note}><b>C6->+Bootstrap: 6</b><br/></div>
-                                    <h3>6) Runs the global function <b>startApplication( YouRoutingClass::class )</b>.</h3><br/>
+                                    <h3>6) Runs the global function <b>startApplication( YouRoutingClass::class )</b>.
+                                    </h3><br/>
                                     <small>
                                         This will ultimately run <br/>
                                         <b>(new YourRoutingClass::class)->startApplication( $uri )</b><br/>
@@ -137,8 +144,10 @@ class SectionCompletedExamples extends React.Component {
                                         where you called <b>startApplication</b>.<br/>
                                         The first invocation of the global <b>startApplication</b> function will
                                         statically store the routing classes definition.<br/><br/>
-                                        With each successive call to <b>startApplication( $uri )</b>, you should path the desired
-                                        route to re-match. Keep in mind that the first call this function is done automatically with
+                                        With each successive call to <b>startApplication( $uri )</b>, you should path
+                                        the desired
+                                        route to re-match. Keep in mind that the first call this function is done
+                                        automatically with
                                         the invocation of the CarbonPHP class object.<br/><br/>
                                         <b>startApplication( '/profile' )</b>
                                         <br/><br/>
@@ -151,8 +160,9 @@ class SectionCompletedExamples extends React.Component {
                                 <br/><br/>
                                 <div className={classes.typo}>
                                     <div className={classes.note}><b>Bootstrap->Bootstrap: 7</b></div>
-                                    <h3>7) Set <b>$this->structure( $this->MVC() );</b> as the method to use is a match is
-                                    found.</h3>
+                                    <h3>7) Set <b>$this->structure( $this->MVC() );</b> as the method to use is a match
+                                        is
+                                        found.</h3>
                                 </div>
                                 <div className={classes.typo}>
                                     <div className={classes.note}><b>Bootstrap->+Controller: 8</b></div>
@@ -164,13 +174,18 @@ class SectionCompletedExamples extends React.Component {
                                 <div className={classes.typo}>
                                     <div className={classes.note}><b>Controller-->-Bootstrap: 9</b></div>
                                     9) The responce to validation.
-                                    If false is returned from the controller, the program execution will effectively stop.
-                                    The stack will be returned to the index and safely exit with no responce. If <b>null</b> is
-                                    returned from the controller the model layer will be skipped and the view/responce will invoke next.
-                                    If a value is returned from the controller (effectively equating to true), the value will be passed as a function argument to the
-                                    model. If an array is returned from the controller, the list will be unpacked and values will be
+                                    If false is returned from the controller, the program execution will effectively
+                                    stop.
+                                    The stack will be returned to the index and safely exit with no responce.
+                                    If <b>null</b> is
+                                    returned from the controller the model layer will be skipped and the view/responce
+                                    will invoke next.
+                                    If a value is returned from the controller (effectively equating to true), the value
+                                    will be passed as a function argument to the
+                                    model. If an array is returned from the controller, the list will be unpacked and
+                                    values will be
                                     passed as individual arguments to the model.
-                                 </div>
+                                </div>
 
                                 <div className={classes.typo}>
                                     <div className={classes.note}><b>
@@ -187,8 +202,10 @@ class SectionCompletedExamples extends React.Component {
                                         Bootstrap->+Model: 10</b>
                                     </div>
                                     10) The Bootstrap will logically decide what file and function should be executed
-                                    next. If a value other than null or false is returned from the controller, the model will run.
-                                    All data is this step is considered validated. This step is generally reserved for most database requests.
+                                    next. If a value other than null or false is returned from the controller, the model
+                                    will run.
+                                    All data is this step is considered validated. This step is generally reserved for
+                                    most database requests.
                                     If a database Post or Update is required, this is the only place it should be done.
                                 </div>
 
@@ -196,7 +213,8 @@ class SectionCompletedExamples extends React.Component {
                                     <div className={classes.note}><b>
                                         Model-->-Bootstrap: 11
                                     </b></div>
-                                    11) The model can still cancel the view from sending by returning false. This returns the stack to the index
+                                    11) The model can still cancel the view from sending by returning false. This
+                                    returns the stack to the index
                                     and safely exits.
                                 </div>
                                 <div className={classes.typo}>
@@ -223,7 +241,8 @@ class SectionCompletedExamples extends React.Component {
                                     <div className={classes.note}>
                                         note over View,Browser: 13
                                     </div>
-                                    13) Print and send the content. This could be a JSON, HTML, or any other vector of responce.
+                                    13) Print and send the content. This could be a JSON, HTML, or any other vector of
+                                    responce.
                                 </div>
                                 <div className={classes.typo}>
 
@@ -261,7 +280,7 @@ class SectionCompletedExamples extends React.Component {
                                     </div>
                                     17) All code is finished and the connection is closed.
                                 </div>
-                            </p>
+                            </GridItem>
                         </GridItem>
                     </GridContainer>
                 </div>

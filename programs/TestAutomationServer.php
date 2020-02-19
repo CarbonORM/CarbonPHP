@@ -47,7 +47,6 @@ function get_page($url)
     curl_close($ch);
 
     if (preg_match('#^(.*)\.(css|js)#', $url, $matches, PREG_OFFSET_CAPTURE)) {
-
         if ($mime = mimeType($matches[2][0])) {
             header('Content-type:' . $mime . '; charset: UTF-8');
         }

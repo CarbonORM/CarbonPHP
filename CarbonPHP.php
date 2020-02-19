@@ -4,6 +4,7 @@ namespace CarbonPHP;
 
 use CarbonPHP\Helpers\Serialized;
 use CarbonPHP\programs\CLI;
+use Throwable;
 
 /**
  * Class Carbon
@@ -47,9 +48,9 @@ class CarbonPHP
      *  our session callback will be executed.
      *
      *  The session callback is be set in carbon's configuration
+     * @return bool Returns the response from the bootstrap as a bool
      * @link
      *
-     * @return bool Returns the response from the bootstrap as a bool
      */
     public static function startApplication($reset = false): bool
     {
@@ -92,7 +93,6 @@ class CarbonPHP
         endif;
 
         Session::update($reset);              // Check wrapper / session callback
-
 
         $uri = $uri ?? null;
 
@@ -166,231 +166,238 @@ class CarbonPHP
      *          'WRAPPER' => string '',         // View::content() will produce this
      *      ],
      * ]
-     * @throws \Exception
      */
     public static function make(string $configFilePath = null): void
     {
-        // TODO - make a cache of these consts
 
-        ####################  Sockets will have already claimed this global
-        \defined('TEST') OR \define('TEST', $_ENV['TEST'] ?? false);
+        try {
+            // TODO - make a cache of these consts
 
-        if (TEST) {     // TODO - remove server vars not needed in testing
-            self::$safelyExit = true;  // We just want the env to load, not route life :)
-            $_SERVER = [
-                'REMOTE_ADDR' => '::1',
-                'REMOTE_PORT' => '53950',
-                'SERVER_SOFTWARE' => 'PHP 7.2.3 Development Server',
-                'SERVER_PROTOCOL' => 'HTTP/1.1',
-                'SERVER_NAME' => 'localhost',
-                'SERVER_PORT' => '80',
-                'REQUEST_URI' => '/login/',
-                'REQUEST_METHOD' => 'GET',
-                'SCRIPT_NAME' => '/index.php',
-                'SCRIPT_FILENAME' => "C:\Users\rmiles\Documents\GitHub\Stats.Coach\index.php",
-                'PATH_INFO' => '/login/',
-                'PHP_SELF' => '/index.php/login/',
-                'HTTP_HOST' => 'localhost:80',
-                'HTTP_CONNECTION' => 'keep-alive',
-                'HTTP_CACHE_CONTROL' => 'max-age=0',
-                'HTTP_UPGRADE_INSECURE_REQUESTS' => '1',
-                'HTTP_USER_AGENT' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36',
-                'HTTP_ACCEPT' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-                'HTTP_REFERER' => 'http://localhost:88/',
-                'HTTP_ACCEPT_ENCODING' => 'gzip, deflate, br',
-                'HTTP_ACCEPT_LANGUAGE' => 'en-US,en;q=0.9',
-                'HTTP_COOKIE' => 'PHPSESSID=gn4amaq3el5giekaboa29q27gp; _gid=GA1.1.1938536140.1530039320',
-                'REQUEST_TIME_FLOAT' => 1530054388.652,
-                'REQUEST_TIME' => 1530054388,
-            ];
-        }
+            ####################  Sockets will have already claimed this global
+            \defined('TEST') OR \define('TEST', $_ENV['TEST'] ?? false);
 
-        ####################  Sockets will have already claimed this global
-        \defined('SOCKET') OR \define('SOCKET', false);
+            if (TEST) {     // TODO - remove server vars not needed in testing
+                self::$safelyExit = true;  // We just want the env to load, not route life :)
+                $_SERVER = [
+                    'REMOTE_ADDR' => '::1',
+                    'REMOTE_PORT' => '53950',
+                    'SERVER_SOFTWARE' => 'PHP 7.2.3 Development Server',
+                    'SERVER_PROTOCOL' => 'HTTP/1.1',
+                    'SERVER_NAME' => 'localhost',
+                    'SERVER_PORT' => '80',
+                    'REQUEST_URI' => '/login/',
+                    'REQUEST_METHOD' => 'GET',
+                    'SCRIPT_NAME' => '/index.php',
+                    'SCRIPT_FILENAME' => "C:\Users\rmiles\Documents\GitHub\Stats.Coach\index.php",
+                    'PATH_INFO' => '/login/',
+                    'PHP_SELF' => '/index.php/login/',
+                    'HTTP_HOST' => 'localhost:80',
+                    'HTTP_CONNECTION' => 'keep-alive',
+                    'HTTP_CACHE_CONTROL' => 'max-age=0',
+                    'HTTP_UPGRADE_INSECURE_REQUESTS' => '1',
+                    'HTTP_USER_AGENT' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36',
+                    'HTTP_ACCEPT' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+                    'HTTP_REFERER' => 'http://localhost:88/',
+                    'HTTP_ACCEPT_ENCODING' => 'gzip, deflate, br',
+                    'HTTP_ACCEPT_LANGUAGE' => 'en-US,en;q=0.9',
+                    'HTTP_COOKIE' => 'PHPSESSID=gn4amaq3el5giekaboa29q27gp; _gid=GA1.1.1938536140.1530039320',
+                    'REQUEST_TIME_FLOAT' => 1530054388.652,
+                    'REQUEST_TIME' => 1530054388,
+                ];
+            }
 
-        ####################  Define your own server root
-        \defined('APP_ROOT') OR \define('APP_ROOT', CARBON_ROOT);
+            ####################  Sockets will have already claimed this global
+            \defined('SOCKET') OR \define('SOCKET', false);
 
-        ####################  For help loading our Carbon.js
-        \defined('CARBON_ROOT') OR \define('CARBON_ROOT', __DIR__ . DS);
+            ####################  Define your own server root
+            \defined('APP_ROOT') OR \define('APP_ROOT', CARBON_ROOT);
 
-        ####################  Did we use >> php -S localhost:8080 index.php
-        \defined('APP_LOCAL') OR \define('APP_LOCAL', self::isClientServer());
+            ####################  For help loading our Carbon.js
+            \defined('CARBON_ROOT') OR \define('CARBON_ROOT', __DIR__ . DS);
 
-        ####################  May as well make composer a dependency
-        \defined('COMPOSER_ROOT') OR \define('COMPOSER_ROOT', \dirname(CARBON_ROOT, 2) . DS);
+            ####################  Did we use >> php -S localhost:8080 index.php
+            \defined('APP_LOCAL') OR \define('APP_LOCAL', self::isClientServer());
 
-        ####################  Template Root
-        \defined('TEMPLATE_ROOT') OR \define('TEMPLATE_ROOT', CARBON_ROOT);
+            ####################  May as well make composer a dependency
+            \defined('COMPOSER_ROOT') OR \define('COMPOSER_ROOT', \dirname(CARBON_ROOT, 2) . DS);
+
+            ####################  Template Root
+            \defined('TEMPLATE_ROOT') OR \define('TEMPLATE_ROOT', CARBON_ROOT);
 
 
-        ################  Helpful Global Functions ####################
-        if (!file_exists(CARBON_ROOT . 'helpers' . DS . 'Application.php') || !include CARBON_ROOT . 'helpers' . DS . 'Application.php') {
-            print '<h1>Your instance of CarbonPHP appears corrupt. Please see CarbonPHP.com for Documentation.</h1>';
-            die(1);
-        }
+            ################  Helpful Global Functions ####################
+            if (!file_exists(CARBON_ROOT . 'helpers' . DS . 'Application.php') || !include CARBON_ROOT . 'helpers' . DS . 'Application.php') {
+                print '<h1>Your instance of CarbonPHP appears corrupt. Please see CarbonPHP.com for Documentation.</h1>';
+                die(1);
+            }
 
-        ####################  Now load config file so globals above & stacktrace security
-        if ($configFilePath !== null) {
-            if (file_exists($configFilePath)) {
-                /** @var array $PHP */
-                $PHP = include $configFilePath;            // TODO - change the variable
-                // this file must return an array!
-            } elseif ($configFilePath !== null) {
-                print 'Invalid configuration path given! ' . $configFilePath;
+            ####################  Now load config file so globals above & stacktrace security
+            if ($configFilePath !== null) {
+                if (file_exists($configFilePath)) {
+                    /** @var array $PHP */
+                    $PHP = include $configFilePath;            // TODO - change the variable
+                    // this file must return an array!
+                } elseif ($configFilePath !== null) {
+                    print 'Invalid configuration path given! ' . $configFilePath;
+                    self::$safelyExit = true;
+                    return;
+                }
+            }
+
+            #######################   VIEW      ######################
+            \define('APP_VIEW', $PHP['VIEW']['VIEW'] ?? DS);         // Public Folder
+
+            View::$wrapper = APP_ROOT . APP_VIEW . $PHP['VIEW']['WRAPPER'] ?? '';
+
+            ####################  GENERAL CONF  ######################
+            error_reporting($PHP['ERROR']['LEVEL'] ?? E_ALL | E_STRICT);
+
+            ini_set('display_errors', $PHP['ERROR']['SHOW'] ?? true);
+
+            date_default_timezone_set($PHP['SITE']['TIMEZONE'] ?? 'America/Chicago');
+
+            \defined('DS') OR \define('DS', DIRECTORY_SEPARATOR);
+
+            \defined('APP_ROOT') OR \define('APP_ROOT', CARBON_ROOT);
+
+            \define('REPORTS', $PHP['ERROR']['LOCATION'] ?? APP_ROOT);
+
+            #####################   AUTOLOAD    #######################
+            if ($PHP['AUTOLOAD'] ?? false) {
+                $PSR4 = include CARBON_ROOT . 'AutoLoad.php';
+                if (\is_array($PHP['AUTOLOAD'] ?? false)) {
+                    foreach ($PHP['AUTOLOAD'] as $name => $path) {
+                        $PSR4->addNamespace($name, $path);
+                    }
+                }
+            }
+
+            #####################   ERRORS    #######################
+            /**
+             * TODO - debating on removing the start and attempting to catch our own errors. look into later
+             * So I've looked into it and discovered thrown errors can return to the current execution point
+             * We must now decide how and when we throw errors / exceptions..
+             *
+             * Questions still to test. When does the error catcher get resorted to?
+             * Do Try Catch block have a higher precedence than the error catcher?
+             * What if that error is thrown multiple function levels down in a block?
+             **/
+
+            if ($PHP['ERROR'] ?? false) {
+                Error\ErrorCatcher::$defaultLocation = REPORTS . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
+                Error\ErrorCatcher::$fullReports = $PHP['ERROR']['FULL'] ?? true;
+                Error\ErrorCatcher::$printToScreen = $PHP['ERROR']['SHOW'] ?? true;
+                Error\ErrorCatcher::$storeReport = $PHP['ERROR']['STORE'] ?? false;
+                Error\ErrorCatcher::$level = $PHP['ERROR']['LEVEL'] ?? ' E_ALL | E_STRICT';
+                Error\ErrorCatcher::start();
+            } // Catch application errors and alerts
+
+
+            #################  DATABASE  ########################
+            if ($PHP['DATABASE'] ?? false) {
+                Database::$dsn = 'mysql:host=' . ($PHP['DATABASE']['DB_HOST'] ?? '') . ';dbname=' . ($PHP['DATABASE']['DB_NAME'] ?? '') . ';port=' . ($PHP['DATABASE']['DB_PORT'] ?? '3306');
+                Database::$username = $PHP['DATABASE']['DB_USER'] ?? '';
+                Database::$password = $PHP['DATABASE']['DB_PASS'] ?? '';
+                Database::$setup = $PHP['DATABASE']['DB_BUILD'] ?? '';
+            }
+
+            #################  SITE  ########################
+            if ($PHP['SITE'] ?? false) {
+                \define('SITE_TITLE', $PHP['SITE']['TITLE'] ?? 'CarbonPHP');                     // Carbon doesnt use
+                \define('SITE_VERSION', $PHP['SITE']['VERSION'] ?? PHP_VERSION);                // printed in the footer
+                \define('SYSTEM_EMAIL', $PHP['SEND_EMAIL'] ?? '');                               // server email system
+                \define('REPLY_EMAIL', $PHP['REPLY_EMAIL'] ?? '');                               // I give you options :P
+            }
+
+            // TODO - move to app invocation
+            // PHPUnit Runs in a cli to ini the 'CarbonPHP' env.
+            // We're not testing out extra resources
+            if (PHP_SAPI === 'cli' && !TEST && !SOCKET) {
+                self::$safelyExit = true;
+                $cli = new CLI($PHP);
+                $cli->run($_SERVER['argv'] ?? ['index.php', null]);
+                $cli->cleanUp($PHP);
+                return;
+            }
+
+            ##################  VALIDATE URL / URI ##################
+            // This is the first step that could kick users out of our application.
+            // Even if a request is bad, we need to store the log
+            if (!\defined('IP')) {
+                self::IP_FILTER();
+            }
+
+            // This is the first event that could resolve the request (to a file), respond, and exit safely
+            self::URI_FILTER($PHP['SITE']['URL'] ?? '', $PHP['SITE']['CACHE_CONTROL'] ?? []);
+
+
+            // TODO - I'm probably going to move this to the cli
+            if ($PHP['DATABASE']['REBUILD'] ?? false) {
+                Database::setUp(false);   // Redirect = false
                 self::$safelyExit = true;
                 return;
             }
-        }
 
-        #######################   VIEW      ######################
-        \define('APP_VIEW', $PHP['VIEW']['VIEW'] ?? DS);         // Public Folder
+            #######################   Pjax Ajax Refresh   ######################
+            // Must return a non empty value
+            SOCKET or $headers = self::headers();
 
-        View::$wrapper = APP_ROOT . APP_VIEW . $PHP['VIEW']['WRAPPER'] ?? '';
+            \define('PJAX', SOCKET ? false : isset($headers['X-PJAX']) || isset($_GET['_pjax']) || (isset($_SERVER['HTTP_X_PJAX']) && $_SERVER['HTTP_X_PJAX']));
 
-        ####################  GENERAL CONF  ######################
-        error_reporting($PHP['ERROR']['LEVEL'] ?? E_ALL | E_STRICT);
-
-        ini_set('display_errors', $PHP['ERROR']['SHOW'] ?? true);
-
-        date_default_timezone_set($PHP['SITE']['TIMEZONE'] ?? 'America/Chicago');
-
-        \defined('DS') OR \define('DS', DIRECTORY_SEPARATOR);
-
-        \defined('APP_ROOT') OR \define('APP_ROOT', CARBON_ROOT);
-
-        \define('REPORTS', $PHP['ERROR']['LOCATION'] ?? APP_ROOT);
-
-        #####################   AUTOLOAD    #######################
-        if ($PHP['AUTOLOAD'] ?? false) {
-            $PSR4 = include CARBON_ROOT . 'AutoLoad.php';
-            if (\is_array($PHP['AUTOLOAD'] ?? false)) {
-                foreach ($PHP['AUTOLOAD'] as $name => $path) {
-                    $PSR4->addNamespace($name, $path);
+            if (PJAX && empty($_POST)) {
+                # try to json decode. Json payloads ar sent to the input stream
+                $_POST = json_decode(file_get_contents('php://input'), true);
+                if ($_POST == null) {
+                    $_POST = [];
                 }
             }
-        }
 
-        #####################   ERRORS    #######################
-        /**
-         * TODO - debating on removing the start and attempting to catch our own errors. look into later
-         * So I've looked into it and discovered thrown errors can return to the current execution point
-         * We must now decide how and when we throw errors / exceptions..
-         *
-         * Questions still to test. When does the error catcher get resorted to?
-         * Do Try Catch block have a higher precedence than the error catcher?
-         * What if that error is thrown multiple function levels down in a block?
-         **/
+            // (PJAX == true) return required, else (!PJAX && AJAX) return optional (socket valid)
+            \define('AJAX', SOCKET ? false : PJAX || ('XMLHttpRequest' === ($headers['X-Requested-With'] ?? false)) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'));
 
-        if ($PHP['ERROR'] ?? false) {
-            Error\ErrorCatcher::$defaultLocation = REPORTS . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
-            Error\ErrorCatcher::$fullReports = $PHP['ERROR']['FULL'] ?? true;
-            Error\ErrorCatcher::$printToScreen = $PHP['ERROR']['SHOW'] ?? true;
-            Error\ErrorCatcher::$storeReport = $PHP['ERROR']['STORE'] ?? false;
-            Error\ErrorCatcher::$level = $PHP['ERROR']['LEVEL'] ?? ' E_ALL | E_STRICT';
-            Error\ErrorCatcher::start();
-        } // Catch application errors and alerts
+            \define('HTTPS', SOCKET ? false : ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? false) === 'https' || ($_SERVER['HTTPS'] ?? 'off') !== 'off');
 
+            \define('HTTP', !(HTTPS || SOCKET || AJAX));
 
-        #################  DATABASE  ########################
-        if ($PHP['DATABASE'] ?? false) {
-            Database::$dsn = 'mysql:host=' . ($PHP['DATABASE']['DB_HOST'] ?? '') . ';dbname=' . ($PHP['DATABASE']['DB_NAME'] ?? '') . ';port=' . ($PHP['DATABASE']['DB_PORT'] ?? '3306');
-            Database::$username = $PHP['DATABASE']['DB_USER'] ?? '';
-            Database::$password = $PHP['DATABASE']['DB_PASS'] ?? '';
-            Database::$setup = $PHP['DATABASE']['DB_BUILD'] ?? '';
-        }
-
-        #################  SITE  ########################
-        if ($PHP['SITE'] ?? false) {
-            \define('SITE_TITLE', $PHP['SITE']['TITLE'] ?? 'CarbonPHP');                     // Carbon doesnt use
-            \define('SITE_VERSION', $PHP['SITE']['VERSION'] ?? PHP_VERSION);                // printed in the footer
-            \define('SYSTEM_EMAIL', $PHP['SEND_EMAIL'] ?? '');                               // server email system
-            \define('REPLY_EMAIL', $PHP['REPLY_EMAIL'] ?? '');                               // I give you options :P
-        }
-
-        // TODO - move to app invocation
-        // PHPUnit Runs in a cli to ini the 'CarbonPHP' env.
-        // We're not testing out extra resources
-        if (PHP_SAPI === 'cli' && !TEST && !SOCKET) {
-            self::$safelyExit = true;
-            $cli = new CLI($PHP);
-            $cli->run($_SERVER['argv'] ?? ['index.php', null]);
-            $cli->cleanUp($PHP);
-            return;
-        }
-
-        ##################  VALIDATE URL / URI ##################
-        // This is the first step that could kick users out of our application.
-        // Even if a request is bad, we need to store the log
-        if (!\defined('IP')) {
-            self::IP_FILTER();
-        }
-
-        // This is the first event that could resolve the request (to a file), respond, and exit safely
-        self::URI_FILTER($PHP['SITE']['URL'] ?? '', $PHP['SITE']['CACHE_CONTROL'] ?? []);
-
-
-        // TODO - I'm probably going to move this to the cli
-        if ($PHP['DATABASE']['REBUILD'] ?? false) {
-            Database::setUp(false);   // Redirect = false
-            self::$safelyExit = true;
-            return;
-        }
-
-        #######################   Pjax Ajax Refresh   ######################
-        // Must return a non empty value
-        SOCKET or $headers = self::headers();
-
-        \define('PJAX', SOCKET ? false : isset($headers['X-PJAX']) || isset($_GET['_pjax']) || (isset($_SERVER['HTTP_X_PJAX']) && $_SERVER['HTTP_X_PJAX']));
-
-        if (PJAX && empty($_POST)) {
-            # try to json decode. Json payloads ar sent to the input stream
-            $_POST = json_decode(file_get_contents('php://input'), true);
-            if ($_POST == null) {
-                $_POST = [];
+            // PHPUnit testing should not exit on explicit http(s) requests
+            if (!TEST && HTTP && !($PHP['SITE']['HTTP'] ?? true)) {
+                if (headers_sent()) {
+                    print '<h1>Failed to switch to https, headers already sent! Please contact the server administrator.</h1>';
+                } else {
+                    header('Location: https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
+                }
+                die(1);
             }
-        }
 
-        // (PJAX == true) return required, else (!PJAX && AJAX) return optional (socket valid)
-        \define('AJAX', SOCKET ? false : PJAX || ('XMLHttpRequest' === ($headers['X-Requested-With'] ?? false)) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'));
+            // TODO - I think we should make this optional
+            #AJAX OR $_POST = []; // We only allow post requests through ajax/pjax
 
-        \define('HTTPS', SOCKET ? false : ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? false) === 'https' || ($_SERVER['HTTPS'] ?? 'off') !== 'off');
+            ########################  Session Management ######################
+            if ($PHP['SESSION'] ?? true) {
+                if ($PHP['SESSION']['PATH'] ?? false) {
+                    session_save_path($PHP['SESSION']['PATH'] ?? '');   // Manually Set where the Users Session Data is stored
+                }
 
-        \define('HTTP', !(HTTPS || SOCKET || AJAX));
+                new Session(IP, $PHP['SESSION']['REMOTE'] ?? false); // session start
 
-        // PHPUnit testing should not exit on explicit http(s) requests
-        if (!TEST && HTTP && !($PHP['SITE']['HTTP'] ?? true)) {
-            if (headers_sent()) {
-                print '<h1>Failed to switch to https, headers already sent! Please contact the server administrator.</h1>';
-            } else {
-                header('Location: https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
+                $_SESSION['id'] = array_key_exists('id', $_SESSION ?? []) ? $_SESSION['id'] : false;
+
+                if (\is_callable($PHP['SESSION']['CALLBACK'] ?? null)) {
+                    Session::updateCallback($PHP['SESSION']['CALLBACK']); // Pull From Database, manage socket ip
+                }
             }
+
+            if (\is_array($PHP['SESSION']['SERIALIZE'] ?? false)) {
+                forward_static_call_array([Serialized::class, 'start'], $PHP['SESSION']['SERIALIZE']);    // Pull theses from session, and store on shutdown
+            }
+
+            self::$setupComplete = true;
+
+        } catch (Throwable $e) {
+            APP_LOCAL and print_r($e);
+            print PHP_EOL . 'Carbon Failed' . PHP_EOL;
             die(1);
         }
-
-        // TODO - I think we should make this optional
-        #AJAX OR $_POST = []; // We only allow post requests through ajax/pjax
-
-        ########################  Session Management ######################
-        if ($PHP['SESSION'] ?? true) {
-            if ($PHP['SESSION']['PATH'] ?? false) {
-                session_save_path($PHP['SESSION']['PATH'] ?? '');   // Manually Set where the Users Session Data is stored
-            }
-
-            new Session(IP, $PHP['SESSION']['REMOTE'] ?? false); // session start
-
-            $_SESSION['id'] = array_key_exists('id', $_SESSION ?? []) ? $_SESSION['id'] : false;
-
-            if (\is_callable($PHP['SESSION']['CALLBACK'] ?? null)) {
-                Session::updateCallback($PHP['SESSION']['CALLBACK']); // Pull From Database, manage socket ip
-            }
-        }
-
-        if (\is_array($PHP['SESSION']['SERIALIZE'] ?? false)) {
-            forward_static_call_array([Serialized::class, 'start'], $PHP['SESSION']['SERIALIZE']);    // Pull theses from session, and store on shutdown
-        }
-
-        self::$setupComplete = true;
     }
 
 

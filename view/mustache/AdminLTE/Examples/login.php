@@ -79,7 +79,7 @@
     Carbon(() => {
         $.fn.load_iCheck('input');
         /*
-        $.fn.load_backStreach("/Application/View/img/augusta-master.jpg");
+        $.fn.load_backStreach("/Application/view/mustache/Img/augusta-master.jpg");
         let remove=()=>{$.fn.load_backStreach()};
         $(document).off("pjax:beforeSend", remove).on("pjax:beforeSend", remove)
         */

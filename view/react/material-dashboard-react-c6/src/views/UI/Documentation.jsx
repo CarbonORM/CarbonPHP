@@ -172,7 +172,7 @@ class Documentation extends React.Component {
                         }}
                         {...rest}
                     />
-                    <Parallax image={require("assets/img/Carbon-teal-180.png")}>
+                    <Parallax image={require("assets/img/Carbon-purple-180.png")}>
                         <div className={classes.container}>
                             <GridContainer>
                                 <GridItem>
@@ -188,7 +188,7 @@ class Documentation extends React.Component {
                     </Parallax>
                     <div className={mainPanel} ref="mainPanel">
                         <div>
-                            <Navbar routes={publicDocumentationRoutes}/>
+                            <Navbar brand="Material Kit UI" color="danger" routes={publicDocumentationRoutes}/>
                             <div className={classNames(classes.main, classes.mainRaised)}>
                                 {this.props.subRoutingSwitch(publicDocumentationRoutes, rest)}
                             </div>

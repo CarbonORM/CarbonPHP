@@ -38,9 +38,9 @@ abstract class Serialized {
 		}
 
 		// You CAN register multiple shutdown functions
-		register_shutdown_function( function () use ($argv) {
+		register_shutdown_function( static function () use ($argv) {
             $last_error = error_get_last();
-            if ($last_error['type'] === E_ERROR) {
+            if (($last_error['type'] ?? false) && $last_error['type'] === E_ERROR) {
                 sortDump($last_error);
             } else {
                 foreach ($argv as $value) {

@@ -21,6 +21,7 @@ import dashboardStyle from "assets/jss/material-dashboard-react/views/dashboardS
 //img
 import Place from "@material-ui/icons/Place";
 import beforeMin from 'assets/img/beforeMin.png';
+import classNames from "classnames";
 
 let style = {
     ...completedStyle,
@@ -32,27 +33,31 @@ class CarbonPHP extends React.Component {
         const {classes} = this.props;
         return (
             <div className={classes.section}>
-                <div className={classes.container}>
+                <div className={classNames(classes.container)}>
                     <GridContainer justify="center">
                         <GridItem xs={12} sm={12} md={8}>
-                            <h2><b>CarbonPHP is [C6]</b></h2>
-                            <h4>
-                                This documentation is for C6, a PHP 7.2+ application framework.
-                            </h4>
-                            <br/>
-                            <h3>Less than a second</h3>
-                            <h4>
-                                <b>Google's Analysis</b><br/>
-                                "... 40% of [customers] will wait no more than three seconds before abandoning a retail
-                                or travel site."
-                                <br/><br/>I analysed trending frameworks in every language to provide a semantically
-                                pleasing, powerful, and portable
-                                library. On average, CarbonPHP's application framework can render content in under one
-                                second.
-                            </h4>
+                            <div className={classes.textCenter}>
+                                <h2><b>CarbonPHP is [C6]</b></h2>
+                                <h4>
+                                    This documentation is for C6, a PHP 7.2+ application framework.
+                                </h4>
+                                <br/>
+                                <h3>Less than a second</h3>
+                                <h4>
+                                    <b>Google's Analysis</b><br/>
+                                    "... 40% of [customers] will wait no more than three seconds before abandoning a
+                                    retail
+                                    or travel site."
+                                    <br/><br/>I analysed trending frameworks in every language to provide a semantically
+                                    pleasing, powerful, and portable
+                                    library. On average, CarbonPHP's application framework can render content in under
+                                    one
+                                    second.
+                                </h4>
+                            </div>
                         </GridItem>
                         <GridItem xs={12} sm={12} md={12}>
-                            <h3>
+                            <h3 className={classes.textCenter}>
                                 <small><b>CarbonPHP loves legacy code.</b></small>
                             </h3>
                             <CustomTabs
@@ -62,9 +67,11 @@ class CarbonPHP extends React.Component {
                                     {
                                         tabName: "Why?",
                                         tabContent: (
-                                            <p className={classes.textCenter}>
-                                                CarbonPHP's core objective is to load all content in a controlled
-                                                asynchronous fashion.
+                                            <p>
+                                                <h3 className={classes.textCenter}>
+                                                    CarbonPHP's core objective is to load all content in an asynchronous
+                                                    fashion.
+                                                </h3>
                                                 <br/><br/>
                                                 The PHP language is written and compiled from C code. Most Operating
                                                 systems now a day come pre-packaged with PHP. During my undergrad, while
@@ -81,13 +88,20 @@ class CarbonPHP extends React.Component {
                                                 give you the best
                                                 development experience possible.
                                                 <br/>
-                                                The <b>first official</b> release was version <b>2.0</b>. This marked
-                                                the <b>first Alpha
-                                                release</b>.<br/><br/>
-                                                With <b>version 5</b> we are officially moving to <b>Beta</b>!<br/><br/>
-                                                <b>Version 6 is marked for release in May 2019.</b><br/>
-                                                Version 6 of C6, will be the first marked production ready release.
-                                                #noAccedent
+                                                <h4 className={classes.textCenter}>
+                                                    The <b>first official</b> release was version <b>2.0</b>. This
+                                                    marked
+                                                    the <b>first Alpha
+                                                    release</b>.</h4>
+                                                <br/><br/>
+                                                <h3 className={classes.textCenter}>
+                                                    With <b>version 5</b> we are officially moving
+                                                    to <b>Beta</b>!<br/><br/>
+                                                    <b>Version 6 is marked for release in May 2020.</b>
+                                                </h3><br/>
+                                                <h4 className={classes.textCenter}>
+                                                    Version 6 of C6, will be the first marked production ready
+                                                    release.</h4>
                                                 <br/><br/>
                                                 C6 was developed around the latest version of php, which gives it
                                                 significant advantage over other PHP frameworks. The framework
@@ -103,18 +117,21 @@ class CarbonPHP extends React.Component {
                                                 Features can be modified or replaced to suit your development.
                                                 Here are some modules for quick reference.
                                                 <br/><br/>
-                                                Session Management<br/>
-                                                MySQL Database ORM<br/>
-                                                JS and CSS Minification<br/>
-                                                Content Delegation and Caching<br/>
-                                                PSR4 Class Autoloading<br/>
-                                                Global Alert Management<br/>
-                                                URI Based Routing<br/>
-                                                Parallel Processing with Forks<br/>
-                                                File Management and Named Pipes<br/>
-                                                Realtime Communication with Websocket Servers<br/>
-                                                Configurable Variable and Class Serialization<br/>
-                                                Builtin Component-Entity-System<br/>
+                                                <div className={classes.textCenter}>
+                                                    <b>
+                                                        Session Management<br/>
+                                                        MySQL Database ORM<br/>
+                                                        JS and CSS Minification<br/>
+                                                        Content Delegation and Caching<br/>
+                                                        PSR4 Class Autoloading<br/>
+                                                        Global Alert Management<br/>
+                                                        URI Based Routing<br/>
+                                                        Parallel Processing with Forks<br/>
+                                                        File Management and Named Pipes<br/>
+                                                        Realtime Communication with Websocket Servers<br/>
+                                                        Configurable Variable and Class Serialization<br/>
+                                                        Builtin Component-Entity-System<br/></b>
+                                                </div>
                                                 <br/>
                                             </p>
                                         )
@@ -122,19 +139,16 @@ class CarbonPHP extends React.Component {
                                     {
                                         tabName: "Frontend",
                                         tabContent: (
-                                            <span className={classes.textCenter}>
+                                            <span>
                                                 <div id="navigation-pills">
                                                     <div className={classes.title}>
-                                                        <h3>Frontend</h3>
-                                                    </div>
-                                                    <div className={classes.title}>
-                                                        <h3>
-                                                            <small>How should I choose a UI?</small>
+                                                        <h3 className={classes.textCenter}>
+                                                           How should I choose a UI?
                                                         </h3>
                                                         <p>
                                                             While C6 is not actually dependant on a theme,
-                                                            the documentation ships with two leading open source
-                                                            repositories to demonstrate the robust use-cases CarbonPHP
+                                                            the documentation ships with three leading open source
+                                                            repositories to demonstrate the robust use-cases C6
                                                             can handle.
                                                         </p>
                                                     </div>
@@ -171,7 +185,7 @@ class CarbonPHP extends React.Component {
                                                                             </p>
                                                                             </span>
                                                                         )
-                                                                    },
+                                                                    },   // TODO - link https://github.com/defunkt/jquery-pjax
                                                                     {
                                                                         tabButton: "Speed",
                                                                         tabIcon: Schedule,
@@ -461,11 +475,11 @@ class CarbonPHP extends React.Component {
                                                 </div>
                                             </span>
                                         )
-                                    },
+                                    },  // TODO - not suck
                                     {
                                         tabName: "Backend",
                                         tabContent: (
-                                            <p className={classes.textCenter}>
+                                            <p>
                                                 <h5>Here's the gist.</h5>
                                                 CarbonPHP is a full scale development library.
                                                 <br/>
@@ -483,7 +497,7 @@ class CarbonPHP extends React.Component {
                                     {
                                         tabName: "Facts",
                                         tabContent: (
-                                            <p className={classes.textCenter}>
+                                            <p>
                                                 <h2>Did you know?</h2>
                                                 <h4>
                                                     <small>

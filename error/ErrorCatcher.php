@@ -6,6 +6,7 @@ namespace CarbonPHP\Error;
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
+use CarbonPHP\Tables\Carbon_Reports;
 
 /**
  * Class ErrorCatcher
@@ -46,9 +47,9 @@ class ErrorCatcher
      */
     public static function catchErrors(callable $lambda): callable
     {
-        return function (...$argv) use ($lambda) {
+        return static function (...$argv) use ($lambda) {
             try {
-                ob_start(null,null,  PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
+                ob_start(null, null, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
                 $argv = \call_user_func_array($lambda, $argv);
             } catch (\Throwable $e) {
                 if (!$e instanceof PublicAlert) {
@@ -65,8 +66,8 @@ class ErrorCatcher
 
                     }
                 } //elseif (APP_LOCAL) {
-                    // Why did we do this
-                   // ErrorCatcher::generateLog($e);
+                // Why did we do this
+                // ErrorCatcher::generateLog($e);
                 //}
                 /** @noinspection CallableParameterUseCaseInTypeContextInspection */
                 $argv = null;
@@ -112,17 +113,14 @@ END;
          * @internal param TYPE_NAME $closure
          */
 
-        $closure = function (...$argv) {
-            static $count;
-
-            if (empty($count)) {
-                $count = 0;
-            }
+        $closure = static function (...$argv) {
+            static $count = 0;
             $count++;
 
-            self::generateLog($argv);
+            // set_error_handler vs set_exception_handler signatures
+            is_array($argv) ? self::generateLog($argv) : self::generateLog(...$argv);
 
-            if (!SOCKET && !APP_LOCAL && CarbonPHP::$setupComplete) {     // TODO - do we really want to reset?
+            if (!SOCKET && !APP_LOCAL && CarbonPHP::$setupComplete) {
                 if ($count > 1) {
                     print 'A recursive error has occurred in (or at least affecting) your $app->defaultRoute();';
                     die(1);
@@ -130,19 +128,23 @@ END;
                 startApplication(true);
                 exit(1);
             }
-
-            /** @noinspection ForgottenDebugOutputInspection
-             * TODO - fix this? */
-            print_r($argv);
-            print "\n\nCarbonPHP Caught This Error.\n\n";
             die(1);
-
         };
+
         set_error_handler($closure);
-        set_exception_handler($closure);
+        set_exception_handler($closure);   // takes one argument
     }
 
-    /** Generate a full error log consisting of a
+    /** Generate a full error log consisting of a stack trace and arguments to each function call
+     *
+     *  The following functions point to this method by passing the arguments on via redirection.
+     *  The required method signatures are different, so it is important that we do not type hint this function.
+     *
+     *  The options to make this signatures unique are compelling, but not essential.
+     *
+     *  set_error_handler
+     *  set_exception_handler
+     *
      * @param \Throwable|array|null $e
      * @param string $level
      * @return string
@@ -160,14 +162,13 @@ END;
         if ($e instanceof \Throwable) {
             $trace = self::generateCallTrace($e);
             if (!$e instanceof PublicAlert) {
-                print '(set_error_handler || set_exception_handler) caught this error. #Bubbled up#' . PHP_EOL;
+                print '(set_error_handler || set_exception_handler) caught this throwable. #Bubbled up#' . PHP_EOL;
             } else {
                 print 'Public Alert Thrown!' . PHP_EOL;
             }
             print PHP_EOL . $e->getMessage() . PHP_EOL;
-
         } else {
-            $trace = self::generateCallTrace();
+            $trace = self::generateCallTrace(null);
 
             if (\is_array($e) && \count($e) >= 4) {
                 print PHP_EOL . 'Carbon caught this Message: ' . $e[1] . PHP_EOL . 'line: ' . $e[2] . '(' . $e[3] . ')' . PHP_EOL;
@@ -176,9 +177,7 @@ END;
 
         print PHP_EOL . $trace . PHP_EOL;
 
-        $output = ob_get_contents();
-
-        ob_end_clean();
+        $output = ob_get_clean();
 
         /** @noinspection ForgottenDebugOutputInspection */
         error_log($output);
@@ -187,7 +186,7 @@ END;
             print "<h1>You have the print to screen Error Catching option turned on!</h1><h2> Turn it off to suppress this reporting.</h2><pre>$output</pre>";
         }
 
-        if (self::$storeReport === true || self::$storeReport === 'file') {       // TODO - store to file?
+        if (self::$storeReport === true || self::$storeReport === 'file') {
             if (!is_dir(REPORTS) && !mkdir($concurrentDirectory = REPORTS) && !is_dir($concurrentDirectory)) {
                 PublicAlert::danger('Failed Storing Log');
             } else {
@@ -200,11 +199,14 @@ END;
             }
         }
 
-        if (self::$storeReport === true || self::$storeReport === 'database') {       // TODO - store to file?
-            $sql = 'INSERT INTO carbon_reports (log_level, report, call_trace) VALUES (?, ?, ?)';
-            $sql = Database::database()->prepare($sql);
-            if (!$sql->execute([$level, $output, $trace])) {
-                print 'Failed to store error log, nothing works... Why does nothing work?' and die(1);
+        if (self::$storeReport === true || self::$storeReport === 'database') {
+            if (!Carbon_Reports::Post([
+                Carbon_Reports::LOG_LEVEL => $level,
+                Carbon_Reports::REPORT => $output,
+                Carbon_Reports::CALL_TRACE => $trace
+            ])) {
+                print 'Failed to store error log, nothing works... Why does nothing work?';
+                die(1);
             }
         }
 
@@ -219,7 +221,7 @@ END;
      */
     public static function generateCallTrace(\Throwable $e = null): string
     {
-        ob_start();
+        ob_start(null, null, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);     // start a new buffer for saving errors
         if (null === $e) {
             $e = new \Exception();
             $trace = explode("\n", $e->getTraceAsString());
@@ -239,15 +241,17 @@ END;
 
 
         $length = \count($trace);
-        $result = array();
-        for ($i = 0; $i < $length; $i++) {
-            $result[] = ($i + 1) . ') ' . implode(' (', explode('(', substr($trace[$i], strpos($trace[$i], ' ')))) . PHP_EOL . "\t\t\t\t" . json_encode($args[$i]['args']) . PHP_EOL;
+        if ($length === 0) {
+            print "Found in :: \n\n\t" . $e->getTraceAsString();
+        } else {
+            $result = array();
+            for ($i = 0; $i < $length; $i++) {
+                $result[] = ($i + 1) . ') ' . implode(' (', explode('(', substr($trace[$i], strpos($trace[$i], ' ')))) . PHP_EOL . "\t\t\t\t" . (array_key_exists('args', $args[$i]) ? json_encode($args[$i]['args']) : '[]') . PHP_EOL;
+            }
+            print "\n\t" . implode("\n\t", $result);
         }
-        print "\n\t" . implode("\n\t", $result);
 
-        $output = ob_get_contents();
-        ob_end_clean();
-        return $output;
+        return ob_get_clean();
     }
 
 }

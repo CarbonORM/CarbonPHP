@@ -14,7 +14,7 @@ import {NavLink} from "react-router-dom";
 
 class Navbar extends React.Component {
     render() {
-        const {classes, routes} = this.props;
+        const {classes, routes, color, brand} = this.props;
 
         let tabs = [];
 
@@ -69,8 +69,8 @@ class Navbar extends React.Component {
             <div className={classes.section}>
                 <div className={classes.container}>
                     <HeaderTop
-                        brand="Documentation"
-                        color="info"
+                        brand={brand ? brand : "Documentation"}
+                        color={color ? color : "info"}
                         rightLinks={
                             <List className={classes.list}>
                                 {tabs}
