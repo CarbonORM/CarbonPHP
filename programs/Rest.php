@@ -22,7 +22,7 @@ class Rest implements iCommand
 
     public function cleanUp($argv)
     {
-        $this->cleanUp and $this->removeFiles($argv);
+        $this->cleanUp and $this->removeFiles();
     }
 
     public function usage(): void

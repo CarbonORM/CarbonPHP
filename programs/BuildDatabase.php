@@ -13,7 +13,13 @@ use CarbonPHP\interfaces\iCommand;
 
 class BuildDatabase implements iCommand
 {
-    use MySQL;
+    use MySQL {
+        cleanUp as removeFiles;
+    }
+
+    public function cleanUp($argv) : void {
+        $this->removeFiles();
+    }
 
     public function usage() : void
     {
