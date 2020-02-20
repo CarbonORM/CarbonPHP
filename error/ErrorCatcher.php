@@ -41,7 +41,8 @@ class ErrorCatcher
      */
     public static $level;
 
-    /** Attempt to safely catch errors and public alerts in a closure
+    /** Attempt to safely catch errors, output, and public alerts in a closure.
+     *
      * @param callable $lambda
      * @return callable
      */
@@ -53,22 +54,22 @@ class ErrorCatcher
                 $argv = \call_user_func_array($lambda, $argv);
             } catch (\Throwable $e) {
                 if (!$e instanceof PublicAlert) {
-                    PublicAlert::danger('Developers make mistakes, and you found a big one! We\'ve logged this event and will be investigating soon.'); // TODO - Change what is logged
+                    $message = 'Developers make mistakes, and you found a big one! We\'ve logged this event and will be investigating soon.';
                     if (APP_LOCAL) {
-                        PublicAlert::warning(\get_class($e) . $e->getMessage());
+                        PublicAlert::info($message);
+                        PublicAlert::danger(\get_class($e) . ' ' . $e->getMessage());
+                    } else {
+                        PublicAlert::danger($message);
                     }
+
                     try {
                         ErrorCatcher::generateLog($e);
                     } catch (\Throwable $e) {
                         PublicAlert::danger('Error handling failed.');
                         print $e->getMessage();
                         PublicAlert::info(json_encode($e));
-
                     }
-                } //elseif (APP_LOCAL) {
-                // Why did we do this
-                // ErrorCatcher::generateLog($e);
-                //}
+                }
                 /** @noinspection CallableParameterUseCaseInTypeContextInspection */
                 $argv = null;
             } finally {
@@ -76,11 +77,12 @@ class ErrorCatcher
                     $out = ob_get_contents();
                     ob_end_clean();
                     print <<<END
-                                <div class="callout callout-info">
+                                <div class="container">
+                                <div class="callout callout-info" style="margin-top: 40px">
                                 <h4>You have printed to the screen while within the catchErrors() function!</h4>
                                 Don't slip up in your production code!
                                 <a href="http://carbonphp.com/">Note: All MVC routes are wrapped in this function. Output to the browser should be done within the view! Use this as a reporting tool only.</a>
-                                </div><pre>$out</pre>
+                                </div><div class="box"><div class="box-body">$out</div></div></div>
 END;
 
                 }
@@ -159,10 +161,12 @@ END;
 
         ob_start(null, null, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);     // start a new buffer for saving errors
 
+        $class = \get_class($e);
+
         if ($e instanceof \Throwable) {
             $trace = self::generateCallTrace($e);
             if (!$e instanceof PublicAlert) {
-                print '(set_error_handler || set_exception_handler) caught this throwable. #Bubbled up#' . PHP_EOL;
+                print '(set_error_handler || set_exception_handler) caught this ( ' . $class . ' ) throwable. #Bubbled up#' . PHP_EOL;
             } else {
                 print 'Public Alert Thrown!' . PHP_EOL;
             }
@@ -183,7 +187,15 @@ END;
         error_log($output);
 
         if (self::$printToScreen) {
-            print "<h1>You have the print to screen Error Catching option turned on!</h1><h2> Turn it off to suppress this reporting.</h2><pre>$output</pre>";
+            print /** @lang HTML */
+                <<<ERRORMESSAGE
+<h3>CarbonPHP [C6] is generating a log for you. <small>ErrorCatcher::generateLog</small></h3>
+<h4>Turn it off to suppress stacktrace output.   <small>\$config['ERROR']['SHOW'] = true;</small></h4>
+<div class="alert alert-danger">
+  <h4><i class="icon fa fa-ban"></i>{$class} :: {$e->getMessage()}</h4>
+</div>
+<pre>$output</pre>
+ERRORMESSAGE;
         }
 
         if (self::$storeReport === true || self::$storeReport === 'file') {

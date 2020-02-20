@@ -75,21 +75,15 @@ abstract class Application extends Route
             print "Invalid Model ({$model}) Passed to MVC. Please ensure your namespace mappings are correct!";
         }
 
-        // the array $argv will be passed as arguments to the method requested, see link above
-        $exec = static function (string $class, array $argv) use ($method) {
-            $argv = \call_user_func_array([new $class, $method], $argv);
-            return $argv;
-        };
+        return static function () use ($controller, $model, $method, $argv) {
 
-        return static function () use ($exec, $controller, $model, $argv) {
-            if (!empty($argv = $exec($controller, $argv))) {
-                if (\is_array($argv)) {
-                    return $exec($model, $argv);        // array passed
-                }
-                $controller = [$argv];                 // allow return by reference
-                return $exec($model, $controller);
+            $argv = \call_user_func_array([new $controller, $method], $argv);
+
+            if ($argv !== null || $argv !== false) {
+                return \call_user_func_array([new $model, $method], is_array($argv) ? $argv : [$argv]);
             }
-            return $argv;
+
+            return $argv;   // false will indicate (in mvc) that the view should not run
         };
     }
 
@@ -112,13 +106,13 @@ abstract class Application extends Route
      * @param string $class This class name to autoload
      * @param string $method The method within the provided class
      * @param array $argv Arguments to be passed to method
-     * @return mixed          the returned value from model/$class.$method() or false | void
+     * @return bool - false if the view, controller, or model returned false.
      */
     private static $APPLICATION;
     private static $CLASS;
     private static $METHOD;
 
-    public static function ControllerModelView(string $class, string $method, array &$argv = [])
+    public static function ControllerModelView(string $class, string $method, array &$argv = []): bool
     {
         self::$CLASS = $class;
         self::$METHOD = $method;
