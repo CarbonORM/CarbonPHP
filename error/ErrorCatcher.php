@@ -161,7 +161,7 @@ END;
 
         ob_start(null, null, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);     // start a new buffer for saving errors
 
-        $class = \get_class($e);
+        $throwable = '';
 
         if ($e instanceof \Throwable) {
             $trace = self::generateCallTrace($e);
@@ -170,7 +170,14 @@ END;
             } else {
                 print 'Public Alert Thrown!' . PHP_EOL;
             }
+            $class = \get_class($e);
             print PHP_EOL . $e->getMessage() . PHP_EOL;
+
+            $throwable = /** @lang HTML */
+                <<<ERRORMESSAGE
+                    <div class="alert alert-danger"><h4><i class="icon fa fa-ban"></i>{$class} :: {$e->getMessage()}</h4></div>
+ERRORMESSAGE;
+
         } else {
             $trace = self::generateCallTrace(null);
 
@@ -191,9 +198,7 @@ END;
                 <<<ERRORMESSAGE
 <h3>CarbonPHP [C6] is generating a log for you. <small>ErrorCatcher::generateLog</small></h3>
 <h4>Turn it off to suppress stacktrace output.   <small>\$config['ERROR']['SHOW'] = true;</small></h4>
-<div class="alert alert-danger">
-  <h4><i class="icon fa fa-ban"></i>{$class} :: {$e->getMessage()}</h4>
-</div>
+{$throwable}
 <pre>$output</pre>
 ERRORMESSAGE;
         }
