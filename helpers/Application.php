@@ -33,11 +33,11 @@ namespace {                                     // This runs the following code 
      *  The session callback is be set in carbon's configuration
      * @link
      *
-     * @return ?bool - if this is called recursively we want to make sure were not
-     * ruturing true to a controller function, thus causing the model to run when unneded.
-     * returning
+     * @return null|bool - if this is called recursively we want to make sure were not
+     * returning true to a controller function, thus causing the model to run when unneeded.
+     * So yes this is a self-stupid check..............
      */
-    function startApplication($reset = false) : ?bool
+    function startApplication($reset = false) : ? bool
     {
         return CarbonPHP::startApplication($reset) ? null : false;
     }
