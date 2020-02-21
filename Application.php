@@ -79,7 +79,7 @@ abstract class Application extends Route
 
             $argv = \call_user_func_array([new $controller, $method], $argv);
 
-            if ($argv !== null || $argv !== false) {
+            if ($argv !== null && $argv !== false) {
                 return \call_user_func_array([new $model, $method], is_array($argv) ? $argv : [$argv]);
             }
 

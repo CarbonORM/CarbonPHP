@@ -175,7 +175,7 @@ END;
 
             $throwable = /** @lang HTML */
                 <<<ERRORMESSAGE
-                    <div class="alert alert-danger"><h4><i class="icon fa fa-ban"></i>{$class} :: {$e->getMessage()}</h4></div>
+                    <div class="alert alert-danger"><h4><i class="icon fa fa-ban"></i>$class :: {$e->getMessage()}</h4></div>
 ERRORMESSAGE;
 
         } else {
@@ -198,7 +198,7 @@ ERRORMESSAGE;
                 <<<ERRORMESSAGE
 <h3>CarbonPHP [C6] is generating a log for you. <small>ErrorCatcher::generateLog</small></h3>
 <h4>Turn it off to suppress stacktrace output.   <small>\$config['ERROR']['SHOW'] = true;</small></h4>
-{$throwable}
+$throwable
 <pre>$output</pre>
 ERRORMESSAGE;
         }
