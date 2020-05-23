@@ -30,15 +30,18 @@ class CLI implements iCommand
         // the following removes helper classes invalid responses and unfinished tools
         $program = array_diff(
             scandir(CARBON_ROOT . 'programs', null),
-            array('.', '..',
+            array(
+                '.',
+                '..',
                 'CLI.php',
                 'Server.php',
                 'Background.php',
                 'MySQL.php',
                 'TestAutomationServer.php',
-                'testBuilder.php'));
+                'testBuilder.php'
+            ));
 
-        $clean = function (&$program) {
+        $clean = static function (&$program) {
             $program = basename($program, '.php');
         };
 

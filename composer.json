@@ -37,10 +37,10 @@
     "psr-4": {
       "CarbonPHP\\": "",
       "CarbonPHP\\Tables\\": "tables/",
-      "CarbonPHP\\Error\\": "error/",
-      "CarbonPHP\\Helpers\\": "helpers/",
-      "CarbonPHP\\Interfaces\\": "interfaces/",
-      "CarbonPHP\\Programs\\": "programs/",
+      "CarbonPHP\\Error\\": "src/error/",
+      "CarbonPHP\\Helpers\\": "src/helpers/",
+      "CarbonPHP\\Interfaces\\": "src/interfaces/",
+      "CarbonPHP\\Programs\\": "src/programs/",
       "CarbonPHP\\Controller\\": "controller/",
       "CarbonPHP\\Model\\": "model/"
     }

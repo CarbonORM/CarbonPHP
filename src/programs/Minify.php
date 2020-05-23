@@ -73,7 +73,7 @@ USE;
         if (empty($files)) {
             $this->usage();
         }
-        $minifiedPath = $files['OUT'] ?? APP_ROOT . APP_VIEW . 'css/style.css';
+        $minifiedPath = $files['OUT'] ?? APP_ROOT . APP_VIEW . 'CSS/style.css';
 
         unset($files['OUT']);
 
@@ -82,6 +82,7 @@ USE;
         if (file_exists($minifiedPath)) {
             unlink($minifiedPath);
         }
+
         foreach ($files as $file) {
             if (!file_exists($file)){
                 print "\tFailed to find\n\t\t$file";

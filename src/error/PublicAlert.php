@@ -27,6 +27,12 @@ namespace CarbonPHP\Error;
 
 class PublicAlert extends CustomException {
 
+    public static function alertSet() : bool {
+        global $json;
+        return ($json['alert']['danger'] ?? false) ||
+            ($json['alert']['error'] ?? false) ||
+            ($json['alert']['input'] ?? false);
+    }
 
     public static function JsonAlert($message, $title, $type = 'danger', $icon = null, $status = 500, $intercept = true, $stack = true) : void
     {
