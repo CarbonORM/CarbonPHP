@@ -16,7 +16,14 @@ abstract class Route
     use Singleton;                // We use the add method function to bind the closure to the class
 
     /**
-     * @var array $uri will hold an exploded array with the
+     * @var array $uriExplode will hold an exploded array with the
+     * back slash '\' as our delimiter
+     */
+    public $uriExplode;
+
+
+    /**
+     * @var string $uri full uri from server request $_SERVER['REQUEST_URI']
      * back slash '\' as our delimiter
      */
     public $uri;
@@ -80,11 +87,13 @@ abstract class Route
         $this->closure = $structure;
         // This check allows Route to be independent of Carbon/Application, but benefit if we've already initiated
         if (\defined('URI') && !SOCKET) {
-            $this->uri = explode('/', trim(URI, '/'));
-            $this->uriLength = \count($this->uri);
+            $this->uri = URI;
+            $this->uriExplode = explode('/', trim(URI, '/'));
+            $this->uriLength = \count($this->uriExplode);
         } else {
-            $this->uri = explode('/', $this->uriLength = trim(urldecode(parse_url(trim(preg_replace('/\s+/', ' ', $_SERVER['REQUEST_URI'])), PHP_URL_PATH)), ' /'));
-            $this->uriLength = \substr_count($this->uriLength, '/') + 1; // I need the exploded string
+            $this->uri = trim(urldecode(parse_url(trim(preg_replace('/\s+/', ' ', $_SERVER['REQUEST_URI'])), PHP_URL_PATH)));
+            $this->uriExplode = explode('/', $this->uri, ' /');
+            $this->uriLength = \substr_count($this->uri, '/') + 1; // I need the exploded string
         }
 
     }
@@ -94,7 +103,7 @@ abstract class Route
      */
     public function changeURI(string $uri): void
     {
-        $this->uri = explode('/', $uri = trim($uri, '/'));
+        $this->uriExplode = explode('/', $uri = trim($uri, '/'));
         $this->uriLength = substr_count($uri, '/') + 1;
         $this->matched = false;
     }
@@ -123,6 +132,44 @@ abstract class Route
     }
 
 
+    /**
+     * @param string $regexToMatch
+     * @param mixed ...$argv
+     * @return $this
+     * @throws PublicAlert
+     */
+    public function matchRegex(string $regexToMatch, ...$argv): self
+    {
+        $matches = [];
+
+        if (1 > preg_match_all($regexToMatch, $this->uri, $matches, PREG_SET_ORDER)) {  // can return 0 or false
+            return $this;
+        }
+
+        $this->matched = true;
+
+        $matches = array_shift($matches);
+
+        array_shift($matches);  // could care less about the full match
+
+        // Variables captured in the path to match will passed to the closure
+        if (is_callable($argv[0])) {
+            if (call_user_func_array($argv[0], $matches) === false) {
+                throw new PublicAlert('Bad Closure Passed to Route::match(). The return value must not be false.');
+            }
+            return $this;
+        }
+
+        // If variables were captured in our path to match, they will be merged with our variable list provided with $argv
+        if (is_callable($this->closure)) {
+            $argv[] = &$matches;        // todo - review this logic
+            call_user_func_array($this->closure, $argv);
+            return $this;
+        }
+
+        return $this;
+    }
+
     /** This is our main uri routing mechanism.
      *
      *  syntactically similar to Laravel's routing, what
@@ -140,7 +187,7 @@ abstract class Route
     {
         $this->storage = $argv;  // This is for home route function (singleton)
 
-        $uri = $this->uri;
+        $uri = $this->uriExplode;
 
         $arrayToMatch = explode('/', trim($pathToMatch, '/'));
 

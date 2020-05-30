@@ -79,14 +79,15 @@ USE;
 
         $files = array_values($files);
 
-        if (file_exists($minifiedPath)) {
-            unlink($minifiedPath);
-        }
-
         foreach ($files as $file) {
             if (!file_exists($file)){
-                print "\tFailed to find\n\t\t$file";
+                print "\tFailed to find\n\t\t$file\n\n\n";
+                exit(1);
             }
+        }
+
+        if (file_exists($minifiedPath)) {
+            unlink($minifiedPath);
         }
 
         $min = new Run\CSS(... $files);
@@ -102,6 +103,13 @@ USE;
         $minifiedPath = $files['OUT'] ?? APP_ROOT . APP_VIEW . 'js/javascript.js';
 
         unset($files['OUT']);
+
+        foreach ($files as $file) {
+            if (!file_exists($file)){
+                print "\tFailed to find\n\t\t$file\n\n\n";
+                exit(1);
+            }
+        }
 
         if (file_exists($minifiedPath)) {
             unlink($minifiedPath);

@@ -102,7 +102,7 @@ class CarbonPHP
             return true;
         }
         $application->matched = false;        // We can assume your in need of route matching again
-        return $application->startApplication($reset ? $uri : implode('/', $application->uri));  // Routing file
+        return $application->startApplication($reset ? $uri : implode('/', $application->uriExplode));  // Routing file
     }
 
     /** If safely exit is false run startApplication(), otherwise return $safelyExit

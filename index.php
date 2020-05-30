@@ -12,7 +12,7 @@ const APP_ROOT = SERVER_ROOT;
 
 // Composer autoload
 if (false === (include  'vendor' . DS . 'autoload.php')) {     // Load the autoload() for composer dependencies located in the Services folder
-    print '<h1>Loading Composer Failed. See Carbonphp.com for documentation.</h1>';
+    print '<h1>Composer Failed</h1>';
     die(1);
 }
 
@@ -26,7 +26,13 @@ CarbonPHP\CarbonPHP::make('config' . DS . 'Config.php');
  * is returned, the index will re-execute. This turns very bad quickly.
  */
 
-CarbonPHP\CarbonPHP::run( CarbonPHP\C6::class);
+if (false === (include './Documentation.php')){
+    print '<h1>Loading C6 Documentation Failed. Please make sure you are up to date with the master branch.</h1>';
+    die(1);
+}
+
+
+CarbonPHP\CarbonPHP::run( Documentation::class);
 
 return true;
 
