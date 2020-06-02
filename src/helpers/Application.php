@@ -23,24 +23,17 @@ namespace {                                     // This runs the following code 
      * store that instance in a static variable and reuse it for the proccess life.
      *
      * @param $reset
-     *  If a string is passed to reset then the uri of the website will be changed
-     *  to the value of reset.
-     *
-     *  If ($reset == true) then set our uri to '/' and all variables cached using
-     *  the serialized class will be reset. The the outer html will be sent and
-     *  our session callback will be executed.
-     *
-     *  The session callback is be set in carbon's configuration
      * @link
      *
      * @return null|bool - if this is called recursively we want to make sure were not
      * returning true to a controller function, thus causing the model to run when unneeded.
      * So yes this is a self-stupid check..............
      */
-    function startApplication($reset = false) : ? bool
+    function startApplication($reset = '') : ? bool
     {
-        return CarbonPHP::startApplication($reset) ? null : false;
+        return CarbonPHP::startApplication($reset);
     }
+
 
     /** This extends the PHP's built-in highlight function to highlight
      *  other file types. Currently java and html are custom colored.
@@ -101,7 +94,6 @@ namespace {                                     // This runs the following code 
 
         return $text;
     }
-
 
 
     /** Ports the javascript alert function in php.

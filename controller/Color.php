@@ -14,7 +14,7 @@ class Color
 
         global $json;
 
-        if ($_POST['code'] ?? false) {
+        if ($_POST['code'] ??= false) {
             $json['colorCode'] = highlight($_POST['code'] , false);
         } else {
             $json['colorCode'] = '';

@@ -11,13 +11,9 @@ namespace CarbonPHP;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Helpers\Files;
 
-/** This pro is in the trait Singleton, but intellij is being dumb and needs some help
- * @property null storage
- */
 class Request   // requires carbon::application;
 {
-    use Singleton; // provides us with the variable $storage which we will call the `set` or group of key => value pairs
-
+    private array $storage;
     ########################## Manual Input ################################
 
     /** Adds comma separated parameters to the set
@@ -26,7 +22,6 @@ class Request   // requires carbon::application;
      */
     public function set(...$argv): self
     {
-        /** @noinspection PhpUndefinedFieldInspection - this is defined in the singleton */
         $this->storage = $argv;
         return $this;
     }
@@ -75,7 +70,6 @@ class Request   // requires carbon::application;
         }
     }
 
-
     /**
      * Clear all active cookies in the current session
      */
@@ -85,8 +79,7 @@ class Request   // requires carbon::application;
         foreach ($all as $key => $value) {
             static::setCookie($value);
         }
-    }       // Supporting function to setCookie
-
+    }
 
     /**
      * @param string $string is passed to the php header function
@@ -96,7 +89,6 @@ class Request   // requires carbon::application;
     {
         if (!(\defined('SOCKET') && SOCKET)) {
             if (headers_sent()) {
-                /** @noinspection UnsupportedStringOffsetOperationsInspection */
                 $_SESSION['Headers'][] = $string;
             } else {
                 header(trim($string));
@@ -128,7 +120,7 @@ class Request   // requires carbon::application;
      */
     private function request(array $argv, array &$array, bool $removeHTML = false): self
     {
-        $this->storage = null;
+        $this->storage = [];
         $closure = function ($key) use ($removeHTML, &$array) {
             if (array_key_exists($key, $array)) {
                 $this->storage[] = $removeHTML ? htmlspecialchars($array[$key]) : $array[$key];
@@ -162,7 +154,7 @@ class Request   // requires carbon::application;
             $closure($this->storage);
         }
 
-        return function ($array) {
+        return static function ($array) {
             return \count($array) === 1 ? array_shift($array) : $array;
         };
     }
@@ -214,7 +206,7 @@ class Request   // requires carbon::application;
     public function storeFiles(string $location = 'Data/Uploads/Temp/')
     {
         $storagePath = array();
-        return $this->closure_array_walk(function ($file) use ($location, &$storagePath) {
+        return $this->closure_array_walk(static function ($file) use ($location, &$storagePath) {
             $storagePath[] = Files::uploadFile($file, $location);
         })($storagePath);
     }
@@ -227,7 +219,7 @@ class Request   // requires carbon::application;
     public function base64_decode(): self
     {
         $array = [];
-        $this->closure_array_walk(function ($key) use (&$array) {
+        $this->closure_array_walk(static function ($key) use (&$array) {
             $array[] = base64_decode($key, true);
         });
         return $this;
@@ -303,7 +295,7 @@ class Request   // requires carbon::application;
         }
 
         $array = [];
-        return $this->closure_array_walk(function ($key) use ($type, &$array) {
+        return $this->closure_array_walk(static function ($key) use ($type, &$array) {
             $array[] = $type($key) ? $key : false;
         })($array);
     }
@@ -316,7 +308,7 @@ class Request   // requires carbon::application;
     public function regex(string $condition)
     {
         $array = [];
-        return $this->closure_array_walk(function ($key) use ($condition, &$array) {
+        return $this->closure_array_walk(static function ($key) use ($condition, &$array) {
             return $array[] = (preg_match($condition, $key) ? $key : false);
         })($array);
     }
@@ -329,7 +321,7 @@ class Request   // requires carbon::application;
     public function hex()
     {
         $array = [];
-        return $this->closure_array_walk(function ($key) use (&$array) {
+        return $this->closure_array_walk(static function ($key) use (&$array) {
             return $array[] = (ctype_xdigit($key) ? $key : false);
         })($array);
     }
@@ -342,7 +334,7 @@ class Request   // requires carbon::application;
     public function noHTML($complete = false)
     {   // Disallow: $, ", ', <, >
         $array = [];
-        $fn = $this->closure_array_walk(function ($key) use (&$array) {
+        $fn = $this->closure_array_walk(static function ($key) use (&$array) {
             return $array[] = htmlspecialchars($key);
         });
 
@@ -363,7 +355,7 @@ class Request   // requires carbon::application;
     public function int(int $min = null, int $max = null)   // inclusive max and min
     {
         $array = [];
-        return $this->closure_array_walk(function ($key) use (&$array, $min, $max) {
+        return $this->closure_array_walk(static function ($key) use (&$array, $min, $max) {
             if (($key = (int)$key) === false) {
                 return $array[] = false;
             }
@@ -394,7 +386,7 @@ class Request   // requires carbon::application;
     public function alnum()
     {
         $array = [];
-        return $this->closure_array_walk(function ($key) use (&$array) {
+        return $this->closure_array_walk(static function ($key) use (&$array) {
             return $array[] = (ctype_alnum($key) ? $key : false);
         })($array);
     }           // One word alpha numeric
@@ -428,8 +420,8 @@ class Request   // requires carbon::application;
     public function phone()
     {
         $array = [];
-        return $this->closure_array_walk(function ($arg) use (&$array) {
-            return $array[] = preg_match('#((\(\d{3}\) ?)|(\d{3}-))?\d{3}-\d{4}#', $arg) ? $this->storage[0] : false;
+        return $this->closure_array_walk(static function ($arg) use (&$array) {
+            return $array[] = preg_match('#((\(\d{3}\) ?)|(\d{3}-))?\d{3}-\d{4}#', $arg) ? $arg : false;
         })($array);
     }
 
@@ -439,7 +431,7 @@ class Request   // requires carbon::application;
     public function email()
     {
         $array = [];
-        return $this->closure_array_walk(function ($key) use (&$array) {
+        return $this->closure_array_walk(static function ($key) use (&$array) {
             $array[] = filter_var($key, FILTER_VALIDATE_EMAIL);
         })($array);
     }

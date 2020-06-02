@@ -127,7 +127,7 @@ END;
                     print 'A recursive error has occurred in (or at least affecting) your $app->defaultRoute();';
                     die(1);
                 }
-                startApplication(true);
+                CarbonPHP::resetApplication();
                 exit(1);
             }
             die(1);

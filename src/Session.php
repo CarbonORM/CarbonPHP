@@ -27,16 +27,16 @@ class Session implements \SessionHandlerInterface
     protected static $session_id;
 
     /**
-     * @var $user_id - After a session is closed the session data is serialized and removed
+     * @var callable $user_id - After a session is closed the session data is serialized and removed
      * from the global (accessible) scope.
      */
     protected static $user_id;
 
     /**
-     * @var $callback - if the session is reset using the startApplication function,
+     * @var callable $callback - if the session is reset using the startApplication function,
      * this callable function will be executed. You can set this variable in the configuration.
      */
-    protected static $callback;
+    private static $callback;
 
     /**
      * Session constructor. This
@@ -74,7 +74,7 @@ class Session implements \SessionHandlerInterface
      *   Pauses the current session. This is required if you plan to fork you process and
      *   continue with session manipulation.
      */
-    public static function pause()
+    public static function pause(): void
     {
         static::$session_id = session_id();
         session_write_close();
@@ -84,7 +84,7 @@ class Session implements \SessionHandlerInterface
      *   After a session is stopped with session_write_close() or paused with self::pause()
      *   It maybe resumed assuming the original id was stored in self::$session_id
      */
-    public static function resume()
+    public static function resume(): void
     {
         session_id(static::$session_id);
         session_start();
@@ -95,7 +95,7 @@ class Session implements \SessionHandlerInterface
      * Change the callback run if self::update() is called.
      * @param callable|null $lambda
      */
-    public static function updateCallback(callable $lambda = null)
+    public static function updateCallback(callable $lambda = null): void
     {
         self::$callback = $lambda;
     }
@@ -105,13 +105,15 @@ class Session implements \SessionHandlerInterface
      * the outer html-wrapper will be sent.
      * @param bool $clear - if true is passed serialized data will be set to null
      */
-    public static function update($clear = false)
+    public static function update($clear = false): void
     {
         global $user;
         static $count = 0;
         $count++;
 
-        if ($clear || !($_SESSION['id'] ?? false)) {
+        $_SESSION['id'] ??= false;
+
+        if ($clear || !$_SESSION['id']) {
             Serialized::clear();
         }
 
@@ -119,7 +121,7 @@ class Session implements \SessionHandlerInterface
             $user = array();
         }
 
-        if (static::$user_id = $_SESSION['id'] = $_SESSION['id'] ?? false) {
+        if (static::$user_id = $_SESSION['id']) {
             $_SESSION['X_PJAX_Version'] = 'v' . SITE_VERSION . 'u' . $_SESSION['id'];
         } // force reload occurs when X_PJAX_Version changes between requests
 

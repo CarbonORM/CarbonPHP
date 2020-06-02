@@ -19,26 +19,24 @@ abstract class Route
      * @var array $uriExplode will hold an exploded array with the
      * back slash '\' as our delimiter
      */
-    public $uriExplode;
-
-
+    public array $uriExplode;
     /**
      * @var string $uri full uri from server request $_SERVER['REQUEST_URI']
      * back slash '\' as our delimiter
      */
-    public $uri;
+    public string $uri;
     /**
      * @var int $uriLength will hold the current number of fields
      * separated by backslashes
      */
-    public $uriLength;
+    public int $uriLength;
     /**
      * @var bool|string $matched will equal "true" if the
      * current state has not executed a lambda function in response.
      * If a function has been executed the value of matched will be
      * true;
      */
-    public $matched = false;             // a bool
+    public bool $matched = false;             // a bool
     /**
      * @var callable $closure will hold the function to execute if
      * the match function should accept a given path-to-match. Arguments
@@ -46,6 +44,9 @@ abstract class Route
      * See Route.Match(...)
      */
     protected $closure;           // The MVC pattern is currently passes
+
+
+    public const MATCH_C6_ENTITY_ID_REGEX = '([a-fA-F0-9]{20,35})';
 
     /**
      * This function must be implemented by the user to use the Route Class.
@@ -103,7 +104,8 @@ abstract class Route
      */
     public function changeURI(string $uri): void
     {
-        $this->uriExplode = explode('/', $uri = trim($uri, '/'));
+        $this->uri = $uri = trim($uri, '/');
+        $this->uriExplode = explode('/', $uri);
         $this->uriLength = substr_count($uri, '/') + 1;
         $this->matched = false;
     }

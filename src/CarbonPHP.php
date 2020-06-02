@@ -9,15 +9,16 @@ use Throwable;
 /**
  * Class Carbon
  * @package Carbon
- *
- * This is CarbonPHP, a simple framework designed to make building robust web
- * applications extremely quick. The following class is the setup for the rest
- * of library. For reference and support visit
- *
  * @link http://www.carbonphp.com/
  */
 class CarbonPHP
 {
+    public static Application $application;
+
+    public static bool $safelyExit = false;
+
+    public static bool $setupComplete = false;
+
     public function __construct(string $PHP = null)
     {
         self::make($PHP);
@@ -28,91 +29,62 @@ class CarbonPHP
         return self::run($application);
     }
 
-    /**
-     * @var bool $safelyExit determines if start application should be executed
-     * when running the invoke magic method.
-     */
-    public static $safelyExit = false;
+    public static function setApplication(Application $application): void
+    {
+        self::$application = $application;
+    }
 
-    public static $setupComplete = false;
+    public static function getApplication(): Application
+    {
+        return self::$application;
+    }
+
+    public static function run(Application $application): bool
+    {
+        self::setApplication($application);
+        return self::$safelyExit ?: self::startApplication() !== false;
+    }
+
+    public static function resetApplication(): bool
+    {
+        $_POST = [];
+        Session::update(true);        // Check wrapper / session callback
+        View::$forceWrapper = true;
+        Request::changeURI('/');
+        $application = self::$application;
+        $application->matched = true;
+        $application->defaultRoute();
+        return true;
+    }
 
     /** Start application will start a bootstrap file passed to it. It will
-     * store that instance in a static variable and reuse it for the proccess life.
+     * store that instance in a static variable and reuse it for the process life.
      *
-     * @param $reset
-     *  If a string is passed to reset then the uri of the website will be changed
-     *  to the value of reset.
-     *
-     *  If ($reset == true) then set our uri to '/' and all variables cached using
-     *  the serialized class will be reset. The the outer html will be sent and
-     *  our session callback will be executed.
-     *
-     *  The session callback is be set in carbon's configuration
+     * @param string $uri - This will always be set in a socket, restarts routing
      * @return bool Returns the response from the bootstrap as a bool
      * @link
      *
      */
-    public static function startApplication($reset = false): bool
+    public static function startApplication(string $uri = '') : ? bool
     {
-        #global $json;
-        static $application;
+        $application = self::$application;
 
-        if (null === $application) {
-            if (TEST) {
-                // TODO - this logic seems wrong, I think the idea is that tests don't use startApplication at all.
-                return true;    // PHPUnit Tests Shouldn't have redirection
-            }
-            $application = $reset;
-            $application = new $application;
-            if (!$application instanceof Application) {
-                print 'Your application must extend the CarbonPHP/Application::class' . PHP_EOL;
-                return false;
-            }
-            if (SOCKET) {
-                return true;
-            }
-            $reset = false;
+        if ($uri === '') {
+            Session::update(false);       // Check wrapper / session callback
+            $uri = $application->uri;
+        } else if ($uri === '/') {
+            return self::resetApplication();
         } else {
-            $_POST = [];
-            #sort($json);
-            #$json['header'] = null;
-            #sortDump($json);
-        }
-
-
-        if ($reset):                                    // This will always be se in a socket
-            if ($reset === true):
-                View::$forceWrapper = true;
-                Request::changeURI($uri = '/');         // Dynamically using pjax + headers
-            else:
-                Request::changeURI($uri = $reset);
-            endif;
-            $application->changeURI($uri);    // So our routing file knows what to match
+            Session::update(true);
+            Request::changeURI($uri);           // So the browser will update PJAX
+            $application->changeURI($uri);      // So our routing file knows what to match
             $reset = true;
-            $_POST = [];                      // Only PJAX + AJAX can post
-        endif;
-
-        Session::update($reset);              // Check wrapper / session callback
-
-        $uri = $uri ?? null;
-
-        if ($uri === '/') {
-            $application->matched = true;
-            $application->defaultRoute();
-            return true;
+            $_POST = [];
         }
-        $application->matched = false;        // We can assume your in need of route matching again
-        return $application->startApplication($reset ? $uri : implode('/', $application->uriExplode));  // Routing file
-    }
 
-    /** If safely exit is false run startApplication(), otherwise return $safelyExit
-     * @link http://php.net/manual/en/language.oop5.magic.php#object.invoke
-     * @param string $application The class to execute. This must extend CarbonPHP/Application
-     * @return bool
-     */
-    public static function run($application): bool
-    {
-        return self::$safelyExit ?: self::startApplication($application);
+        $application->matched = false;          // We can assume your in need of route matching again
+
+        return $application->startApplication($uri) ? null : false;
     }
 
     /**
@@ -174,9 +146,9 @@ class CarbonPHP
             // TODO - make a cache of these consts
 
             ####################  Sockets will have already claimed this global
-            \defined('TEST') OR \define('TEST', $_ENV['TEST'] ?? false);
+            \defined('TEST') OR \define('TEST', $_ENV['TEST'] ??= false);
 
-            if (TEST) {     // TODO - remove server vars not needed in testing
+            if (TEST) {     // TODO - remove server vars not needed in testing && update version dynamically?
                 self::$safelyExit = true;  // We just want the env to load, not route life :)
                 $_SERVER = [
                     'REMOTE_ADDR' => '::1',
@@ -188,21 +160,17 @@ class CarbonPHP
                     'REQUEST_URI' => '/login/',
                     'REQUEST_METHOD' => 'GET',
                     'SCRIPT_NAME' => '/index.php',
-                    'SCRIPT_FILENAME' => "C:\Users\rmiles\Documents\GitHub\Stats.Coach\index.php",
                     'PATH_INFO' => '/login/',
                     'PHP_SELF' => '/index.php/login/',
                     'HTTP_HOST' => 'localhost:80',
                     'HTTP_CONNECTION' => 'keep-alive',
                     'HTTP_CACHE_CONTROL' => 'max-age=0',
                     'HTTP_UPGRADE_INSECURE_REQUESTS' => '1',
-                    'HTTP_USER_AGENT' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36',
                     'HTTP_ACCEPT' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
                     'HTTP_REFERER' => 'http://localhost:88/',
                     'HTTP_ACCEPT_ENCODING' => 'gzip, deflate, br',
                     'HTTP_ACCEPT_LANGUAGE' => 'en-US,en;q=0.9',
-                    'HTTP_COOKIE' => 'PHPSESSID=gn4amaq3el5giekaboa29q27gp; _gid=GA1.1.1938536140.1530039320',
-                    'REQUEST_TIME_FLOAT' => 1530054388.652,
-                    'REQUEST_TIME' => 1530054388,
+                    'HTTP_COOKIE' => 'PHPSESSID=gn4amaq3el5giekaboa29q27gp;',
                 ];
             }
 
@@ -524,6 +492,7 @@ class CarbonPHP
 
 
     /**
+     * todo - look through this
      * @link https://stackoverflow.com/questions/2916232/call-to-undefined-function-apache-request-headers
      * @return array
      */

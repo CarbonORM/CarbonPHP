@@ -43,11 +43,11 @@ trait Singleton
     /**
      * @var
      */
-    public $storage;                // A Temporary variable for 'quick data'
+    public array $storage;                // A Temporary variable for 'quick data'
     /**
      * @var array
      */
-    private $methods = array();   // Anonymous Function Declarations
+    private array $methods = array();   // Anonymous Function Declarations
 
     /**
      * @param $methodName
@@ -132,7 +132,6 @@ trait Singleton
      * @param array $arguments
      * @return Singleton|mixed
      * @throws \InvalidArgumentException
-     * @noinspection PhpUnusedPrivateMethodInspection
      */
     private function Skeleton(string $methodName, array $arguments = [])
     {
@@ -163,7 +162,6 @@ trait Singleton
      * not the class which uses the Singelton trait
      * @param $name
      * @param $closure
-     * @noinspection PhpUnusedPrivateMethodInspection
      */
     private function addMethod(string $name, callable $closure): void
     {
@@ -190,6 +188,7 @@ trait Singleton
      */
     public function __sleep()
     {
+        /** @noinspection PhpUndefinedClassConstantInspection */
         if (!\defined('self::Singleton') || !self::Singleton) {
             return [];
         }
@@ -215,6 +214,7 @@ trait Singleton
      */
     public function __destruct()
     {   // We require a sleep function to be set manually for singleton to manage utilization
+        /** @noinspection PhpUndefinedClassConstantInspection */
         if (!\defined('self::Singleton') || !self::Singleton) {
             return;
         }

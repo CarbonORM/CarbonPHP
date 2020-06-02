@@ -11,6 +11,7 @@ namespace CarbonPHP;
 
 use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Error\PublicAlert;
+use Mustache_Exception_InvalidArgumentException;
 
 abstract class Application extends Route
 {
@@ -20,8 +21,7 @@ abstract class Application extends Route
      * the Route constructor will execute the
      * defaultRoute method defined below.
      * @return callable
-     * @throws \Mustache_Exception_InvalidArgumentException
-     * @throws \CarbonPHP\Error\PublicAlert
+     * @throws Mustache_Exception_InvalidArgumentException
      */
 
     public function fullPage() : callable
@@ -35,11 +35,11 @@ abstract class Application extends Route
     public function wrap() : callable
     {
         /**
-         * @throws \Mustache_Exception_InvalidArgumentException
+         * @throws Mustache_Exception_InvalidArgumentException
          * @param string $file
          * @return bool
          */
-        return function (string $file): bool {
+        return function (string $file) : bool {
             $this->matched = true;
             return View::content(APP_VIEW . $file);
         };
@@ -108,56 +108,45 @@ abstract class Application extends Route
      * @param array $argv Arguments to be passed to method
      * @return bool - false if the view, controller, or model returned false.
      */
-    private static $APPLICATION;
-    private static $CLASS;
-    private static $METHOD;
+    private static int $STACK_COUNT = 0;
+    private static string $CLASS;
+    private static string $METHOD;
 
     public static function ControllerModelView(string $class, string $method, array &$argv = []): bool
     {
         self::$CLASS = $class;
         self::$METHOD = $method;
 
-        if (self::$APPLICATION === null) {
-            self::$APPLICATION = $recurse = 0;
-        } else {
-            $recurse = self::$APPLICATION;
-        }
+        $recurse = self::$STACK_COUNT; // where we're at now
 
         // keep track of which recursive iteration this is.
-        self::$APPLICATION++;
+        self::$STACK_COUNT++;
 
-        /* I use a different CM function in carbonphp because the namespace needed is CarbonPHP/Controller
-         * using the keyword static rather than self allows us to call the child implementation
-         */
+        // make a call which may recurse
         if (false === ErrorCatcher::catchErrors(static::CM($class, $method, $argv))()) {  // Controller -> Model
             return false;
         }
 
-        // This is so we can clear our stack quickly if recursively called.
-        // This helps with error reporting
+        // This is so we can clear our stack quickly if recursively called, which helps with error reporting
         if ($recurse !== 0) {
             return true;
         }
 
-        // This could cache or send
+        // try to find the file
         $file = APP_VIEW . strtolower(self::$CLASS) . '/' . strtolower(self::$METHOD);
 
         if (!file_exists(APP_ROOT . $file . ($ext = '.php')) && !file_exists(APP_ROOT . $file . ($ext = '.hbs'))) {
             $ext = '';
         }
 
-        return View::content($file . $ext);  // View
+        // tell the view to send this file
+        return View::content($file . $ext);
     }
 
     public function MVC() : callable
     {
         return function (string $class, string $method, array &$argv = []) {
             $this->matched = true;
-            // So I can throw in ->structure($route->MVC())-> anywhere
-            // and still have static variables in the mvc function,
-            // because it needs to run as a callable..
-            // so if ControllerModelView's code was in this closure
-            // the code would not work bc static // runtime memory
             return self::ControllerModelView($class, $method, $argv);
         };
     }
@@ -198,7 +187,7 @@ abstract class Application extends Route
 
             if (false === $json = json_encode($json)) {
                 PublicAlert::danger('Json Failed to encode, this may occur when trying to encode binary content.');
-                $json = json_encode($json);
+                $json = json_encode($json); // todo - why did we retry?
             }
 
             SOCKET and $json = PHP_EOL . $json . PHP_EOL;

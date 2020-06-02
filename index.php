@@ -17,23 +17,9 @@ if (false === (include  'vendor' . DS . 'autoload.php')) {     // Load the autol
 }
 
 // The app can exit here if a configuration failure exists
-CarbonPHP\CarbonPHP::make('config' . DS . 'Config.php');
+(new CarbonPHP\CarbonPHP('config' . DS . 'Config.php'))(new CarbonPHP\Documentation);
 
-/* At one point I returned the invocation of $app to show that
- * the application will not exit on completion, but rather return
- * back to this index file. This means you can still execute code
- * after $app(); I stopped returning the __invoke() because if false
- * is returned, the index will re-execute. This turns very bad quickly.
- */
-
-if (false === (include './Documentation.php')){
-    print '<h1>Loading C6 Documentation Failed. Please make sure you are up to date with the master branch.</h1>';
-    die(1);
-}
-
-
-CarbonPHP\CarbonPHP::run( Documentation::class);
-
+// If false is returned, the index will re-execute. This turns very bad quickly.
 return true;
 
 

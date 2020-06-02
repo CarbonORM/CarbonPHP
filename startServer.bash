@@ -10,4 +10,4 @@ fi
 
 cd "$APP_ROOT" || exit
 
-sudo php -S dev.carbonphp.com:80 index.php
+sudo php -S dev.carbonphp.com:80 index.php || sudo php -S dev.carbonphp.com:8080 index.php
