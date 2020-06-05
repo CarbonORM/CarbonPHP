@@ -6,7 +6,7 @@
  * Time: 12:28 AM
  */
 
-namespace CarbonPHP\Controller;
+namespace Controller;
 
 class Color
 {
@@ -19,8 +19,6 @@ class Color
         } else {
             $json['colorCode'] = '';
         }
-
-        //$_POST and sortDump($headers = apache_request_headers());
 
         return null;
     }

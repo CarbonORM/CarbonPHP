@@ -152,6 +152,7 @@ namespace {                                     // This runs the following code 
 
         // Generate Report
         ob_start();
+        print PHP_EOL . '################### SortDump Called From ################<br><pre>';
         print '<pre>';
         /** @noinspection ForgottenDebugOutputInspection */
         var_dump(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,2)[1]);
@@ -159,7 +160,7 @@ namespace {                                     // This runs the following code 
         print PHP_EOL . '####################### VAR DUMP ########################<br><pre>';
         /** @noinspection ForgottenDebugOutputInspection */
         var_dump($mixed);
-        print '</pre><br><br><br>';
+        print '</pre><br><br><br>#########################################################';
         if ($fullReport) {
             echo '####################### MIXED DUMP ########################<br><pre>';
             $mixed = (\is_array($mixed) && \count($mixed) === 1 ? array_pop($mixed) : $mixed);

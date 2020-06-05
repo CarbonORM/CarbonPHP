@@ -178,11 +178,18 @@ END;
                     <div class="alert alert-danger"><h4><i class="icon fa fa-ban"></i>$class :: {$e->getMessage()}</h4></div>
 ERRORMESSAGE;
 
+        } else if ($e[0] instanceof \Throwable) {
+
+            print PHP_EOL . 'Carbon caught this Message: ' . PHP_EOL . $e[0]->getMessage() . PHP_EOL;
+
+            $trace = self::generateCallTrace($e[0]); // todo - see use cases
+
+
         } else {
             $trace = self::generateCallTrace(null);
 
             if (\is_array($e) && \count($e) >= 4) {
-                print PHP_EOL . 'Carbon caught this Message: ' . $e[1] . PHP_EOL . 'line: ' . $e[2] . '(' . $e[3] . ')' . PHP_EOL;
+                print PHP_EOL . 'Carbon caught this Message: ' . PHP_EOL . $e[1] . PHP_EOL . 'line: ' . $e[2] . '(' . $e[3] . ')' . PHP_EOL;
             }
         }
 

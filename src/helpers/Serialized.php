@@ -33,7 +33,7 @@ abstract class Serialized {
 		foreach (self::$sessionVar as $value){
 			if (isset($_SESSION[__CLASS__][$value])) {
                 $GLOBALS[$value] = $_SESSION[__CLASS__][$value];
-                #self::is_serialized( base64_decode(  $_SESSION[__CLASS__][$value] ), $GLOBALS[$value] );
+                # self::is_serialized( base64_decode(  $_SESSION[__CLASS__][$value] ), $GLOBALS[$value] );
             }
 		}
 
@@ -41,7 +41,7 @@ abstract class Serialized {
 		register_shutdown_function( static function () use ($argv) {
             $last_error = error_get_last();
             if (($last_error['type'] ?? false) && $last_error['type'] === E_ERROR) {
-                sortDump($last_error);
+                sortDump(['register_shutdown_function captured an error', $last_error]);
             } else {
                 foreach ($argv as $value) {
                     if (isset($GLOBALS[$value])) {

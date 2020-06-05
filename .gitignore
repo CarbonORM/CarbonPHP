@@ -3,8 +3,11 @@
 .idea/dataSources/
 .idea/inspectionProfiles/
 .idea/workspace.xml
+.idea/webServers.xml
+.idea/deployment.xml
 .DS_Store
 /vendor/
 /node_modules/
 /*/node_modules/
+/logs/*.log
 

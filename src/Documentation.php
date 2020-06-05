@@ -4,9 +4,15 @@ namespace CarbonPHP;
 
 use CarbonPHP\Error\PublicAlert;
 
+use function is_array;
+use function defined;
+use function call_user_func_array;
+
 
 class Documentation extends Application
 {
+
+    // these are all relative to the /view/ directory
     private static array $adminLTE = [
         'Home' => 'mustache/Documentation/Home.hbs',
         'CarbonPHP' => 'mustache/Documentation/Introduction.hbs',
@@ -39,7 +45,6 @@ class Documentation extends Application
     /**
      *  constructor.
      * @param null $structure
-     * @throws CarbonPHP\Error\PublicAlert the only
      * @throws PublicAlert
      * way this will throw an error is if you do
      * not define a url using sockets.
@@ -48,7 +53,7 @@ class Documentation extends Application
     {
         global $json;
 
-        if (!\is_array($json)) {
+        if (!is_array($json)) {
             $json = array();
         }
         $json['SITE'] = SITE;
@@ -111,7 +116,7 @@ class Documentation extends Application
 
         // the array $argv will be passed as arguments to the method requested, see link above
         $exec = static function &(string $class, array &$argv) use ($method) {
-            $argv = \call_user_func_array([new $class, $method], $argv);
+            $argv = call_user_func_array([new $class, $method], $argv);
             return $argv;
         };
 
@@ -120,7 +125,7 @@ class Documentation extends Application
             $argv = $exec($controller, $argv);
 
             if (!empty($argv)) {                            // continue to the model?
-                if (\is_array($argv)) {
+                if (is_array($argv)) {
                     return $exec($model, $argv);        // array passed
                 }
                 $controller = [&$argv];                     // single return, allow return by reference TODO - is this still a thing? (not imperative
@@ -165,7 +170,7 @@ class Documentation extends Application
 
         $json['APP_LOCAL'] = APP_LOCAL;
 
-        \defined('TEMPLATE') or \define('TEMPLATE', 'node_modules/admin-lte/');
+        defined('TEMPLATE') or define('TEMPLATE', 'node_modules/admin-lte/');
 
         #color
         $this->structure($this->MVC());
@@ -236,7 +241,7 @@ class Documentation extends Application
 
             $json['success'] = !true;
 
-            print json_encode($json);
+            print json_encode($json, JSON_THROW_ON_ERROR, 512);
 
             return true;
         })()) {

@@ -62,24 +62,27 @@ abstract class Application extends Route
     public static function CM(string $class, string &$method, array &$argv = []): callable
     {
         $class = ucfirst(strtolower($class));   // Prevent malformed class names
-        $controller = "Controller\\$class";     // add namespace for autoloader
-        $model = "Model\\$class";
         $method = strtolower($method);          // Prevent malformed method names
 
-        // Make sure our class exists
-        if (!class_exists($controller)) {
-            print "Invalid Controller ({$controller}) Passed to MVC. Please ensure your namespace mappings are correct!";
-        }
-
-        if (!class_exists($model)) {
-            print "Invalid Model ({$model}) Passed to MVC. Please ensure your namespace mappings are correct!";
-        }
+        $controller = "Controller\\$class";     // add namespace for autoloader
+        $model = "Model\\$class";
 
         return static function () use ($controller, $model, $method, $argv) {
+
+            // Make sure our Controller exists
+            if (!class_exists($controller)) {
+                print "Invalid Controller ({$controller}) Passed to MVC. Please ensure your namespace mappings are correct!";
+            }
 
             $argv = \call_user_func_array([new $controller, $method], $argv);
 
             if ($argv !== null && $argv !== false) {
+
+                // Make sure our Model exists
+                if (!class_exists($model)) {
+                    print "Invalid Model ({$model}) Passed to MVC. Please ensure your namespace mappings are correct!";
+                }
+
                 return \call_user_func_array([new $model, $method], is_array($argv) ? $argv : [$argv]);
             }
 
