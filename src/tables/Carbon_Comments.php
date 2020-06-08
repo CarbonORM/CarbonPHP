@@ -25,7 +25,7 @@ class Carbon_Comments extends Database implements iRest
     public const VALIDATION = [];
 
 
-    public static $injection = [];
+    public static array $injection = [];
 
 
     public static function jsonSQLReporting($argv, $sql) : void {

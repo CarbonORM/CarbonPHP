@@ -11,7 +11,7 @@ class View
     /**
      * @var string
      */
-    public static $bufferedContent = 'No Content Buffered';
+    public static string $bufferedContent = 'No Content Buffered';
     /**
      * @var bool
      */
@@ -68,8 +68,6 @@ class View
         }
         if (pathinfo($file, PATHINFO_EXTENSION) === 'hbs') {
 
-            //sortDump([PJAX , AJAX], 0, 0);
-
             $mustache = new \Mustache_Engine();
 
             if (SOCKET || (!self::$forceWrapper && PJAX && AJAX)) {        // Send JSON To Socket
@@ -90,36 +88,25 @@ class View
         } else {
             $buffer = $buffer();
         }
-
-        // Make sure our buffer didn't fail
-
         if (!file_exists(self::$wrapper)) {
-            print '<h1>The content wrapper (' . self::$wrapper . ') was not found.</h1>';
-            $message = fopen(__FILE__, 'rb');
-            // Go to the end of the __halt_compiler();
-            fseek($message, __COMPILER_HALT_OFFSET__);
-            print stream_get_contents($message);
-            fclose($message);
+            print '<h1>The content wrapper (' . self::$wrapper . ') was not found.</h1><h1>Wrapper does not exist</h1>';
             return false;
         }
-
         if (!\is_string($buffer)) {
             $buffer = "<script>Carbon(() => carbon.alert('Content Buffer Failed ($file)', 'danger'))</script>";
         }
-
-        if (!self::$forceWrapper && (PJAX || AJAX)):        // Send only inner content?
+        if (!self::$forceWrapper && (PJAX || AJAX)) {        // Send only inner content?
             print $buffer;
         #################### Send the Outer Wrapper
-        elseif (pathinfo(self::$wrapper, PATHINFO_EXTENSION) === 'hbs'):   // Outer Wrapper is Mustache
+        } else if (pathinfo(self::$wrapper, PATHINFO_EXTENSION) === 'hbs') {   // Outer Wrapper is Mustache
             $json['content'] = $buffer;
             $mustache = $mustache ?? new \Mustache_Engine();
             print $mustache->render(file_get_contents(self::$wrapper), $json);
-        else:                                                                       // Outer Wrapper is PHP?
+        } else {                                                                       // Outer Wrapper is PHP?
             self::$bufferedContent = $buffer;
             /** @noinspection PhpIncludeInspection */
             include_once self::$wrapper;
-        endif;
-
+        }
         return true;    // This should fall, or pop, on the stack to the bootstrap which will return because of a match, then to the index.php
     }
 
@@ -197,7 +184,6 @@ class View
      */
     public static function sendResource($file, $ext): void
     {
-
         if ($mime = self::mimeType($file, $ext)) {
             header('Content-type:' . $mime . '; charset: UTF-8');
             readfile($file);
@@ -208,6 +194,7 @@ class View
     }
 
     //Josh Sean
+    // // TODO - put this into cli program
     public static function generateUpToDateMimeArray(): void
     {
         \defined('APACHE_MIME_TYPES_URL') OR \define('APACHE_MIME_TYPES_URL', 'http://svn.apache.org/repos/asf/httpd/httpd/trunk/docs/conf/mime.types');
@@ -224,20 +211,17 @@ class View
 
 
     /**
+     *
      * @param $file
      * @param $ext
      * @return string
      */
     public static function mimeType($file, $ext): string
     {
-        #self::generateUpToDateMimeArray() and die;
-
         $mime_types = include CARBON_ROOT . 'extras/mimeTypes.php';
-
         if (array_key_exists($ext, $mime_types)) {
             return $mime_types[$ext];
         }
-
         if (\function_exists('finfo_open')) {
             $file_info = finfo_open(FILEINFO_MIME);
             $mime_types = finfo_file($file_info, $file);
@@ -246,10 +230,6 @@ class View
         }
         return 'application/octet-stream';
     }
-
 }
 
-
-__halt_compiler();
-<h1>Wrapper does not exist</h1>
 

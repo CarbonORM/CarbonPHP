@@ -40,9 +40,7 @@ use CarbonPHP\Helpers\Serialized;
 
 trait Singleton
 {
-    /**
-     * @var
-     */
+
     public array $storage;                // A Temporary variable for 'quick data'
     /**
      * @var array

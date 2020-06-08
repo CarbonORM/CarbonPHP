@@ -18,19 +18,21 @@ namespace CarbonPHP;
 use CarbonPHP\Helpers\Serialized;
 use CarbonPHP\Tables\sessions;
 
+
+// most important line - session_set_save_handler($this, false)
 class Session implements \SessionHandlerInterface
 {
     /**
      * @var string - if we need to close or pause the session in the middle of execution,
      * this will persistently hold our session_id.
      */
-    protected static $session_id;
+    protected static string $session_id;
 
     /**
-     * @var callable $user_id - After a session is closed the session data is serialized and removed
+     * @var string $user_id - After a session is closed the session data is serialized and removed
      * from the global (accessible) scope.
      */
-    protected static $user_id;
+    protected static string $user_id;
 
     /**
      * @var callable $callback - if the session is reset using the startApplication function,
@@ -56,7 +58,7 @@ class Session implements \SessionHandlerInterface
 
         if ($dbStore) {
             headers_sent() or ini_set('session.gc_probability', 1);  // Clear any lingering session data in default locations
-            if (!session_set_save_handler($this, false)) {
+            if (!session_set_save_handler($this, false)) {                             // set this class as the session handler
                 die('Session failed to store remotely');
             }
         }
@@ -149,7 +151,7 @@ class Session implements \SessionHandlerInterface
     /**
      * This will remove our session data from our scope and the database
      */
-    public static function clear()
+    public static function clear(): void
     {
         try {
             $id = session_id();
@@ -170,13 +172,13 @@ class Session implements \SessionHandlerInterface
      *
      * @param $ip - the ip address to look up from our database.
      */
-    private function verifySocket($ip)
+    private function verifySocket($ip): void
     {
         if ($ip) {
             $_SERVER['REMOTE_ADDR'] = $ip;
         }
 
-        preg_match ('#PHPSESSID=([^;\s]+)#', $_SERVER['HTTP_COOKIE'] ?? false, $array, PREG_OFFSET_CAPTURE);
+        preg_match ('#PHPSESSID=([^;\s]+)#', $_SERVER['HTTP_COOKIE'] ??= false, $array, PREG_OFFSET_CAPTURE);
 
         $session_id = $array[1][0] ?? false;
 
@@ -207,7 +209,7 @@ class Session implements \SessionHandlerInterface
      * @param string $sessionName
      * @return bool
      */
-    public function open($savePath, $sessionName)
+    public function open($savePath, $sessionName) : bool
     {
         try {
             Database::database()->prepare('SELECT count(*) FROM sessions LIMIT 1')->execute();
@@ -224,7 +226,7 @@ class Session implements \SessionHandlerInterface
     /** Make user our session data gets stored in the db.
      * @return bool
      */
-    public function close()
+    public function close() : bool
     {
         register_shutdown_function('session_write_close');
         return true;
@@ -234,7 +236,7 @@ class Session implements \SessionHandlerInterface
      * @param string $id
      * @return string
      */
-    public function read($id)
+    public function read($id) : string
     {
         //TODO - if ip has changed and session id hasn't invalidate
         $stmt = Database::database()->prepare('SELECT session_data FROM sessions WHERE session_id = ?');
@@ -248,10 +250,12 @@ class Session implements \SessionHandlerInterface
      * @param string $data
      * @return bool
      */
-    public function write($id, $data)
+    public function write($id, $data) : bool
     {
         $db = Database::database();
-        if (empty(self::$user_id)) self::$user_id = $_SESSION['id'] ?? false;
+        if (empty(self::$user_id)) {
+            self::$user_id = $_SESSION['id'] ??= false;
+        }
         $NewDateTime = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . ' + 1 d,lay'));  // so from time of last write and whenever the gc_collector hits
 
         try {
@@ -268,7 +272,7 @@ class Session implements \SessionHandlerInterface
      * @param string $id
      * @return bool
      */
-    public function destroy($id)
+    public function destroy($id) : bool
     {
         $db = Database::database();
         return $db->prepare('DELETE FROM sessions WHERE user_id = UNHEX(?) OR session_id = ?')->execute([self::$user_id, $id]) ?
@@ -281,7 +285,7 @@ class Session implements \SessionHandlerInterface
      * @param int $maxLife
      * @return bool
      */
-    public function gc($maxLife)
+    public function gc($maxLife) : bool
     {
         $db = Database::database();
         return $db->prepare('DELETE FROM sessions WHERE (UNIX_TIMESTAMP(session_expires) + ? ) < UNIX_TIMESTAMP(?)')->execute([$maxLife, date('Y-m-d H:i:s')]) ?

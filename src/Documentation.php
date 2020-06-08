@@ -175,7 +175,7 @@ class Documentation extends Application
         #color
         $this->structure($this->MVC());
 
-        if ($this->match('color', 'color', 'color')()) {
+        if ($this->regexMatch('#color#', 'color', 'color')()) {
             return true;
         }
 
@@ -232,7 +232,7 @@ class Documentation extends Application
             }
         }
 
-        if ($this->match('carbon/authenticated', static function () {
+        if ($this->regexMatch('#carbon/authenticated#', static function () {
             global $json;
 
             header('Content-Type: application/json', true, 200); // Send as JSON

@@ -13,8 +13,6 @@ use CarbonPHP\Error\PublicAlert;
 
 abstract class Route
 {
-    use Singleton;                // We use the add method function to bind the closure to the class
-
     /**
      * @var array $uriExplode will hold an exploded array with the
      * back slash '\' as our delimiter
@@ -96,7 +94,6 @@ abstract class Route
             $this->uriExplode = explode('/', $this->uri, ' /');
             $this->uriLength = \substr_count($this->uri, '/') + 1; // I need the exploded string
         }
-
     }
 
     /**
@@ -140,20 +137,15 @@ abstract class Route
      * @return $this
      * @throws PublicAlert
      */
-    public function matchRegex(string $regexToMatch, ...$argv): self
+    public function regexMatch(string $regexToMatch, ...$argv): self
     {
         $matches = [];
-
         if (1 > preg_match_all($regexToMatch, $this->uri, $matches, PREG_SET_ORDER)) {  // can return 0 or false
             return $this;
         }
-
         $this->matched = true;
-
         $matches = array_shift($matches);
-
         array_shift($matches);  // could care less about the full match
-
         // Variables captured in the path to match will passed to the closure
         if (is_callable($argv[0])) {
             if (call_user_func_array($argv[0], $matches) === false) {
@@ -161,14 +153,12 @@ abstract class Route
             }
             return $this;
         }
-
         // If variables were captured in our path to match, they will be merged with our variable list provided with $argv
         if (is_callable($this->closure)) {
             $argv[] = &$matches;        // todo - review this logic
             call_user_func_array($this->closure, $argv);
             return $this;
         }
-
         return $this;
     }
 
@@ -178,50 +168,37 @@ abstract class Route
      *  should probably be done with regex was implemented
      *  by a younger novice me.
      *
-     * TODO - use capture groups and regex to optimise
-     *
      * @param string $pathToMatch
      * @param array ...$argv
      * @return Route
      * @throws PublicAlert
+     * @deprecated use matchRegex instead
      */
     public function match(string $pathToMatch, ...$argv): self
     {
-        $this->storage = $argv;  // This is for home route function (singleton)
-
         $uri = $this->uriExplode;
-
         $arrayToMatch = explode('/', trim($pathToMatch, '/'));
-
         $pathLength = \count($arrayToMatch);
-
         $pathLength === 0 and $pathToMatch = '*';   // shorthand if stmt
-
         // The order of the following
         if ($pathLength < $this->uriLength && substr($pathToMatch, -1) !== '*') {
             return $this;
         }
-
         $required = true;       // variables can be made optional by `?`
         $variables = array();
-
         for ($i = 0; $i <= $pathLength; $i++) {
-
             // set up our ending condition
             if ($pathLength === $i || $arrayToMatch[$i] === null) {
                 $arrayToMatch[$i] = '*';
             }
-
             switch ($arrayToMatch[$i][0]) {
                 case  '*':
                     $this->matched = true;
                     $referenceVariables = [];
-
                     foreach ($variables as $key => $value) {
                         $GLOBALS[$key] = $value;                    // this must be done in two lines
                         $referenceVariables[] = &$GLOBALS[$key];
                     }
-
                     // Variables captured in the path to match will passed to the closure
                     if (is_callable($argv[0])) {
                         if (call_user_func_array($argv[0], $referenceVariables) === false) {
@@ -229,7 +206,6 @@ abstract class Route
                         }
                         return $this;
                     }
-
                     // If variables were captured in our path to match, they will be merged with our variable list provided with $argv
                     if (is_callable($this->closure)) {
                         $argv[] = &$referenceVariables;
@@ -237,25 +213,18 @@ abstract class Route
                         return $this;
                     }
                     return $this;
-
                 case '{': // this is going to indicate the start of a variable name
-
                     if (substr($arrayToMatch[$i], -1) !== '}') {
                         throw new PublicAlert('Variable declaration must be rapped in brackets. ie `/{var}/`');
                     }
-
                     $variable = rtrim(ltrim($arrayToMatch[$i], '{'), '}');
-
                     if (substr($variable, -1) === '?' && $variable = rtrim($variable, '?')) {
                         $required = false;
                     }
-
                     if (empty($variable)) {
                         throw new PublicAlert('Variable must have a name association. ie  `/{var}/`');
                     }
-
                     $value = null;
-
                     if (array_key_exists($i, $uri)) {
                         $value = $uri[$i];
                     }
