@@ -33,7 +33,7 @@ abstract class Serialized {
 		foreach (self::$sessionVar as $value){
 			if (isset($_SESSION[__CLASS__][$value])) {
                 $GLOBALS[$value] = $_SESSION[__CLASS__][$value];
-                # self::is_serialized( base64_decode(  $_SESSION[__CLASS__][$value] ), $GLOBALS[$value] );
+                #self::is_serialized( base64_decode(  $_SESSION[__CLASS__][$value] ), $GLOBALS[$value] );
             }
 		}
 

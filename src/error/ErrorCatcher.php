@@ -164,14 +164,15 @@ END;
         $throwable = '';
 
         if ($e instanceof \Throwable) {
+            $class = \get_class($e);
             $trace = self::generateCallTrace($e);
             if (!$e instanceof PublicAlert) {
                 print '(set_error_handler || set_exception_handler) caught this ( ' . $class . ' ) throwable. #Bubbled up#' . PHP_EOL;
             } else {
                 print 'Public Alert Thrown!' . PHP_EOL;
             }
-            $class = \get_class($e);
-            print PHP_EOL . $e->getMessage() . PHP_EOL;
+
+            print PHP_EOL . $e->getMessage() . PHP_EOL; // todo why are we printing twice?
 
             $throwable = /** @lang HTML */
                 <<<ERRORMESSAGE
