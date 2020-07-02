@@ -9,10 +9,10 @@ use CarbonPHP\Interfaces\iRest;
 class Carbon_Reports extends Database implements iRest
 {
 
-    public const LOG_LEVEL = 'log_level';
-    public const REPORT = 'report';
-    public const DATE = 'date';
-    public const CALL_TRACE = 'call_trace';
+    public const LOG_LEVEL = 'carbon_reports.log_level';
+    public const REPORT = 'carbon_reports.report';
+    public const DATE = 'carbon_reports.date';
+    public const CALL_TRACE = 'carbon_reports.call_trace';
 
     public const PRIMARY = [
     
@@ -25,22 +25,9 @@ class Carbon_Reports extends Database implements iRest
     public const VALIDATION = [];
 
 
-    public static $injection = [];
+    public static array $injection = [];
 
 
-    public static function jsonSQLReporting($argv, $sql) : void {
-        global $json;
-        if (!\is_array($json)) {
-            $json = [];
-        }
-        if (!isset($json['sql'])) {
-            $json['sql'] = [];
-        }
-        $json['sql'][] = [
-            $argv,
-            $sql
-        ];
-    }
 
     public static function buildWhere(array $set, \PDO $pdo, $join = 'AND') : string
     {
@@ -151,11 +138,60 @@ class Carbon_Reports extends Database implements iRest
     */
     public static function Get(array &$return, string $primary = null, array $argv) : bool
     {
+        $pdo = self::database();
+
+        $sql = self::buildSelect($primary, $argv, $pdo);
+        
+        $stmt = $pdo->prepare($sql);
+
+        if (!self::bind($stmt, $argv['where'] ?? [])) {
+            return false;
+        }
+
+        $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        /**
+        *   The next part is so every response from the rest api
+        *   formats to a set of rows. Even if only one row is returned.
+        *   You must set the third parameter to true, otherwise '0' is
+        *   apparently in the self::COLUMNS
+        */
+
+        
+
+        return true;
+    }
+
+    /**
+    * @param array $argv
+    * @return bool|mixed
+    */
+    public static function Post(array $argv)
+    {
+        self::$injection = [];
+        /** @noinspection SqlResolve */
+        $sql = 'INSERT INTO carbon_reports (log_level, report, call_trace) VALUES ( :log_level, :report, :call_trace)';
+
+        
+
+        $stmt = self::database()->prepare($sql);
+
+                
+                    $log_level =  $argv['log_level'] ?? null;
+                    $stmt->bindParam(':log_level',$log_level, 2, 20);
+                        $stmt->bindValue(':report',$argv['report'], 2);
+                                $stmt->bindValue(':call_trace',$argv['call_trace'], 2);
+        
+
+
+
+            return $stmt->execute();
+    }
+    
+    public static function buildSelect(string $primary = null, array $argv, \PDO $pdo) : string {
         self::$injection = [];
         $aggregate = false;
         $group = $sql = '';
-        $pdo = self::database();
-
         $get = $argv['select'] ?? array_keys(self::COLUMNS);
         $where = $argv['where'] ?? [];
 
@@ -229,52 +265,9 @@ class Carbon_Reports extends Database implements iRest
 
         $sql .= $limit;
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
-
-        $stmt = $pdo->prepare($sql);
-
-        if (!self::bind($stmt, $argv['where'] ?? [])) {
-            return false;
-        }
-
-        $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        /**
-        *   The next part is so every response from the rest api
-        *   formats to a set of rows. Even if only one row is returned.
-        *   You must set the third parameter to true, otherwise '0' is
-        *   apparently in the self::COLUMNS
-        */
-
         
 
-        return true;
-    }
-
-    /**
-    * @param array $argv
-    * @return bool|mixed
-    */
-    public static function Post(array $argv)
-    {
-        self::$injection = [];
-        /** @noinspection SqlResolve */
-        $sql = 'INSERT INTO carbon_reports (log_level, report, call_trace) VALUES ( :log_level, :report, :call_trace)';
-
-        self::jsonSQLReporting(\func_get_args(), $sql);
-
-        $stmt = self::database()->prepare($sql);
-
-                
-                    $log_level =  $argv['log_level'] ?? null;
-                    $stmt->bindParam(':log_level',$log_level, 2, 20);
-                        $stmt->bindValue(':report',$argv['report'], 2);
-                                $stmt->bindValue(':call_trace',$argv['call_trace'], 2);
-        
-
-
-
-            return $stmt->execute();
+        return '(' . $sql . ')';
     }
 
     /**
@@ -325,7 +318,7 @@ class Carbon_Reports extends Database implements iRest
 
         
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = $pdo->prepare($sql);
 
@@ -381,7 +374,7 @@ class Carbon_Reports extends Database implements iRest
         $sql .= ' WHERE ' . self::buildWhere($argv, $pdo);
         } 
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = $pdo->prepare($sql);
 

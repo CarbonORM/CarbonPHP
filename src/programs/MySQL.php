@@ -65,7 +65,9 @@ trait MySQL
 
     private function MySQLDump(String $mysqldump = null) : string
     {
-        shell_exec(($mysqldump ?: 'mysqldump') . ' --defaults-extra-file="' . $this->buildCNF() . '" --no-data ' . $this->CONFIG['DATABASE']['DB_NAME'] . ' > ./mysqldump.sql');
+        $cmd = ($mysqldump ?: 'mysqldump') . ' --defaults-extra-file="' . $this->buildCNF() . '" --no-data ' . $this->CONFIG['DATABASE']['DB_NAME'] . ' > ./mysqldump.sql';
+        print "\n\nRunning Command >> $cmd\n\n";
+        shell_exec($cmd);
         return $this->mysqldump = './mysqldump.sql';
     }
 
@@ -73,7 +75,7 @@ trait MySQL
     {
         $cmd = ($mysql ?: 'mysql') . ' --defaults-extra-file="' . $this->buildCNF() . '" ' . $this->CONFIG['DATABASE']['DB_NAME'] . ' < "' . $query . '"';
 
-        $verbose and print "\n\nRunning Command >> $cmd\n\n";
+        print "\n\nRunning Command >> $cmd\n\n";
 
         return shell_exec($cmd);
     }

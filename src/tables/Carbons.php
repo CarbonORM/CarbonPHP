@@ -9,8 +9,8 @@ use CarbonPHP\Interfaces\iRest;
 class Carbons extends Database implements iRest
 {
 
-    public const ENTITY_PK = 'entity_pk';
-    public const ENTITY_FK = 'entity_fk';
+    public const ENTITY_PK = 'carbons.entity_pk';
+    public const ENTITY_FK = 'carbons.entity_fk';
 
     public const PRIMARY = [
     'entity_pk',
@@ -23,22 +23,9 @@ class Carbons extends Database implements iRest
     public const VALIDATION = [];
 
 
-    public static $injection = [];
+    public static array $injection = [];
 
 
-    public static function jsonSQLReporting($argv, $sql) : void {
-        global $json;
-        if (!\is_array($json)) {
-            $json = [];
-        }
-        if (!isset($json['sql'])) {
-            $json['sql'] = [];
-        }
-        $json['sql'][] = [
-            $argv,
-            $sql
-        ];
-    }
 
     public static function buildWhere(array $set, \PDO $pdo, $join = 'AND') : string
     {
@@ -144,11 +131,65 @@ class Carbons extends Database implements iRest
     */
     public static function Get(array &$return, string $primary = null, array $argv) : bool
     {
+        $pdo = self::database();
+
+        $sql = self::buildSelect($primary, $argv, $pdo);
+        
+        $stmt = $pdo->prepare($sql);
+
+        if (!self::bind($stmt, $argv['where'] ?? [])) {
+            return false;
+        }
+
+        $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        /**
+        *   The next part is so every response from the rest api
+        *   formats to a set of rows. Even if only one row is returned.
+        *   You must set the third parameter to true, otherwise '0' is
+        *   apparently in the self::COLUMNS
+        */
+
+        
+        if ($primary !== null || (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] === 1 && \count($return) === 1)) {
+            $return = isset($return[0]) && \is_array($return[0]) ? $return[0] : $return;
+            // promise this is needed and will still return the desired array except for a single record will not be an array
+        
+        }
+
+        return true;
+    }
+
+    /**
+    * @param array $argv
+    * @return bool|mixed
+    */
+    public static function Post(array $argv)
+    {
+        self::$injection = [];
+        /** @noinspection SqlResolve */
+        $sql = 'INSERT INTO carbons (entity_pk, entity_fk) VALUES ( UNHEX(:entity_pk), UNHEX(:entity_fk))';
+
+        
+
+        $stmt = self::database()->prepare($sql);
+
+                $entity_pk = $id = $argv['entity_pk'] ?? self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
+                $stmt->bindParam(':entity_pk',$entity_pk, 2, 16);
+                
+                    $entity_fk =  $argv['entity_fk'] ?? null;
+                    $stmt->bindParam(':entity_fk',$entity_fk, 2, 16);
+        
+
+
+        return $stmt->execute() ? $id : false;
+
+    }
+    
+    public static function buildSelect(string $primary = null, array $argv, \PDO $pdo) : string {
         self::$injection = [];
         $aggregate = false;
         $group = $sql = '';
-        $pdo = self::database();
-
         $get = $argv['select'] ?? array_keys(self::COLUMNS);
         $where = $argv['where'] ?? [];
 
@@ -215,7 +256,7 @@ class Carbons extends Database implements iRest
                 $sql .= ' WHERE ' . self::buildWhere($where, $pdo);
             }
         } else {
-        $sql .= ' WHERE  entity_pk=UNHEX('.self::addInjection($primary, $pdo).')';
+            $sql .= ' WHERE  entity_pk=UNHEX('.self::addInjection($primary, $pdo).')';
         }
 
         if ($aggregate  && !empty($group)) {
@@ -224,57 +265,9 @@ class Carbons extends Database implements iRest
 
         $sql .= $limit;
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
-
-        $stmt = $pdo->prepare($sql);
-
-        if (!self::bind($stmt, $argv['where'] ?? [])) {
-            return false;
-        }
-
-        $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        /**
-        *   The next part is so every response from the rest api
-        *   formats to a set of rows. Even if only one row is returned.
-        *   You must set the third parameter to true, otherwise '0' is
-        *   apparently in the self::COLUMNS
-        */
-
-        
-        if ($primary !== null || (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] === 1 && \count($return) === 1)) {
-            $return = isset($return[0]) && \is_array($return[0]) ? $return[0] : $return;
-            // promise this is needed and will still return the desired array except for a single record will not be an array
-        
-        }
-
-        return true;
-    }
-
-    /**
-    * @param array $argv
-    * @return bool|mixed
-    */
-    public static function Post(array $argv)
-    {
-        self::$injection = [];
-        /** @noinspection SqlResolve */
-        $sql = 'INSERT INTO carbons (entity_pk, entity_fk) VALUES ( UNHEX(:entity_pk), UNHEX(:entity_fk))';
-
-        self::jsonSQLReporting(\func_get_args(), $sql);
-
-        $stmt = self::database()->prepare($sql);
-
-                $entity_pk = $id = $argv['entity_pk'] ?? self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
-                $stmt->bindParam(':entity_pk',$entity_pk, 2, 16);
-                
-                    $entity_fk =  $argv['entity_fk'] ?? null;
-                    $stmt->bindParam(':entity_fk',$entity_fk, 2, 16);
         
 
-
-        return $stmt->execute() ? $id : false;
-
+        return '(' . $sql . ')';
     }
 
     /**
@@ -319,7 +312,7 @@ class Carbons extends Database implements iRest
 
         $sql .= ' WHERE  entity_pk=UNHEX('.self::addInjection($primary, $pdo).')';
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = $pdo->prepare($sql);
 
@@ -372,7 +365,7 @@ class Carbons extends Database implements iRest
         $sql .= ' WHERE  entity_pk=UNHEX('.self::addInjection($primary, $pdo).')';
         }
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = $pdo->prepare($sql);
 

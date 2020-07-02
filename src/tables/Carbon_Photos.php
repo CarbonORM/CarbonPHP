@@ -9,11 +9,11 @@ use CarbonPHP\Interfaces\iRest;
 class Carbon_Photos extends Database implements iRest
 {
 
-    public const PARENT_ID = 'parent_id';
-    public const PHOTO_ID = 'photo_id';
-    public const USER_ID = 'user_id';
-    public const PHOTO_PATH = 'photo_path';
-    public const PHOTO_DESCRIPTION = 'photo_description';
+    public const PARENT_ID = 'carbon_photos.parent_id';
+    public const PHOTO_ID = 'carbon_photos.photo_id';
+    public const USER_ID = 'carbon_photos.user_id';
+    public const PHOTO_PATH = 'carbon_photos.photo_path';
+    public const PHOTO_DESCRIPTION = 'carbon_photos.photo_description';
 
     public const PRIMARY = [
     'parent_id',
@@ -26,22 +26,9 @@ class Carbon_Photos extends Database implements iRest
     public const VALIDATION = [];
 
 
-    public static $injection = [];
+    public static array $injection = [];
 
 
-    public static function jsonSQLReporting($argv, $sql) : void {
-        global $json;
-        if (!\is_array($json)) {
-            $json = [];
-        }
-        if (!isset($json['sql'])) {
-            $json['sql'] = [];
-        }
-        $json['sql'][] = [
-            $argv,
-            $sql
-        ];
-    }
 
     public static function buildWhere(array $set, \PDO $pdo, $join = 'AND') : string
     {
@@ -158,11 +145,72 @@ class Carbon_Photos extends Database implements iRest
     */
     public static function Get(array &$return, string $primary = null, array $argv) : bool
     {
+        $pdo = self::database();
+
+        $sql = self::buildSelect($primary, $argv, $pdo);
+        
+        $stmt = $pdo->prepare($sql);
+
+        if (!self::bind($stmt, $argv['where'] ?? [])) {
+            return false;
+        }
+
+        $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        /**
+        *   The next part is so every response from the rest api
+        *   formats to a set of rows. Even if only one row is returned.
+        *   You must set the third parameter to true, otherwise '0' is
+        *   apparently in the self::COLUMNS
+        */
+
+        
+        if ($primary !== null || (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] === 1 && \count($return) === 1)) {
+            $return = isset($return[0]) && \is_array($return[0]) ? $return[0] : $return;
+            // promise this is needed and will still return the desired array except for a single record will not be an array
+        
+        }
+
+        return true;
+    }
+
+    /**
+    * @param array $argv
+    * @return bool|mixed
+    */
+    public static function Post(array $argv)
+    {
+        self::$injection = [];
+        /** @noinspection SqlResolve */
+        $sql = 'INSERT INTO carbon_photos (parent_id, photo_id, user_id, photo_path, photo_description) VALUES ( UNHEX(:parent_id), UNHEX(:photo_id), UNHEX(:user_id), :photo_path, :photo_description)';
+
+        
+
+        $stmt = self::database()->prepare($sql);
+
+                $parent_id = $id = $argv['parent_id'] ?? self::beginTransaction('carbon_photos');
+                $stmt->bindParam(':parent_id',$parent_id, 2, 16);
+                
+                    $photo_id = $argv['photo_id'];
+                    $stmt->bindParam(':photo_id',$photo_id, 2, 16);
+                        
+                    $user_id = $argv['user_id'];
+                    $stmt->bindParam(':user_id',$user_id, 2, 16);
+                        
+                    $photo_path = $argv['photo_path'];
+                    $stmt->bindParam(':photo_path',$photo_path, 2, 225);
+                        $stmt->bindValue(':photo_description',$argv['photo_description'], 2);
+        
+
+
+        return $stmt->execute() ? $id : false;
+
+    }
+    
+    public static function buildSelect(string $primary = null, array $argv, \PDO $pdo) : string {
         self::$injection = [];
         $aggregate = false;
         $group = $sql = '';
-        $pdo = self::database();
-
         $get = $argv['select'] ?? array_keys(self::COLUMNS);
         $where = $argv['where'] ?? [];
 
@@ -229,7 +277,7 @@ class Carbon_Photos extends Database implements iRest
                 $sql .= ' WHERE ' . self::buildWhere($where, $pdo);
             }
         } else {
-        $sql .= ' WHERE  parent_id=UNHEX('.self::addInjection($primary, $pdo).')';
+            $sql .= ' WHERE  parent_id=UNHEX('.self::addInjection($primary, $pdo).')';
         }
 
         if ($aggregate  && !empty($group)) {
@@ -238,64 +286,9 @@ class Carbon_Photos extends Database implements iRest
 
         $sql .= $limit;
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
-
-        $stmt = $pdo->prepare($sql);
-
-        if (!self::bind($stmt, $argv['where'] ?? [])) {
-            return false;
-        }
-
-        $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        /**
-        *   The next part is so every response from the rest api
-        *   formats to a set of rows. Even if only one row is returned.
-        *   You must set the third parameter to true, otherwise '0' is
-        *   apparently in the self::COLUMNS
-        */
-
-        
-        if ($primary !== null || (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] === 1 && \count($return) === 1)) {
-            $return = isset($return[0]) && \is_array($return[0]) ? $return[0] : $return;
-            // promise this is needed and will still return the desired array except for a single record will not be an array
-        
-        }
-
-        return true;
-    }
-
-    /**
-    * @param array $argv
-    * @return bool|mixed
-    */
-    public static function Post(array $argv)
-    {
-        self::$injection = [];
-        /** @noinspection SqlResolve */
-        $sql = 'INSERT INTO carbon_photos (parent_id, photo_id, user_id, photo_path, photo_description) VALUES ( UNHEX(:parent_id), UNHEX(:photo_id), UNHEX(:user_id), :photo_path, :photo_description)';
-
-        self::jsonSQLReporting(\func_get_args(), $sql);
-
-        $stmt = self::database()->prepare($sql);
-
-                $parent_id = $id = $argv['parent_id'] ?? self::beginTransaction('carbon_photos');
-                $stmt->bindParam(':parent_id',$parent_id, 2, 16);
-                
-                    $photo_id = $argv['photo_id'];
-                    $stmt->bindParam(':photo_id',$photo_id, 2, 16);
-                        
-                    $user_id = $argv['user_id'];
-                    $stmt->bindParam(':user_id',$user_id, 2, 16);
-                        
-                    $photo_path = $argv['photo_path'];
-                    $stmt->bindParam(':photo_path',$photo_path, 2, 225);
-                        $stmt->bindValue(':photo_description',$argv['photo_description'], 2);
         
 
-
-        return $stmt->execute() ? $id : false;
-
+        return '(' . $sql . ')';
     }
 
     /**
@@ -349,7 +342,7 @@ class Carbon_Photos extends Database implements iRest
 
         $sql .= ' WHERE  parent_id=UNHEX('.self::addInjection($primary, $pdo).')';
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = $pdo->prepare($sql);
 

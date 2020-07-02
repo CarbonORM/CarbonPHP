@@ -83,7 +83,7 @@ return [
 
         'DB_BUILD' => '',                               // SERVER_ROOT . '/config/buildDatabase.php' TODO - auto set this when cli program is run
 
-        'REBUILD' => false
+        'REBUILD' => true
     ],
 
     'SITE' => [
@@ -144,7 +144,7 @@ return [
 
         'LEVEL' => E_ALL | E_STRICT,  // php ini level
 
-        'STORE' => true,      // Database if specified and / or File 'LOCATION' in your system
+        'STORE' => false,      // Database if specified and / or File 'LOCATION' in your system
 
         'SHOW' => true,       // Show errors on browser
 

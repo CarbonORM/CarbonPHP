@@ -9,9 +9,9 @@ use CarbonPHP\Interfaces\iRest;
 class Carbon_User_Followers extends Database implements iRest
 {
 
-    public const FOLLOWER_TABLE_ID = 'follower_table_id';
-    public const FOLLOWS_USER_ID = 'follows_user_id';
-    public const USER_ID = 'user_id';
+    public const FOLLOWER_TABLE_ID = 'carbon_user_followers.follower_table_id';
+    public const FOLLOWS_USER_ID = 'carbon_user_followers.follows_user_id';
+    public const USER_ID = 'carbon_user_followers.user_id';
 
     public const PRIMARY = [
     'follower_table_id',
@@ -24,22 +24,9 @@ class Carbon_User_Followers extends Database implements iRest
     public const VALIDATION = [];
 
 
-    public static $injection = [];
+    public static array $injection = [];
 
 
-    public static function jsonSQLReporting($argv, $sql) : void {
-        global $json;
-        if (!\is_array($json)) {
-            $json = [];
-        }
-        if (!isset($json['sql'])) {
-            $json['sql'] = [];
-        }
-        $json['sql'][] = [
-            $argv,
-            $sql
-        ];
-    }
 
     public static function buildWhere(array $set, \PDO $pdo, $join = 'AND') : string
     {
@@ -149,11 +136,68 @@ class Carbon_User_Followers extends Database implements iRest
     */
     public static function Get(array &$return, string $primary = null, array $argv) : bool
     {
+        $pdo = self::database();
+
+        $sql = self::buildSelect($primary, $argv, $pdo);
+        
+        $stmt = $pdo->prepare($sql);
+
+        if (!self::bind($stmt, $argv['where'] ?? [])) {
+            return false;
+        }
+
+        $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        /**
+        *   The next part is so every response from the rest api
+        *   formats to a set of rows. Even if only one row is returned.
+        *   You must set the third parameter to true, otherwise '0' is
+        *   apparently in the self::COLUMNS
+        */
+
+        
+        if ($primary !== null || (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] === 1 && \count($return) === 1)) {
+            $return = isset($return[0]) && \is_array($return[0]) ? $return[0] : $return;
+            // promise this is needed and will still return the desired array except for a single record will not be an array
+        
+        }
+
+        return true;
+    }
+
+    /**
+    * @param array $argv
+    * @return bool|mixed
+    */
+    public static function Post(array $argv)
+    {
+        self::$injection = [];
+        /** @noinspection SqlResolve */
+        $sql = 'INSERT INTO carbon_user_followers (follower_table_id, follows_user_id, user_id) VALUES ( UNHEX(:follower_table_id), UNHEX(:follows_user_id), UNHEX(:user_id))';
+
+        
+
+        $stmt = self::database()->prepare($sql);
+
+                $follower_table_id = $id = $argv['follower_table_id'] ?? self::beginTransaction('carbon_user_followers');
+                $stmt->bindParam(':follower_table_id',$follower_table_id, 2, 16);
+                
+                    $follows_user_id = $argv['follows_user_id'];
+                    $stmt->bindParam(':follows_user_id',$follows_user_id, 2, 16);
+                        
+                    $user_id = $argv['user_id'];
+                    $stmt->bindParam(':user_id',$user_id, 2, 16);
+        
+
+
+        return $stmt->execute() ? $id : false;
+
+    }
+    
+    public static function buildSelect(string $primary = null, array $argv, \PDO $pdo) : string {
         self::$injection = [];
         $aggregate = false;
         $group = $sql = '';
-        $pdo = self::database();
-
         $get = $argv['select'] ?? array_keys(self::COLUMNS);
         $where = $argv['where'] ?? [];
 
@@ -220,7 +264,7 @@ class Carbon_User_Followers extends Database implements iRest
                 $sql .= ' WHERE ' . self::buildWhere($where, $pdo);
             }
         } else {
-        $sql .= ' WHERE  follower_table_id=UNHEX('.self::addInjection($primary, $pdo).')';
+            $sql .= ' WHERE  follower_table_id=UNHEX('.self::addInjection($primary, $pdo).')';
         }
 
         if ($aggregate  && !empty($group)) {
@@ -229,60 +273,9 @@ class Carbon_User_Followers extends Database implements iRest
 
         $sql .= $limit;
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
-
-        $stmt = $pdo->prepare($sql);
-
-        if (!self::bind($stmt, $argv['where'] ?? [])) {
-            return false;
-        }
-
-        $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        /**
-        *   The next part is so every response from the rest api
-        *   formats to a set of rows. Even if only one row is returned.
-        *   You must set the third parameter to true, otherwise '0' is
-        *   apparently in the self::COLUMNS
-        */
-
-        
-        if ($primary !== null || (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] === 1 && \count($return) === 1)) {
-            $return = isset($return[0]) && \is_array($return[0]) ? $return[0] : $return;
-            // promise this is needed and will still return the desired array except for a single record will not be an array
-        
-        }
-
-        return true;
-    }
-
-    /**
-    * @param array $argv
-    * @return bool|mixed
-    */
-    public static function Post(array $argv)
-    {
-        self::$injection = [];
-        /** @noinspection SqlResolve */
-        $sql = 'INSERT INTO carbon_user_followers (follower_table_id, follows_user_id, user_id) VALUES ( UNHEX(:follower_table_id), UNHEX(:follows_user_id), UNHEX(:user_id))';
-
-        self::jsonSQLReporting(\func_get_args(), $sql);
-
-        $stmt = self::database()->prepare($sql);
-
-                $follower_table_id = $id = $argv['follower_table_id'] ?? self::beginTransaction('carbon_user_followers');
-                $stmt->bindParam(':follower_table_id',$follower_table_id, 2, 16);
-                
-                    $follows_user_id = $argv['follows_user_id'];
-                    $stmt->bindParam(':follows_user_id',$follows_user_id, 2, 16);
-                        
-                    $user_id = $argv['user_id'];
-                    $stmt->bindParam(':user_id',$user_id, 2, 16);
         
 
-
-        return $stmt->execute() ? $id : false;
-
+        return '(' . $sql . ')';
     }
 
     /**
@@ -330,7 +323,7 @@ class Carbon_User_Followers extends Database implements iRest
 
         $sql .= ' WHERE  follower_table_id=UNHEX('.self::addInjection($primary, $pdo).')';
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = $pdo->prepare($sql);
 

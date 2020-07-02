@@ -9,9 +9,9 @@ use CarbonPHP\Interfaces\iRest;
 class Tags extends Database implements iRest
 {
 
-    public const TAG_ID = 'tag_id';
-    public const TAG_DESCRIPTION = 'tag_description';
-    public const TAG_NAME = 'tag_name';
+    public const TAG_ID = 'tags.tag_id';
+    public const TAG_DESCRIPTION = 'tags.tag_description';
+    public const TAG_NAME = 'tags.tag_name';
 
     public const PRIMARY = [
     
@@ -24,22 +24,9 @@ class Tags extends Database implements iRest
     public const VALIDATION = [];
 
 
-    public static $injection = [];
+    public static array $injection = [];
 
 
-    public static function jsonSQLReporting($argv, $sql) : void {
-        global $json;
-        if (!\is_array($json)) {
-            $json = [];
-        }
-        if (!isset($json['sql'])) {
-            $json['sql'] = [];
-        }
-        $json['sql'][] = [
-            $argv,
-            $sql
-        ];
-    }
 
     public static function buildWhere(array $set, \PDO $pdo, $join = 'AND') : string
     {
@@ -147,11 +134,60 @@ class Tags extends Database implements iRest
     */
     public static function Get(array &$return, string $primary = null, array $argv) : bool
     {
+        $pdo = self::database();
+
+        $sql = self::buildSelect($primary, $argv, $pdo);
+        
+        $stmt = $pdo->prepare($sql);
+
+        if (!self::bind($stmt, $argv['where'] ?? [])) {
+            return false;
+        }
+
+        $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        /**
+        *   The next part is so every response from the rest api
+        *   formats to a set of rows. Even if only one row is returned.
+        *   You must set the third parameter to true, otherwise '0' is
+        *   apparently in the self::COLUMNS
+        */
+
+        
+
+        return true;
+    }
+
+    /**
+    * @param array $argv
+    * @return bool|mixed
+    */
+    public static function Post(array $argv)
+    {
+        self::$injection = [];
+        /** @noinspection SqlResolve */
+        $sql = 'INSERT INTO tags (tag_id, tag_description, tag_name) VALUES ( :tag_id, :tag_description, :tag_name)';
+
+        
+
+        $stmt = self::database()->prepare($sql);
+
+                
+                    $tag_id = $argv['tag_id'];
+                    $stmt->bindParam(':tag_id',$tag_id, 2, 80);
+                        $stmt->bindValue(':tag_description',$argv['tag_description'], 2);
+                        $stmt->bindValue(':tag_name',$argv['tag_name'], 2);
+        
+
+
+
+            return $stmt->execute();
+    }
+    
+    public static function buildSelect(string $primary = null, array $argv, \PDO $pdo) : string {
         self::$injection = [];
         $aggregate = false;
         $group = $sql = '';
-        $pdo = self::database();
-
         $get = $argv['select'] ?? array_keys(self::COLUMNS);
         $where = $argv['where'] ?? [];
 
@@ -225,52 +261,9 @@ class Tags extends Database implements iRest
 
         $sql .= $limit;
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
-
-        $stmt = $pdo->prepare($sql);
-
-        if (!self::bind($stmt, $argv['where'] ?? [])) {
-            return false;
-        }
-
-        $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        /**
-        *   The next part is so every response from the rest api
-        *   formats to a set of rows. Even if only one row is returned.
-        *   You must set the third parameter to true, otherwise '0' is
-        *   apparently in the self::COLUMNS
-        */
-
         
 
-        return true;
-    }
-
-    /**
-    * @param array $argv
-    * @return bool|mixed
-    */
-    public static function Post(array $argv)
-    {
-        self::$injection = [];
-        /** @noinspection SqlResolve */
-        $sql = 'INSERT INTO tags (tag_id, tag_description, tag_name) VALUES ( :tag_id, :tag_description, :tag_name)';
-
-        self::jsonSQLReporting(\func_get_args(), $sql);
-
-        $stmt = self::database()->prepare($sql);
-
-                
-                    $tag_id = $argv['tag_id'];
-                    $stmt->bindParam(':tag_id',$tag_id, 2, 80);
-                        $stmt->bindValue(':tag_description',$argv['tag_description'], 2);
-                        $stmt->bindValue(':tag_name',$argv['tag_name'], 2);
-        
-
-
-
-            return $stmt->execute();
+        return '(' . $sql . ')';
     }
 
     /**
@@ -318,7 +311,7 @@ class Tags extends Database implements iRest
 
         
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = $pdo->prepare($sql);
 
@@ -371,7 +364,7 @@ class Tags extends Database implements iRest
         $sql .= ' WHERE ' . self::buildWhere($argv, $pdo);
         } 
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = $pdo->prepare($sql);
 

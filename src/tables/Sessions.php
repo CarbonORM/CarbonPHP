@@ -9,12 +9,12 @@ use CarbonPHP\Interfaces\iRest;
 class Sessions extends Database implements iRest
 {
 
-    public const USER_ID = 'user_id';
-    public const USER_IP = 'user_ip';
-    public const SESSION_ID = 'session_id';
-    public const SESSION_EXPIRES = 'session_expires';
-    public const SESSION_DATA = 'session_data';
-    public const USER_ONLINE_STATUS = 'user_online_status';
+    public const USER_ID = 'sessions.user_id';
+    public const USER_IP = 'sessions.user_ip';
+    public const SESSION_ID = 'sessions.session_id';
+    public const SESSION_EXPIRES = 'sessions.session_expires';
+    public const SESSION_DATA = 'sessions.session_data';
+    public const USER_ONLINE_STATUS = 'sessions.user_online_status';
 
     public const PRIMARY = [
     'session_id',
@@ -27,22 +27,9 @@ class Sessions extends Database implements iRest
     public const VALIDATION = [];
 
 
-    public static $injection = [];
+    public static array $injection = [];
 
 
-    public static function jsonSQLReporting($argv, $sql) : void {
-        global $json;
-        if (!\is_array($json)) {
-            $json = [];
-        }
-        if (!isset($json['sql'])) {
-            $json['sql'] = [];
-        }
-        $json['sql'][] = [
-            $argv,
-            $sql
-        ];
-    }
 
     public static function buildWhere(array $set, \PDO $pdo, $join = 'AND') : string
     {
@@ -162,11 +149,74 @@ class Sessions extends Database implements iRest
     */
     public static function Get(array &$return, string $primary = null, array $argv) : bool
     {
+        $pdo = self::database();
+
+        $sql = self::buildSelect($primary, $argv, $pdo);
+        
+        $stmt = $pdo->prepare($sql);
+
+        if (!self::bind($stmt, $argv['where'] ?? [])) {
+            return false;
+        }
+
+        $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        /**
+        *   The next part is so every response from the rest api
+        *   formats to a set of rows. Even if only one row is returned.
+        *   You must set the third parameter to true, otherwise '0' is
+        *   apparently in the self::COLUMNS
+        */
+
+        
+        if ($primary !== null || (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] === 1 && \count($return) === 1)) {
+            $return = isset($return[0]) && \is_array($return[0]) ? $return[0] : $return;
+            // promise this is needed and will still return the desired array except for a single record will not be an array
+        
+        }
+
+        return true;
+    }
+
+    /**
+    * @param array $argv
+    * @return bool|mixed
+    */
+    public static function Post(array $argv)
+    {
+        self::$injection = [];
+        /** @noinspection SqlResolve */
+        $sql = 'INSERT INTO sessions (user_id, user_ip, session_id, session_expires, session_data, user_online_status) VALUES ( UNHEX(:user_id), :user_ip, :session_id, :session_expires, :session_data, :user_online_status)';
+
+        
+
+        $stmt = self::database()->prepare($sql);
+
+                
+                    $user_id = $argv['user_id'];
+                    $stmt->bindParam(':user_id',$user_id, 2, 16);
+                        
+                    $user_ip =  $argv['user_ip'] ?? null;
+                    $stmt->bindParam(':user_ip',$user_ip, 2, 20);
+                        
+                    $session_id = $argv['session_id'];
+                    $stmt->bindParam(':session_id',$session_id, 2, 255);
+                        $stmt->bindValue(':session_expires',$argv['session_expires'], 2);
+                        $stmt->bindValue(':session_data',$argv['session_data'], 2);
+                        
+                    $user_online_status =  $argv['user_online_status'] ?? '1';
+                    $stmt->bindParam(':user_online_status',$user_online_status, 0, 1);
+        
+
+
+
+            return $stmt->execute();
+    }
+    
+    public static function buildSelect(string $primary = null, array $argv, \PDO $pdo) : string {
         self::$injection = [];
         $aggregate = false;
         $group = $sql = '';
-        $pdo = self::database();
-
         $get = $argv['select'] ?? array_keys(self::COLUMNS);
         $where = $argv['where'] ?? [];
 
@@ -233,7 +283,7 @@ class Sessions extends Database implements iRest
                 $sql .= ' WHERE ' . self::buildWhere($where, $pdo);
             }
         } else {
-        $sql .= ' WHERE  session_id='.self::addInjection($primary, $pdo).'';
+            $sql .= ' WHERE  session_id='.self::addInjection($primary, $pdo).'';
         }
 
         if ($aggregate  && !empty($group)) {
@@ -242,66 +292,9 @@ class Sessions extends Database implements iRest
 
         $sql .= $limit;
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
-
-        $stmt = $pdo->prepare($sql);
-
-        if (!self::bind($stmt, $argv['where'] ?? [])) {
-            return false;
-        }
-
-        $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        /**
-        *   The next part is so every response from the rest api
-        *   formats to a set of rows. Even if only one row is returned.
-        *   You must set the third parameter to true, otherwise '0' is
-        *   apparently in the self::COLUMNS
-        */
-
-        
-        if ($primary !== null || (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] === 1 && \count($return) === 1)) {
-            $return = isset($return[0]) && \is_array($return[0]) ? $return[0] : $return;
-            // promise this is needed and will still return the desired array except for a single record will not be an array
-        
-        }
-
-        return true;
-    }
-
-    /**
-    * @param array $argv
-    * @return bool|mixed
-    */
-    public static function Post(array $argv)
-    {
-        self::$injection = [];
-        /** @noinspection SqlResolve */
-        $sql = 'INSERT INTO sessions (user_id, user_ip, session_id, session_expires, session_data, user_online_status) VALUES ( UNHEX(:user_id), :user_ip, :session_id, :session_expires, :session_data, :user_online_status)';
-
-        self::jsonSQLReporting(\func_get_args(), $sql);
-
-        $stmt = self::database()->prepare($sql);
-
-                
-                    $user_id = $argv['user_id'];
-                    $stmt->bindParam(':user_id',$user_id, 2, 16);
-                        
-                    $user_ip =  $argv['user_ip'] ?? null;
-                    $stmt->bindParam(':user_ip',$user_ip, 2, 20);
-                        
-                    $session_id = $argv['session_id'];
-                    $stmt->bindParam(':session_id',$session_id, 2, 255);
-                        $stmt->bindValue(':session_expires',$argv['session_expires'], 2);
-                        $stmt->bindValue(':session_data',$argv['session_data'], 2);
-                        
-                    $user_online_status =  $argv['user_online_status'] ?? '1';
-                    $stmt->bindParam(':user_online_status',$user_online_status, 0, 1);
         
 
-
-
-            return $stmt->execute();
+        return '(' . $sql . ')';
     }
 
     /**
@@ -358,7 +351,7 @@ class Sessions extends Database implements iRest
 
         $sql .= ' WHERE  session_id='.self::addInjection($primary, $pdo).'';
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = $pdo->prepare($sql);
 
@@ -425,7 +418,7 @@ class Sessions extends Database implements iRest
         $sql .= ' WHERE  session_id='.self::addInjection($primary, $pdo).'';
         }
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = $pdo->prepare($sql);
 

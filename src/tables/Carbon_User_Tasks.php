@@ -9,14 +9,14 @@ use CarbonPHP\Interfaces\iRest;
 class Carbon_User_Tasks extends Database implements iRest
 {
 
-    public const TASK_ID = 'task_id';
-    public const USER_ID = 'user_id';
-    public const FROM_ID = 'from_id';
-    public const TASK_NAME = 'task_name';
-    public const TASK_DESCRIPTION = 'task_description';
-    public const PERCENT_COMPLETE = 'percent_complete';
-    public const START_DATE = 'start_date';
-    public const END_DATE = 'end_date';
+    public const TASK_ID = 'carbon_user_tasks.task_id';
+    public const USER_ID = 'carbon_user_tasks.user_id';
+    public const FROM_ID = 'carbon_user_tasks.from_id';
+    public const TASK_NAME = 'carbon_user_tasks.task_name';
+    public const TASK_DESCRIPTION = 'carbon_user_tasks.task_description';
+    public const PERCENT_COMPLETE = 'carbon_user_tasks.percent_complete';
+    public const START_DATE = 'carbon_user_tasks.start_date';
+    public const END_DATE = 'carbon_user_tasks.end_date';
 
     public const PRIMARY = [
     'user_id',
@@ -29,22 +29,9 @@ class Carbon_User_Tasks extends Database implements iRest
     public const VALIDATION = [];
 
 
-    public static $injection = [];
+    public static array $injection = [];
 
 
-    public static function jsonSQLReporting($argv, $sql) : void {
-        global $json;
-        if (!\is_array($json)) {
-            $json = [];
-        }
-        if (!isset($json['sql'])) {
-            $json['sql'] = [];
-        }
-        $json['sql'][] = [
-            $argv,
-            $sql
-        ];
-    }
 
     public static function buildWhere(array $set, \PDO $pdo, $join = 'AND') : string
     {
@@ -172,11 +159,79 @@ class Carbon_User_Tasks extends Database implements iRest
     */
     public static function Get(array &$return, string $primary = null, array $argv) : bool
     {
+        $pdo = self::database();
+
+        $sql = self::buildSelect($primary, $argv, $pdo);
+        
+        $stmt = $pdo->prepare($sql);
+
+        if (!self::bind($stmt, $argv['where'] ?? [])) {
+            return false;
+        }
+
+        $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        /**
+        *   The next part is so every response from the rest api
+        *   formats to a set of rows. Even if only one row is returned.
+        *   You must set the third parameter to true, otherwise '0' is
+        *   apparently in the self::COLUMNS
+        */
+
+        
+        if ($primary !== null || (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] === 1 && \count($return) === 1)) {
+            $return = isset($return[0]) && \is_array($return[0]) ? $return[0] : $return;
+            // promise this is needed and will still return the desired array except for a single record will not be an array
+        
+        }
+
+        return true;
+    }
+
+    /**
+    * @param array $argv
+    * @return bool|mixed
+    */
+    public static function Post(array $argv)
+    {
+        self::$injection = [];
+        /** @noinspection SqlResolve */
+        $sql = 'INSERT INTO carbon_user_tasks (task_id, user_id, from_id, task_name, task_description, percent_complete, start_date, end_date) VALUES ( UNHEX(:task_id), UNHEX(:user_id), UNHEX(:from_id), :task_name, :task_description, :percent_complete, :start_date, :end_date)';
+
+        
+
+        $stmt = self::database()->prepare($sql);
+
+                
+                    $task_id = $argv['task_id'];
+                    $stmt->bindParam(':task_id',$task_id, 2, 16);
+                        $user_id = $id = $argv['user_id'] ?? self::beginTransaction('carbon_user_tasks');
+                $stmt->bindParam(':user_id',$user_id, 2, 16);
+                
+                    $from_id =  $argv['from_id'] ?? null;
+                    $stmt->bindParam(':from_id',$from_id, 2, 16);
+                        
+                    $task_name = $argv['task_name'];
+                    $stmt->bindParam(':task_name',$task_name, 2, 40);
+                        
+                    $task_description =  $argv['task_description'] ?? null;
+                    $stmt->bindParam(':task_description',$task_description, 2, 225);
+                        
+                    $percent_complete =  $argv['percent_complete'] ?? '0';
+                    $stmt->bindParam(':percent_complete',$percent_complete, 2, 11);
+                        $stmt->bindValue(':start_date',array_key_exists('start_date',$argv) ? $argv['start_date'] : null, 2);
+                        $stmt->bindValue(':end_date',array_key_exists('end_date',$argv) ? $argv['end_date'] : null, 2);
+        
+
+
+        return $stmt->execute() ? $id : false;
+
+    }
+    
+    public static function buildSelect(string $primary = null, array $argv, \PDO $pdo) : string {
         self::$injection = [];
         $aggregate = false;
         $group = $sql = '';
-        $pdo = self::database();
-
         $get = $argv['select'] ?? array_keys(self::COLUMNS);
         $where = $argv['where'] ?? [];
 
@@ -243,7 +298,7 @@ class Carbon_User_Tasks extends Database implements iRest
                 $sql .= ' WHERE ' . self::buildWhere($where, $pdo);
             }
         } else {
-        $sql .= ' WHERE  user_id=UNHEX('.self::addInjection($primary, $pdo).')';
+            $sql .= ' WHERE  user_id=UNHEX('.self::addInjection($primary, $pdo).')';
         }
 
         if ($aggregate  && !empty($group)) {
@@ -252,71 +307,9 @@ class Carbon_User_Tasks extends Database implements iRest
 
         $sql .= $limit;
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
-
-        $stmt = $pdo->prepare($sql);
-
-        if (!self::bind($stmt, $argv['where'] ?? [])) {
-            return false;
-        }
-
-        $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        /**
-        *   The next part is so every response from the rest api
-        *   formats to a set of rows. Even if only one row is returned.
-        *   You must set the third parameter to true, otherwise '0' is
-        *   apparently in the self::COLUMNS
-        */
-
-        
-        if ($primary !== null || (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] === 1 && \count($return) === 1)) {
-            $return = isset($return[0]) && \is_array($return[0]) ? $return[0] : $return;
-            // promise this is needed and will still return the desired array except for a single record will not be an array
-        
-        }
-
-        return true;
-    }
-
-    /**
-    * @param array $argv
-    * @return bool|mixed
-    */
-    public static function Post(array $argv)
-    {
-        self::$injection = [];
-        /** @noinspection SqlResolve */
-        $sql = 'INSERT INTO carbon_user_tasks (task_id, user_id, from_id, task_name, task_description, percent_complete, start_date, end_date) VALUES ( UNHEX(:task_id), UNHEX(:user_id), UNHEX(:from_id), :task_name, :task_description, :percent_complete, :start_date, :end_date)';
-
-        self::jsonSQLReporting(\func_get_args(), $sql);
-
-        $stmt = self::database()->prepare($sql);
-
-                
-                    $task_id = $argv['task_id'];
-                    $stmt->bindParam(':task_id',$task_id, 2, 16);
-                        $user_id = $id = $argv['user_id'] ?? self::beginTransaction('carbon_user_tasks');
-                $stmt->bindParam(':user_id',$user_id, 2, 16);
-                
-                    $from_id =  $argv['from_id'] ?? null;
-                    $stmt->bindParam(':from_id',$from_id, 2, 16);
-                        
-                    $task_name = $argv['task_name'];
-                    $stmt->bindParam(':task_name',$task_name, 2, 40);
-                        
-                    $task_description =  $argv['task_description'] ?? null;
-                    $stmt->bindParam(':task_description',$task_description, 2, 225);
-                        
-                    $percent_complete =  $argv['percent_complete'] ?? '0';
-                    $stmt->bindParam(':percent_complete',$percent_complete, 2, 11);
-                        $stmt->bindValue(':start_date',array_key_exists('start_date',$argv) ? $argv['start_date'] : null, 2);
-                        $stmt->bindValue(':end_date',array_key_exists('end_date',$argv) ? $argv['end_date'] : null, 2);
         
 
-
-        return $stmt->execute() ? $id : false;
-
+        return '(' . $sql . ')';
     }
 
     /**
@@ -379,7 +372,7 @@ class Carbon_User_Tasks extends Database implements iRest
 
         $sql .= ' WHERE  user_id=UNHEX('.self::addInjection($primary, $pdo).')';
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = $pdo->prepare($sql);
 

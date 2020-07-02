@@ -9,12 +9,12 @@ use CarbonPHP\Interfaces\iRest;
 class Carbon_User_Messages extends Database implements iRest
 {
 
-    public const MESSAGE_ID = 'message_id';
-    public const FROM_USER_ID = 'from_user_id';
-    public const TO_USER_ID = 'to_user_id';
-    public const MESSAGE = 'message';
-    public const MESSAGE_READ = 'message_read';
-    public const CREATION_DATE = 'creation_date';
+    public const MESSAGE_ID = 'carbon_user_messages.message_id';
+    public const FROM_USER_ID = 'carbon_user_messages.from_user_id';
+    public const TO_USER_ID = 'carbon_user_messages.to_user_id';
+    public const MESSAGE = 'carbon_user_messages.message';
+    public const MESSAGE_READ = 'carbon_user_messages.message_read';
+    public const CREATION_DATE = 'carbon_user_messages.creation_date';
 
     public const PRIMARY = [
     'message_id',
@@ -27,22 +27,9 @@ class Carbon_User_Messages extends Database implements iRest
     public const VALIDATION = [];
 
 
-    public static $injection = [];
+    public static array $injection = [];
 
 
-    public static function jsonSQLReporting($argv, $sql) : void {
-        global $json;
-        if (!\is_array($json)) {
-            $json = [];
-        }
-        if (!isset($json['sql'])) {
-            $json['sql'] = [];
-        }
-        $json['sql'][] = [
-            $argv,
-            $sql
-        ];
-    }
 
     public static function buildWhere(array $set, \PDO $pdo, $join = 'AND') : string
     {
@@ -162,11 +149,72 @@ class Carbon_User_Messages extends Database implements iRest
     */
     public static function Get(array &$return, string $primary = null, array $argv) : bool
     {
+        $pdo = self::database();
+
+        $sql = self::buildSelect($primary, $argv, $pdo);
+        
+        $stmt = $pdo->prepare($sql);
+
+        if (!self::bind($stmt, $argv['where'] ?? [])) {
+            return false;
+        }
+
+        $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        /**
+        *   The next part is so every response from the rest api
+        *   formats to a set of rows. Even if only one row is returned.
+        *   You must set the third parameter to true, otherwise '0' is
+        *   apparently in the self::COLUMNS
+        */
+
+        
+        if ($primary !== null || (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] === 1 && \count($return) === 1)) {
+            $return = isset($return[0]) && \is_array($return[0]) ? $return[0] : $return;
+            // promise this is needed and will still return the desired array except for a single record will not be an array
+        
+        }
+
+        return true;
+    }
+
+    /**
+    * @param array $argv
+    * @return bool|mixed
+    */
+    public static function Post(array $argv)
+    {
+        self::$injection = [];
+        /** @noinspection SqlResolve */
+        $sql = 'INSERT INTO carbon_user_messages (message_id, from_user_id, to_user_id, message, message_read) VALUES ( UNHEX(:message_id), UNHEX(:from_user_id), UNHEX(:to_user_id), :message, :message_read)';
+
+        
+
+        $stmt = self::database()->prepare($sql);
+
+                $message_id = $id = $argv['message_id'] ?? self::beginTransaction('carbon_user_messages');
+                $stmt->bindParam(':message_id',$message_id, 2, 16);
+                
+                    $from_user_id = $argv['from_user_id'];
+                    $stmt->bindParam(':from_user_id',$from_user_id, 2, 16);
+                        
+                    $to_user_id = $argv['to_user_id'];
+                    $stmt->bindParam(':to_user_id',$to_user_id, 2, 16);
+                        $stmt->bindValue(':message',$argv['message'], 2);
+                        
+                    $message_read =  $argv['message_read'] ?? '0';
+                    $stmt->bindParam(':message_read',$message_read, 0, 1);
+                
+
+
+        return $stmt->execute() ? $id : false;
+
+    }
+    
+    public static function buildSelect(string $primary = null, array $argv, \PDO $pdo) : string {
         self::$injection = [];
         $aggregate = false;
         $group = $sql = '';
-        $pdo = self::database();
-
         $get = $argv['select'] ?? array_keys(self::COLUMNS);
         $where = $argv['where'] ?? [];
 
@@ -233,7 +281,7 @@ class Carbon_User_Messages extends Database implements iRest
                 $sql .= ' WHERE ' . self::buildWhere($where, $pdo);
             }
         } else {
-        $sql .= ' WHERE  message_id=UNHEX('.self::addInjection($primary, $pdo).')';
+            $sql .= ' WHERE  message_id=UNHEX('.self::addInjection($primary, $pdo).')';
         }
 
         if ($aggregate  && !empty($group)) {
@@ -242,64 +290,9 @@ class Carbon_User_Messages extends Database implements iRest
 
         $sql .= $limit;
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
-
-        $stmt = $pdo->prepare($sql);
-
-        if (!self::bind($stmt, $argv['where'] ?? [])) {
-            return false;
-        }
-
-        $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        /**
-        *   The next part is so every response from the rest api
-        *   formats to a set of rows. Even if only one row is returned.
-        *   You must set the third parameter to true, otherwise '0' is
-        *   apparently in the self::COLUMNS
-        */
-
         
-        if ($primary !== null || (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] === 1 && \count($return) === 1)) {
-            $return = isset($return[0]) && \is_array($return[0]) ? $return[0] : $return;
-            // promise this is needed and will still return the desired array except for a single record will not be an array
-        
-        }
 
-        return true;
-    }
-
-    /**
-    * @param array $argv
-    * @return bool|mixed
-    */
-    public static function Post(array $argv)
-    {
-        self::$injection = [];
-        /** @noinspection SqlResolve */
-        $sql = 'INSERT INTO carbon_user_messages (message_id, from_user_id, to_user_id, message, message_read) VALUES ( UNHEX(:message_id), UNHEX(:from_user_id), UNHEX(:to_user_id), :message, :message_read)';
-
-        self::jsonSQLReporting(\func_get_args(), $sql);
-
-        $stmt = self::database()->prepare($sql);
-
-                $message_id = $id = $argv['message_id'] ?? self::beginTransaction('carbon_user_messages');
-                $stmt->bindParam(':message_id',$message_id, 2, 16);
-                
-                    $from_user_id = $argv['from_user_id'];
-                    $stmt->bindParam(':from_user_id',$from_user_id, 2, 16);
-                        
-                    $to_user_id = $argv['to_user_id'];
-                    $stmt->bindParam(':to_user_id',$to_user_id, 2, 16);
-                        $stmt->bindValue(':message',$argv['message'], 2);
-                        
-                    $message_read =  $argv['message_read'] ?? '0';
-                    $stmt->bindParam(':message_read',$message_read, 0, 1);
-                
-
-
-        return $stmt->execute() ? $id : false;
-
+        return '(' . $sql . ')';
     }
 
     /**
@@ -356,7 +349,7 @@ class Carbon_User_Messages extends Database implements iRest
 
         $sql .= ' WHERE  message_id=UNHEX('.self::addInjection($primary, $pdo).')';
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = $pdo->prepare($sql);
 

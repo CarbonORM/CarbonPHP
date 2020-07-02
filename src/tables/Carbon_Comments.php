@@ -9,10 +9,10 @@ use CarbonPHP\Interfaces\iRest;
 class Carbon_Comments extends Database implements iRest
 {
 
-    public const PARENT_ID = 'parent_id';
-    public const COMMENT_ID = 'comment_id';
-    public const USER_ID = 'user_id';
-    public const COMMENT = 'comment';
+    public const PARENT_ID = 'carbon_comments.parent_id';
+    public const COMMENT_ID = 'carbon_comments.comment_id';
+    public const USER_ID = 'carbon_comments.user_id';
+    public const COMMENT = 'carbon_comments.comment';
 
     public const PRIMARY = [
     'comment_id',
@@ -28,19 +28,6 @@ class Carbon_Comments extends Database implements iRest
     public static array $injection = [];
 
 
-    public static function jsonSQLReporting($argv, $sql) : void {
-        global $json;
-        if (!\is_array($json)) {
-            $json = [];
-        }
-        if (!isset($json['sql'])) {
-            $json['sql'] = [];
-        }
-        $json['sql'][] = [
-            $argv,
-            $sql
-        ];
-    }
 
     public static function buildWhere(array $set, \PDO $pdo, $join = 'AND') : string
     {
@@ -153,11 +140,69 @@ class Carbon_Comments extends Database implements iRest
     */
     public static function Get(array &$return, string $primary = null, array $argv) : bool
     {
+        $pdo = self::database();
+
+        $sql = self::buildSelect($primary, $argv, $pdo);
+        
+        $stmt = $pdo->prepare($sql);
+
+        if (!self::bind($stmt, $argv['where'] ?? [])) {
+            return false;
+        }
+
+        $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        /**
+        *   The next part is so every response from the rest api
+        *   formats to a set of rows. Even if only one row is returned.
+        *   You must set the third parameter to true, otherwise '0' is
+        *   apparently in the self::COLUMNS
+        */
+
+        
+        if ($primary !== null || (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] === 1 && \count($return) === 1)) {
+            $return = isset($return[0]) && \is_array($return[0]) ? $return[0] : $return;
+            // promise this is needed and will still return the desired array except for a single record will not be an array
+        
+        }
+
+        return true;
+    }
+
+    /**
+    * @param array $argv
+    * @return bool|mixed
+    */
+    public static function Post(array $argv)
+    {
+        self::$injection = [];
+        /** @noinspection SqlResolve */
+        $sql = 'INSERT INTO carbon_comments (parent_id, comment_id, user_id, comment) VALUES ( UNHEX(:parent_id), UNHEX(:comment_id), UNHEX(:user_id), :comment)';
+
+        
+
+        $stmt = self::database()->prepare($sql);
+
+                
+                    $parent_id = $argv['parent_id'];
+                    $stmt->bindParam(':parent_id',$parent_id, 2, 16);
+                        $comment_id = $id = $argv['comment_id'] ?? self::beginTransaction('carbon_comments');
+                $stmt->bindParam(':comment_id',$comment_id, 2, 16);
+                
+                    $user_id = $argv['user_id'];
+                    $stmt->bindParam(':user_id',$user_id, 2, 16);
+                        $stmt->bindValue(':comment',$argv['comment'], 2);
+        
+
+
+        return $stmt->execute() ? $id : false;
+
+    }
+    
+    public static function buildSelect(string $primary = null, array $argv, \PDO $pdo) : string {
         self::$injection = [];
         $aggregate = false;
         $group = $sql = '';
-        $pdo = self::database();
-
         $get = $argv['select'] ?? array_keys(self::COLUMNS);
         $where = $argv['where'] ?? [];
 
@@ -224,7 +269,7 @@ class Carbon_Comments extends Database implements iRest
                 $sql .= ' WHERE ' . self::buildWhere($where, $pdo);
             }
         } else {
-        $sql .= ' WHERE  comment_id=UNHEX('.self::addInjection($primary, $pdo).')';
+            $sql .= ' WHERE  comment_id=UNHEX('.self::addInjection($primary, $pdo).')';
         }
 
         if ($aggregate  && !empty($group)) {
@@ -233,61 +278,9 @@ class Carbon_Comments extends Database implements iRest
 
         $sql .= $limit;
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
-
-        $stmt = $pdo->prepare($sql);
-
-        if (!self::bind($stmt, $argv['where'] ?? [])) {
-            return false;
-        }
-
-        $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        /**
-        *   The next part is so every response from the rest api
-        *   formats to a set of rows. Even if only one row is returned.
-        *   You must set the third parameter to true, otherwise '0' is
-        *   apparently in the self::COLUMNS
-        */
-
-        
-        if ($primary !== null || (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] === 1 && \count($return) === 1)) {
-            $return = isset($return[0]) && \is_array($return[0]) ? $return[0] : $return;
-            // promise this is needed and will still return the desired array except for a single record will not be an array
-        
-        }
-
-        return true;
-    }
-
-    /**
-    * @param array $argv
-    * @return bool|mixed
-    */
-    public static function Post(array $argv)
-    {
-        self::$injection = [];
-        /** @noinspection SqlResolve */
-        $sql = 'INSERT INTO carbon_comments (parent_id, comment_id, user_id, comment) VALUES ( UNHEX(:parent_id), UNHEX(:comment_id), UNHEX(:user_id), :comment)';
-
-        self::jsonSQLReporting(\func_get_args(), $sql);
-
-        $stmt = self::database()->prepare($sql);
-
-                
-                    $parent_id = $argv['parent_id'];
-                    $stmt->bindParam(':parent_id',$parent_id, 2, 16);
-                        $comment_id = $id = $argv['comment_id'] ?? self::beginTransaction('carbon_comments');
-                $stmt->bindParam(':comment_id',$comment_id, 2, 16);
-                
-                    $user_id = $argv['user_id'];
-                    $stmt->bindParam(':user_id',$user_id, 2, 16);
-                        $stmt->bindValue(':comment',$argv['comment'], 2);
         
 
-
-        return $stmt->execute() ? $id : false;
-
+        return '(' . $sql . ')';
     }
 
     /**
@@ -338,7 +331,7 @@ class Carbon_Comments extends Database implements iRest
 
         $sql .= ' WHERE  comment_id=UNHEX('.self::addInjection($primary, $pdo).')';
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = $pdo->prepare($sql);
 

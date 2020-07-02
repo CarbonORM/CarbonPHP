@@ -105,8 +105,8 @@ END;
         $rest = [];
         /** @noinspection PhpUnusedLocalVariableInspection */
         $clean = true;
-        $targetDir = APP_ROOT . 'tables/';
-        $carbon_namespace = APP_ROOT === CARBON_ROOT;
+        $carbon_namespace = (APP_ROOT . 'src/' ) === CARBON_ROOT;
+        $targetDir = APP_ROOT . ($carbon_namespace ? 'src/tables/' : 'tables/');
         $only_these_tables = $history_table_query = $mysql = null;
         $verbose = $debug = $json = $primary_required = $delete_dump = $skipTable = $logClasses = false;
 
@@ -397,7 +397,7 @@ END;
                             // We need to escape values for php
                             $default = "'$default'";
                         }
-                        $rest[$tableName]['explode'][$column]['default'] = $default === "'NULL'" ? 'null' : $cast_binary_default ? 'null' : $default;
+                        $rest[$tableName]['explode'][$column]['default'] = $default === "'NULL'" ? 'null' : ($cast_binary_default ? 'null' : $default);
                     }
 
                     // As far as I can tell the AUTO_INCREMENT condition the last possible word in the query
@@ -428,7 +428,7 @@ END;
                         }
                         $rest[$tableName]['primary'][] = ['name' => $key];
                     }
-                    $rest[$tableName]['primary'][] = ['sql' => '$sql .= \' WHERE ' . implode($sql, ' OR ') . '\';'];
+                    $rest[$tableName]['primary'][] = ['sql' => '$sql .= \' WHERE ' . implode(' OR ', $sql) . '\';'];
 
                 } else if ($words_in_insert_stmt[0] === 'CONSTRAINT') {
 
@@ -561,7 +561,7 @@ END;
         return 0;
     }
 
-    public function trigger($table, $columns, $binary, $dependencies, $primary): string
+    public static function trigger($table, $columns, $binary, $dependencies, $primary): string
     {
 
         $json_mysql = function ($op = 'NEW') use ($columns, $binary) {
@@ -589,7 +589,7 @@ END;
 
         $history_sql = function ($operation_type = 'POST') use ($table, $primary) {
             $query = '';
-            $relative_time = $operation_type === 'POST' ? 'NEW' : $operation_type === 'PUT' ? 'NEW' : 'OLD';
+            $relative_time = $operation_type === 'POST' ? 'NEW' : ($operation_type === 'PUT' ? 'NEW' : 'OLD');
             switch ($operation_type) {
                 case 'POST':
                     $query = "INSERT INTO creation_logs (`uuid`, `resource_type`, `resource_uuid`)
@@ -676,7 +676,7 @@ class {{ucEachTableName}} extends Database implements iRest
 {
 
     {{#explode}}
-    public const {{caps}} = '{{name}}';
+    public const {{caps}} = '{{TableName}}.{{name}}';
     {{/explode}}
 
     public const PRIMARY = [
@@ -690,7 +690,7 @@ class {{ucEachTableName}} extends Database implements iRest
     {{^validation}}public const VALIDATION = [];{{/validation}}{{#validation}}{{{validation}}}{{/validation}}
 
 
-    public static \$injection = [];
+    public static array \$injection = [];
 
 
     {{#json}} 
@@ -816,88 +816,10 @@ class {{ucEachTableName}} extends Database implements iRest
     */
     public static function Get(array &\$return, string \$primary = null, array \$argv) : bool
     {
-        self::\$injection = [];
-        \$aggregate = false;
-        \$group = \$sql = '';
         \$pdo = self::database();
 
-        \$get = \$argv['select'] ?? array_keys(self::COLUMNS);
-        \$where = \$argv['where'] ?? [];
-
-        if (array_key_exists('pagination',\$argv)) {
-            if (!empty(\$argv['pagination']) && !\is_array(\$argv['pagination'])) {
-                \$argv['pagination'] = json_decode(\$argv['pagination'], true);
-            }
-            if (array_key_exists('limit',\$argv['pagination']) && \$argv['pagination']['limit'] !== null) {
-                \$limit = ' LIMIT ' . \$argv['pagination']['limit'];
-            } else {
-                \$limit = '';
-            }
-
-            \$order = '';
-            if (!empty(\$limit)) {
-
-                \$order = ' ORDER BY ';
-
-                if (array_key_exists('order',\$argv['pagination']) && \$argv['pagination']['order'] !== null) {
-                    if (\is_array(\$argv['pagination']['order'])) {
-                        foreach (\$argv['pagination']['order'] as \$item => \$sort) {
-                            \$order .= "\$item \$sort";
-                        }
-                    } else {
-                        \$order .= \$argv['pagination']['order'];
-                    }
-                } else {
-                    \$order .= '{{primarySort}} ASC';
-                }
-            }
-            \$limit = "\$order \$limit";
-        } else {
-            \$limit = ' ORDER BY {{primarySort}} ASC LIMIT 100';
-        }
-
-        foreach(\$get as \$key => \$column){
-            if (!empty(\$sql)) {
-                \$sql .= ', ';
-                if (!empty(\$group)) {
-                    \$group .= ', ';
-                }
-            }
-            \$columnExists = array_key_exists(\$column, self::COLUMNS);
-            if (\$columnExists && self::COLUMNS[\$column][0] === 'binary') {
-                \$sql .= "HEX(\$column) as \$column";
-                \$group .= \$column;
-            } elseif (\$columnExists) {
-                \$sql .= \$column;
-                \$group .= \$column;
-            } else {
-                if (!preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|\-|\/| {{#explode}}|{{name}}{{/explode}}))+\)*)+ *(as [a-z]+)?#i', \$column)) {
-                    return false;
-                }
-                \$sql .= \$column;
-                \$aggregate = true;
-            }
-        }
-
-        \$sql = 'SELECT ' .  \$sql . ' FROM {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}{{TableName}}';
-
-        if (null === \$primary) {
-            /** @noinspection NestedPositiveIfStatementsInspection */
-            if (!empty(\$where)) {
-                \$sql .= ' WHERE ' . self::buildWhere(\$where, \$pdo);
-            }
-        } {{#primary}}{{#sql}}else {
-        {{{sql}}}
-        }{{/sql}}{{/primary}}
-
-        if (\$aggregate  && !empty(\$group)) {
-            \$sql .= ' GROUP BY ' . \$group . ' ';
-        }
-
-        \$sql .= \$limit;
-
-        {{#json}}self::jsonSQLReporting(\\func_get_args(), \$sql);{{/json}}
-
+        \$sql = self::buildSelect(\$primary, \$argv, \$pdo);
+        
         \$stmt = \$pdo->prepare(\$sql);
 
         if (!self::bind(\$stmt, \$argv['where'] ?? [])) {
@@ -967,6 +889,90 @@ class {{ucEachTableName}} extends Database implements iRest
     {{^binary_primary}}
         {{^carbon_table}}
             return \$stmt->execute();{{/carbon_table}}{{/binary_primary}}
+    }
+    
+    public static function buildSelect(string \$primary = null, array \$argv, \PDO \$pdo) : string {
+        self::\$injection = [];
+        \$aggregate = false;
+        \$group = \$sql = '';
+        \$get = \$argv['select'] ?? array_keys(self::COLUMNS);
+        \$where = \$argv['where'] ?? [];
+
+        if (array_key_exists('pagination',\$argv)) {
+            if (!empty(\$argv['pagination']) && !\is_array(\$argv['pagination'])) {
+                \$argv['pagination'] = json_decode(\$argv['pagination'], true);
+            }
+            if (array_key_exists('limit',\$argv['pagination']) && \$argv['pagination']['limit'] !== null) {
+                \$limit = ' LIMIT ' . \$argv['pagination']['limit'];
+            } else {
+                \$limit = '';
+            }
+
+            \$order = '';
+            if (!empty(\$limit)) {
+
+                \$order = ' ORDER BY ';
+
+                if (array_key_exists('order',\$argv['pagination']) && \$argv['pagination']['order'] !== null) {
+                    if (\is_array(\$argv['pagination']['order'])) {
+                        foreach (\$argv['pagination']['order'] as \$item => \$sort) {
+                            \$order .= "\$item \$sort";
+                        }
+                    } else {
+                        \$order .= \$argv['pagination']['order'];
+                    }
+                } else {
+                    \$order .= '{{primarySort}} ASC';
+                }
+            }
+            \$limit = "\$order \$limit";
+        } else {
+            \$limit = ' ORDER BY {{primarySort}} ASC LIMIT 100';
+        }
+
+        foreach(\$get as \$key => \$column){
+            if (!empty(\$sql)) {
+                \$sql .= ', ';
+                if (!empty(\$group)) {
+                    \$group .= ', ';
+                }
+            }
+            \$columnExists = array_key_exists(\$column, self::COLUMNS);
+            if (\$columnExists && self::COLUMNS[\$column][0] === 'binary') {
+                \$sql .= "HEX(\$column) as \$column";
+                \$group .= \$column;
+            } elseif (\$columnExists) {
+                \$sql .= \$column;
+                \$group .= \$column;
+            } else {
+                if (!preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|\-|\/| {{#explode}}|{{name}}{{/explode}}))+\)*)+ *(as [a-z]+)?#i', \$column)) {
+                    return false;
+                }
+                \$sql .= \$column;
+                \$aggregate = true;
+            }
+        }
+
+        \$sql = 'SELECT ' .  \$sql . ' FROM {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}{{TableName}}';
+
+        if (null === \$primary) {
+            /** @noinspection NestedPositiveIfStatementsInspection */
+            if (!empty(\$where)) {
+                \$sql .= ' WHERE ' . self::buildWhere(\$where, \$pdo);
+            }
+        } {{#primary}}{{#sql}}else {
+            {{{sql}}}
+        }{{/sql}}{{/primary}}
+
+        if (\$aggregate  && !empty(\$group)) {
+            \$sql .= ' GROUP BY ' . \$group . ' ';
+        }
+
+        \$sql .= \$limit;
+
+        {{#json}}self::jsonSQLReporting(\\func_get_args(), \$sql);{{/json}}
+
+        return '(' . \$sql . ')';
     }
 
     /**

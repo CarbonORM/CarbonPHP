@@ -1,13 +1,13 @@
--- MySQL dump 10.13  Distrib 8.0.16, for osx10.14 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.18, for osx10.15 (x86_64)
 --
 -- Host: 127.0.0.1    Database: CarbonPHP
 -- ------------------------------------------------------
--- Server version	8.0.16
+-- Server version	8.0.18
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
- SET NAMES utf8mb4 ;
+/*!50503 SET NAMES utf8mb4 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -21,7 +21,7 @@
 
 DROP TABLE IF EXISTS `carbon_comments`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
- SET character_set_client = utf8mb4 ;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `carbon_comments` (
   `parent_id` binary(16) NOT NULL,
   `comment_id` binary(16) NOT NULL,
@@ -35,99 +35,6 @@ CREATE TABLE `carbon_comments` (
   CONSTRAINT `entity_comments_entity_user_pk_fk` FOREIGN KEY (`user_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trigger_carbon_comments_a_i` AFTER INSERT ON `carbon_comments` FOR EACH ROW BEGIN
-
-DECLARE json text;
- SET json = '{';
-SET json = CONCAT(json,'"parent_id":"', HEX(NEW.parent_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"comment_id":"', HEX(NEW.comment_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"user_id":"', HEX(NEW.user_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"comment":"', COALESCE(NEW.comment,''), '"');SET json = CONCAT(json, '}');
-      
-INSERT INTO creation_logs (`uuid`, `resource_type`, `resource_uuid`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_comments', NEW.comment_id);
-INSERT INTO history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_comments', NEW.comment_id , 'POST', json);
-
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trigger_carbon_comments_a_u` AFTER UPDATE ON `carbon_comments` FOR EACH ROW BEGIN
-
-DECLARE json text;
- SET json = '{';
-SET json = CONCAT(json,'"parent_id":"', HEX(NEW.parent_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"comment_id":"', HEX(NEW.comment_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"user_id":"', HEX(NEW.user_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"comment":"', COALESCE(NEW.comment,''), '"');SET json = CONCAT(json, '}');
-      
-INSERT INTO history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_comments', NEW.comment_id , 'PUT', json);
-
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trigger_carbon_comments_b_d` BEFORE DELETE ON `carbon_comments` FOR EACH ROW BEGIN
-DECLARE json text;
- SET json = '{';
-SET json = CONCAT(json,'"parent_id":"', HEX(OLD.parent_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"comment_id":"', HEX(OLD.comment_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"user_id":"', HEX(OLD.user_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"comment":"', COALESCE(OLD.comment,''), '"');SET json = CONCAT(json, '}');
-      
-INSERT INTO history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_comments', OLD.comment_id , 'DELETE', json);
-      
-
-
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `carbon_locations`
@@ -135,7 +42,7 @@ DELIMITER ;
 
 DROP TABLE IF EXISTS `carbon_locations`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
- SET character_set_client = utf8mb4 ;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `carbon_locations` (
   `entity_id` binary(16) NOT NULL,
   `latitude` varchar(225) DEFAULT NULL,
@@ -149,117 +56,6 @@ CREATE TABLE `carbon_locations` (
   CONSTRAINT `entity_location_entity_entity_pk_fk` FOREIGN KEY (`entity_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trigger_carbon_locations_a_i` AFTER INSERT ON `carbon_locations` FOR EACH ROW BEGIN
-
-DECLARE json text;
- SET json = '{';
-SET json = CONCAT(json,'"entity_id":"', HEX(NEW.entity_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"latitude":"', COALESCE(NEW.latitude,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"longitude":"', COALESCE(NEW.longitude,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"street":"', COALESCE(NEW.street,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"city":"', COALESCE(NEW.city,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"state":"', COALESCE(NEW.state,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"elevation":"', COALESCE(NEW.elevation,''), '"');SET json = CONCAT(json, '}');
-      
-INSERT INTO creation_logs (`uuid`, `resource_type`, `resource_uuid`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_locations', NEW.entity_id);
-INSERT INTO history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_locations', NEW.entity_id , 'POST', json);
-
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trigger_carbon_locations_a_u` AFTER UPDATE ON `carbon_locations` FOR EACH ROW BEGIN
-
-DECLARE json text;
- SET json = '{';
-SET json = CONCAT(json,'"entity_id":"', HEX(NEW.entity_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"latitude":"', COALESCE(NEW.latitude,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"longitude":"', COALESCE(NEW.longitude,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"street":"', COALESCE(NEW.street,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"city":"', COALESCE(NEW.city,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"state":"', COALESCE(NEW.state,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"elevation":"', COALESCE(NEW.elevation,''), '"');SET json = CONCAT(json, '}');
-      
-INSERT INTO history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_locations', NEW.entity_id , 'PUT', json);
-
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trigger_carbon_locations_b_d` BEFORE DELETE ON `carbon_locations` FOR EACH ROW BEGIN
-DECLARE json text;
- SET json = '{';
-SET json = CONCAT(json,'"entity_id":"', HEX(OLD.entity_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"latitude":"', COALESCE(OLD.latitude,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"longitude":"', COALESCE(OLD.longitude,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"street":"', COALESCE(OLD.street,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"city":"', COALESCE(OLD.city,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"state":"', COALESCE(OLD.state,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"elevation":"', COALESCE(OLD.elevation,''), '"');SET json = CONCAT(json, '}');
-      
-INSERT INTO history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_locations', OLD.entity_id , 'DELETE', json);
-      
-
-
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `carbon_photos`
@@ -267,7 +63,7 @@ DELIMITER ;
 
 DROP TABLE IF EXISTS `carbon_photos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
- SET character_set_client = utf8mb4 ;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `carbon_photos` (
   `parent_id` binary(16) NOT NULL,
   `photo_id` binary(16) NOT NULL,
@@ -282,105 +78,6 @@ CREATE TABLE `carbon_photos` (
   CONSTRAINT `photos_entity_user_pk_fk` FOREIGN KEY (`user_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trigger_carbon_photos_a_i` AFTER INSERT ON `carbon_photos` FOR EACH ROW BEGIN
-
-DECLARE json text;
- SET json = '{';
-SET json = CONCAT(json,'"parent_id":"', HEX(NEW.parent_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"photo_id":"', HEX(NEW.photo_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"user_id":"', HEX(NEW.user_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"photo_path":"', COALESCE(NEW.photo_path,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"photo_description":"', COALESCE(NEW.photo_description,''), '"');SET json = CONCAT(json, '}');
-      
-INSERT INTO creation_logs (`uuid`, `resource_type`, `resource_uuid`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_photos', NEW.parent_id);
-INSERT INTO history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_photos', NEW.parent_id , 'POST', json);
-
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trigger_carbon_photos_a_u` AFTER UPDATE ON `carbon_photos` FOR EACH ROW BEGIN
-
-DECLARE json text;
- SET json = '{';
-SET json = CONCAT(json,'"parent_id":"', HEX(NEW.parent_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"photo_id":"', HEX(NEW.photo_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"user_id":"', HEX(NEW.user_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"photo_path":"', COALESCE(NEW.photo_path,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"photo_description":"', COALESCE(NEW.photo_description,''), '"');SET json = CONCAT(json, '}');
-      
-INSERT INTO history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_photos', NEW.parent_id , 'PUT', json);
-
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trigger_carbon_photos_b_d` BEFORE DELETE ON `carbon_photos` FOR EACH ROW BEGIN
-DECLARE json text;
- SET json = '{';
-SET json = CONCAT(json,'"parent_id":"', HEX(OLD.parent_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"photo_id":"', HEX(OLD.photo_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"user_id":"', HEX(OLD.user_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"photo_path":"', COALESCE(OLD.photo_path,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"photo_description":"', COALESCE(OLD.photo_description,''), '"');SET json = CONCAT(json, '}');
-      
-INSERT INTO history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_photos', OLD.parent_id , 'DELETE', json);
-      
-
-
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `carbon_reports`
@@ -388,7 +85,7 @@ DELIMITER ;
 
 DROP TABLE IF EXISTS `carbon_reports`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
- SET character_set_client = utf8mb4 ;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `carbon_reports` (
   `log_level` varchar(20) DEFAULT NULL,
   `report` text,
@@ -404,7 +101,7 @@ CREATE TABLE `carbon_reports` (
 
 DROP TABLE IF EXISTS `carbon_tag`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
- SET character_set_client = utf8mb4 ;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `carbon_tag` (
   `entity_id` binary(16) NOT NULL,
   `tag_id` varchar(80) NOT NULL,
@@ -422,7 +119,7 @@ CREATE TABLE `carbon_tag` (
 
 DROP TABLE IF EXISTS `carbon_user_followers`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
- SET character_set_client = utf8mb4 ;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `carbon_user_followers` (
   `follower_table_id` binary(16) NOT NULL,
   `follows_user_id` binary(16) NOT NULL,
@@ -435,93 +132,6 @@ CREATE TABLE `carbon_user_followers` (
   CONSTRAINT `followers_entity_followers_pk_fk` FOREIGN KEY (`user_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trigger_carbon_user_followers_a_i` AFTER INSERT ON `carbon_user_followers` FOR EACH ROW BEGIN
-
-DECLARE json text;
- SET json = '{';
-SET json = CONCAT(json,'"follower_table_id":"', HEX(NEW.follower_table_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"follows_user_id":"', HEX(NEW.follows_user_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"user_id":"', HEX(NEW.user_id), '"');SET json = CONCAT(json, '}');
-      
-INSERT INTO creation_logs (`uuid`, `resource_type`, `resource_uuid`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_user_followers', NEW.follower_table_id);
-INSERT INTO history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_user_followers', NEW.follower_table_id , 'POST', json);
-
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trigger_carbon_user_followers_a_u` AFTER UPDATE ON `carbon_user_followers` FOR EACH ROW BEGIN
-
-DECLARE json text;
- SET json = '{';
-SET json = CONCAT(json,'"follower_table_id":"', HEX(NEW.follower_table_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"follows_user_id":"', HEX(NEW.follows_user_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"user_id":"', HEX(NEW.user_id), '"');SET json = CONCAT(json, '}');
-      
-INSERT INTO history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_user_followers', NEW.follower_table_id , 'PUT', json);
-
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trigger_carbon_user_followers_b_d` BEFORE DELETE ON `carbon_user_followers` FOR EACH ROW BEGIN
-DECLARE json text;
- SET json = '{';
-SET json = CONCAT(json,'"follower_table_id":"', HEX(OLD.follower_table_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"follows_user_id":"', HEX(OLD.follows_user_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"user_id":"', HEX(OLD.user_id), '"');SET json = CONCAT(json, '}');
-      
-INSERT INTO history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_user_followers', OLD.follower_table_id , 'DELETE', json);
-      
-
-
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `carbon_user_messages`
@@ -529,7 +139,7 @@ DELIMITER ;
 
 DROP TABLE IF EXISTS `carbon_user_messages`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
- SET character_set_client = utf8mb4 ;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `carbon_user_messages` (
   `message_id` binary(16) NOT NULL,
   `from_user_id` binary(16) NOT NULL,
@@ -546,111 +156,6 @@ CREATE TABLE `carbon_user_messages` (
   CONSTRAINT `messages_entity_user_from_pk_fk` FOREIGN KEY (`to_user_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trigger_carbon_user_messages_a_i` AFTER INSERT ON `carbon_user_messages` FOR EACH ROW BEGIN
-
-DECLARE json text;
- SET json = '{';
-SET json = CONCAT(json,'"message_id":"', HEX(NEW.message_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"from_user_id":"', HEX(NEW.from_user_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"to_user_id":"', HEX(NEW.to_user_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"message":"', COALESCE(NEW.message,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"message_read":"', COALESCE(NEW.message_read,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"creation_date":"', COALESCE(NEW.creation_date,''), '"');SET json = CONCAT(json, '}');
-      
-INSERT INTO creation_logs (`uuid`, `resource_type`, `resource_uuid`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_user_messages', NEW.message_id);
-INSERT INTO history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_user_messages', NEW.message_id , 'POST', json);
-
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trigger_carbon_user_messages_a_u` AFTER UPDATE ON `carbon_user_messages` FOR EACH ROW BEGIN
-
-DECLARE json text;
- SET json = '{';
-SET json = CONCAT(json,'"message_id":"', HEX(NEW.message_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"from_user_id":"', HEX(NEW.from_user_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"to_user_id":"', HEX(NEW.to_user_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"message":"', COALESCE(NEW.message,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"message_read":"', COALESCE(NEW.message_read,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"creation_date":"', COALESCE(NEW.creation_date,''), '"');SET json = CONCAT(json, '}');
-      
-INSERT INTO history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_user_messages', NEW.message_id , 'PUT', json);
-
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trigger_carbon_user_messages_b_d` BEFORE DELETE ON `carbon_user_messages` FOR EACH ROW BEGIN
-DECLARE json text;
- SET json = '{';
-SET json = CONCAT(json,'"message_id":"', HEX(OLD.message_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"from_user_id":"', HEX(OLD.from_user_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"to_user_id":"', HEX(OLD.to_user_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"message":"', COALESCE(OLD.message,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"message_read":"', COALESCE(OLD.message_read,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"creation_date":"', COALESCE(OLD.creation_date,''), '"');SET json = CONCAT(json, '}');
-      
-INSERT INTO history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_user_messages', OLD.message_id , 'DELETE', json);
-      
-
-
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `carbon_user_sessions`
@@ -658,7 +163,7 @@ DELIMITER ;
 
 DROP TABLE IF EXISTS `carbon_user_sessions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
- SET character_set_client = utf8mb4 ;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `carbon_user_sessions` (
   `user_id` binary(16) NOT NULL,
   `user_ip` binary(16) DEFAULT NULL,
@@ -676,7 +181,7 @@ CREATE TABLE `carbon_user_sessions` (
 
 DROP TABLE IF EXISTS `carbon_user_tasks`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
- SET character_set_client = utf8mb4 ;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `carbon_user_tasks` (
   `task_id` binary(16) NOT NULL,
   `user_id` binary(16) NOT NULL COMMENT 'This is the user the task is being assigned to',
@@ -694,123 +199,6 @@ CREATE TABLE `carbon_user_tasks` (
   CONSTRAINT `user_tasks_entity_user_pk_fk` FOREIGN KEY (`user_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trigger_carbon_user_tasks_a_i` AFTER INSERT ON `carbon_user_tasks` FOR EACH ROW BEGIN
-
-DECLARE json text;
- SET json = '{';
-SET json = CONCAT(json,'"task_id":"', HEX(NEW.task_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"user_id":"', HEX(NEW.user_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"from_id":"', HEX(NEW.from_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"task_name":"', COALESCE(NEW.task_name,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"task_description":"', COALESCE(NEW.task_description,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"percent_complete":"', COALESCE(NEW.percent_complete,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"start_date":"', COALESCE(NEW.start_date,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"end_date":"', COALESCE(NEW.end_date,''), '"');SET json = CONCAT(json, '}');
-      
-INSERT INTO creation_logs (`uuid`, `resource_type`, `resource_uuid`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_user_tasks', NEW.user_id);
-INSERT INTO history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_user_tasks', NEW.user_id , 'POST', json);
-
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trigger_carbon_user_tasks_a_u` AFTER UPDATE ON `carbon_user_tasks` FOR EACH ROW BEGIN
-
-DECLARE json text;
- SET json = '{';
-SET json = CONCAT(json,'"task_id":"', HEX(NEW.task_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"user_id":"', HEX(NEW.user_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"from_id":"', HEX(NEW.from_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"task_name":"', COALESCE(NEW.task_name,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"task_description":"', COALESCE(NEW.task_description,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"percent_complete":"', COALESCE(NEW.percent_complete,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"start_date":"', COALESCE(NEW.start_date,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"end_date":"', COALESCE(NEW.end_date,''), '"');SET json = CONCAT(json, '}');
-      
-INSERT INTO history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_user_tasks', NEW.user_id , 'PUT', json);
-
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trigger_carbon_user_tasks_b_d` BEFORE DELETE ON `carbon_user_tasks` FOR EACH ROW BEGIN
-DECLARE json text;
- SET json = '{';
-SET json = CONCAT(json,'"task_id":"', HEX(OLD.task_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"user_id":"', HEX(OLD.user_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"from_id":"', HEX(OLD.from_id), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"task_name":"', COALESCE(OLD.task_name,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"task_description":"', COALESCE(OLD.task_description,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"percent_complete":"', COALESCE(OLD.percent_complete,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"start_date":"', COALESCE(OLD.start_date,''), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"end_date":"', COALESCE(OLD.end_date,''), '"');SET json = CONCAT(json, '}');
-      
-INSERT INTO history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_user_tasks', OLD.user_id , 'DELETE', json);
-      
-
-
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `carbon_users`
@@ -818,7 +206,7 @@ DELIMITER ;
 
 DROP TABLE IF EXISTS `carbon_users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
- SET character_set_client = utf8mb4 ;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `carbon_users` (
   `user_username` varchar(25) NOT NULL,
   `user_password` varchar(225) NOT NULL,
@@ -861,7 +249,7 @@ CREATE TABLE `carbon_users` (
 
 DROP TABLE IF EXISTS `carbons`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
- SET character_set_client = utf8mb4 ;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `carbons` (
   `entity_pk` binary(16) NOT NULL,
   `entity_fk` binary(16) DEFAULT NULL,
@@ -878,10 +266,10 @@ CREATE TABLE `carbons` (
 
 DROP TABLE IF EXISTS `creation_logs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
- SET character_set_client = utf8mb4 ;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `creation_logs` (
   `uuid` binary(16) DEFAULT NULL COMMENT 'not a relation to carbons',
-  `resource_type` varchar(40) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `resource_type` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `resource_uuid` binary(16) DEFAULT NULL COMMENT 'Was a carbons ref, but no longer'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -892,12 +280,12 @@ CREATE TABLE `creation_logs` (
 
 DROP TABLE IF EXISTS `history_logs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
- SET character_set_client = utf8mb4 ;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `history_logs` (
   `uuid` binary(16) NOT NULL,
-  `resource_type` varchar(40) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `resource_type` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `resource_uuid` binary(16) DEFAULT NULL,
-  `operation_type` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `operation_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `data` json DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -908,7 +296,7 @@ CREATE TABLE `history_logs` (
 
 DROP TABLE IF EXISTS `sessions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
- SET character_set_client = utf8mb4 ;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `sessions` (
   `user_id` binary(16) NOT NULL,
   `user_ip` varchar(20) DEFAULT NULL,
@@ -926,7 +314,7 @@ CREATE TABLE `sessions` (
 
 DROP TABLE IF EXISTS `tags`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
- SET character_set_client = utf8mb4 ;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tags` (
   `tag_id` varchar(80) NOT NULL,
   `tag_description` text NOT NULL,
@@ -944,4 +332,4 @@ CREATE TABLE `tags` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-11-29 23:43:52
+-- Dump completed on 2020-07-02 18:03:35

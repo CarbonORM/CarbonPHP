@@ -155,7 +155,8 @@ namespace {                                     // This runs the following code 
         print PHP_EOL . '################### SortDump Called From ################<br><pre>';
         print '<pre>';
         /** @noinspection ForgottenDebugOutputInspection */
-        var_dump(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,2)[1]);
+        $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,2);
+        var_dump($backtrace[1] ?? $backtrace[0]);
         print '</pre>';
         print PHP_EOL . '####################### VAR DUMP ########################<br><pre>';
         /** @noinspection ForgottenDebugOutputInspection */
@@ -182,7 +183,7 @@ namespace {                                     // This runs the following code 
 
         print $report . PHP_EOL;
         // Output to browser
-        if (AJAX) {
+        if (defined('AJAX') && AJAX) {  //
             print $report;
         } else {
             View::$bufferedContent = base64_encode($report);

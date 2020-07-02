@@ -141,12 +141,9 @@ class Documentation extends Application
         View::$forceWrapper = true; // this will hard refresh the wrapper
 
         // v2.0
+        // return $this->wrap()('mustache/Documentation/Home.hbs');  // don't change how wrap works, I know it looks funny
 
-        return $this->wrap()('mustache/Documentation/Home.hbs');  // don't change how wrap works, I know it looks funny
-
-        // v5.0
-
-        // $this->fullPage()('react/material-dashboard-react-c6/build/index.html');
+        $this->fullPage()('react/material-dashboard-react-c6/build/index.html');
 
         // todo - context switch user session
 

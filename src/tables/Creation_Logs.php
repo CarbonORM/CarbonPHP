@@ -9,9 +9,9 @@ use CarbonPHP\Interfaces\iRest;
 class Creation_Logs extends Database implements iRest
 {
 
-    public const UUID = 'uuid';
-    public const RESOURCE_TYPE = 'resource_type';
-    public const RESOURCE_UUID = 'resource_uuid';
+    public const UUID = 'creation_logs.uuid';
+    public const RESOURCE_TYPE = 'creation_logs.resource_type';
+    public const RESOURCE_UUID = 'creation_logs.resource_uuid';
 
     public const PRIMARY = [
     
@@ -24,22 +24,9 @@ class Creation_Logs extends Database implements iRest
     public const VALIDATION = [];
 
 
-    public static $injection = [];
+    public static array $injection = [];
 
 
-    public static function jsonSQLReporting($argv, $sql) : void {
-        global $json;
-        if (!\is_array($json)) {
-            $json = [];
-        }
-        if (!isset($json['sql'])) {
-            $json['sql'] = [];
-        }
-        $json['sql'][] = [
-            $argv,
-            $sql
-        ];
-    }
 
     public static function buildWhere(array $set, \PDO $pdo, $join = 'AND') : string
     {
@@ -149,11 +136,64 @@ class Creation_Logs extends Database implements iRest
     */
     public static function Get(array &$return, string $primary = null, array $argv) : bool
     {
+        $pdo = self::database();
+
+        $sql = self::buildSelect($primary, $argv, $pdo);
+        
+        $stmt = $pdo->prepare($sql);
+
+        if (!self::bind($stmt, $argv['where'] ?? [])) {
+            return false;
+        }
+
+        $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        /**
+        *   The next part is so every response from the rest api
+        *   formats to a set of rows. Even if only one row is returned.
+        *   You must set the third parameter to true, otherwise '0' is
+        *   apparently in the self::COLUMNS
+        */
+
+        
+
+        return true;
+    }
+
+    /**
+    * @param array $argv
+    * @return bool|mixed
+    */
+    public static function Post(array $argv)
+    {
+        self::$injection = [];
+        /** @noinspection SqlResolve */
+        $sql = 'INSERT INTO creation_logs (uuid, resource_type, resource_uuid) VALUES ( UNHEX(:uuid), :resource_type, UNHEX(:resource_uuid))';
+
+        
+
+        $stmt = self::database()->prepare($sql);
+
+                
+                    $uuid =  $argv['uuid'] ?? null;
+                    $stmt->bindParam(':uuid',$uuid, 2, 16);
+                        
+                    $resource_type =  $argv['resource_type'] ?? null;
+                    $stmt->bindParam(':resource_type',$resource_type, 2, 40);
+                        
+                    $resource_uuid =  $argv['resource_uuid'] ?? null;
+                    $stmt->bindParam(':resource_uuid',$resource_uuid, 2, 16);
+        
+
+
+
+            return $stmt->execute();
+    }
+    
+    public static function buildSelect(string $primary = null, array $argv, \PDO $pdo) : string {
         self::$injection = [];
         $aggregate = false;
         $group = $sql = '';
-        $pdo = self::database();
-
         $get = $argv['select'] ?? array_keys(self::COLUMNS);
         $where = $argv['where'] ?? [];
 
@@ -227,56 +267,9 @@ class Creation_Logs extends Database implements iRest
 
         $sql .= $limit;
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
-
-        $stmt = $pdo->prepare($sql);
-
-        if (!self::bind($stmt, $argv['where'] ?? [])) {
-            return false;
-        }
-
-        $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        /**
-        *   The next part is so every response from the rest api
-        *   formats to a set of rows. Even if only one row is returned.
-        *   You must set the third parameter to true, otherwise '0' is
-        *   apparently in the self::COLUMNS
-        */
-
         
 
-        return true;
-    }
-
-    /**
-    * @param array $argv
-    * @return bool|mixed
-    */
-    public static function Post(array $argv)
-    {
-        self::$injection = [];
-        /** @noinspection SqlResolve */
-        $sql = 'INSERT INTO creation_logs (uuid, resource_type, resource_uuid) VALUES ( UNHEX(:uuid), :resource_type, UNHEX(:resource_uuid))';
-
-        self::jsonSQLReporting(\func_get_args(), $sql);
-
-        $stmt = self::database()->prepare($sql);
-
-                
-                    $uuid =  $argv['uuid'] ?? null;
-                    $stmt->bindParam(':uuid',$uuid, 2, 16);
-                        
-                    $resource_type =  $argv['resource_type'] ?? null;
-                    $stmt->bindParam(':resource_type',$resource_type, 2, 40);
-                        
-                    $resource_uuid =  $argv['resource_uuid'] ?? null;
-                    $stmt->bindParam(':resource_uuid',$resource_uuid, 2, 16);
-        
-
-
-
-            return $stmt->execute();
+        return '(' . $sql . ')';
     }
 
     /**
@@ -324,7 +317,7 @@ class Creation_Logs extends Database implements iRest
 
         
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = $pdo->prepare($sql);
 
@@ -379,7 +372,7 @@ class Creation_Logs extends Database implements iRest
         $sql .= ' WHERE ' . self::buildWhere($argv, $pdo);
         } 
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = $pdo->prepare($sql);
 

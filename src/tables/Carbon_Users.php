@@ -9,33 +9,33 @@ use CarbonPHP\Interfaces\iRest;
 class Carbon_Users extends Database implements iRest
 {
 
-    public const USER_USERNAME = 'user_username';
-    public const USER_PASSWORD = 'user_password';
-    public const USER_ID = 'user_id';
-    public const USER_TYPE = 'user_type';
-    public const USER_SPORT = 'user_sport';
-    public const USER_SESSION_ID = 'user_session_id';
-    public const USER_FACEBOOK_ID = 'user_facebook_id';
-    public const USER_FIRST_NAME = 'user_first_name';
-    public const USER_LAST_NAME = 'user_last_name';
-    public const USER_PROFILE_PIC = 'user_profile_pic';
-    public const USER_PROFILE_URI = 'user_profile_uri';
-    public const USER_COVER_PHOTO = 'user_cover_photo';
-    public const USER_BIRTHDAY = 'user_birthday';
-    public const USER_GENDER = 'user_gender';
-    public const USER_ABOUT_ME = 'user_about_me';
-    public const USER_RANK = 'user_rank';
-    public const USER_EMAIL = 'user_email';
-    public const USER_EMAIL_CODE = 'user_email_code';
-    public const USER_EMAIL_CONFIRMED = 'user_email_confirmed';
-    public const USER_GENERATED_STRING = 'user_generated_string';
-    public const USER_MEMBERSHIP = 'user_membership';
-    public const USER_DEACTIVATED = 'user_deactivated';
-    public const USER_LAST_LOGIN = 'user_last_login';
-    public const USER_IP = 'user_ip';
-    public const USER_EDUCATION_HISTORY = 'user_education_history';
-    public const USER_LOCATION = 'user_location';
-    public const USER_CREATION_DATE = 'user_creation_date';
+    public const USER_USERNAME = 'carbon_users.user_username';
+    public const USER_PASSWORD = 'carbon_users.user_password';
+    public const USER_ID = 'carbon_users.user_id';
+    public const USER_TYPE = 'carbon_users.user_type';
+    public const USER_SPORT = 'carbon_users.user_sport';
+    public const USER_SESSION_ID = 'carbon_users.user_session_id';
+    public const USER_FACEBOOK_ID = 'carbon_users.user_facebook_id';
+    public const USER_FIRST_NAME = 'carbon_users.user_first_name';
+    public const USER_LAST_NAME = 'carbon_users.user_last_name';
+    public const USER_PROFILE_PIC = 'carbon_users.user_profile_pic';
+    public const USER_PROFILE_URI = 'carbon_users.user_profile_uri';
+    public const USER_COVER_PHOTO = 'carbon_users.user_cover_photo';
+    public const USER_BIRTHDAY = 'carbon_users.user_birthday';
+    public const USER_GENDER = 'carbon_users.user_gender';
+    public const USER_ABOUT_ME = 'carbon_users.user_about_me';
+    public const USER_RANK = 'carbon_users.user_rank';
+    public const USER_EMAIL = 'carbon_users.user_email';
+    public const USER_EMAIL_CODE = 'carbon_users.user_email_code';
+    public const USER_EMAIL_CONFIRMED = 'carbon_users.user_email_confirmed';
+    public const USER_GENERATED_STRING = 'carbon_users.user_generated_string';
+    public const USER_MEMBERSHIP = 'carbon_users.user_membership';
+    public const USER_DEACTIVATED = 'carbon_users.user_deactivated';
+    public const USER_LAST_LOGIN = 'carbon_users.user_last_login';
+    public const USER_IP = 'carbon_users.user_ip';
+    public const USER_EDUCATION_HISTORY = 'carbon_users.user_education_history';
+    public const USER_LOCATION = 'carbon_users.user_location';
+    public const USER_CREATION_DATE = 'carbon_users.user_creation_date';
 
     public const PRIMARY = [
     'user_id',
@@ -48,22 +48,9 @@ class Carbon_Users extends Database implements iRest
     public const VALIDATION = [];
 
 
-    public static $injection = [];
+    public static array $injection = [];
 
 
-    public static function jsonSQLReporting($argv, $sql) : void {
-        global $json;
-        if (!\is_array($json)) {
-            $json = [];
-        }
-        if (!isset($json['sql'])) {
-            $json['sql'] = [];
-        }
-        $json['sql'][] = [
-            $argv,
-            $sql
-        ];
-    }
 
     public static function buildWhere(array $set, \PDO $pdo, $join = 'AND') : string
     {
@@ -267,88 +254,10 @@ class Carbon_Users extends Database implements iRest
     */
     public static function Get(array &$return, string $primary = null, array $argv) : bool
     {
-        self::$injection = [];
-        $aggregate = false;
-        $group = $sql = '';
         $pdo = self::database();
 
-        $get = $argv['select'] ?? array_keys(self::COLUMNS);
-        $where = $argv['where'] ?? [];
-
-        if (array_key_exists('pagination',$argv)) {
-            if (!empty($argv['pagination']) && !\is_array($argv['pagination'])) {
-                $argv['pagination'] = json_decode($argv['pagination'], true);
-            }
-            if (array_key_exists('limit',$argv['pagination']) && $argv['pagination']['limit'] !== null) {
-                $limit = ' LIMIT ' . $argv['pagination']['limit'];
-            } else {
-                $limit = '';
-            }
-
-            $order = '';
-            if (!empty($limit)) {
-
-                $order = ' ORDER BY ';
-
-                if (array_key_exists('order',$argv['pagination']) && $argv['pagination']['order'] !== null) {
-                    if (\is_array($argv['pagination']['order'])) {
-                        foreach ($argv['pagination']['order'] as $item => $sort) {
-                            $order .= "$item $sort";
-                        }
-                    } else {
-                        $order .= $argv['pagination']['order'];
-                    }
-                } else {
-                    $order .= 'user_id ASC';
-                }
-            }
-            $limit = "$order $limit";
-        } else {
-            $limit = ' ORDER BY user_id ASC LIMIT 100';
-        }
-
-        foreach($get as $key => $column){
-            if (!empty($sql)) {
-                $sql .= ', ';
-                if (!empty($group)) {
-                    $group .= ', ';
-                }
-            }
-            $columnExists = array_key_exists($column, self::COLUMNS);
-            if ($columnExists && self::COLUMNS[$column][0] === 'binary') {
-                $sql .= "HEX($column) as $column";
-                $group .= $column;
-            } elseif ($columnExists) {
-                $sql .= $column;
-                $group .= $column;
-            } else {
-                if (!preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|\-|\/| |user_username|user_password|user_id|user_type|user_sport|user_session_id|user_facebook_id|user_first_name|user_last_name|user_profile_pic|user_profile_uri|user_cover_photo|user_birthday|user_gender|user_about_me|user_rank|user_email|user_email_code|user_email_confirmed|user_generated_string|user_membership|user_deactivated|user_last_login|user_ip|user_education_history|user_location|user_creation_date))+\)*)+ *(as [a-z]+)?#i', $column)) {
-                    return false;
-                }
-                $sql .= $column;
-                $aggregate = true;
-            }
-        }
-
-        $sql = 'SELECT ' .  $sql . ' FROM carbon_users';
-
-        if (null === $primary) {
-            /** @noinspection NestedPositiveIfStatementsInspection */
-            if (!empty($where)) {
-                $sql .= ' WHERE ' . self::buildWhere($where, $pdo);
-            }
-        } else {
-        $sql .= ' WHERE  user_id=UNHEX('.self::addInjection($primary, $pdo).')';
-        }
-
-        if ($aggregate  && !empty($group)) {
-            $sql .= ' GROUP BY ' . $group . ' ';
-        }
-
-        $sql .= $limit;
-
-        self::jsonSQLReporting(\func_get_args(), $sql);
-
+        $sql = self::buildSelect($primary, $argv, $pdo);
+        
         $stmt = $pdo->prepare($sql);
 
         if (!self::bind($stmt, $argv['where'] ?? [])) {
@@ -384,7 +293,7 @@ class Carbon_Users extends Database implements iRest
         /** @noinspection SqlResolve */
         $sql = 'INSERT INTO carbon_users (user_username, user_password, user_id, user_type, user_sport, user_session_id, user_facebook_id, user_first_name, user_last_name, user_profile_pic, user_profile_uri, user_cover_photo, user_birthday, user_gender, user_about_me, user_rank, user_email, user_email_code, user_email_confirmed, user_generated_string, user_membership, user_deactivated, user_ip, user_education_history, user_location) VALUES ( :user_username, :user_password, UNHEX(:user_id), :user_type, :user_sport, :user_session_id, :user_facebook_id, :user_first_name, :user_last_name, :user_profile_pic, :user_profile_uri, :user_cover_photo, :user_birthday, :user_gender, :user_about_me, :user_rank, :user_email, :user_email_code, :user_email_confirmed, :user_generated_string, :user_membership, :user_deactivated, :user_ip, :user_education_history, :user_location)';
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = self::database()->prepare($sql);
 
@@ -467,6 +376,90 @@ class Carbon_Users extends Database implements iRest
 
         return $stmt->execute() ? $id : false;
 
+    }
+    
+    public static function buildSelect(string $primary = null, array $argv, \PDO $pdo) : string {
+        self::$injection = [];
+        $aggregate = false;
+        $group = $sql = '';
+        $get = $argv['select'] ?? array_keys(self::COLUMNS);
+        $where = $argv['where'] ?? [];
+
+        if (array_key_exists('pagination',$argv)) {
+            if (!empty($argv['pagination']) && !\is_array($argv['pagination'])) {
+                $argv['pagination'] = json_decode($argv['pagination'], true);
+            }
+            if (array_key_exists('limit',$argv['pagination']) && $argv['pagination']['limit'] !== null) {
+                $limit = ' LIMIT ' . $argv['pagination']['limit'];
+            } else {
+                $limit = '';
+            }
+
+            $order = '';
+            if (!empty($limit)) {
+
+                $order = ' ORDER BY ';
+
+                if (array_key_exists('order',$argv['pagination']) && $argv['pagination']['order'] !== null) {
+                    if (\is_array($argv['pagination']['order'])) {
+                        foreach ($argv['pagination']['order'] as $item => $sort) {
+                            $order .= "$item $sort";
+                        }
+                    } else {
+                        $order .= $argv['pagination']['order'];
+                    }
+                } else {
+                    $order .= 'user_id ASC';
+                }
+            }
+            $limit = "$order $limit";
+        } else {
+            $limit = ' ORDER BY user_id ASC LIMIT 100';
+        }
+
+        foreach($get as $key => $column){
+            if (!empty($sql)) {
+                $sql .= ', ';
+                if (!empty($group)) {
+                    $group .= ', ';
+                }
+            }
+            $columnExists = array_key_exists($column, self::COLUMNS);
+            if ($columnExists && self::COLUMNS[$column][0] === 'binary') {
+                $sql .= "HEX($column) as $column";
+                $group .= $column;
+            } elseif ($columnExists) {
+                $sql .= $column;
+                $group .= $column;
+            } else {
+                if (!preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|\-|\/| |user_username|user_password|user_id|user_type|user_sport|user_session_id|user_facebook_id|user_first_name|user_last_name|user_profile_pic|user_profile_uri|user_cover_photo|user_birthday|user_gender|user_about_me|user_rank|user_email|user_email_code|user_email_confirmed|user_generated_string|user_membership|user_deactivated|user_last_login|user_ip|user_education_history|user_location|user_creation_date))+\)*)+ *(as [a-z]+)?#i', $column)) {
+                    return false;
+                }
+                $sql .= $column;
+                $aggregate = true;
+            }
+        }
+
+        $sql = 'SELECT ' .  $sql . ' FROM carbon_users';
+
+        if (null === $primary) {
+            /** @noinspection NestedPositiveIfStatementsInspection */
+            if (!empty($where)) {
+                $sql .= ' WHERE ' . self::buildWhere($where, $pdo);
+            }
+        } else {
+            $sql .= ' WHERE  user_id=UNHEX('.self::addInjection($primary, $pdo).')';
+        }
+
+        if ($aggregate  && !empty($group)) {
+            $sql .= ' GROUP BY ' . $group . ' ';
+        }
+
+        $sql .= $limit;
+
+        
+
+        return '(' . $sql . ')';
     }
 
     /**
@@ -586,7 +579,7 @@ class Carbon_Users extends Database implements iRest
 
         $sql .= ' WHERE  user_id=UNHEX('.self::addInjection($primary, $pdo).')';
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = $pdo->prepare($sql);
 

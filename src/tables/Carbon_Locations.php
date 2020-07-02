@@ -9,13 +9,13 @@ use CarbonPHP\Interfaces\iRest;
 class Carbon_Locations extends Database implements iRest
 {
 
-    public const ENTITY_ID = 'entity_id';
-    public const LATITUDE = 'latitude';
-    public const LONGITUDE = 'longitude';
-    public const STREET = 'street';
-    public const CITY = 'city';
-    public const STATE = 'state';
-    public const ELEVATION = 'elevation';
+    public const ENTITY_ID = 'carbon_locations.entity_id';
+    public const LATITUDE = 'carbon_locations.latitude';
+    public const LONGITUDE = 'carbon_locations.longitude';
+    public const STREET = 'carbon_locations.street';
+    public const CITY = 'carbon_locations.city';
+    public const STATE = 'carbon_locations.state';
+    public const ELEVATION = 'carbon_locations.elevation';
 
     public const PRIMARY = [
     'entity_id',
@@ -28,22 +28,9 @@ class Carbon_Locations extends Database implements iRest
     public const VALIDATION = [];
 
 
-    public static $injection = [];
+    public static array $injection = [];
 
 
-    public static function jsonSQLReporting($argv, $sql) : void {
-        global $json;
-        if (!\is_array($json)) {
-            $json = [];
-        }
-        if (!isset($json['sql'])) {
-            $json['sql'] = [];
-        }
-        $json['sql'][] = [
-            $argv,
-            $sql
-        ];
-    }
 
     public static function buildWhere(array $set, \PDO $pdo, $join = 'AND') : string
     {
@@ -168,11 +155,78 @@ class Carbon_Locations extends Database implements iRest
     */
     public static function Get(array &$return, string $primary = null, array $argv) : bool
     {
+        $pdo = self::database();
+
+        $sql = self::buildSelect($primary, $argv, $pdo);
+        
+        $stmt = $pdo->prepare($sql);
+
+        if (!self::bind($stmt, $argv['where'] ?? [])) {
+            return false;
+        }
+
+        $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        /**
+        *   The next part is so every response from the rest api
+        *   formats to a set of rows. Even if only one row is returned.
+        *   You must set the third parameter to true, otherwise '0' is
+        *   apparently in the self::COLUMNS
+        */
+
+        
+        if ($primary !== null || (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] === 1 && \count($return) === 1)) {
+            $return = isset($return[0]) && \is_array($return[0]) ? $return[0] : $return;
+            // promise this is needed and will still return the desired array except for a single record will not be an array
+        
+        }
+
+        return true;
+    }
+
+    /**
+    * @param array $argv
+    * @return bool|mixed
+    */
+    public static function Post(array $argv)
+    {
+        self::$injection = [];
+        /** @noinspection SqlResolve */
+        $sql = 'INSERT INTO carbon_locations (entity_id, latitude, longitude, street, city, state, elevation) VALUES ( UNHEX(:entity_id), :latitude, :longitude, :street, :city, :state, :elevation)';
+
+        
+
+        $stmt = self::database()->prepare($sql);
+
+                $entity_id = $id = $argv['entity_id'] ?? self::beginTransaction('carbon_locations');
+                $stmt->bindParam(':entity_id',$entity_id, 2, 16);
+                
+                    $latitude =  $argv['latitude'] ?? null;
+                    $stmt->bindParam(':latitude',$latitude, 2, 225);
+                        
+                    $longitude =  $argv['longitude'] ?? null;
+                    $stmt->bindParam(':longitude',$longitude, 2, 225);
+                        $stmt->bindValue(':street',$argv['street'], 2);
+                        
+                    $city =  $argv['city'] ?? null;
+                    $stmt->bindParam(':city',$city, 2, 40);
+                        
+                    $state =  $argv['state'] ?? null;
+                    $stmt->bindParam(':state',$state, 2, 10);
+                        
+                    $elevation =  $argv['elevation'] ?? null;
+                    $stmt->bindParam(':elevation',$elevation, 2, 40);
+        
+
+
+        return $stmt->execute() ? $id : false;
+
+    }
+    
+    public static function buildSelect(string $primary = null, array $argv, \PDO $pdo) : string {
         self::$injection = [];
         $aggregate = false;
         $group = $sql = '';
-        $pdo = self::database();
-
         $get = $argv['select'] ?? array_keys(self::COLUMNS);
         $where = $argv['where'] ?? [];
 
@@ -239,7 +293,7 @@ class Carbon_Locations extends Database implements iRest
                 $sql .= ' WHERE ' . self::buildWhere($where, $pdo);
             }
         } else {
-        $sql .= ' WHERE  entity_id=UNHEX('.self::addInjection($primary, $pdo).')';
+            $sql .= ' WHERE  entity_id=UNHEX('.self::addInjection($primary, $pdo).')';
         }
 
         if ($aggregate  && !empty($group)) {
@@ -248,70 +302,9 @@ class Carbon_Locations extends Database implements iRest
 
         $sql .= $limit;
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
-
-        $stmt = $pdo->prepare($sql);
-
-        if (!self::bind($stmt, $argv['where'] ?? [])) {
-            return false;
-        }
-
-        $return = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        /**
-        *   The next part is so every response from the rest api
-        *   formats to a set of rows. Even if only one row is returned.
-        *   You must set the third parameter to true, otherwise '0' is
-        *   apparently in the self::COLUMNS
-        */
-
-        
-        if ($primary !== null || (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] === 1 && \count($return) === 1)) {
-            $return = isset($return[0]) && \is_array($return[0]) ? $return[0] : $return;
-            // promise this is needed and will still return the desired array except for a single record will not be an array
-        
-        }
-
-        return true;
-    }
-
-    /**
-    * @param array $argv
-    * @return bool|mixed
-    */
-    public static function Post(array $argv)
-    {
-        self::$injection = [];
-        /** @noinspection SqlResolve */
-        $sql = 'INSERT INTO carbon_locations (entity_id, latitude, longitude, street, city, state, elevation) VALUES ( UNHEX(:entity_id), :latitude, :longitude, :street, :city, :state, :elevation)';
-
-        self::jsonSQLReporting(\func_get_args(), $sql);
-
-        $stmt = self::database()->prepare($sql);
-
-                $entity_id = $id = $argv['entity_id'] ?? self::beginTransaction('carbon_locations');
-                $stmt->bindParam(':entity_id',$entity_id, 2, 16);
-                
-                    $latitude =  $argv['latitude'] ?? null;
-                    $stmt->bindParam(':latitude',$latitude, 2, 225);
-                        
-                    $longitude =  $argv['longitude'] ?? null;
-                    $stmt->bindParam(':longitude',$longitude, 2, 225);
-                        $stmt->bindValue(':street',$argv['street'], 2);
-                        
-                    $city =  $argv['city'] ?? null;
-                    $stmt->bindParam(':city',$city, 2, 40);
-                        
-                    $state =  $argv['state'] ?? null;
-                    $stmt->bindParam(':state',$state, 2, 10);
-                        
-                    $elevation =  $argv['elevation'] ?? null;
-                    $stmt->bindParam(':elevation',$elevation, 2, 40);
         
 
-
-        return $stmt->execute() ? $id : false;
-
+        return '(' . $sql . ')';
     }
 
     /**
@@ -371,7 +364,7 @@ class Carbon_Locations extends Database implements iRest
 
         $sql .= ' WHERE  entity_id=UNHEX('.self::addInjection($primary, $pdo).')';
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        
 
         $stmt = $pdo->prepare($sql);
 
