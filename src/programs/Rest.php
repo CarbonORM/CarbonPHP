@@ -864,7 +864,10 @@ class {{ucEachTableName}} extends Database implements iRest
             return \$stmt->execute();{{/carbon_table}}{{/binary_primary}}
     }
     
-    public static function buildSelect(string \$primary = null, array \$argv, \PDO \$pdo) : string {
+    public static function buildSelect(string \$primary = null, array \$argv, \PDO \$pdo = null) : string {
+        if (\$pdo === null) {
+            \$pdo = self::database();
+        }
         self::\$injection = [];
         \$aggregate = false;
         \$group = \$sql = '';
