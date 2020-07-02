@@ -80,139 +80,15 @@ class Carbon_Users extends Database implements iRest
 
     public static function addInjection($value, \PDO $pdo, $quote = false) : string
     {
-        $inject = ':injection' . \count(self::$injection) . 'buildWhere';
+        $inject = ':injection' . \count(self::$injection) . 'carbon_users';
         self::$injection[$inject] = $quote ? $pdo->quote($value) : $value;
         return $inject;
     }
 
-    public static function bind(\PDOStatement $stmt, array $argv) {
-   
-   /*
-    $bind = function (array $argv) use (&$bind, &$stmt) {
-            foreach ($argv as $key => $value) {
-                
-                if (is_numeric($key) && is_array($value)) {
-                    $bind($value);
-                    continue;
-                }
-                
-                   if (array_key_exists('user_username', $argv)) {
-            $user_username = $argv['user_username'];
-            $stmt->bindParam(':user_username',$user_username, 2, 25);
-        }
-                   if (array_key_exists('user_password', $argv)) {
-            $user_password = $argv['user_password'];
-            $stmt->bindParam(':user_password',$user_password, 2, 225);
-        }
-                   if (array_key_exists('user_id', $argv)) {
-            $user_id = $argv['user_id'];
-            $stmt->bindParam(':user_id',$user_id, 2, 16);
-        }
-                   if (array_key_exists('user_type', $argv)) {
-            $user_type = $argv['user_type'];
-            $stmt->bindParam(':user_type',$user_type, 2, 20);
-        }
-                   if (array_key_exists('user_sport', $argv)) {
-            $user_sport = $argv['user_sport'];
-            $stmt->bindParam(':user_sport',$user_sport, 2, 20);
-        }
-                   if (array_key_exists('user_session_id', $argv)) {
-            $user_session_id = $argv['user_session_id'];
-            $stmt->bindParam(':user_session_id',$user_session_id, 2, 225);
-        }
-                   if (array_key_exists('user_facebook_id', $argv)) {
-            $user_facebook_id = $argv['user_facebook_id'];
-            $stmt->bindParam(':user_facebook_id',$user_facebook_id, 2, 225);
-        }
-                   if (array_key_exists('user_first_name', $argv)) {
-            $user_first_name = $argv['user_first_name'];
-            $stmt->bindParam(':user_first_name',$user_first_name, 2, 25);
-        }
-                   if (array_key_exists('user_last_name', $argv)) {
-            $user_last_name = $argv['user_last_name'];
-            $stmt->bindParam(':user_last_name',$user_last_name, 2, 25);
-        }
-                   if (array_key_exists('user_profile_pic', $argv)) {
-            $user_profile_pic = $argv['user_profile_pic'];
-            $stmt->bindParam(':user_profile_pic',$user_profile_pic, 2, 225);
-        }
-                   if (array_key_exists('user_profile_uri', $argv)) {
-            $user_profile_uri = $argv['user_profile_uri'];
-            $stmt->bindParam(':user_profile_uri',$user_profile_uri, 2, 225);
-        }
-                   if (array_key_exists('user_cover_photo', $argv)) {
-            $user_cover_photo = $argv['user_cover_photo'];
-            $stmt->bindParam(':user_cover_photo',$user_cover_photo, 2, 225);
-        }
-                   if (array_key_exists('user_birthday', $argv)) {
-            $user_birthday = $argv['user_birthday'];
-            $stmt->bindParam(':user_birthday',$user_birthday, 2, 9);
-        }
-                   if (array_key_exists('user_gender', $argv)) {
-            $user_gender = $argv['user_gender'];
-            $stmt->bindParam(':user_gender',$user_gender, 2, 25);
-        }
-                   if (array_key_exists('user_about_me', $argv)) {
-            $user_about_me = $argv['user_about_me'];
-            $stmt->bindParam(':user_about_me',$user_about_me, 2, 225);
-        }
-                   if (array_key_exists('user_rank', $argv)) {
-            $user_rank = $argv['user_rank'];
-            $stmt->bindParam(':user_rank',$user_rank, 2, 8);
-        }
-                   if (array_key_exists('user_email', $argv)) {
-            $user_email = $argv['user_email'];
-            $stmt->bindParam(':user_email',$user_email, 2, 50);
-        }
-                   if (array_key_exists('user_email_code', $argv)) {
-            $user_email_code = $argv['user_email_code'];
-            $stmt->bindParam(':user_email_code',$user_email_code, 2, 225);
-        }
-                   if (array_key_exists('user_email_confirmed', $argv)) {
-            $user_email_confirmed = $argv['user_email_confirmed'];
-            $stmt->bindParam(':user_email_confirmed',$user_email_confirmed, 2, 20);
-        }
-                   if (array_key_exists('user_generated_string', $argv)) {
-            $user_generated_string = $argv['user_generated_string'];
-            $stmt->bindParam(':user_generated_string',$user_generated_string, 2, 200);
-        }
-                   if (array_key_exists('user_membership', $argv)) {
-            $user_membership = $argv['user_membership'];
-            $stmt->bindParam(':user_membership',$user_membership, 2, 10);
-        }
-                   if (array_key_exists('user_deactivated', $argv)) {
-            $user_deactivated = $argv['user_deactivated'];
-            $stmt->bindParam(':user_deactivated',$user_deactivated, 0, 1);
-        }
-                   if (array_key_exists('user_last_login', $argv)) {
-            $stmt->bindValue(':user_last_login',$argv['user_last_login'], 2);
-        }
-                   if (array_key_exists('user_ip', $argv)) {
-            $user_ip = $argv['user_ip'];
-            $stmt->bindParam(':user_ip',$user_ip, 2, 20);
-        }
-                   if (array_key_exists('user_education_history', $argv)) {
-            $user_education_history = $argv['user_education_history'];
-            $stmt->bindParam(':user_education_history',$user_education_history, 2, 200);
-        }
-                   if (array_key_exists('user_location', $argv)) {
-            $user_location = $argv['user_location'];
-            $stmt->bindParam(':user_location',$user_location, 2, 20);
-        }
-                   if (array_key_exists('user_creation_date', $argv)) {
-            $stmt->bindValue(':user_creation_date',$argv['user_creation_date'], 2);
-        }
-           
-          }
-        };
-        
-        $bind($argv); */
-
+    public static function bind(\PDOStatement $stmt, array $argv) : void {
         foreach (self::$injection as $key => $value) {
             $stmt->bindValue($key,$value);
         }
-
-        return $stmt->execute();
     }
 
 
@@ -260,7 +136,9 @@ class Carbon_Users extends Database implements iRest
         
         $stmt = $pdo->prepare($sql);
 
-        if (!self::bind($stmt, $argv['where'] ?? [])) {
+        self::bind($stmt, $argv['where'] ?? []);
+
+        if (!$stmt->execute()) {
             return false;
         }
 
@@ -690,7 +568,9 @@ class Carbon_Users extends Database implements iRest
             $stmt->bindValue(':user_creation_date',$argv['user_creation_date'], 2);
         }
 
-        if (!self::bind($stmt, $argv)){
+        self::bind($stmt, $argv);
+
+        if (!$stmt->execute()) {
             return false;
         }
 

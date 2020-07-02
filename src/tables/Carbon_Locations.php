@@ -60,60 +60,15 @@ class Carbon_Locations extends Database implements iRest
 
     public static function addInjection($value, \PDO $pdo, $quote = false) : string
     {
-        $inject = ':injection' . \count(self::$injection) . 'buildWhere';
+        $inject = ':injection' . \count(self::$injection) . 'carbon_locations';
         self::$injection[$inject] = $quote ? $pdo->quote($value) : $value;
         return $inject;
     }
 
-    public static function bind(\PDOStatement $stmt, array $argv) {
-   
-   /*
-    $bind = function (array $argv) use (&$bind, &$stmt) {
-            foreach ($argv as $key => $value) {
-                
-                if (is_numeric($key) && is_array($value)) {
-                    $bind($value);
-                    continue;
-                }
-                
-                   if (array_key_exists('entity_id', $argv)) {
-            $entity_id = $argv['entity_id'];
-            $stmt->bindParam(':entity_id',$entity_id, 2, 16);
-        }
-                   if (array_key_exists('latitude', $argv)) {
-            $latitude = $argv['latitude'];
-            $stmt->bindParam(':latitude',$latitude, 2, 225);
-        }
-                   if (array_key_exists('longitude', $argv)) {
-            $longitude = $argv['longitude'];
-            $stmt->bindParam(':longitude',$longitude, 2, 225);
-        }
-                   if (array_key_exists('street', $argv)) {
-            $stmt->bindValue(':street',$argv['street'], 2);
-        }
-                   if (array_key_exists('city', $argv)) {
-            $city = $argv['city'];
-            $stmt->bindParam(':city',$city, 2, 40);
-        }
-                   if (array_key_exists('state', $argv)) {
-            $state = $argv['state'];
-            $stmt->bindParam(':state',$state, 2, 10);
-        }
-                   if (array_key_exists('elevation', $argv)) {
-            $elevation = $argv['elevation'];
-            $stmt->bindParam(':elevation',$elevation, 2, 40);
-        }
-           
-          }
-        };
-        
-        $bind($argv); */
-
+    public static function bind(\PDOStatement $stmt, array $argv) : void {
         foreach (self::$injection as $key => $value) {
             $stmt->bindValue($key,$value);
         }
-
-        return $stmt->execute();
     }
 
 
@@ -161,7 +116,9 @@ class Carbon_Locations extends Database implements iRest
         
         $stmt = $pdo->prepare($sql);
 
-        if (!self::bind($stmt, $argv['where'] ?? [])) {
+        self::bind($stmt, $argv['where'] ?? []);
+
+        if (!$stmt->execute()) {
             return false;
         }
 
@@ -396,7 +353,9 @@ class Carbon_Locations extends Database implements iRest
             $stmt->bindParam(':elevation',$elevation, 2, 40);
         }
 
-        if (!self::bind($stmt, $argv)){
+        self::bind($stmt, $argv);
+
+        if (!$stmt->execute()) {
             return false;
         }
 

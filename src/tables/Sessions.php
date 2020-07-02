@@ -59,55 +59,15 @@ class Sessions extends Database implements iRest
 
     public static function addInjection($value, \PDO $pdo, $quote = false) : string
     {
-        $inject = ':injection' . \count(self::$injection) . 'buildWhere';
+        $inject = ':injection' . \count(self::$injection) . 'sessions';
         self::$injection[$inject] = $quote ? $pdo->quote($value) : $value;
         return $inject;
     }
 
-    public static function bind(\PDOStatement $stmt, array $argv) {
-   
-   /*
-    $bind = function (array $argv) use (&$bind, &$stmt) {
-            foreach ($argv as $key => $value) {
-                
-                if (is_numeric($key) && is_array($value)) {
-                    $bind($value);
-                    continue;
-                }
-                
-                   if (array_key_exists('user_id', $argv)) {
-            $user_id = $argv['user_id'];
-            $stmt->bindParam(':user_id',$user_id, 2, 16);
-        }
-                   if (array_key_exists('user_ip', $argv)) {
-            $user_ip = $argv['user_ip'];
-            $stmt->bindParam(':user_ip',$user_ip, 2, 20);
-        }
-                   if (array_key_exists('session_id', $argv)) {
-            $session_id = $argv['session_id'];
-            $stmt->bindParam(':session_id',$session_id, 2, 255);
-        }
-                   if (array_key_exists('session_expires', $argv)) {
-            $stmt->bindValue(':session_expires',$argv['session_expires'], 2);
-        }
-                   if (array_key_exists('session_data', $argv)) {
-            $stmt->bindValue(':session_data',$argv['session_data'], 2);
-        }
-                   if (array_key_exists('user_online_status', $argv)) {
-            $user_online_status = $argv['user_online_status'];
-            $stmt->bindParam(':user_online_status',$user_online_status, 0, 1);
-        }
-           
-          }
-        };
-        
-        $bind($argv); */
-
+    public static function bind(\PDOStatement $stmt, array $argv) : void {
         foreach (self::$injection as $key => $value) {
             $stmt->bindValue($key,$value);
         }
-
-        return $stmt->execute();
     }
 
 
@@ -155,7 +115,9 @@ class Sessions extends Database implements iRest
         
         $stmt = $pdo->prepare($sql);
 
-        if (!self::bind($stmt, $argv['where'] ?? [])) {
+        self::bind($stmt, $argv['where'] ?? []);
+
+        if (!$stmt->execute()) {
             return false;
         }
 
@@ -378,7 +340,9 @@ class Sessions extends Database implements iRest
             $stmt->bindParam(':user_online_status',$user_online_status, 0, 1);
         }
 
-        if (!self::bind($stmt, $argv)){
+        self::bind($stmt, $argv);
+
+        if (!$stmt->execute()) {
             return false;
         }
 
@@ -422,7 +386,9 @@ class Sessions extends Database implements iRest
 
         $stmt = $pdo->prepare($sql);
 
-        $r = self::bind($stmt, $argv);
+        self::bind($stmt, $argv);
+
+        $r = $stmt->execute();
 
         /** @noinspection CallableParameterUseCaseInTypeContextInspection */
         $r and $remove = null;

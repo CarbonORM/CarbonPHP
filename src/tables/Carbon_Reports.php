@@ -57,46 +57,15 @@ class Carbon_Reports extends Database implements iRest
 
     public static function addInjection($value, \PDO $pdo, $quote = false) : string
     {
-        $inject = ':injection' . \count(self::$injection) . 'buildWhere';
+        $inject = ':injection' . \count(self::$injection) . 'carbon_reports';
         self::$injection[$inject] = $quote ? $pdo->quote($value) : $value;
         return $inject;
     }
 
-    public static function bind(\PDOStatement $stmt, array $argv) {
-   
-   /*
-    $bind = function (array $argv) use (&$bind, &$stmt) {
-            foreach ($argv as $key => $value) {
-                
-                if (is_numeric($key) && is_array($value)) {
-                    $bind($value);
-                    continue;
-                }
-                
-                   if (array_key_exists('log_level', $argv)) {
-            $log_level = $argv['log_level'];
-            $stmt->bindParam(':log_level',$log_level, 2, 20);
-        }
-                   if (array_key_exists('report', $argv)) {
-            $stmt->bindValue(':report',$argv['report'], 2);
-        }
-                   if (array_key_exists('date', $argv)) {
-            $stmt->bindValue(':date',$argv['date'], 2);
-        }
-                   if (array_key_exists('call_trace', $argv)) {
-            $stmt->bindValue(':call_trace',$argv['call_trace'], 2);
-        }
-           
-          }
-        };
-        
-        $bind($argv); */
-
+    public static function bind(\PDOStatement $stmt, array $argv) : void {
         foreach (self::$injection as $key => $value) {
             $stmt->bindValue($key,$value);
         }
-
-        return $stmt->execute();
     }
 
 
@@ -144,7 +113,9 @@ class Carbon_Reports extends Database implements iRest
         
         $stmt = $pdo->prepare($sql);
 
-        if (!self::bind($stmt, $argv['where'] ?? [])) {
+        self::bind($stmt, $argv['where'] ?? []);
+
+        if (!$stmt->execute()) {
             return false;
         }
 
@@ -336,7 +307,9 @@ class Carbon_Reports extends Database implements iRest
             $stmt->bindValue(':call_trace',$argv['call_trace'], 2);
         }
 
-        if (!self::bind($stmt, $argv)){
+        self::bind($stmt, $argv);
+
+        if (!$stmt->execute()) {
             return false;
         }
 
@@ -378,7 +351,9 @@ class Carbon_Reports extends Database implements iRest
 
         $stmt = $pdo->prepare($sql);
 
-        $r = self::bind($stmt, $argv);
+        self::bind($stmt, $argv);
+
+        $r = $stmt->execute();
 
         /** @noinspection CallableParameterUseCaseInTypeContextInspection */
         $r and $remove = null;

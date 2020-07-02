@@ -55,41 +55,15 @@ class Carbons extends Database implements iRest
 
     public static function addInjection($value, \PDO $pdo, $quote = false) : string
     {
-        $inject = ':injection' . \count(self::$injection) . 'buildWhere';
+        $inject = ':injection' . \count(self::$injection) . 'carbons';
         self::$injection[$inject] = $quote ? $pdo->quote($value) : $value;
         return $inject;
     }
 
-    public static function bind(\PDOStatement $stmt, array $argv) {
-   
-   /*
-    $bind = function (array $argv) use (&$bind, &$stmt) {
-            foreach ($argv as $key => $value) {
-                
-                if (is_numeric($key) && is_array($value)) {
-                    $bind($value);
-                    continue;
-                }
-                
-                   if (array_key_exists('entity_pk', $argv)) {
-            $entity_pk = $argv['entity_pk'];
-            $stmt->bindParam(':entity_pk',$entity_pk, 2, 16);
-        }
-                   if (array_key_exists('entity_fk', $argv)) {
-            $entity_fk = $argv['entity_fk'];
-            $stmt->bindParam(':entity_fk',$entity_fk, 2, 16);
-        }
-           
-          }
-        };
-        
-        $bind($argv); */
-
+    public static function bind(\PDOStatement $stmt, array $argv) : void {
         foreach (self::$injection as $key => $value) {
             $stmt->bindValue($key,$value);
         }
-
-        return $stmt->execute();
     }
 
 
@@ -137,7 +111,9 @@ class Carbons extends Database implements iRest
         
         $stmt = $pdo->prepare($sql);
 
-        if (!self::bind($stmt, $argv['where'] ?? [])) {
+        self::bind($stmt, $argv['where'] ?? []);
+
+        if (!$stmt->execute()) {
             return false;
         }
 
@@ -325,7 +301,9 @@ class Carbons extends Database implements iRest
             $stmt->bindParam(':entity_fk',$entity_fk, 2, 16);
         }
 
-        if (!self::bind($stmt, $argv)){
+        self::bind($stmt, $argv);
+
+        if (!$stmt->execute()) {
             return false;
         }
 
@@ -369,7 +347,9 @@ class Carbons extends Database implements iRest
 
         $stmt = $pdo->prepare($sql);
 
-        $r = self::bind($stmt, $argv);
+        self::bind($stmt, $argv);
+
+        $r = $stmt->execute();
 
         /** @noinspection CallableParameterUseCaseInTypeContextInspection */
         $r and $remove = null;

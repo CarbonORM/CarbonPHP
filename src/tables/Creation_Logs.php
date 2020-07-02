@@ -56,45 +56,15 @@ class Creation_Logs extends Database implements iRest
 
     public static function addInjection($value, \PDO $pdo, $quote = false) : string
     {
-        $inject = ':injection' . \count(self::$injection) . 'buildWhere';
+        $inject = ':injection' . \count(self::$injection) . 'creation_logs';
         self::$injection[$inject] = $quote ? $pdo->quote($value) : $value;
         return $inject;
     }
 
-    public static function bind(\PDOStatement $stmt, array $argv) {
-   
-   /*
-    $bind = function (array $argv) use (&$bind, &$stmt) {
-            foreach ($argv as $key => $value) {
-                
-                if (is_numeric($key) && is_array($value)) {
-                    $bind($value);
-                    continue;
-                }
-                
-                   if (array_key_exists('uuid', $argv)) {
-            $uuid = $argv['uuid'];
-            $stmt->bindParam(':uuid',$uuid, 2, 16);
-        }
-                   if (array_key_exists('resource_type', $argv)) {
-            $resource_type = $argv['resource_type'];
-            $stmt->bindParam(':resource_type',$resource_type, 2, 40);
-        }
-                   if (array_key_exists('resource_uuid', $argv)) {
-            $resource_uuid = $argv['resource_uuid'];
-            $stmt->bindParam(':resource_uuid',$resource_uuid, 2, 16);
-        }
-           
-          }
-        };
-        
-        $bind($argv); */
-
+    public static function bind(\PDOStatement $stmt, array $argv) : void {
         foreach (self::$injection as $key => $value) {
             $stmt->bindValue($key,$value);
         }
-
-        return $stmt->execute();
     }
 
 
@@ -142,7 +112,9 @@ class Creation_Logs extends Database implements iRest
         
         $stmt = $pdo->prepare($sql);
 
-        if (!self::bind($stmt, $argv['where'] ?? [])) {
+        self::bind($stmt, $argv['where'] ?? []);
+
+        if (!$stmt->execute()) {
             return false;
         }
 
@@ -334,7 +306,9 @@ class Creation_Logs extends Database implements iRest
             $stmt->bindParam(':resource_uuid',$resource_uuid, 2, 16);
         }
 
-        if (!self::bind($stmt, $argv)){
+        self::bind($stmt, $argv);
+
+        if (!$stmt->execute()) {
             return false;
         }
 
@@ -376,7 +350,9 @@ class Creation_Logs extends Database implements iRest
 
         $stmt = $pdo->prepare($sql);
 
-        $r = self::bind($stmt, $argv);
+        self::bind($stmt, $argv);
+
+        $r = $stmt->execute();
 
         /** @noinspection CallableParameterUseCaseInTypeContextInspection */
         $r and $remove = null;

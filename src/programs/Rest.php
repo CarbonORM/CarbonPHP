@@ -737,44 +737,15 @@ class {{ucEachTableName}} extends Database implements iRest
 
     public static function addInjection(\$value, \PDO \$pdo, \$quote = false) : string
     {
-        \$inject = ':injection' . \\count(self::\$injection) . 'buildWhere';
+        \$inject = ':injection' . \\count(self::\$injection) . '{{TableName}}';
         self::\$injection[\$inject] = \$quote ? \$pdo->quote(\$value) : \$value;
         return \$inject;
     }
 
-    public static function bind(\PDOStatement \$stmt, array \$argv) {
-   
-   /*
-    \$bind = function (array \$argv) use (&\$bind, &\$stmt) {
-            foreach (\$argv as \$key => \$value) {
-                
-                if (is_numeric(\$key) && is_array(\$value)) {
-                    \$bind(\$value);
-                    continue;
-                }
-                
-            {{#explode}}
-                   if (array_key_exists('{{name}}', \$argv)) {
-        {{^length}}
-            \$stmt->bindValue(':{{name}}',{{#json}}json_encode(\$argv['{{name}}']){{/json}}{{^json}}\$argv['{{name}}']{{/json}}, {{type}});
-        {{/length}}
-        {{#length}}
-            \${{name}} = \$argv['{{name}}'];
-            \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
-        {{/length}}
-        }
-            {{/explode}}
-           
-          }
-        };
-        
-        \$bind(\$argv); */
-
+    public static function bind(\PDOStatement \$stmt, array \$argv) : void {
         foreach (self::\$injection as \$key => \$value) {
             \$stmt->bindValue(\$key,\$value);
         }
-
-        return \$stmt->execute();
     }
 
 
@@ -822,7 +793,9 @@ class {{ucEachTableName}} extends Database implements iRest
         
         \$stmt = \$pdo->prepare(\$sql);
 
-        if (!self::bind(\$stmt, \$argv['where'] ?? [])) {
+        self::bind(\$stmt, \$argv['where'] ?? []);
+
+        if (!\$stmt->execute()) {
             return false;
         }
 
@@ -1032,7 +1005,9 @@ class {{ucEachTableName}} extends Database implements iRest
         }
             {{/explode}}
 
-        if (!self::bind(\$stmt, \$argv)){
+        self::bind(\$stmt, \$argv);
+
+        if (!\$stmt->execute()) {
             return false;
         }
 
@@ -1111,7 +1086,9 @@ class {{ucEachTableName}} extends Database implements iRest
 
         \$stmt = \$pdo->prepare(\$sql);
 
-        \$r = self::bind(\$stmt, \$argv);
+        self::bind(\$stmt, \$argv);
+
+        \$r = \$stmt->execute();
 
         /** @noinspection CallableParameterUseCaseInTypeContextInspection */
         \$r and \$remove = null;

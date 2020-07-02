@@ -59,55 +59,15 @@ class Carbon_User_Messages extends Database implements iRest
 
     public static function addInjection($value, \PDO $pdo, $quote = false) : string
     {
-        $inject = ':injection' . \count(self::$injection) . 'buildWhere';
+        $inject = ':injection' . \count(self::$injection) . 'carbon_user_messages';
         self::$injection[$inject] = $quote ? $pdo->quote($value) : $value;
         return $inject;
     }
 
-    public static function bind(\PDOStatement $stmt, array $argv) {
-   
-   /*
-    $bind = function (array $argv) use (&$bind, &$stmt) {
-            foreach ($argv as $key => $value) {
-                
-                if (is_numeric($key) && is_array($value)) {
-                    $bind($value);
-                    continue;
-                }
-                
-                   if (array_key_exists('message_id', $argv)) {
-            $message_id = $argv['message_id'];
-            $stmt->bindParam(':message_id',$message_id, 2, 16);
-        }
-                   if (array_key_exists('from_user_id', $argv)) {
-            $from_user_id = $argv['from_user_id'];
-            $stmt->bindParam(':from_user_id',$from_user_id, 2, 16);
-        }
-                   if (array_key_exists('to_user_id', $argv)) {
-            $to_user_id = $argv['to_user_id'];
-            $stmt->bindParam(':to_user_id',$to_user_id, 2, 16);
-        }
-                   if (array_key_exists('message', $argv)) {
-            $stmt->bindValue(':message',$argv['message'], 2);
-        }
-                   if (array_key_exists('message_read', $argv)) {
-            $message_read = $argv['message_read'];
-            $stmt->bindParam(':message_read',$message_read, 0, 1);
-        }
-                   if (array_key_exists('creation_date', $argv)) {
-            $stmt->bindValue(':creation_date',$argv['creation_date'], 2);
-        }
-           
-          }
-        };
-        
-        $bind($argv); */
-
+    public static function bind(\PDOStatement $stmt, array $argv) : void {
         foreach (self::$injection as $key => $value) {
             $stmt->bindValue($key,$value);
         }
-
-        return $stmt->execute();
     }
 
 
@@ -155,7 +115,9 @@ class Carbon_User_Messages extends Database implements iRest
         
         $stmt = $pdo->prepare($sql);
 
-        if (!self::bind($stmt, $argv['where'] ?? [])) {
+        self::bind($stmt, $argv['where'] ?? []);
+
+        if (!$stmt->execute()) {
             return false;
         }
 
@@ -376,7 +338,9 @@ class Carbon_User_Messages extends Database implements iRest
             $stmt->bindValue(':creation_date',$argv['creation_date'], 2);
         }
 
-        if (!self::bind($stmt, $argv)){
+        self::bind($stmt, $argv);
+
+        if (!$stmt->execute()) {
             return false;
         }
 

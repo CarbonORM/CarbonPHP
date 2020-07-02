@@ -57,48 +57,15 @@ class Carbon_Comments extends Database implements iRest
 
     public static function addInjection($value, \PDO $pdo, $quote = false) : string
     {
-        $inject = ':injection' . \count(self::$injection) . 'buildWhere';
+        $inject = ':injection' . \count(self::$injection) . 'carbon_comments';
         self::$injection[$inject] = $quote ? $pdo->quote($value) : $value;
         return $inject;
     }
 
-    public static function bind(\PDOStatement $stmt, array $argv) {
-   
-   /*
-    $bind = function (array $argv) use (&$bind, &$stmt) {
-            foreach ($argv as $key => $value) {
-                
-                if (is_numeric($key) && is_array($value)) {
-                    $bind($value);
-                    continue;
-                }
-                
-                   if (array_key_exists('parent_id', $argv)) {
-            $parent_id = $argv['parent_id'];
-            $stmt->bindParam(':parent_id',$parent_id, 2, 16);
-        }
-                   if (array_key_exists('comment_id', $argv)) {
-            $comment_id = $argv['comment_id'];
-            $stmt->bindParam(':comment_id',$comment_id, 2, 16);
-        }
-                   if (array_key_exists('user_id', $argv)) {
-            $user_id = $argv['user_id'];
-            $stmt->bindParam(':user_id',$user_id, 2, 16);
-        }
-                   if (array_key_exists('comment', $argv)) {
-            $stmt->bindValue(':comment',$argv['comment'], 2);
-        }
-           
-          }
-        };
-        
-        $bind($argv); */
-
+    public static function bind(\PDOStatement $stmt, array $argv) : void {
         foreach (self::$injection as $key => $value) {
             $stmt->bindValue($key,$value);
         }
-
-        return $stmt->execute();
     }
 
 
@@ -146,7 +113,9 @@ class Carbon_Comments extends Database implements iRest
         
         $stmt = $pdo->prepare($sql);
 
-        if (!self::bind($stmt, $argv['where'] ?? [])) {
+        self::bind($stmt, $argv['where'] ?? []);
+
+        if (!$stmt->execute()) {
             return false;
         }
 
@@ -351,7 +320,9 @@ class Carbon_Comments extends Database implements iRest
             $stmt->bindValue(':comment',$argv['comment'], 2);
         }
 
-        if (!self::bind($stmt, $argv)){
+        self::bind($stmt, $argv);
+
+        if (!$stmt->execute()) {
             return false;
         }
 

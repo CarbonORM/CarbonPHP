@@ -61,63 +61,15 @@ class Carbon_User_Tasks extends Database implements iRest
 
     public static function addInjection($value, \PDO $pdo, $quote = false) : string
     {
-        $inject = ':injection' . \count(self::$injection) . 'buildWhere';
+        $inject = ':injection' . \count(self::$injection) . 'carbon_user_tasks';
         self::$injection[$inject] = $quote ? $pdo->quote($value) : $value;
         return $inject;
     }
 
-    public static function bind(\PDOStatement $stmt, array $argv) {
-   
-   /*
-    $bind = function (array $argv) use (&$bind, &$stmt) {
-            foreach ($argv as $key => $value) {
-                
-                if (is_numeric($key) && is_array($value)) {
-                    $bind($value);
-                    continue;
-                }
-                
-                   if (array_key_exists('task_id', $argv)) {
-            $task_id = $argv['task_id'];
-            $stmt->bindParam(':task_id',$task_id, 2, 16);
-        }
-                   if (array_key_exists('user_id', $argv)) {
-            $user_id = $argv['user_id'];
-            $stmt->bindParam(':user_id',$user_id, 2, 16);
-        }
-                   if (array_key_exists('from_id', $argv)) {
-            $from_id = $argv['from_id'];
-            $stmt->bindParam(':from_id',$from_id, 2, 16);
-        }
-                   if (array_key_exists('task_name', $argv)) {
-            $task_name = $argv['task_name'];
-            $stmt->bindParam(':task_name',$task_name, 2, 40);
-        }
-                   if (array_key_exists('task_description', $argv)) {
-            $task_description = $argv['task_description'];
-            $stmt->bindParam(':task_description',$task_description, 2, 225);
-        }
-                   if (array_key_exists('percent_complete', $argv)) {
-            $percent_complete = $argv['percent_complete'];
-            $stmt->bindParam(':percent_complete',$percent_complete, 2, 11);
-        }
-                   if (array_key_exists('start_date', $argv)) {
-            $stmt->bindValue(':start_date',$argv['start_date'], 2);
-        }
-                   if (array_key_exists('end_date', $argv)) {
-            $stmt->bindValue(':end_date',$argv['end_date'], 2);
-        }
-           
-          }
-        };
-        
-        $bind($argv); */
-
+    public static function bind(\PDOStatement $stmt, array $argv) : void {
         foreach (self::$injection as $key => $value) {
             $stmt->bindValue($key,$value);
         }
-
-        return $stmt->execute();
     }
 
 
@@ -165,7 +117,9 @@ class Carbon_User_Tasks extends Database implements iRest
         
         $stmt = $pdo->prepare($sql);
 
-        if (!self::bind($stmt, $argv['where'] ?? [])) {
+        self::bind($stmt, $argv['where'] ?? []);
+
+        if (!$stmt->execute()) {
             return false;
         }
 
@@ -407,7 +361,9 @@ class Carbon_User_Tasks extends Database implements iRest
             $stmt->bindValue(':end_date',$argv['end_date'], 2);
         }
 
-        if (!self::bind($stmt, $argv)){
+        self::bind($stmt, $argv);
+
+        if (!$stmt->execute()) {
             return false;
         }
 

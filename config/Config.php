@@ -83,7 +83,7 @@ return [
 
         'DB_BUILD' => '',                               // SERVER_ROOT . '/config/buildDatabase.php' TODO - auto set this when cli program is run
 
-        'REBUILD' => true
+        'REBUILD' => false
     ],
 
     'SITE' => [
