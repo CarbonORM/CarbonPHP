@@ -684,7 +684,7 @@ class {{ucEachTableName}} extends Database implements iRest
     ];
 
     public const COLUMNS = [
-        {{#explode}}'{{name}}' => [ '{{mysql_type}}', '{{type}}', '{{length}}' ],{{/explode}}
+        {{#explode}}'{{TableName}}.{{name}}' => [ '{{mysql_type}}', '{{type}}', '{{length}}' ],{{/explode}}
     ];
 
     {{^validation}}public const VALIDATION = [];{{/validation}}{{#validation}}{{{validation}}}{{/validation}}

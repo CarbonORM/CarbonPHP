@@ -180,7 +180,10 @@ class Carbon_Locations extends Database implements iRest
 
     }
     
-    public static function buildSelect(string $primary = null, array $argv, \PDO $pdo) : string {
+    public static function buildSelect(string $primary = null, array $argv, \PDO $pdo = null) : string {
+        if ($pdo === null) {
+            $pdo = self::database();
+        }
         self::$injection = [];
         $aggregate = false;
         $group = $sql = '';
