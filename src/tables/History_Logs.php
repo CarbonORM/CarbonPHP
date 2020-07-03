@@ -20,7 +20,7 @@ class History_Logs extends Database implements iRest
     ];
 
     public const COLUMNS = [
-        'uuid' => [ 'binary', '2', '16' ],'resource_type' => [ 'varchar', '2', '40' ],'resource_uuid' => [ 'binary', '2', '16' ],'operation_type' => [ 'varchar', '2', '20' ],'data' => [ 'json', '2', '' ],
+        'history_logs.uuid' => [ 'binary', '2', '16' ],'history_logs.resource_type' => [ 'varchar', '2', '40' ],'history_logs.resource_uuid' => [ 'binary', '2', '16' ],'history_logs.operation_type' => [ 'varchar', '2', '20' ],'history_logs.data' => [ 'json', '2', '' ],
     ];
 
     public const VALIDATION = [];

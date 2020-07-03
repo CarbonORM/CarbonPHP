@@ -19,7 +19,7 @@ class Carbon_Reports extends Database implements iRest
     ];
 
     public const COLUMNS = [
-        'log_level' => [ 'varchar', '2', '20' ],'report' => [ 'text,', '2', '' ],'date' => [ 'datetime', '2', '' ],'call_trace' => [ 'text', '2', '' ],
+        'carbon_reports.log_level' => [ 'varchar', '2', '20' ],'carbon_reports.report' => [ 'text,', '2', '' ],'carbon_reports.date' => [ 'datetime', '2', '' ],'carbon_reports.call_trace' => [ 'text', '2', '' ],
     ];
 
     public const VALIDATION = [];

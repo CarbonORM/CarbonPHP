@@ -18,7 +18,7 @@ class Carbon_User_Followers extends Database implements iRest
     ];
 
     public const COLUMNS = [
-        'follower_table_id' => [ 'binary', '2', '16' ],'follows_user_id' => [ 'binary', '2', '16' ],'user_id' => [ 'binary', '2', '16' ],
+        'carbon_user_followers.follower_table_id' => [ 'binary', '2', '16' ],'carbon_user_followers.follows_user_id' => [ 'binary', '2', '16' ],'carbon_user_followers.user_id' => [ 'binary', '2', '16' ],
     ];
 
     public const VALIDATION = [];

@@ -21,7 +21,7 @@ class Carbon_User_Sessions extends Database implements iRest
     ];
 
     public const COLUMNS = [
-        'user_id' => [ 'binary', '2', '16' ],'user_ip' => [ 'binary', '2', '16' ],'session_id' => [ 'varchar', '2', '255' ],'session_expires' => [ 'datetime', '2', '' ],'session_data' => [ 'text,', '2', '' ],'user_online_status' => [ 'tinyint', '0', '1' ],
+        'carbon_user_sessions.user_id' => [ 'binary', '2', '16' ],'carbon_user_sessions.user_ip' => [ 'binary', '2', '16' ],'carbon_user_sessions.session_id' => [ 'varchar', '2', '255' ],'carbon_user_sessions.session_expires' => [ 'datetime', '2', '' ],'carbon_user_sessions.session_data' => [ 'text,', '2', '' ],'carbon_user_sessions.user_online_status' => [ 'tinyint', '0', '1' ],
     ];
 
     public const VALIDATION = [];

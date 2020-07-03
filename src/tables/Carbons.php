@@ -17,7 +17,7 @@ class Carbons extends Database implements iRest
     ];
 
     public const COLUMNS = [
-        'entity_pk' => [ 'binary', '2', '16' ],'entity_fk' => [ 'binary', '2', '16' ],
+        'carbons.entity_pk' => [ 'binary', '2', '16' ],'carbons.entity_fk' => [ 'binary', '2', '16' ],
     ];
 
     public const VALIDATION = [];

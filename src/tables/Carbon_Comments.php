@@ -19,7 +19,7 @@ class Carbon_Comments extends Database implements iRest
     ];
 
     public const COLUMNS = [
-        'parent_id' => [ 'binary', '2', '16' ],'comment_id' => [ 'binary', '2', '16' ],'user_id' => [ 'binary', '2', '16' ],'comment' => [ 'blob', '2', '' ],
+        'carbon_comments.parent_id' => [ 'binary', '2', '16' ],'carbon_comments.comment_id' => [ 'binary', '2', '16' ],'carbon_comments.user_id' => [ 'binary', '2', '16' ],'carbon_comments.comment' => [ 'blob', '2', '' ],
     ];
 
     public const VALIDATION = [];

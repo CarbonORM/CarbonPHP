@@ -21,7 +21,7 @@ class Carbon_User_Messages extends Database implements iRest
     ];
 
     public const COLUMNS = [
-        'message_id' => [ 'binary', '2', '16' ],'from_user_id' => [ 'binary', '2', '16' ],'to_user_id' => [ 'binary', '2', '16' ],'message' => [ 'text', '2', '' ],'message_read' => [ 'tinyint', '0', '1' ],'creation_date' => [ 'datetime', '2', '' ],
+        'carbon_user_messages.message_id' => [ 'binary', '2', '16' ],'carbon_user_messages.from_user_id' => [ 'binary', '2', '16' ],'carbon_user_messages.to_user_id' => [ 'binary', '2', '16' ],'carbon_user_messages.message' => [ 'text', '2', '' ],'carbon_user_messages.message_read' => [ 'tinyint', '0', '1' ],'carbon_user_messages.creation_date' => [ 'datetime', '2', '' ],
     ];
 
     public const VALIDATION = [];

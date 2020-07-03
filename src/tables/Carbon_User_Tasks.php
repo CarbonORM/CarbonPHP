@@ -23,7 +23,7 @@ class Carbon_User_Tasks extends Database implements iRest
     ];
 
     public const COLUMNS = [
-        'task_id' => [ 'binary', '2', '16' ],'user_id' => [ 'binary', '2', '16' ],'from_id' => [ 'binary', '2', '16' ],'task_name' => [ 'varchar', '2', '40' ],'task_description' => [ 'varchar', '2', '225' ],'percent_complete' => [ 'int', '2', '11' ],'start_date' => [ 'datetime', '2', '' ],'end_date' => [ 'datetime', '2', '' ],
+        'carbon_user_tasks.task_id' => [ 'binary', '2', '16' ],'carbon_user_tasks.user_id' => [ 'binary', '2', '16' ],'carbon_user_tasks.from_id' => [ 'binary', '2', '16' ],'carbon_user_tasks.task_name' => [ 'varchar', '2', '40' ],'carbon_user_tasks.task_description' => [ 'varchar', '2', '225' ],'carbon_user_tasks.percent_complete' => [ 'int', '2', '11' ],'carbon_user_tasks.start_date' => [ 'datetime', '2', '' ],'carbon_user_tasks.end_date' => [ 'datetime', '2', '' ],
     ];
 
     public const VALIDATION = [];

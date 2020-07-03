@@ -18,7 +18,7 @@ class Carbon_Tag extends Database implements iRest
     ];
 
     public const COLUMNS = [
-        'entity_id' => [ 'binary', '2', '16' ],'tag_id' => [ 'varchar', '2', '80' ],'creation_date' => [ 'timestamp', '2', '' ],
+        'carbon_tag.entity_id' => [ 'binary', '2', '16' ],'carbon_tag.tag_id' => [ 'varchar', '2', '80' ],'carbon_tag.creation_date' => [ 'timestamp', '2', '' ],
     ];
 
     public const VALIDATION = [];

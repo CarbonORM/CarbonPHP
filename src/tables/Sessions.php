@@ -21,7 +21,7 @@ class Sessions extends Database implements iRest
     ];
 
     public const COLUMNS = [
-        'user_id' => [ 'binary', '2', '16' ],'user_ip' => [ 'varchar', '2', '20' ],'session_id' => [ 'varchar', '2', '255' ],'session_expires' => [ 'datetime', '2', '' ],'session_data' => [ 'text,', '2', '' ],'user_online_status' => [ 'tinyint', '0', '1' ],
+        'sessions.user_id' => [ 'binary', '2', '16' ],'sessions.user_ip' => [ 'varchar', '2', '20' ],'sessions.session_id' => [ 'varchar', '2', '255' ],'sessions.session_expires' => [ 'datetime', '2', '' ],'sessions.session_data' => [ 'text,', '2', '' ],'sessions.user_online_status' => [ 'tinyint', '0', '1' ],
     ];
 
     public const VALIDATION = [];

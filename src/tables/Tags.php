@@ -18,7 +18,7 @@ class Tags extends Database implements iRest
     ];
 
     public const COLUMNS = [
-        'tag_id' => [ 'varchar', '2', '80' ],'tag_description' => [ 'text', '2', '' ],'tag_name' => [ 'text,', '2', '' ],
+        'tags.tag_id' => [ 'varchar', '2', '80' ],'tags.tag_description' => [ 'text', '2', '' ],'tags.tag_name' => [ 'text,', '2', '' ],
     ];
 
     public const VALIDATION = [];

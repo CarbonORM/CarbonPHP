@@ -20,7 +20,7 @@ class Carbon_Photos extends Database implements iRest
     ];
 
     public const COLUMNS = [
-        'parent_id' => [ 'binary', '2', '16' ],'photo_id' => [ 'binary', '2', '16' ],'user_id' => [ 'binary', '2', '16' ],'photo_path' => [ 'varchar', '2', '225' ],'photo_description' => [ 'text,', '2', '' ],
+        'carbon_photos.parent_id' => [ 'binary', '2', '16' ],'carbon_photos.photo_id' => [ 'binary', '2', '16' ],'carbon_photos.user_id' => [ 'binary', '2', '16' ],'carbon_photos.photo_path' => [ 'varchar', '2', '225' ],'carbon_photos.photo_description' => [ 'text,', '2', '' ],
     ];
 
     public const VALIDATION = [];
