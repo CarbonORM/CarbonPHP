@@ -41,7 +41,9 @@ class Carbon_User_Followers extends Database implements iRest
                 $sql .= self::buildWhere($value, $pdo, $join === 'AND' ? 'OR' : 'AND');
             } else if (array_key_exists($column, self::COLUMNS)) {
                 $bump = false;
-                if (self::COLUMNS[$column][0] === 'binary') {
+                if ($column !== $subQuery = trim('C6SUB488', $column)) {
+                    $sql .= "($column = $subQuery ) $join ";
+                } else if (self::COLUMNS[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo)  . ")) $join ";
                 } else {
                     $sql .= "($column = " . self::addInjection($value, $pdo) . ") $join ";
@@ -165,8 +167,14 @@ class Carbon_User_Followers extends Database implements iRest
         return $stmt->execute() ? $id : false;
 
     }
+     
+    public static function subSelect(string $primary = null, array $argv, \PDO $pdo = null): string
+    {
+        return 'C6SUB488' . self::buildSelect($primary, $argv, $pdo, true);
+    }
     
-    public static function buildSelect(string $primary = null, array $argv, \PDO $pdo = null) : string {
+    public static function buildSelect(string $primary = null, array $argv, \PDO $pdo = null, bool $noHEX = false) : string 
+    {
         if ($pdo === null) {
             $pdo = self::database();
         }
@@ -216,12 +224,14 @@ class Carbon_User_Followers extends Database implements iRest
                 }
             }
             $columnExists = array_key_exists($column, self::COLUMNS);
-            if ($columnExists && self::COLUMNS[$column][0] === 'binary') {
-                $sql .= "HEX($column) as $column";
-                $group .= $column;
-            } elseif ($columnExists) {
-                $sql .= $column;
-                $group .= $column;
+            if ($columnExists) {
+                if (!$noHEX && self::COLUMNS[$column][0] === 'binary') {
+                    $sql .= "HEX($column) as $column";
+                    $group .= $column;
+                } elseif ($columnExists) {
+                    $sql .= $column;
+                    $group .= $column;  
+                }  
             } else {
                 if (!preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|\-|\/| |follower_table_id|follows_user_id|user_id))+\)*)+ *(as [a-z]+)?#i', $column)) {
                     return false;

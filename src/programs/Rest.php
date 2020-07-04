@@ -105,10 +105,14 @@ END;
         $rest = [];
         /** @noinspection PhpUnusedLocalVariableInspection */
         $clean = true;
-        $carbon_namespace = (APP_ROOT . 'src/' ) === CARBON_ROOT;
+        $carbon_namespace = ( APP_ROOT . 'src/' ) === CARBON_ROOT;
         $targetDir = APP_ROOT . ($carbon_namespace ? 'src/tables/' : 'tables/');
         $only_these_tables = $history_table_query = $mysql = null;
         $verbose = $debug = $json = $primary_required = $delete_dump = $skipTable = $logClasses = false;
+
+        // we shouldn't open ourselfs for sql injection
+        $subQuery = 'C6SUB' . \random_int(0,1000);
+
 
         /** @noinspection ForeachInvariantsInspection - as we need $i++ */
         for ($i = 0; $i < $argc; $i++) {
@@ -118,6 +122,9 @@ END;
                     break;
                 case '-target':
                     $targetDir = $argv[++$i];
+                    break;
+                case '-subPrefix':
+                    $subQuery = $argv[++$i];
                     break;
                 case '-x':
                     $this->cleanUp = true;
@@ -281,6 +288,7 @@ END;
                     // TRY to load previous validation functions
 
                     $rest[$tableName] = [
+                        'subQuery' => $subQuery,
                         'json' => $json,
                         'binary_primary' => false,
                         'carbon_namespace' => $carbon_namespace,
@@ -722,7 +730,9 @@ class {{ucEachTableName}} extends Database implements iRest
                 \$sql .= self::buildWhere(\$value, \$pdo, \$join === 'AND' ? 'OR' : 'AND');
             } else if (array_key_exists(\$column, self::COLUMNS)) {
                 \$bump = false;
-                if (self::COLUMNS[\$column][0] === 'binary') {
+                if (\$column !== \$subQuery = trim('{{subQuery}}', \$column)) {
+                    \$sql .= "(\$column = \$subQuery ) \$join ";
+                } else if (self::COLUMNS[\$column][0] === 'binary') {
                     \$sql .= "(\$column = UNHEX(" . self::addInjection(\$value, \$pdo)  . ")) \$join ";
                 } else {
                     \$sql .= "(\$column = " . self::addInjection(\$value, \$pdo) . ") \$join ";
@@ -863,8 +873,14 @@ class {{ucEachTableName}} extends Database implements iRest
         {{^carbon_table}}
             return \$stmt->execute();{{/carbon_table}}{{/binary_primary}}
     }
+     
+    public static function subSelect(string \$primary = null, array \$argv, \PDO \$pdo = null): string
+    {
+        return '{{subQuery}}' . self::buildSelect(\$primary, \$argv, \$pdo, true);
+    }
     
-    public static function buildSelect(string \$primary = null, array \$argv, \PDO \$pdo = null) : string {
+    public static function buildSelect(string \$primary = null, array \$argv, \PDO \$pdo = null, bool \$noHEX = false) : string 
+    {
         if (\$pdo === null) {
             \$pdo = self::database();
         }
@@ -914,12 +930,14 @@ class {{ucEachTableName}} extends Database implements iRest
                 }
             }
             \$columnExists = array_key_exists(\$column, self::COLUMNS);
-            if (\$columnExists && self::COLUMNS[\$column][0] === 'binary') {
-                \$sql .= "HEX(\$column) as \$column";
-                \$group .= \$column;
-            } elseif (\$columnExists) {
-                \$sql .= \$column;
-                \$group .= \$column;
+            if (\$columnExists) {
+                if (!\$noHEX && self::COLUMNS[\$column][0] === 'binary') {
+                    \$sql .= "HEX(\$column) as \$column";
+                    \$group .= \$column;
+                } elseif (\$columnExists) {
+                    \$sql .= \$column;
+                    \$group .= \$column;  
+                }  
             } else {
                 if (!preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|\-|\/| {{#explode}}|{{name}}{{/explode}}))+\)*)+ *(as [a-z]+)?#i', \$column)) {
                     return false;
@@ -1070,17 +1088,22 @@ class {{ucEachTableName}} extends Database implements iRest
         \$pdo = self::database();
 
         if (null === \$primary) {
-        /**
-        *   While useful, we've decided to disallow full
-        *   table deletions through the rest api. For the
-        *   n00bs and future self, "I got chu."
-        */
-        if (empty(\$argv)) {
-            return false;
-        }
+           /**
+            *   While useful, we've decided to disallow full
+            *   table deletions through the rest api. For the
+            *   n00bs and future self, "I got chu."
+            */
+            if (empty(\$argv)) {
+                return false;
+            }
+            
+            \$where = self::buildWhere(\$argv, \$pdo);
+            
+            if (empty(\$where)) {
+                return false;
+            }
 
-
-        \$sql .= ' WHERE ' . self::buildWhere(\$argv, \$pdo);
+            \$sql .= ' WHERE ' . \$where;
         } {{#primary}}{{#sql}}else {
         {{{sql}}}
         }{{/sql}}{{/primary}}

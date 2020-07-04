@@ -44,7 +44,9 @@ class Sessions extends Database implements iRest
                 $sql .= self::buildWhere($value, $pdo, $join === 'AND' ? 'OR' : 'AND');
             } else if (array_key_exists($column, self::COLUMNS)) {
                 $bump = false;
-                if (self::COLUMNS[$column][0] === 'binary') {
+                if ($column !== $subQuery = trim('C6SUB488', $column)) {
+                    $sql .= "($column = $subQuery ) $join ";
+                } else if (self::COLUMNS[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo)  . ")) $join ";
                 } else {
                     $sql .= "($column = " . self::addInjection($value, $pdo) . ") $join ";
@@ -174,8 +176,14 @@ class Sessions extends Database implements iRest
 
             return $stmt->execute();
     }
+     
+    public static function subSelect(string $primary = null, array $argv, \PDO $pdo = null): string
+    {
+        return 'C6SUB488' . self::buildSelect($primary, $argv, $pdo, true);
+    }
     
-    public static function buildSelect(string $primary = null, array $argv, \PDO $pdo = null) : string {
+    public static function buildSelect(string $primary = null, array $argv, \PDO $pdo = null, bool $noHEX = false) : string 
+    {
         if ($pdo === null) {
             $pdo = self::database();
         }
@@ -225,12 +233,14 @@ class Sessions extends Database implements iRest
                 }
             }
             $columnExists = array_key_exists($column, self::COLUMNS);
-            if ($columnExists && self::COLUMNS[$column][0] === 'binary') {
-                $sql .= "HEX($column) as $column";
-                $group .= $column;
-            } elseif ($columnExists) {
-                $sql .= $column;
-                $group .= $column;
+            if ($columnExists) {
+                if (!$noHEX && self::COLUMNS[$column][0] === 'binary') {
+                    $sql .= "HEX($column) as $column";
+                    $group .= $column;
+                } elseif ($columnExists) {
+                    $sql .= $column;
+                    $group .= $column;  
+                }  
             } else {
                 if (!preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|\-|\/| |user_id|user_ip|session_id|session_expires|session_data|user_online_status))+\)*)+ *(as [a-z]+)?#i', $column)) {
                     return false;
@@ -370,17 +380,22 @@ class Sessions extends Database implements iRest
         $pdo = self::database();
 
         if (null === $primary) {
-        /**
-        *   While useful, we've decided to disallow full
-        *   table deletions through the rest api. For the
-        *   n00bs and future self, "I got chu."
-        */
-        if (empty($argv)) {
-            return false;
-        }
+           /**
+            *   While useful, we've decided to disallow full
+            *   table deletions through the rest api. For the
+            *   n00bs and future self, "I got chu."
+            */
+            if (empty($argv)) {
+                return false;
+            }
+            
+            $where = self::buildWhere($argv, $pdo);
+            
+            if (empty($where)) {
+                return false;
+            }
 
-
-        $sql .= ' WHERE ' . self::buildWhere($argv, $pdo);
+            $sql .= ' WHERE ' . $where;
         } else {
         $sql .= ' WHERE  session_id='.self::addInjection($primary, $pdo).'';
         }

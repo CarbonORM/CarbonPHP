@@ -65,7 +65,9 @@ class Carbon_Users extends Database implements iRest
                 $sql .= self::buildWhere($value, $pdo, $join === 'AND' ? 'OR' : 'AND');
             } else if (array_key_exists($column, self::COLUMNS)) {
                 $bump = false;
-                if (self::COLUMNS[$column][0] === 'binary') {
+                if ($column !== $subQuery = trim('C6SUB488', $column)) {
+                    $sql .= "($column = $subQuery ) $join ";
+                } else if (self::COLUMNS[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo)  . ")) $join ";
                 } else {
                     $sql .= "($column = " . self::addInjection($value, $pdo) . ") $join ";
@@ -255,8 +257,14 @@ class Carbon_Users extends Database implements iRest
         return $stmt->execute() ? $id : false;
 
     }
+     
+    public static function subSelect(string $primary = null, array $argv, \PDO $pdo = null): string
+    {
+        return 'C6SUB488' . self::buildSelect($primary, $argv, $pdo, true);
+    }
     
-    public static function buildSelect(string $primary = null, array $argv, \PDO $pdo = null) : string {
+    public static function buildSelect(string $primary = null, array $argv, \PDO $pdo = null, bool $noHEX = false) : string 
+    {
         if ($pdo === null) {
             $pdo = self::database();
         }
@@ -306,12 +314,14 @@ class Carbon_Users extends Database implements iRest
                 }
             }
             $columnExists = array_key_exists($column, self::COLUMNS);
-            if ($columnExists && self::COLUMNS[$column][0] === 'binary') {
-                $sql .= "HEX($column) as $column";
-                $group .= $column;
-            } elseif ($columnExists) {
-                $sql .= $column;
-                $group .= $column;
+            if ($columnExists) {
+                if (!$noHEX && self::COLUMNS[$column][0] === 'binary') {
+                    $sql .= "HEX($column) as $column";
+                    $group .= $column;
+                } elseif ($columnExists) {
+                    $sql .= $column;
+                    $group .= $column;  
+                }  
             } else {
                 if (!preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|\-|\/| |user_username|user_password|user_id|user_type|user_sport|user_session_id|user_facebook_id|user_first_name|user_last_name|user_profile_pic|user_profile_uri|user_cover_photo|user_birthday|user_gender|user_about_me|user_rank|user_email|user_email_code|user_email_confirmed|user_generated_string|user_membership|user_deactivated|user_last_login|user_ip|user_education_history|user_location|user_creation_date))+\)*)+ *(as [a-z]+)?#i', $column)) {
                     return false;
