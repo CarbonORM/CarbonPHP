@@ -75,7 +75,8 @@ class CLI implements iCommand
             }
 
             /** @noinspection PhpIncludeInspection */
-            if (false === include $name . '.php') {
+            if ((false === include (CARBON_ROOT . 'programs/' . $name . '.php')) &&
+                (false === include (APP_ROOT . 'programs/' . $name . '.php'))) {
                 die('Failed loading file "' . $name . '.php". Please no syntax errors exist in this file.');
             }
 
@@ -90,7 +91,7 @@ class CLI implements iCommand
             $imp = class_implements($class);
 
             if (!array_key_exists(iCommand::class, $imp)) {
-                die('The program class should also implement iCommand. '. print_r($imp, true));
+                die('The program class "' . $class . '" should also implement iCommand. '. print_r($imp, true));
             }
 
             // We're only using this closure to reinforce our iCommand // type hint

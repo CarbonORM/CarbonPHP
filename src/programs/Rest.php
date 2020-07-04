@@ -105,13 +105,13 @@ END;
         $rest = [];
         /** @noinspection PhpUnusedLocalVariableInspection */
         $clean = true;
-        $carbon_namespace = ( APP_ROOT . 'src/' ) === CARBON_ROOT;
+        $carbon_namespace = (APP_ROOT . 'src/') === CARBON_ROOT;
         $targetDir = APP_ROOT . ($carbon_namespace ? 'src/tables/' : 'tables/');
         $only_these_tables = $history_table_query = $mysql = null;
         $verbose = $debug = $json = $primary_required = $delete_dump = $skipTable = $logClasses = false;
 
         // we shouldn't open ourselfs for sql injection
-        $subQuery = 'C6SUB' . \random_int(0,1000);
+        $subQuery = 'C6SUB' . \random_int(0, 1000);
 
 
         /** @noinspection ForeachInvariantsInspection - as we need $i++ */
@@ -227,8 +227,11 @@ END;
             print 'You must provide a target directory.' . PHP_EOL;
             $this->usage();
         } else if (!is_dir($targetDir)) {
-            print 'The target directory appears invalid "' . $targetDir . '"' . PHP_EOL;
-            exit(1);
+            print 'Directory does not exist, attempting to create it.' . PHP_EOL;
+            if (!mkdir($targetDir, 0755, true) && !is_dir($targetDir)) {
+                print 'The target directory appears invalid "' . $targetDir . '"' . PHP_EOL;
+                exit(1);
+            }
         } else if ('/' !== substr($targetDir, -1)) {
             $targetDir .= DS;
         }
@@ -249,7 +252,6 @@ END;
             print 'Contents of the mysql dump file appears empty. Build Failed!';
             exit(1);
         }
-
 
 
         /** @noinspection ForgottenDebugOutputInspection */
@@ -297,7 +299,7 @@ END;
                         // We need to catch circular dependencies
                         'dependencies' => $rest[$tableName]['dependencies'] ?? [],
                         'TableName' => $tableName,
-                        'ucEachTableName' => implode('_', array_map( 'ucfirst', explode('_', $tableName))),
+                        'ucEachTableName' => implode('_', array_map('ucfirst', explode('_', $tableName))),
                         'primarySort' => '',
                         'primary' => [],
                     ];
@@ -676,11 +678,11 @@ TRIGGER;
 {{^carbon_namespace}}namespace Tables;{{/carbon_namespace}}
 {{#carbon_namespace}}namespace CarbonPHP\Tables;{{/carbon_namespace}}
 
-use CarbonPHP\Database;
+use CarbonPHP\Rest;
 use CarbonPHP\Interfaces\iRest;
 
 
-class {{ucEachTableName}} extends Database implements iRest
+class {{ucEachTableName}} extends Rest implements iRest
 {
     
     public const TABLE_NAME = '{{TableName}}';
@@ -862,7 +864,7 @@ class {{ucEachTableName}} extends Database implements iRest
             {{^skip}}
                 {{^length}}\$stmt->bindValue(':{{name}}',{{#json}}json_encode(\$argv['{{TableName}}.{{name}}']){{/json}}{{^json}}{{^default}}\$argv['{{TableName}}.{{name}}']{{/default}}{{#default}}array_key_exists('{{TableName}}.{{name}}',\$argv) ? \$argv['{{TableName}}.{{name}}'] : {{default}}{{/default}}{{/json}}, {{type}});{{/length}}
                 {{#length}}
-                    \${{name}} = {{^default}}\$argv['{{name}}']{{/default}}{{#default}} \$argv['{{TableName}}.{{name}}'] ?? {{{default}}}{{/default}};
+                    \${{name}} = {{^default}}\$argv['{{TableName}}.{{name}}']{{/default}}{{#default}} \$argv['{{TableName}}.{{name}}'] ?? {{{default}}}{{/default}};
                     \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
                 {{/length}}
             {{/skip}}
