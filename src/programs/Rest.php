@@ -730,7 +730,7 @@ class {{ucEachTableName}} extends Database implements iRest
                 \$sql .= self::buildWhere(\$value, \$pdo, \$join === 'AND' ? 'OR' : 'AND');
             } else if (array_key_exists(\$column, self::COLUMNS)) {
                 \$bump = false;
-                if (\$column !== \$subQuery = trim('{{subQuery}}', \$column)) {
+                if (\$column !== \$subQuery = trim(\$column, '{{subQuery}}')) {
                     \$sql .= "(\$column = \$subQuery ) \$join ";
                 } else if (self::COLUMNS[\$column][0] === 'binary') {
                     \$sql .= "(\$column = UNHEX(" . self::addInjection(\$value, \$pdo)  . ")) \$join ";

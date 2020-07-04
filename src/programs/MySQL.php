@@ -66,7 +66,6 @@ trait MySQL
     private function MySQLDump(String $mysqldump = null) : string
     {
         $cmd = ($mysqldump ?: 'mysqldump') . ' --defaults-extra-file="' . $this->buildCNF() . '" --no-data ' . $this->CONFIG['DATABASE']['DB_NAME'] . ' > ./mysqldump.sql';
-        print "\n\nRunning Command >> $cmd\n\n";
         shell_exec($cmd);
         return $this->mysqldump = './mysqldump.sql';
     }
