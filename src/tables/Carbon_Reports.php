@@ -42,7 +42,8 @@ class Carbon_Reports extends Database implements iRest
                 $sql .= self::buildWhere($value, $pdo, $join === 'AND' ? 'OR' : 'AND');
             } else if (array_key_exists($column, self::COLUMNS)) {
                 $bump = false;
-                if ($column !== $subQuery = trim($column, 'C6SUB339')) {
+                $subQuery = trim($value, 'C6SUB355');
+                if ($value !== $subQuery) {
                     $sql .= "($column = $subQuery ) $join ";
                 } else if (self::COLUMNS[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo)  . ")) $join ";
@@ -163,7 +164,7 @@ class Carbon_Reports extends Database implements iRest
      
     public static function subSelect(string $primary = null, array $argv, \PDO $pdo = null): string
     {
-        return 'C6SUB339' . self::buildSelect($primary, $argv, $pdo, true);
+        return 'C6SUB355' . self::buildSelect($primary, $argv, $pdo, true);
     }
     
     public static function buildSelect(string $primary = null, array $argv, \PDO $pdo = null, bool $noHEX = false) : string 
