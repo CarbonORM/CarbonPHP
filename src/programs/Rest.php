@@ -682,13 +682,14 @@ use CarbonPHP\Interfaces\iRest;
 
 class {{ucEachTableName}} extends Database implements iRest
 {
-
+    
+    public const TABLE_NAME = '{{TableName}}';
     {{#explode}}
     public const {{caps}} = '{{TableName}}.{{name}}';
     {{/explode}}
 
     public const PRIMARY = [
-    {{#primary}}{{#name}}'{{name}}',{{/name}}{{/primary}}
+    {{#primary}}{{#name}}'{{TableName}}.{{name}}',{{/name}}{{/primary}}
     ];
 
     public const COLUMNS = [
@@ -823,7 +824,7 @@ class {{ucEachTableName}} extends Database implements iRest
         if (\$primary !== null || (isset(\$argv['pagination']['limit']) && \$argv['pagination']['limit'] === 1 && \count(\$return) === 1)) {
             \$return = isset(\$return[0]) && \is_array(\$return[0]) ? \$return[0] : \$return;
             // promise this is needed and will still return the desired array except for a single record will not be an array
-        {{#explode}}{{#json}}if (array_key_exists('{{name}}', \$return)) {
+        {{#explode}}{{#json}}if (array_key_exists('{{TableName}}.{{name}}', \$return)) {
                 \$return['{{name}}'] = json_decode(\$return['{{name}}'], true);
             }
         {{/json}}{{/explode}}
@@ -849,19 +850,19 @@ class {{ucEachTableName}} extends Database implements iRest
     {{#explode}}
         {{#primary_binary}}
             {{^carbon_table}}
-                \${{name}} = \$id = \$argv['{{name}}'] ?? self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
+                \${{name}} = \$id = \$argv['{{TableName}}.{{name}}'] ?? self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
                 \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
             {{/carbon_table}}
             {{#carbon_table}}
-                \${{name}} = \$id = \$argv['{{name}}'] ?? self::beginTransaction('{{TableName}}');
+                \${{name}} = \$id = \$argv['{{TableName}}.{{name}}'] ?? self::beginTransaction('{{TableName}}');
                 \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
             {{/carbon_table}}
         {{/primary_binary}}
         {{^primary_binary}}
             {{^skip}}
-                {{^length}}\$stmt->bindValue(':{{name}}',{{#json}}json_encode(\$argv['{{name}}']){{/json}}{{^json}}{{^default}}\$argv['{{name}}']{{/default}}{{#default}}array_key_exists('{{name}}',\$argv) ? \$argv['{{name}}'] : {{default}}{{/default}}{{/json}}, {{type}});{{/length}}
+                {{^length}}\$stmt->bindValue(':{{name}}',{{#json}}json_encode(\$argv['{{TableName}}.{{name}}']){{/json}}{{^json}}{{^default}}\$argv['{{TableName}}.{{name}}']{{/default}}{{#default}}array_key_exists('{{TableName}}.{{name}}',\$argv) ? \$argv['{{TableName}}.{{name}}'] : {{default}}{{/default}}{{/json}}, {{type}});{{/length}}
                 {{#length}}
-                    \${{name}} = {{^default}}\$argv['{{name}}']{{/default}}{{#default}} \$argv['{{name}}'] ?? {{{default}}}{{/default}};
+                    \${{name}} = {{^default}}\$argv['{{name}}']{{/default}}{{#default}} \$argv['{{TableName}}.{{name}}'] ?? {{{default}}}{{/default}};
                     \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
                 {{/length}}
             {{/skip}}
@@ -940,7 +941,7 @@ class {{ucEachTableName}} extends Database implements iRest
                     \$group .= \$column;  
                 }  
             } else {
-                if (!preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|\-|\/| {{#explode}}|{{name}}{{/explode}}))+\)*)+ *(as [a-z]+)?#i', \$column)) {
+                if (!preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|\-|\/| {{#explode}}|{{TableName}}\.{{name}}{{/explode}}))+\)*)+ *(as [a-z]+)?#i', \$column)) {
                     return false;
                 }
                 \$sql .= \$column;
@@ -949,6 +950,41 @@ class {{ucEachTableName}} extends Database implements iRest
         }
 
         \$sql = 'SELECT ' .  \$sql . ' FROM {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}{{TableName}}';
+        
+        
+        if (array_key_exists('join', \$argv)) {
+            foreach (\$argv['join'] as \$by => \$tables) {
+                \$buildJoin = static function (\$join) use (\$tables, &\$sql) {
+                    foreach (\$tables as \$table => \$stmt) {
+                        switch (count(\$stmt)) {
+                            case 2:
+                                \$sql .= \$join . \$table . ' ON ' . \$stmt[0] . '=' . \$stmt[1];
+                                break;
+                            case 3:
+                                \$sql .= \$join . \$table . ' ON ' . \$stmt[0] . \$stmt[1] . \$stmt[2];
+                                break;
+                            default:
+                                return false; // todo debug check
+                        }
+                    }
+                };
+                switch (\$by) {
+                    case 'inner':
+                        \$buildJoin(' INNER JOIN ');
+                        break;
+                    case 'left':
+                        \$buildJoin(' LEFT JOIN ');
+                        break;
+                    case 'right':
+                        \$buildJoin(' RIGHT JOIN ');
+                        break;
+                    default:
+                        return false; // todo - debugging stmts
+                }
+            }
+        }
+
+
 
         if (null === \$primary) {
             /** @noinspection NestedPositiveIfStatementsInspection */
@@ -996,7 +1032,7 @@ class {{ucEachTableName}} extends Database implements iRest
         \$set = '';
 
         {{#explode}}
-            if (array_key_exists('{{name}}', \$argv)) {
+            if (array_key_exists('{{TableName}}.{{name}}', \$argv)) {
                 \$set .= '{{name}}={{#binary}}UNHEX(:{{name}}){{/binary}}{{^binary}}:{{name}}{{/binary}},';
             }
         {{/explode}}
@@ -1018,10 +1054,10 @@ class {{ucEachTableName}} extends Database implements iRest
         {{#explode}}
                    if (array_key_exists('{{name}}', \$argv)) {
         {{^length}}
-            \$stmt->bindValue(':{{name}}',{{#json}}json_encode(\$argv['{{name}}']){{/json}}{{^json}}\$argv['{{name}}']{{/json}}, {{type}});
+            \$stmt->bindValue(':{{name}}',{{#json}}json_encode(\$argv['{{TableName}}.{{name}}']){{/json}}{{^json}}\$argv['{{TableName}}.{{name}}']{{/json}}, {{type}});
         {{/length}}
         {{#length}}
-            \${{name}} = \$argv['{{name}}'];
+            \${{name}} = \$argv['{{TableName}}.{{name}}'];
             \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
         {{/length}}
         }
