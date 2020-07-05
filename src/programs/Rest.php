@@ -1007,6 +1007,7 @@ class {{ucEachTableName}} extends Rest implements iRest
                          continue;
                      }
                      if (\$table::validateSelectColumn(\$column)) { 
+                        \$valid = true;
                          break; 
                      }
                 }
