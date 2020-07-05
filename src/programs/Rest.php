@@ -940,11 +940,19 @@ class {{ucEachTableName}} extends Rest implements iRest
                     foreach (\$tables as \$table => \$stmt) {
                         \$tableList[] = \$table;
                         switch (count(\$stmt)) {
-                            case 2:
-                                \$join .= \$method . \$table . ' ON ' . \$stmt[0] . '=' . \$stmt[1];
+                            case 2: 
+                                if (is_string(\$stmt[0]) && is_string(\$stmt[1])) {
+                                    \$join .= \$method . \$table . ' ON ' . \$stmt[0] . '=' . \$stmt[1];
+                                } else {
+                                    return false; // todo debugging
+                                }
                                 break;
                             case 3:
-                                \$join .= \$method . \$table . ' ON ' . \$stmt[0] . \$stmt[1] . \$stmt[2];
+                                if (is_string(\$stmt[0]) && is_string(\$stmt[1]) && is_string(\$stmt[2])) {
+                                    \$join .= \$method . \$table . ' ON ' . \$stmt[0] . \$stmt[1] . \$stmt[2]; 
+                                } else {
+                                    return false; // todo debugging
+                                }
                                 break;
                             default:
                                 return false; // todo debug check
