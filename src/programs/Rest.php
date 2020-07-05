@@ -1003,7 +1003,7 @@ class {{ucEachTableName}} extends Rest implements iRest
                      \$imp = class_implements(\$table);
                     
                      /** @noinspection ClassConstantUsageCorrectnessInspection */
-                     if (!array_key_exists(iRest::class, \$imp)) {
+                     if (!in_array(strtolower(iRest::class), array_map('strtolower', array_keys(\$imp)))) {
                          continue;
                      }
                      if (\$table::validateSeletColumn(\$column)) { 
