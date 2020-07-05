@@ -803,7 +803,7 @@ class {{ucEachTableName}} extends Rest implements iRest
     {
         \$pdo = self::database();
 
-        \$sql = self::buildSelect(\$primary, \$argv, \$pdo);
+        \$sql = self::buildSelectQuery(\$primary, \$argv, \$pdo);
         
         \$stmt = \$pdo->prepare(\$sql);
 
@@ -880,10 +880,14 @@ class {{ucEachTableName}} extends Rest implements iRest
      
     public static function subSelect(string \$primary = null, array \$argv, \PDO \$pdo = null): string
     {
-        return '{{subQuery}}' . self::buildSelect(\$primary, \$argv, \$pdo, true);
+        return '{{subQuery}}' . self::buildSelectQuery(\$primary, \$argv, \$pdo, true);
     }
     
-    public static function buildSelect(string \$primary = null, array \$argv, \PDO \$pdo = null, bool \$noHEX = false) : string 
+    public static function validateSelectColumn(\$column) : bool {
+        return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|\-|\/| {{#explode}}|{{TableName}}\.{{name}}{{/explode}}))+\)*)+ *(as [a-z]+)?#i', \$column);
+    }
+    
+    public static function buildSelectQuery(string \$primary = null, array \$argv, \PDO \$pdo = null, bool \$noHEX = false) : string 
     {
         if (\$pdo === null) {
             \$pdo = self::database();
@@ -894,6 +898,7 @@ class {{ucEachTableName}} extends Rest implements iRest
         \$get = \$argv['select'] ?? array_keys(self::COLUMNS);
         \$where = \$argv['where'] ?? [];
 
+        // pagination
         if (array_key_exists('pagination',\$argv)) {
             if (!empty(\$argv['pagination']) && !\is_array(\$argv['pagination'])) {
                 \$argv['pagination'] = json_decode(\$argv['pagination'], true);
@@ -926,49 +931,20 @@ class {{ucEachTableName}} extends Rest implements iRest
             \$limit = ' ORDER BY {{primarySort}} ASC LIMIT 100';
         }
 
-        foreach(\$get as \$key => \$column){
-            if (!empty(\$sql)) {
-                \$sql .= ', ';
-                if (!empty(\$group)) {
-                    \$group .= ', ';
-                }
-            }
-            \$columnExists = array_key_exists(\$column, self::COLUMNS);
-            if (\$columnExists) {
-                if (!\$noHEX && self::COLUMNS[\$column][0] === 'binary') {
-                    \$asShort = trim(\$column, self::TABLE_NAME . '.');
-                    \$prefix = self::TABLE_NAME . '.';
-                    if (strpos(\$column, \$prefix) === 0) {
-                        \$asShort = substr(\$column, strlen(\$prefix));
-                    }
-                    \$sql .= "HEX(\$column) as \$asShort";
-                    \$group .= \$column;
-                } elseif (\$columnExists) {
-                    \$sql .= \$column;
-                    \$group .= \$column;  
-                }  
-            } else {
-                if (!preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|\-|\/| {{#explode}}|{{TableName}}\.{{name}}{{/explode}}))+\)*)+ *(as [a-z]+)?#i', \$column)) {
-                    return false;
-                }
-                \$sql .= \$column;
-                \$aggregate = true;
-            }
-        }
-
-        \$sql = 'SELECT ' .  \$sql . ' FROM {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}{{TableName}}';
-        
-        
+        // join 
+        \$join = ''; 
+        \$tableList = [];
         if (array_key_exists('join', \$argv)) {
             foreach (\$argv['join'] as \$by => \$tables) {
-                \$buildJoin = static function (\$join) use (\$tables, &\$sql) {
+                \$buildJoin = static function (\$method) use (\$tables, &\$join) {
                     foreach (\$tables as \$table => \$stmt) {
+                        array_push(\$tableList, \$table);
                         switch (count(\$stmt)) {
                             case 2:
-                                \$sql .= \$join . \$table . ' ON ' . \$stmt[0] . '=' . \$stmt[1];
+                                \$join .= \$method . \$table . ' ON ' . \$stmt[0] . '=' . \$stmt[1];
                                 break;
                             case 3:
-                                \$sql .= \$join . \$table . ' ON ' . \$stmt[0] . \$stmt[1] . \$stmt[2];
+                                \$join .= \$method . \$table . ' ON ' . \$stmt[0] . \$stmt[1] . \$stmt[2];
                                 break;
                             default:
                                 return false; // todo debug check
@@ -991,8 +967,58 @@ class {{ucEachTableName}} extends Rest implements iRest
             }
         }
 
+        // Select
+        foreach(\$get as \$key => \$column){
+            if (!empty(\$sql)) {
+                \$sql .= ', ';
+                if (!empty(\$group)) {
+                    \$group .= ', ';
+                }
+            }
+            \$columnExists = array_key_exists(\$column, self::COLUMNS);
+            if (\$columnExists) {
+                if (!\$noHEX && self::COLUMNS[\$column][0] === 'binary') {
+                    \$asShort = trim(\$column, self::TABLE_NAME . '.');
+                    \$prefix = self::TABLE_NAME . '.';
+                    if (strpos(\$column, \$prefix) === 0) {
+                        \$asShort = substr(\$column, strlen(\$prefix));
+                    }
+                    \$sql .= "HEX(\$column) as \$asShort";
+                    \$group .= \$column;
+                } elseif (\$columnExists) {
+                    \$sql .= \$column;
+                    \$group .= \$column;  
+                }  
+            } else if (self::validateSelectColumn(\$column)) {
+                \$sql .= \$column;
+                \$aggregate = true;
+            } else {  
+                \$valid = false;
+                while (!empty(\$tableList)) {
+                     \$table = array_pop(\$tableList);
+                     if (!class_exists(\$table)){
+                         continue;
+                     }
+                     \$imp = class_implements(\$table);
 
+                     if (!array_key_exists(iRest::class, \$imp)) {
+                         continue;
+                     }
+                     if (\$table::validateSeletColumn(\$column)) { 
+                         break; 
+                     }
+                }
+                if (!\$valid) {
+                    return false;
+                }
+                \$sql .= \$column;
+                \$aggregate = true;
+            }
+        }
 
+        \$sql = 'SELECT ' .  \$sql . ' FROM {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}{{TableName}} ' . \$join;
+        
+       
         if (null === \$primary) {
             /** @noinspection NestedPositiveIfStatementsInspection */
             if (!empty(\$where)) {
