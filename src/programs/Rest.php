@@ -894,7 +894,8 @@ class {{ucEachTableName}} extends Rest implements iRest
         }
         self::\$injection = [];
         \$aggregate = false;
-        \$group = \$sql = '';
+        \$group = [];
+        \$sql = '';
         \$get = \$argv['select'] ?? array_keys(self::COLUMNS);
         \$where = \$argv['where'] ?? [];
 
@@ -979,9 +980,6 @@ class {{ucEachTableName}} extends Rest implements iRest
         foreach(\$get as \$key => \$column){
             if (!empty(\$sql)) {
                 \$sql .= ', ';
-                if (!empty(\$group)) {
-                    \$group .= ', ';
-                }
             }
             \$columnExists = array_key_exists(\$column, self::COLUMNS);
             if (\$columnExists) {
@@ -992,10 +990,10 @@ class {{ucEachTableName}} extends Rest implements iRest
                         \$asShort = substr(\$column, strlen(\$prefix));
                     }
                     \$sql .= "HEX(\$column) as \$asShort";
-                    \$group .= \$column;
+                    \$group[] = \$column;
                 } elseif (\$columnExists) {
                     \$sql .= \$column;
-                    \$group .= \$column;  
+                    \$group[] = \$column;  
                 }  
             } else if (self::validateSelectColumn(\$column)) {
                 \$sql .= \$column;
@@ -1041,7 +1039,7 @@ class {{ucEachTableName}} extends Rest implements iRest
         }{{/sql}}{{/primary}}
 
         if (\$aggregate  && !empty(\$group)) {
-            \$sql .= ' GROUP BY ' . \$group . ' ';
+            \$sql .= ' GROUP BY ' . implode(', ', \$group). ' ';
         }
 
         \$sql .= \$limit;
@@ -1155,7 +1153,9 @@ class {{ucEachTableName}} extends Rest implements iRest
 
         \$stmt = \$pdo->prepare(\$sql);
 
-        \$r = self::bind(\$stmt, \$argv);
+        self::bind(\$stmt, \$argv);
+
+        \$r = \$stmt->execute();
 
         /** @noinspection CallableParameterUseCaseInTypeContextInspection */
         \$r and \$remove = null;
