@@ -936,9 +936,9 @@ class {{ucEachTableName}} extends Rest implements iRest
         \$tableList = [];
         if (array_key_exists('join', \$argv)) {
             foreach (\$argv['join'] as \$by => \$tables) {
-                \$buildJoin = static function (\$method) use (\$tables, &\$join) {
+                \$buildJoin = static function (\$method) use (\$tables, &\$join, &\$tableList) {
                     foreach (\$tables as \$table => \$stmt) {
-                        array_push(\$tableList, \$table);
+                        \$tableList[] = \$table;
                         switch (count(\$stmt)) {
                             case 2:
                                 \$join .= \$method . \$table . ' ON ' . \$stmt[0] . '=' . \$stmt[1];
