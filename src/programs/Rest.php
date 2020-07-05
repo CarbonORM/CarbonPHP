@@ -937,6 +937,10 @@ class {{ucEachTableName}} extends Rest implements iRest
             if (\$columnExists) {
                 if (!\$noHEX && self::COLUMNS[\$column][0] === 'binary') {
                     \$asShort = trim(\$column, self::TABLE_NAME . '.');
+                    \$prefix = self::TABLE_NAME . '.';
+                    if (strpos(\$column, \$prefix) === 0) {
+                        \$column = substr(\$column, strlen(\$prefix));
+                    }
                     \$sql .= "HEX(\$column) as \$asShort";
                     \$group .= \$column;
                 } elseif (\$columnExists) {
