@@ -995,12 +995,14 @@ class {{ucEachTableName}} extends Rest implements iRest
             } else {  
                 \$valid = false;
                 while (!empty(\$tableList)) {
-                     \$table = array_pop(\$tableList);
+                     \$table = __NAMESPACE__ . '\\\' . array_pop(\$tableList);
+                     
                      if (!class_exists(\$table)){
                          continue;
                      }
                      \$imp = class_implements(\$table);
-
+                    
+                     /** @noinspection ClassConstantUsageCorrectnessInspection */
                      if (!array_key_exists(iRest::class, \$imp)) {
                          continue;
                      }
