@@ -1006,7 +1006,7 @@ class {{ucEachTableName}} extends Rest implements iRest
                      if (!in_array(strtolower(iRest::class), array_map('strtolower', array_keys(\$imp)))) {
                          continue;
                      }
-                     if (\$table::validateSeletColumn(\$column)) { 
+                     if (\$table::validateSelectColumn(\$column)) { 
                          break; 
                      }
                 }
