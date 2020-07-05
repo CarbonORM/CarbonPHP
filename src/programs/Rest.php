@@ -1002,8 +1002,9 @@ class {{ucEachTableName}} extends Rest implements iRest
                 \$aggregate = true;
             } else {  
                 \$valid = false;
-                while (!empty(\$tableList)) {
-                     \$table = __NAMESPACE__ . '\\\' . array_pop(\$tableList);
+                \$tablesReffrenced = \$tableList;
+                while (!empty(\$tablesReffrenced)) {
+                     \$table = __NAMESPACE__ . '\\\' . array_pop(\$tablesReffrenced);
                      
                      if (!class_exists(\$table)){
                          continue;
