@@ -133,7 +133,9 @@ END;
                     if (isset($argv[++$i]) && strtolower($argv[$i]) === 'debug') {
                         print "\tDebug mode is best when paired with the optional (-l or -f) flags. Use -help for more information.\n";
                         $debug = true;
-                    } else --$i;
+                    } else {
+                        --$i;
+                    }
                     $verbose = true;
                     break;
                 case '-carbon':
