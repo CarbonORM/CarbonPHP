@@ -75,8 +75,6 @@ final class RestTest extends TestCase
 
     public function testRestApiCanPost(): void
     {
-
-
         $this->KeyExistsAndRemove('8544e3d581ba11e8942cd89ef3fc55fa'); //a
         $this->KeyExistsAndRemove('8544e3d581ba11e8942cd89ef3fc55fb'); //b
 
@@ -91,9 +89,11 @@ final class RestTest extends TestCase
 
 
         // Should return a unique hex id
-        $this->assertInternalType('string', Rest::Post(['entity_pk' => '8544e3d581ba11e8942cd89ef3fc55fa']));
-
+        $this->assertInternalType('string', $pool = Rest::Post([
+            Rest::ENTITY_PK => '8544e3d581ba11e8942cd89ef3fc55fa'
+        ]));
     }
+
 
     /**
      * @depends testRestApiCanPost
@@ -109,7 +109,7 @@ final class RestTest extends TestCase
             $this->assertArrayHasKey('entity_fk', $store);
         }
 
-        $this->assertTrue(Rest::Get($store, null, ['entity_pk' => '8544e3d581ba11e8942cd89ef3fc55fa']));
+        $this->assertTrue(Rest::Get($store, null, [Rest::ENTITY_PK => '8544e3d581ba11e8942cd89ef3fc55fa']));
 
 
         // This route redirects to home, thus ending in false
@@ -120,23 +120,24 @@ final class RestTest extends TestCase
      */
     public function testRestApiCanPut(): void
     {
-
         $this->store = [];
 
         $this->assertTrue(Rest::Get($this->store, '8544e3d581ba11e8942cd89ef3fc55fa', []));
 
         $this->assertArrayHasKey('entity_fk', $this->store);
 
+        print PHP_EOL . REST::ENTITY_PK . PHP_EOL;
+
         $this->assertTrue(
             Rest::Put($this->store, $this->store['entity_pk'], [
-                'entity_pk' => '8544e3d581ba11e8942cd89ef3fc55fb'
-            ]));
+                REST::ENTITY_PK => '8544e3d581ba11e8942cd89ef3fc55fb'
+            ]), 'Failed Updating Records.');
 
         $this->assertEquals('8544e3d581ba11e8942cd89ef3fc55fb', $this->store['entity_pk']);
 
         $this->assertTrue(Rest::Get($this->store, null, [
             'where' => [
-                'entity_pk' => '8544e3d581ba11e8942cd89ef3fc55fb'
+                REST::ENTITY_PK => '8544e3d581ba11e8942cd89ef3fc55fb'
             ]
         ]));
     }
@@ -150,10 +151,11 @@ final class RestTest extends TestCase
         $temp = [];
 
         $this->assertTrue(Rest::Get($temp, null, [
-            'where' => ['entity_pk' => '8544e3d581ba11e8942cd89ef3fc55fb'],
+            'where' => [
+                Rest::ENTITY_PK => '8544e3d581ba11e8942cd89ef3fc55fb'
+            ],
             'pagination' => [ 'limit' => 1 ]
         ]));
-
 
         $this->assertTrue(array_key_exists('entity_fk', $temp), 'Failed asserting that ' . print_r($temp, true) . ' has the key \'entity_fk\'.');
 

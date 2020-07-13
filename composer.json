@@ -23,7 +23,7 @@
     "ext-curl": "*"
   },
   "require-dev": {
-    "phpunit/phpunit-selenium": "^4.1"
+    "phpunit/phpunit-selenium": "4.1.0"
   },
   "authors": [
     {

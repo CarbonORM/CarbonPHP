@@ -11,3 +11,7 @@
 /*/node_modules/
 /logs/*.log
 /src/tables/*
+/mysql.cnf
+/mysqldump.cnf
+/mysqldump.sql
+/composer.phar

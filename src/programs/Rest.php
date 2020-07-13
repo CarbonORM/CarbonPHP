@@ -680,6 +680,11 @@ TRIGGER;
 {{^carbon_namespace}}namespace Tables;{{/carbon_namespace}}
 {{#carbon_namespace}}namespace CarbonPHP\Tables;{{/carbon_namespace}}
 
+use PDO;
+use PDOStatement;
+use function array_key_exists;
+use function count;
+use function is_array;
 use CarbonPHP\Rest;
 use CarbonPHP\Interfaces\iRest;
 
@@ -697,7 +702,7 @@ class {{ucEachTableName}} extends Rest implements iRest
     ];
 
     public const COLUMNS = [
-        {{#explode}}'{{TableName}}.{{name}}' => [ '{{mysql_type}}', '{{type}}', '{{length}}' ],{{/explode}}
+        {{#explode}}'{{TableName}}.{{name}}' => ['{{mysql_type}}', '{{type}}', '{{length}}'],{{/explode}}
     ];
 
     {{^validation}}public const VALIDATION = [];{{/validation}}{{#validation}}{{{validation}}}{{/validation}}
@@ -722,12 +727,12 @@ class {{ucEachTableName}} extends Rest implements iRest
     }
     {{/json}}
 
-    public static function buildWhere(array \$set, \PDO \$pdo, \$join = 'AND') : string
+    public static function buildWhere(array \$set, PDO \$pdo, \$join = 'AND') : string
     {
         \$sql = '(';
         \$bump = false;
         foreach (\$set as \$column => \$value) {
-            if (\is_array(\$value)) {
+            if (is_array(\$value)) {
                 if (\$bump) {
                     \$sql .= " \$join ";
                 }
@@ -739,7 +744,7 @@ class {{ucEachTableName}} extends Rest implements iRest
                 if (\$value !== \$subQuery) {
                     \$sql .= "(\$column = \$subQuery ) \$join ";
                 } else if (self::COLUMNS[\$column][0] === 'binary') {
-                    \$sql .= "(\$column = UNHEX(" . self::addInjection(\$value, \$pdo)  . ")) \$join ";
+                    \$sql .= "(\$column = UNHEX(" . self::addInjection(\$value, \$pdo) . ")) \$join ";
                 } else {
                     \$sql .= "(\$column = " . self::addInjection(\$value, \$pdo) . ") \$join ";
                 }
@@ -751,14 +756,15 @@ class {{ucEachTableName}} extends Rest implements iRest
         return rtrim(\$sql, " \$join") . ')';
     }
 
-    public static function addInjection(\$value, \PDO \$pdo, \$quote = false) : string
+    public static function addInjection(\$value, PDO \$pdo, \$quote = false): string
     {
-        \$inject = ':injection' . \\count(self::\$injection) . '{{TableName}}';
+        \$inject = ':injection' . \count(self::\$injection) . '{{TableName}}';
         self::\$injection[\$inject] = \$quote ? \$pdo->quote(\$value) : \$value;
         return \$inject;
     }
 
-    public static function bind(\PDOStatement \$stmt, array \$argv) : void {
+    public static function bind(PDOStatement \$stmt): void 
+    {
         foreach (self::\$injection as \$key => \$value) {
             \$stmt->bindValue(\$key,\$value);
         }
@@ -801,7 +807,7 @@ class {{ucEachTableName}} extends Rest implements iRest
     * @param array \$argv
     * @return bool
     */
-    public static function Get(array &\$return, string \$primary = null, array \$argv) : bool
+    public static function Get(array &\$return, string \$primary = null, array \$argv): bool
     {
         \$pdo = self::database();
 
@@ -809,13 +815,13 @@ class {{ucEachTableName}} extends Rest implements iRest
         
         \$stmt = \$pdo->prepare(\$sql);
 
-        self::bind(\$stmt, \$argv['where'] ?? []);
+        self::bind(\$stmt);
 
         if (!\$stmt->execute()) {
             return false;
         }
 
-        \$return = \$stmt->fetchAll(\PDO::FETCH_ASSOC);
+        \$return = \$stmt->fetchAll(PDO::FETCH_ASSOC);
 
         /**
         *   The next part is so every response from the rest api
@@ -1097,7 +1103,7 @@ class {{ucEachTableName}} extends Rest implements iRest
         \$stmt = \$pdo->prepare(\$sql);
 
         {{#explode}}
-                   if (array_key_exists('{{name}}', \$argv)) {
+        if (array_key_exists('{{TableName}}.{{name}}', \$argv)) {
         {{^length}}
             \$stmt->bindValue(':{{name}}',{{#json}}json_encode(\$argv['{{TableName}}.{{name}}']){{/json}}{{^json}}\$argv['{{TableName}}.{{name}}']{{/json}}, {{type}});
         {{/length}}
@@ -1106,13 +1112,21 @@ class {{ucEachTableName}} extends Rest implements iRest
             \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
         {{/length}}
         }
-            {{/explode}}
+        {{/explode}}
 
-        self::bind(\$stmt, \$argv);
+        self::bind(\$stmt);
 
         if (!\$stmt->execute()) {
             return false;
         }
+        
+        \$argv = array_combine(
+            array_map(
+                static function(\$k) { return str_replace('{{TableName}}.', '', \$k); },
+                array_keys(\$argv)
+            ),
+            array_values(\$argv)
+        );
 
         \$return = array_merge(\$return, \$argv);
 
@@ -1155,7 +1169,7 @@ class {{ucEachTableName}} extends Rest implements iRest
 
         \$stmt = \$pdo->prepare(\$sql);
 
-        self::bind(\$stmt, \$argv);
+        self::bind(\$stmt);
 
         \$r = \$stmt->execute();
 
@@ -1196,7 +1210,7 @@ class {{ucEachTableName}} extends Rest implements iRest
 
         \$stmt = \$pdo->prepare(\$sql);
 
-        self::bind(\$stmt, \$argv);
+        self::bind(\$stmt);
 
         \$r = \$stmt->execute();
 
