@@ -90,14 +90,11 @@ END;
 
     public function run($argv): int
     {
-        $argc = \count($argv);
-
-        if (!is_dir($concurrentDirectory = APP_ROOT . 'tables') && !mkdir($concurrentDirectory) && !is_dir($concurrentDirectory)) {
-            throw new RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
-        }
-
         // Check command line args, password is optional
         print "\tBuilding Rest Api!\n";
+
+        // C syntax
+        $argc = \count($argv);
 
         // These are PDO const types, so we'll eliminate one complexity by evaluating them before inserting into the template
         $PDO = [0 => PDO::PARAM_NULL, 1 => PDO::PARAM_BOOL, 2 => PDO::PARAM_INT, 3 => PDO::PARAM_STR];
