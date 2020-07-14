@@ -180,7 +180,7 @@ END;
                     <div class="alert alert-danger"><h4><i class="icon fa fa-ban"></i>$class :: {$e->getMessage()}</h4></div>
 ERRORMESSAGE;
 
-        } else if ($e[0] instanceof \Throwable) {
+        } else if (($e[0] ?? null) instanceof \Throwable) {
 
             print PHP_EOL . 'Carbon caught this Message: ' . PHP_EOL . $e[0]->getMessage() . PHP_EOL;
 

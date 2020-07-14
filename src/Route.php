@@ -63,7 +63,8 @@ abstract class Route
      */
     public function __destruct()
     {
-        if ($this->matched) {
+        // in direct invocation this class may be needlessly initialized
+        if ($this->matched || CLI || TEST) {
             return;
         }
         if (SOCKET) {
