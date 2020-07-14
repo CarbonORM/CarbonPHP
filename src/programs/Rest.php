@@ -290,6 +290,7 @@ END;
 
                     $rest[$tableName] = [
                         'subQuery' => $subQuery,
+                        'subQueryLength' => strlen($subQuery),
                         'json' => $json,
                         'binary_primary' => false,
                         'carbon_namespace' => $carbon_namespace,
@@ -737,8 +738,8 @@ class {{ucEachTableName}} extends Rest implements iRest
                 \$sql .= self::buildWhere(\$value, \$pdo, \$join === 'AND' ? 'OR' : 'AND');
             } else if (array_key_exists(\$column, self::COLUMNS)) {
                 \$bump = false;
-                \$subQuery = trim(\$value, '{{subQuery}}');
-                if (\$value !== \$subQuery) {
+                if (substr(\$value, 0, '{{subQueryLength}}') === '{{subQuery}}') {
+                    \$subQuery = substr(\$value, '{{subQueryLength}}');
                     \$sql .= "(\$column = \$subQuery ) \$join ";
                 } else if (self::COLUMNS[\$column][0] === 'binary') {
                     \$sql .= "(\$column = UNHEX(" . self::addInjection(\$value, \$pdo) . ")) \$join ";
@@ -1032,7 +1033,6 @@ class {{ucEachTableName}} extends Rest implements iRest
         }
 
         \$sql = 'SELECT ' .  \$sql . ' FROM {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}{{TableName}} ' . \$join;
-        
        
         if (null === \$primary) {
             /** @noinspection NestedPositiveIfStatementsInspection */

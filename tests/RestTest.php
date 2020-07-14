@@ -126,8 +126,6 @@ final class RestTest extends TestCase
 
         $this->assertArrayHasKey('entity_fk', $this->store);
 
-        print PHP_EOL . REST::ENTITY_PK . PHP_EOL;
-
         $this->assertTrue(
             Rest::Put($this->store, $this->store['entity_pk'], [
                 REST::ENTITY_PK => '8544e3d581ba11e8942cd89ef3fc55fb'
