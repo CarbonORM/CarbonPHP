@@ -271,7 +271,6 @@ class CarbonPHP
                 Error\ErrorCatcher::start();
             } // Catch application errors and alerts
 
-
             #################  DATABASE  ########################
             if ($PHP['DATABASE'] ?? false) {
                 Database::$dsn = 'mysql:host=' . ($PHP['DATABASE']['DB_HOST'] ?? '') . ';dbname=' . ($PHP['DATABASE']['DB_NAME'] ?? '') . ';port=' . ($PHP['DATABASE']['DB_PORT'] ?? '3306');
