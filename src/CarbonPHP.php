@@ -5,6 +5,13 @@ namespace CarbonPHP;
 use CarbonPHP\Helpers\Serialized;
 use CarbonPHP\programs\CLI;
 use Throwable;
+use function define;
+use function defined;
+use function dirname;
+use function function_exists;
+use function in_array;
+use function is_array;
+use function is_callable;
 
 /**
  * Class Carbon
@@ -78,7 +85,6 @@ class CarbonPHP
             Session::update(true);
             Request::changeURI($uri);           // So the browser will update PJAX
             $application->changeURI($uri);      // So our routing file knows what to match
-            $reset = true;
             $_POST = [];
         }
 
@@ -146,7 +152,7 @@ class CarbonPHP
             // TODO - make a cache of these consts
 
             ####################  Sockets will have already claimed this global
-            \defined('TEST') OR \define('TEST', $_ENV['TEST'] ??= false);
+            defined('TEST') OR define('TEST', $_ENV['TEST'] ??= false);
 
             if (TEST) {     // TODO - remove server vars not needed in testing && update version dynamically?
                 self::$safelyExit = true;  // We just want the env to load, not route life :)
@@ -175,22 +181,22 @@ class CarbonPHP
             }
 
             ####################  Sockets will have already claimed this global
-            \defined('SOCKET') OR \define('SOCKET', false);
+            defined('SOCKET') OR define('SOCKET', false);
 
             ####################  Define your own server root
-            \defined('APP_ROOT') OR \define('APP_ROOT', CARBON_ROOT);
+            defined('APP_ROOT') OR define('APP_ROOT', CARBON_ROOT);
 
             ####################  For help loading our Carbon.js
-            \defined('CARBON_ROOT') OR \define('CARBON_ROOT', __DIR__ . DS);
+            defined('CARBON_ROOT') OR define('CARBON_ROOT', __DIR__ . DS);
 
             ####################  Did we use >> php -S localhost:8080 index.php
-            \defined('APP_LOCAL') OR \define('APP_LOCAL', self::isClientServer());
+            defined('APP_LOCAL') OR define('APP_LOCAL', self::isClientServer());
 
             ####################  May as well make composer a dependency
-            \defined('COMPOSER_ROOT') OR \define('COMPOSER_ROOT', \dirname(CARBON_ROOT, 2) . DS);
+            defined('COMPOSER_ROOT') OR define('COMPOSER_ROOT', dirname(CARBON_ROOT, 2) . DS);
 
             ####################  Template Root
-            \defined('TEMPLATE_ROOT') OR \define('TEMPLATE_ROOT', CARBON_ROOT);
+            defined('TEMPLATE_ROOT') OR define('TEMPLATE_ROOT', CARBON_ROOT);
 
 
             ################  Helpful Global Functions ####################
@@ -203,6 +209,7 @@ class CarbonPHP
             if ($configFilePath !== null) {
                 if (file_exists($configFilePath)) {
                     /** @var array $PHP */
+                    /** @noinspection PhpIncludeInspection */
                     $PHP = include $configFilePath;            // TODO - change the variable
                     // this file must return an array!
                 } elseif ($configFilePath !== null) {
@@ -213,7 +220,7 @@ class CarbonPHP
             }
 
             #######################   VIEW      ######################
-            \define('APP_VIEW', $PHP['VIEW']['VIEW'] ?? DS);         // Public Folder
+            define('APP_VIEW', $PHP['VIEW']['VIEW'] ?? DS);         // Public Folder
 
             View::$wrapper = APP_ROOT . APP_VIEW . $PHP['VIEW']['WRAPPER'] ?? '';
 
@@ -224,16 +231,17 @@ class CarbonPHP
 
             date_default_timezone_set($PHP['SITE']['TIMEZONE'] ?? 'America/Chicago');
 
-            \defined('DS') OR \define('DS', DIRECTORY_SEPARATOR);
+            defined('DS') OR define('DS', DIRECTORY_SEPARATOR);
 
-            \defined('APP_ROOT') OR \define('APP_ROOT', CARBON_ROOT);
+            defined('APP_ROOT') OR define('APP_ROOT', CARBON_ROOT);
 
-            \define('REPORTS', $PHP['ERROR']['LOCATION'] ?? APP_ROOT);
+            define('REPORTS', $PHP['ERROR']['LOCATION'] ?? APP_ROOT);
 
             #####################   AUTOLOAD    #######################
             if ($PHP['AUTOLOAD'] ?? false) {
                 $PSR4 = include CARBON_ROOT . 'AutoLoad.php';
-                if (\is_array($PHP['AUTOLOAD'] ?? false)) {
+                if (is_array($PHP['AUTOLOAD'] ?? false)) {
+                    /** @noinspection PhpUndefinedVariableInspection */
                     foreach ($PHP['AUTOLOAD'] as $name => $path) {
                         $PSR4->addNamespace($name, $path);
                     }
@@ -271,10 +279,10 @@ class CarbonPHP
 
             #################  SITE  ########################
             if ($PHP['SITE'] ?? false) {
-                \define('SITE_TITLE', $PHP['SITE']['TITLE'] ?? 'CarbonPHP');                     // Carbon doesnt use
-                \define('SITE_VERSION', $PHP['SITE']['VERSION'] ?? PHP_VERSION);                // printed in the footer
-                \define('SYSTEM_EMAIL', $PHP['SEND_EMAIL'] ?? '');                               // server email system
-                \define('REPLY_EMAIL', $PHP['REPLY_EMAIL'] ?? '');                               // I give you options :P
+                define('SITE_TITLE', $PHP['SITE']['TITLE'] ?? 'CarbonPHP');                     // Carbon doesnt use
+                define('SITE_VERSION', $PHP['SITE']['VERSION'] ?? PHP_VERSION);                // printed in the footer
+                define('SYSTEM_EMAIL', $PHP['SEND_EMAIL'] ?? '');                               // server email system
+                define('REPLY_EMAIL', $PHP['REPLY_EMAIL'] ?? '');                               // I give you options :P
             }
 
             // TODO - move to app invocation
@@ -282,7 +290,8 @@ class CarbonPHP
             // We're not testing out extra resources
             if (PHP_SAPI === 'cli' && !TEST && !SOCKET) {
                 self::$safelyExit = true;
-                $cli = new CLI($PHP);
+                /** @noinspection PhpUndefinedVariableInspection */
+                $cli = new CLI($PHP ??= []);
                 $cli->run($_SERVER['argv'] ?? ['index.php', null]);
                 $cli->cleanUp($PHP);
                 return;
@@ -291,7 +300,7 @@ class CarbonPHP
             ##################  VALIDATE URL / URI ##################
             // This is the first step that could kick users out of our application.
             // Even if a request is bad, we need to store the log
-            if (!\defined('IP')) {
+            if (!defined('IP')) {
                 self::IP_FILTER();
             }
 
@@ -310,22 +319,22 @@ class CarbonPHP
             // Must return a non empty value
             SOCKET or $headers = self::headers();
 
-            \define('PJAX', SOCKET ? false : isset($headers['X-PJAX']) || isset($_GET['_pjax']) || (isset($_SERVER['HTTP_X_PJAX']) && $_SERVER['HTTP_X_PJAX']));
+            define('PJAX', SOCKET ? false : isset($headers['X-PJAX']) || isset($_GET['_pjax']) || (isset($_SERVER['HTTP_X_PJAX']) && $_SERVER['HTTP_X_PJAX']));
 
             if (PJAX && empty($_POST)) {
                 # try to json decode. Json payloads ar sent to the input stream
                 $_POST = json_decode(file_get_contents('php://input'), true);
-                if ($_POST == null) {
+                if ($_POST === null) {
                     $_POST = [];
                 }
             }
 
             // (PJAX == true) return required, else (!PJAX && AJAX) return optional (socket valid)
-            \define('AJAX', SOCKET ? false : PJAX || ('XMLHttpRequest' === ($headers['X-Requested-With'] ?? false)) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'));
+            define('AJAX', SOCKET ? false : PJAX || ('XMLHttpRequest' === ($headers['X-Requested-With'] ?? false)) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'));
 
-            \define('HTTPS', SOCKET ? false : ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? false) === 'https' || ($_SERVER['HTTPS'] ?? 'off') !== 'off');
+            define('HTTPS', SOCKET ? false : ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? false) === 'https' || ($_SERVER['HTTPS'] ?? 'off') !== 'off');
 
-            \define('HTTP', !(HTTPS || SOCKET || AJAX));
+            define('HTTP', !(HTTPS || SOCKET || AJAX));
 
             // PHPUnit testing should not exit on explicit http(s) requests
             if (!TEST && HTTP && !($PHP['SITE']['HTTP'] ?? true)) {
@@ -350,20 +359,21 @@ class CarbonPHP
 
                 $_SESSION['id'] = array_key_exists('id', $_SESSION ?? []) ? $_SESSION['id'] : false;
 
-                if (\is_callable($PHP['SESSION']['CALLBACK'] ?? null)) {
+                if (is_callable($PHP['SESSION']['CALLBACK'] ?? null)) {
+                    /** @noinspection PhpUndefinedVariableInspection */
                     Session::updateCallback($PHP['SESSION']['CALLBACK']); // Pull From Database, manage socket ip
                 }
             }
 
-            if (\is_array($PHP['SESSION']['SERIALIZE'] ?? false)) {
+            if (is_array($PHP['SESSION']['SERIALIZE'] ?? false)) {
                 forward_static_call_array([Serialized::class, 'start'], $PHP['SESSION']['SERIALIZE']);    // Pull theses from session, and store on shutdown
             }
 
             self::$setupComplete = true;
 
         } catch (Throwable $e) {
-            APP_LOCAL and print_r($e);
             print PHP_EOL . 'Carbon Failed' . PHP_EOL;
+            APP_LOCAL and sortDump($e);
             die(1);
         }
     }
@@ -376,12 +386,12 @@ class CarbonPHP
      */
     private static function isClientServer()
     {
-        if (PHP_SAPI === 'cli-server' || PHP_SAPI === 'cli' || \in_array($_SERVER['REMOTE_ADDR'] ?? [], ['127.0.0.1', 'fe80::1', '::1'], false)) {
+        if (PHP_SAPI === 'cli-server' || PHP_SAPI === 'cli' || in_array($_SERVER['REMOTE_ADDR'] ?? [], ['127.0.0.1', 'fe80::1', '::1'], false)) {
             if (SOCKET && $ip = filter_var($_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-                \define('IP', $ip);
+                define('IP', $ip);
                 return false;
             }
-            \define('IP', '127.0.0.1');
+            define('IP', '127.0.0.1');
             return IP;
         }
         return false;
@@ -402,21 +412,22 @@ class CarbonPHP
     {
         if (!empty($URL = strtolower($URL)) && $_SERVER['SERVER_NAME'] !== $URL && !APP_LOCAL) {
             header("Refresh:0; url=$URL");
-            print '<html><head><!--suppress InjectedReferences -->
+            /** @noinspection UnterminatedStatementJS */
+            print '<html lang="en"><head><!--suppress InjectedReferences -->
     <meta http-equiv="refresh" content="5; url=' . $URL . '"></head><body>' .
                 IP . '<h1>You appear to be lost.</h1><h2>Moving to <a href="' . $URL . '"> ' . $URL . '</a></h2>' .
                 "<script>window.location.type = $URL</script></body></html>";
             self::$safelyExit = true;
         }
 
-        \define('URI', trim(urldecode(parse_url(trim(preg_replace('/\s+/', ' ', $_SERVER['REQUEST_URI'])), PHP_URL_PATH)), '/'));
+        define('URI', trim(urldecode(parse_url(trim(preg_replace('/\s+/', ' ', $_SERVER['REQUEST_URI'])), PHP_URL_PATH)), '/'));
 
-        \define('URL',
+        define('URL',
             (isset($_SERVER['SERVER_NAME']) ?
                 ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] === 443 ? 'https://' : 'http://') .
                 $_SERVER['SERVER_NAME'] . (APP_LOCAL ? ':' . $_SERVER['SERVER_PORT'] : '') : null));
 
-        \define('SITE', URL . '/');   // http(s)://example.com/  - URL's require a forward slash so DS may not work on os (windows)
+        define('SITE', URL . '/');   // http(s)://example.com/  - URL's require a forward slash so DS may not work on os (windows)
 
         // It does not matter if this matches, we will take care of that in the next if.
 
@@ -480,7 +491,7 @@ class CarbonPHP
                     // trim for safety measures
                     $ip = trim($ip);
                     if ($ip = filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-                        \define('IP', $ip);
+                        define('IP', $ip);
                         return IP;
                     }
                 }
@@ -499,7 +510,8 @@ class CarbonPHP
     private static function headers(): array
     {
         // Drop-in replacement for apache_request_headers() when it's not available
-        if (\function_exists('apache_request_headers')) {
+        if (function_exists('apache_request_headers')) {
+            /** @noinspection PhpComposerExtensionStubsInspection */
             return apache_request_headers();
         }
 
