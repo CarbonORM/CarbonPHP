@@ -691,23 +691,24 @@ class {{ucEachTableName}} extends Rest implements iRest
 {
     
     public const TABLE_NAME = '{{TableName}}';
-    {{#explode}}
-    public const {{caps}} = '{{TableName}}.{{name}}';
-    {{/explode}}
+    
+    {{#explode}}public const {{caps}} = '{{TableName}}.{{name}}';{{/explode}}
 
     public const PRIMARY = [
     {{#primary}}{{#name}}'{{TableName}}.{{name}}',{{/name}}{{/primary}}
     ];
 
     public const COLUMNS = [
+        {{#explode}}'{{TableName}}.{{name}}' => '{{name}}',{{/explode}}
+    ];
+
+    public const PDO_VALIDATION = [
         {{#explode}}'{{TableName}}.{{name}}' => ['{{mysql_type}}', '{{type}}', '{{length}}'],{{/explode}}
     ];
 
     {{^validation}}public const VALIDATION = [];{{/validation}}{{#validation}}{{{validation}}}{{/validation}}
 
-
     public static array \$injection = [];
-
 
     {{#json}} 
     public static function jsonSQLReporting(\$argv, \$sql) : void {
@@ -736,12 +737,13 @@ class {{ucEachTableName}} extends Rest implements iRest
                 }
                 \$bump = true;
                 \$sql .= self::buildWhere(\$value, \$pdo, \$join === 'AND' ? 'OR' : 'AND');
-            } else if (array_key_exists(\$column, self::COLUMNS)) {
+            } else if (array_key_exists(\$column, self::PDO_VALIDATION)) {
                 \$bump = false;
+                /** @noinspection SubStrUsedAsStrPosInspection */
                 if (substr(\$value, 0, '{{subQueryLength}}') === '{{subQuery}}') {
                     \$subQuery = substr(\$value, '{{subQueryLength}}');
                     \$sql .= "(\$column = \$subQuery ) \$join ";
-                } else if (self::COLUMNS[\$column][0] === 'binary') {
+                } else if (self::PDO_VALIDATION[\$column][0] === 'binary') {
                     \$sql .= "(\$column = UNHEX(" . self::addInjection(\$value, \$pdo) . ")) \$join ";
                 } else {
                     \$sql .= "(\$column = " . self::addInjection(\$value, \$pdo) . ") \$join ";
@@ -825,7 +827,7 @@ class {{ucEachTableName}} extends Rest implements iRest
         *   The next part is so every response from the rest api
         *   formats to a set of rows. Even if only one row is returned.
         *   You must set the third parameter to true, otherwise '0' is
-        *   apparently in the self::COLUMNS
+        *   apparently in the self::PDO_VALIDATION
         */
 
         {{#primary}}{{#sql}}
@@ -902,7 +904,7 @@ class {{ucEachTableName}} extends Rest implements iRest
         \$aggregate = false;
         \$group = [];
         \$sql = '';
-        \$get = \$argv['select'] ?? array_keys(self::COLUMNS);
+        \$get = \$argv['select'] ?? array_keys(self::PDO_VALIDATION);
         \$where = \$argv['where'] ?? [];
 
         // pagination
@@ -987,9 +989,9 @@ class {{ucEachTableName}} extends Rest implements iRest
             if (!empty(\$sql)) {
                 \$sql .= ', ';
             }
-            \$columnExists = array_key_exists(\$column, self::COLUMNS);
+            \$columnExists = array_key_exists(\$column, self::PDO_VALIDATION);
             if (\$columnExists) {
-                if (!\$noHEX && self::COLUMNS[\$column][0] === 'binary') {
+                if (!\$noHEX && self::PDO_VALIDATION[\$column][0] === 'binary') {
                     \$asShort = trim(\$column, self::TABLE_NAME . '.');
                     \$prefix = self::TABLE_NAME . '.';
                     if (strpos(\$column, \$prefix) === 0) {
@@ -1068,7 +1070,7 @@ class {{ucEachTableName}} extends Rest implements iRest
         }
 
         foreach (\$argv as \$key => \$value) {
-            if (!\array_key_exists(\$key, self::COLUMNS)){
+            if (!\array_key_exists(\$key, self::PDO_VALIDATION)){
                 return false;
             }
         }
