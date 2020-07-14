@@ -122,6 +122,10 @@ END;
             // set_error_handler vs set_exception_handler signatures
             is_array($argv) ? self::generateLog($argv) : self::generateLog(...$argv);
 
+            if (PHP_SAPI === 'cli') {
+                exit(1);
+            }
+
             if (!SOCKET && !APP_LOCAL && CarbonPHP::$setupComplete) {
                 if ($count > 1) {
                     print 'A recursive error has occurred in (or at least affecting) your $app->defaultRoute();';

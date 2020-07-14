@@ -692,7 +692,8 @@ class {{ucEachTableName}} extends Rest implements iRest
     
     public const TABLE_NAME = '{{TableName}}';
     
-    {{#explode}}public const {{caps}} = '{{TableName}}.{{name}}';{{/explode}}
+    {{#explode}}public const {{caps}} = '{{TableName}}.{{name}}'; 
+    {{/explode}}
 
     public const PRIMARY = [
     {{#primary}}{{#name}}'{{TableName}}.{{name}}',{{/name}}{{/primary}}
