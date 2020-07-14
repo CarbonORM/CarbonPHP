@@ -5,6 +5,8 @@ namespace CarbonPHP\Programs;
 use \CarbonPHP\interfaces\iCommand;
 use PDO;
 use RuntimeException;
+use function in_array;
+use function random_int;
 
 
 class Rest implements iCommand
@@ -108,7 +110,7 @@ END;
         $verbose = $debug = $json = $primary_required = $delete_dump = $skipTable = $logClasses = false;
 
         // we shouldn't open ourselfs for sql injection
-        $subQuery = 'C6SUB' . \random_int(0, 1000);
+        $subQuery = 'C6SUB' . random_int(0, 1000);
 
 
         /** @noinspection ForeachInvariantsInspection - as we need $i++ */
@@ -316,7 +318,7 @@ END;
 
 
                     // 'only these tables' is specified in the command line arguments (via file or comma list)
-                    if (!empty($only_these_tables) && !\in_array($tableName, $only_these_tables, true)) {
+                    if (!empty($only_these_tables) && !in_array($tableName, $only_these_tables, true)) {
                         // Break from this loop (every line in the create) and the parent loop (the tables)
                         $verbose and print 'Skipping ' . $tableName . PHP_EOL;
                         // this is our condition to check right after this tables is executed
@@ -429,7 +431,7 @@ END;
                     // Build the insert stmt
                     $sql = [];
                     foreach ($primary as $key) {
-                        if (\in_array($key, $binary, true)) {
+                        if (in_array($key, $binary, true)) {
                             // binary data is expected as hex @ rest call (GET,PUT,DELETE)
                             $sql[] = ' ' . $key . '=UNHEX(\'.self::addInjection($primary, $pdo).\')';
                         } else {
@@ -450,7 +452,7 @@ END;
                     $references_table = trim($words_in_insert_stmt[6], '`');
                     $references_column = trim($words_in_insert_stmt[7], '()`,');
 
-                    if ($references_table === 'carbons' && \in_array($foreign_key, $primary, true)) {
+                    if ($references_table === 'carbons' && in_array($foreign_key, $primary, true)) {
                         $rest[$tableName]['carbon_table'] = $tableName !== 'carbons';
                     }
 
@@ -481,12 +483,12 @@ END;
                 }
             } else {
                 foreach ($rest[$tableName]['explode'] as &$value) {
-                    if (\in_array($value, ['pageSize', 'pageNumber'])) {
+                    if (in_array($value, ['pageSize', 'pageNumber'])) {
                         print $rest[$tableName]['TableName'] . " uses reserved 'REST' keywords as a column identifier => $value\n\tRest Failed";
                         die(1);
                     }
 
-                    if (false !== \in_array($value['name'], $primary, true)) {
+                    if (false !== in_array($value['name'], $primary, true)) {
                         $value['primary'] = true;
                         if (isset($value['binary'])) {
                             $value['primary_binary'] = true;
@@ -503,12 +505,12 @@ END;
             // The final value of implode is only used in the POST method
             foreach ($rest[$tableName]['implode'] as $key => &$value) {
 
-                if (!\in_array($value, $skipping_col, true)) {
+                if (!in_array($value, $skipping_col, true)) {
 
                     // This suffixes an extra comma
                     $rest[$tableName]['listed'] .= $value . ', ';
 
-                    if (\in_array($value, $binary, true)) {
+                    if (in_array($value, $binary, true)) {
                         $value = ' UNHEX(:' . $value . ')';
                     } else {
                         $value = ' :' . $value;
@@ -549,10 +551,10 @@ END;
 
             $triggers = '';
             foreach ($rest as $table) {
-                if (\in_array($table['TableName'], ['sys_resource_creation_logs', 'sys_resource_history_logs'])) {
+                if (in_array($table['TableName'], ['sys_resource_creation_logs', 'sys_resource_history_logs'])) {
                     continue;
                 }
-                if ($table['binary_primary'] && ($only_these_tables === null || \in_array($table['TableName'], $only_these_tables, true))) {
+                if ($table['binary_primary'] && ($only_these_tables === null || in_array($table['TableName'], $only_these_tables, true))) {
                     $triggers .= $this->trigger($table['TableName'], $table['columns'], $table['binary_trigger'] ?? [], $table['dependencies'], $table['primary'][0]['name']);
                 }
             }
@@ -691,12 +693,12 @@ class {{ucEachTableName}} extends Rest implements iRest
 {
     
     public const TABLE_NAME = '{{TableName}}';
-    
-    {{#explode}}public const {{caps}} = '{{TableName}}.{{name}}'; 
+    {{#explode}}
+    public const {{caps}} = '{{TableName}}.{{name}}'; 
     {{/explode}}
 
     public const PRIMARY = [
-    {{#primary}}{{#name}}'{{TableName}}.{{name}}',{{/name}}{{/primary}}
+        {{#primary}}{{#name}}'{{TableName}}.{{name}}',{{/name}}{{/primary}}
     ];
 
     public const COLUMNS = [
@@ -706,13 +708,12 @@ class {{ucEachTableName}} extends Rest implements iRest
     public const PDO_VALIDATION = [
         {{#explode}}'{{TableName}}.{{name}}' => ['{{mysql_type}}', '{{type}}', '{{length}}'],{{/explode}}
     ];
-
-    {{^validation}}public const VALIDATION = [];{{/validation}}{{#validation}}{{{validation}}}{{/validation}}
+    {{^validation}}
+    public const VALIDATION = [];{{/validation}}{{#validation}}{{{validation}}}{{/validation}}
 
     public static array \$injection = [];
 
-    {{#json}} 
-    public static function jsonSQLReporting(\$argv, \$sql) : void {
+    {{#json}}public static function jsonSQLReporting(\$argv, \$sql) : void {
         global \$json;
         if (!\is_array(\$json)) {
             \$json = [];
@@ -724,9 +725,8 @@ class {{ucEachTableName}} extends Rest implements iRest
             \$argv,
             \$sql
         ];
-    }
-    {{/json}}
-
+    }{{/json}}
+    
     public static function buildWhere(array \$set, PDO \$pdo, \$join = 'AND') : string
     {
         \$sql = '(';
@@ -1174,7 +1174,7 @@ class {{ucEachTableName}} extends Rest implements iRest
         \$r = \$stmt->execute();
 
         /** @noinspection CallableParameterUseCaseInTypeContextInspection */
-        \$r and \$remove = null;
+        \$r and \$remove = [];
 
         return \$r;
     {{/carbon_table}}
@@ -1215,7 +1215,7 @@ class {{ucEachTableName}} extends Rest implements iRest
         \$r = \$stmt->execute();
 
         /** @noinspection CallableParameterUseCaseInTypeContextInspection */
-        \$r and \$remove = null;
+        \$r and \$remove = [];
 
         return \$r;
     {{/carbon_table}}
