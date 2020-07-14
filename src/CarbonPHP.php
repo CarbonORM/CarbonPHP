@@ -154,6 +154,9 @@ class CarbonPHP
             ####################  Sockets will have already claimed this global
             defined('TEST') OR define('TEST', $_ENV['TEST'] ??= false);
 
+            // CLI is not the CLI server
+            defined('CLI') or define('CLI',  PHP_SAPI === 'cli');
+
             if (TEST) {     // TODO - remove server vars not needed in testing && update version dynamically?
                 self::$safelyExit = true;  // We just want the env to load, not route life :)
                 $_SERVER = [
@@ -288,7 +291,7 @@ class CarbonPHP
             // TODO - move to app invocation
             // PHPUnit Runs in a cli to ini the 'CarbonPHP' env.
             // We're not testing out extra resources
-            if (PHP_SAPI === 'cli' && !TEST && !SOCKET) {
+            if (CLI && !TEST && !SOCKET) {
                 self::$safelyExit = true;
                 /** @noinspection PhpUndefinedVariableInspection */
                 $cli = new CLI($PHP ??= []);
@@ -373,7 +376,9 @@ class CarbonPHP
 
         } catch (Throwable $e) {
             print PHP_EOL . 'Carbon Failed' . PHP_EOL;
-            APP_LOCAL and sortDump($e);
+            if (defined('APP_LOCAL') && APP_LOCAL && function_exists('sortDump')) {
+                sortDump($e);
+            }
             die(1);
         }
     }
@@ -386,7 +391,7 @@ class CarbonPHP
      */
     private static function isClientServer()
     {
-        if (PHP_SAPI === 'cli-server' || PHP_SAPI === 'cli' || in_array($_SERVER['REMOTE_ADDR'] ?? [], ['127.0.0.1', 'fe80::1', '::1'], false)) {
+        if (PHP_SAPI === 'cli-server' || CLI || in_array($_SERVER['REMOTE_ADDR'] ?? [], ['127.0.0.1', 'fe80::1', '::1'], false)) {
             if (SOCKET && $ip = filter_var($_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
                 define('IP', $ip);
                 return false;
