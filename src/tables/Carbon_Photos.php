@@ -15,15 +15,14 @@ class Carbon_Photos extends Rest implements iRest
 {
     
     public const TABLE_NAME = 'carbon_photos';
-    
     public const PARENT_ID = 'carbon_photos.parent_id'; 
-public const PHOTO_ID = 'carbon_photos.photo_id'; 
-public const USER_ID = 'carbon_photos.user_id'; 
-public const PHOTO_PATH = 'carbon_photos.photo_path'; 
-public const PHOTO_DESCRIPTION = 'carbon_photos.photo_description'; 
+    public const PHOTO_ID = 'carbon_photos.photo_id'; 
+    public const USER_ID = 'carbon_photos.user_id'; 
+    public const PHOTO_PATH = 'carbon_photos.photo_path'; 
+    public const PHOTO_DESCRIPTION = 'carbon_photos.photo_description'; 
 
     public const PRIMARY = [
-    'carbon_photos.parent_id',
+        'carbon_photos.parent_id',
     ];
 
     public const COLUMNS = [
@@ -33,12 +32,12 @@ public const PHOTO_DESCRIPTION = 'carbon_photos.photo_description';
     public const PDO_VALIDATION = [
         'carbon_photos.parent_id' => ['binary', '2', '16'],'carbon_photos.photo_id' => ['binary', '2', '16'],'carbon_photos.user_id' => ['binary', '2', '16'],'carbon_photos.photo_path' => ['varchar', '2', '225'],'carbon_photos.photo_description' => ['text,', '2', ''],
     ];
-
     public const VALIDATION = [];
 
     public static array $injection = [];
 
-
+    
+    
     public static function buildWhere(array $set, PDO $pdo, $join = 'AND') : string
     {
         $sql = '(';
@@ -53,8 +52,8 @@ public const PHOTO_DESCRIPTION = 'carbon_photos.photo_description';
             } else if (array_key_exists($column, self::PDO_VALIDATION)) {
                 $bump = false;
                 /** @noinspection SubStrUsedAsStrPosInspection */
-                if (substr($value, 0, '8') === 'C6SUB378') {
-                    $subQuery = substr($value, '8');
+                if (substr($value, 0, '7') === 'C6SUB91') {
+                    $subQuery = substr($value, '7');
                     $sql .= "($column = $subQuery ) $join ";
                 } else if (self::PDO_VALIDATION[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $join ";
@@ -188,7 +187,7 @@ public const PHOTO_DESCRIPTION = 'carbon_photos.photo_description';
      
     public static function subSelect(string $primary = null, array $argv, \PDO $pdo = null): string
     {
-        return 'C6SUB378' . self::buildSelectQuery($primary, $argv, $pdo, true);
+        return 'C6SUB91' . self::buildSelectQuery($primary, $argv, $pdo, true);
     }
     
     public static function validateSelectColumn($column) : bool {
@@ -490,7 +489,7 @@ public const PHOTO_DESCRIPTION = 'carbon_photos.photo_description';
         $r = $stmt->execute();
 
         /** @noinspection CallableParameterUseCaseInTypeContextInspection */
-        $r and $remove = null;
+        $r and $remove = [];
 
         return $r;
     }

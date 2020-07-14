@@ -15,17 +15,16 @@ class Carbon_Locations extends Rest implements iRest
 {
     
     public const TABLE_NAME = 'carbon_locations';
-    
     public const ENTITY_ID = 'carbon_locations.entity_id'; 
-public const LATITUDE = 'carbon_locations.latitude'; 
-public const LONGITUDE = 'carbon_locations.longitude'; 
-public const STREET = 'carbon_locations.street'; 
-public const CITY = 'carbon_locations.city'; 
-public const STATE = 'carbon_locations.state'; 
-public const ELEVATION = 'carbon_locations.elevation'; 
+    public const LATITUDE = 'carbon_locations.latitude'; 
+    public const LONGITUDE = 'carbon_locations.longitude'; 
+    public const STREET = 'carbon_locations.street'; 
+    public const CITY = 'carbon_locations.city'; 
+    public const STATE = 'carbon_locations.state'; 
+    public const ELEVATION = 'carbon_locations.elevation'; 
 
     public const PRIMARY = [
-    'carbon_locations.entity_id',
+        'carbon_locations.entity_id',
     ];
 
     public const COLUMNS = [
@@ -35,12 +34,12 @@ public const ELEVATION = 'carbon_locations.elevation';
     public const PDO_VALIDATION = [
         'carbon_locations.entity_id' => ['binary', '2', '16'],'carbon_locations.latitude' => ['varchar', '2', '225'],'carbon_locations.longitude' => ['varchar', '2', '225'],'carbon_locations.street' => ['text,', '2', ''],'carbon_locations.city' => ['varchar', '2', '40'],'carbon_locations.state' => ['varchar', '2', '10'],'carbon_locations.elevation' => ['varchar', '2', '40'],
     ];
-
     public const VALIDATION = [];
 
     public static array $injection = [];
 
-
+    
+    
     public static function buildWhere(array $set, PDO $pdo, $join = 'AND') : string
     {
         $sql = '(';
@@ -55,8 +54,8 @@ public const ELEVATION = 'carbon_locations.elevation';
             } else if (array_key_exists($column, self::PDO_VALIDATION)) {
                 $bump = false;
                 /** @noinspection SubStrUsedAsStrPosInspection */
-                if (substr($value, 0, '8') === 'C6SUB378') {
-                    $subQuery = substr($value, '8');
+                if (substr($value, 0, '7') === 'C6SUB91') {
+                    $subQuery = substr($value, '7');
                     $sql .= "($column = $subQuery ) $join ";
                 } else if (self::PDO_VALIDATION[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $join ";
@@ -196,7 +195,7 @@ public const ELEVATION = 'carbon_locations.elevation';
      
     public static function subSelect(string $primary = null, array $argv, \PDO $pdo = null): string
     {
-        return 'C6SUB378' . self::buildSelectQuery($primary, $argv, $pdo, true);
+        return 'C6SUB91' . self::buildSelectQuery($primary, $argv, $pdo, true);
     }
     
     public static function validateSelectColumn($column) : bool {
@@ -512,7 +511,7 @@ public const ELEVATION = 'carbon_locations.elevation';
         $r = $stmt->execute();
 
         /** @noinspection CallableParameterUseCaseInTypeContextInspection */
-        $r and $remove = null;
+        $r and $remove = [];
 
         return $r;
     }

@@ -155,13 +155,14 @@ final class RestTest extends TestCase
             'pagination' => [ 'limit' => 1 ]
         ]));
 
-        $this->assertTrue(array_key_exists('entity_fk', $temp), 'Failed asserting that ' . print_r($temp, true) . ' has the key \'entity_fk\'.');
+        $this->assertTrue(array_key_exists('entity_fk', $temp),
+            'Failed asserting that ' . print_r($temp, true) . ' has the key \'entity_fk\'.');
 
         $this->assertTrue(
             Rest::Delete($temp, $temp['entity_pk'], [])
         );
 
-        $this->assertNull($temp);
+        $this->assertEmpty($temp);
     }
 
 }

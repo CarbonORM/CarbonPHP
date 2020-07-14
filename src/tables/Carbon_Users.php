@@ -15,37 +15,36 @@ class Carbon_Users extends Rest implements iRest
 {
     
     public const TABLE_NAME = 'carbon_users';
-    
     public const USER_USERNAME = 'carbon_users.user_username'; 
-public const USER_PASSWORD = 'carbon_users.user_password'; 
-public const USER_ID = 'carbon_users.user_id'; 
-public const USER_TYPE = 'carbon_users.user_type'; 
-public const USER_SPORT = 'carbon_users.user_sport'; 
-public const USER_SESSION_ID = 'carbon_users.user_session_id'; 
-public const USER_FACEBOOK_ID = 'carbon_users.user_facebook_id'; 
-public const USER_FIRST_NAME = 'carbon_users.user_first_name'; 
-public const USER_LAST_NAME = 'carbon_users.user_last_name'; 
-public const USER_PROFILE_PIC = 'carbon_users.user_profile_pic'; 
-public const USER_PROFILE_URI = 'carbon_users.user_profile_uri'; 
-public const USER_COVER_PHOTO = 'carbon_users.user_cover_photo'; 
-public const USER_BIRTHDAY = 'carbon_users.user_birthday'; 
-public const USER_GENDER = 'carbon_users.user_gender'; 
-public const USER_ABOUT_ME = 'carbon_users.user_about_me'; 
-public const USER_RANK = 'carbon_users.user_rank'; 
-public const USER_EMAIL = 'carbon_users.user_email'; 
-public const USER_EMAIL_CODE = 'carbon_users.user_email_code'; 
-public const USER_EMAIL_CONFIRMED = 'carbon_users.user_email_confirmed'; 
-public const USER_GENERATED_STRING = 'carbon_users.user_generated_string'; 
-public const USER_MEMBERSHIP = 'carbon_users.user_membership'; 
-public const USER_DEACTIVATED = 'carbon_users.user_deactivated'; 
-public const USER_LAST_LOGIN = 'carbon_users.user_last_login'; 
-public const USER_IP = 'carbon_users.user_ip'; 
-public const USER_EDUCATION_HISTORY = 'carbon_users.user_education_history'; 
-public const USER_LOCATION = 'carbon_users.user_location'; 
-public const USER_CREATION_DATE = 'carbon_users.user_creation_date'; 
+    public const USER_PASSWORD = 'carbon_users.user_password'; 
+    public const USER_ID = 'carbon_users.user_id'; 
+    public const USER_TYPE = 'carbon_users.user_type'; 
+    public const USER_SPORT = 'carbon_users.user_sport'; 
+    public const USER_SESSION_ID = 'carbon_users.user_session_id'; 
+    public const USER_FACEBOOK_ID = 'carbon_users.user_facebook_id'; 
+    public const USER_FIRST_NAME = 'carbon_users.user_first_name'; 
+    public const USER_LAST_NAME = 'carbon_users.user_last_name'; 
+    public const USER_PROFILE_PIC = 'carbon_users.user_profile_pic'; 
+    public const USER_PROFILE_URI = 'carbon_users.user_profile_uri'; 
+    public const USER_COVER_PHOTO = 'carbon_users.user_cover_photo'; 
+    public const USER_BIRTHDAY = 'carbon_users.user_birthday'; 
+    public const USER_GENDER = 'carbon_users.user_gender'; 
+    public const USER_ABOUT_ME = 'carbon_users.user_about_me'; 
+    public const USER_RANK = 'carbon_users.user_rank'; 
+    public const USER_EMAIL = 'carbon_users.user_email'; 
+    public const USER_EMAIL_CODE = 'carbon_users.user_email_code'; 
+    public const USER_EMAIL_CONFIRMED = 'carbon_users.user_email_confirmed'; 
+    public const USER_GENERATED_STRING = 'carbon_users.user_generated_string'; 
+    public const USER_MEMBERSHIP = 'carbon_users.user_membership'; 
+    public const USER_DEACTIVATED = 'carbon_users.user_deactivated'; 
+    public const USER_LAST_LOGIN = 'carbon_users.user_last_login'; 
+    public const USER_IP = 'carbon_users.user_ip'; 
+    public const USER_EDUCATION_HISTORY = 'carbon_users.user_education_history'; 
+    public const USER_LOCATION = 'carbon_users.user_location'; 
+    public const USER_CREATION_DATE = 'carbon_users.user_creation_date'; 
 
     public const PRIMARY = [
-    'carbon_users.user_id',
+        'carbon_users.user_id',
     ];
 
     public const COLUMNS = [
@@ -55,12 +54,12 @@ public const USER_CREATION_DATE = 'carbon_users.user_creation_date';
     public const PDO_VALIDATION = [
         'carbon_users.user_username' => ['varchar', '2', '25'],'carbon_users.user_password' => ['varchar', '2', '225'],'carbon_users.user_id' => ['binary', '2', '16'],'carbon_users.user_type' => ['varchar', '2', '20'],'carbon_users.user_sport' => ['varchar', '2', '20'],'carbon_users.user_session_id' => ['varchar', '2', '225'],'carbon_users.user_facebook_id' => ['varchar', '2', '225'],'carbon_users.user_first_name' => ['varchar', '2', '25'],'carbon_users.user_last_name' => ['varchar', '2', '25'],'carbon_users.user_profile_pic' => ['varchar', '2', '225'],'carbon_users.user_profile_uri' => ['varchar', '2', '225'],'carbon_users.user_cover_photo' => ['varchar', '2', '225'],'carbon_users.user_birthday' => ['varchar', '2', '9'],'carbon_users.user_gender' => ['varchar', '2', '25'],'carbon_users.user_about_me' => ['varchar', '2', '225'],'carbon_users.user_rank' => ['int', '2', '8'],'carbon_users.user_email' => ['varchar', '2', '50'],'carbon_users.user_email_code' => ['varchar', '2', '225'],'carbon_users.user_email_confirmed' => ['varchar', '2', '20'],'carbon_users.user_generated_string' => ['varchar', '2', '200'],'carbon_users.user_membership' => ['int', '2', '10'],'carbon_users.user_deactivated' => ['tinyint', '0', '1'],'carbon_users.user_last_login' => ['datetime', '2', ''],'carbon_users.user_ip' => ['varchar', '2', '20'],'carbon_users.user_education_history' => ['varchar', '2', '200'],'carbon_users.user_location' => ['varchar', '2', '20'],'carbon_users.user_creation_date' => ['datetime', '2', ''],
     ];
-
     public const VALIDATION = [];
 
     public static array $injection = [];
 
-
+    
+    
     public static function buildWhere(array $set, PDO $pdo, $join = 'AND') : string
     {
         $sql = '(';
@@ -75,8 +74,8 @@ public const USER_CREATION_DATE = 'carbon_users.user_creation_date';
             } else if (array_key_exists($column, self::PDO_VALIDATION)) {
                 $bump = false;
                 /** @noinspection SubStrUsedAsStrPosInspection */
-                if (substr($value, 0, '8') === 'C6SUB378') {
-                    $subQuery = substr($value, '8');
+                if (substr($value, 0, '7') === 'C6SUB91') {
+                    $subQuery = substr($value, '7');
                     $sql .= "($column = $subQuery ) $join ";
                 } else if (self::PDO_VALIDATION[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $join ";
@@ -272,7 +271,7 @@ public const USER_CREATION_DATE = 'carbon_users.user_creation_date';
      
     public static function subSelect(string $primary = null, array $argv, \PDO $pdo = null): string
     {
-        return 'C6SUB378' . self::buildSelectQuery($primary, $argv, $pdo, true);
+        return 'C6SUB91' . self::buildSelectQuery($primary, $argv, $pdo, true);
     }
     
     public static function validateSelectColumn($column) : bool {
@@ -727,7 +726,7 @@ public const USER_CREATION_DATE = 'carbon_users.user_creation_date';
         $r = $stmt->execute();
 
         /** @noinspection CallableParameterUseCaseInTypeContextInspection */
-        $r and $remove = null;
+        $r and $remove = [];
 
         return $r;
     }

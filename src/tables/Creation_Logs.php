@@ -15,13 +15,12 @@ class Creation_Logs extends Rest implements iRest
 {
     
     public const TABLE_NAME = 'creation_logs';
-    
     public const UUID = 'creation_logs.uuid'; 
-public const RESOURCE_TYPE = 'creation_logs.resource_type'; 
-public const RESOURCE_UUID = 'creation_logs.resource_uuid'; 
+    public const RESOURCE_TYPE = 'creation_logs.resource_type'; 
+    public const RESOURCE_UUID = 'creation_logs.resource_uuid'; 
 
     public const PRIMARY = [
-    
+        
     ];
 
     public const COLUMNS = [
@@ -31,12 +30,12 @@ public const RESOURCE_UUID = 'creation_logs.resource_uuid';
     public const PDO_VALIDATION = [
         'creation_logs.uuid' => ['binary', '2', '16'],'creation_logs.resource_type' => ['varchar', '2', '40'],'creation_logs.resource_uuid' => ['binary', '2', '16'],
     ];
-
     public const VALIDATION = [];
 
     public static array $injection = [];
 
-
+    
+    
     public static function buildWhere(array $set, PDO $pdo, $join = 'AND') : string
     {
         $sql = '(';
@@ -51,8 +50,8 @@ public const RESOURCE_UUID = 'creation_logs.resource_uuid';
             } else if (array_key_exists($column, self::PDO_VALIDATION)) {
                 $bump = false;
                 /** @noinspection SubStrUsedAsStrPosInspection */
-                if (substr($value, 0, '8') === 'C6SUB378') {
-                    $subQuery = substr($value, '8');
+                if (substr($value, 0, '7') === 'C6SUB91') {
+                    $subQuery = substr($value, '7');
                     $sql .= "($column = $subQuery ) $join ";
                 } else if (self::PDO_VALIDATION[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $join ";
@@ -178,7 +177,7 @@ public const RESOURCE_UUID = 'creation_logs.resource_uuid';
      
     public static function subSelect(string $primary = null, array $argv, \PDO $pdo = null): string
     {
-        return 'C6SUB378' . self::buildSelectQuery($primary, $argv, $pdo, true);
+        return 'C6SUB91' . self::buildSelectQuery($primary, $argv, $pdo, true);
     }
     
     public static function validateSelectColumn($column) : bool {
@@ -468,7 +467,7 @@ public const RESOURCE_UUID = 'creation_logs.resource_uuid';
         $r = $stmt->execute();
 
         /** @noinspection CallableParameterUseCaseInTypeContextInspection */
-        $r and $remove = null;
+        $r and $remove = [];
 
         return $r;
     }

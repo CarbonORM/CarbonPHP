@@ -15,14 +15,13 @@ class Carbon_Reports extends Rest implements iRest
 {
     
     public const TABLE_NAME = 'carbon_reports';
-    
     public const LOG_LEVEL = 'carbon_reports.log_level'; 
-public const REPORT = 'carbon_reports.report'; 
-public const DATE = 'carbon_reports.date'; 
-public const CALL_TRACE = 'carbon_reports.call_trace'; 
+    public const REPORT = 'carbon_reports.report'; 
+    public const DATE = 'carbon_reports.date'; 
+    public const CALL_TRACE = 'carbon_reports.call_trace'; 
 
     public const PRIMARY = [
-    
+        
     ];
 
     public const COLUMNS = [
@@ -32,12 +31,12 @@ public const CALL_TRACE = 'carbon_reports.call_trace';
     public const PDO_VALIDATION = [
         'carbon_reports.log_level' => ['varchar', '2', '20'],'carbon_reports.report' => ['text,', '2', ''],'carbon_reports.date' => ['datetime', '2', ''],'carbon_reports.call_trace' => ['text', '2', ''],
     ];
-
     public const VALIDATION = [];
 
     public static array $injection = [];
 
-
+    
+    
     public static function buildWhere(array $set, PDO $pdo, $join = 'AND') : string
     {
         $sql = '(';
@@ -52,8 +51,8 @@ public const CALL_TRACE = 'carbon_reports.call_trace';
             } else if (array_key_exists($column, self::PDO_VALIDATION)) {
                 $bump = false;
                 /** @noinspection SubStrUsedAsStrPosInspection */
-                if (substr($value, 0, '8') === 'C6SUB378') {
-                    $subQuery = substr($value, '8');
+                if (substr($value, 0, '7') === 'C6SUB91') {
+                    $subQuery = substr($value, '7');
                     $sql .= "($column = $subQuery ) $join ";
                 } else if (self::PDO_VALIDATION[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $join ";
@@ -175,7 +174,7 @@ public const CALL_TRACE = 'carbon_reports.call_trace';
      
     public static function subSelect(string $primary = null, array $argv, \PDO $pdo = null): string
     {
-        return 'C6SUB378' . self::buildSelectQuery($primary, $argv, $pdo, true);
+        return 'C6SUB91' . self::buildSelectQuery($primary, $argv, $pdo, true);
     }
     
     public static function validateSelectColumn($column) : bool {
@@ -469,7 +468,7 @@ public const CALL_TRACE = 'carbon_reports.call_trace';
         $r = $stmt->execute();
 
         /** @noinspection CallableParameterUseCaseInTypeContextInspection */
-        $r and $remove = null;
+        $r and $remove = [];
 
         return $r;
     }

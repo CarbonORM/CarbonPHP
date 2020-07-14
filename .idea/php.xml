@@ -48,13 +48,9 @@
       <extension name="SQLite" enabled="false" />
       <extension name="SplType" enabled="false" />
       <extension name="Zend OPcache" enabled="false" />
-      <extension name="ZendCache" enabled="false" />
       <extension name="ZendDebugger" enabled="false" />
       <extension name="ZendUtils" enabled="false" />
-      <extension name="ampq" enabled="false" />
-      <extension name="apc" enabled="false" />
       <extension name="apcu" enabled="false" />
-      <extension name="com" enabled="false" />
       <extension name="couchbase" enabled="false" />
       <extension name="cubrid" enabled="false" />
       <extension name="enchant" enabled="false" />
@@ -109,7 +105,6 @@
       <extension name="sybase" enabled="false" />
       <extension name="v8js" enabled="false" />
       <extension name="wincache" enabled="false" />
-      <extension name="xcache" enabled="false" />
       <extension name="xdebug" enabled="false" />
       <extension name="xhprof" enabled="false" />
       <extension name="yaml" enabled="false" />

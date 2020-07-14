@@ -15,13 +15,12 @@ class Carbon_Tag extends Rest implements iRest
 {
     
     public const TABLE_NAME = 'carbon_tag';
-    
     public const ENTITY_ID = 'carbon_tag.entity_id'; 
-public const TAG_ID = 'carbon_tag.tag_id'; 
-public const CREATION_DATE = 'carbon_tag.creation_date'; 
+    public const TAG_ID = 'carbon_tag.tag_id'; 
+    public const CREATION_DATE = 'carbon_tag.creation_date'; 
 
     public const PRIMARY = [
-    
+        
     ];
 
     public const COLUMNS = [
@@ -31,12 +30,12 @@ public const CREATION_DATE = 'carbon_tag.creation_date';
     public const PDO_VALIDATION = [
         'carbon_tag.entity_id' => ['binary', '2', '16'],'carbon_tag.tag_id' => ['varchar', '2', '80'],'carbon_tag.creation_date' => ['timestamp', '2', ''],
     ];
-
     public const VALIDATION = [];
 
     public static array $injection = [];
 
-
+    
+    
     public static function buildWhere(array $set, PDO $pdo, $join = 'AND') : string
     {
         $sql = '(';
@@ -51,8 +50,8 @@ public const CREATION_DATE = 'carbon_tag.creation_date';
             } else if (array_key_exists($column, self::PDO_VALIDATION)) {
                 $bump = false;
                 /** @noinspection SubStrUsedAsStrPosInspection */
-                if (substr($value, 0, '8') === 'C6SUB378') {
-                    $subQuery = substr($value, '8');
+                if (substr($value, 0, '7') === 'C6SUB91') {
+                    $subQuery = substr($value, '7');
                     $sql .= "($column = $subQuery ) $join ";
                 } else if (self::PDO_VALIDATION[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $join ";
@@ -175,7 +174,7 @@ public const CREATION_DATE = 'carbon_tag.creation_date';
      
     public static function subSelect(string $primary = null, array $argv, \PDO $pdo = null): string
     {
-        return 'C6SUB378' . self::buildSelectQuery($primary, $argv, $pdo, true);
+        return 'C6SUB91' . self::buildSelectQuery($primary, $argv, $pdo, true);
     }
     
     public static function validateSelectColumn($column) : bool {
@@ -464,7 +463,7 @@ public const CREATION_DATE = 'carbon_tag.creation_date';
         $r = $stmt->execute();
 
         /** @noinspection CallableParameterUseCaseInTypeContextInspection */
-        $r and $remove = null;
+        $r and $remove = [];
 
         return $r;
     }

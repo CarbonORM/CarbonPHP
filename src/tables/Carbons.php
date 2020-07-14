@@ -15,12 +15,11 @@ class Carbons extends Rest implements iRest
 {
     
     public const TABLE_NAME = 'carbons';
-    
     public const ENTITY_PK = 'carbons.entity_pk'; 
-public const ENTITY_FK = 'carbons.entity_fk'; 
+    public const ENTITY_FK = 'carbons.entity_fk'; 
 
     public const PRIMARY = [
-    'carbons.entity_pk',
+        'carbons.entity_pk',
     ];
 
     public const COLUMNS = [
@@ -30,12 +29,12 @@ public const ENTITY_FK = 'carbons.entity_fk';
     public const PDO_VALIDATION = [
         'carbons.entity_pk' => ['binary', '2', '16'],'carbons.entity_fk' => ['binary', '2', '16'],
     ];
-
     public const VALIDATION = [];
 
     public static array $injection = [];
 
-
+    
+    
     public static function buildWhere(array $set, PDO $pdo, $join = 'AND') : string
     {
         $sql = '(';
@@ -50,8 +49,8 @@ public const ENTITY_FK = 'carbons.entity_fk';
             } else if (array_key_exists($column, self::PDO_VALIDATION)) {
                 $bump = false;
                 /** @noinspection SubStrUsedAsStrPosInspection */
-                if (substr($value, 0, '8') === 'C6SUB378') {
-                    $subQuery = substr($value, '8');
+                if (substr($value, 0, '7') === 'C6SUB91') {
+                    $subQuery = substr($value, '7');
                     $sql .= "($column = $subQuery ) $join ";
                 } else if (self::PDO_VALIDATION[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $join ";
@@ -178,7 +177,7 @@ public const ENTITY_FK = 'carbons.entity_fk';
      
     public static function subSelect(string $primary = null, array $argv, \PDO $pdo = null): string
     {
-        return 'C6SUB378' . self::buildSelectQuery($primary, $argv, $pdo, true);
+        return 'C6SUB91' . self::buildSelectQuery($primary, $argv, $pdo, true);
     }
     
     public static function validateSelectColumn($column) : bool {
@@ -465,7 +464,7 @@ public const ENTITY_FK = 'carbons.entity_fk';
         $r = $stmt->execute();
 
         /** @noinspection CallableParameterUseCaseInTypeContextInspection */
-        $r and $remove = null;
+        $r and $remove = [];
 
         return $r;
     }

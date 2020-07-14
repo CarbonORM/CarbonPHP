@@ -15,15 +15,14 @@ class History_Logs extends Rest implements iRest
 {
     
     public const TABLE_NAME = 'history_logs';
-    
     public const UUID = 'history_logs.uuid'; 
-public const RESOURCE_TYPE = 'history_logs.resource_type'; 
-public const RESOURCE_UUID = 'history_logs.resource_uuid'; 
-public const OPERATION_TYPE = 'history_logs.operation_type'; 
-public const DATA = 'history_logs.data'; 
+    public const RESOURCE_TYPE = 'history_logs.resource_type'; 
+    public const RESOURCE_UUID = 'history_logs.resource_uuid'; 
+    public const OPERATION_TYPE = 'history_logs.operation_type'; 
+    public const DATA = 'history_logs.data'; 
 
     public const PRIMARY = [
-    
+        
     ];
 
     public const COLUMNS = [
@@ -33,12 +32,12 @@ public const DATA = 'history_logs.data';
     public const PDO_VALIDATION = [
         'history_logs.uuid' => ['binary', '2', '16'],'history_logs.resource_type' => ['varchar', '2', '40'],'history_logs.resource_uuid' => ['binary', '2', '16'],'history_logs.operation_type' => ['varchar', '2', '20'],'history_logs.data' => ['json', '2', ''],
     ];
-
     public const VALIDATION = [];
 
     public static array $injection = [];
 
-
+    
+    
     public static function buildWhere(array $set, PDO $pdo, $join = 'AND') : string
     {
         $sql = '(';
@@ -53,8 +52,8 @@ public const DATA = 'history_logs.data';
             } else if (array_key_exists($column, self::PDO_VALIDATION)) {
                 $bump = false;
                 /** @noinspection SubStrUsedAsStrPosInspection */
-                if (substr($value, 0, '8') === 'C6SUB378') {
-                    $subQuery = substr($value, '8');
+                if (substr($value, 0, '7') === 'C6SUB91') {
+                    $subQuery = substr($value, '7');
                     $sql .= "($column = $subQuery ) $join ";
                 } else if (self::PDO_VALIDATION[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $join ";
@@ -184,7 +183,7 @@ public const DATA = 'history_logs.data';
      
     public static function subSelect(string $primary = null, array $argv, \PDO $pdo = null): string
     {
-        return 'C6SUB378' . self::buildSelectQuery($primary, $argv, $pdo, true);
+        return 'C6SUB91' . self::buildSelectQuery($primary, $argv, $pdo, true);
     }
     
     public static function validateSelectColumn($column) : bool {
@@ -487,7 +486,7 @@ public const DATA = 'history_logs.data';
         $r = $stmt->execute();
 
         /** @noinspection CallableParameterUseCaseInTypeContextInspection */
-        $r and $remove = null;
+        $r and $remove = [];
 
         return $r;
     }

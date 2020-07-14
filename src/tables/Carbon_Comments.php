@@ -15,14 +15,13 @@ class Carbon_Comments extends Rest implements iRest
 {
     
     public const TABLE_NAME = 'carbon_comments';
-    
     public const PARENT_ID = 'carbon_comments.parent_id'; 
-public const COMMENT_ID = 'carbon_comments.comment_id'; 
-public const USER_ID = 'carbon_comments.user_id'; 
-public const COMMENT = 'carbon_comments.comment'; 
+    public const COMMENT_ID = 'carbon_comments.comment_id'; 
+    public const USER_ID = 'carbon_comments.user_id'; 
+    public const COMMENT = 'carbon_comments.comment'; 
 
     public const PRIMARY = [
-    'carbon_comments.comment_id',
+        'carbon_comments.comment_id',
     ];
 
     public const COLUMNS = [
@@ -32,12 +31,12 @@ public const COMMENT = 'carbon_comments.comment';
     public const PDO_VALIDATION = [
         'carbon_comments.parent_id' => ['binary', '2', '16'],'carbon_comments.comment_id' => ['binary', '2', '16'],'carbon_comments.user_id' => ['binary', '2', '16'],'carbon_comments.comment' => ['blob', '2', ''],
     ];
-
     public const VALIDATION = [];
 
     public static array $injection = [];
 
-
+    
+    
     public static function buildWhere(array $set, PDO $pdo, $join = 'AND') : string
     {
         $sql = '(';
@@ -52,8 +51,8 @@ public const COMMENT = 'carbon_comments.comment';
             } else if (array_key_exists($column, self::PDO_VALIDATION)) {
                 $bump = false;
                 /** @noinspection SubStrUsedAsStrPosInspection */
-                if (substr($value, 0, '8') === 'C6SUB378') {
-                    $subQuery = substr($value, '8');
+                if (substr($value, 0, '7') === 'C6SUB91') {
+                    $subQuery = substr($value, '7');
                     $sql .= "($column = $subQuery ) $join ";
                 } else if (self::PDO_VALIDATION[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $join ";
@@ -184,7 +183,7 @@ public const COMMENT = 'carbon_comments.comment';
      
     public static function subSelect(string $primary = null, array $argv, \PDO $pdo = null): string
     {
-        return 'C6SUB378' . self::buildSelectQuery($primary, $argv, $pdo, true);
+        return 'C6SUB91' . self::buildSelectQuery($primary, $argv, $pdo, true);
     }
     
     public static function validateSelectColumn($column) : bool {
@@ -479,7 +478,7 @@ public const COMMENT = 'carbon_comments.comment';
         $r = $stmt->execute();
 
         /** @noinspection CallableParameterUseCaseInTypeContextInspection */
-        $r and $remove = null;
+        $r and $remove = [];
 
         return $r;
     }

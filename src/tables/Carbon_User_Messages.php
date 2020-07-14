@@ -15,16 +15,15 @@ class Carbon_User_Messages extends Rest implements iRest
 {
     
     public const TABLE_NAME = 'carbon_user_messages';
-    
     public const MESSAGE_ID = 'carbon_user_messages.message_id'; 
-public const FROM_USER_ID = 'carbon_user_messages.from_user_id'; 
-public const TO_USER_ID = 'carbon_user_messages.to_user_id'; 
-public const MESSAGE = 'carbon_user_messages.message'; 
-public const MESSAGE_READ = 'carbon_user_messages.message_read'; 
-public const CREATION_DATE = 'carbon_user_messages.creation_date'; 
+    public const FROM_USER_ID = 'carbon_user_messages.from_user_id'; 
+    public const TO_USER_ID = 'carbon_user_messages.to_user_id'; 
+    public const MESSAGE = 'carbon_user_messages.message'; 
+    public const MESSAGE_READ = 'carbon_user_messages.message_read'; 
+    public const CREATION_DATE = 'carbon_user_messages.creation_date'; 
 
     public const PRIMARY = [
-    'carbon_user_messages.message_id',
+        'carbon_user_messages.message_id',
     ];
 
     public const COLUMNS = [
@@ -34,12 +33,12 @@ public const CREATION_DATE = 'carbon_user_messages.creation_date';
     public const PDO_VALIDATION = [
         'carbon_user_messages.message_id' => ['binary', '2', '16'],'carbon_user_messages.from_user_id' => ['binary', '2', '16'],'carbon_user_messages.to_user_id' => ['binary', '2', '16'],'carbon_user_messages.message' => ['text', '2', ''],'carbon_user_messages.message_read' => ['tinyint', '0', '1'],'carbon_user_messages.creation_date' => ['datetime', '2', ''],
     ];
-
     public const VALIDATION = [];
 
     public static array $injection = [];
 
-
+    
+    
     public static function buildWhere(array $set, PDO $pdo, $join = 'AND') : string
     {
         $sql = '(';
@@ -54,8 +53,8 @@ public const CREATION_DATE = 'carbon_user_messages.creation_date';
             } else if (array_key_exists($column, self::PDO_VALIDATION)) {
                 $bump = false;
                 /** @noinspection SubStrUsedAsStrPosInspection */
-                if (substr($value, 0, '8') === 'C6SUB378') {
-                    $subQuery = substr($value, '8');
+                if (substr($value, 0, '7') === 'C6SUB91') {
+                    $subQuery = substr($value, '7');
                     $sql .= "($column = $subQuery ) $join ";
                 } else if (self::PDO_VALIDATION[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $join ";
@@ -189,7 +188,7 @@ public const CREATION_DATE = 'carbon_user_messages.creation_date';
      
     public static function subSelect(string $primary = null, array $argv, \PDO $pdo = null): string
     {
-        return 'C6SUB378' . self::buildSelectQuery($primary, $argv, $pdo, true);
+        return 'C6SUB91' . self::buildSelectQuery($primary, $argv, $pdo, true);
     }
     
     public static function validateSelectColumn($column) : bool {
@@ -497,7 +496,7 @@ public const CREATION_DATE = 'carbon_user_messages.creation_date';
         $r = $stmt->execute();
 
         /** @noinspection CallableParameterUseCaseInTypeContextInspection */
-        $r and $remove = null;
+        $r and $remove = [];
 
         return $r;
     }
