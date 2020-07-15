@@ -36,6 +36,9 @@
   "autoload": {
     "psr-4": {
       "CarbonPHP\\Error\\": "src/error/",
+      "CarbonPHP\\Interfaces\\": "src/interfaces/",
+      "CarbonPHP\\Programs\\": "src/programs/",
+      "CarbonPHP\\Tables\\": "src/tables/",
       "CarbonPHP\\": "src/",
       "Tests\\": "tests/"
     }
