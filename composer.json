@@ -36,8 +36,6 @@
   "autoload": {
     "psr-4": {
       "CarbonPHP\\": "src/",
-      "CarbonPHP\\Controller\\": "controller/",
-      "CarbonPHP\\Model\\": "model/",
       "Tests\\": "tests/"
     }
   },
