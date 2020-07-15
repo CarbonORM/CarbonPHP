@@ -156,6 +156,7 @@ namespace {                                     // This runs the following code 
         print '<pre>';
         /** @noinspection ForgottenDebugOutputInspection */
         $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,2);
+        /** @noinspection ForgottenDebugOutputInspection */
         var_dump($backtrace[1] ?? $backtrace[0]);
         print '</pre>';
         print PHP_EOL . '####################### VAR DUMP ########################<br><pre>';

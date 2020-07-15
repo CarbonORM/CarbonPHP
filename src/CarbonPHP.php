@@ -3,7 +3,8 @@
 namespace CarbonPHP;
 
 use CarbonPHP\Helpers\Serialized;
-use CarbonPHP\programs\CLI;
+use CarbonPHP\Programs\CLI;
+use CarbonPHP\Error\ErrorCatcher;
 use Throwable;
 use function define;
 use function defined;
@@ -263,12 +264,12 @@ class CarbonPHP
              **/
 
             if ($PHP['ERROR'] ?? false) {
-                Error\ErrorCatcher::$defaultLocation = REPORTS . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
-                Error\ErrorCatcher::$fullReports = $PHP['ERROR']['FULL'] ?? true;
-                Error\ErrorCatcher::$printToScreen = $PHP['ERROR']['SHOW'] ?? true;
-                Error\ErrorCatcher::$storeReport = $PHP['ERROR']['STORE'] ?? false;
-                Error\ErrorCatcher::$level = $PHP['ERROR']['LEVEL'] ?? ' E_ALL | E_STRICT';
-                Error\ErrorCatcher::start();
+                ErrorCatcher::$defaultLocation = REPORTS . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
+                ErrorCatcher::$fullReports = $PHP['ERROR']['FULL'] ?? true;
+                ErrorCatcher::$printToScreen = $PHP['ERROR']['SHOW'] ?? true;
+                ErrorCatcher::$storeReport = $PHP['ERROR']['STORE'] ?? false;
+                ErrorCatcher::$level = $PHP['ERROR']['LEVEL'] ?? ' E_ALL | E_STRICT';
+                ErrorCatcher::start();
             } // Catch application errors and alerts
 
             #################  DATABASE  ########################
@@ -374,9 +375,16 @@ class CarbonPHP
             self::$setupComplete = true;
 
         } catch (Throwable $e) {
-            print PHP_EOL . 'Carbon Failed' . PHP_EOL;
+            print PHP_EOL . 'Carbon Failed Initialization' . PHP_EOL;
+            print "\t" . $e->getMessage() . PHP_EOL . PHP_EOL;
             if (defined('APP_LOCAL') && APP_LOCAL && function_exists('sortDump')) {
-                sortDump($e);
+                sortDump($e, true, false);
+
+
+                print __DIR__;
+
+                print file_exists(__DIR__ . 'error' . DS . 'ErrorCatcher.php') ? 'DOES EXIST' : 'FUCKNO WHAA';
+
             }
             die(1);
         }
