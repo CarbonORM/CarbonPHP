@@ -12,24 +12,23 @@ use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestfulReferences;
 
 
-class Tags extends Rest implements iRestfulReferences
+class Carbon_Location_References extends Rest implements iRestfulReferences
 {
     
-    public const TABLE_NAME = 'tags';
-    public const TAG_ID = 'tags.tag_id'; 
-    public const TAG_DESCRIPTION = 'tags.tag_description'; 
-    public const TAG_NAME = 'tags.tag_name'; 
+    public const TABLE_NAME = 'carbon_location_references';
+    public const ENTITY_REFERENCE = 'carbon_location_references.entity_reference'; 
+    public const LOCATION_REFERENCE = 'carbon_location_references.location_reference'; 
 
     public const PRIMARY = [
         
     ];
 
     public const COLUMNS = [
-        'tags.tag_id' => 'tag_id','tags.tag_description' => 'tag_description','tags.tag_name' => 'tag_name',
+        'carbon_location_references.entity_reference' => 'entity_reference','carbon_location_references.location_reference' => 'location_reference',
     ];
 
     public const PDO_VALIDATION = [
-        'tags.tag_id' => ['varchar', '2', '80'],'tags.tag_description' => ['text', '2', ''],'tags.tag_name' => ['text,', '2', ''],
+        'carbon_location_references.entity_reference' => ['binary', '2', '16'],'carbon_location_references.location_reference' => ['binary', '2', '16'],
     ];
     
     public const VALIDATION = [];
@@ -70,7 +69,7 @@ class Tags extends Rest implements iRestfulReferences
 
     public static function addInjection($value, PDO $pdo, $quote = false): string
     {
-        $inject = ':injection' . count(self::$injection) . 'tags';
+        $inject = ':injection' . count(self::$injection) . 'carbon_location_references';
         self::$injection[$inject] = $quote ? $pdo->quote($value) : $value;
         return $inject;
     }
@@ -155,17 +154,18 @@ class Tags extends Rest implements iRestfulReferences
     {
         self::$injection = [];
         /** @noinspection SqlResolve */
-        $sql = 'INSERT INTO tags (tag_id, tag_description, tag_name) VALUES ( :tag_id, :tag_description, :tag_name)';
+        $sql = 'INSERT INTO carbon_location_references (entity_reference, location_reference) VALUES ( UNHEX(:entity_reference), UNHEX(:location_reference))';
 
         
 
         $stmt = self::database()->prepare($sql);
 
                 
-                    $tag_id = $argv['tags.tag_id'];
-                    $stmt->bindParam(':tag_id',$tag_id, 2, 80);
-                        $stmt->bindValue(':tag_description',$argv['tags.tag_description'], 2);
-                        $stmt->bindValue(':tag_name',$argv['tags.tag_name'], 2);
+                    $entity_reference = $argv['carbon_location_references.entity_reference'];
+                    $stmt->bindParam(':entity_reference',$entity_reference, 2, 16);
+                        
+                    $location_reference = $argv['carbon_location_references.location_reference'];
+                    $stmt->bindParam(':location_reference',$location_reference, 2, 16);
         
 
 
@@ -179,7 +179,7 @@ class Tags extends Rest implements iRestfulReferences
     }
     
     public static function validateSelectColumn($column) : bool {
-        return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|-|/| |tags\.tag_id|tags\.tag_description|tags\.tag_name))+\)*)+ *(as [a-z]+)?#i', $column);
+        return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|-|/| |carbon_location_references\.entity_reference|carbon_location_references\.location_reference))+\)*)+ *(as [a-z]+)?#i', $column);
     }
     
     public static function buildSelectQuery(string $primary = null, array $argv, PDO $pdo = null, bool $noHEX = false) : string 
@@ -333,7 +333,7 @@ class Tags extends Rest implements iRestfulReferences
             }
         }
 
-        $sql = 'SELECT ' .  $sql . ' FROM tags ' . $join;
+        $sql = 'SELECT ' .  $sql . ' FROM carbon_location_references ' . $join;
        
         if (null === $primary) {
             /** @noinspection NestedPositiveIfStatementsInspection */
@@ -377,20 +377,17 @@ class Tags extends Rest implements iRestfulReferences
             }
         }
 
-        $sql = 'UPDATE tags ';
+        $sql = 'UPDATE carbon_location_references ';
 
         $sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
 
         $set = '';
 
-        if (array_key_exists('tags.tag_id', $argv)) {
-            $set .= 'tag_id=:tag_id,';
+        if (array_key_exists('carbon_location_references.entity_reference', $argv)) {
+            $set .= 'entity_reference=UNHEX(:entity_reference),';
         }
-        if (array_key_exists('tags.tag_description', $argv)) {
-            $set .= 'tag_description=:tag_description,';
-        }
-        if (array_key_exists('tags.tag_name', $argv)) {
-            $set .= 'tag_name=:tag_name,';
+        if (array_key_exists('carbon_location_references.location_reference', $argv)) {
+            $set .= 'location_reference=UNHEX(:location_reference),';
         }
 
         if (empty($set)){
@@ -408,15 +405,13 @@ class Tags extends Rest implements iRestfulReferences
 
         $stmt = $pdo->prepare($sql);
 
-        if (array_key_exists('tags.tag_id', $argv)) {
-            $tag_id = $argv['tags.tag_id'];
-            $stmt->bindParam(':tag_id',$tag_id, 2, 80);
+        if (array_key_exists('carbon_location_references.entity_reference', $argv)) {
+            $entity_reference = $argv['carbon_location_references.entity_reference'];
+            $stmt->bindParam(':entity_reference',$entity_reference, 2, 16);
         }
-        if (array_key_exists('tags.tag_description', $argv)) {
-            $stmt->bindValue(':tag_description',$argv['tags.tag_description'], 2);
-        }
-        if (array_key_exists('tags.tag_name', $argv)) {
-            $stmt->bindValue(':tag_name',$argv['tags.tag_name'], 2);
+        if (array_key_exists('carbon_location_references.location_reference', $argv)) {
+            $location_reference = $argv['carbon_location_references.location_reference'];
+            $stmt->bindParam(':location_reference',$location_reference, 2, 16);
         }
 
         self::bind($stmt);
@@ -427,7 +422,7 @@ class Tags extends Rest implements iRestfulReferences
         
         $argv = array_combine(
             array_map(
-                static function($k) { return str_replace('tags.', '', $k); },
+                static function($k) { return str_replace('carbon_location_references.', '', $k); },
                 array_keys($argv)
             ),
             array_values($argv)
@@ -451,7 +446,7 @@ class Tags extends Rest implements iRestfulReferences
         
         /** @noinspection SqlResolve */
         /** @noinspection SqlWithoutWhere */
-        $sql = 'DELETE FROM tags ';
+        $sql = 'DELETE FROM carbon_location_references ';
 
         $pdo = self::database();
 

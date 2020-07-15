@@ -9,6 +9,7 @@ use function count;
 use function is_array;
 use CarbonPHP\Rest;
 use CarbonPHP\Interfaces\iRest;
+use CarbonPHP\Interfaces\iRestfulReferences;
 
 
 class Carbon_Users extends Rest implements iRest
@@ -54,6 +55,7 @@ class Carbon_Users extends Rest implements iRest
     public const PDO_VALIDATION = [
         'carbon_users.user_username' => ['varchar', '2', '25'],'carbon_users.user_password' => ['varchar', '2', '225'],'carbon_users.user_id' => ['binary', '2', '16'],'carbon_users.user_type' => ['varchar', '2', '20'],'carbon_users.user_sport' => ['varchar', '2', '20'],'carbon_users.user_session_id' => ['varchar', '2', '225'],'carbon_users.user_facebook_id' => ['varchar', '2', '225'],'carbon_users.user_first_name' => ['varchar', '2', '25'],'carbon_users.user_last_name' => ['varchar', '2', '25'],'carbon_users.user_profile_pic' => ['varchar', '2', '225'],'carbon_users.user_profile_uri' => ['varchar', '2', '225'],'carbon_users.user_cover_photo' => ['varchar', '2', '225'],'carbon_users.user_birthday' => ['varchar', '2', '9'],'carbon_users.user_gender' => ['varchar', '2', '25'],'carbon_users.user_about_me' => ['varchar', '2', '225'],'carbon_users.user_rank' => ['int', '2', '8'],'carbon_users.user_email' => ['varchar', '2', '50'],'carbon_users.user_email_code' => ['varchar', '2', '225'],'carbon_users.user_email_confirmed' => ['varchar', '2', '20'],'carbon_users.user_generated_string' => ['varchar', '2', '200'],'carbon_users.user_membership' => ['int', '2', '10'],'carbon_users.user_deactivated' => ['tinyint', '0', '1'],'carbon_users.user_last_login' => ['datetime', '2', ''],'carbon_users.user_ip' => ['varchar', '2', '20'],'carbon_users.user_education_history' => ['varchar', '2', '200'],'carbon_users.user_location' => ['varchar', '2', '20'],'carbon_users.user_creation_date' => ['datetime', '2', ''],
     ];
+    
     public const VALIDATION = [];
 
     public static array $injection = [];
@@ -74,8 +76,8 @@ class Carbon_Users extends Rest implements iRest
             } else if (array_key_exists($column, self::PDO_VALIDATION)) {
                 $bump = false;
                 /** @noinspection SubStrUsedAsStrPosInspection */
-                if (substr($value, 0, '7') === 'C6SUB91') {
-                    $subQuery = substr($value, '7');
+                if (substr($value, 0, '8') === 'C6SUB957') {
+                    $subQuery = substr($value, '8');
                     $sql .= "($column = $subQuery ) $join ";
                 } else if (self::PDO_VALIDATION[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $join ";
@@ -92,7 +94,7 @@ class Carbon_Users extends Rest implements iRest
 
     public static function addInjection($value, PDO $pdo, $quote = false): string
     {
-        $inject = ':injection' . \count(self::$injection) . 'carbon_users';
+        $inject = ':injection' . count(self::$injection) . 'carbon_users';
         self::$injection[$inject] = $quote ? $pdo->quote($value) : $value;
         return $inject;
     }
@@ -165,8 +167,8 @@ class Carbon_Users extends Rest implements iRest
         */
 
         
-        if ($primary !== null || (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] === 1 && \count($return) === 1)) {
-            $return = isset($return[0]) && \is_array($return[0]) ? $return[0] : $return;
+        if ($primary !== null || (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] === 1 && count($return) === 1)) {
+            $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
             // promise this is needed and will still return the desired array except for a single record will not be an array
         
         }
@@ -176,7 +178,7 @@ class Carbon_Users extends Rest implements iRest
 
     /**
     * @param array $argv
-    * @return bool|mixed
+    * @return bool|string
     */
     public static function Post(array $argv)
     {
@@ -269,16 +271,16 @@ class Carbon_Users extends Rest implements iRest
 
     }
      
-    public static function subSelect(string $primary = null, array $argv, \PDO $pdo = null): string
+    public static function subSelect(string $primary = null, array $argv, PDO $pdo = null): string
     {
-        return 'C6SUB91' . self::buildSelectQuery($primary, $argv, $pdo, true);
+        return 'C6SUB957' . self::buildSelectQuery($primary, $argv, $pdo, true);
     }
     
     public static function validateSelectColumn($column) : bool {
-        return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|\-|\/| |carbon_users\.user_username|carbon_users\.user_password|carbon_users\.user_id|carbon_users\.user_type|carbon_users\.user_sport|carbon_users\.user_session_id|carbon_users\.user_facebook_id|carbon_users\.user_first_name|carbon_users\.user_last_name|carbon_users\.user_profile_pic|carbon_users\.user_profile_uri|carbon_users\.user_cover_photo|carbon_users\.user_birthday|carbon_users\.user_gender|carbon_users\.user_about_me|carbon_users\.user_rank|carbon_users\.user_email|carbon_users\.user_email_code|carbon_users\.user_email_confirmed|carbon_users\.user_generated_string|carbon_users\.user_membership|carbon_users\.user_deactivated|carbon_users\.user_last_login|carbon_users\.user_ip|carbon_users\.user_education_history|carbon_users\.user_location|carbon_users\.user_creation_date))+\)*)+ *(as [a-z]+)?#i', $column);
+        return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|-|/| |carbon_users\.user_username|carbon_users\.user_password|carbon_users\.user_id|carbon_users\.user_type|carbon_users\.user_sport|carbon_users\.user_session_id|carbon_users\.user_facebook_id|carbon_users\.user_first_name|carbon_users\.user_last_name|carbon_users\.user_profile_pic|carbon_users\.user_profile_uri|carbon_users\.user_cover_photo|carbon_users\.user_birthday|carbon_users\.user_gender|carbon_users\.user_about_me|carbon_users\.user_rank|carbon_users\.user_email|carbon_users\.user_email_code|carbon_users\.user_email_confirmed|carbon_users\.user_generated_string|carbon_users\.user_membership|carbon_users\.user_deactivated|carbon_users\.user_last_login|carbon_users\.user_ip|carbon_users\.user_education_history|carbon_users\.user_location|carbon_users\.user_creation_date))+\)*)+ *(as [a-z]+)?#i', $column);
     }
     
-    public static function buildSelectQuery(string $primary = null, array $argv, \PDO $pdo = null, bool $noHEX = false) : string 
+    public static function buildSelectQuery(string $primary = null, array $argv, PDO $pdo = null, bool $noHEX = false) : string 
     {
         if ($pdo === null) {
             $pdo = self::database();
@@ -292,7 +294,7 @@ class Carbon_Users extends Rest implements iRest
 
         // pagination
         if (array_key_exists('pagination',$argv)) {
-            if (!empty($argv['pagination']) && !\is_array($argv['pagination'])) {
+            if (!empty($argv['pagination']) && !is_array($argv['pagination'])) {
                 $argv['pagination'] = json_decode($argv['pagination'], true);
             }
             if (array_key_exists('limit',$argv['pagination']) && $argv['pagination']['limit'] !== null) {
@@ -307,7 +309,7 @@ class Carbon_Users extends Rest implements iRest
                 $order = ' ORDER BY ';
 
                 if (array_key_exists('order',$argv['pagination']) && $argv['pagination']['order'] !== null) {
-                    if (\is_array($argv['pagination']['order'])) {
+                    if (is_array($argv['pagination']['order'])) {
                         foreach ($argv['pagination']['order'] as $item => $sort) {
                             $order .= "$item $sort";
                         }
@@ -347,19 +349,26 @@ class Carbon_Users extends Rest implements iRest
                                 }
                                 break;
                             default:
-                                return false; // todo debug check
+                                return false; // todo debug check, common when joins are not a list of values
                         }
                     }
+                    return true;
                 };
                 switch ($by) {
                     case 'inner':
-                        $buildJoin(' INNER JOIN ');
+                        if (!$buildJoin(' INNER JOIN ')) {
+                            return false; 
+                        }
                         break;
                     case 'left':
-                        $buildJoin(' LEFT JOIN ');
+                        if (!$buildJoin(' LEFT JOIN ')) {
+                            return false; 
+                        }
                         break;
                     case 'right':
-                        $buildJoin(' RIGHT JOIN ');
+                        if (!$buildJoin(' RIGHT JOIN ')) {
+                            return false; 
+                        }
                         break;
                     default:
                         return false; // todo - debugging stmts
@@ -388,6 +397,7 @@ class Carbon_Users extends Rest implements iRest
                 }  
             } else if (self::validateSelectColumn($column)) {
                 $sql .= $column;
+                $group[] = $column;
                 $aggregate = true;
             } else {  
                 $valid = false;
@@ -398,15 +408,19 @@ class Carbon_Users extends Rest implements iRest
                      if (!class_exists($table)){
                          continue;
                      }
-                     $imp = class_implements($table);
+                     $imp = array_map('strtolower', array_keys(class_implements($table)));
                     
+                   
                      /** @noinspection ClassConstantUsageCorrectnessInspection */
-                     if (!in_array(strtolower(iRest::class), array_map('strtolower', array_keys($imp)))) {
+                     if (!in_array(strtolower(iRest::class), $imp, true) && 
+                         !in_array(strtolower(iRestfulReferences::class), $imp, true)) {
                          continue;
                      }
+                     /** @noinspection PhpUndefinedMethodInspection */
                      if ($table::validateSelectColumn($column)) { 
+                        $group[] = $column;
                         $valid = true;
-                         break; 
+                        break; 
                      }
                 }
                 if (!$valid) {
@@ -447,13 +461,18 @@ class Carbon_Users extends Rest implements iRest
     */
     public static function Put(array &$return, string $primary, array $argv) : bool
     {
-        self::$injection = [];
+        self::$injection = []; 
+        
         if (empty($primary)) {
             return false;
         }
-
+        
+        if (array_key_exists(self::UPDATE, $argv)) {
+            $argv = $argv[self::UPDATE];
+        }
+        
         foreach ($argv as $key => $value) {
-            if (!\array_key_exists($key, self::PDO_VALIDATION)){
+            if (!array_key_exists($key, self::PDO_VALIDATION)){
                 return false;
             }
         }
@@ -464,87 +483,87 @@ class Carbon_Users extends Rest implements iRest
 
         $set = '';
 
-            if (array_key_exists('carbon_users.user_username', $argv)) {
-                $set .= 'user_username=:user_username,';
-            }
-            if (array_key_exists('carbon_users.user_password', $argv)) {
-                $set .= 'user_password=:user_password,';
-            }
-            if (array_key_exists('carbon_users.user_id', $argv)) {
-                $set .= 'user_id=UNHEX(:user_id),';
-            }
-            if (array_key_exists('carbon_users.user_type', $argv)) {
-                $set .= 'user_type=:user_type,';
-            }
-            if (array_key_exists('carbon_users.user_sport', $argv)) {
-                $set .= 'user_sport=:user_sport,';
-            }
-            if (array_key_exists('carbon_users.user_session_id', $argv)) {
-                $set .= 'user_session_id=:user_session_id,';
-            }
-            if (array_key_exists('carbon_users.user_facebook_id', $argv)) {
-                $set .= 'user_facebook_id=:user_facebook_id,';
-            }
-            if (array_key_exists('carbon_users.user_first_name', $argv)) {
-                $set .= 'user_first_name=:user_first_name,';
-            }
-            if (array_key_exists('carbon_users.user_last_name', $argv)) {
-                $set .= 'user_last_name=:user_last_name,';
-            }
-            if (array_key_exists('carbon_users.user_profile_pic', $argv)) {
-                $set .= 'user_profile_pic=:user_profile_pic,';
-            }
-            if (array_key_exists('carbon_users.user_profile_uri', $argv)) {
-                $set .= 'user_profile_uri=:user_profile_uri,';
-            }
-            if (array_key_exists('carbon_users.user_cover_photo', $argv)) {
-                $set .= 'user_cover_photo=:user_cover_photo,';
-            }
-            if (array_key_exists('carbon_users.user_birthday', $argv)) {
-                $set .= 'user_birthday=:user_birthday,';
-            }
-            if (array_key_exists('carbon_users.user_gender', $argv)) {
-                $set .= 'user_gender=:user_gender,';
-            }
-            if (array_key_exists('carbon_users.user_about_me', $argv)) {
-                $set .= 'user_about_me=:user_about_me,';
-            }
-            if (array_key_exists('carbon_users.user_rank', $argv)) {
-                $set .= 'user_rank=:user_rank,';
-            }
-            if (array_key_exists('carbon_users.user_email', $argv)) {
-                $set .= 'user_email=:user_email,';
-            }
-            if (array_key_exists('carbon_users.user_email_code', $argv)) {
-                $set .= 'user_email_code=:user_email_code,';
-            }
-            if (array_key_exists('carbon_users.user_email_confirmed', $argv)) {
-                $set .= 'user_email_confirmed=:user_email_confirmed,';
-            }
-            if (array_key_exists('carbon_users.user_generated_string', $argv)) {
-                $set .= 'user_generated_string=:user_generated_string,';
-            }
-            if (array_key_exists('carbon_users.user_membership', $argv)) {
-                $set .= 'user_membership=:user_membership,';
-            }
-            if (array_key_exists('carbon_users.user_deactivated', $argv)) {
-                $set .= 'user_deactivated=:user_deactivated,';
-            }
-            if (array_key_exists('carbon_users.user_last_login', $argv)) {
-                $set .= 'user_last_login=:user_last_login,';
-            }
-            if (array_key_exists('carbon_users.user_ip', $argv)) {
-                $set .= 'user_ip=:user_ip,';
-            }
-            if (array_key_exists('carbon_users.user_education_history', $argv)) {
-                $set .= 'user_education_history=:user_education_history,';
-            }
-            if (array_key_exists('carbon_users.user_location', $argv)) {
-                $set .= 'user_location=:user_location,';
-            }
-            if (array_key_exists('carbon_users.user_creation_date', $argv)) {
-                $set .= 'user_creation_date=:user_creation_date,';
-            }
+        if (array_key_exists('carbon_users.user_username', $argv)) {
+            $set .= 'user_username=:user_username,';
+        }
+        if (array_key_exists('carbon_users.user_password', $argv)) {
+            $set .= 'user_password=:user_password,';
+        }
+        if (array_key_exists('carbon_users.user_id', $argv)) {
+            $set .= 'user_id=UNHEX(:user_id),';
+        }
+        if (array_key_exists('carbon_users.user_type', $argv)) {
+            $set .= 'user_type=:user_type,';
+        }
+        if (array_key_exists('carbon_users.user_sport', $argv)) {
+            $set .= 'user_sport=:user_sport,';
+        }
+        if (array_key_exists('carbon_users.user_session_id', $argv)) {
+            $set .= 'user_session_id=:user_session_id,';
+        }
+        if (array_key_exists('carbon_users.user_facebook_id', $argv)) {
+            $set .= 'user_facebook_id=:user_facebook_id,';
+        }
+        if (array_key_exists('carbon_users.user_first_name', $argv)) {
+            $set .= 'user_first_name=:user_first_name,';
+        }
+        if (array_key_exists('carbon_users.user_last_name', $argv)) {
+            $set .= 'user_last_name=:user_last_name,';
+        }
+        if (array_key_exists('carbon_users.user_profile_pic', $argv)) {
+            $set .= 'user_profile_pic=:user_profile_pic,';
+        }
+        if (array_key_exists('carbon_users.user_profile_uri', $argv)) {
+            $set .= 'user_profile_uri=:user_profile_uri,';
+        }
+        if (array_key_exists('carbon_users.user_cover_photo', $argv)) {
+            $set .= 'user_cover_photo=:user_cover_photo,';
+        }
+        if (array_key_exists('carbon_users.user_birthday', $argv)) {
+            $set .= 'user_birthday=:user_birthday,';
+        }
+        if (array_key_exists('carbon_users.user_gender', $argv)) {
+            $set .= 'user_gender=:user_gender,';
+        }
+        if (array_key_exists('carbon_users.user_about_me', $argv)) {
+            $set .= 'user_about_me=:user_about_me,';
+        }
+        if (array_key_exists('carbon_users.user_rank', $argv)) {
+            $set .= 'user_rank=:user_rank,';
+        }
+        if (array_key_exists('carbon_users.user_email', $argv)) {
+            $set .= 'user_email=:user_email,';
+        }
+        if (array_key_exists('carbon_users.user_email_code', $argv)) {
+            $set .= 'user_email_code=:user_email_code,';
+        }
+        if (array_key_exists('carbon_users.user_email_confirmed', $argv)) {
+            $set .= 'user_email_confirmed=:user_email_confirmed,';
+        }
+        if (array_key_exists('carbon_users.user_generated_string', $argv)) {
+            $set .= 'user_generated_string=:user_generated_string,';
+        }
+        if (array_key_exists('carbon_users.user_membership', $argv)) {
+            $set .= 'user_membership=:user_membership,';
+        }
+        if (array_key_exists('carbon_users.user_deactivated', $argv)) {
+            $set .= 'user_deactivated=:user_deactivated,';
+        }
+        if (array_key_exists('carbon_users.user_last_login', $argv)) {
+            $set .= 'user_last_login=:user_last_login,';
+        }
+        if (array_key_exists('carbon_users.user_ip', $argv)) {
+            $set .= 'user_ip=:user_ip,';
+        }
+        if (array_key_exists('carbon_users.user_education_history', $argv)) {
+            $set .= 'user_education_history=:user_education_history,';
+        }
+        if (array_key_exists('carbon_users.user_location', $argv)) {
+            $set .= 'user_location=:user_location,';
+        }
+        if (array_key_exists('carbon_users.user_creation_date', $argv)) {
+            $set .= 'user_creation_date=:user_creation_date,';
+        }
 
         if (empty($set)){
             return false;
@@ -555,6 +574,7 @@ class Carbon_Users extends Rest implements iRest
         $pdo = self::database();
 
         $sql .= ' WHERE  user_id=UNHEX('.self::addInjection($primary, $pdo).')';
+        
 
         
 
@@ -708,10 +728,12 @@ class Carbon_Users extends Rest implements iRest
             return false;
         }
 
-        self::$injection = [];
+        self::$injection = []; 
+        
         /** @noinspection SqlResolve */
+        /** @noinspection SqlWithoutWhere */
         $sql = 'DELETE c FROM carbons c 
-                JOIN carbon_users on c.entity_pk = follower_table_id';
+                JOIN carbon_users on c.entity_pk = carbon_users.user_id';
 
         $pdo = self::database();
 

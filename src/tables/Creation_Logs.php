@@ -9,9 +9,10 @@ use function count;
 use function is_array;
 use CarbonPHP\Rest;
 use CarbonPHP\Interfaces\iRest;
+use CarbonPHP\Interfaces\iRestfulReferences;
 
 
-class Creation_Logs extends Rest implements iRest
+class Creation_Logs extends Rest implements iRestfulReferences
 {
     
     public const TABLE_NAME = 'creation_logs';
@@ -30,6 +31,7 @@ class Creation_Logs extends Rest implements iRest
     public const PDO_VALIDATION = [
         'creation_logs.uuid' => ['binary', '2', '16'],'creation_logs.resource_type' => ['varchar', '2', '40'],'creation_logs.resource_uuid' => ['binary', '2', '16'],
     ];
+    
     public const VALIDATION = [];
 
     public static array $injection = [];
@@ -50,8 +52,8 @@ class Creation_Logs extends Rest implements iRest
             } else if (array_key_exists($column, self::PDO_VALIDATION)) {
                 $bump = false;
                 /** @noinspection SubStrUsedAsStrPosInspection */
-                if (substr($value, 0, '7') === 'C6SUB91') {
-                    $subQuery = substr($value, '7');
+                if (substr($value, 0, '8') === 'C6SUB957') {
+                    $subQuery = substr($value, '8');
                     $sql .= "($column = $subQuery ) $join ";
                 } else if (self::PDO_VALIDATION[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $join ";
@@ -68,7 +70,7 @@ class Creation_Logs extends Rest implements iRest
 
     public static function addInjection($value, PDO $pdo, $quote = false): string
     {
-        $inject = ':injection' . \count(self::$injection) . 'creation_logs';
+        $inject = ':injection' . count(self::$injection) . 'creation_logs';
         self::$injection[$inject] = $quote ? $pdo->quote($value) : $value;
         return $inject;
     }
@@ -117,11 +119,11 @@ class Creation_Logs extends Rest implements iRest
     * @param array $argv
     * @return bool
     */
-    public static function Get(array &$return, string $primary = null, array $argv): bool
+    public static function Get(array &$return, array $argv): bool
     {
         $pdo = self::database();
 
-        $sql = self::buildSelectQuery($primary, $argv, $pdo);
+        $sql = self::buildSelectQuery(null, $argv, $pdo);
         
         $stmt = $pdo->prepare($sql);
 
@@ -147,9 +149,9 @@ class Creation_Logs extends Rest implements iRest
 
     /**
     * @param array $argv
-    * @return bool|mixed
+    * @return bool
     */
-    public static function Post(array $argv)
+    public static function Post(array $argv): bool
     {
         self::$injection = [];
         /** @noinspection SqlResolve */
@@ -175,16 +177,16 @@ class Creation_Logs extends Rest implements iRest
             return $stmt->execute();
     }
      
-    public static function subSelect(string $primary = null, array $argv, \PDO $pdo = null): string
+    public static function subSelect(string $primary = null, array $argv, PDO $pdo = null): string
     {
-        return 'C6SUB91' . self::buildSelectQuery($primary, $argv, $pdo, true);
+        return 'C6SUB957' . self::buildSelectQuery($primary, $argv, $pdo, true);
     }
     
     public static function validateSelectColumn($column) : bool {
-        return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|\-|\/| |creation_logs\.uuid|creation_logs\.resource_type|creation_logs\.resource_uuid))+\)*)+ *(as [a-z]+)?#i', $column);
+        return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|-|/| |creation_logs\.uuid|creation_logs\.resource_type|creation_logs\.resource_uuid))+\)*)+ *(as [a-z]+)?#i', $column);
     }
     
-    public static function buildSelectQuery(string $primary = null, array $argv, \PDO $pdo = null, bool $noHEX = false) : string 
+    public static function buildSelectQuery(string $primary = null, array $argv, PDO $pdo = null, bool $noHEX = false) : string 
     {
         if ($pdo === null) {
             $pdo = self::database();
@@ -198,7 +200,7 @@ class Creation_Logs extends Rest implements iRest
 
         // pagination
         if (array_key_exists('pagination',$argv)) {
-            if (!empty($argv['pagination']) && !\is_array($argv['pagination'])) {
+            if (!empty($argv['pagination']) && !is_array($argv['pagination'])) {
                 $argv['pagination'] = json_decode($argv['pagination'], true);
             }
             if (array_key_exists('limit',$argv['pagination']) && $argv['pagination']['limit'] !== null) {
@@ -213,7 +215,7 @@ class Creation_Logs extends Rest implements iRest
                 $order = ' ORDER BY ';
 
                 if (array_key_exists('order',$argv['pagination']) && $argv['pagination']['order'] !== null) {
-                    if (\is_array($argv['pagination']['order'])) {
+                    if (is_array($argv['pagination']['order'])) {
                         foreach ($argv['pagination']['order'] as $item => $sort) {
                             $order .= "$item $sort";
                         }
@@ -253,19 +255,26 @@ class Creation_Logs extends Rest implements iRest
                                 }
                                 break;
                             default:
-                                return false; // todo debug check
+                                return false; // todo debug check, common when joins are not a list of values
                         }
                     }
+                    return true;
                 };
                 switch ($by) {
                     case 'inner':
-                        $buildJoin(' INNER JOIN ');
+                        if (!$buildJoin(' INNER JOIN ')) {
+                            return false; 
+                        }
                         break;
                     case 'left':
-                        $buildJoin(' LEFT JOIN ');
+                        if (!$buildJoin(' LEFT JOIN ')) {
+                            return false; 
+                        }
                         break;
                     case 'right':
-                        $buildJoin(' RIGHT JOIN ');
+                        if (!$buildJoin(' RIGHT JOIN ')) {
+                            return false; 
+                        }
                         break;
                     default:
                         return false; // todo - debugging stmts
@@ -294,6 +303,7 @@ class Creation_Logs extends Rest implements iRest
                 }  
             } else if (self::validateSelectColumn($column)) {
                 $sql .= $column;
+                $group[] = $column;
                 $aggregate = true;
             } else {  
                 $valid = false;
@@ -304,15 +314,19 @@ class Creation_Logs extends Rest implements iRest
                      if (!class_exists($table)){
                          continue;
                      }
-                     $imp = class_implements($table);
+                     $imp = array_map('strtolower', array_keys(class_implements($table)));
                     
+                   
                      /** @noinspection ClassConstantUsageCorrectnessInspection */
-                     if (!in_array(strtolower(iRest::class), array_map('strtolower', array_keys($imp)))) {
+                     if (!in_array(strtolower(iRest::class), $imp, true) && 
+                         !in_array(strtolower(iRestfulReferences::class), $imp, true)) {
                          continue;
                      }
+                     /** @noinspection PhpUndefinedMethodInspection */
                      if ($table::validateSelectColumn($column)) { 
+                        $group[] = $column;
                         $valid = true;
-                         break; 
+                        break; 
                      }
                 }
                 if (!$valid) {
@@ -345,19 +359,24 @@ class Creation_Logs extends Rest implements iRest
 
     /**
     * @param array $return
-    * @param string $primary
+    
     * @param array $argv
     * @return bool
     */
-    public static function Put(array &$return, string $primary, array $argv) : bool
+    public static function Put(array &$return,  array $argv) : bool
     {
-        self::$injection = [];
-        if (empty($primary)) {
+        self::$injection = []; 
+        
+        $where = $argv[self::WHERE];
+
+        $argv = $argv[self::UPDATE];
+
+        if (empty($where) || empty($argv)) {
             return false;
         }
-
+        
         foreach ($argv as $key => $value) {
-            if (!\array_key_exists($key, self::PDO_VALIDATION)){
+            if (!array_key_exists($key, self::PDO_VALIDATION)){
                 return false;
             }
         }
@@ -368,15 +387,15 @@ class Creation_Logs extends Rest implements iRest
 
         $set = '';
 
-            if (array_key_exists('creation_logs.uuid', $argv)) {
-                $set .= 'uuid=UNHEX(:uuid),';
-            }
-            if (array_key_exists('creation_logs.resource_type', $argv)) {
-                $set .= 'resource_type=:resource_type,';
-            }
-            if (array_key_exists('creation_logs.resource_uuid', $argv)) {
-                $set .= 'resource_uuid=UNHEX(:resource_uuid),';
-            }
+        if (array_key_exists('creation_logs.uuid', $argv)) {
+            $set .= 'uuid=UNHEX(:uuid),';
+        }
+        if (array_key_exists('creation_logs.resource_type', $argv)) {
+            $set .= 'resource_type=:resource_type,';
+        }
+        if (array_key_exists('creation_logs.resource_uuid', $argv)) {
+            $set .= 'resource_uuid=UNHEX(:resource_uuid),';
+        }
 
         if (empty($set)){
             return false;
@@ -387,6 +406,7 @@ class Creation_Logs extends Rest implements iRest
         $pdo = self::database();
 
         
+        $sql .= ' WHERE ' . self::buildWhere($where, $pdo);
 
         
 
@@ -431,32 +451,18 @@ class Creation_Logs extends Rest implements iRest
     * @param array $argv
     * @return bool
     */
-    public static function Delete(array &$remove, string $primary = null, array $argv) : bool
+    public static function Delete(array &$remove, array $argv) : bool
     {
-        self::$injection = [];
+        self::$injection = []; 
+        
         /** @noinspection SqlResolve */
+        /** @noinspection SqlWithoutWhere */
         $sql = 'DELETE FROM creation_logs ';
 
         $pdo = self::database();
 
-        if (null === $primary) {
-           /**
-            *   While useful, we've decided to disallow full
-            *   table deletions through the rest api. For the
-            *   n00bs and future self, "I got chu."
-            */
-            if (empty($argv)) {
-                return false;
-            }
-            
-            $where = self::buildWhere($argv, $pdo);
-            
-            if (empty($where)) {
-                return false;
-            }
-
-            $sql .= ' WHERE ' . $where;
-        } 
+               
+        $sql .= ' WHERE ' . self::buildWhere($argv, $pdo);
 
         
 
@@ -466,7 +472,6 @@ class Creation_Logs extends Rest implements iRest
 
         $r = $stmt->execute();
 
-        /** @noinspection CallableParameterUseCaseInTypeContextInspection */
         $r and $remove = [];
 
         return $r;

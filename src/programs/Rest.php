@@ -5,6 +5,7 @@ namespace CarbonPHP\Programs;
 use \CarbonPHP\interfaces\iCommand;
 use PDO;
 use RuntimeException;
+use function count;
 use function in_array;
 use function random_int;
 
@@ -96,7 +97,7 @@ END;
         print "\tBuilding Rest Api!\n";
 
         // C syntax
-        $argc = \count($argv);
+        $argc = count($argv);
 
         // These are PDO const types, so we'll eliminate one complexity by evaluating them before inserting into the template
         $PDO = [0 => PDO::PARAM_NULL, 1 => PDO::PARAM_BOOL, 2 => PDO::PARAM_INT, 3 => PDO::PARAM_STR];
@@ -348,7 +349,7 @@ END;
                     $type = strtolower($words_in_insert_stmt[1]);
 
                     // exploding strings like 'mediumint(9)' and 'binary(16)'
-                    if (\count($argv = explode('(', $type)) > 1) {
+                    if (count($argv = explode('(', $type)) > 1) {
                         $type = $argv[0];
                         if ($type === 'enum') {
                             $length = '';               // enums define strings where im expecting int length
@@ -413,7 +414,7 @@ END;
                     }
 
                     // As far as I can tell the AUTO_INCREMENT condition the last possible word in the query
-                    $auto_inc = \count($words_in_insert_stmt) - 1;
+                    $auto_inc = count($words_in_insert_stmt) - 1;
                     if (isset($words_in_insert_stmt[$auto_inc]) && $words_in_insert_stmt[$auto_inc] === 'AUTO_INCREMENT,') {
                         $skipping_col[] = $name;
                         $rest[$tableName]['explode'][$column]['skip'] = true;
@@ -473,6 +474,8 @@ END;
                 $skipTable = false; // This is so we can stop analysing a full tables
                 continue;
             }
+
+            $rest[$tableName]['primaryExists'] = !empty($rest[$tableName]['primary']);
 
             // Make sure we didn't specify a flag that could cause us to move on...
             if (empty($rest[$tableName]['primary'])) {
@@ -576,7 +579,7 @@ END;
     public static function trigger($table, $columns, $binary, $dependencies, $primary): string
     {
 
-        $json_mysql = function ($op = 'NEW') use ($columns, $binary) {
+        $json_mysql = static function ($op = 'NEW') use ($columns, $binary) {
             $mid = "DECLARE json text;\n SET json = '{';";
             foreach ($columns as $key => &$column) {
                 $column = in_array($column, $binary, true)
@@ -599,7 +602,7 @@ END;
 
         // sys_resource_creation_logs sys_resource_history_logs
 
-        $history_sql = function ($operation_type = 'POST') use ($table, $primary) {
+        $history_sql = static function ($operation_type = 'POST') use ($table, $primary) {
             $query = '';
             $relative_time = $operation_type === 'POST' ? 'NEW' : ($operation_type === 'PUT' ? 'NEW' : 'OLD');
             switch ($operation_type) {
@@ -613,7 +616,6 @@ END;
             VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), '$table', $relative_time.$primary , '$operation_type', json);";
                     break;
                 case 'GET':
-                    break;
                 default:
                     break;
             }
@@ -622,7 +624,7 @@ END;
         };
 
         // TODO - param or remove
-        $delete_children = function () use ($dependencies) {
+        $delete_children = static function () use ($dependencies) {
             $sql = '';
 
             // I agree, this is horribly ugly... don't hate me
@@ -687,9 +689,10 @@ use function count;
 use function is_array;
 use CarbonPHP\Rest;
 use CarbonPHP\Interfaces\iRest;
+use CarbonPHP\Interfaces\iRestfulReferences;
 
 
-class {{ucEachTableName}} extends Rest implements iRest
+class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/primaryExists}}{{^primaryExists}}iRestfulReferences{{/primaryExists}}
 {
     
     public const TABLE_NAME = '{{TableName}}';
@@ -709,13 +712,14 @@ class {{ucEachTableName}} extends Rest implements iRest
         {{#explode}}'{{TableName}}.{{name}}' => ['{{mysql_type}}', '{{type}}', '{{length}}'],{{/explode}}
     ];
     {{^validation}}
+    
     public const VALIDATION = [];{{/validation}}{{#validation}}{{{validation}}}{{/validation}}
 
     public static array \$injection = [];
 
     {{#json}}public static function jsonSQLReporting(\$argv, \$sql) : void {
         global \$json;
-        if (!\is_array(\$json)) {
+        if (!is_array(\$json)) {
             \$json = [];
         }
         if (!isset(\$json['sql'])) {
@@ -759,7 +763,7 @@ class {{ucEachTableName}} extends Rest implements iRest
 
     public static function addInjection(\$value, PDO \$pdo, \$quote = false): string
     {
-        \$inject = ':injection' . \count(self::\$injection) . '{{TableName}}';
+        \$inject = ':injection' . count(self::\$injection) . '{{TableName}}';
         self::\$injection[\$inject] = \$quote ? \$pdo->quote(\$value) : \$value;
         return \$inject;
     }
@@ -808,11 +812,11 @@ class {{ucEachTableName}} extends Rest implements iRest
     * @param array \$argv
     * @return bool
     */
-    public static function Get(array &\$return, string \$primary = null, array \$argv): bool
+    public static function Get(array &\$return, {{#primaryExists}}string \$primary = null, {{/primaryExists}}array \$argv): bool
     {
         \$pdo = self::database();
 
-        \$sql = self::buildSelectQuery(\$primary, \$argv, \$pdo);
+        \$sql = self::buildSelectQuery({{#primaryExists}}\$primary{{/primaryExists}}{{^primaryExists}}null{{/primaryExists}}, \$argv, \$pdo);
         
         \$stmt = \$pdo->prepare(\$sql);
 
@@ -832,8 +836,8 @@ class {{ucEachTableName}} extends Rest implements iRest
         */
 
         {{#primary}}{{#sql}}
-        if (\$primary !== null || (isset(\$argv['pagination']['limit']) && \$argv['pagination']['limit'] === 1 && \count(\$return) === 1)) {
-            \$return = isset(\$return[0]) && \is_array(\$return[0]) ? \$return[0] : \$return;
+        if (\$primary !== null || (isset(\$argv['pagination']['limit']) && \$argv['pagination']['limit'] === 1 && count(\$return) === 1)) {
+            \$return = isset(\$return[0]) && is_array(\$return[0]) ? \$return[0] : \$return;
             // promise this is needed and will still return the desired array except for a single record will not be an array
         {{#explode}}{{#json}}if (array_key_exists('{{TableName}}.{{name}}', \$return)) {
                 \$return['{{name}}'] = json_decode(\$return['{{name}}'], true);
@@ -846,9 +850,9 @@ class {{ucEachTableName}} extends Rest implements iRest
 
     /**
     * @param array \$argv
-    * @return bool|mixed
+    * @return bool{{#primaryExists}}|string{{/primaryExists}}
     */
-    public static function Post(array \$argv)
+    public static function Post(array \$argv){{^primaryExists}}: bool{{/primaryExists}}
     {
         self::\$injection = [];
         /** @noinspection SqlResolve */
@@ -887,16 +891,16 @@ class {{ucEachTableName}} extends Rest implements iRest
             return \$stmt->execute();{{/carbon_table}}{{/binary_primary}}
     }
      
-    public static function subSelect(string \$primary = null, array \$argv, \PDO \$pdo = null): string
+    public static function subSelect(string \$primary = null, array \$argv, PDO \$pdo = null): string
     {
         return '{{subQuery}}' . self::buildSelectQuery(\$primary, \$argv, \$pdo, true);
     }
     
     public static function validateSelectColumn(\$column) : bool {
-        return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|\-|\/| {{#explode}}|{{TableName}}\.{{name}}{{/explode}}))+\)*)+ *(as [a-z]+)?#i', \$column);
+        return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|-|/| {{#explode}}|{{TableName}}\.{{name}}{{/explode}}))+\)*)+ *(as [a-z]+)?#i', \$column);
     }
     
-    public static function buildSelectQuery(string \$primary = null, array \$argv, \PDO \$pdo = null, bool \$noHEX = false) : string 
+    public static function buildSelectQuery(string \$primary = null, array \$argv, PDO \$pdo = null, bool \$noHEX = false) : string 
     {
         if (\$pdo === null) {
             \$pdo = self::database();
@@ -910,7 +914,7 @@ class {{ucEachTableName}} extends Rest implements iRest
 
         // pagination
         if (array_key_exists('pagination',\$argv)) {
-            if (!empty(\$argv['pagination']) && !\is_array(\$argv['pagination'])) {
+            if (!empty(\$argv['pagination']) && !is_array(\$argv['pagination'])) {
                 \$argv['pagination'] = json_decode(\$argv['pagination'], true);
             }
             if (array_key_exists('limit',\$argv['pagination']) && \$argv['pagination']['limit'] !== null) {
@@ -925,7 +929,7 @@ class {{ucEachTableName}} extends Rest implements iRest
                 \$order = ' ORDER BY ';
 
                 if (array_key_exists('order',\$argv['pagination']) && \$argv['pagination']['order'] !== null) {
-                    if (\is_array(\$argv['pagination']['order'])) {
+                    if (is_array(\$argv['pagination']['order'])) {
                         foreach (\$argv['pagination']['order'] as \$item => \$sort) {
                             \$order .= "\$item \$sort";
                         }
@@ -965,19 +969,26 @@ class {{ucEachTableName}} extends Rest implements iRest
                                 }
                                 break;
                             default:
-                                return false; // todo debug check
+                                return false; // todo debug check, common when joins are not a list of values
                         }
                     }
+                    return true;
                 };
                 switch (\$by) {
                     case 'inner':
-                        \$buildJoin(' INNER JOIN ');
+                        if (!\$buildJoin(' INNER JOIN ')) {
+                            return false; 
+                        }
                         break;
                     case 'left':
-                        \$buildJoin(' LEFT JOIN ');
+                        if (!\$buildJoin(' LEFT JOIN ')) {
+                            return false; 
+                        }
                         break;
                     case 'right':
-                        \$buildJoin(' RIGHT JOIN ');
+                        if (!\$buildJoin(' RIGHT JOIN ')) {
+                            return false; 
+                        }
                         break;
                     default:
                         return false; // todo - debugging stmts
@@ -1006,6 +1017,7 @@ class {{ucEachTableName}} extends Rest implements iRest
                 }  
             } else if (self::validateSelectColumn(\$column)) {
                 \$sql .= \$column;
+                \$group[] = \$column;
                 \$aggregate = true;
             } else {  
                 \$valid = false;
@@ -1016,15 +1028,19 @@ class {{ucEachTableName}} extends Rest implements iRest
                      if (!class_exists(\$table)){
                          continue;
                      }
-                     \$imp = class_implements(\$table);
+                     \$imp = array_map('strtolower', array_keys(class_implements(\$table)));
                     
+                   
                      /** @noinspection ClassConstantUsageCorrectnessInspection */
-                     if (!in_array(strtolower(iRest::class), array_map('strtolower', array_keys(\$imp)))) {
+                     if (!in_array(strtolower(iRest::class), \$imp, true) && 
+                         !in_array(strtolower(iRestfulReferences::class), \$imp, true)) {
                          continue;
                      }
+                     /** @noinspection PhpUndefinedMethodInspection */
                      if (\$table::validateSelectColumn(\$column)) { 
+                        \$group[] = \$column;
                         \$valid = true;
-                         break; 
+                        break; 
                      }
                 }
                 if (!\$valid) {
@@ -1059,19 +1075,35 @@ class {{ucEachTableName}} extends Rest implements iRest
 
     /**
     * @param array \$return
-    * @param string \$primary
+    {{#primaryExists}}* @param string \$primary{{/primaryExists}}
     * @param array \$argv
     * @return bool
     */
-    public static function Put(array &\$return, string \$primary, array \$argv) : bool
+    public static function Put(array &\$return, {{#primaryExists}}string \$primary,{{/primaryExists}} array \$argv) : bool
     {
-        self::\$injection = [];
+        self::\$injection = []; 
+        
+        {{#primaryExists}}
         if (empty(\$primary)) {
             return false;
         }
+        
+        if (array_key_exists(self::UPDATE, \$argv)) {
+            \$argv = \$argv[self::UPDATE];
+        }
+        {{/primaryExists}}
+        {{^primaryExists}}
+        \$where = \$argv[self::WHERE];
 
+        \$argv = \$argv[self::UPDATE];
+
+        if (empty(\$where) || empty(\$argv)) {
+            return false;
+        }
+        {{/primaryExists}}
+        
         foreach (\$argv as \$key => \$value) {
-            if (!\array_key_exists(\$key, self::PDO_VALIDATION)){
+            if (!array_key_exists(\$key, self::PDO_VALIDATION)){
                 return false;
             }
         }
@@ -1083,9 +1115,9 @@ class {{ucEachTableName}} extends Rest implements iRest
         \$set = '';
 
         {{#explode}}
-            if (array_key_exists('{{TableName}}.{{name}}', \$argv)) {
-                \$set .= '{{name}}={{#binary}}UNHEX(:{{name}}){{/binary}}{{^binary}}:{{name}}{{/binary}},';
-            }
+        if (array_key_exists('{{TableName}}.{{name}}', \$argv)) {
+            \$set .= '{{name}}={{#binary}}UNHEX(:{{name}}){{/binary}}{{^binary}}:{{name}}{{/binary}},';
+        }
         {{/explode}}
 
         if (empty(\$set)){
@@ -1097,6 +1129,7 @@ class {{ucEachTableName}} extends Rest implements iRest
         \$pdo = self::database();
 
         {{#primary}}{{{sql}}}{{/primary}}
+        {{^primary}}\$sql .= ' WHERE ' . self::buildWhere(\$where, \$pdo);{{/primary}}
 
         {{#json}}self::jsonSQLReporting(\\func_get_args(), \$sql);{{/json}}
 
@@ -1140,7 +1173,7 @@ class {{ucEachTableName}} extends Rest implements iRest
     * @param array \$argv
     * @return bool
     */
-    public static function Delete(array &\$remove, string \$primary = null, array \$argv) : bool
+    public static function Delete(array &\$remove, {{#primaryExists}}string \$primary = null, {{/primaryExists}}array \$argv) : bool
     {
     {{#carbon_table}}
         if (null !== \$primary) {
@@ -1156,10 +1189,12 @@ class {{ucEachTableName}} extends Rest implements iRest
             return false;
         }
 
-        self::\$injection = [];
+        self::\$injection = []; 
+        
         /** @noinspection SqlResolve */
+        /** @noinspection SqlWithoutWhere */
         \$sql = 'DELETE c FROM {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}carbons c 
-                JOIN {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}{{TableName}} on c.entity_pk = follower_table_id';
+                JOIN {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}{{TableName}} on c.entity_pk = {{#primary}}{{#name}}{{TableName}}.{{name}}{{/name}}{{/primary}}';
 
         \$pdo = self::database();
 
@@ -1179,12 +1214,14 @@ class {{ucEachTableName}} extends Rest implements iRest
         return \$r;
     {{/carbon_table}}
     {{^carbon_table}}
-        self::\$injection = [];
+        self::\$injection = []; 
+        
         /** @noinspection SqlResolve */
+        /** @noinspection SqlWithoutWhere */
         \$sql = 'DELETE FROM {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}{{TableName}} ';
 
         \$pdo = self::database();
-
+        {{#primary}}
         if (null === \$primary) {
            /**
             *   While useful, we've decided to disallow full
@@ -1202,9 +1239,12 @@ class {{ucEachTableName}} extends Rest implements iRest
             }
 
             \$sql .= ' WHERE ' . \$where;
-        } {{#primary}}{{#sql}}else {
+        } {{#sql}}else {
         {{{sql}}}
         }{{/sql}}{{/primary}}
+               
+        {{^primary}}
+        \$sql .= ' WHERE ' . self::buildWhere(\$argv, \$pdo);{{/primary}}
 
         {{#json}}self::jsonSQLReporting(\\func_get_args(), \$sql);{{/json}}
 
@@ -1214,7 +1254,6 @@ class {{ucEachTableName}} extends Rest implements iRest
 
         \$r = \$stmt->execute();
 
-        /** @noinspection CallableParameterUseCaseInTypeContextInspection */
         \$r and \$remove = [];
 
         return \$r;

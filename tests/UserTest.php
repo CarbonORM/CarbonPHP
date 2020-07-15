@@ -38,23 +38,11 @@ final class UserTest extends Config
                 Users::USER_USERNAME => Config::ADMIN_USERNAME
             ]
         ]);
-
-    }
-
-    public function commit(callable $lambda = null): bool
-    {
-        $commit = new class extends Database {
-            public function testCommit(callable $lambda = null): bool
-            {
-                /** @noinspection MissUsingParentKeywordInspection */
-                return parent::commit($lambda);
-            }
-        };
-        return $commit->testCommit($lambda);
     }
 
 
-    public function testUserCanBeCreated(): void
+
+    public function testUserCanBeCreated(): string
     {
         if (!empty($this->user)) {
             $this->testUserCanBeDeleted();
@@ -74,6 +62,9 @@ final class UserTest extends Config
         ]), 'No string ID was returned');
 
         $this->commit();
+
+        /** @noinspection PhpStrictTypeCheckingInspection */
+        return $id;
     }
 
 

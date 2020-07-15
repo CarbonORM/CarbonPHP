@@ -51,6 +51,10 @@ class Documentation extends Application
      */
     public function __construct($structure = null)
     {
+        if (CarbonPHP::$safelyExit) {
+            return;
+        }
+
         global $json;
 
         if (!is_array($json)) {

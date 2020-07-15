@@ -3,6 +3,7 @@
 namespace Tests;
 
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Database;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -74,4 +75,17 @@ abstract class Config extends TestCase
         new CarbonPHP('config' . DS . 'Config.php');
 
     }
+
+    public function commit(callable $lambda = null): bool
+    {
+        $commit = new class extends Database {
+            public function testCommit(callable $lambda = null): bool
+            {
+                /** @noinspection MissUsingParentKeywordInspection */
+                return parent::commit($lambda);
+            }
+        };
+        return $commit->testCommit($lambda);
+    }
+
 }

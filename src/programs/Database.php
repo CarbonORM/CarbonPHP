@@ -9,9 +9,10 @@
 namespace CarbonPHP\Programs;
 
 
+use CarbonPHP\Database as DB;
 use CarbonPHP\interfaces\iCommand;
 
-class BuildDatabase implements iCommand
+class Database implements iCommand
 {
     use MySQL {
         cleanUp as removeFiles;
@@ -23,11 +24,47 @@ class BuildDatabase implements iCommand
 
     public function usage() : void
     {
-        print 'TODO - make a better command usage';
+        print <<<usage
+
+        The setup program can be used to initialize and update a projects configuration files. 
+        Currently it does not do this, but here is what it does do.  
+        
+        -s --save
+        -r --rebuild                 Update the projects database configurations.
+
+
+
+usage;
     }
 
     public function run($argv) : void
     {
+        $argc = count($argv);
+
+        if ($argc === 0) {
+            $this->usage();
+            exit(1);
+        }
+
+        /** @noinspection ForeachInvariantsInspection */
+        for ($i = 0; $i < $argc; $i++) {
+            switch ($argv[$i]) {
+                default:
+                    print 'Invalid argument ' . $argv[$i] . PHP_EOL;
+                    $this->usage();
+                    exit(1);
+                case '-r':
+                case '--rebuild':
+                    DB::setUp(false, true);   // Redirect = false
+                    // this is going to the CLI so no need to run/attach redirect scripts
+                    exit(0);
+                case '-s':
+                case'--save':
+                    break;
+            }
+        }
+
+
         $dump = file_get_contents($this->MySQLDump());
 
         if (!preg_match_all('#DROP TABLE IF EXISTS `(.+)`;([^-])+#', $dump, $matches)) {
@@ -150,13 +187,18 @@ TAGS;
 }
 FOOT;
 
-        if (!is_dir(APP_ROOT . 'config') && mkdir(APP_ROOT . 'config')) {
+        if (!is_dir(APP_ROOT . 'config') && !mkdir($concurrentDirectory = APP_ROOT . 'config') && !is_dir($concurrentDirectory)) {
             print 'failed to create directory' . PHP_EOL . "\t" . APP_ROOT . 'config';
+            return;
         }
 
 
         if (!file_put_contents(APP_ROOT . 'config' . DS . 'buildDatabase.php', $build)) {
             print 'failed storing database build to file';
+            return;
         }
+
+        print "\t" . 'Successfully created/updated database build "' . APP_ROOT . 'config' . DS . 'buildDatabase.php' . '"'
+            . PHP_EOL . PHP_EOL;
     }
 }
