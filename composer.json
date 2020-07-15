@@ -41,10 +41,6 @@
   },
   "scripts": {
     "rei": "rm -rf vendor && rm composer.lock && composer i",
-    "post-install-cmd": [
-      "php index.php minify",
-      "cd view/react/material-dashboard-react-c6 && npm install && npm run build"
-    ],
     "post-update-cmd": [
       "php index.php minify",
       "cd view/react/material-dashboard-react-c6 && npm install && npm run build"
@@ -53,7 +49,9 @@
       "php index.php setup --mysql_native_password",
       "php index.php setup --rebuild",
       "php index.php minify",
-      "php index.php rest -json -logClasses"
+      "php index.php rest -json -logClasses",
+      "php index.php minify",
+      "cd view/react/material-dashboard-react-c6 && npm install && npm run build"
     ],
     "test": [
       "./vendor/bin/phpunit  --testdox"
