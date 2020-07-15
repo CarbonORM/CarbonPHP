@@ -6,10 +6,12 @@
     "Sockets",
     "Carbon",
     "Pipes",
-    "IO"
+    "IO",
+    "Session",
+    "Routing"
   ],
   "homepage": "https://github.com/richardtmiles/carbonphp",
-  "description": "Edit the DOM in PHP. A PHP 7+ tool kit designed for SEO optimization.",
+  "description": "A PHP 7.4+ tool kit featuring RESTFUL ORM, sockets, session management, and routing.",
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
@@ -29,7 +31,7 @@
     {
       "name": "Richard Miles",
       "email": "Richard@Miles.systems",
-      "homepage": "http://www.CarbonPHP.com",
+      "homepage": "https://www.CarbonPHP.com",
       "role": "Developer"
     }
   ],
