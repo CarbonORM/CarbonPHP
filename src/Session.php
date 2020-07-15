@@ -15,6 +15,7 @@
 
 namespace CarbonPHP;
 
+use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Helpers\Serialized;
 use CarbonPHP\Tables\sessions;
 
@@ -67,8 +68,14 @@ class Session implements \SessionHandlerInterface
             $this->verifySocket($ip);
         }
 
-        if (false === @session_start()) {
-            die('Carbon failed to start your session');
+        try {
+            // this should throw an error.. but if it doesnt we will catch and die
+            if (false === session_start()) {
+                die('Carbon failed to start your session');
+            }
+        } catch (\Throwable $e){
+            ErrorCatcher::generateLog($e);
+            die(1);
         }
     }
 
@@ -262,7 +269,7 @@ class Session implements \SessionHandlerInterface
             $db->prepare('REPLACE INTO sessions SET session_id = ?, user_id = UNHEX(?), user_ip = ?,  session_expires = ?, session_data = ?')->execute([
                 $id, static::$user_id, IP, $NewDateTime, $data]);
         } catch (\PDOException $e) {
-            sortDump($e);
+            sortDump($e); // todo - error catching
         }
         return true;
     }

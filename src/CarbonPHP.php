@@ -310,7 +310,7 @@ class CarbonPHP
             self::URI_FILTER($PHP['SITE']['URL'] ?? '', $PHP['SITE']['CACHE_CONTROL'] ?? []);
 
 
-            // TODO - I'm probably going to move this to the cli
+            // TODO - move this to the cli
             if ($PHP['DATABASE']['REBUILD'] ?? false) {
                 Database::setUp(false);   // Redirect = false
                 self::$safelyExit = true;
