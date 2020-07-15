@@ -4,7 +4,7 @@ namespace CarbonPHP;
 
 use CarbonPHP\Helpers\Serialized;
 use CarbonPHP\Programs\CLI;
-use CarbonPHP\error\ErrorCatcher;
+use CarbonPHP\Error\ErrorCatcher;
 use Throwable;
 use function define;
 use function defined;
