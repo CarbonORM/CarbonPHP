@@ -1177,7 +1177,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
     {
     {{#carbon_table}}
         if (null !== \$primary) {
-            return carbons::Delete(\$remove, \$primary, \$argv);
+            return Carbons::Delete(\$remove, \$primary, \$argv);
         }
 
         /**

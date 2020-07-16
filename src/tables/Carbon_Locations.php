@@ -41,7 +41,19 @@ class Carbon_Locations extends Rest implements iRest
 
     public static array $injection = [];
 
-    
+    public static function jsonSQLReporting($argv, $sql) : void {
+        global $json;
+        if (!is_array($json)) {
+            $json = [];
+        }
+        if (!isset($json['sql'])) {
+            $json['sql'] = [];
+        }
+        $json['sql'][] = [
+            $argv,
+            $sql
+        ];
+    }
     
     public static function buildWhere(array $set, PDO $pdo, $join = 'AND') : string
     {
@@ -57,8 +69,8 @@ class Carbon_Locations extends Rest implements iRest
             } else if (array_key_exists($column, self::PDO_VALIDATION)) {
                 $bump = false;
                 /** @noinspection SubStrUsedAsStrPosInspection */
-                if (substr($value, 0, '8') === 'C6SUB957') {
-                    $subQuery = substr($value, '8');
+                if (substr($value, 0, '7') === 'C6SUB37') {
+                    $subQuery = substr($value, '7');
                     $sql .= "($column = $subQuery ) $join ";
                 } else if (self::PDO_VALIDATION[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $join ";
@@ -167,7 +179,7 @@ class Carbon_Locations extends Rest implements iRest
         /** @noinspection SqlResolve */
         $sql = 'INSERT INTO carbon_locations (entity_id, latitude, longitude, street, city, state, elevation, zip) VALUES ( UNHEX(:entity_id), :latitude, :longitude, :street, :city, :state, :elevation, :zip)';
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = self::database()->prepare($sql);
 
@@ -203,7 +215,7 @@ class Carbon_Locations extends Rest implements iRest
      
     public static function subSelect(string $primary = null, array $argv, PDO $pdo = null): string
     {
-        return 'C6SUB957' . self::buildSelectQuery($primary, $argv, $pdo, true);
+        return 'C6SUB37' . self::buildSelectQuery($primary, $argv, $pdo, true);
     }
     
     public static function validateSelectColumn($column) : bool {
@@ -378,7 +390,7 @@ class Carbon_Locations extends Rest implements iRest
 
         $sql .= $limit;
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         return '(' . $sql . ')';
     }
@@ -449,7 +461,7 @@ class Carbon_Locations extends Rest implements iRest
         $sql .= ' WHERE  entity_id=UNHEX('.self::addInjection($primary, $pdo).')';
         
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 
@@ -515,7 +527,7 @@ class Carbon_Locations extends Rest implements iRest
     public static function Delete(array &$remove, string $primary = null, array $argv) : bool
     {
         if (null !== $primary) {
-            return carbons::Delete($remove, $primary, $argv);
+            return Carbons::Delete($remove, $primary, $argv);
         }
 
         /**
