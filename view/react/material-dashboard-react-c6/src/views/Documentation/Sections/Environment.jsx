@@ -503,12 +503,9 @@ class Environment extends React.Component {
                     </GridContainer>
                     <br/>
                     <br/>
-                    <GridContainer className={classes.textCenter} justify="center">
+                    <GridContainer className={classes.textCenter}>
                         <GridItem xs={12} sm={12} md={8}>
                             <h2>Apache Server Configuration</h2>
-                            <p className="lead">
-                                Apache configurations are very touchy and may cause unexpected errors.
-                            </p>
                             <p>
                                 After downloading the C6 framework you'll need to edit the <b>.htaccess</b> file if you
                                 are using
@@ -522,9 +519,7 @@ class Environment extends React.Component {
 
             <code>{'RewriteCond %{REQUEST_FILENAME} !-f'}
                     {'RewriteRule ^(.*)$ /index.php [NC,L,QSA]'}</code>
-
-                            <p>If all else fails, attempt using only the two lines above.
-                                <b>Google App engine does not use this file.</b></p>
+                                <p>*Google App engine does not use this file.</p>
                         </GridItem>
                     </GridContainer>
                 </div>

@@ -6,7 +6,7 @@
  * Time: 12:28 AM
  */
 
-namespace CarbonPHP\Controller;
+namespace Controller;
 
 class Color
 {
@@ -14,13 +14,11 @@ class Color
 
         global $json;
 
-        if ($_POST['code'] ?? false) {
+        if ($_POST['code'] ??= false) {
             $json['colorCode'] = highlight($_POST['code'] , false);
         } else {
             $json['colorCode'] = '';
         }
-
-        //$_POST and sortDump($headers = apache_request_headers());
 
         return null;
     }

@@ -3,13 +3,11 @@ import React from "react";
 import classNames from "classnames";
 // react components for routing our app without refresh
 
-import {Link} from "react-router-dom";
 // @material-ui/core components
 import withStyles from "@material-ui/core/styles/withStyles";
 // @material-ui/icons
 // core components
 import GridItem from "components/Grid/GridItem.jsx";
-import Button from "components/CustomButtons/Button.jsx";
 // sections for this page
 import SectionBasics from "./Sections/SectionBasics.jsx";
 import SectionNavbars from "./Sections/SectionNavbars.jsx";
@@ -20,7 +18,6 @@ import SectionTypography from "./Sections/SectionTypography.jsx";
 import SectionJavascript from "./Sections/SectionJavascript.jsx";
 import SectionCompletedExamples from "./Sections/SectionCompletedExamples.jsx";
 import SectionLogin from "./Sections/SectionLogin.jsx";
-import SectionExamples from "./Sections/SectionExamples.jsx";
 import SectionDownload from "./Sections/SectionDownload.jsx";
 
 import componentsStyle from "assets/jss/material-kit-react/views/components.jsx";
@@ -37,8 +34,6 @@ import HeaderTop from "components/HeaderTop/HeaderTop";
 import HeaderLinks from "components/HeaderTop/HeaderLinks.jsx";
 import ProfilePage from "../ProfilePage/ProfilePage";
 import LandingPage from "../LandingPage/LandingPage";
-import SectionCarousel from "./Sections/SectionCarousel";
-// import Sections from "views/Documentation/Sections/Sections";
 
 
 class Documentation extends React.Component {

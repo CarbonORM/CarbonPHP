@@ -30,8 +30,6 @@ import Parallax from "../../components/Parallax/Parallax";
 import GridContainer from "../../components/Grid/GridContainer";
 import Footer from "../../components/Footer/Footer";
 
-import cx from "classnames";
-
 
 import HeaderTop from "components/HeaderTop/HeaderTop";
 import HeaderLinks from "components/HeaderTop/HeaderLinks.jsx";
@@ -47,11 +45,9 @@ import Singleton from "./Sections/Singleton";
 import Server from "./Sections/Server";
 import View from "./Sections/View";
 import BrowserOSSupport from "./Sections/BrowserOSSupport";
-import UIElements from "./Sections/UIElements";
 import Implementations from "./Sections/Implementations";
 import Support from "./Sections/Support";
 import License from "./Sections/License";
-import MaterialUI from "./Sections/MaterialUI";
 import Overview from "./Sections/Overview";
 
 

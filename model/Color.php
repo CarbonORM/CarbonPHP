@@ -6,7 +6,7 @@
  * Time: 1:54 AM
  */
 
-namespace CarbonPHP\Model;
+namespace Model;
 
 class Color
 {

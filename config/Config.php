@@ -73,7 +73,7 @@ return [
 
         'DB_HOST' => '127.0.0.1',                        // IP
 
-        'DB_PORT' => '3306',
+        'DB_PORT' => 3306,
 
         'DB_NAME' => 'CarbonPHP',                        // Schema
 
@@ -144,7 +144,7 @@ return [
 
         'LEVEL' => E_ALL | E_STRICT,  // php ini level
 
-        'STORE' => true,      // Database if specified and / or File 'LOCATION' in your system
+        'STORE' => false,      // Database if specified and / or File 'LOCATION' in your system
 
         'SHOW' => true,       // Show errors on browser
 
@@ -159,39 +159,39 @@ return [
     'MINIFY' => [
         'CSS' => [
             'OUT' => APP_ROOT .'view/mustache/css/style.css',
-            CARBON_ROOT .'node_modules/admin-lte/bower_components/bootstrap/dist/css/bootstrap.min.css',
-            CARBON_ROOT .'node_modules/admin-lte/dist/css/AdminLTE.min.css',
-            CARBON_ROOT .'node_modules/admin-lte/dist/css/skins/_all-skins.min.css',
-            CARBON_ROOT .'node_modules/admin-lte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css',
-            CARBON_ROOT .'node_modules/admin-lte/plugins/iCheck/all.css',
-            CARBON_ROOT .'node_modules/admin-lte/bower_components/bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css',
-            CARBON_ROOT .'node_modules/admin-lte/bower_components/Ionicons/css/ionicons.min.css',
-            CARBON_ROOT .'node_modules/admin-lte/plugins/bootstrap-slider/slider.css',
-            CARBON_ROOT .'node_modules/admin-lte/dist/css/skins/skin-green.css',
-            CARBON_ROOT .'node_modules/admin-lte/bower_components/select2/dist/css/select2.min.css',
-            CARBON_ROOT .'node_modules/admin-lte/plugins/iCheck/flat/blue.css',
-            CARBON_ROOT .'node_modules/admin-lte/bower_components/morris.js/morris.css',
-            CARBON_ROOT .'node_modules/admin-lte/plugins/pace/pace.css',
-            CARBON_ROOT .'node_modules/admin-lte/bower_components/jvectormap/jquery-jvectormap.css',
-            CARBON_ROOT .'node_modules/admin-lte/bower_components/bootstrap-datepicker/dist/css/bootstrap-datepicker.css',
-            CARBON_ROOT .'node_modules/admin-lte/bower_components/bootstrap-daterangepicker/daterangepicker.css',
-            CARBON_ROOT .'node_modules/admin-lte/plugins/timepicker/bootstrap-timepicker.css',
-            CARBON_ROOT .'node_modules/admin-lte/plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.min.css',
-            CARBON_ROOT .'node_modules/admin-lte/bower_components/font-awesome/css/font-awesome.min.css',
-            CARBON_ROOT .'node_modules/admin-lte/bower_components/fullcalendar/dist/fullcalendar.min.css'
+            APP_ROOT .'node_modules/admin-lte/bower_components/bootstrap/dist/css/bootstrap.min.css',
+            APP_ROOT .'node_modules/admin-lte/dist/css/AdminLTE.min.css',
+            APP_ROOT .'node_modules/admin-lte/dist/css/skins/_all-skins.min.css',
+            APP_ROOT .'node_modules/admin-lte/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css',
+            APP_ROOT .'node_modules/admin-lte/plugins/iCheck/all.css',
+            APP_ROOT .'node_modules/admin-lte/bower_components/bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css',
+            APP_ROOT .'node_modules/admin-lte/bower_components/Ionicons/css/ionicons.min.css',
+            APP_ROOT .'node_modules/admin-lte/plugins/bootstrap-slider/slider.css',
+            APP_ROOT .'node_modules/admin-lte/dist/css/skins/skin-green.css',
+            APP_ROOT .'node_modules/admin-lte/bower_components/select2/dist/css/select2.min.css',
+            APP_ROOT .'node_modules/admin-lte/plugins/iCheck/flat/blue.css',
+            APP_ROOT .'node_modules/admin-lte/bower_components/morris.js/morris.css',
+            APP_ROOT .'node_modules/admin-lte/plugins/pace/pace.css',
+            APP_ROOT .'node_modules/admin-lte/bower_components/jvectormap/jquery-jvectormap.css',
+            APP_ROOT .'node_modules/admin-lte/bower_components/bootstrap-datepicker/dist/css/bootstrap-datepicker.css',
+            APP_ROOT .'node_modules/admin-lte/bower_components/bootstrap-daterangepicker/daterangepicker.css',
+            APP_ROOT .'node_modules/admin-lte/plugins/timepicker/bootstrap-timepicker.css',
+            APP_ROOT .'node_modules/admin-lte/plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.min.css',
+            APP_ROOT .'node_modules/admin-lte/bower_components/font-awesome/css/font-awesome.min.css',
+            APP_ROOT .'node_modules/admin-lte/bower_components/fullcalendar/dist/fullcalendar.min.css'
         ],
         'JS' => [
             'OUT' => APP_ROOT .'view/mustache/js/javascript.js',
-            CARBON_ROOT .'node_modules/admin-lte/bower_components/jquery/dist/jquery.slim.js',
-            CARBON_ROOT .'node_modules/jquery-pjax/jquery.pjax.js',
-            CARBON_ROOT .'view/mustache/Layout/mustache.js',
+            APP_ROOT .'node_modules/admin-lte/bower_components/jquery/dist/jquery.js',  // do not use slim version
+            APP_ROOT .'node_modules/jquery-pjax/jquery.pjax.js',
+            APP_ROOT .'view/mustache/Layout/mustache.js',
             CARBON_ROOT .'helpers/Carbon.js',
             CARBON_ROOT .'helpers/asynchronous.js',
-            CARBON_ROOT .'node_modules/jquery-form/src/jquery.form.js',
-            CARBON_ROOT .'node_modules/admin-lte/bower_components/bootstrap/dist/js/bootstrap.min.js',
-            CARBON_ROOT .'node_modules/admin-lte/bower_components/jquery-slimscroll/jquery.slimscroll.min.js',
-            CARBON_ROOT .'node_modules/admin-lte/bower_components/fastclick/lib/fastclick.js',
-            CARBON_ROOT .'node_modules/admin-lte/dist/js/adminlte.js',
+            APP_ROOT .'node_modules/jquery-form/src/jquery.form.js',
+            APP_ROOT .'node_modules/admin-lte/bower_components/bootstrap/dist/js/bootstrap.min.js',
+            APP_ROOT .'node_modules/admin-lte/bower_components/jquery-slimscroll/jquery.slimscroll.min.js',
+            APP_ROOT .'node_modules/admin-lte/bower_components/fastclick/lib/fastclick.js',
+            APP_ROOT .'node_modules/admin-lte/dist/js/adminlte.js',
         ],
     ]
 ];
