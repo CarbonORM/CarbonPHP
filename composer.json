@@ -43,8 +43,7 @@
   "scripts": {
     "rei": "rm -rf vendor && rm composer.lock && composer i",
     "post-update-cmd": [
-      "php index.php minify",
-      "cd view/react/material-dashboard-react-c6 && npm install && npm run build"
+      "php index.php minify"
     ],
     "setup": [
       "php index.php setup --mysql_native_password",
