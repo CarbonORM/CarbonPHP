@@ -5,8 +5,8 @@ namespace CarbonPHP;
 use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Helpers\Globals;
-use CarbonPHP\Tables\carbon_tag;
-use CarbonPHP\Tables\carbons;
+use CarbonPHP\Tables\Carbon_Tag;
+use CarbonPHP\Tables\Carbons;
 use Exception;
 use PDO;
 use PDOStatement;
@@ -362,8 +362,8 @@ class Database
         $count = 0;
         do {
             $count++;
-            $id = carbons::Post([
-                carbons::ENTITY_FK => $dependant
+            $id = Carbons::Post([
+                Carbons::ENTITY_FK => $dependant
             ]);
         } while ($id === false && $count < 4);  // todo - why four?
 
@@ -391,7 +391,7 @@ class Database
     protected static function remove_entity($id): bool
     {
         $ref = [];
-        return carbons::Delete($ref, $id, []); //Database::database()->prepare('DELETE FROM carbon WHERE entity_pk = ?')->execute([$id]);
+        return Carbons::Delete($ref, $id, []); //Database::database()->prepare('DELETE FROM carbon WHERE entity_pk = ?')->execute([$id]);
     }
 
 

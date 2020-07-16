@@ -17,7 +17,7 @@ namespace CarbonPHP;
 
 use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Helpers\Serialized;
-use CarbonPHP\Tables\sessions;
+use CarbonPHP\Tables\Sessions;
 
 
 // most important line - session_set_save_handler($this, false)
