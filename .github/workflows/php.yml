@@ -1,11 +1,14 @@
-name: PHP Composer
+name: CarbonPHP Feature Test Suit
 
 on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
+      strategy:
+        max-parallel: 4
+        matrix:
+          php-versions: ['7.1', '7.2', '7.3', '7.4']
 
     steps:
     - uses: actions/checkout@v1
@@ -34,8 +37,17 @@ jobs:
     - name: Validate composer.json and composer.lock
       run: composer validate
 
-    - name: Install dependencies
+    - name: Install PHP dependencies
       run: composer install --prefer-dist --no-progress --no-suggest
+
+    - name: Install JS dependencies
+      run: npm install
+
+    - name: C6 Composer Setup Scripts
+      run: composer setup
+
+    - name: PHP version
+      run: php --version
 
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
     # Docs: https://getcomposer.org/doc/articles/scripts.md
