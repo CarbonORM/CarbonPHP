@@ -6,7 +6,7 @@
   "main": "src/index.js",
   "homepage": "http://dev.carbonphp.com/view/react/material-dashboard-react-c6/build/#/5.0",
   "dependencies": {
-    "acorn": "7.0.0",
+    "acorn": "7.1.1",
     "babel-cli": "6.26.0",
     "typescript": "^3.7.3",
     "@material-ui/core": "3.9.2",
