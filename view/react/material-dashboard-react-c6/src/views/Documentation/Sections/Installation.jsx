@@ -69,6 +69,7 @@ class SectionExamples extends React.Component {
                                     I have launched{" "}
                                     <a
                                         href="https://github.com/RichardTMiles/CarbonPHP"
+                                        rel="noopener noreferrer"
                                         target="_blank"
                                     >
                                         CarbonPHP{" "}
