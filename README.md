@@ -13,7 +13,7 @@ Refer to the guide for documentation -- it will be updated with every new releas
 
 ## Introduction
 
-CarbonPHP is a lightweight PHP 7.2+ toolkit to simplify the building of custom, dynamic web applications. Its main focus is on making webapps run ridiculously fast, with performance and high-traffic scalability being the absolute highest concern. CarbonPHP has clocked in with impressive statistics, sometimes doubling the traffic that small servers with MySQL-intensive sites can handle.
+CarbonPHP is a lightweight PHP 7.4+ toolkit to simplify the building of custom, dynamic web applications. Its main focus is on making webapps run ridiculously fast, with performance and high-traffic scalability being the absolute highest concern. CarbonPHP has clocked in with impressive statistics, sometimes doubling the traffic that small servers with MySQL-intensive sites can handle.
 
 CarbonPHP's other main focus is portability, allowing your webapps to be installed on servers with different operating systems, Full MySQL ORM REST generator, and php written database tools designed around the mysql dump. CarbonPHP's features are fully supported in windows and macintosh excluding the Windows Websocket Server. Their seems to be no solution for the async input and port scan Select in Windows PHP. I hope to contribute a php library written in C to support this task, however time is a factor.
  Should your development require Windows computers look into Websocketd.com and the file name "./programs/Websocketd.php". Please see the documentation at Carbonphp.com for more information.

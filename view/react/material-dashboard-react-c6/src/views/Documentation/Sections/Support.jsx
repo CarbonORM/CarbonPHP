@@ -22,15 +22,20 @@ class Template extends React.Component {
                             <p>
                                 CarbonPHP is free software made for love of a better web.
                                 Please say thanks to any all who help you in the forums. To raise an
-                                <a href={"https://github.com/RichardTMiles/CarbonPHP/issues"} target="_blank"> issue on Github</a>. If
+                                <a href={"https://github.com/RichardTMiles/CarbonPHP/issues"}
+                                   rel="noopener noreferrer"
+                                   target="_blank"> issue on Github</a>. If
                                 priority should
-                                be desired please reach out to <a href={"https://miles.systems/Mail"} target="_blank">our team here</a>.
+                                be desired please reach out to <a href={"https://miles.systems/Mail"}
+                                                                  rel="noopener noreferrer"
+                                                                  target="_blank">our team here</a>.
                             </p>
                             <div className={classes.justifyContentCenter}>
                                 <Button
                                     color="secondary"
                                     size="lg"
                                     href="https://opensource.guide/"
+                                    rel="noopener noreferrer"
                                     target="_blank">
                                     Open Source Guides
                                 </Button>

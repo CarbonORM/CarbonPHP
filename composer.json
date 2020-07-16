@@ -3,17 +3,14 @@
   "license": "MIT",
   "type": "library",
   "keywords": [
-    "Sockets",
-    "Carbon",
-    "Pipes",
-    "IO"
+    "Sockets", "Carbon", "Pipes", "IO", "Session", "Routing"
   ],
   "homepage": "https://github.com/richardtmiles/carbonphp",
-  "description": "Edit the DOM in PHP. A PHP 7+ tool kit designed for SEO optimization.",
+  "description": "A PHP 7.4+ tool kit featuring RESTFUL ORM, sockets, session management, and routing.",
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
-    "php": "^7.1",
+    "php": "^7.4",
     "mustache/mustache": "^2.13.0",
     "psr/log": "^1.0",
     "matthiasmullie/minify": "^1.3",
@@ -23,43 +20,41 @@
     "ext-curl": "*"
   },
   "require-dev": {
-    "phpunit/phpunit-selenium": "^4.1"
+    "phpunit/phpunit-selenium": "4.1.0"
   },
   "authors": [
     {
       "name": "Richard Miles",
       "email": "Richard@Miles.systems",
-      "homepage": "http://www.CarbonPHP.com",
+      "homepage": "https://www.CarbonPHP.com",
       "role": "Developer"
     }
   ],
   "autoload": {
     "psr-4": {
-      "CarbonPHP\\": "",
-      "CarbonPHP\\Tables\\": "tables/",
-      "CarbonPHP\\Error\\": "error/",
-      "CarbonPHP\\Helpers\\": "helpers/",
-      "CarbonPHP\\Interfaces\\": "interfaces/",
-      "CarbonPHP\\Programs\\": "programs/",
-      "CarbonPHP\\Controller\\": "controller/",
-      "CarbonPHP\\Model\\": "model/"
+      "CarbonPHP\\Error\\": "src/error/",
+      "CarbonPHP\\Interfaces\\": "src/interfaces/",
+      "CarbonPHP\\Programs\\": "src/programs/",
+      "CarbonPHP\\Tables\\": "src/tables/",
+      "CarbonPHP\\": "src/",
+      "Tests\\": "tests/"
     }
   },
   "scripts": {
-    "post-install-cmd": [
-      "php index.php minify",
-      "cd view/react/material-dashboard-react-c6 && npm install && npm run build"
-    ],
+    "rei": "rm -rf vendor && rm composer.lock && composer i",
     "post-update-cmd": [
       "php index.php minify",
       "cd view/react/material-dashboard-react-c6 && npm install && npm run build"
     ],
-    "test": [
+    "setup": [
       "php index.php setup --mysql_native_password",
       "php index.php setup --rebuild",
-      "php index.php minify",
       "php index.php rest -json -logClasses",
-      "./vendor/bin/phpunit"
+      "php index.php minify",
+      "cd view/react/material-dashboard-react-c6 && npm install && npm run build"
+    ],
+    "test": [
+      "./vendor/bin/phpunit  --testdox || ./vendor/bin/phpunit"
     ]
   }
 }

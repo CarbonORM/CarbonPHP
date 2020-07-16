@@ -47,7 +47,7 @@ class login extends React.Component {
                 if (prop.redirect) {
                     if (!prop.pathTo) {
                         console.log('bad route redirect,', prop);
-                        return;
+                        return "";
                     }
                     return <Redirect
                         exact
