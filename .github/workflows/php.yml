@@ -3,7 +3,7 @@ name: CarbonPHP Feature Test Suit
 on: [push]
 
 jobs:
-  build:
+  Linux:
     name: PHP ${{ matrix.php-versions }} Test on ${{ matrix.operating-system }}
     runs-on: ${{matrix.operating-system}}
     container: ${{matrix.container}}
@@ -12,22 +12,8 @@ jobs:
       matrix:
         operating-system: [ubuntu-latest]
         php-versions: ['7.4']
-    services:
-      mariadb:
-        image: mariadb:latest
-        ports:
-          - 3306
-        env:
-          MYSQL_USER: admin
-          MYSQL_PASSWORD: password
-          MYSQL_DATABASE: CarbonPHP
-          MYSQL_ROOT_PASSWORD: password
-        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
 
     steps:
-    - name: Set selected color
-      run: echo '::set-env name=CI::true'
-
     - name: Checkout
       uses: actions/checkout@v2
 
@@ -41,6 +27,27 @@ jobs:
         tools: php-cs-fixer, phpunit
       env:
         update: true # specify true or false
+
+    - name: Shutdown Ubuntu MySQL (SUDO)
+      run: sudo service mysql stop # Shutdown the Default MySQL, "sudo" is necessary, please not remove it
+
+    - name: Setup MySQL
+      uses: mirromutth/mysql-action@v1.1
+      with:
+        # --character-set-server - The character set of MySQL server
+        character set server: 'utf8mb4'
+        # --collation-server - The character collation of MySQL server
+        collation server: 'utf8mb4_general_ci'
+        # Version of MySQL to use
+        mysql version: 'latest'
+        # MYSQL_ROOT_PASSWORD - root superuser password
+        mysql root password: 'password'
+        # MYSQL_DATABASE - name for the default database that is created
+        mysql database: 'CarbonPHP'
+        # MYSQL_USER - create the specified user with superuser power for created database
+        mysql user: 'admin'
+        # MYSQL_PASSWORD - specified superuser password which user is power for created database
+        mysql password: 'password'
 
     - name: Validate composer.json and composer.lock
       run: composer validate
