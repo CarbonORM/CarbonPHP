@@ -67,13 +67,15 @@
  * @throws Exception
  */
 
+define('CI', 'true' === $_ENV['CI']);
+
 return [
 
     'DATABASE' => [
 
         'DB_HOST' => '127.0.0.1',                        // IP
 
-        'DB_PORT' => 3306,
+        'DB_PORT' => CI ? '3307' : '3306',
 
         'DB_NAME' => 'CarbonPHP',                        // Schema
 
