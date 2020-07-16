@@ -3,12 +3,7 @@
   "license": "MIT",
   "type": "library",
   "keywords": [
-    "Sockets",
-    "Carbon",
-    "Pipes",
-    "IO",
-    "Session",
-    "Routing"
+    "Sockets", "Carbon", "Pipes", "IO", "Session", "Routing"
   ],
   "homepage": "https://github.com/richardtmiles/carbonphp",
   "description": "A PHP 7.4+ tool kit featuring RESTFUL ORM, sockets, session management, and routing.",
