@@ -3,15 +3,30 @@ name: CarbonPHP Feature Test Suit
 on: [push]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  Linux:
+    name: PHP ${{ matrix.php-versions }} Test on ${{ matrix.operating-system }}
+    runs-on: ${{matrix.operating-system}}
+    container: ${{matrix.container}}
     strategy:
       max-parallel: 4
       matrix:
-        php-versions: ['7.1', '7.2', '7.3', '7.4']
+        operating-system: [ubuntu-latest]
+        php-versions: ['7.4']
 
     steps:
-    - uses: actions/checkout@v1
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-versions }}
+        extensions: mbstring, intl
+        ini-values: post_max_size=256M, short_open_tag=On
+        coverage: xdebug
+        tools: php-cs-fixer, phpunit
+      env:
+        update: true # specify true or false
 
     - name: Shutdown Ubuntu MySQL (SUDO)
       run: sudo service mysql stop # Shutdown the Default MySQL, "sudo" is necessary, please not remove it
@@ -32,20 +47,46 @@ jobs:
         # MYSQL_USER - create the specified user with superuser power for created database
         mysql user: 'admin'
         # MYSQL_PASSWORD - specified superuser password which user is power for created database
-        mysql password: 'nimda'
+        mysql password: 'password'
 
     - name: Validate composer.json and composer.lock
       run: composer validate
 
-    - name: Install PHP dependencies
+    # composer with Cache
+    - name: Get composer cache directory
+      id: composercache
+      run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+    - name: Cache composer dependencies # https://github.com/marketplace/actions/setup-php-action#matrix-setup
+      uses: actions/cache@v2
+      with:
+        path: ${{ steps.composercache.outputs.dir }}
+        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+        restore-keys: ${{ runner.os }}-composer-
+
+    - name: Install composer dependencies
       run: composer install --prefer-dist --no-progress --no-suggest
 
-    - name: Install JS dependencies
+    # node with Cache
+    - name: Get node.js cache directory
+      id: nodecache
+      run: echo "::set-output name=dir::$(npm config get cache)" # Use $(yarn cache dir) for yarn
+
+    - name: Cache node.js dependencies
+      uses: actions/cache@v2
+      with:
+        path: ${{ steps.nodecache.outputs.dir }}
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }} # Use '**/yarn.lock' for yarn
+        restore-keys: ${{ runner.os }}-node-
+
+    - name: Install node.js dependencies
       run: npm install
 
+    # Generate Files
     - name: C6 Composer Setup Scripts
       run: composer setup
 
+    # Double check php version
     - name: PHP version
       run: php --version
 

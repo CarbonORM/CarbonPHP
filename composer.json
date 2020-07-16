@@ -10,7 +10,7 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
-    "php": "^7.4",
+    "php": ">=7.4",
     "mustache/mustache": "^2.13.0",
     "psr/log": "^1.0",
     "matthiasmullie/minify": "^1.3",
