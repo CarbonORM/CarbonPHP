@@ -73,7 +73,7 @@ return [
 
         'DB_HOST' => '127.0.0.1',                        // IP
 
-        'DB_PORT' => 3306,
+        'DB_PORT' => '3306',
 
         'DB_NAME' => 'CarbonPHP',                        // Schema
 
