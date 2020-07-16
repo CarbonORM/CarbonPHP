@@ -19,7 +19,7 @@ jobs:
           - 3306
         env:
           MYSQL_USER: admin
-          MYSQL_PASSWORD: nimda
+          MYSQL_PASSWORD: password
           MYSQL_DATABASE: CarbonPHP
           MYSQL_ROOT_PASSWORD: password
         options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
@@ -50,14 +50,14 @@ jobs:
       id: composercache
       run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
-    - name: Cache dependencies # https://github.com/marketplace/actions/setup-php-action#matrix-setup
+    - name: Cache composer dependencies # https://github.com/marketplace/actions/setup-php-action#matrix-setup
       uses: actions/cache@v2
       with:
         path: ${{ steps.composercache.outputs.dir }}
         key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
         restore-keys: ${{ runner.os }}-composer-
 
-    - name: Install dependencies
+    - name: Install composer dependencies
       run: composer install --prefer-dist --no-progress --no-suggest
 
     # node with Cache
@@ -65,14 +65,14 @@ jobs:
       id: nodecache
       run: echo "::set-output name=dir::$(npm config get cache)" # Use $(yarn cache dir) for yarn
 
-    - name: Cache dependencies
+    - name: Cache node.js dependencies
       uses: actions/cache@v2
       with:
         path: ${{ steps.nodecache.outputs.dir }}
         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }} # Use '**/yarn.lock' for yarn
         restore-keys: ${{ runner.os }}-node-
 
-    - name: Install JS dependencies
+    - name: Install node.js dependencies
       run: npm install
 
     # Generate Files

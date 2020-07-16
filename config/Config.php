@@ -67,8 +67,6 @@
  * @throws Exception
  */
 
-define('CI', 'true' === $_ENV['CI']);
-
 return [
 
     'DATABASE' => [
