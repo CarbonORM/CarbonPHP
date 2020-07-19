@@ -30,17 +30,19 @@ dir(APP_ROOT);
 
 // TODO - make vendor automatic
 if (false === (include APP_ROOT . 'vendor/autoload.php')) {     // Load the autoload() for composer dependencies located in the Services folder
-    print '<h1>Loading Composer Failed. See Carbonphp.com for documentation.</h1>' and die;     // Composer autoload
+    print '<h1>Loading Composer Failed. See Carbonphp.com for documentation.</h1>';
+    die(1);     // Composer autoload
 }
 
 if (!\extension_loaded('pcntl')) {
     print '<h1>CarbonPHP Websockets require the PCNTL library. See CarbonPHP.com for more Documentation</h1>';
+    exit(1);
 }
 
 new CarbonPHP($opts = include $argv[2]);
 
 
-$signal = function ($signal) {
+$signal = static function ($signal) {
     print "Signal :: $signal\n";
     global $fifoPath, $fp;
     if (\is_resource($fp)) {
@@ -58,7 +60,7 @@ pcntl_signal(SIGHUP, $signal);  // Terminal log-out
 pcntl_signal(SIGINT, $signal);  // Interrupted ( Ctrl-C is pressed)
 
 
-class Server extends Request
+class WebSocketPHP extends Request
 {
     private const TEXT = 0x1;
     private const BINARY = 0x2;
@@ -374,7 +376,7 @@ class Server extends Request
 }
 
 
-$socket = new Server($opts);
+$socket = new WebSocketPHP($opts);
 
 
 $socket->serve($socket->user);

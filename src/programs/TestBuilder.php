@@ -16,7 +16,7 @@ class TestBuilder implements iCommand
 {
     use Background;
 
-    private $CONFIG;
+    private array $CONFIG;
 
     public function __construct($CONFIG)
     {
@@ -29,9 +29,9 @@ class TestBuilder implements iCommand
         print 'This builds a string you can execute to create a live websocket connection with your application.';
     }
 
-    public function cleanUp($argv): int
+    public function cleanUp($argv): void
     {
-        return 0;
+        // nothing
     }
 
     public function run($argv): void

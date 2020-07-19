@@ -15,17 +15,49 @@ use CarbonPHP\interfaces\iCommand;
 class CLI implements iCommand
 {
 
-    private $CONFIG;
-    private $programs;
+    private array $CONFIG;
+    private array $C6Programs = [];
+    private array $UserPrograms = [];
+    private string $userProgramsDirectory = '';
 
-    public function __construct($CONFIG)
+    public function __construct(array $CONFIG)
     {
         $this->CONFIG = $CONFIG;
         $this->programList();
     }
 
 
-    public function programList() {
+    public function programList(): void
+    {
+        $clean = static function (&$program) {
+            $program = basename($program, '.php');
+        };
+
+        if (!file_exists(APP_ROOT . 'composer.json')) {
+            print "\tCouldn't find composer.json under the APP_ROOT.\n\tLearn how to add cli programs at CarbonPHP.com";
+        } else {
+            $json = file_get_contents(APP_ROOT . 'composer.json');
+            $json = json_decode($json, true);
+            if ($json === null) {
+                print "\n\tThe decoding of composer.json failed. Please make sure the file contains a valid json.\n\n";
+                return;
+            }
+            $this->userProgramsDirectory = $programDirectory = $json['autoload']['psr-4']["Programs\\"] ??= false;
+
+            if (is_string($programDirectory)) {
+                if (!is_dir($programDirectory)) {
+                    print 'The directory defined for the Programs Namespace in composer.json does not exist.';
+                    exit(1);
+                }
+                $userDefinedPrograms = scandir(CARBON_ROOT . 'programs', null);
+
+                if (!array_walk($userDefinedPrograms, $clean)) {
+                    exit('array_walk failed in Cli::run()');
+                }
+
+                $this->UserPrograms = $userDefinedPrograms;
+            }
+        }
 
         // the following removes helper classes invalid responses and unfinished tools
         $program = array_diff(
@@ -34,22 +66,20 @@ class CLI implements iCommand
                 '.',
                 '..',
                 'CLI.php',
-                'Server.php',
+                'WebSocketPHP.php',
                 'Background.php',
                 'MySQL.php',
                 'TestAutomationServer.php',
-                'testBuilder.php'
+                'testBuilder.php',
+                'Websocketd.php'
             ));
 
-        $clean = static function (&$program) {
-            $program = basename($program, '.php');
-        };
 
         if (!array_walk($program, $clean)) {
             exit('array_walk failed in Cli::run()');
         }
 
-        $this->programs = $program;
+        $this->C6Programs = $program;
     }
 
     /** Command Line Interface. Use
@@ -59,7 +89,7 @@ class CLI implements iCommand
      * @param $argv
      * @return mixed
      */
-    public function run($argv)
+    public function run(array $argv) : void
     {
         $PHP = $this->CONFIG;
 
@@ -68,43 +98,54 @@ class CLI implements iCommand
 
         $program = array_shift($argv);
 
-        foreach ($this->programs as $name) {
-            // I prefer this loop so I catch
-            if (strtolower($program) !== strtolower($name)) {
-                continue;
+        $searchAndExecute = static function ($path, $array) use ($program, $PHP, $argv) {
+            foreach ($array as $name) {
+                // I prefer this loop so I catch
+                if (strtolower($program) !== strtolower($name)) {
+                    continue;
+                }
+
+                /** @noinspection PhpIncludeInspection */
+                if (false === include($path . $name . '.php')) {
+                    die('Failed loading file "' . $name . '.php". Please no syntax errors exist in this file.');
+                }
+
+                $classes = get_declared_classes();
+
+                $class = end($classes);
+
+                if (!class_exists($class)) {
+                    die('Failed to load the class ("' . $class . '")');
+                }
+
+                $imp = class_implements($class);
+
+                if (!array_key_exists(iCommand::class, $imp)) {
+                    die('The program class "' . $class . '" should also implement iCommand. ' . print_r($imp, true));
+                }
+
+                // We're only using this closure to reinforce our iCommand // type hint
+                $run = static function (iCommand $cmd) use ($argv) {
+                    $cmd->run($argv);
+                    $cmd->cleanUp($argv);
+                    return 0;               // successful exit code is 0
+                };
+
+                exit($run(new $class($PHP)));
             }
+        };
 
-            /** @noinspection PhpIncludeInspection */
-            if ((false === include (CARBON_ROOT . 'programs/' . $name . '.php')) &&
-                (false === include (APP_ROOT . 'programs/' . $name . '.php'))) {
-                die('Failed loading file "' . $name . '.php". Please no syntax errors exist in this file.');
-            }
+        // while way more likely to run a C6 program and not user defined, precedence says a user program should
+        // overwrite a C6
+        $searchAndExecute(APP_ROOT . $this->userProgramsDirectory, $this->UserPrograms);
 
-            $classes = get_declared_classes();
+        // If a user makes a program with a name C6 will later take, for example, backwards compatibility
+        $searchAndExecute(CARBON_ROOT . 'programs/' , $this->C6Programs);
 
-            $class = end($classes);
-
-            if (!class_exists($class)) {
-                die('Failed to load the class ("' . $class . '")');
-            }
-
-            $imp = class_implements($class);
-
-            if (!array_key_exists(iCommand::class, $imp)) {
-                die('The program class "' . $class . '" should also implement iCommand. '. print_r($imp, true));
-            }
-
-            // We're only using this closure to reinforce our iCommand // type hint
-            $run = function (iCommand $cmd) use ($argv) {
-                return $cmd->run($argv) and $cmd->cleanUp($argv);
-            };
-
-            exit($run(new $class($PHP)));
-        }
-
+        //
         switch ($program) {
             case 'minify':
-                    print "\n\nminify\n\n";
+                print "\n\nminify\n\n";
                 break;
             case 'check':
                 $cmd = 'netstat -a -n -o | find "' . ($PHP['SOCKET']['PORT'] ?? 8888) . '\"';
@@ -116,7 +157,7 @@ class CLI implements iCommand
                 print shell_exec('phpunit --bootstrap vendor/autoload.php --testdox  tests');
                 print PHP_EOL;
                 break;
-            case 'php':
+            case 'websocketphp':
                 print 'Starting PHP Websocket' . PHP_EOL;
                 $CMD = 'php ' . CARBON_ROOT . 'Server.php ' . APP_ROOT . ' ' . $PHP['SITE']['CONFIG'];
                 print `$CMD`;
@@ -125,20 +166,20 @@ class CLI implements iCommand
             default:
                 $this->usage();
         }
-        return 0;
     }
 
-    public function usage()
+    public function usage():void
     {
         // common knowledge tabs do not work well across os
-        $this->programs = implode("\n                        ", $this->programs);
+        $c6 = implode("\n                        ", $this->C6Programs);
+        $UserPrograms = implode("\n                        ", $this->UserPrograms);
 
         print <<<END
           Available CarbonPHP CLI Commands  
             
           User Defined Commands :: 
 
-                        $this->programs
+                        $UserPrograms
 
           CarbonPHP Built-in commands ::
         
@@ -148,7 +189,7 @@ class CLI implements iCommand
                         Rest                          - auto generate rest api from mysqldump
                         php                           - start a HTTP 5 web socket server written in PHP
                         GO                            - start a HTTP 5 web socket server written in Google Go
-
+                        $c6
 
           While CarbonPHP displays this in the cli, it does not exit here. Custom functions may 
           be written after the CarbonPHP invocation. The CLI execution will however, stop the 
@@ -157,8 +198,7 @@ class CLI implements iCommand
 END;
     }
 
-    public function cleanUp($PHP) : int
+    public function cleanUp($PHP): void
     {
-        return 0;
     }
 }

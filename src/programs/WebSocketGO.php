@@ -13,11 +13,11 @@ namespace CarbonPHP\Programs;
 use CarbonPHP\interfaces\iCommand;
 
 
-class GO implements iCommand
+class WebSocketGO implements iCommand
 {
     use Background;
 
-    private $CONFIG;
+    private array $CONFIG;
 
     public function __construct($CONFIG)
     {

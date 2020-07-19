@@ -23,7 +23,7 @@ class Rest implements iCommand
     private $password;
     private $cleanUp;
 
-    public function cleanUp($argv)
+    public function cleanUp(array $argv) : void
     {
         $this->cleanUp and $this->removeFiles();
     }
@@ -91,7 +91,7 @@ END;
         $this->password = $CONFIG['DATABASE']['DB_PASS'];
     }
 
-    public function run($argv): int
+    public function run(array $argv): void
     {
         // Check command line args, password is optional
         print "\tBuilding Rest Api!\n";
@@ -573,7 +573,6 @@ END;
 
         print "\tSuccess!\n\n";
 
-        return 0;
     }
 
     public static function trigger($table, $columns, $binary, $dependencies, $primary): string
