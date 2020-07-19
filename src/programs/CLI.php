@@ -49,7 +49,11 @@ class CLI implements iCommand
                     print 'The directory defined for the Programs Namespace in composer.json does not exist.';
                     exit(1);
                 }
-                $userDefinedPrograms = scandir(CARBON_ROOT . 'programs', null);
+                $userDefinedPrograms = scandir(APP_ROOT . $programDirectory, null);
+
+                $userDefinedPrograms = array_diff(
+                    $userDefinedPrograms,
+                    ['.', '..']);
 
                 if (!array_walk($userDefinedPrograms, $clean)) {
                     exit('array_walk failed in Cli::run()');
