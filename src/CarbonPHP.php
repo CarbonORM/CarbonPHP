@@ -233,7 +233,7 @@ class CarbonPHP
             #######################   VIEW      ######################
             define('APP_VIEW', $PHP['VIEW']['VIEW'] ?? DS);         // Public Folder
 
-            View::$wrapper = APP_ROOT . APP_VIEW . $PHP['VIEW']['WRAPPER'] ?? '';
+            View::$wrapper = APP_ROOT . APP_VIEW . ($PHP['VIEW']['WRAPPER'] ?? '');
 
             ####################  GENERAL CONF  ######################
             error_reporting($PHP['ERROR']['LEVEL'] ?? E_ALL | E_STRICT);
