@@ -215,12 +215,19 @@ class CarbonPHP
                     /** @var array $PHP */
                     /** @noinspection PhpIncludeInspection */
                     $PHP = include $configFilePath;            // TODO - change the variable
-                    // this file must return an array!
-                } elseif ($configFilePath !== null) {
+
+                    if (!is_array($PHP)) {
+                        print 'The configuration file passed to C6 must return an array!';
+                        self::$safelyExit = true;
+                        return;
+                    }
+                } else {
                     print 'Invalid configuration path given! ' . $configFilePath;
                     self::$safelyExit = true;
                     return;
                 }
+            } else {
+                $PHP = [];
             }
 
             #######################   VIEW      ######################
