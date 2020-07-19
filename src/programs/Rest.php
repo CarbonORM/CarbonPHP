@@ -410,7 +410,8 @@ END;
                             // We need to escape values for php
                             $default = "'$default'";
                         }
-                        $rest[$tableName]['explode'][$column]['default'] = $default === "'NULL'" ? 'null' : ($cast_binary_default ? 'null' : $default);
+                        /** @noinspection NestedTernaryOperatorInspection */
+                        $rest[$tableName]['explode'][$column]['default'] = ($default === "'NULL'" ? 'null' : ($cast_binary_default ? 'null' : $default));
                     }
 
                     // As far as I can tell the AUTO_INCREMENT condition the last possible word in the query

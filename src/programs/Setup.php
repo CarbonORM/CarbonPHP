@@ -127,8 +127,6 @@ IDENTIFIED;
                 exit(1);
             }
         }
-
-        return 0;
     }
 
     public function cleanUp($argv) : void

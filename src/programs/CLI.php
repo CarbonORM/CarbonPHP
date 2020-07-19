@@ -66,12 +66,12 @@ class CLI implements iCommand
                 '.',
                 '..',
                 'CLI.php',
-                'WebSocketPHP.php',
                 'Background.php',
                 'MySQL.php',
                 'TestAutomationServer.php',
                 'testBuilder.php',
-                'Websocketd.php'
+                'Websocketd.php',
+                'WebSocketPHP.php'
             ));
 
 
@@ -142,7 +142,7 @@ class CLI implements iCommand
         // If a user makes a program with a name C6 will later take, for example, backwards compatibility
         $searchAndExecute(CARBON_ROOT . 'programs/', $this->C6Programs);
 
-        //
+        // executables switch TODO - make these programs
         switch ($program) {
             case 'minify':
                 print "\n\nminify\n\n";
@@ -154,7 +154,9 @@ class CLI implements iCommand
                 break;
             case 'test':
                 print PHP_EOL;
-                print shell_exec('phpunit --bootstrap vendor/autoload.php --testdox  tests');
+                // I used to use `phpunit --testdox  tests --bootstrap vendor/autoload.php`
+                // but better defined in test constructor this may not be the case for browser test / tbd
+                print shell_exec('composer test');
                 print PHP_EOL;
                 break;
             case 'websocketphp':
@@ -225,17 +227,23 @@ END;
         }
 
 
+        // $c6
+
         print <<<END
           
           CarbonPHP Built-in commands ::
         
                         help                          - This list of options
                         [command] -help               - display a list of options for each sub command
-                        test                          - Run PHPUnit tests
+                        Test                          - Run PHPUnit tests
                         Rest                          - auto generate rest api from mysqldump
-                        php                           - start a HTTP 5 web socket server written in PHP
-                        GO                            - start a HTTP 5 web socket server written in Google Go
-                        $c6
+                        WebSocketPHP                  - start a HTTP 5 web socket server written in PHP
+                        WebSocketGO                   - start a HTTP 5 web socket server written in Google Go
+                        Database                      - cache current database schema or rebuild cached schema
+                        Minify                        - minify css and js files defined in configuration 
+                        Setup                         - wip
+                        TestBuilder                   - wip (work in progress) 
+
 
           While CarbonPHP displays this in the cli, it does not exit here. Custom functions may 
           be written after the CarbonPHP invocation. The CLI execution will however, stop the 
