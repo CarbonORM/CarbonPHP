@@ -89,7 +89,7 @@ class CLI implements iCommand
      * @param $argv
      * @return mixed
      */
-    public function run(array $argv) : void
+    public function run(array $argv): void
     {
         $PHP = $this->CONFIG;
 
@@ -140,7 +140,7 @@ class CLI implements iCommand
         $searchAndExecute(APP_ROOT . $this->userProgramsDirectory, $this->UserPrograms);
 
         // If a user makes a program with a name C6 will later take, for example, backwards compatibility
-        $searchAndExecute(CARBON_ROOT . 'programs/' , $this->C6Programs);
+        $searchAndExecute(CARBON_ROOT . 'programs/', $this->C6Programs);
 
         //
         switch ($program) {
@@ -168,19 +168,65 @@ class CLI implements iCommand
         }
     }
 
-    public function usage():void
+    public function usage(): void
     {
         // common knowledge tabs do not work well across os
         $c6 = implode("\n                        ", $this->C6Programs);
-        $UserPrograms = implode("\n                        ", $this->UserPrograms);
 
-        print <<<END
+        if (APP_ROOT . 'src/' !== CARBON_ROOT) {
+            if (!empty($this->UserPrograms)) {
+                $UserPrograms = implode("\n                        ", $this->UserPrograms);
+
+                print <<<END
           Available CarbonPHP CLI Commands  
             
           User Defined Commands :: 
 
                         $UserPrograms
 
+END;
+            } else {
+
+                print <<<END
+          You can create custom commands by adding the "Programs//" namespace to 
+          
+                  APP_ROOT . composers.json
+                  
+                .
+                .
+                .  
+                "autoload": {
+                    "psr-4": {
+                        "App\\":"",
+                        "Programs\\": "programs/"
+                    }
+                },
+                .
+                .
+                .
+                      
+                   Then implementing program classes with the iCommand interface.  
+                
+                <?php
+
+                namespace Programs;
+
+                use CarbonPHP\interfaces\iCommand;
+                
+                class YourNewProgram implements iCommand 
+                { 
+                 
+                       ...
+                
+                }
+
+END;
+            }
+        }
+
+
+        print <<<END
+          
           CarbonPHP Built-in commands ::
         
                         help                          - This list of options
