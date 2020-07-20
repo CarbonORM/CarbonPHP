@@ -356,9 +356,6 @@ class CarbonPHP
                 die(1);
             }
 
-            // TODO - I think we should make this optional
-            #AJAX OR $_POST = []; // We only allow post requests through ajax/pjax
-
             ########################  Session Management ######################
             if ($PHP['SESSION'] ?? true) {
                 if ($PHP['SESSION']['PATH'] ?? false) {
@@ -384,33 +381,10 @@ class CarbonPHP
         } catch (Throwable $e) {
             print PHP_EOL . 'Carbon Failed Initialization' . PHP_EOL;
             print "\t" . $e->getMessage() . PHP_EOL . PHP_EOL;
-            if (defined('APP_LOCAL') && APP_LOCAL && function_exists('sortDump')) {
 
+            if (defined('APP_LOCAL') && APP_LOCAL && function_exists('sortDump')) {
                 sortDump($e, true, false);
                 print PHP_EOL . PHP_EOL;
-                function listFolderFiles($dir){
-                    $ffs = scandir($dir);
-
-                    unset($ffs[array_search('.', $ffs, true)]);
-                    unset($ffs[array_search('..', $ffs, true)]);
-
-                    // prevent empty ordered elements
-                    if (count($ffs) < 1)
-                        return;
-
-                    echo '<ol>';
-                    foreach($ffs as $ff){
-                        echo '<li>'.$ff;
-                        if(is_dir($dir.'/'.$ff)) listFolderFiles($dir.'/'.$ff);
-                        echo '</li>';
-                    }
-                    echo '</ol>';
-                }
-
-                listFolderFiles(__DIR__);
-
-                print PHP_EOL . PHP_EOL;
-
             }
             die(1);
         }
