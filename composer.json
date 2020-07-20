@@ -43,15 +43,19 @@
   },
   "scripts": {
     "rei": "rm -rf vendor && rm composer.lock && composer i",
-    "post-install-cmd": [
+    "setupCI": [
+      "php index.php setup --mysql_native_password",
+      "php index.php setup --rebuild",
+      "composer setup"
+    ],
+    "setup": [
       "php index.php rest -json -logClasses",
       "npm install",
       "php index.php minify",
       "cd view/react/material-dashboard-react-c6 && npm install && npm run build"
     ],
-    "setupCI": [
-      "php index.php setup --mysql_native_password",
-      "php index.php setup --rebuild"
+    "rest" :[
+      "php index.php rest -json -logClasses"
     ],
     "test": [
       "./vendor/bin/phpunit  --testdox || ./vendor/bin/phpunit"
