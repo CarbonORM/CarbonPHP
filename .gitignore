@@ -2,9 +2,7 @@
 /composer.phar
 .idea/dataSources/
 .idea/inspectionProfiles/
-.idea/workspace.xml
 .idea/webServers.xml
-.idea/deployment.xml
 .DS_Store
 /vendor/
 /node_modules/
@@ -13,3 +11,4 @@
 /mysql.cnf
 /mysqldump.cnf
 /mysqldump.sql
+/scratch/

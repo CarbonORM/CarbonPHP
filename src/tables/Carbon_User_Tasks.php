@@ -4,12 +4,14 @@ namespace CarbonPHP\Tables;
 
 use PDO;
 use PDOStatement;
+
 use function array_key_exists;
 use function count;
 use function is_array;
 use CarbonPHP\Rest;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestfulReferences;
+use CarbonPHP\Error\PublicAlert;
 
 
 class Carbon_User_Tasks extends Rest implements iRest
@@ -57,8 +59,8 @@ class Carbon_User_Tasks extends Rest implements iRest
             } else if (array_key_exists($column, self::PDO_VALIDATION)) {
                 $bump = false;
                 /** @noinspection SubStrUsedAsStrPosInspection */
-                if (substr($value, 0, '8') === 'C6SUB819') {
-                    $subQuery = substr($value, '8');
+                if (substr($value, 0, '7') === 'C6SUB19') {
+                    $subQuery = substr($value, '7');
                     $sql .= "($column = $subQuery ) $join ";
                 } else if (self::PDO_VALIDATION[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $join ";
@@ -158,10 +160,12 @@ class Carbon_User_Tasks extends Rest implements iRest
     }
 
     /**
-    * @param array $argv
-    * @return bool|string
-    */
-    public static function Post(array $argv)
+     * @param array $argv
+     * @param string|null $dependantEntityId - a C6 Hex entity key 
+     * @return bool|string
+     * @throws PublicAlert
+     */
+    public static function Post(array $argv, string $dependantEntityId = null)
     {
         self::$injection = [];
         /** @noinspection SqlResolve */
@@ -171,35 +175,38 @@ class Carbon_User_Tasks extends Rest implements iRest
 
         $stmt = self::database()->prepare($sql);
 
-                
-                    $task_id = $argv['carbon_user_tasks.task_id'];
-                    $stmt->bindParam(':task_id',$task_id, 2, 16);
-                        $user_id = $id = $argv['carbon_user_tasks.user_id'] ?? self::beginTransaction('carbon_user_tasks');
-                $stmt->bindParam(':user_id',$user_id, 2, 16);
-                
-                    $from_id =  $argv['carbon_user_tasks.from_id'] ?? null;
-                    $stmt->bindParam(':from_id',$from_id, 2, 16);
-                        
-                    $task_name = $argv['carbon_user_tasks.task_name'];
-                    $stmt->bindParam(':task_name',$task_name, 2, 40);
-                        
-                    $task_description =  $argv['carbon_user_tasks.task_description'] ?? null;
-                    $stmt->bindParam(':task_description',$task_description, 2, 225);
-                        
-                    $percent_complete =  $argv['carbon_user_tasks.percent_complete'] ?? '0';
-                    $stmt->bindParam(':percent_complete',$percent_complete, 2, 11);
-                        $stmt->bindValue(':start_date',array_key_exists('carbon_user_tasks.start_date',$argv) ? $argv['carbon_user_tasks.start_date'] : null, 2);
-                        $stmt->bindValue(':end_date',array_key_exists('carbon_user_tasks.end_date',$argv) ? $argv['carbon_user_tasks.end_date'] : null, 2);
-        
+    
+        $task_id = $argv['carbon_user_tasks.task_id'];
+        $stmt->bindParam(':task_id',$task_id, 2, 16);
+    
+        $user_id = $id = $argv['carbon_user_tasks.user_id'] ?? self::beginTransaction('carbon_user_tasks', $dependant);
+        $stmt->bindParam(':user_id',$user_id, 2, 16);
+    
+        $from_id =  $argv['carbon_user_tasks.from_id'] ?? null;
+        $stmt->bindParam(':from_id',$from_id, 2, 16);
+    
+        $task_name = $argv['carbon_user_tasks.task_name'];
+        $stmt->bindParam(':task_name',$task_name, 2, 40);
+    
+        $task_description =  $argv['carbon_user_tasks.task_description'] ?? null;
+        $stmt->bindParam(':task_description',$task_description, 2, 225);
+    
+        $percent_complete =  $argv['carbon_user_tasks.percent_complete'] ?? '0';
+        $stmt->bindParam(':percent_complete',$percent_complete, 2, 11);
+    
+        $stmt->bindValue(':start_date',array_key_exists('carbon_user_tasks.start_date',$argv) ? $argv['carbon_user_tasks.start_date'] : null, 2);
+
+        $stmt->bindValue(':end_date',array_key_exists('carbon_user_tasks.end_date',$argv) ? $argv['carbon_user_tasks.end_date'] : null, 2);
+
 
 
         return $stmt->execute() ? $id : false;
-
+    
     }
      
     public static function subSelect(string $primary = null, array $argv, PDO $pdo = null): string
     {
-        return 'C6SUB819' . self::buildSelectQuery($primary, $argv, $pdo, true);
+        return 'C6SUB19' . self::buildSelectQuery($primary, $argv, $pdo, true);
     }
     
     public static function validateSelectColumn($column) : bool {
@@ -531,8 +538,6 @@ class Carbon_User_Tasks extends Rest implements iRest
         $pdo = self::database();
 
         $sql .= ' WHERE ' . self::buildWhere($argv, $pdo);
-
-        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 

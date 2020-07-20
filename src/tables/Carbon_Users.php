@@ -4,12 +4,14 @@ namespace CarbonPHP\Tables;
 
 use PDO;
 use PDOStatement;
+
 use function array_key_exists;
 use function count;
 use function is_array;
 use CarbonPHP\Rest;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestfulReferences;
+use CarbonPHP\Error\PublicAlert;
 
 
 class Carbon_Users extends Rest implements iRest
@@ -76,8 +78,8 @@ class Carbon_Users extends Rest implements iRest
             } else if (array_key_exists($column, self::PDO_VALIDATION)) {
                 $bump = false;
                 /** @noinspection SubStrUsedAsStrPosInspection */
-                if (substr($value, 0, '8') === 'C6SUB819') {
-                    $subQuery = substr($value, '8');
+                if (substr($value, 0, '7') === 'C6SUB19') {
+                    $subQuery = substr($value, '7');
                     $sql .= "($column = $subQuery ) $join ";
                 } else if (self::PDO_VALIDATION[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $join ";
@@ -177,10 +179,12 @@ class Carbon_Users extends Rest implements iRest
     }
 
     /**
-    * @param array $argv
-    * @return bool|string
-    */
-    public static function Post(array $argv)
+     * @param array $argv
+     * @param string|null $dependantEntityId - a C6 Hex entity key 
+     * @return bool|string
+     * @throws PublicAlert
+     */
+    public static function Post(array $argv, string $dependantEntityId = null)
     {
         self::$injection = [];
         /** @noinspection SqlResolve */
@@ -190,90 +194,91 @@ class Carbon_Users extends Rest implements iRest
 
         $stmt = self::database()->prepare($sql);
 
-                
-                    $user_username = $argv['carbon_users.user_username'];
-                    $stmt->bindParam(':user_username',$user_username, 2, 25);
-                        
-                    $user_password = $argv['carbon_users.user_password'];
-                    $stmt->bindParam(':user_password',$user_password, 2, 225);
-                        $user_id = $id = $argv['carbon_users.user_id'] ?? self::beginTransaction('carbon_users');
-                $stmt->bindParam(':user_id',$user_id, 2, 16);
-                
-                    $user_type =  $argv['carbon_users.user_type'] ?? 'Athlete';
-                    $stmt->bindParam(':user_type',$user_type, 2, 20);
-                        
-                    $user_sport =  $argv['carbon_users.user_sport'] ?? 'GOLF';
-                    $stmt->bindParam(':user_sport',$user_sport, 2, 20);
-                        
-                    $user_session_id =  $argv['carbon_users.user_session_id'] ?? null;
-                    $stmt->bindParam(':user_session_id',$user_session_id, 2, 225);
-                        
-                    $user_facebook_id =  $argv['carbon_users.user_facebook_id'] ?? null;
-                    $stmt->bindParam(':user_facebook_id',$user_facebook_id, 2, 225);
-                        
-                    $user_first_name = $argv['carbon_users.user_first_name'];
-                    $stmt->bindParam(':user_first_name',$user_first_name, 2, 25);
-                        
-                    $user_last_name = $argv['carbon_users.user_last_name'];
-                    $stmt->bindParam(':user_last_name',$user_last_name, 2, 25);
-                        
-                    $user_profile_pic =  $argv['carbon_users.user_profile_pic'] ?? null;
-                    $stmt->bindParam(':user_profile_pic',$user_profile_pic, 2, 225);
-                        
-                    $user_profile_uri =  $argv['carbon_users.user_profile_uri'] ?? null;
-                    $stmt->bindParam(':user_profile_uri',$user_profile_uri, 2, 225);
-                        
-                    $user_cover_photo =  $argv['carbon_users.user_cover_photo'] ?? null;
-                    $stmt->bindParam(':user_cover_photo',$user_cover_photo, 2, 225);
-                        
-                    $user_birthday =  $argv['carbon_users.user_birthday'] ?? null;
-                    $stmt->bindParam(':user_birthday',$user_birthday, 2, 9);
-                        
-                    $user_gender = $argv['carbon_users.user_gender'];
-                    $stmt->bindParam(':user_gender',$user_gender, 2, 25);
-                        
-                    $user_about_me =  $argv['carbon_users.user_about_me'] ?? null;
-                    $stmt->bindParam(':user_about_me',$user_about_me, 2, 225);
-                        
-                    $user_rank =  $argv['carbon_users.user_rank'] ?? '0';
-                    $stmt->bindParam(':user_rank',$user_rank, 2, 8);
-                        
-                    $user_email = $argv['carbon_users.user_email'];
-                    $stmt->bindParam(':user_email',$user_email, 2, 50);
-                        
-                    $user_email_code =  $argv['carbon_users.user_email_code'] ?? null;
-                    $stmt->bindParam(':user_email_code',$user_email_code, 2, 225);
-                        
-                    $user_email_confirmed =  $argv['carbon_users.user_email_confirmed'] ?? '0';
-                    $stmt->bindParam(':user_email_confirmed',$user_email_confirmed, 2, 20);
-                        
-                    $user_generated_string =  $argv['carbon_users.user_generated_string'] ?? null;
-                    $stmt->bindParam(':user_generated_string',$user_generated_string, 2, 200);
-                        
-                    $user_membership =  $argv['carbon_users.user_membership'] ?? '0';
-                    $stmt->bindParam(':user_membership',$user_membership, 2, 10);
-                        
-                    $user_deactivated =  $argv['carbon_users.user_deactivated'] ?? '0';
-                    $stmt->bindParam(':user_deactivated',$user_deactivated, 0, 1);
-                                
-                    $user_ip = $argv['carbon_users.user_ip'];
-                    $stmt->bindParam(':user_ip',$user_ip, 2, 20);
-                        
-                    $user_education_history =  $argv['carbon_users.user_education_history'] ?? null;
-                    $stmt->bindParam(':user_education_history',$user_education_history, 2, 200);
-                        
-                    $user_location =  $argv['carbon_users.user_location'] ?? null;
-                    $stmt->bindParam(':user_location',$user_location, 2, 20);
-                
+    
+        $user_username = $argv['carbon_users.user_username'];
+        $stmt->bindParam(':user_username',$user_username, 2, 25);
+    
+        $user_password = $argv['carbon_users.user_password'];
+        $stmt->bindParam(':user_password',$user_password, 2, 225);
+    
+        $user_id = $id = $argv['carbon_users.user_id'] ?? self::beginTransaction('carbon_users', $dependant);
+        $stmt->bindParam(':user_id',$user_id, 2, 16);
+    
+        $user_type =  $argv['carbon_users.user_type'] ?? 'Athlete';
+        $stmt->bindParam(':user_type',$user_type, 2, 20);
+    
+        $user_sport =  $argv['carbon_users.user_sport'] ?? 'GOLF';
+        $stmt->bindParam(':user_sport',$user_sport, 2, 20);
+    
+        $user_session_id =  $argv['carbon_users.user_session_id'] ?? null;
+        $stmt->bindParam(':user_session_id',$user_session_id, 2, 225);
+    
+        $user_facebook_id =  $argv['carbon_users.user_facebook_id'] ?? null;
+        $stmt->bindParam(':user_facebook_id',$user_facebook_id, 2, 225);
+    
+        $user_first_name = $argv['carbon_users.user_first_name'];
+        $stmt->bindParam(':user_first_name',$user_first_name, 2, 25);
+    
+        $user_last_name = $argv['carbon_users.user_last_name'];
+        $stmt->bindParam(':user_last_name',$user_last_name, 2, 25);
+    
+        $user_profile_pic =  $argv['carbon_users.user_profile_pic'] ?? null;
+        $stmt->bindParam(':user_profile_pic',$user_profile_pic, 2, 225);
+    
+        $user_profile_uri =  $argv['carbon_users.user_profile_uri'] ?? null;
+        $stmt->bindParam(':user_profile_uri',$user_profile_uri, 2, 225);
+    
+        $user_cover_photo =  $argv['carbon_users.user_cover_photo'] ?? null;
+        $stmt->bindParam(':user_cover_photo',$user_cover_photo, 2, 225);
+    
+        $user_birthday =  $argv['carbon_users.user_birthday'] ?? null;
+        $stmt->bindParam(':user_birthday',$user_birthday, 2, 9);
+    
+        $user_gender = $argv['carbon_users.user_gender'];
+        $stmt->bindParam(':user_gender',$user_gender, 2, 25);
+    
+        $user_about_me =  $argv['carbon_users.user_about_me'] ?? null;
+        $stmt->bindParam(':user_about_me',$user_about_me, 2, 225);
+    
+        $user_rank =  $argv['carbon_users.user_rank'] ?? '0';
+        $stmt->bindParam(':user_rank',$user_rank, 2, 8);
+    
+        $user_email = $argv['carbon_users.user_email'];
+        $stmt->bindParam(':user_email',$user_email, 2, 50);
+    
+        $user_email_code =  $argv['carbon_users.user_email_code'] ?? null;
+        $stmt->bindParam(':user_email_code',$user_email_code, 2, 225);
+    
+        $user_email_confirmed =  $argv['carbon_users.user_email_confirmed'] ?? '0';
+        $stmt->bindParam(':user_email_confirmed',$user_email_confirmed, 2, 20);
+    
+        $user_generated_string =  $argv['carbon_users.user_generated_string'] ?? null;
+        $stmt->bindParam(':user_generated_string',$user_generated_string, 2, 200);
+    
+        $user_membership =  $argv['carbon_users.user_membership'] ?? '0';
+        $stmt->bindParam(':user_membership',$user_membership, 2, 10);
+    
+        $user_deactivated =  $argv['carbon_users.user_deactivated'] ?? '0';
+        $stmt->bindParam(':user_deactivated',$user_deactivated, 0, 1);
+    
+        $user_ip = $argv['carbon_users.user_ip'];
+        $stmt->bindParam(':user_ip',$user_ip, 2, 20);
+    
+        $user_education_history =  $argv['carbon_users.user_education_history'] ?? null;
+        $stmt->bindParam(':user_education_history',$user_education_history, 2, 200);
+    
+        $user_location =  $argv['carbon_users.user_location'] ?? null;
+        $stmt->bindParam(':user_location',$user_location, 2, 20);
+    
 
 
         return $stmt->execute() ? $id : false;
-
+    
     }
      
     public static function subSelect(string $primary = null, array $argv, PDO $pdo = null): string
     {
-        return 'C6SUB819' . self::buildSelectQuery($primary, $argv, $pdo, true);
+        return 'C6SUB19' . self::buildSelectQuery($primary, $argv, $pdo, true);
     }
     
     public static function validateSelectColumn($column) : bool {
@@ -738,8 +743,6 @@ class Carbon_Users extends Rest implements iRest
         $pdo = self::database();
 
         $sql .= ' WHERE ' . self::buildWhere($argv, $pdo);
-
-        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 

@@ -4,12 +4,14 @@ namespace CarbonPHP\Tables;
 
 use PDO;
 use PDOStatement;
+
 use function array_key_exists;
 use function count;
 use function is_array;
 use CarbonPHP\Rest;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestfulReferences;
+use CarbonPHP\Error\PublicAlert;
 
 
 class Carbon_Tag extends Rest implements iRestfulReferences
@@ -52,8 +54,8 @@ class Carbon_Tag extends Rest implements iRestfulReferences
             } else if (array_key_exists($column, self::PDO_VALIDATION)) {
                 $bump = false;
                 /** @noinspection SubStrUsedAsStrPosInspection */
-                if (substr($value, 0, '8') === 'C6SUB819') {
-                    $subQuery = substr($value, '8');
+                if (substr($value, 0, '7') === 'C6SUB19') {
+                    $subQuery = substr($value, '7');
                     $sql .= "($column = $subQuery ) $join ";
                 } else if (self::PDO_VALIDATION[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $join ";
@@ -148,10 +150,12 @@ class Carbon_Tag extends Rest implements iRestfulReferences
     }
 
     /**
-    * @param array $argv
-    * @return bool
-    */
-    public static function Post(array $argv): bool
+     * @param array $argv
+     * @param string|null $dependantEntityId - a C6 Hex entity key 
+     * @return bool|string
+     * @throws PublicAlert
+     */
+    public static function Post(array $argv, string $dependantEntityId = null): bool
     {
         self::$injection = [];
         /** @noinspection SqlResolve */
@@ -161,22 +165,24 @@ class Carbon_Tag extends Rest implements iRestfulReferences
 
         $stmt = self::database()->prepare($sql);
 
-                
-                    $entity_id = $argv['carbon_tag.entity_id'];
-                    $stmt->bindParam(':entity_id',$entity_id, 2, 16);
-                        
-                    $tag_id = $argv['carbon_tag.tag_id'];
-                    $stmt->bindParam(':tag_id',$tag_id, 2, 80);
-                
+    
+        $entity_id = $argv['carbon_tag.entity_id'];
+        $stmt->bindParam(':entity_id',$entity_id, 2, 16);
+    
+        $tag_id = $argv['carbon_tag.tag_id'];
+        $stmt->bindParam(':tag_id',$tag_id, 2, 80);
+    
 
 
 
-            return $stmt->execute();
+    
+        return $stmt->execute();
+    
     }
      
     public static function subSelect(string $primary = null, array $argv, PDO $pdo = null): string
     {
-        return 'C6SUB819' . self::buildSelectQuery($primary, $argv, $pdo, true);
+        return 'C6SUB19' . self::buildSelectQuery($primary, $argv, $pdo, true);
     }
     
     public static function validateSelectColumn($column) : bool {
