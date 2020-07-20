@@ -44,12 +44,15 @@ class CLI implements iCommand
             }
             $this->userProgramsDirectory = $programDirectory = $json['autoload']['psr-4']["Programs\\"] ??= false;
 
-            if (is_string($programDirectory)) {
+            if (is_string(APP_ROOT . $programDirectory)) {
+
+                $programDirectory = APP_ROOT . $programDirectory;
+
                 if (!is_dir($programDirectory)) {
                     print "The directory defined for the Programs Namespace ($programDirectory) in composer.json does not exist.";
                     exit(1);
                 }
-                $userDefinedPrograms = scandir(APP_ROOT . $programDirectory, null);
+                $userDefinedPrograms = scandir($programDirectory, null);
 
                 $userDefinedPrograms = array_diff(
                     $userDefinedPrograms,
