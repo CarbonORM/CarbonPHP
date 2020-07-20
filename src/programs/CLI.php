@@ -26,7 +26,6 @@ class CLI implements iCommand
         $this->programList();
     }
 
-
     public function programList(): void
     {
         $clean = static function (&$program) {
@@ -101,7 +100,9 @@ class CLI implements iCommand
         $PHP = $this->CONFIG;
 
         // I do this so the I can pass the argvs correctly to the php executables
-        print "\nIt's a powerful \"" . array_shift($argv) . "\", huh?\n\n";
+        print "\nCalling Command >> " . implode(' ', $argv) . "\n\n";
+
+        array_shift($argv);
 
         $program = array_shift($argv);
 

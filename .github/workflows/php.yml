@@ -62,7 +62,7 @@ jobs:
 
     # Generate Files
     - name: C6 Composer Setup Scripts
-      run: composer setup
+      run: composer setupCI
 
     # Double check php version
     - name: PHP version
