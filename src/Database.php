@@ -313,13 +313,13 @@ class Database
      * This <b>must be static</b> so multiple tables files can insert on the same
      * transaction without running beginTransaction again
      *
-     * @param $tag_id - passed to new_entity
-     * @param null $dependant - passed to new_entity
+     * @param string $tag_id - passed to new_entity
+     * @param string $dependant - passed to new_entity
      *
      * @return bool|PDOStatement|string
      * @throws PublicAlert
      */
-    protected static function beginTransaction($tag_id, $dependant = null)
+    protected static function beginTransaction(string $tag_id, string $dependant = null)
     {
         self::$inTransaction = true;
         $key = self::new_entity($tag_id, $dependant);

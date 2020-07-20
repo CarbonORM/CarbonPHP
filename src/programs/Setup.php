@@ -13,6 +13,7 @@ namespace CarbonPHP\Programs;
 
 
 use CarbonPHP\Database;
+use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\interfaces\iCommand;
 use Throwable;
 
@@ -32,7 +33,7 @@ class Setup implements iCommand
         $this->config = $PHP;
     }
 
-    public function usage()
+    public function usage() : void
     {
         // TODO - create setup program
         print <<<usage
@@ -51,7 +52,7 @@ usage;
 
     }
 
-    public function run($argv) : int
+    public function run($argv) : void
     {
         $argc = count($argv);
 
@@ -96,7 +97,7 @@ IDENTIFIED;
                         exit(0);
                     } catch (Throwable $e) {
                         print 'Failed to change mysql auth method' . PHP_EOL;
-                        print_r($e);
+                        ErrorCatcher::generateLog($e);
                         exit(1);
                     }
 
@@ -126,8 +127,6 @@ IDENTIFIED;
                 exit(1);
             }
         }
-
-        return 0;
     }
 
     public function cleanUp($argv) : void
@@ -303,7 +302,7 @@ IDENTIFIED;
 return [
 CONFIG;
 
-        $buildVar = function ($config, $levels = 1) use (&$buildVar) : string {
+        $buildVar = static function ($config, $levels = 1) use (&$buildVar) : string {
             $string = PHP_EOL;
             foreach ($config as $key => $value) {
                 $string .= str_repeat("\t", $levels) ."'$key' => ";
@@ -320,7 +319,6 @@ CONFIG;
 
         $configFile = $buildVar($config);
 
-
-        var_dump($configFile);
+        print $configFile . PHP_EOL . PHP_EOL . PHP_EOL; // todo - create this program
     }
 }

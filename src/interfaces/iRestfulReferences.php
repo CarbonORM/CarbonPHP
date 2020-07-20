@@ -8,6 +8,8 @@
 
 namespace CarbonPHP\interfaces;
 
+use CarbonPHP\Error\PublicAlert;
+
 /**
  * Interface iTable
  * @package Carbon\Interfaces
@@ -37,10 +39,12 @@ interface iRestfulReferences
     public static function Get(array &$return, array $argv): bool;   // Get tables columns given in argv (usually an array) and place them into our array
 
     /**
-     * @param array $data
-     * @return mixed
+     * @param array \$argv
+     * @param string|null \$dependantEntityId - a C6 Hex entity key
+     * @return bool|string
+     * @throws PublicAlert
      */
-    public static function Post(array $data) : bool;              // Add and associative array Column => value
+    public static function Post(array $data, string $dependant = null) : bool;              // Add and associative array Column => value
 
     /**
      * @param array $return

@@ -4,12 +4,14 @@ namespace CarbonPHP\Tables;
 
 use PDO;
 use PDOStatement;
+
 use function array_key_exists;
 use function count;
 use function is_array;
 use CarbonPHP\Rest;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestfulReferences;
+use CarbonPHP\Error\PublicAlert;
 
 
 class Carbon_User_Sessions extends Rest implements iRest
@@ -67,8 +69,8 @@ class Carbon_User_Sessions extends Rest implements iRest
             } else if (array_key_exists($column, self::PDO_VALIDATION)) {
                 $bump = false;
                 /** @noinspection SubStrUsedAsStrPosInspection */
-                if (substr($value, 0, '7') === 'C6SUB37') {
-                    $subQuery = substr($value, '7');
+                if (substr($value, 0, '8') === 'C6SUB748') {
+                    $subQuery = substr($value, '8');
                     $sql .= "($column = $subQuery ) $join ";
                 } else if (self::PDO_VALIDATION[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $join ";
@@ -168,10 +170,12 @@ class Carbon_User_Sessions extends Rest implements iRest
     }
 
     /**
-    * @param array $argv
-    * @return bool|string
-    */
-    public static function Post(array $argv)
+     * @param array $argv
+     * @param string|null $dependantEntityId - a C6 Hex entity key 
+     * @return bool|string
+     * @throws PublicAlert
+     */
+    public static function Post(array $argv, string $dependantEntityId = null)
     {
         self::$injection = [];
         /** @noinspection SqlResolve */
@@ -181,30 +185,34 @@ class Carbon_User_Sessions extends Rest implements iRest
 
         $stmt = self::database()->prepare($sql);
 
-                
-                    $user_id = $argv['carbon_user_sessions.user_id'];
-                    $stmt->bindParam(':user_id',$user_id, 2, 16);
-                        
-                    $user_ip =  $argv['carbon_user_sessions.user_ip'] ?? null;
-                    $stmt->bindParam(':user_ip',$user_ip, 2, 16);
-                        
-                    $session_id = $argv['carbon_user_sessions.session_id'];
-                    $stmt->bindParam(':session_id',$session_id, 2, 255);
-                        $stmt->bindValue(':session_expires',$argv['carbon_user_sessions.session_expires'], 2);
-                        $stmt->bindValue(':session_data',$argv['carbon_user_sessions.session_data'], 2);
-                        
-                    $user_online_status =  $argv['carbon_user_sessions.user_online_status'] ?? '1';
-                    $stmt->bindParam(':user_online_status',$user_online_status, 0, 1);
-        
+    
+        $user_id = $argv['carbon_user_sessions.user_id'];
+        $stmt->bindParam(':user_id',$user_id, 2, 16);
+    
+        $user_ip =  $argv['carbon_user_sessions.user_ip'] ?? null;
+        $stmt->bindParam(':user_ip',$user_ip, 2, 16);
+    
+        $session_id = $argv['carbon_user_sessions.session_id'];
+        $stmt->bindParam(':session_id',$session_id, 2, 255);
+    
+        $stmt->bindValue(':session_expires',$argv['carbon_user_sessions.session_expires'], 2);
+
+        $stmt->bindValue(':session_data',$argv['carbon_user_sessions.session_data'], 2);
+
+        $user_online_status =  $argv['carbon_user_sessions.user_online_status'] ?? '1';
+        $stmt->bindParam(':user_online_status',$user_online_status, 0, 1);
+    
 
 
 
-            return $stmt->execute();
+    
+        return $stmt->execute();
+    
     }
      
     public static function subSelect(string $primary = null, array $argv, PDO $pdo = null): string
     {
-        return 'C6SUB37' . self::buildSelectQuery($primary, $argv, $pdo, true);
+        return 'C6SUB748' . self::buildSelectQuery($primary, $argv, $pdo, true);
     }
     
     public static function validateSelectColumn($column) : bool {

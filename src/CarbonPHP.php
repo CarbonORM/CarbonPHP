@@ -215,18 +215,25 @@ class CarbonPHP
                     /** @var array $PHP */
                     /** @noinspection PhpIncludeInspection */
                     $PHP = include $configFilePath;            // TODO - change the variable
-                    // this file must return an array!
-                } elseif ($configFilePath !== null) {
+
+                    if (!is_array($PHP)) {
+                        print 'The configuration file passed to C6 must return an array!';
+                        self::$safelyExit = true;
+                        return;
+                    }
+                } else {
                     print 'Invalid configuration path given! ' . $configFilePath;
                     self::$safelyExit = true;
                     return;
                 }
+            } else {
+                $PHP = [];
             }
 
             #######################   VIEW      ######################
             define('APP_VIEW', $PHP['VIEW']['VIEW'] ?? DS);         // Public Folder
 
-            View::$wrapper = APP_ROOT . APP_VIEW . $PHP['VIEW']['WRAPPER'] ?? '';
+            View::$wrapper = APP_ROOT . APP_VIEW . ($PHP['VIEW']['WRAPPER'] ?? '');
 
             ####################  GENERAL CONF  ######################
             error_reporting($PHP['ERROR']['LEVEL'] ?? E_ALL | E_STRICT);
@@ -349,9 +356,6 @@ class CarbonPHP
                 die(1);
             }
 
-            // TODO - I think we should make this optional
-            #AJAX OR $_POST = []; // We only allow post requests through ajax/pjax
-
             ########################  Session Management ######################
             if ($PHP['SESSION'] ?? true) {
                 if ($PHP['SESSION']['PATH'] ?? false) {
@@ -377,33 +381,10 @@ class CarbonPHP
         } catch (Throwable $e) {
             print PHP_EOL . 'Carbon Failed Initialization' . PHP_EOL;
             print "\t" . $e->getMessage() . PHP_EOL . PHP_EOL;
-            if (defined('APP_LOCAL') && APP_LOCAL && function_exists('sortDump')) {
 
+            if (defined('APP_LOCAL') && APP_LOCAL && function_exists('sortDump')) {
                 sortDump($e, true, false);
                 print PHP_EOL . PHP_EOL;
-                function listFolderFiles($dir){
-                    $ffs = scandir($dir);
-
-                    unset($ffs[array_search('.', $ffs, true)]);
-                    unset($ffs[array_search('..', $ffs, true)]);
-
-                    // prevent empty ordered elements
-                    if (count($ffs) < 1)
-                        return;
-
-                    echo '<ol>';
-                    foreach($ffs as $ff){
-                        echo '<li>'.$ff;
-                        if(is_dir($dir.'/'.$ff)) listFolderFiles($dir.'/'.$ff);
-                        echo '</li>';
-                    }
-                    echo '</ol>';
-                }
-
-                listFolderFiles(__DIR__);
-
-                print PHP_EOL . PHP_EOL;
-
             }
             die(1);
         }

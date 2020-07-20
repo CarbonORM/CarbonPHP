@@ -4,12 +4,14 @@ namespace CarbonPHP\Tables;
 
 use PDO;
 use PDOStatement;
+
 use function array_key_exists;
 use function count;
 use function is_array;
 use CarbonPHP\Rest;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestfulReferences;
+use CarbonPHP\Error\PublicAlert;
 
 
 class Carbon_Location_References extends Rest implements iRestfulReferences
@@ -18,17 +20,18 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
     public const TABLE_NAME = 'carbon_location_references';
     public const ENTITY_REFERENCE = 'carbon_location_references.entity_reference'; 
     public const LOCATION_REFERENCE = 'carbon_location_references.location_reference'; 
+    public const LOCATION_TIME = 'carbon_location_references.location_time'; 
 
     public const PRIMARY = [
         
     ];
 
     public const COLUMNS = [
-        'carbon_location_references.entity_reference' => 'entity_reference','carbon_location_references.location_reference' => 'location_reference',
+        'carbon_location_references.entity_reference' => 'entity_reference','carbon_location_references.location_reference' => 'location_reference','carbon_location_references.location_time' => 'location_time',
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_location_references.entity_reference' => ['binary', '2', '16'],'carbon_location_references.location_reference' => ['binary', '2', '16'],
+        'carbon_location_references.entity_reference' => ['binary', '2', '16'],'carbon_location_references.location_reference' => ['binary', '2', '16'],'carbon_location_references.location_time' => ['datetime', '2', ''],
     ];
     
     public const VALIDATION = [];
@@ -63,8 +66,8 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
             } else if (array_key_exists($column, self::PDO_VALIDATION)) {
                 $bump = false;
                 /** @noinspection SubStrUsedAsStrPosInspection */
-                if (substr($value, 0, '7') === 'C6SUB37') {
-                    $subQuery = substr($value, '7');
+                if (substr($value, 0, '8') === 'C6SUB748') {
+                    $subQuery = substr($value, '8');
                     $sql .= "($column = $subQuery ) $join ";
                 } else if (self::PDO_VALIDATION[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $join ";
@@ -159,10 +162,12 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
     }
 
     /**
-    * @param array $argv
-    * @return bool
-    */
-    public static function Post(array $argv): bool
+     * @param array $argv
+     * @param string|null $dependantEntityId - a C6 Hex entity key 
+     * @return bool|string
+     * @throws PublicAlert
+     */
+    public static function Post(array $argv, string $dependantEntityId = null): bool
     {
         self::$injection = [];
         /** @noinspection SqlResolve */
@@ -172,26 +177,28 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
 
         $stmt = self::database()->prepare($sql);
 
-                
-                    $entity_reference = $argv['carbon_location_references.entity_reference'];
-                    $stmt->bindParam(':entity_reference',$entity_reference, 2, 16);
-                        
-                    $location_reference = $argv['carbon_location_references.location_reference'];
-                    $stmt->bindParam(':location_reference',$location_reference, 2, 16);
-        
+    
+        $entity_reference = $argv['carbon_location_references.entity_reference'];
+        $stmt->bindParam(':entity_reference',$entity_reference, 2, 16);
+    
+        $location_reference = $argv['carbon_location_references.location_reference'];
+        $stmt->bindParam(':location_reference',$location_reference, 2, 16);
+    
 
 
 
-            return $stmt->execute();
+    
+        return $stmt->execute();
+    
     }
      
     public static function subSelect(string $primary = null, array $argv, PDO $pdo = null): string
     {
-        return 'C6SUB37' . self::buildSelectQuery($primary, $argv, $pdo, true);
+        return 'C6SUB748' . self::buildSelectQuery($primary, $argv, $pdo, true);
     }
     
     public static function validateSelectColumn($column) : bool {
-        return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|-|/| |carbon_location_references\.entity_reference|carbon_location_references\.location_reference))+\)*)+ *(as [a-z]+)?#i', $column);
+        return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|-|/| |carbon_location_references\.entity_reference|carbon_location_references\.location_reference|carbon_location_references\.location_time))+\)*)+ *(as [a-z]+)?#i', $column);
     }
     
     public static function buildSelectQuery(string $primary = null, array $argv, PDO $pdo = null, bool $noHEX = false) : string 
@@ -401,6 +408,9 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
         if (array_key_exists('carbon_location_references.location_reference', $argv)) {
             $set .= 'location_reference=UNHEX(:location_reference),';
         }
+        if (array_key_exists('carbon_location_references.location_time', $argv)) {
+            $set .= 'location_time=:location_time,';
+        }
 
         if (empty($set)){
             return false;
@@ -424,6 +434,9 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
         if (array_key_exists('carbon_location_references.location_reference', $argv)) {
             $location_reference = $argv['carbon_location_references.location_reference'];
             $stmt->bindParam(':location_reference',$location_reference, 2, 16);
+        }
+        if (array_key_exists('carbon_location_references.location_time', $argv)) {
+            $stmt->bindValue(':location_time',$argv['carbon_location_references.location_time'], 2);
         }
 
         self::bind($stmt);

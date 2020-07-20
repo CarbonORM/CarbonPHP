@@ -11,7 +11,7 @@ namespace CarbonPHP\interfaces;
 
 interface iCommand
 {
-    public function usage();
-    public function run($argv);
-    public function cleanUp($argv);
+    public function usage(): void;
+    public function run(array $argv): void;
+    public function cleanUp(array $argv): void;
 }

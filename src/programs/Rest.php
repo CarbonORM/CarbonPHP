@@ -2,6 +2,7 @@
 
 namespace CarbonPHP\Programs;
 
+
 use \CarbonPHP\interfaces\iCommand;
 use PDO;
 use RuntimeException;
@@ -23,7 +24,7 @@ class Rest implements iCommand
     private $password;
     private $cleanUp;
 
-    public function cleanUp($argv)
+    public function cleanUp(array $argv) : void
     {
         $this->cleanUp and $this->removeFiles();
     }
@@ -91,7 +92,7 @@ END;
         $this->password = $CONFIG['DATABASE']['DB_PASS'];
     }
 
-    public function run($argv): int
+    public function run(array $argv): void
     {
         // Check command line args, password is optional
         print "\tBuilding Rest Api!\n";
@@ -410,7 +411,8 @@ END;
                             // We need to escape values for php
                             $default = "'$default'";
                         }
-                        $rest[$tableName]['explode'][$column]['default'] = $default === "'NULL'" ? 'null' : ($cast_binary_default ? 'null' : $default);
+                        /** @noinspection NestedTernaryOperatorInspection */
+                        $rest[$tableName]['explode'][$column]['default'] = ($default === "'NULL'" ? 'null' : ($cast_binary_default ? 'null' : $default));
                     }
 
                     // As far as I can tell the AUTO_INCREMENT condition the last possible word in the query
@@ -573,7 +575,6 @@ END;
 
         print "\tSuccess!\n\n";
 
-        return 0;
     }
 
     public static function trigger($table, $columns, $binary, $dependencies, $primary): string
@@ -684,12 +685,14 @@ TRIGGER;
 
 use PDO;
 use PDOStatement;
+
 use function array_key_exists;
 use function count;
 use function is_array;
 use CarbonPHP\Rest;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestfulReferences;
+use CarbonPHP\Error\PublicAlert;
 
 
 class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/primaryExists}}{{^primaryExists}}iRestfulReferences{{/primaryExists}}
@@ -849,10 +852,12 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
     }
 
     /**
-    * @param array \$argv
-    * @return bool{{#primaryExists}}|string{{/primaryExists}}
-    */
-    public static function Post(array \$argv){{^primaryExists}}: bool{{/primaryExists}}
+     * @param array \$argv
+     * @param string|null \$dependantEntityId - a C6 Hex entity key 
+     * @return bool|string
+     * @throws PublicAlert
+     */
+    public static function Post(array \$argv, string \$dependantEntityId = null){{^primaryExists}}: bool{{/primaryExists}}
     {
         self::\$injection = [];
         /** @noinspection SqlResolve */
@@ -862,33 +867,25 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
 
         \$stmt = self::database()->prepare(\$sql);
 
-    {{#explode}}
-        {{#primary_binary}}
-            {{^carbon_table}}
-                \${{name}} = \$id = \$argv['{{TableName}}.{{name}}'] ?? self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
-                \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
-            {{/carbon_table}}
-            {{#carbon_table}}
-                \${{name}} = \$id = \$argv['{{TableName}}.{{name}}'] ?? self::beginTransaction('{{TableName}}');
-                \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
-            {{/carbon_table}}
-        {{/primary_binary}}
-        {{^primary_binary}}
-            {{^skip}}
-                {{^length}}\$stmt->bindValue(':{{name}}',{{#json}}json_encode(\$argv['{{TableName}}.{{name}}']){{/json}}{{^json}}{{^default}}\$argv['{{TableName}}.{{name}}']{{/default}}{{#default}}array_key_exists('{{TableName}}.{{name}}',\$argv) ? \$argv['{{TableName}}.{{name}}'] : {{default}}{{/default}}{{/json}}, {{type}});{{/length}}
-                {{#length}}
-                    \${{name}} = {{^default}}\$argv['{{TableName}}.{{name}}']{{/default}}{{#default}} \$argv['{{TableName}}.{{name}}'] ?? {{{default}}}{{/default}};
-                    \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
-                {{/length}}
-            {{/skip}}
-        {{/primary_binary}}{{/explode}}
+    {{#explode}}{{#primary_binary}}{{^carbon_table}}
+        \${{name}} = \$id = \$argv['{{TableName}}.{{name}}'] ?? self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
+        \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
+    {{/carbon_table}}{{#carbon_table}}
+        \${{name}} = \$id = \$argv['{{TableName}}.{{name}}'] ?? self::beginTransaction('{{TableName}}', \$dependantEntityId);
+        \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
+    {{/carbon_table}}{{/primary_binary}}{{^primary_binary}}{{^skip}}{{^length}}
+        \$stmt->bindValue(':{{name}}',{{#json}}json_encode(\$argv['{{TableName}}.{{name}}']){{/json}}{{^json}}{{^default}}\$argv['{{TableName}}.{{name}}']{{/default}}{{#default}}array_key_exists('{{TableName}}.{{name}}',\$argv) ? \$argv['{{TableName}}.{{name}}'] : {{default}}{{/default}}{{/json}}, {{type}});{{/length}}
+    {{#length}}
+        \${{name}} = {{^default}}\$argv['{{TableName}}.{{name}}']{{/default}}{{#default}} \$argv['{{TableName}}.{{name}}'] ?? {{{default}}}{{/default}};
+        \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
+    {{/length}}{{/skip}}{{/primary_binary}}{{/explode}}
 
 
     {{#binary_primary}}
         return \$stmt->execute() ? \$id : false;{{/binary_primary}}
-    {{^binary_primary}}
-        {{^carbon_table}}
-            return \$stmt->execute();{{/carbon_table}}{{/binary_primary}}
+    {{^binary_primary}}{{^carbon_table}}
+        return \$stmt->execute();
+    {{/carbon_table}}{{/binary_primary}}
     }
      
     public static function subSelect(string \$primary = null, array \$argv, PDO \$pdo = null): string
@@ -1198,9 +1195,9 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
 
         \$pdo = self::database();
 
-        \$sql .= ' WHERE ' . self::buildWhere(\$argv, \$pdo);
-
-        self::jsonSQLReporting(\\func_get_args(), \$sql);
+        \$sql .= ' WHERE ' . self::buildWhere(\$argv, \$pdo);{{#json}}
+        
+        self::jsonSQLReporting(\\func_get_args(), \$sql);{{/json}}
 
         \$stmt = \$pdo->prepare(\$sql);
 

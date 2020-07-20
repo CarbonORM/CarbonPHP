@@ -14,29 +14,23 @@ use CarbonPHP\Interfaces\iRestfulReferences;
 use CarbonPHP\Error\PublicAlert;
 
 
-class Carbon_User_Tasks extends Rest implements iRest
+class Carbon_Feature_References extends Rest implements iRestfulReferences
 {
     
-    public const TABLE_NAME = 'carbon_user_tasks';
-    public const TASK_ID = 'carbon_user_tasks.task_id'; 
-    public const USER_ID = 'carbon_user_tasks.user_id'; 
-    public const FROM_ID = 'carbon_user_tasks.from_id'; 
-    public const TASK_NAME = 'carbon_user_tasks.task_name'; 
-    public const TASK_DESCRIPTION = 'carbon_user_tasks.task_description'; 
-    public const PERCENT_COMPLETE = 'carbon_user_tasks.percent_complete'; 
-    public const START_DATE = 'carbon_user_tasks.start_date'; 
-    public const END_DATE = 'carbon_user_tasks.end_date'; 
+    public const TABLE_NAME = 'carbon_feature_references';
+    public const FEATURE_ENTITY_ID = 'carbon_feature_references.feature_entity_id'; 
+    public const REFERENCE_ENTITY_ID = 'carbon_feature_references.reference_entity_id'; 
 
     public const PRIMARY = [
-        'carbon_user_tasks.user_id',
+        
     ];
 
     public const COLUMNS = [
-        'carbon_user_tasks.task_id' => 'task_id','carbon_user_tasks.user_id' => 'user_id','carbon_user_tasks.from_id' => 'from_id','carbon_user_tasks.task_name' => 'task_name','carbon_user_tasks.task_description' => 'task_description','carbon_user_tasks.percent_complete' => 'percent_complete','carbon_user_tasks.start_date' => 'start_date','carbon_user_tasks.end_date' => 'end_date',
+        'carbon_feature_references.feature_entity_id' => 'feature_entity_id','carbon_feature_references.reference_entity_id' => 'reference_entity_id',
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_user_tasks.task_id' => ['binary', '2', '16'],'carbon_user_tasks.user_id' => ['binary', '2', '16'],'carbon_user_tasks.from_id' => ['binary', '2', '16'],'carbon_user_tasks.task_name' => ['varchar', '2', '40'],'carbon_user_tasks.task_description' => ['varchar', '2', '225'],'carbon_user_tasks.percent_complete' => ['int', '2', '11'],'carbon_user_tasks.start_date' => ['datetime', '2', ''],'carbon_user_tasks.end_date' => ['datetime', '2', ''],
+        'carbon_feature_references.feature_entity_id' => ['binary', '2', '16'],'carbon_feature_references.reference_entity_id' => ['binary', '2', '16'],
     ];
     
     public const VALIDATION = [];
@@ -89,7 +83,7 @@ class Carbon_User_Tasks extends Rest implements iRest
 
     public static function addInjection($value, PDO $pdo, $quote = false): string
     {
-        $inject = ':injection' . count(self::$injection) . 'carbon_user_tasks';
+        $inject = ':injection' . count(self::$injection) . 'carbon_feature_references';
         self::$injection[$inject] = $quote ? $pdo->quote($value) : $value;
         return $inject;
     }
@@ -138,11 +132,11 @@ class Carbon_User_Tasks extends Rest implements iRest
     * @param array $argv
     * @return bool
     */
-    public static function Get(array &$return, string $primary = null, array $argv): bool
+    public static function Get(array &$return, array $argv): bool
     {
         $pdo = self::database();
 
-        $sql = self::buildSelectQuery($primary, $argv, $pdo);
+        $sql = self::buildSelectQuery(null, $argv, $pdo);
         
         $stmt = $pdo->prepare($sql);
 
@@ -162,11 +156,6 @@ class Carbon_User_Tasks extends Rest implements iRest
         */
 
         
-        if ($primary !== null || (isset($argv['pagination']['limit']) && $argv['pagination']['limit'] === 1 && count($return) === 1)) {
-            $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
-            // promise this is needed and will still return the desired array except for a single record will not be an array
-        
-        }
 
         return true;
     }
@@ -177,42 +166,28 @@ class Carbon_User_Tasks extends Rest implements iRest
      * @return bool|string
      * @throws PublicAlert
      */
-    public static function Post(array $argv, string $dependantEntityId = null)
+    public static function Post(array $argv, string $dependantEntityId = null): bool
     {
         self::$injection = [];
         /** @noinspection SqlResolve */
-        $sql = 'INSERT INTO carbon_user_tasks (task_id, user_id, from_id, task_name, task_description, percent_complete, start_date, end_date) VALUES ( UNHEX(:task_id), UNHEX(:user_id), UNHEX(:from_id), :task_name, :task_description, :percent_complete, :start_date, :end_date)';
+        $sql = 'INSERT INTO carbon_feature_references (feature_entity_id, reference_entity_id) VALUES ( UNHEX(:feature_entity_id), UNHEX(:reference_entity_id))';
 
         self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = self::database()->prepare($sql);
 
     
-        $task_id = $argv['carbon_user_tasks.task_id'];
-        $stmt->bindParam(':task_id',$task_id, 2, 16);
+        $feature_entity_id =  $argv['carbon_feature_references.feature_entity_id'] ?? null;
+        $stmt->bindParam(':feature_entity_id',$feature_entity_id, 2, 16);
     
-        $user_id = $id = $argv['carbon_user_tasks.user_id'] ?? self::beginTransaction('carbon_user_tasks', $dependantEntityId);
-        $stmt->bindParam(':user_id',$user_id, 2, 16);
+        $reference_entity_id =  $argv['carbon_feature_references.reference_entity_id'] ?? null;
+        $stmt->bindParam(':reference_entity_id',$reference_entity_id, 2, 16);
     
-        $from_id =  $argv['carbon_user_tasks.from_id'] ?? null;
-        $stmt->bindParam(':from_id',$from_id, 2, 16);
-    
-        $task_name = $argv['carbon_user_tasks.task_name'];
-        $stmt->bindParam(':task_name',$task_name, 2, 40);
-    
-        $task_description =  $argv['carbon_user_tasks.task_description'] ?? null;
-        $stmt->bindParam(':task_description',$task_description, 2, 225);
-    
-        $percent_complete =  $argv['carbon_user_tasks.percent_complete'] ?? '0';
-        $stmt->bindParam(':percent_complete',$percent_complete, 2, 11);
-    
-        $stmt->bindValue(':start_date',array_key_exists('carbon_user_tasks.start_date',$argv) ? $argv['carbon_user_tasks.start_date'] : null, 2);
-
-        $stmt->bindValue(':end_date',array_key_exists('carbon_user_tasks.end_date',$argv) ? $argv['carbon_user_tasks.end_date'] : null, 2);
 
 
 
-        return $stmt->execute() ? $id : false;
+    
+        return $stmt->execute();
     
     }
      
@@ -222,7 +197,7 @@ class Carbon_User_Tasks extends Rest implements iRest
     }
     
     public static function validateSelectColumn($column) : bool {
-        return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|-|/| |carbon_user_tasks\.task_id|carbon_user_tasks\.user_id|carbon_user_tasks\.from_id|carbon_user_tasks\.task_name|carbon_user_tasks\.task_description|carbon_user_tasks\.percent_complete|carbon_user_tasks\.start_date|carbon_user_tasks\.end_date))+\)*)+ *(as [a-z]+)?#i', $column);
+        return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|-|/| |carbon_feature_references\.feature_entity_id|carbon_feature_references\.reference_entity_id))+\)*)+ *(as [a-z]+)?#i', $column);
     }
     
     public static function buildSelectQuery(string $primary = null, array $argv, PDO $pdo = null, bool $noHEX = false) : string 
@@ -262,12 +237,12 @@ class Carbon_User_Tasks extends Rest implements iRest
                         $order .= $argv['pagination']['order'];
                     }
                 } else {
-                    $order .= 'user_id ASC';
+                    $order .= ' ASC';
                 }
             }
             $limit = "$order $limit";
         } else {
-            $limit = ' ORDER BY user_id ASC LIMIT 100';
+            $limit = ' ORDER BY  ASC LIMIT 100';
         }
 
         // join 
@@ -376,16 +351,14 @@ class Carbon_User_Tasks extends Rest implements iRest
             }
         }
 
-        $sql = 'SELECT ' .  $sql . ' FROM carbon_user_tasks ' . $join;
+        $sql = 'SELECT ' .  $sql . ' FROM carbon_feature_references ' . $join;
        
         if (null === $primary) {
             /** @noinspection NestedPositiveIfStatementsInspection */
             if (!empty($where)) {
                 $sql .= ' WHERE ' . self::buildWhere($where, $pdo);
             }
-        } else {
-            $sql .= ' WHERE  user_id=UNHEX('.self::addInjection($primary, $pdo).')';
-        }
+        } 
 
         if ($aggregate  && !empty($group)) {
             $sql .= ' GROUP BY ' . implode(', ', $group). ' ';
@@ -400,20 +373,20 @@ class Carbon_User_Tasks extends Rest implements iRest
 
     /**
     * @param array $return
-    * @param string $primary
+    
     * @param array $argv
     * @return bool
     */
-    public static function Put(array &$return, string $primary, array $argv) : bool
+    public static function Put(array &$return,  array $argv) : bool
     {
         self::$injection = []; 
         
-        if (empty($primary)) {
+        $where = $argv[self::WHERE];
+
+        $argv = $argv[self::UPDATE];
+
+        if (empty($where) || empty($argv)) {
             return false;
-        }
-        
-        if (array_key_exists(self::UPDATE, $argv)) {
-            $argv = $argv[self::UPDATE];
         }
         
         foreach ($argv as $key => $value) {
@@ -422,35 +395,17 @@ class Carbon_User_Tasks extends Rest implements iRest
             }
         }
 
-        $sql = 'UPDATE carbon_user_tasks ';
+        $sql = 'UPDATE carbon_feature_references ';
 
         $sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
 
         $set = '';
 
-        if (array_key_exists('carbon_user_tasks.task_id', $argv)) {
-            $set .= 'task_id=UNHEX(:task_id),';
+        if (array_key_exists('carbon_feature_references.feature_entity_id', $argv)) {
+            $set .= 'feature_entity_id=UNHEX(:feature_entity_id),';
         }
-        if (array_key_exists('carbon_user_tasks.user_id', $argv)) {
-            $set .= 'user_id=UNHEX(:user_id),';
-        }
-        if (array_key_exists('carbon_user_tasks.from_id', $argv)) {
-            $set .= 'from_id=UNHEX(:from_id),';
-        }
-        if (array_key_exists('carbon_user_tasks.task_name', $argv)) {
-            $set .= 'task_name=:task_name,';
-        }
-        if (array_key_exists('carbon_user_tasks.task_description', $argv)) {
-            $set .= 'task_description=:task_description,';
-        }
-        if (array_key_exists('carbon_user_tasks.percent_complete', $argv)) {
-            $set .= 'percent_complete=:percent_complete,';
-        }
-        if (array_key_exists('carbon_user_tasks.start_date', $argv)) {
-            $set .= 'start_date=:start_date,';
-        }
-        if (array_key_exists('carbon_user_tasks.end_date', $argv)) {
-            $set .= 'end_date=:end_date,';
+        if (array_key_exists('carbon_feature_references.reference_entity_id', $argv)) {
+            $set .= 'reference_entity_id=UNHEX(:reference_entity_id),';
         }
 
         if (empty($set)){
@@ -461,42 +416,20 @@ class Carbon_User_Tasks extends Rest implements iRest
 
         $pdo = self::database();
 
-        $sql .= ' WHERE  user_id=UNHEX('.self::addInjection($primary, $pdo).')';
         
+        $sql .= ' WHERE ' . self::buildWhere($where, $pdo);
 
         self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 
-        if (array_key_exists('carbon_user_tasks.task_id', $argv)) {
-            $task_id = $argv['carbon_user_tasks.task_id'];
-            $stmt->bindParam(':task_id',$task_id, 2, 16);
+        if (array_key_exists('carbon_feature_references.feature_entity_id', $argv)) {
+            $feature_entity_id = $argv['carbon_feature_references.feature_entity_id'];
+            $stmt->bindParam(':feature_entity_id',$feature_entity_id, 2, 16);
         }
-        if (array_key_exists('carbon_user_tasks.user_id', $argv)) {
-            $user_id = $argv['carbon_user_tasks.user_id'];
-            $stmt->bindParam(':user_id',$user_id, 2, 16);
-        }
-        if (array_key_exists('carbon_user_tasks.from_id', $argv)) {
-            $from_id = $argv['carbon_user_tasks.from_id'];
-            $stmt->bindParam(':from_id',$from_id, 2, 16);
-        }
-        if (array_key_exists('carbon_user_tasks.task_name', $argv)) {
-            $task_name = $argv['carbon_user_tasks.task_name'];
-            $stmt->bindParam(':task_name',$task_name, 2, 40);
-        }
-        if (array_key_exists('carbon_user_tasks.task_description', $argv)) {
-            $task_description = $argv['carbon_user_tasks.task_description'];
-            $stmt->bindParam(':task_description',$task_description, 2, 225);
-        }
-        if (array_key_exists('carbon_user_tasks.percent_complete', $argv)) {
-            $percent_complete = $argv['carbon_user_tasks.percent_complete'];
-            $stmt->bindParam(':percent_complete',$percent_complete, 2, 11);
-        }
-        if (array_key_exists('carbon_user_tasks.start_date', $argv)) {
-            $stmt->bindValue(':start_date',$argv['carbon_user_tasks.start_date'], 2);
-        }
-        if (array_key_exists('carbon_user_tasks.end_date', $argv)) {
-            $stmt->bindValue(':end_date',$argv['carbon_user_tasks.end_date'], 2);
+        if (array_key_exists('carbon_feature_references.reference_entity_id', $argv)) {
+            $reference_entity_id = $argv['carbon_feature_references.reference_entity_id'];
+            $stmt->bindParam(':reference_entity_id',$reference_entity_id, 2, 16);
         }
 
         self::bind($stmt);
@@ -507,7 +440,7 @@ class Carbon_User_Tasks extends Rest implements iRest
         
         $argv = array_combine(
             array_map(
-                static function($k) { return str_replace('carbon_user_tasks.', '', $k); },
+                static function($k) { return str_replace('carbon_feature_references.', '', $k); },
                 array_keys($argv)
             ),
             array_values($argv)
@@ -525,32 +458,19 @@ class Carbon_User_Tasks extends Rest implements iRest
     * @param array $argv
     * @return bool
     */
-    public static function Delete(array &$remove, string $primary = null, array $argv) : bool
+    public static function Delete(array &$remove, array $argv) : bool
     {
-        if (null !== $primary) {
-            return Carbons::Delete($remove, $primary, $argv);
-        }
-
-        /**
-         *   While useful, we've decided to disallow full
-         *   table deletions through the rest api. For the
-         *   n00bs and future self, "I got chu."
-         */
-        if (empty($argv)) {
-            return false;
-        }
-
         self::$injection = []; 
         
         /** @noinspection SqlResolve */
         /** @noinspection SqlWithoutWhere */
-        $sql = 'DELETE c FROM carbons c 
-                JOIN carbon_user_tasks on c.entity_pk = carbon_user_tasks.user_id';
+        $sql = 'DELETE FROM carbon_feature_references ';
 
         $pdo = self::database();
 
+               
         $sql .= ' WHERE ' . self::buildWhere($argv, $pdo);
-        
+
         self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
@@ -559,7 +479,6 @@ class Carbon_User_Tasks extends Rest implements iRest
 
         $r = $stmt->execute();
 
-        /** @noinspection CallableParameterUseCaseInTypeContextInspection */
         $r and $remove = [];
 
         return $r;

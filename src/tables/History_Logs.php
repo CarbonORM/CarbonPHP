@@ -4,12 +4,14 @@ namespace CarbonPHP\Tables;
 
 use PDO;
 use PDOStatement;
+
 use function array_key_exists;
 use function count;
 use function is_array;
 use CarbonPHP\Rest;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestfulReferences;
+use CarbonPHP\Error\PublicAlert;
 
 
 class History_Logs extends Rest implements iRestfulReferences
@@ -66,8 +68,8 @@ class History_Logs extends Rest implements iRestfulReferences
             } else if (array_key_exists($column, self::PDO_VALIDATION)) {
                 $bump = false;
                 /** @noinspection SubStrUsedAsStrPosInspection */
-                if (substr($value, 0, '7') === 'C6SUB37') {
-                    $subQuery = substr($value, '7');
+                if (substr($value, 0, '8') === 'C6SUB748') {
+                    $subQuery = substr($value, '8');
                     $sql .= "($column = $subQuery ) $join ";
                 } else if (self::PDO_VALIDATION[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $join ";
@@ -162,10 +164,12 @@ class History_Logs extends Rest implements iRestfulReferences
     }
 
     /**
-    * @param array $argv
-    * @return bool
-    */
-    public static function Post(array $argv): bool
+     * @param array $argv
+     * @param string|null $dependantEntityId - a C6 Hex entity key 
+     * @return bool|string
+     * @throws PublicAlert
+     */
+    public static function Post(array $argv, string $dependantEntityId = null): bool
     {
         self::$injection = [];
         /** @noinspection SqlResolve */
@@ -175,29 +179,32 @@ class History_Logs extends Rest implements iRestfulReferences
 
         $stmt = self::database()->prepare($sql);
 
-                
-                    $uuid = $argv['history_logs.uuid'];
-                    $stmt->bindParam(':uuid',$uuid, 2, 16);
-                        
-                    $resource_type =  $argv['history_logs.resource_type'] ?? null;
-                    $stmt->bindParam(':resource_type',$resource_type, 2, 40);
-                        
-                    $resource_uuid =  $argv['history_logs.resource_uuid'] ?? null;
-                    $stmt->bindParam(':resource_uuid',$resource_uuid, 2, 16);
-                        
-                    $operation_type =  $argv['history_logs.operation_type'] ?? null;
-                    $stmt->bindParam(':operation_type',$operation_type, 2, 20);
-                        $stmt->bindValue(':data',json_encode($argv['history_logs.data']), 2);
-        
+    
+        $uuid = $argv['history_logs.uuid'];
+        $stmt->bindParam(':uuid',$uuid, 2, 16);
+    
+        $resource_type =  $argv['history_logs.resource_type'] ?? null;
+        $stmt->bindParam(':resource_type',$resource_type, 2, 40);
+    
+        $resource_uuid =  $argv['history_logs.resource_uuid'] ?? null;
+        $stmt->bindParam(':resource_uuid',$resource_uuid, 2, 16);
+    
+        $operation_type =  $argv['history_logs.operation_type'] ?? null;
+        $stmt->bindParam(':operation_type',$operation_type, 2, 20);
+    
+        $stmt->bindValue(':data',json_encode($argv['history_logs.data']), 2);
 
 
 
-            return $stmt->execute();
+
+    
+        return $stmt->execute();
+    
     }
      
     public static function subSelect(string $primary = null, array $argv, PDO $pdo = null): string
     {
-        return 'C6SUB37' . self::buildSelectQuery($primary, $argv, $pdo, true);
+        return 'C6SUB748' . self::buildSelectQuery($primary, $argv, $pdo, true);
     }
     
     public static function validateSelectColumn($column) : bool {
