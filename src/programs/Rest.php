@@ -871,7 +871,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
         \${{name}} = \$id = \$argv['{{TableName}}.{{name}}'] ?? self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
         \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
     {{/carbon_table}}{{#carbon_table}}
-        \${{name}} = \$id = \$argv['{{TableName}}.{{name}}'] ?? self::beginTransaction('{{TableName}}', \$dependant);
+        \${{name}} = \$id = \$argv['{{TableName}}.{{name}}'] ?? self::beginTransaction('{{TableName}}', \$dependantEntityId);
         \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
     {{/carbon_table}}{{/primary_binary}}{{^primary_binary}}{{^skip}}{{^length}}
         \$stmt->bindValue(':{{name}}',{{#json}}json_encode(\$argv['{{TableName}}.{{name}}']){{/json}}{{^json}}{{^default}}\$argv['{{TableName}}.{{name}}']{{/default}}{{#default}}array_key_exists('{{TableName}}.{{name}}',\$argv) ? \$argv['{{TableName}}.{{name}}'] : {{default}}{{/default}}{{/json}}, {{type}});{{/length}}
