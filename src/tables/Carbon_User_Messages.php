@@ -41,7 +41,19 @@ class Carbon_User_Messages extends Rest implements iRest
 
     public static array $injection = [];
 
-    
+    public static function jsonSQLReporting($argv, $sql) : void {
+        global $json;
+        if (!is_array($json)) {
+            $json = [];
+        }
+        if (!isset($json['sql'])) {
+            $json['sql'] = [];
+        }
+        $json['sql'][] = [
+            $argv,
+            $sql
+        ];
+    }
     
     public static function buildWhere(array $set, PDO $pdo, $join = 'AND') : string
     {
@@ -57,8 +69,8 @@ class Carbon_User_Messages extends Rest implements iRest
             } else if (array_key_exists($column, self::PDO_VALIDATION)) {
                 $bump = false;
                 /** @noinspection SubStrUsedAsStrPosInspection */
-                if (substr($value, 0, '7') === 'C6SUB19') {
-                    $subQuery = substr($value, '7');
+                if (substr($value, 0, '8') === 'C6SUB748') {
+                    $subQuery = substr($value, '8');
                     $sql .= "($column = $subQuery ) $join ";
                 } else if (self::PDO_VALIDATION[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $join ";
@@ -169,12 +181,12 @@ class Carbon_User_Messages extends Rest implements iRest
         /** @noinspection SqlResolve */
         $sql = 'INSERT INTO carbon_user_messages (message_id, from_user_id, to_user_id, message, message_read) VALUES ( UNHEX(:message_id), UNHEX(:from_user_id), UNHEX(:to_user_id), :message, :message_read)';
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = self::database()->prepare($sql);
 
     
-        $message_id = $id = $argv['carbon_user_messages.message_id'] ?? self::beginTransaction('carbon_user_messages', $dependant);
+        $message_id = $id = $argv['carbon_user_messages.message_id'] ?? self::beginTransaction('carbon_user_messages', $dependantEntityId);
         $stmt->bindParam(':message_id',$message_id, 2, 16);
     
         $from_user_id = $argv['carbon_user_messages.from_user_id'];
@@ -196,7 +208,7 @@ class Carbon_User_Messages extends Rest implements iRest
      
     public static function subSelect(string $primary = null, array $argv, PDO $pdo = null): string
     {
-        return 'C6SUB19' . self::buildSelectQuery($primary, $argv, $pdo, true);
+        return 'C6SUB748' . self::buildSelectQuery($primary, $argv, $pdo, true);
     }
     
     public static function validateSelectColumn($column) : bool {
@@ -371,7 +383,7 @@ class Carbon_User_Messages extends Rest implements iRest
 
         $sql .= $limit;
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         return '(' . $sql . ')';
     }
@@ -436,7 +448,7 @@ class Carbon_User_Messages extends Rest implements iRest
         $sql .= ' WHERE  message_id=UNHEX('.self::addInjection($primary, $pdo).')';
         
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 
@@ -514,6 +526,8 @@ class Carbon_User_Messages extends Rest implements iRest
         $pdo = self::database();
 
         $sql .= ' WHERE ' . self::buildWhere($argv, $pdo);
+        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 

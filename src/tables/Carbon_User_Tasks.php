@@ -43,7 +43,19 @@ class Carbon_User_Tasks extends Rest implements iRest
 
     public static array $injection = [];
 
-    
+    public static function jsonSQLReporting($argv, $sql) : void {
+        global $json;
+        if (!is_array($json)) {
+            $json = [];
+        }
+        if (!isset($json['sql'])) {
+            $json['sql'] = [];
+        }
+        $json['sql'][] = [
+            $argv,
+            $sql
+        ];
+    }
     
     public static function buildWhere(array $set, PDO $pdo, $join = 'AND') : string
     {
@@ -59,8 +71,8 @@ class Carbon_User_Tasks extends Rest implements iRest
             } else if (array_key_exists($column, self::PDO_VALIDATION)) {
                 $bump = false;
                 /** @noinspection SubStrUsedAsStrPosInspection */
-                if (substr($value, 0, '7') === 'C6SUB19') {
-                    $subQuery = substr($value, '7');
+                if (substr($value, 0, '8') === 'C6SUB748') {
+                    $subQuery = substr($value, '8');
                     $sql .= "($column = $subQuery ) $join ";
                 } else if (self::PDO_VALIDATION[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $join ";
@@ -171,7 +183,7 @@ class Carbon_User_Tasks extends Rest implements iRest
         /** @noinspection SqlResolve */
         $sql = 'INSERT INTO carbon_user_tasks (task_id, user_id, from_id, task_name, task_description, percent_complete, start_date, end_date) VALUES ( UNHEX(:task_id), UNHEX(:user_id), UNHEX(:from_id), :task_name, :task_description, :percent_complete, :start_date, :end_date)';
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = self::database()->prepare($sql);
 
@@ -179,7 +191,7 @@ class Carbon_User_Tasks extends Rest implements iRest
         $task_id = $argv['carbon_user_tasks.task_id'];
         $stmt->bindParam(':task_id',$task_id, 2, 16);
     
-        $user_id = $id = $argv['carbon_user_tasks.user_id'] ?? self::beginTransaction('carbon_user_tasks', $dependant);
+        $user_id = $id = $argv['carbon_user_tasks.user_id'] ?? self::beginTransaction('carbon_user_tasks', $dependantEntityId);
         $stmt->bindParam(':user_id',$user_id, 2, 16);
     
         $from_id =  $argv['carbon_user_tasks.from_id'] ?? null;
@@ -206,7 +218,7 @@ class Carbon_User_Tasks extends Rest implements iRest
      
     public static function subSelect(string $primary = null, array $argv, PDO $pdo = null): string
     {
-        return 'C6SUB19' . self::buildSelectQuery($primary, $argv, $pdo, true);
+        return 'C6SUB748' . self::buildSelectQuery($primary, $argv, $pdo, true);
     }
     
     public static function validateSelectColumn($column) : bool {
@@ -381,7 +393,7 @@ class Carbon_User_Tasks extends Rest implements iRest
 
         $sql .= $limit;
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         return '(' . $sql . ')';
     }
@@ -452,7 +464,7 @@ class Carbon_User_Tasks extends Rest implements iRest
         $sql .= ' WHERE  user_id=UNHEX('.self::addInjection($primary, $pdo).')';
         
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 
@@ -538,6 +550,8 @@ class Carbon_User_Tasks extends Rest implements iRest
         $pdo = self::database();
 
         $sql .= ' WHERE ' . self::buildWhere($argv, $pdo);
+        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 

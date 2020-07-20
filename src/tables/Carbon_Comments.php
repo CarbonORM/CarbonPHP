@@ -39,7 +39,19 @@ class Carbon_Comments extends Rest implements iRest
 
     public static array $injection = [];
 
-    
+    public static function jsonSQLReporting($argv, $sql) : void {
+        global $json;
+        if (!is_array($json)) {
+            $json = [];
+        }
+        if (!isset($json['sql'])) {
+            $json['sql'] = [];
+        }
+        $json['sql'][] = [
+            $argv,
+            $sql
+        ];
+    }
     
     public static function buildWhere(array $set, PDO $pdo, $join = 'AND') : string
     {
@@ -55,8 +67,8 @@ class Carbon_Comments extends Rest implements iRest
             } else if (array_key_exists($column, self::PDO_VALIDATION)) {
                 $bump = false;
                 /** @noinspection SubStrUsedAsStrPosInspection */
-                if (substr($value, 0, '7') === 'C6SUB19') {
-                    $subQuery = substr($value, '7');
+                if (substr($value, 0, '8') === 'C6SUB748') {
+                    $subQuery = substr($value, '8');
                     $sql .= "($column = $subQuery ) $join ";
                 } else if (self::PDO_VALIDATION[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $join ";
@@ -167,7 +179,7 @@ class Carbon_Comments extends Rest implements iRest
         /** @noinspection SqlResolve */
         $sql = 'INSERT INTO carbon_comments (parent_id, comment_id, user_id, comment) VALUES ( UNHEX(:parent_id), UNHEX(:comment_id), UNHEX(:user_id), :comment)';
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = self::database()->prepare($sql);
 
@@ -175,7 +187,7 @@ class Carbon_Comments extends Rest implements iRest
         $parent_id = $argv['carbon_comments.parent_id'];
         $stmt->bindParam(':parent_id',$parent_id, 2, 16);
     
-        $comment_id = $id = $argv['carbon_comments.comment_id'] ?? self::beginTransaction('carbon_comments', $dependant);
+        $comment_id = $id = $argv['carbon_comments.comment_id'] ?? self::beginTransaction('carbon_comments', $dependantEntityId);
         $stmt->bindParam(':comment_id',$comment_id, 2, 16);
     
         $user_id = $argv['carbon_comments.user_id'];
@@ -191,7 +203,7 @@ class Carbon_Comments extends Rest implements iRest
      
     public static function subSelect(string $primary = null, array $argv, PDO $pdo = null): string
     {
-        return 'C6SUB19' . self::buildSelectQuery($primary, $argv, $pdo, true);
+        return 'C6SUB748' . self::buildSelectQuery($primary, $argv, $pdo, true);
     }
     
     public static function validateSelectColumn($column) : bool {
@@ -366,7 +378,7 @@ class Carbon_Comments extends Rest implements iRest
 
         $sql .= $limit;
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         return '(' . $sql . ')';
     }
@@ -425,7 +437,7 @@ class Carbon_Comments extends Rest implements iRest
         $sql .= ' WHERE  comment_id=UNHEX('.self::addInjection($primary, $pdo).')';
         
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 
@@ -496,6 +508,8 @@ class Carbon_Comments extends Rest implements iRest
         $pdo = self::database();
 
         $sql .= ' WHERE ' . self::buildWhere($argv, $pdo);
+        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 

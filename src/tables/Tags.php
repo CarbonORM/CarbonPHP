@@ -38,7 +38,19 @@ class Tags extends Rest implements iRestfulReferences
 
     public static array $injection = [];
 
-    
+    public static function jsonSQLReporting($argv, $sql) : void {
+        global $json;
+        if (!is_array($json)) {
+            $json = [];
+        }
+        if (!isset($json['sql'])) {
+            $json['sql'] = [];
+        }
+        $json['sql'][] = [
+            $argv,
+            $sql
+        ];
+    }
     
     public static function buildWhere(array $set, PDO $pdo, $join = 'AND') : string
     {
@@ -54,8 +66,8 @@ class Tags extends Rest implements iRestfulReferences
             } else if (array_key_exists($column, self::PDO_VALIDATION)) {
                 $bump = false;
                 /** @noinspection SubStrUsedAsStrPosInspection */
-                if (substr($value, 0, '7') === 'C6SUB19') {
-                    $subQuery = substr($value, '7');
+                if (substr($value, 0, '8') === 'C6SUB748') {
+                    $subQuery = substr($value, '8');
                     $sql .= "($column = $subQuery ) $join ";
                 } else if (self::PDO_VALIDATION[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $join ";
@@ -161,7 +173,7 @@ class Tags extends Rest implements iRestfulReferences
         /** @noinspection SqlResolve */
         $sql = 'INSERT INTO tags (tag_id, tag_description, tag_name) VALUES ( :tag_id, :tag_description, :tag_name)';
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = self::database()->prepare($sql);
 
@@ -183,7 +195,7 @@ class Tags extends Rest implements iRestfulReferences
      
     public static function subSelect(string $primary = null, array $argv, PDO $pdo = null): string
     {
-        return 'C6SUB19' . self::buildSelectQuery($primary, $argv, $pdo, true);
+        return 'C6SUB748' . self::buildSelectQuery($primary, $argv, $pdo, true);
     }
     
     public static function validateSelectColumn($column) : bool {
@@ -356,7 +368,7 @@ class Tags extends Rest implements iRestfulReferences
 
         $sql .= $limit;
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         return '(' . $sql . ')';
     }
@@ -412,7 +424,7 @@ class Tags extends Rest implements iRestfulReferences
         
         $sql .= ' WHERE ' . self::buildWhere($where, $pdo);
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 
@@ -466,7 +478,7 @@ class Tags extends Rest implements iRestfulReferences
                
         $sql .= ' WHERE ' . self::buildWhere($argv, $pdo);
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 

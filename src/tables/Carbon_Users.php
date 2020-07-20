@@ -62,7 +62,19 @@ class Carbon_Users extends Rest implements iRest
 
     public static array $injection = [];
 
-    
+    public static function jsonSQLReporting($argv, $sql) : void {
+        global $json;
+        if (!is_array($json)) {
+            $json = [];
+        }
+        if (!isset($json['sql'])) {
+            $json['sql'] = [];
+        }
+        $json['sql'][] = [
+            $argv,
+            $sql
+        ];
+    }
     
     public static function buildWhere(array $set, PDO $pdo, $join = 'AND') : string
     {
@@ -78,8 +90,8 @@ class Carbon_Users extends Rest implements iRest
             } else if (array_key_exists($column, self::PDO_VALIDATION)) {
                 $bump = false;
                 /** @noinspection SubStrUsedAsStrPosInspection */
-                if (substr($value, 0, '7') === 'C6SUB19') {
-                    $subQuery = substr($value, '7');
+                if (substr($value, 0, '8') === 'C6SUB748') {
+                    $subQuery = substr($value, '8');
                     $sql .= "($column = $subQuery ) $join ";
                 } else if (self::PDO_VALIDATION[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $join ";
@@ -190,7 +202,7 @@ class Carbon_Users extends Rest implements iRest
         /** @noinspection SqlResolve */
         $sql = 'INSERT INTO carbon_users (user_username, user_password, user_id, user_type, user_sport, user_session_id, user_facebook_id, user_first_name, user_last_name, user_profile_pic, user_profile_uri, user_cover_photo, user_birthday, user_gender, user_about_me, user_rank, user_email, user_email_code, user_email_confirmed, user_generated_string, user_membership, user_deactivated, user_ip, user_education_history, user_location) VALUES ( :user_username, :user_password, UNHEX(:user_id), :user_type, :user_sport, :user_session_id, :user_facebook_id, :user_first_name, :user_last_name, :user_profile_pic, :user_profile_uri, :user_cover_photo, :user_birthday, :user_gender, :user_about_me, :user_rank, :user_email, :user_email_code, :user_email_confirmed, :user_generated_string, :user_membership, :user_deactivated, :user_ip, :user_education_history, :user_location)';
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = self::database()->prepare($sql);
 
@@ -201,7 +213,7 @@ class Carbon_Users extends Rest implements iRest
         $user_password = $argv['carbon_users.user_password'];
         $stmt->bindParam(':user_password',$user_password, 2, 225);
     
-        $user_id = $id = $argv['carbon_users.user_id'] ?? self::beginTransaction('carbon_users', $dependant);
+        $user_id = $id = $argv['carbon_users.user_id'] ?? self::beginTransaction('carbon_users', $dependantEntityId);
         $stmt->bindParam(':user_id',$user_id, 2, 16);
     
         $user_type =  $argv['carbon_users.user_type'] ?? 'Athlete';
@@ -278,7 +290,7 @@ class Carbon_Users extends Rest implements iRest
      
     public static function subSelect(string $primary = null, array $argv, PDO $pdo = null): string
     {
-        return 'C6SUB19' . self::buildSelectQuery($primary, $argv, $pdo, true);
+        return 'C6SUB748' . self::buildSelectQuery($primary, $argv, $pdo, true);
     }
     
     public static function validateSelectColumn($column) : bool {
@@ -453,7 +465,7 @@ class Carbon_Users extends Rest implements iRest
 
         $sql .= $limit;
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         return '(' . $sql . ')';
     }
@@ -581,7 +593,7 @@ class Carbon_Users extends Rest implements iRest
         $sql .= ' WHERE  user_id=UNHEX('.self::addInjection($primary, $pdo).')';
         
 
-        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 
@@ -743,6 +755,8 @@ class Carbon_Users extends Rest implements iRest
         $pdo = self::database();
 
         $sql .= ' WHERE ' . self::buildWhere($argv, $pdo);
+        
+        self::jsonSQLReporting(\func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 
