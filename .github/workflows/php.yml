@@ -53,15 +53,11 @@ jobs:
       run: composer validate
 
     # composer with Cache
-    - name: Install composer dependencies
+    - name: Install Dependencies & Generate Sources
       run: composer install --prefer-dist --no-progress --no-suggest
 
-    # node with Cache
-    - name: Install node.js dependencies
-      run: npm install
-
     # Generate Files
-    - name: C6 Composer Setup Scripts
+    - name: C6 Composer Database Setup
       run: composer setupCI
 
     # Double check php version
