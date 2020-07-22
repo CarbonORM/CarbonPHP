@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" createEmptyFolders="true" showAutoUploadSettingsWarning="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="Google" createEmptyFolders="true" showAutoUploadSettingsWarning="false">
     <serverData>
       <paths name="Google">
         <serverdata>
           <mappings>
-            <mapping deploy="var/www/carbonphp.com/html/" local="$PROJECT_DIR$" web="/2.0/" />
-            <mapping deploy="var/www/carbonphp.com/html/view/react/material-dashboard-react-c6" local="$PROJECT_DIR$/view/react/material-dashboard-react-c6" web="/5.0/" />
+            <mapping deploy="/" local="$PROJECT_DIR$" web="/2.0/" />
           </mappings>
           <excludedPaths>
             <excludedPath local="true" path="$PROJECT_DIR$/view/react/material-dashboard-react-c6" />

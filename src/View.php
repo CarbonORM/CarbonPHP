@@ -31,7 +31,7 @@ class View
         global $json;
 
 
-        $buffer = function () use ($file) : string {         // closure  $buffer();
+        $buffer = static function () use ($file) : string {         // closure  $buffer();
 
             global $json;              // Buffer contents may not need to be run if AJAX or SOCKET
 
