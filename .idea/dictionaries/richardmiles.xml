@@ -1,10 +1,16 @@
 <component name="ProjectDictionaryState">
   <dictionary name="richardmiles">
     <words>
+      <w>autoloading</w>
+      <w>axios</w>
+      <w>bcrypt</w>
+      <w>mysqldump</w>
       <w>pcntl</w>
       <w>phpsessid</w>
+      <w>strtolower</w>
       <w>testdox</w>
       <w>websocketd</w>
+      <w>websockets</w>
     </words>
   </dictionary>
 </component>

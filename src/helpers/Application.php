@@ -152,25 +152,25 @@ namespace {                                     // This runs the following code 
 
         // Generate Report
         ob_start();
-        print PHP_EOL . '################### SortDump Called From ################<br><pre>';
+        print "\n################### SortDump Called From ################\n<br><pre>";
         print '<pre>';
         /** @noinspection ForgottenDebugOutputInspection */
         $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,2);
         /** @noinspection ForgottenDebugOutputInspection */
         var_dump($backtrace[1] ?? $backtrace[0]);
         print '</pre>';
-        print PHP_EOL . '####################### VAR DUMP ########################<br><pre>';
+        print "\n####################### VAR DUMP ########################\n\n<br><pre>";
         /** @noinspection ForgottenDebugOutputInspection */
         var_dump($mixed);
         print '</pre><br><br><br>#########################################################';
         if ($fullReport) {
-            echo '####################### MIXED DUMP ########################<br><pre>';
+            echo "\n####################### MIXED DUMP ########################\n\n<br><pre>";
             $mixed = (\is_array($mixed) && \count($mixed) === 1 ? array_pop($mixed) : $mixed);
             echo '<pre>';
             /** @noinspection ForgottenDebugOutputInspection */
             debug_zval_dump($mixed ?: $GLOBALS);
             echo '</pre><br><br>';
-            echo '####################### BACK TRACE ########################<br><pre>';
+            echo "\n####################### BACK TRACE ########################\n\n<br><pre>";
             /** @noinspection ForgottenDebugOutputInspection */
             var_dump(debug_backtrace());
             echo '</pre>';

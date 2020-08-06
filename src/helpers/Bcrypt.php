@@ -6,6 +6,8 @@
 
 namespace CarbonPHP\helpers;
 
+use CarbonPHP\Error\PublicAlert;
+
 class Bcrypt
 {
     private static $rounds = 10;
@@ -18,10 +20,13 @@ class Bcrypt
     // I assume this means php uses 4 bits to denote type (vzal) ?
     // idk
     // godaddy has me on a 64 bit computer
-    public static function genRandomHex($bitLength = 40)
+    public static function genRandomHex($bitLength = 40): string
     {
         $sudoRandom = 1;
-        for ($i=0;$i<=$bitLength;$i++) $sudoRandom = ($sudoRandom<<1)|rand(0,1);
+        for ($i=0;$i<=$bitLength;$i++) {
+            /** @noinspection PhpUnhandledExceptionInspection */
+            $sudoRandom = ($sudoRandom << 1) | random_int(0, 1);
+        }
         return dechex($sudoRandom);
     }
     
@@ -32,33 +37,38 @@ class Bcrypt
         return uniqid( $string, true );
     }
 
-    /* Gen Hash */
-    public static function genHash($password)
+    /**
+     * @param $password
+     * @return string|null
+     * @throws PublicAlert
+     */
+    public static function genHash($password): ?string
     {
-        if (CRYPT_BLOWFISH != 1)
-            throw new \Exception( "Bcrypt is not supported on this server, please see the following to learn more: http://php.net/crypt" );
+        if (CRYPT_BLOWFISH !== 1) {
+            throw new PublicAlert('Bcrypt is not supported on this server, please see the following to learn more: http://php.net/crypt');
+        }
 
         /* Explain '$2y$' . $this->rounds . '$' */
         /* 2y selects bcrypt algorithm */
         /* $this->rounds is the workload factor */
         /* GenHash */
-        $hash = crypt( $password, '$2y$' . self::$rounds . '$' . self::genSalt() );
         /* Return */
-        return $hash;
+        return crypt( $password, '$2y$' . self::$rounds . '$' . self::genSalt() );
     }
 
     /* Verify Password */
-    public static function verify($password, $existingHash)
+    /**
+     * @param $password
+     * @param $existingHash
+     * @return bool
+     */
+    public static function verify($password, $existingHash): bool
     {
         /* Hash new password with old hash */
 
         $hash = crypt( $password, $existingHash );
 
-        /* Do Hashs match? */
-        if ($hash === $existingHash) {
-            return true;
-        } else {
-            return false;
-        }
+        /* Do Hashes match? */
+        return $hash === $existingHash;
     }
 }

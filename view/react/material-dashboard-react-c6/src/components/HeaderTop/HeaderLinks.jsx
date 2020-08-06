@@ -35,8 +35,8 @@ function HeaderLinks({...props}) {
                     }}
                     buttonIcon={Apps}
                     dropdownList={[
-                        <Link to="/5.0" className={classes.dropdownLink}>
-                            Version 5.0
+                        <Link to="/6.0" className={classes.dropdownLink}>
+                            Version 6.0
                         </Link>,
                         <a
                             href={context.contextHost + "/2.0"}
@@ -58,12 +58,12 @@ function HeaderLinks({...props}) {
                     }}
                     buttonIcon={Apps}
                     dropdownList={[
-                        <Link to="/5.0/UI/Material-Kit"
+                        <Link to="/6.0/UI/Material-Kit"
                               target="_blank"
                               className={classes.dropdownLink}>
                             Material Kit
                         </Link>,
-                        <Link to="/5.0/UI/Material-Dashboard"
+                        <Link to="/6.0/UI/Material-Dashboard"
                               target="_blank"
                               className={classes.dropdownLink}>
                             Material Dashboard

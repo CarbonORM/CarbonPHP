@@ -14,16 +14,16 @@
 
     <script>
         /*! loadJS: load a JS file asynchronously. [c]2014 @scottjehl, Filament Group, Inc. (Based on http://goo.gl/REQGQ by Paul Irish). Licensed MIT */
-        (function (w) {
+        (function(w) {
             let loadJS;
-            loadJS = function (src, cb) {
+            loadJS = function(src, cb) {
                 "use strict";
                 let ref = w.document.getElementsByTagName("script")[0];
                 let script = w.document.createElement("script");
                 script.src = src;
                 script.async = true;
                 ref.parentNode.insertBefore(script, ref);
-                if (cb && typeof(cb) === "function")
+                if (cb && typeof (cb) === "function")
                     script.onload = cb;
 
                 return script;
@@ -57,13 +57,16 @@
         */
 
         // Document ready => jQuery => PJAX => CarbonPHP = loaded
-        function OneTimeEvent(ev, cb){
+        function OneTimeEvent(ev, cb) {
             return document.addEventListener(ev, function fn(event) {
                 document.removeEventListener(ev, fn);
                 return cb(event);
             });
         }
-        function Carbon(cb) {return OneTimeEvent("Carbon", cb)}
+
+        function Carbon(cb) {
+            return OneTimeEvent("Carbon", cb)
+        }
     </script>
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -73,6 +76,8 @@
     <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
     <!-- ./wrapper -->
+    <link rel="stylesheet" type="text/css" href="/view/mustache/css/style.css">
+
 </head>
 <!-- Full Width Column -->
 <body class="skin-purple sidebar-mini sidebar-collapse fixed" style="background-color: #ECF0F1">
@@ -80,7 +85,6 @@
 <div class="wrapper" style="background: rgba(0,0,0,0.7)">
     <noscript id="deferred-styles">
         <!-- REQUIRED STYLE SHEETS -->
-        <link rel="stylesheet" type="text/css" href="/view/mustache/css/style.css">
     </noscript>
     <!-- Main Header -->
     <header class="main-header">
@@ -104,7 +108,7 @@
                 </a>
                 <ul class="dropdown-menu dropdown-menu-xs">
                     <li><a href="/2.0/installation">2.0</a></li>
-                    <li><a href="/5.0/Documentation/installation">5.0</a></li>
+                    <li><a href="/6.0/Documentation/installation">6.0</a></li>
                 </ul>
             </div>
 
@@ -167,7 +171,7 @@
                         </li>
                         <li>
                             <a href="/2.0/Installation"><i
-                                        class="fa fa-code-fork"></i><span>Installation</span></a>
+                                    class="fa fa-code-fork"></i><span>Installation</span></a>
                         </li>
                         <li>
                             <a href="/2.0/FileStructure"><i class="fa fa-folder"></i>File Structure</a>
@@ -243,87 +247,89 @@
         <!-- /.sidebar -->
     </aside>
     <script>//--  Sidebar Search Engine
-        Carbon(() => {
-            let $menu = $('li');
+    Carbon(() => {
+        let $menu = $('li');
 
-            let activity = function () {
-                $("li a").filter(function () {
-                    $menu.removeClass('active');
-                    return this.href === location.href.replace(/#.*/, "");
-                }).parent().addClass("active");
-            };
-
-            activity();
-
-            $menu.click(function () {
+        let activity = function() {
+            $("li a").filter(function() {
                 $menu.removeClass('active');
-                $(this).addClass('active');
-            });
+                return this.href === location.href.replace(/#.*/, "");
+            }).parent().addClass("active");
+        };
 
-            $('#mytitle').click(function () {
-                $menu.removeClass('active');
-            });
+        activity();
 
-            $('#sidebar-form').on('submit', function (e) {
-                e.preventDefault();
-            });
+        $menu.click(function() {
+            $menu.removeClass('active');
+            $(this).addClass('active');
+        });
 
-            $('.sidebar-menu li.active').data('lte.pushmenu.active', true);
+        $('#mytitle').click(function() {
+            $menu.removeClass('active');
+        });
 
-            $('#search-input').on('keyup', function () {
-                let term = $('#search-input').val().trim(),
+        $('#sidebar-form').on('submit', function(e) {
+            e.preventDefault();
+        });
+
+        $('.sidebar-menu li.active').data('lte.pushmenu.active', true);
+
+        $('#search-input').on('keyup', function() {
+            let term = $('#search-input').val().trim(),
                     sidebar = $('.sidebar-menu li');
 
-                if (term.length === 0) {
-                    sidebar.each(function () {
-                        $(this).show(0);
+            if (term.length === 0) {
+                sidebar.each(function() {
+                    $(this).show(0);
+                    $(this).removeClass('active');
+                    if ($(this).data('lte.pushmenu.active')) {
+                        $(this).addClass('active');
+                    }
+                });
+                return;
+            }
+
+            sidebar.each(function() {
+                if ($(this).text().toLowerCase().indexOf(term.toLowerCase()) === -1) {
+                    $(this).hide(0);
+                    $(this).removeClass('pushmenu-search-found', false);
+
+                    if ($(this).is('.treeview')) {
                         $(this).removeClass('active');
-                        if ($(this).data('lte.pushmenu.active')) {
-                            $(this).addClass('active');
-                        }
-                    });
-                    return;
+                    }
+                } else {
+                    $(this).show(0);
+                    $(this).addClass('pushmenu-search-found');
+
+                    if ($(this).is('.treeview')) {
+                        $(this).addClass('active');
+                    }
+
+                    let parent = $(this).parents('li').first();
+                    if (parent.is('.treeview')) {
+                        parent.show(0);
+                    }
                 }
 
-                sidebar.each(function () {
-                    if ($(this).text().toLowerCase().indexOf(term.toLowerCase()) === -1) {
-                        $(this).hide(0);
-                        $(this).removeClass('pushmenu-search-found', false);
-
-                        if ($(this).is('.treeview')) {
-                            $(this).removeClass('active');
-                        }
-                    } else {
-                        $(this).show(0);
-                        $(this).addClass('pushmenu-search-found');
-
-                        if ($(this).is('.treeview')) {
-                            $(this).addClass('active');
-                        }
-
-                        let parent = $(this).parents('li').first();
-                        if (parent.is('.treeview')) {
-                            parent.show(0);
-                        }
-                    }
-
-                    if ($(this).is('.header')) {
-                        $(this).show();
-                    }
-                });
-
-                $('.sidebar-menu li.pushmenu-search-found.treeview').each(function () {
-                    $(this).find('.pushmenu-search-found').show(0);
-                });
+                if ($(this).is('.header')) {
+                    $(this).show();
+                }
             });
 
-        })
+            $('.sidebar-menu li.pushmenu-search-found.treeview').each(function() {
+                $(this).find('.pushmenu-search-found').show(0);
+            });
+        });
+
+    })
     </script>
 
     <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper" style="background: transparent">
         <!--  style="background: transparent"  Add this to use the backstretch fn-->
-        <div id="alert"></div>
+        <div class="col-md-offset-1 col-md-10">
+            <div id="alert"></div>
+        </div>
         <!-- content -->
         <div class="col-md-offset-1 col-md-10">
             <div id="pjax-content" style="min-height: 1036px;">
@@ -344,7 +350,7 @@
                 <a href="/2.0/Privacy/" class="text-purple">Privacy Policy</a> <b>Version</b> <?= SITE_VERSION ?>
             </div>
             <strong>Copyright &copy; 2014-2017 <a href="https://miles.systems/" class="text-purple">Richard
-                    Miles</a>.</strong>
+                Miles</a>.</strong>
             <!--script type="text/javascript" src="https://cdn.ywxi.net/js/1.js" async></script-->
         </div>
         <!-- /.container -->
@@ -357,7 +363,7 @@
 
     carbon.event("Carbon");
 
-    $(document).on('pjax:complete', function () {
+    $(document).on('pjax:complete', function() {
         // TODO - remove alerts here?
 
         let boxes = $(".box");

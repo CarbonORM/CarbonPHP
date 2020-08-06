@@ -21,17 +21,13 @@ class Setup implements iCommand
 {
     use MySQL {
         /** @noinspection ImplicitMagicMethodCallInspection */
-        __construct as setup;
         cleanUp as removeFiles;
     }
 
-    private $config;
-    private $configFile;
 
-    public function __construct($PHP)
-    {
-        $this->config = $PHP;
-    }
+    private string $configFile;
+
+
 
     public function usage() : void
     {
@@ -73,40 +69,12 @@ usage;
                     // this is going to the CLI so no need to run/attach redirect scripts
                     exit(0);
                 case '--mysql_native_password':
-                    $query = <<<IDENTIFIED
-                    ALTER USER '{$this->config['DATABASE']['DB_USER']}'@'localhost' IDENTIFIED WITH mysql_native_password BY '{$this->config['DATABASE']['DB_PASS']}';
-                    ALTER USER '{$this->config['DATABASE']['DB_USER']}'@'%' IDENTIFIED WITH mysql_native_password BY '{$this->config['DATABASE']['DB_PASS']}';
-IDENTIFIED;
-                    print PHP_EOL . $query . PHP_EOL;
-
-                    try {
-                        if (!file_put_contents('query.txt', $query)){
-                            print 'Failed to create query file!';
-                            exit(2);
-                        }
-                        $this->setup($this->config);
-
-                        $out = $this->MySQLSource(true, 'query.txt');
-
-                        $this->removeFiles();
-
-                        if (!unlink('query.txt')) {
-                            print 'Failed to remove query.txt file' . PHP_EOL;
-                        }
-                        print $out . PHP_EOL;
-                        exit(0);
-                    } catch (Throwable $e) {
-                        print 'Failed to change mysql auth method' . PHP_EOL;
-                        ErrorCatcher::generateLog($e);
-                        exit(1);
-                    }
-
+                    $this->mysql_native_password();
+                    exit(0);
             }
         }
 
         // TODO - create this setup
-
-
         if (empty($this->config['SITE']['CONFIG'])) {
             print 'The [\'SITE\'][\'CONFIG\'] option is missing. It does not look like CarbonPHP is setup correctly. Run `>> php index.php setup` to fix this.' . PHP_EOL;
             exit(1);
@@ -123,8 +91,7 @@ IDENTIFIED;
             if (!preg_match("#'$key'\s*=>\s*\n*\[([^\]])*],#", $parse, $matches)) {
                 unset($this->config[$key]);
             } else {
-                print_r($matches);
-                exit(1);
+                exit($matches);
             }
         }
     }
@@ -226,7 +193,8 @@ IDENTIFIED;
         ];
     }
 
-    private function config($config) {
+    private function configSetup($config): void
+    {
         $configFile = <<<CONFIG
 <?php
 /**

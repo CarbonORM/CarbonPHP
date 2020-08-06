@@ -49,7 +49,7 @@ class Environment extends React.Component {
                             </div>
 
                             <GridContainer>
-                                <GridItem xs={12} sm={12} md={6}>
+                                <GridItem xs={12} sm={12} md={12}>
                                     <h3>Google Compute Engine <br/><small> virtual machines</small></h3>
                                     <CustomTabs
                                         headerColor="primary"
@@ -77,11 +77,6 @@ class Environment extends React.Component {
                                                 tabIcon: Code,
                                                 tabContent: (
                                                     <p className={classes.textCenter}>
-                                                        <h4>These instructions have been <a
-                                                            target="_blank"
-                                                            href="https://cloud.google.com/community/tutorials/setting-up-lamp">modified
-                                                            from google.com</a></h4>
-
                                                         <h5>Web development is easier with <a
                                                             href="https://www.jetbrains.com/idea/?fromMenu"
                                                             target="_blank">IntelliJ</a>.
@@ -91,11 +86,11 @@ class Environment extends React.Component {
 
                                                         <Checklist
                                                             checkedIndexes={[]}
-                                                            tasksIndexes={[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]}
+                                                            tasksIndexes={[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}
                                                             tasks={[
                                                                 <a href="https://cloud.google.com" target="_blank">Start
                                                                     a new project on Google Cloud</a>,
-                                                                'Select Compute engine from the left side menu',
+                                                              <p>Select Compute engine from the left side menu</p>,
                                                                 <p>Select Create, then name your new
                                                                     instance <small>Import options are coming
                                                                         soon</small></p>,
@@ -116,254 +111,17 @@ class Environment extends React.Component {
                                                                     <small>This is required to move onto the next
                                                                         section
                                                                     </small>
-                                                                </p>,
-                                                                <p><b>On your commuter open terminal (a shell
-                                                                    prompt)</b></p>,
-                                                                <p>Move to the directory where your project is located
-                                                                    in your shell.</p>,
-                                                                <p>Run the following command to configure your
-                                                                    project<br/>
-                                                                    <code>gcloud init</code><br/>You may be prompted to
-                                                                    select a region and other
-                                                                    options.<br/>These unique to you so select what you
-                                                                    want.</p>,
-                                                                <p>Type the following command but <b>replace
-                                                                    instance-1</b> with the name you choose in step 3
-                                                                    above.<br/>
-                                                                    <code>gcloud compute ssh instance-1</code>
-                                                                    <small>You should now be connected to your VM
-                                                                    </small>
-                                                                </p>,
-                                                                <p>Type in <code>whoami</code> to findout the current
-                                                                    username associated with your google ssh account
-                                                                </p>,
-                                                                <p>Open an sftp connection using your preferred file
-                                                                    transfer program. You'll need to provide the ssh key
-                                                                    the previous command
-                                                                    automatically downloaded. For Mac users it was
-                                                                    downloaded in your .ssh folder like below.<br/>
-                                                                    <code>/Users/[your_username_here]/.ssh/Google_cloud_rsa</code>
-                                                                </p>,
-                                                                <p><b>Now that we can transfer files and run commands
-                                                                    from our
-                                                                    personal
-                                                                    computer, we can move on to installing a LAMP
-                                                                    stack.</b></p>
-
-                                                            ]}
-                                                        />
-                                                    </p>
-                                                )
-                                            },
-                                            {
-                                                tabName: "LAMP Stack",
-                                                tabIcon: Build,
-                                                tabContent: (
-                                                    <p className={classes.textCenter}>
-                                                        <h4>These instructions have been <a
-                                                            target="_blank"
-                                                            href="https://cloud.google.com/community/tutorials/setting-up-lamp">modified
-                                                            from google.com</a></h4>
-
-                                                        <h5>Web development is easier with <a
-                                                            href="https://www.jetbrains.com/idea/?fromMenu"
-                                                            target="_blank">IntelliJ</a>.
-                                                            Students with a .edu can <a
-                                                                href="https://www.jetbrains.com/student/"
-                                                                target="_blank">create a free account here.</a></h5>
-                                                        <br/><br/>
-                                                        <h4>Install Apache</h4>
-                                                        <Checklist
-                                                            checkedIndexes={[]}
-                                                            tasksIndexes={[0, 1, 2, 3, 4, 5]}
-                                                            tasks={[
-                                                                <p>The following commands should be run on our VM using
-                                                                    SSH.
-                                                                    Throughout this install process you may be prompted
-                                                                    with<br/>
-                                                                    <code>Do you want to continue? [Y/n]</code><br/>
-                                                                    Should this happen, type 'Y' and hit enter.
-                                                                </p>,
-                                                                <p>Type the following lines in your VM <br/>
-                                                                    <code>sudo apt-get update</code></p>,
-                                                                <p><code>sudo apt-get install apache2</code></p>,
-                                                                <p><code>sudo a2enmod headers</code></p>,
-                                                                <p><code>sudo a2enmod rewrite</code></p>,
-                                                                <p>Restart Apache<br/><code>sudo service apache2
-                                                                    restart</code></p>,
-                                                            ]}
-                                                        />
-
-                                                        <br/><br/>
-                                                        <h4>Install MySql<br/><code>sudo apt-get install
-                                                            mysql-server php-pear</code></h4>
-                                                        <Checklist
-                                                            checkedIndexes={[]}
-                                                            tasksIndexes={[0, 1]}
-                                                            tasks={[
-                                                                <p><code>sudo mysql_secure_installation</code><br/>
-                                                                    You'll be prompted for the following
-                                                                    <ol>
-                                                                        <li>Set a root password</li>
-                                                                        <li>Remove the anonymous user</li>
-                                                                        <li>Disallow root login remotely</li>
-                                                                        <li>Remove test database</li>
-                                                                        <li>Reload privilege tables</li>
-                                                                    </ol>
-                                                                </p>,
-                                                                <p>
-                                                                    We need to create a user other than root to connect
-                                                                    with. The following commands will
-                                                                    create a user named phpmyadmin with the password
-                                                                    some_pass. You should change
-                                                                    this to your
-                                                                    desired options.
-                                                                    <ol>
-                                                                        <li><code>sudo mysql --user=root mysql</code>
-                                                                        </li>
-                                                                        <li><code>CREATE USER 'phpmyadmin'@'localhost'
-                                                                            IDENTIFIED BY
-                                                                            'some_pass';</code></li>
-                                                                        <li><code>GRANT ALL PRIVILEGES ON *.* TO
-                                                                            'phpmyadmin'@'localhost' WITH GRANT
-                                                                            OPTION;</code></li>
-                                                                        <li><code>FLUSH PRIVILEGES;</code></li>
-                                                                        <li><code>exit</code></li>
-                                                                    </ol>
-                                                                </p>,
-                                                            ]}/>
-
-                                                        <br/><br/>
-                                                        <h4>Install PHP 7.1</h4>
-                                                        <Checklist
-                                                            checkedIndexes={[]}
-                                                            tasksIndexes={[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}
-                                                            tasks={[
-                                                                <p><code>sudo apt-get install
-                                                                    software-properties-common</code></p>,
-                                                                <p><code>sudo apt-get install dirmngr</code></p>,
-                                                                <p><code>sudo add-apt-repository ppa:ondrej/php</code>
-                                                                    <ul>
-                                                                        <li>This time you'll just need to hit enter</li>
-                                                                    </ul>
-                                                                </p>,
-                                                                <p><code>sudo add-apt-repository
-                                                                    ppa:ondrej/apache2</code>
-                                                                    <br/>
-                                                                    <code>sudo apt install apt-transport-https
-                                                                        lsb-release ca-certificates</code></p>,
-                                                                <p><code>sudo wget -O /etc/apt/trusted.gpg.d/php.gpg
-                                                                    https://packages.sury.org/php/apt.gpg</code></p>,
-                                                                <p><code>sudo sh -c 'echo "deb
-                                                                    https://packages.sury.org/php/
-                                                                    $(lsb_release -sc)
-                                                                    main" > /etc/apt/sources.list.d/php.list'</code>
-                                                                </p>,
-                                                                <p><code>sudo wget -O /etc/apt/trusted.gpg.d/php.gpg
-                                                                    https://packages.sury.org/php/apt.gpg</code></p>,
-                                                                <code>sudo apt-get update</code>,
-                                                                <code>sudo apt-get install php7.1 php7.1-common</code>,
-                                                                <code>sudo apt-get install php7.1-curl php7.1-xml
-                                                                    php7.1-zip
-                                                                    php7.1-gd
-                                                                    php7.1-mysql php7.1-mbstring</code>,
-                                                                <code>sudo service apache2 reload</code>,
-
-                                                            ]}
-                                                        />
-                                                        <br/><br/>
-                                                        <h4>Turn on.htaccess support</h4>
-                                                        <Checklist
-                                                            checkedIndexes={[]}
-                                                            tasksIndexes={[0, 1, 2]}
-                                                            tasks={[
-                                                                <p>Turn on.htaccess support<br/>
-                                                                    <code>sudo vim etc/apache2/apache2.conf</code></p>,
-                                                                <p>Scroll to this line in the document <br/>
-                                                                    <code>&lt;Directory /var/www/&gt;</code><br/>
-                                                                    Change allow Override to <code>All</code><br/>
-                                                                </p>,
-                                                                <p>Install Github's Commandline Tool<br/>
-                                                                    <code>sudo apt-get install git-core</code></p>,
-                                                            ]}
-                                                        />
-                                                        <br/><br/>
-                                                        <h4>Change Website Directory Permission</h4>
-                                                        <Checklist
-                                                            checkedIndexes={[]}
-                                                            tasksIndexes={[0, 1, 2]}
-                                                            tasks={[
-                                                                <p>Lets add ourselves to the Admin 'sudo'
-                                                                    Group. Type the following in your ssh command
-                                                                    prompt.<br/>
-                                                                    <code>cd /var/www/</code></p>,
-                                                                <p>Output your username<br/>
-                                                                    <code><code>whoami</code></code><br/>
-                                                                    Change allow Override to <code>All</code><br/>
-                                                                </p>,
-                                                                <p><code>sudo chown -R username html/</code><br/>
-                                                                    Replace username with the user
-                                                                    from the whoami function</p>,
-                                                                <p>We need to change the directory permission
-                                                                    so sFTP will work properly<br/>Again, replace
-                                                                    username with the
-                                                                    user outputted by the whoami function<br/>
-                                                                    <code>sudo chown -R username html/</code><br/>
-                                                                    <code>sudo chown username html/index.html</code>
                                                                 </p>
+
                                                             ]}
                                                         />
-                                                        <br/><br/>
-                                                        <h4>Test installation!</h4>
-                                                        <Checklist
-                                                            checkedIndexes={[]}
-                                                            tasksIndexes={[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]}
-                                                            tasks={[
-                                                                <p>In the Cloud Platform online select Compute
-                                                                    Engine from the side menu</p>,
-                                                                <p>Find and select the External IP address of your
-                                                                    VM</p>,
-                                                                <p>You should see "Apache2 Debian Default Page"
-                                                                    popup!</p>,
-                                                                <p>Type <code>php -v</code> in your VM's SSH
-                                                                    connection</p>,
-                                                                <p>You should be greeted with <code>PHP
-                                                                    7.1.13</code></p>,
-                                                                <p>Navigate to your website root</p>,
-                                                                <p><code>cd /var/www/html</code></p>,
-                                                                <p>Remove the index.html file<br/><code>rm
-                                                                    index.html</code></p>,
-                                                                <p>Refreshing your browser should now give you a blank
-                                                                    index listing</p>,
-                                                                <p>Open a new document named index.php</p>,
-                                                                <p><code>vim index.php</code><br/>vim is a file editor
-                                                                    built
-                                                                    into linux</p>,
-                                                                <p>Hit 'i' to start inserting</p>,
-                                                                <p>Type <code>{'<?php phpinfo()'}</code></p>,
-                                                                <p>Save and Exit</p>,
-                                                                <p>Press the escape key to stop inseting</p>,
-                                                                <p>Press the colon key ':' to run a command in vim</p>,
-                                                                <p>Type 'wq' without quotes and hit enter. <br/>
-                                                                    This means write and quit.</p>,
-                                                                <p>Refresh your browser, if you see the PHP
-                                                                    logo than your done!</p>
-
-                                                            ]}/>
-
-
-                                                        <h4><a href="/5.0/Installation">Now lets download C6
-                                                            in our
-                                                            web
-                                                            directory!</a>
-                                                        </h4>
                                                     </p>
                                                 )
                                             }
                                         ]}
                                     />
                                 </GridItem>
-                                <GridItem xs={12} sm={12} md={6}>
+                                <GridItem xs={12} sm={12} md={12}>
                                     <h3>
                                         Google App Engine<br/>
                                         <small>.yml configurations</small>

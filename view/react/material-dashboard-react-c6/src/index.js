@@ -6,7 +6,7 @@ import {createBrowserHistory} from "history";
 import {Router, Switch, Route} from "react-router-dom";
 
 // Custom CarbonPHP Context Switch
-import Login from "login";
+import Bootstrap from "Bootstrap.tsx";
 import PageNotFound from "views/Errors/PageNotFound";
 
 import "assets/css/material-dashboard-react.css?v=1.5.0";
@@ -16,7 +16,7 @@ const hist = createBrowserHistory();
 ReactDOM.render(
     <Router history={hist}>
         <Switch>
-            <Login/>
+            <Bootstrap/>
             <Route component={PageNotFound} />
         </Switch>
     </Router>,

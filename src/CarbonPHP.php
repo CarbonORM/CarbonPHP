@@ -3,8 +3,12 @@
 namespace CarbonPHP;
 
 use CarbonPHP\Helpers\Serialized;
+use CarbonPHP\Interfaces\iConfig;
+use CarbonPHP\interfaces\iRest;
+use CarbonPHP\interfaces\iRestfulReferences;
 use CarbonPHP\Programs\CLI;
 use CarbonPHP\Error\ErrorCatcher;
+use Tests\RestTest;
 use Throwable;
 use function define;
 use function defined;
@@ -16,11 +20,19 @@ use function is_callable;
 
 /**
  * Class Carbon
+ *
+ *  The main purpose of the initial obfuscation of magic methods is for type checking and hiding configurations
+ *  from the call stack. We handle values of configuration in a way which doesn't drop database user/pass
+ *  information if an error was to occur during the setup process. After Carbon is done setting up we return to the
+ *  lowest point in the call-stack (CS) possible so memory usage is efficient and your error CS reports are readable.
+ *
  * @package Carbon
  * @link http://www.carbonphp.com/
  */
 class CarbonPHP
 {
+    public static string $not_invoked_application = '';
+
     public static Application $application;
 
     public static bool $safelyExit = false;
@@ -32,8 +44,11 @@ class CarbonPHP
         self::make($PHP);
     }
 
-    public function __invoke($application): bool
+    public function __invoke($application = null): bool
     {
+        if (self::$safelyExit) {
+            return true;
+        }
         return self::run($application);
     }
 
@@ -47,10 +62,28 @@ class CarbonPHP
         return self::$application;
     }
 
-    public static function run(Application $application): bool
+    public static function run($application): bool
     {
-        self::setApplication($application);
-        return self::$safelyExit ?: self::startApplication() !== false;
+        if (self::$safelyExit) {
+            return true;
+        }
+
+        if (empty($application)) {
+            if (!empty(self::$not_invoked_application)) {
+                $application = self::$not_invoked_application;
+                self::setApplication(new $application);
+            } else {
+                print 'Null may only be passed to the static run method or _invoke when the configuration is a class '
+                        . ' with implements iConfig and extends Application ';
+                return self::$safelyExit = true; // no use for this in C6 but possible for user reporting
+            }
+        } else if (is_string($application)) {
+            self::setApplication(new $application);
+        } else {
+            self::setApplication($application);
+        }
+
+        return self::startApplication() !== false;
     }
 
     public static function resetApplication(): bool
@@ -73,7 +106,7 @@ class CarbonPHP
      * @link
      *
      */
-    public static function startApplication(string $uri = '') : ? bool
+    public static function startApplication(string $uri = ''): ?bool
     {
         $application = self::$application;
 
@@ -156,32 +189,10 @@ class CarbonPHP
             defined('TEST') OR define('TEST', $_ENV['TEST'] ??= false);
 
             // CLI is not the CLI server
-            defined('CLI') or define('CLI',  PHP_SAPI === 'cli');
+            defined('CLI') or define('CLI', PHP_SAPI === 'cli');
 
             if (TEST) {     // TODO - remove server vars not needed in testing && update version dynamically?
-                self::$safelyExit = true;  // We just want the env to load, not route life :)
-                $_SERVER = [
-                    'REMOTE_ADDR' => '::1',
-                    'REMOTE_PORT' => '53950',
-                    'SERVER_SOFTWARE' => 'PHP 7.2.3 Development Server',
-                    'SERVER_PROTOCOL' => 'HTTP/1.1',
-                    'SERVER_NAME' => 'localhost',
-                    'SERVER_PORT' => '80',
-                    'REQUEST_URI' => '/login/',
-                    'REQUEST_METHOD' => 'GET',
-                    'SCRIPT_NAME' => '/index.php',
-                    'PATH_INFO' => '/login/',
-                    'PHP_SELF' => '/index.php/login/',
-                    'HTTP_HOST' => 'localhost:80',
-                    'HTTP_CONNECTION' => 'keep-alive',
-                    'HTTP_CACHE_CONTROL' => 'max-age=0',
-                    'HTTP_UPGRADE_INSECURE_REQUESTS' => '1',
-                    'HTTP_ACCEPT' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-                    'HTTP_REFERER' => 'http://localhost:88/',
-                    'HTTP_ACCEPT_ENCODING' => 'gzip, deflate, br',
-                    'HTTP_ACCEPT_LANGUAGE' => 'en-US,en;q=0.9',
-                    'HTTP_COOKIE' => 'PHPSESSID=gn4amaq3el5giekaboa29q27gp;',
-                ];
+                RestTest::setupServerVariables();
             }
 
             ####################  Sockets will have already claimed this global
@@ -195,6 +206,9 @@ class CarbonPHP
 
             ####################  Did we use >> php -S localhost:8080 index.php
             defined('APP_LOCAL') OR define('APP_LOCAL', self::isClientServer());
+
+
+            //print  APP_LOCAL; die;
 
             ####################  May as well make composer a dependency
             defined('COMPOSER_ROOT') OR define('COMPOSER_ROOT', dirname(CARBON_ROOT, 2) . DS);
@@ -211,9 +225,30 @@ class CarbonPHP
 
             ####################  Now load config file so globals above & stacktrace security
             if ($configFilePath !== null) {
-                if (file_exists($configFilePath)) {
+
+                if (class_exists($configFilePath)) {
+
+                    $imp = array_map('strtolower', array_keys(class_implements($configFilePath)));
+
+                    /** @noinspection ClassConstantUsageCorrectnessInspection */
+                    if (!in_array(strtolower(iConfig::class), $imp, true)) {
+                        print 'The configuration class passed to C6 must implement the interface iConfig!';
+                        self::$safelyExit = true;
+                        return;
+                    }
+
+                    if (is_subclass_of($configFilePath, Application::class)) {
+                        // only invoke this when setup is finished so constructors have access to constants
+                        self::$not_invoked_application = $configFilePath;
+                    }
+
+                    /** @noinspection PhpUndefinedMethodInspection */
+                    $PHP = $configFilePath::configuration();
+
+                } else if (file_exists($configFilePath)) {
                     /** @var array $PHP */
                     /** @noinspection PhpIncludeInspection */
+
                     $PHP = include $configFilePath;            // TODO - change the variable
 
                     if (!is_array($PHP)) {
@@ -331,7 +366,7 @@ class CarbonPHP
 
             define('PJAX', SOCKET ? false : isset($headers['X-PJAX']) || isset($_GET['_pjax']) || (isset($_SERVER['HTTP_X_PJAX']) && $_SERVER['HTTP_X_PJAX']));
 
-            if (PJAX && empty($_POST)) {
+            if ($_SERVER['REQUEST_METHOD'] !== 'GET' && empty($_POST)) {
                 # try to json decode. Json payloads ar sent to the input stream
                 $_POST = json_decode(file_get_contents('php://input'), true);
                 if ($_POST === null) {
@@ -570,8 +605,3 @@ class CarbonPHP
 
     }
 }
-
-
-
-
-

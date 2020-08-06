@@ -67,8 +67,8 @@ class SectionJavascript extends React.Component {
                                 hierarchy with a few
                                 tweaks. We do this because
                                 The <a href="https://en.wikipedia.org/wiki/Model–view–controller"
-                                       className="text-purple">Controller ->
-                                Model -> View (aka MVC because it
+                                       className="text-purple">Controller -&gt;
+                                Model -&gt; View (aka MVC because it
                                 rolls
                                 off the tong better) coding pattern</a>
                                 is in alphabetical order. So in most editors you can think of it as a top down approach.

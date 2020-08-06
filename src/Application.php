@@ -15,7 +15,8 @@ use Mustache_Exception_InvalidArgumentException;
 
 abstract class Application extends Route
 {
-    abstract public function startApplication(string $uri) : bool;
+    abstract public function startApplication(string $uri): bool;
+
     /**
      * App constructor. If no uri is set than
      * the Route constructor will execute the
@@ -24,24 +25,24 @@ abstract class Application extends Route
      * @throws Mustache_Exception_InvalidArgumentException
      */
 
-    public function fullPage() : callable
+    public function fullPage(): callable
     {
         return function (string $file) {
             $this->matched = true;
-            return include APP_VIEW . $file;
+            return include APP_ROOT . APP_VIEW . $file;
         };
     }
 
-    public function wrap() : callable
+    public function wrap(): callable
     {
         /**
-         * @throws Mustache_Exception_InvalidArgumentException
          * @param string $file
          * @return bool
+         * @throws Mustache_Exception_InvalidArgumentException
          */
-        return function (string $file) : bool {
+        return function (string $file): bool {
             $this->matched = true;
-            return View::content(APP_VIEW . $file);
+            return View::content(APP_VIEW . $file, APP_ROOT);
         };
     }
 
@@ -143,10 +144,10 @@ abstract class Application extends Route
         }
 
         // tell the view to send this file
-        return View::content($file . $ext);
+        return View::content($file . $ext, APP_ROOT);
     }
 
-    public function MVC() : callable
+    public function MVC(): callable
     {
         return function (string $class, string $method, array &$argv = []) {
             $this->matched = true;
@@ -154,7 +155,7 @@ abstract class Application extends Route
         };
     }
 
-    public function JSON($selector = '#pjax-content') : callable
+    public function JSON($selector = '#pjax-content'): callable
     {
         return function ($class, $method, $argv) use ($selector) {
             global $alert, $json;
@@ -173,7 +174,7 @@ abstract class Application extends Route
                 $alert = [];
             }
 
-            if (!\is_array($json)){
+            if (!\is_array($json)) {
                 $json = [];
             }
 

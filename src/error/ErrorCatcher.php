@@ -7,6 +7,7 @@ namespace CarbonPHP\Error;
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
 use CarbonPHP\Tables\Carbon_Reports;
+use Throwable;
 
 /**
  * Class ErrorCatcher
@@ -52,7 +53,7 @@ class ErrorCatcher
             try {
                 ob_start(null, null, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
                 $argv = \call_user_func_array($lambda, $argv);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 if (!$e instanceof PublicAlert) {
                     $message = 'Developers make mistakes, and you found a big one! We\'ve logged this event and will be investigating soon.';
                     if (APP_LOCAL) {
@@ -64,7 +65,7 @@ class ErrorCatcher
 
                     try {
                         ErrorCatcher::generateLog($e);
-                    } catch (\Throwable $e) {
+                    } catch (Throwable $e) {
                         PublicAlert::danger('Error handling failed.');
                         print $e->getMessage();
                         PublicAlert::info(json_encode($e));
@@ -148,9 +149,10 @@ END;
      *  set_error_handler
      *  set_exception_handler
      *
-     * @param \Throwable|array|null $e
+     * @param Throwable|array|null $e
      * @param string $level
      * @return string
+     * @throws PublicAlert
      * @internal param $argv
      */
     public static function generateLog($e = null, string $level = 'log'): string
@@ -164,7 +166,7 @@ END;
 
         $throwable = '';
 
-        if ($e instanceof \Throwable) {
+        if ($e instanceof Throwable) {
             $class = \get_class($e);
             $trace = self::generateCallTrace($e);
             if (!$e instanceof PublicAlert) {
@@ -180,7 +182,7 @@ END;
                     <div class="alert alert-danger"><h4><i class="icon fa fa-ban"></i>$class :: {$e->getMessage()}</h4></div>
 ERRORMESSAGE;
 
-        } else if (($e[0] ?? null) instanceof \Throwable) {
+        } else if (($e[0] ?? null) instanceof Throwable) {
 
             print PHP_EOL . 'Carbon caught this Message: ' . PHP_EOL . $e[0]->getMessage() . PHP_EOL;
 
@@ -192,6 +194,8 @@ ERRORMESSAGE;
 
             if (\is_array($e) && \count($e) >= 4) {
                 print PHP_EOL . 'Carbon caught this Message: ' . PHP_EOL . $e[1] . PHP_EOL . 'line: ' . $e[2] . '(' . $e[3] . ')' . PHP_EOL;
+            } elseif (is_string($e)) {
+                print PHP_EOL . 'Carbon caught this Message: ' . PHP_EOL . $e;
             }
         }
 
@@ -242,10 +246,10 @@ ERRORMESSAGE;
     /** A simplified back trace for quickly identifying route.
      * reverse array to make steps line up chronologically
      * @link http://php.net/manual/en/function.debug-backtrace.php
-     * @param \Throwable $e
+     * @param Throwable $e
      * @return string
      */
-    public static function generateCallTrace(\Throwable $e = null): string
+    public static function generateCallTrace(Throwable $e = null): string
     {
         ob_start(null, null, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);     // start a new buffer for saving errors
         if (null === $e) {
@@ -264,7 +268,6 @@ ERRORMESSAGE;
             $trace = array_reverse($trace);
             array_shift($trace); // remove {main}
         }
-
 
         $length = \count($trace);
         if ($length === 0) {

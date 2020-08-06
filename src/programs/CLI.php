@@ -9,11 +9,11 @@
 namespace CarbonPHP\Programs;
 
 
-use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\interfaces\iCommand;
 
 class CLI implements iCommand
 {
+    use Background;
 
     private array $CONFIG;
     private array $C6Programs = [];
@@ -100,7 +100,8 @@ class CLI implements iCommand
         $PHP = $this->CONFIG;
 
         // I do this so the I can pass the argvs correctly to the php executables
-        print "\nCalling Command >> " . implode(' ', $argv) . "\n\n";
+        self::colorCode("\nCalling Command >>", 'blue');
+        self::colorCode('php ' . implode(' ', $argv) . "\n\n", 'black');
 
         array_shift($argv);
 

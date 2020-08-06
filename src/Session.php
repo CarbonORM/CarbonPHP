@@ -69,7 +69,7 @@ class Session implements \SessionHandlerInterface
         }
 
         try {
-            // this should throw an error.. but if it doesnt we will catch and die
+            // this should not throw an error.. but if it doesnt we will catch and die
             if (false === session_start()) {
                 die('Carbon failed to start your session');
             }

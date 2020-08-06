@@ -73,7 +73,7 @@ USE;
         if (empty($files)) {
             $this->usage();
         }
-        $minifiedPath = $files['OUT'] ?? APP_ROOT . APP_VIEW . 'CSS/style.css';
+        $minifiedPath = $files['OUT'] ?? APP_ROOT . APP_VIEW . 'CSS' . DS . 'style.css';
 
         unset($files['OUT']);
 

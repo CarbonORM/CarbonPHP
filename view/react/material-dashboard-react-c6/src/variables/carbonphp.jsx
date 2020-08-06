@@ -244,7 +244,7 @@ function context(o){
 }
 
 export default {
-    CarbonPHP: contextAxios,
+    axios: contextAxios,
     contextRoot: context,
     contextHost: window.location.protocol + "//" + window.location.hostname // + ":80"
 };

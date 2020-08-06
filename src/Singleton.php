@@ -3,6 +3,15 @@
 namespace CarbonPHP;
 
 use CarbonPHP\Helpers\Serialized;
+use Closure;
+use Exception;
+use InvalidArgumentException;
+use ReflectionClass;
+use ReflectionException;
+use function call_user_func_array;
+use function defined;
+use function is_callable;
+use function is_object;
 
 /**
  * Trait Singleton
@@ -51,8 +60,8 @@ trait Singleton
      * @param $methodName
      * @param array $arguments
      * @return Singleton|mixed
-     * @throws \ReflectionException
-     * @throws \InvalidArgumentException
+     * @throws ReflectionException
+     * @throws InvalidArgumentException
      */
     public static function __callStatic($methodName, array $arguments = array())
     {
@@ -62,12 +71,12 @@ trait Singleton
     /**
      * @param array ...$args
      * @return self
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public static function newInstance(...$args): self
     {   // Start a new instance of the class and pass any arguments
         self::clearInstance();
-        $reflect = new \ReflectionClass($class = static::class);
+        $reflect = new ReflectionClass($class = static::class);
         $GLOBALS['Singleton'][$class] = $reflect->newInstanceArgs($args);
 
         return $GLOBALS['Singleton'][$class];
@@ -76,7 +85,7 @@ trait Singleton
     /**
      * @param array ...$args
      * @return self
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public static function getInstance(...$args): self
     {   // see if the class has already been called this run
@@ -89,7 +98,7 @@ trait Singleton
             return $GLOBALS['Singleton'][$calledClass];
 
         // Start a new instance of the class and pass any arguments
-        $class = new \ReflectionClass($calledClass);
+        $class = new ReflectionClass($calledClass);
         $GLOBALS['Singleton'][$calledClass] = $class->newInstanceArgs($args);
 
         return $GLOBALS['Singleton'][$calledClass];
@@ -118,7 +127,7 @@ trait Singleton
      * @param $methodName
      * @param array $arguments
      * @return Singleton|mixed
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function __call($methodName, array $arguments = [])
     {
@@ -129,31 +138,31 @@ trait Singleton
      * @param $methodName
      * @param array $arguments
      * @return Singleton|mixed
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     private function Skeleton(string $methodName, array $arguments = [])
     {
         // Have we used addMethod() to override an existing method
         if (array_key_exists($methodName, $this->methods)) {
-            return (null === ($result = \call_user_func_array($this->methods[$methodName], $arguments)) ? $this : $result);
+            return (null === ($result = call_user_func_array($this->methods[$methodName], $arguments)) ? $this : $result);
         }
         // Is the method in the current scope ( public, protected, private ).
         // Note declaring the method as private is the only way to ensure single instancing
         if (method_exists($this, $methodName)) {
-            return (null === ($result = \call_user_func_array(array($this, $methodName), $arguments)) ? $this : $result);
+            return (null === ($result = call_user_func_array(array($this, $methodName), $arguments)) ? $this : $result);
         }
         // Check to see if we've bound it to the class using an undefined attribute (variable)
-        if (\is_callable($this->{$methodName})) {
+        if (is_callable($this->{$methodName})) {
             $this->addMethod($methodName, $this->{$methodName});
-            return \call_user_func_array($this->{$methodName}, $arguments);
+            return call_user_func_array($this->{$methodName}, $arguments);
         }
         // closure binding
         if (array_key_exists('closures', $GLOBALS) && array_key_exists($methodName, $GLOBALS['closures'])) {
             $function = $GLOBALS['closures'][$methodName];
             $this->addMethod($methodName, $function);
-            return (null === ($result = \call_user_func_array($this->methods[$methodName], $arguments)) ? $this : $result);
+            return (null === ($result = call_user_func_array($this->methods[$methodName], $arguments)) ? $this : $result);
         }
-        throw new \InvalidArgumentException("There is valid method or closure with the given name '$methodName' to call");
+        throw new InvalidArgumentException("There is valid method or closure with the given name '$methodName' to call");
     }
 
     /** Attempt to bind a closure to the working scope. This would mean the calling class
@@ -163,7 +172,7 @@ trait Singleton
      */
     private function addMethod(string $name, callable $closure): void
     {
-        $this->methods[$name] = \Closure::bind($closure, $this, static::class);
+        $this->methods[$name] = Closure::bind($closure, $this, static::class);
     }
 
     /**
@@ -187,7 +196,7 @@ trait Singleton
     public function __sleep()
     {
         /** @noinspection PhpUndefinedClassConstantInspection */
-        if (!\defined('self::Singleton') || !self::Singleton) {
+        if (!defined('self::Singleton') || !self::Singleton) {
             return [];
         }
 
@@ -195,10 +204,10 @@ trait Singleton
             if (empty($value)) {
                 continue;
             }   // The object could be null from serialization?
-            if (\is_object($value)) {
+            if (is_object($value)) {
                 try {
                     $this->$key = (@serialize($value));
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     continue;
                 }                // Database object we need to catch the error thrown.
             }
@@ -213,12 +222,12 @@ trait Singleton
     public function __destruct()
     {   // We require a sleep function to be set manually for singleton to manage utilization
         /** @noinspection PhpUndefinedClassConstantInspection */
-        if (!\defined('self::Singleton') || !self::Singleton) {
+        if (!defined('self::Singleton') || !self::Singleton) {
             return;
         }
         try {
             $_SESSION[__CLASS__] = @serialize($this);     // TODO - base64_encode(
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             unset($_SESSION[__CLASS__]);
             return;
         }
@@ -239,7 +248,7 @@ trait Singleton
      */
     public function __set(string $variable, $value)
     {
-        if (\is_callable($value)) {
+        if (is_callable($value)) {
             $this->{$variable} = $value->bindTo($this, $this);  // This preserves the 'normal' new attribute closure binding
         } else {
             $GLOBALS[$variable] = $value;

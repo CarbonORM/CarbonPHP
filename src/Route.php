@@ -9,7 +9,9 @@
 namespace CarbonPHP;
 
 
+use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Error\PublicAlert;
+use Throwable;
 
 abstract class Route
 {
@@ -141,8 +143,14 @@ abstract class Route
     public function regexMatch(string $regexToMatch, ...$argv): self
     {
         $matches = [];
-        if (1 > preg_match_all($regexToMatch, $this->uri, $matches, PREG_SET_ORDER)) {  // can return 0 or false
-            return $this;
+
+        try {
+            if (1 > @preg_match_all($regexToMatch, $this->uri, $matches, PREG_SET_ORDER)) {  // can return 0 or false
+                return $this;
+            }
+        } catch (Throwable $exception) {
+            //ErrorCatcher::generateLog($exception);
+            throw new PublicAlert('The following regex failed :: ' . $regexToMatch);
         }
         $this->matched = true;
         $matches = array_shift($matches);

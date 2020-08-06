@@ -48,7 +48,7 @@ class Dependencies extends React.Component {
                             </h3>
                             <p>
                                 AdminLTE can be fetched from the node package.json located at the root of C6.<br/>
-                                Run <b>>> npm install</b> from the root directory to use and edit AdminLTE's
+                                Run <b><code>&gt;&gt; npm install</code></b> from the root directory to use and edit AdminLTE's
                                 features.
                             </p>
                             <br/>
@@ -68,7 +68,7 @@ class Dependencies extends React.Component {
                             <p>
                                 Material React can be fetched from the node package.json located at of
                                 <br/><br/><b>[C6]/view/react/material-dashboard-react-c6/</b><br/><br/>
-                                Run <b>>> npm install</b> from this directory to use and edit the React library.
+                                Run <b>&gt;&gt; npm install</b> from this directory to use and edit the React library.
                                 <br/>
                                 <b>
                                     @material-ui/core: 3.9.2,<br/>

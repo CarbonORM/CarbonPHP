@@ -7,6 +7,7 @@ use PDOStatement;
 
 use function array_key_exists;
 use function count;
+use function func_get_args;
 use function is_array;
 use CarbonPHP\Rest;
 use CarbonPHP\Interfaces\iRest;
@@ -33,11 +34,16 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
     public const PDO_VALIDATION = [
         'carbon_location_references.entity_reference' => ['binary', '2', '16'],'carbon_location_references.location_reference' => ['binary', '2', '16'],'carbon_location_references.location_time' => ['datetime', '2', ''],
     ];
+ 
+    public const PHP_VALIDATION = [
+
+    ]; 
+ 
+    public const REGEX_VALIDATION = [
+
+    ]; 
     
-    public const VALIDATION = [];
-
-    public static array $injection = [];
-
+     
     public static function jsonSQLReporting($argv, $sql) : void {
         global $json;
         if (!is_array($json)) {
@@ -52,51 +58,6 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
         ];
     }
     
-    public static function buildWhere(array $set, PDO $pdo, $join = 'AND') : string
-    {
-        $sql = '(';
-        $bump = false;
-        foreach ($set as $column => $value) {
-            if (is_array($value)) {
-                if ($bump) {
-                    $sql .= " $join ";
-                }
-                $bump = true;
-                $sql .= self::buildWhere($value, $pdo, $join === 'AND' ? 'OR' : 'AND');
-            } else if (array_key_exists($column, self::PDO_VALIDATION)) {
-                $bump = false;
-                /** @noinspection SubStrUsedAsStrPosInspection */
-                if (substr($value, 0, '8') === 'C6SUB748') {
-                    $subQuery = substr($value, '8');
-                    $sql .= "($column = $subQuery ) $join ";
-                } else if (self::PDO_VALIDATION[$column][0] === 'binary') {
-                    $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $join ";
-                } else {
-                    $sql .= "($column = " . self::addInjection($value, $pdo) . ") $join ";
-                }
-            } else {
-                $bump = false;
-                $sql .= "($column = " . self::addInjection($value, $pdo) . ") $join ";
-            }
-        }
-        return rtrim($sql, " $join") . ')';
-    }
-
-    public static function addInjection($value, PDO $pdo, $quote = false): string
-    {
-        $inject = ':injection' . count(self::$injection) . 'carbon_location_references';
-        self::$injection[$inject] = $quote ? $pdo->quote($value) : $value;
-        return $inject;
-    }
-
-    public static function bind(PDOStatement $stmt): void 
-    {
-        foreach (self::$injection as $key => $value) {
-            $stmt->bindValue($key,$value);
-        }
-    }
-
-
     /**
     *
     *   $argv = [
@@ -144,7 +105,7 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
         self::bind($stmt);
 
         if (!$stmt->execute()) {
-            return false;
+            throw new PublicAlert('Failed to execute the query on Carbon_Location_References.');
         }
 
         $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -169,11 +130,18 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
      */
     public static function Post(array $argv, string $dependantEntityId = null): bool
     {
-        self::$injection = [];
+        self::$injection = []; 
+         
+        foreach ($argv as $columnName => $postValue) {
+            if (!array_key_exists($columnName, self::PDO_VALIDATION)){
+                throw new PublicAlert("Restful table could not post column $columnName, because it does not appear to exist.");
+            }
+        } 
+        
         /** @noinspection SqlResolve */
         $sql = 'INSERT INTO carbon_location_references (entity_reference, location_reference) VALUES ( UNHEX(:entity_reference), UNHEX(:location_reference))';
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        self::jsonSQLReporting(func_get_args(), $sql);
 
         $stmt = self::database()->prepare($sql);
 
@@ -192,15 +160,30 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
     
     }
      
+    /**
+     * @param string|null $primary
+     * @param array $argv
+     * @param PDO|null $pdo
+     * @return string
+     * @throws PublicAlert
+     */
     public static function subSelect(string $primary = null, array $argv, PDO $pdo = null): string
     {
-        return 'C6SUB748' . self::buildSelectQuery($primary, $argv, $pdo, true);
+        return 'C6SUB253' . self::buildSelectQuery($primary, $argv, $pdo, true);
     }
     
     public static function validateSelectColumn($column) : bool {
-        return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|-|/| |carbon_location_references\.entity_reference|carbon_location_references\.location_reference|carbon_location_references\.location_time))+\)*)+ *(as [a-z]+)?#i', $column);
+        return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|-|/| |carbon_location_references||\.entity_reference|\.location_reference|\.location_time))+\)*)+ *(as [a-z]+)?#i', $column);
     }
     
+    /**
+     * @param string|null $primary
+     * @param array $argv
+     * @param PDO|null $pdo
+     * @param bool $noHEX
+     * @return string
+     * @throws PublicAlert
+     */
     public static function buildSelectQuery(string $primary = null, array $argv, PDO $pdo = null, bool $noHEX = false) : string 
     {
         if ($pdo === null) {
@@ -213,13 +196,17 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
         $get = $argv['select'] ?? array_keys(self::PDO_VALIDATION);
         $where = $argv['where'] ?? [];
 
-        // pagination
-        if (array_key_exists('pagination',$argv)) {
-            if (!empty($argv['pagination']) && !is_array($argv['pagination'])) {
-                $argv['pagination'] = json_decode($argv['pagination'], true);
+        // pagination [self::PAGINATION][self::LIMIT]
+        if (array_key_exists(self::PAGINATION,$argv)) {
+            if (!empty($argv[self::PAGINATION]) && is_string($argv[self::PAGINATION])) {
+                $argv['pagination'] = json_decode($argv[self::PAGINATION], true);
             }
-            if (array_key_exists('limit',$argv['pagination']) && $argv['pagination']['limit'] !== null) {
-                $limit = ' LIMIT ' . $argv['pagination']['limit'];
+            if (array_key_exists(self::LIMIT,$argv[self::PAGINATION]) && is_numeric($argv[self::PAGINATION][self::LIMIT])) {
+                if (array_key_exists(self::PAGE, $argv[self::PAGINATION])) {
+                    $limit = ' LIMIT ' . (($argv[self::PAGINATION][self::PAGE] - 1) * $argv[self::PAGINATION][self::LIMIT]) . ',' . $argv[self::PAGINATION][self::LIMIT];
+                } else {
+                    $limit = ' LIMIT ' . $argv[self::PAGINATION][self::LIMIT];
+                }
             } else {
                 $limit = '';
             }
@@ -229,13 +216,13 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
 
                 $order = ' ORDER BY ';
 
-                if (array_key_exists('order',$argv['pagination']) && $argv['pagination']['order'] !== null) {
-                    if (is_array($argv['pagination']['order'])) {
-                        foreach ($argv['pagination']['order'] as $item => $sort) {
+                if (array_key_exists(self::ORDER,$argv[self::PAGINATION]) && is_string($argv[self::PAGINATION][self::ORDER])) {
+                    if (is_array($argv[self::PAGINATION][self::ORDER])) {
+                        foreach ($argv[self::PAGINATION][self::ORDER] as $item => $sort) {
                             $order .= "$item $sort";
                         }
                     } else {
-                        $order .= $argv['pagination']['order'];
+                        $order .= $argv[self::PAGINATION][self::ORDER];
                     }
                 } else {
                     $order .= ' ASC';
@@ -249,50 +236,66 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
         // join 
         $join = ''; 
         $tableList = [];
-        if (array_key_exists('join', $argv)) {
-            foreach ($argv['join'] as $by => $tables) {
+        if (array_key_exists(self::JOIN, $argv) && !empty($argv[self::JOIN])) {
+            if (!is_array($argv[self::JOIN])) { 
+                throw new PublicAlert('The restful join field must be an array.');
+            }
+            foreach ($argv[self::JOIN] as $by => $tables) {
                 $buildJoin = static function ($method) use ($tables, &$join, &$tableList) {
+                    $joinColumns = [];
                     foreach ($tables as $table => $stmt) {
                         $tableList[] = $table;
-                        switch (count($stmt)) {
+                        switch (count($stmt)) {   
                             case 2: 
                                 if (is_string($stmt[0]) && is_string($stmt[1])) {
+                                    $joinColumns[] = $stmt[0];
+                                    $joinColumns[] = $stmt[1];
                                     $join .= $method . $table . ' ON ' . $stmt[0] . '=' . $stmt[1];
                                 } else {
-                                    return false; // todo debugging
+                                    throw new PublicAlert('One or more of the array values provided in the restful JOIN condition are not strings.');
                                 }
                                 break;
                             case 3:
                                 if (is_string($stmt[0]) && is_string($stmt[1]) && is_string($stmt[2])) {
+                                    if (!((bool) preg_match('#^=|>=|<=$#', $stmt[1]))){ 
+                                        throw new PublicAlert('Restful column joins may only use one (=,>=, or <=).');
+                                    }
+                                    $joinColumns[] = $stmt[0];
+                                    $joinColumns[] = $stmt[2];
                                     $join .= $method . $table . ' ON ' . $stmt[0] . $stmt[1] . $stmt[2]; 
                                 } else {
-                                    return false; // todo debugging
+                                    throw new PublicAlert('One or more of the array values provided in the restful JOIN condition are not strings.');
                                 }
                                 break;
                             default:
-                                return false; // todo debug check, common when joins are not a list of values
+                                throw new PublicAlert('Restful joins across two tables must be populated with two or three array values with column names, or an appropriate joining operator and column names.');
+                        }
+                    } 
+                    foreach ($joinColumns as $columnName) { 
+                        if (!parent::validateColumnName($columnName, $tableList)) {
+                             throw new PublicAlert("Could not validate join column $columnName. Be sure correct restful tables are referenced.");
                         }
                     }
                     return true;
                 };
                 switch ($by) {
-                    case 'inner':
+                    case self::INNER:
                         if (!$buildJoin(' INNER JOIN ')) {
-                            return false; 
+                            throw new PublicAlert('The restful inner join had an unknown error.');
                         }
                         break;
-                    case 'left':
+                    case self::LEFT:
                         if (!$buildJoin(' LEFT JOIN ')) {
-                            return false; 
+                            throw new PublicAlert('The restful left join had an unknown error.'); 
                         }
                         break;
-                    case 'right':
+                    case self::RIGHT:
                         if (!$buildJoin(' RIGHT JOIN ')) {
-                            return false; 
+                            throw new PublicAlert('The restful right join had an unknown error.'); 
                         }
                         break;
                     default:
-                        return false; // todo - debugging stmts
+                        throw new PublicAlert('Restful join stmt may only use one of (' .  self::INNER . ',' . self::LEFT . ', or ' . self::RIGHT . ').');
                 }
             }
         }
@@ -322,15 +325,14 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
                 $aggregate = true;
             } else {  
                 $valid = false;
-                $tablesReffrenced = $tableList;
-                while (!empty($tablesReffrenced)) {
-                     $table = __NAMESPACE__ . '\\' . array_pop($tablesReffrenced);
+                $tablesReferenced = $tableList;
+                while (!empty($tablesReferenced)) {
+                     $table = __NAMESPACE__ . '\\' . array_pop($tablesReferenced);
                      
                      if (!class_exists($table)){
                          continue;
                      }
                      $imp = array_map('strtolower', array_keys(class_implements($table)));
-                    
                    
                      /** @noinspection ClassConstantUsageCorrectnessInspection */
                      if (!in_array(strtolower(iRest::class), $imp, true) && 
@@ -345,7 +347,7 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
                      }
                 }
                 if (!$valid) {
-                    return false;
+                    throw new PublicAlert('Could not validate the column $column');
                 }
                 $sql .= $column;
                 $aggregate = true;
@@ -357,7 +359,7 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
         if (null === $primary) {
             /** @noinspection NestedPositiveIfStatementsInspection */
             if (!empty($where)) {
-                $sql .= ' WHERE ' . self::buildWhere($where, $pdo);
+                $sql .= ' WHERE ' . self::buildWhere($where, $pdo, 'carbon_location_references', self::PDO_VALIDATION);
             }
         } 
 
@@ -367,7 +369,7 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
 
         $sql .= $limit;
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        self::jsonSQLReporting(func_get_args(), $sql);
 
         return '(' . $sql . ')';
     }
@@ -376,6 +378,7 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
     * @param array $return
     
     * @param array $argv
+    * @throws PublicAlert
     * @return bool
     */
     public static function Put(array &$return,  array $argv) : bool
@@ -387,18 +390,16 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
         $argv = $argv[self::UPDATE];
 
         if (empty($where) || empty($argv)) {
-            return false;
+            throw new PublicAlert('Restful tables which have no primary key must be updated specific where conditions.');
         }
         
         foreach ($argv as $key => $value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return false;
+                throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.');
             }
         }
 
-        $sql = 'UPDATE carbon_location_references ';
-
-        $sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
+        $sql = 'UPDATE carbon_location_references ' . ' SET '; // intellij cant handle this otherwise
 
         $set = '';
 
@@ -411,19 +412,15 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
         if (array_key_exists('carbon_location_references.location_time', $argv)) {
             $set .= 'location_time=:location_time,';
         }
-
-        if (empty($set)){
-            return false;
-        }
-
+        
         $sql .= substr($set, 0, -1);
 
         $pdo = self::database();
 
         
-        $sql .= ' WHERE ' . self::buildWhere($where, $pdo);
+        $sql .= ' WHERE ' . self::buildWhere($where, $pdo, 'carbon_location_references', self::PDO_VALIDATION);
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        self::jsonSQLReporting(func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 
@@ -442,7 +439,7 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
         self::bind($stmt);
 
         if (!$stmt->execute()) {
-            return false;
+            throw new PublicAlert('Restful table Carbon_Location_References failed to execute the update query.');
         }
         
         $argv = array_combine(
@@ -463,6 +460,7 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
     * @param array $remove
     * @param string|null $primary
     * @param array $argv
+    * @throws PublicAlert
     * @return bool
     */
     public static function Delete(array &$remove, array $argv) : bool
@@ -474,11 +472,11 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
         $sql = 'DELETE FROM carbon_location_references ';
 
         $pdo = self::database();
-
+        
                
-        $sql .= ' WHERE ' . self::buildWhere($argv, $pdo);
+        $sql .= ' WHERE ' . self::buildWhere($argv, $pdo, 'carbon_location_references', self::PDO_VALIDATION);
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        self::jsonSQLReporting(func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 

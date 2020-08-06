@@ -10,6 +10,11 @@ namespace CarbonPHP;
 
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Helpers\Files;
+use InvalidArgumentException;
+use function count;
+use function defined;
+use function function_exists;
+use function is_array;
 
 class Request   // requires carbon::application;
 {
@@ -36,7 +41,7 @@ class Request   // requires carbon::application;
     public static function sendHeaders(): void
     {
         if (!(SOCKET || headers_sent())) {
-            if (isset($_SESSION['Cookies']) && \is_array($_SESSION['Cookies'])) {
+            if (isset($_SESSION['Cookies']) && is_array($_SESSION['Cookies'])) {
                 foreach ($_SESSION['Cookies'] as $key => $array) {
                     if ($array[1] ?? false) {
                         static::setCookie($key, $array[0] ?? null, $array[1]);
@@ -46,7 +51,7 @@ class Request   // requires carbon::application;
                 }
             }
 
-            if (isset($_SESSION['Headers']) && \is_array($_SESSION['Headers'])) {
+            if (isset($_SESSION['Headers']) && is_array($_SESSION['Headers'])) {
                 foreach ($_SESSION['Headers'] as $value) {
                     static::setHeader($value);
                 }
@@ -75,7 +80,7 @@ class Request   // requires carbon::application;
      */
     public function clearCookies(): void
     {
-        $all = array_keys(\is_array($_COOKIE) ? $_COOKIE : []);
+        $all = array_keys(is_array($_COOKIE) ? $_COOKIE : []);
         foreach ($all as $key => $value) {
             static::setCookie($value);
         }
@@ -87,7 +92,7 @@ class Request   // requires carbon::application;
      */
     public static function setHeader(string $string): void
     {
-        if (!(\defined('SOCKET') && SOCKET)) {
+        if (!(defined('SOCKET') && SOCKET)) {
             if (headers_sent()) {
                 $_SESSION['Headers'][] = $string;
             } else {
@@ -129,7 +134,7 @@ class Request   // requires carbon::application;
                 $this->storage[] = false;
             }
         };
-        if (\count($argv) === 0 || !array_walk($argv, $closure)) {
+        if (count($argv) === 0 || !array_walk($argv, $closure)) {
             $this->storage = [];
         }
         return $this;
@@ -148,14 +153,14 @@ class Request   // requires carbon::application;
             return false;
         }
 
-        if (\is_array($this->storage)) {
+        if (is_array($this->storage)) {
             array_walk($this->storage, $closure);
         } else {
             $closure($this->storage);
         }
 
         return static function ($array) {
-            return \count($array) === 1 ? array_shift($array) : $array;
+            return count($array) === 1 ? array_shift($array) : $array;
         };
     }
 
@@ -286,12 +291,12 @@ class Request   // requires carbon::application;
      *
      * @param string $type
      * @return array|bool|mixed
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function is(string $type)
     {
-        if (!\function_exists($type = 'is_' . strtolower($type))) {
-            throw new \InvalidArgumentException('Function is_$type() could not be found. Please check arguments supplied to is.');
+        if (!function_exists($type = 'is_' . strtolower($type))) {
+            throw new InvalidArgumentException('Function is_$type() could not be found. Please check arguments supplied to is.');
         }
 
         $array = [];
@@ -453,7 +458,7 @@ class Request   // requires carbon::application;
      */
     public function value()
     {
-        return \count($this->storage) === 1 ? array_shift($this->storage) : $this->storage;
+        return count($this->storage) === 1 ? array_shift($this->storage) : $this->storage;
     }
 
 

@@ -1,25 +1,19 @@
 <?php
-#phpinfo() and exit;
 
-// All folder constants end in a trailing slash /
+use CarbonPHP\CarbonPHP;
+use Config\Config;
+
 const DS = DIRECTORY_SEPARATOR;
 
-// Set our root folder for the application
-define('SERVER_ROOT', __DIR__ . DS);
-
 // I would like to change to only using app_root soon
-const APP_ROOT = SERVER_ROOT;
+const APP_ROOT = __DIR__ . DS;
 
 // Composer autoload
-if (false === (include  'vendor' . DS . 'autoload.php')) {     // Load the autoload() for composer dependencies located in the Services folder
+if (false === (include 'vendor' . DS . 'autoload.php')) {     // Load the autoload() for composer dependencies located in the Services folder
     print '<h1>Composer Failed</h1>';
     die(1);
 }
 
-// The app can exit here if a configuration failure exists
-(new CarbonPHP\CarbonPHP('config' . DS . 'Config.php'))(new CarbonPHP\Documentation);
+(new CarbonPHP(Config::class))();
 
-// If false is returned, the index will re-execute. This turns very bad quickly.
-return true;
-
-
+return true;    // do this

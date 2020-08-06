@@ -74,54 +74,54 @@ class Documentation extends React.Component {
 
         let publicDocumentationRoutes = [
             {
-                path: "/5.0/Documentation/CarbonPHP",     // I'm leaving this here for the time being as an example
+                path: "/6.0/Documentation/CarbonPHP",     // I'm leaving this here for the time being as an example
                 name: "Introduction",          // This should be loaded under a different wrapper
                 icon: DashboardIcon,
                 component: CarbonPHP
             },
             {
-                path: "/5.0/Documentation/Dependencies",
+                path: "/6.0/Documentation/Dependencies",
                 name: "Dependencies",
                 icon: DashboardIcon,
                 component: Dependencies
             },
             {
-                path: "/5.0/Documentation/QuickStart",
+                path: "/6.0/Documentation/QuickStart",
                 name: "Quick Start",
                 icon: DashboardIcon,
                 views: [
                     {
-                        path: "/5.0/Documentation/Environment",
+                        path: "/6.0/Documentation/Environment",
                         name: "Environment",
                         icon: DashboardIcon,
                         component: Environment
                     }, {
-                        path: "/5.0/Documentation/Installation",
+                        path: "/6.0/Documentation/Installation",
                         name: "Installation",
                         icon: DashboardIcon,
                         component: Installation
                     }, {
-                        path: "/5.0/Documentation/FileStructure",
+                        path: "/6.0/Documentation/FileStructure",
                         name: "Structure",
                         icon: DashboardIcon,
                         component: FileStructure
                     }, {
-                        path: "/5.0/Documentation/OptionsIndex",
+                        path: "/6.0/Documentation/OptionsIndex",
                         name: "Configuration",
                         icon: DashboardIcon,
                         component: OptionsIndex
                     }, {
-                        path: "/5.0/Documentation/Bootstrap",
+                        path: "/6.0/Documentation/Bootstrap",
                         name: "Bootstrap",
                         icon: DashboardIcon,
                         component: Bootstrap
                     }, {
-                        path: "/5.0/Documentation/ControllerModel",
+                        path: "/6.0/Documentation/ControllerModel",
                         name: "Controller -> Model",
                         icon: DashboardIcon,
                         component: ControllerModel
                     }, {
-                        path: "/5.0/Documentation/PHPApplications/View",
+                        path: "/6.0/Documentation/PHPApplications/View",
                         name: "View",
                         icon: DashboardIcon,
                         component: View
@@ -133,42 +133,42 @@ class Documentation extends React.Component {
                 icon: DashboardIcon,
                 views: [
                     {
-                        path: "/5.0/Documentation/PHPApplications/Overview",
+                        path: "/6.0/Documentation/PHPApplications/Overview",
                         name: "Overview",
                         icon: DashboardIcon,
                         component: Overview
                     }, {
-                        path: "/5.0/Documentation/PHPApplications/Route",
+                        path: "/6.0/Documentation/PHPApplications/Route",
                         name: "Routing",
                         icon: DashboardIcon,
                         component: Routing
                     }, {
-                        path: "/5.0/Documentation/PHPApplications/Requests",
+                        path: "/6.0/Documentation/PHPApplications/Requests",
                         name: "Requests",
                         icon: DashboardIcon,
                         component: Requests
                     }, {
-                        path: "/5.0/Documentation/PHPApplications/DatabaseEntities",
+                        path: "/6.0/Documentation/PHPApplications/DatabaseEntities",
                         name: "Database & Entities",
                         icon: DashboardIcon,
                         component: DatabaseEntities
                     }, {
-                        path: "/5.0/Documentation/PHPApplications/Session",
+                        path: "/6.0/Documentation/PHPApplications/Session",
                         name: "Session",
                         icon: DashboardIcon,
                         component: Session
                     }, {
-                        path: "/5.0/Documentation/PHPApplications/Singleton",
+                        path: "/6.0/Documentation/PHPApplications/Singleton",
                         name: "Singleton",
                         icon: DashboardIcon,
                         component: Singleton
                     }, {
-                        path: "/5.0/Documentation/PHPApplications/Server",
+                        path: "/6.0/Documentation/PHPApplications/Server",
                         name: "Server",
                         icon: DashboardIcon,
                         component: Server
                     }, {
-                        path: "/5.0/Documentation/ParallelProcessing",
+                        path: "/6.0/Documentation/ParallelProcessing",
                         name: "Parallel Processing",
                         icon: DashboardIcon,
                         component: ParallelProcessing
@@ -176,25 +176,25 @@ class Documentation extends React.Component {
                 ]
             },
             {
-                path: "/5.0/Documentation/BrowserOSSupport",
+                path: "/6.0/Documentation/BrowserOSSupport",
                 name: "Changelog",
                 icon: DashboardIcon,
                 component: BrowserOSSupport
             },
             {
-                path: "/5.0/Documentation/Implementations",
+                path: "/6.0/Documentation/Implementations",
                 name: "Implementations",
                 icon: DashboardIcon,
                 component: Implementations
             },
             {
-                path: "/5.0/Documentation/Support",
+                path: "/6.0/Documentation/Support",
                 name: "Support",
                 icon: DashboardIcon,
                 component: Support
             },
             {
-                path: "/5.0/Documentation/License",
+                path: "/6.0/Documentation/License",
                 name: "License",
                 icon: DashboardIcon,
                 component: License
@@ -202,13 +202,19 @@ class Documentation extends React.Component {
             {
                 redirect: true,
                 path: "/5.0",
-                pathTo: "/5.0/Documentation/CarbonPHP",
+                pathTo: "/6.0/Documentation/CarbonPHP",
+                name: "Examples"
+            },
+            {
+                redirect: true,
+                path: "/6.0/",
+                pathTo: "/6.0/Documentation/CarbonPHP",
                 name: "Examples"
             },
             {
                 redirect: true,
                 path: "/",
-                pathTo: "/5.0/Documentation/CarbonPHP",
+                pathTo: "/6.0/Documentation/CarbonPHP",
                 name: "Examples"
             }
         ];

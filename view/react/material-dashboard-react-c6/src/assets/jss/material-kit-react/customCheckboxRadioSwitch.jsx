@@ -4,8 +4,10 @@ import {
   roseColor,
   grayColor
 } from "assets/jss/material-kit-react.jsx";
+import { createStyles } from "@material-ui/core";
 
-const customCheckboxRadioSwitch = {
+
+const customCheckboxRadioSwitch = createStyles({
   checkRoot: {
     padding: "14px"
   },
@@ -164,6 +166,6 @@ const customCheckboxRadioSwitch = {
       backgroundColor: "rgba(156, 39, 176, 1) !important"
     }
   }
-};
+});
 
 export default customCheckboxRadioSwitch;

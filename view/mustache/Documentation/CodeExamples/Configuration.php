@@ -6,8 +6,8 @@ return [
         'ALLOWED_EXTENSIONS' => 'jpg|png',     // File ending in these extensions will be served, may be override from .htaccess
         'CONFIG' => __FILE__,                  // Send to sockets
         'TIMEZONE' => 'America/Chicago',       // Current timezone TODO - look up php
-        'TITLE' => 'Carbon 6',                 // Website title
-        'VERSION' => phpversion(),             // Add link to semantic versioning
+        'TITLE' => 'CarbonPHP 2.0',               // Website title
+        'VERSION' => PHP_VERSION,             // Add link to semantic versioning
         'SEND_EMAIL' => '',                    // I send emails to validate accounts
         'REPLY_EMAIL' => '',
         'BOOTSTRAP' => '',                     // This file is executed when the startApplication() function is called

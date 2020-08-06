@@ -7,7 +7,6 @@
       <sourceFolder url="file://$MODULE_DIR$/controller" isTestSource="false" packagePrefix="CarbonPHP\Controller\" />
       <sourceFolder url="file://$MODULE_DIR$/model" isTestSource="false" packagePrefix="CarbonPHP\Model\" />
       <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/view/react/material-dashboard-react-c6" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/view/react/material-dashboard-react-c6/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/composer" />

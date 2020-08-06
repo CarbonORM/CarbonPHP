@@ -5,13 +5,14 @@ import LandingPage from "views/LandingPage/LandingPage";
 import ProfilePage from "views/ProfilePage/ProfilePage";
 import LoginPage from "views/LoginPage/LoginPage";
 import Components from "views/UI/Documentation";
+import AccessControl from "views/AccessControl/AccessControl";
 
 
 let publicRoutes = [
     // TODO - The following arn't setup
     {
         path: "/landing-page",
-        name: "Landing Page",
+        name: "Landing Page Management",
         component: LandingPage
     },
     {
@@ -24,20 +25,25 @@ let publicRoutes = [
         name: "Login Page",
         component: LoginPage
     },
+    {
+        path: "/AccessManagement",
+        name: "Access Management",
+        component: AccessControl
+    },
     // These are reference's to UI layouts
     {
-        path: "/5.0/UI/Material-Kit",
+        path: "/6.0/UI/Material-Kit",
         name: "Material Kit",
         component: Components
     },
     {
-        path: "/5.0/UI/Material-Dashboard",
+        path: "/6.0/UI/Material-Dashboard",
         name: "Material Dashboard",
         component: Dashboard
     },
     // These are possible redirects we have in place
     {
-        path: "/5.0",
+        path: "/6.0",
         name: "Documentation",
         component: Documentation
     },
@@ -49,7 +55,7 @@ let publicRoutes = [
     {
         redirect: true,
         path: "/",
-        pathTo: "/5.0",
+        pathTo: "/6.0",
     }
     // Past here a 404 should raise on the previous controller
 ];

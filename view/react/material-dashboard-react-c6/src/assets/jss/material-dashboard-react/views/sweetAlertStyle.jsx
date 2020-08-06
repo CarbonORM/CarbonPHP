@@ -3,8 +3,9 @@
 // #############################
 
 import buttonStyle from "assets/jss/material-dashboard-react/components/buttonStyle.jsx";
+import { createStyles } from "@material-ui/core";
 
-const sweetAlertStyle = {
+const sweetAlertStyle = createStyles({
   cardTitle: {
     marginTop: "0",
     marginBottom: "3px",
@@ -21,6 +22,6 @@ const sweetAlertStyle = {
     textAlign: "left"
   },
   ...buttonStyle
-};
+});
 
 export default sweetAlertStyle;

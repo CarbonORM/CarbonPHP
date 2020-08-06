@@ -3,9 +3,11 @@
 namespace CarbonPHP\Programs;
 
 
-use \CarbonPHP\interfaces\iCommand;
+use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\interfaces\iCommand;
+use CarbonPHP\interfaces\iRest;
+use CarbonPHP\interfaces\iRestfulReferences;
 use PDO;
-use RuntimeException;
 use function count;
 use function in_array;
 use function random_int;
@@ -13,18 +15,17 @@ use function random_int;
 
 class Rest implements iCommand
 {
-    use MySQL {
-        /** @noinspection ImplicitMagicMethodCallInspection */
+    use Composer, Background, MySQL {
         __construct as setup;
         cleanUp as removeFiles;
     }
 
-    private $schema;
-    private $user;
-    private $password;
-    private $cleanUp;
+    private string $schema;
+    private string $user;
+    private string $password;
+    private bool $cleanUp = false;
 
-    public function cleanUp(array $argv) : void
+    public function cleanUp(array $argv): void
     {
         $this->cleanUp and $this->removeFiles();
     }
@@ -39,46 +40,50 @@ class Rest implements iCommand
 \t Usage::
 \t  php index.php rest  
 
-\t       -help                         - this dialogue 
+\t       -help                        - this dialogue 
 
-\t       -h [?HOST]                    - IP address
+\t       -h [HOST]                    - IP address
 
-\t       -s [?SCHEMA]                  - Its that tables schema!!!!
+\t       -s [SCHEMA]                  - Its that tables schema!!!!
 \t                                              Defaults to DB_NAME in config file passed to CarbonPHP
 \t                                              Currently: "$this->schema"
 
-\t       -u [?USER]                    - mysql username
+\t       -u [USER]                    - mysql username
 \t                                              Defaults to DB_USER in config file passed to CarbonPHP
 \t                                              Currently: "$this->user"
 
-\t       -p [?PASSWORD]                - if ya got one
+\t       -p [PASSWORD]                - if ya got one
 \t                                              Defaults to DB_PASS in config file passed to CarbonPHP
 \t                                              Currently: "$this->password"
 
-\t       -target                       - the dir to store the rest generated api
+\t       -autoTarget                   - Use composer.json's ['autoload']['psr-4']['Tables\\'] value under APP_ROOT
+
+\t       -target [rest_dir_path]       - the dir to store the rest generated api
 \t                                              Defaults to APP_ROOT . 'tables/'
 
-\t       -json                         - enable global json reporting 
+\t       -json                         - enable global json reporting (recommended)
 
 \t       -r                            - specify that a primary key is required for generation
 
-\t       -l [?tableName(s),[...?,[]]]  - comma separated list of specific tables to capture
+\t       -l [tableName(s),[...?,[]]]  - comma separated list of specific tables to capture
 
-\t       -v ?debug                     - Verbose output, if === debug follows this tag even more output is given
+\t       -v [?debug]                   - Verbose output, if === debug follows this tag even more output is given
 
-\t       -f [?file_of_Tables]          - file of tables names separated by eol
+\t       -f [file_of_Tables]           - file of tables names separated by eol
 
 \t       -x                            - Stops the file clean up files created for build
 
-\t       -mysqldump [?executable]      - path to mysqldump command
+\t       -mysqldump [executable]       - path to mysqldump command
 
-\t       -mysql  [?executable]         - path to mysql command
+\t       -mysql  [executable]          - path to mysql command
 
-\t       -dump [?dump]                 - path to a mysqldump sql export
+\t       -dump [dump]                  - path to a mysqldump sql export
 
-\t       -cnf [?cnf_path]              - path to a mysql cnf file
+\t       -cnf [cnf_path]               - path to a mysql cnf file
 
 \t       -trigger                      - build triggers and history tables for binary primary keys
+
+\t       -react [Dir_Path]             - creates a smart reference for you rest ops                     
 \n
 END;
         exit(1);
@@ -87,15 +92,16 @@ END;
     public function __construct($CONFIG)
     {
         $this->setup($CONFIG);
-        $this->schema = $CONFIG['DATABASE']['DB_NAME'];
-        $this->user = $CONFIG['DATABASE']['DB_USER'];
-        $this->password = $CONFIG['DATABASE']['DB_PASS'];
+
+        $this->schema = $CONFIG['DATABASE']['DB_NAME'] ?? '';
+        $this->user = $CONFIG['DATABASE']['DB_USER'] ?? '';
+        $this->password = $CONFIG['DATABASE']['DB_PASS'] ?? '';
     }
 
     public function run(array $argv): void
     {
         // Check command line args, password is optional
-        print "\tBuilding Rest Api!\n";
+        self::colorCode( "\tBuilding Rest Api!\n", 'blue');
 
         // C syntax
         $argc = count($argv);
@@ -106,20 +112,44 @@ END;
         $rest = [];
         /** @noinspection PhpUnusedLocalVariableInspection */
         $clean = true;
-        $carbon_namespace = (APP_ROOT . 'src/') === CARBON_ROOT;
+        $json = $carbon_namespace = APP_ROOT . 'src' . DS === CARBON_ROOT;
         $targetDir = APP_ROOT . ($carbon_namespace ? 'src/tables/' : 'tables/');
         $only_these_tables = $history_table_query = $mysql = null;
-        $verbose = $debug = $json = $primary_required = $delete_dump = $skipTable = $logClasses = false;
+        $verbose = $debug = $primary_required = $delete_dump = $skipTable = $logClasses =  false;
 
-        // we shouldn't open ourselfs for sql injection
+
+        $react = $carbon_namespace ? APP_ROOT . 'view/react/material-dashboard-react-c6/src/variables/' : false;
+
+        // TODO - we shouldn't open ourselfs for sql injection, was this a bandage
         $subQuery = 'C6SUB' . random_int(0, 1000);
 
 
         /** @noinspection ForeachInvariantsInspection - as we need $i++ */
         for ($i = 0; $i < $argc; $i++) {
             switch ($argv[$i]) {
+                case '-react':
+                    if ($carbon_namespace) {
+                        self::colorCode("\tReact directory hardcoded for C6, unnecessary flag.\n",'blue');
+                        break;
+                    }
+                    $react = $argv[++$i];
+                    break;
                 case '-json':
                     $json = true;
+                    break;
+                case '-autoTarget':
+                    if ($carbon_namespace) {
+                        break;
+                    }
+                    $composer = self::getComposerConfig();
+                    $composer = $composer['autoload']['psr-4']["Tables\\"] ?? false;
+                    if (!$composer) {
+                        print "\n\nFailed to find an entry for ['autoload']['psr-4']['Tables\\'] in your composer.json\n" .
+                            "\tThe -autoTarget flag failed the build.";
+                        exit(1);
+                    }
+                    $targetDir = APP_ROOT . $composer;
+                    unset($composer);
                     break;
                 case '-target':
                     $targetDir = $argv[++$i];
@@ -239,7 +269,7 @@ END;
             $targetDir .= DS;
         }
 
-        if (empty($this->schema)) {
+        if (empty($this->schema) || $this->schema === '') {
             print 'You must specify the table schema!' . PHP_EOL;
             exit(1);
         }
@@ -256,6 +286,8 @@ END;
             exit(1);
         }
 
+        // This is our mustache template engine implemented in php, used for rendering user content
+        $mustache = new \Mustache_Engine();
 
         /** @noinspection ForgottenDebugOutputInspection */
         $verbose and var_dump($this->mysqldump);
@@ -309,12 +341,19 @@ END;
                     ];
 
 
-                    if (file_exists($validation = __DIR__ . '/../app/MVC/Tables/' . $tableName . '.php')) {
+                    if (file_exists($validation = $targetDir . $tableName . '.php')) {
                         $validation = file_get_contents($validation);
-                        preg_match_all('#const VALIDATION = \[[^;]+;#', $validation, $matches);
+
+                        preg_match_all('#public const REGEX_VALIDATION\s?=\s? \[[^;]+;#', $validation, $matches);
 
                         if (isset($matches[0][0])) {
-                            $rest[$tableName]['validation'] = $matches[0][0];
+                            $rest[$tableName]['regex_validation'] = $matches[0][0];
+                        }
+
+                        preg_match_all('#public const PHP_VALIDATION\s?=\s? \[[^;]+;#', $validation, $matches);
+
+                        if (isset($matches[0][0])) {
+                            $rest[$tableName]['php_validation'] = $matches[0][0];
                         }
                     }
 
@@ -332,7 +371,7 @@ END;
                     }
 
                     if ($verbose) {
-                        print "\tGenerating {$tableName}\n";
+                        self::colorCode( "\tGenerating {$tableName}\n", 'blue');
                         /** @noinspection ForgottenDebugOutputInspection */
                         $debug and var_dump($table);
                     }
@@ -420,8 +459,8 @@ END;
                     if (isset($words_in_insert_stmt[$auto_inc]) && $words_in_insert_stmt[$auto_inc] === 'AUTO_INCREMENT,') {
                         $skipping_col[] = $name;
                         $rest[$tableName]['explode'][$column]['skip'] = true;
-                        $verbose and print "\tThe Table '$tableName' contains an AUTO_INCREMENT column. This is bad for scaling.
-                \tConsider switching to binary(16) and letting this rest API manage column uniqueness.\n";
+                        $verbose and self::colorCode("\tThe Table '$tableName' contains an AUTO_INCREMENT column. This is bad for scaling.
+                \tConsider switching to binary(16) and letting this rest API manage column uniqueness.\n", 'red');
                     }
 
                     $column++;
@@ -436,10 +475,10 @@ END;
                     foreach ($primary as $key) {
                         if (in_array($key, $binary, true)) {
                             // binary data is expected as hex @ rest call (GET,PUT,DELETE)
-                            $sql[] = ' ' . $key . '=UNHEX(\'.self::addInjection($primary, $pdo).\')';
+                            $sql[] = ' ' . $key . '=UNHEX(\'.self::addInjection($primary, $pdo, \'' . $tableName . '\').\')';
                         } else {
                             // otherwise just create the stmt normally
-                            $sql[] = ' ' . $key . '=\'.self::addInjection($primary, $pdo).\'';
+                            $sql[] = ' ' . $key . '=\'.self::addInjection($primary, $pdo, \'' . $tableName . '\').\'';
                         }
                         $rest[$tableName]['primary'][] = ['name' => $key];
                     }
@@ -461,11 +500,12 @@ END;
 
                     // We need to catch circular dependencies as mysql dumps print schemas alphabetically
                     if (!isset($rest[$references_table])) {
-                        $verbose and print "\n\t\t$tableName => [$foreign_key => $references_column]\n";
                         $rest[$references_table] = ['dependencies' => []];
                     } else if (!isset($rest[$references_table]['dependencies'])) {
                         $rest[$references_table]['dependencies'] = [];
                     }
+
+                    $verbose and self::colorCode("\nreference found ::\t$tableName([$foreign_key => $references_column])\n", 'magenta');
 
                     $rest[$references_table]['dependencies'][] = [$tableName => [$foreign_key => $references_column]];
                 }
@@ -481,15 +521,18 @@ END;
 
             // Make sure we didn't specify a flag that could cause us to move on...
             if (empty($rest[$tableName]['primary'])) {
-                $verbose and print "The tables {$rest[$tableName]['TableName']} does not have a primary key.\n";
+                $verbose and self::colorCode("\n\nThe tables {$rest[$tableName]['TableName']} does not have a primary key.\n", 'yellow');
                 if ($primary_required) {
-                    print " \tSkipping...\n ";
+                    self::colorCode( " \tSkipping...\n ", );
                     continue;
                 }
             } else {
                 foreach ($rest[$tableName]['explode'] as &$value) {
-                    if (in_array($value, ['pageSize', 'pageNumber'])) {
-                        print $rest[$tableName]['TableName'] . " uses reserved 'REST' keywords as a column identifier => $value\n\tRest Failed";
+                    if (in_array($value, [
+                        'pageSize',
+                        'pageNumber'
+                    ])) {
+                        self::colorCode($rest[$tableName]['TableName'] . " uses reserved C6 RESTFULL keywords as a column identifier => $value\n\tRest Failed", 'red');
                         die(1);
                     }
 
@@ -535,17 +578,111 @@ END;
             // Remove unneeded comma at begging of string
             $rest[$tableName]['implode'] = implode(',', $rest[$tableName]['implode']);
 
-            // This is our mustache template engine implemented in php, used for rendering user content
-            $mustache = new \Mustache_Engine();
-
             $logClasses && print $rest[$tableName]['TableName'] . ', ';
 
             file_put_contents($targetDir . $rest[$tableName]['ucEachTableName'] . '.php', $mustache->render($this->restTemplate(), $rest[$tableName]));
         }
 
+        foreach ($rest as $tableName => $parsed) {
+            if (empty($rest[$tableName]['explode'])) {
+                self::colorCode( "\nYou have a reference with wasn't resolved in the dump. Please search for '$tableName' in your "
+                . "mysqldump.sql file. This typically occurs when resolving to an outside schema, which typically indicates and error.\n", 'red');
+            }
+        }
+
+        if ($react) {
+            [$restAccessors, $interfaces] = $this->reactTemplate();
+            $references_tsx = $interfaces_tsx = '';
+            foreach ($rest as $tableName => $parsed) {
+                if (empty($rest[$tableName]['explode'])) {
+                    continue;
+                }
+
+                if (!class_exists($table = ($carbon_namespace ? 'CarbonPHP\Tables\\' : 'Tables\\') . $tableName)) {
+                    $verbose and self::colorCode("\n\nCouldn't locate class '$table' for react validations. This may indicate a new table.\n", 'yellow');
+                    continue;
+                }
+
+                if (!is_subclass_of($table, \CarbonPHP\Rest::class)) {
+                    continue;
+                }
+
+                $imp = array_map('strtolower', array_keys(class_implements($table)));
+
+                if (!in_array(strtolower(iRest::class), $imp, true) &&
+                    !in_array(strtolower(iRestfulReferences::class), $imp, true)) {
+                    continue;
+                }
+
+                if (defined("$table::REGEX_VALIDATION")) {
+                    $regex_validations = constant("$table::REGEX_VALIDATION");
+                    if (!is_array($regex_validations)) {
+                        self::colorCode("\nRegex validations for $table must be an array!", 'red');
+                        exit(1);
+                    }
+                    $parsed['regex_validation'] = [];
+
+                    if (!empty($regex_validations)) {
+
+                        $str_lreplace = static function (string $search, string $replace, string $subject)
+                        {
+                            $pos = strrpos($subject, $search);
+
+                            if($pos !== false)
+                            {
+                                $subject = substr_replace($subject, $replace, $pos, strlen($search));
+                            }
+
+                            return $subject;
+                        };
+
+                        foreach ($regex_validations as $columnName => $regex_validation) {
+                            $regex_validation = $str_lreplace($regex_validation[0], '/', $regex_validation);
+                            $regex_validation[0] = '/';
+                            $parsed['regex_validation'][] = [
+                                'name' => $columnName,
+                                'validation' => $regex_validation
+                            ];
+                        }
+                    } else {
+                        $parsed['regex_validation'] = [];
+                    }
+                }
+
+
+                $references_tsx .= PHP_EOL . $mustache->render($restAccessors, $parsed);
+                $interfaces_tsx .= PHP_EOL . $mustache->render($interfaces, $parsed);
+            }
+
+            $export = "
+export const C6 = {
+
+    SELECT: '" . \CarbonPHP\Rest::SELECT . "',
+    UPDATE: '" . \CarbonPHP\Rest::UPDATE . "',
+    WHERE: '" . \CarbonPHP\Rest::WHERE . "',
+    LIMIT: '" . \CarbonPHP\Rest::LIMIT . "',
+    PAGINATION: '" . \CarbonPHP\Rest::PAGINATION . "',
+    ORDER: '" . \CarbonPHP\Rest::ORDER . "',
+    DESC: '" . \CarbonPHP\Rest::DESC . "',
+    ASC: '" . \CarbonPHP\Rest::ASC . "',
+    JOIN: '" . \CarbonPHP\Rest::JOIN . "',
+    INNER: '" . \CarbonPHP\Rest::INNER . "',
+    LEFT: '" . \CarbonPHP\Rest::LEFT . "',
+    RIGHT: '" . \CarbonPHP\Rest::RIGHT . "',
+
+    $references_tsx
+}
+
+$interfaces_tsx
+
+";
+            file_put_contents($react  . 'C6.tsx', $export);
+        }
+
+        // todo - log classes
         $logClasses && print "\n";
 
-        print "\tFinished Building REST ORM!\n\n";
+        self::colorCode("\tFinished Building REST ORM!\n\n");
         /**
          * Now that the full dump has been parsed, we need to build our triggers
          * using the foreign key analysis
@@ -560,7 +697,7 @@ END;
                     continue;
                 }
                 if ($table['binary_primary'] && ($only_these_tables === null || in_array($table['TableName'], $only_these_tables, true))) {
-                    $triggers .= $this->trigger($table['TableName'], $table['columns'], $table['binary_trigger'] ?? [], $table['dependencies'], $table['primary'][0]['name']);
+                    $triggers .= self::trigger($table['TableName'], $table['columns'], $table['binary_trigger'] ?? [], $table['dependencies'], $table['primary'][0]['name']);
                 }
             }
 
@@ -573,13 +710,20 @@ END;
         /** @noinspection ForgottenDebugOutputInspection */
         $debug and var_dump($rest['clients']);
 
-        print "\tSuccess!\n\n";
+        self::colorCode( "\tSuccess!\n\n");
 
     }
 
+    /**
+     * @param $table
+     * @param $columns
+     * @param $binary
+     * @param $dependencies
+     * @param $primary
+     * @return string
+     */
     public static function trigger($table, $columns, $binary, $dependencies, $primary): string
     {
-
         $json_mysql = static function ($op = 'NEW') use ($columns, $binary) {
             $mid = "DECLARE json text;\n SET json = '{';";
             foreach ($columns as $key => &$column) {
@@ -676,6 +820,39 @@ END;;
 TRIGGER;
     }
 
+    /**
+     * @return array
+     */
+    private function reactTemplate(): array
+    {
+        return [/** @lang Handlebars */ "
+  {{TableName}}: {
+    TABLE_NAME:'{{TableName}}',
+    {{#explode}}
+    {{caps}}: '{{TableName}}.{{name}}',
+    {{/explode}}
+    PRIMARY: [{{#primary}}
+        {{#name}}'{{TableName}}.{{name}}',{{/name}}
+    {{/primary}}],
+    COLUMNS: {
+      {{#explode}}'{{TableName}}.{{name}}':'{{name}}',{{/explode}}
+    },
+    REGEX_VALIDATION: {
+    {{#regex_validation}}
+    '{{name}}': {{validation}},
+    {{/regex_validation}}
+    }
+
+  },", /** @lang Handlebars */ "
+export interface  i{{ucEachTableName}}{
+      {{#explode}}'{{name}}'?: string;{{/explode}}
+}
+  "];
+    }
+
+
+
+
     private function restTemplate(): string
     {
         return /** @lang Handlebars */ <<<STRING
@@ -688,6 +865,7 @@ use PDOStatement;
 
 use function array_key_exists;
 use function count;
+use function func_get_args;
 use function is_array;
 use CarbonPHP\Rest;
 use CarbonPHP\Interfaces\iRest;
@@ -714,13 +892,20 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
     public const PDO_VALIDATION = [
         {{#explode}}'{{TableName}}.{{name}}' => ['{{mysql_type}}', '{{type}}', '{{length}}'],{{/explode}}
     ];
-    {{^validation}}
+    {{^php_validation}}
     
-    public const VALIDATION = [];{{/validation}}{{#validation}}{{{validation}}}{{/validation}}
-
-    public static array \$injection = [];
-
-    {{#json}}public static function jsonSQLReporting(\$argv, \$sql) : void {
+    public const PHP_VALIDATION = [];{{/php_validation}} 
+    {{#php_validation}} 
+    {{{php_validation}}} 
+    {{/php_validation}}
+    {{^regex_validation}}
+    
+    public const REGEX_VALIDATION = [];{{/regex_validation}} 
+    {{#regex_validation}}
+    {{{regex_validation}}} 
+    {{/regex_validation}}{{#json}}
+     
+    public static function jsonSQLReporting(\$argv, \$sql) : void {
         global \$json;
         if (!is_array(\$json)) {
             \$json = [];
@@ -732,53 +917,9 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
             \$argv,
             \$sql
         ];
-    }{{/json}}
+    }
+    {{/json}}
     
-    public static function buildWhere(array \$set, PDO \$pdo, \$join = 'AND') : string
-    {
-        \$sql = '(';
-        \$bump = false;
-        foreach (\$set as \$column => \$value) {
-            if (is_array(\$value)) {
-                if (\$bump) {
-                    \$sql .= " \$join ";
-                }
-                \$bump = true;
-                \$sql .= self::buildWhere(\$value, \$pdo, \$join === 'AND' ? 'OR' : 'AND');
-            } else if (array_key_exists(\$column, self::PDO_VALIDATION)) {
-                \$bump = false;
-                /** @noinspection SubStrUsedAsStrPosInspection */
-                if (substr(\$value, 0, '{{subQueryLength}}') === '{{subQuery}}') {
-                    \$subQuery = substr(\$value, '{{subQueryLength}}');
-                    \$sql .= "(\$column = \$subQuery ) \$join ";
-                } else if (self::PDO_VALIDATION[\$column][0] === 'binary') {
-                    \$sql .= "(\$column = UNHEX(" . self::addInjection(\$value, \$pdo) . ")) \$join ";
-                } else {
-                    \$sql .= "(\$column = " . self::addInjection(\$value, \$pdo) . ") \$join ";
-                }
-            } else {
-                \$bump = false;
-                \$sql .= "(\$column = " . self::addInjection(\$value, \$pdo) . ") \$join ";
-            }
-        }
-        return rtrim(\$sql, " \$join") . ')';
-    }
-
-    public static function addInjection(\$value, PDO \$pdo, \$quote = false): string
-    {
-        \$inject = ':injection' . count(self::\$injection) . '{{TableName}}';
-        self::\$injection[\$inject] = \$quote ? \$pdo->quote(\$value) : \$value;
-        return \$inject;
-    }
-
-    public static function bind(PDOStatement \$stmt): void 
-    {
-        foreach (self::\$injection as \$key => \$value) {
-            \$stmt->bindValue(\$key,\$value);
-        }
-    }
-
-
     /**
     *
     *   \$argv = [
@@ -826,7 +967,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
         self::bind(\$stmt);
 
         if (!\$stmt->execute()) {
-            return false;
+            throw new PublicAlert('Failed to execute the query on {{ucEachTableName}}.');
         }
 
         \$return = \$stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -839,7 +980,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
         */
 
         {{#primary}}{{#sql}}
-        if (\$primary !== null || (isset(\$argv['pagination']['limit']) && \$argv['pagination']['limit'] === 1 && count(\$return) === 1)) {
+        if (\$primary !== null || (isset(\$argv[self::PAGINATION][self::LIMIT]) && \$argv[self::PAGINATION][self::LIMIT] === 1 && count(\$return) === 1)) {
             \$return = isset(\$return[0]) && is_array(\$return[0]) ? \$return[0] : \$return;
             // promise this is needed and will still return the desired array except for a single record will not be an array
         {{#explode}}{{#json}}if (array_key_exists('{{TableName}}.{{name}}', \$return)) {
@@ -859,11 +1000,18 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
      */
     public static function Post(array \$argv, string \$dependantEntityId = null){{^primaryExists}}: bool{{/primaryExists}}
     {
-        self::\$injection = [];
+        self::\$injection = []; 
+         
+        foreach (\$argv as \$columnName => \$postValue) {
+            if (!array_key_exists(\$columnName, self::PDO_VALIDATION)){
+                throw new PublicAlert("Restful table could not post column \$columnName, because it does not appear to exist.");
+            }
+        } 
+        
         /** @noinspection SqlResolve */
         \$sql = 'INSERT INTO {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}{{TableName}} ({{listed}}) VALUES ({{{implode}}})';
 
-        {{#json}}self::jsonSQLReporting(\\func_get_args(), \$sql);{{/json}}
+        {{#json}}self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
 
         \$stmt = self::database()->prepare(\$sql);
 
@@ -888,15 +1036,30 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
     {{/carbon_table}}{{/binary_primary}}
     }
      
+    /**
+     * @param string|null \$primary
+     * @param array \$argv
+     * @param PDO|null \$pdo
+     * @return string
+     * @throws PublicAlert
+     */
     public static function subSelect(string \$primary = null, array \$argv, PDO \$pdo = null): string
     {
         return '{{subQuery}}' . self::buildSelectQuery(\$primary, \$argv, \$pdo, true);
     }
     
     public static function validateSelectColumn(\$column) : bool {
-        return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|-|/| {{#explode}}|{{TableName}}\.{{name}}{{/explode}}))+\)*)+ *(as [a-z]+)?#i', \$column);
+        return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|-|/| |{{TableName}}|{{#explode}}|\.{{name}}{{/explode}}))+\)*)+ *(as [a-z]+)?#i', \$column);
     }
     
+    /**
+     * @param string|null \$primary
+     * @param array \$argv
+     * @param PDO|null \$pdo
+     * @param bool \$noHEX
+     * @return string
+     * @throws PublicAlert
+     */
     public static function buildSelectQuery(string \$primary = null, array \$argv, PDO \$pdo = null, bool \$noHEX = false) : string 
     {
         if (\$pdo === null) {
@@ -909,13 +1072,17 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
         \$get = \$argv['select'] ?? array_keys(self::PDO_VALIDATION);
         \$where = \$argv['where'] ?? [];
 
-        // pagination
-        if (array_key_exists('pagination',\$argv)) {
-            if (!empty(\$argv['pagination']) && !is_array(\$argv['pagination'])) {
-                \$argv['pagination'] = json_decode(\$argv['pagination'], true);
+        // pagination [self::PAGINATION][self::LIMIT]
+        if (array_key_exists(self::PAGINATION,\$argv)) {
+            if (!empty(\$argv[self::PAGINATION]) && is_string(\$argv[self::PAGINATION])) {
+                \$argv['pagination'] = json_decode(\$argv[self::PAGINATION], true);
             }
-            if (array_key_exists('limit',\$argv['pagination']) && \$argv['pagination']['limit'] !== null) {
-                \$limit = ' LIMIT ' . \$argv['pagination']['limit'];
+            if (array_key_exists(self::LIMIT,\$argv[self::PAGINATION]) && is_numeric(\$argv[self::PAGINATION][self::LIMIT])) {
+                if (array_key_exists(self::PAGE, \$argv[self::PAGINATION])) {
+                    \$limit = ' LIMIT ' . ((\$argv[self::PAGINATION][self::PAGE] - 1) * \$argv[self::PAGINATION][self::LIMIT]) . ',' . \$argv[self::PAGINATION][self::LIMIT];
+                } else {
+                    \$limit = ' LIMIT ' . \$argv[self::PAGINATION][self::LIMIT];
+                }
             } else {
                 \$limit = '';
             }
@@ -925,13 +1092,13 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
 
                 \$order = ' ORDER BY ';
 
-                if (array_key_exists('order',\$argv['pagination']) && \$argv['pagination']['order'] !== null) {
-                    if (is_array(\$argv['pagination']['order'])) {
-                        foreach (\$argv['pagination']['order'] as \$item => \$sort) {
+                if (array_key_exists(self::ORDER,\$argv[self::PAGINATION]) && is_string(\$argv[self::PAGINATION][self::ORDER])) {
+                    if (is_array(\$argv[self::PAGINATION][self::ORDER])) {
+                        foreach (\$argv[self::PAGINATION][self::ORDER] as \$item => \$sort) {
                             \$order .= "\$item \$sort";
                         }
                     } else {
-                        \$order .= \$argv['pagination']['order'];
+                        \$order .= \$argv[self::PAGINATION][self::ORDER];
                     }
                 } else {
                     \$order .= '{{primarySort}} ASC';
@@ -945,50 +1112,66 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
         // join 
         \$join = ''; 
         \$tableList = [];
-        if (array_key_exists('join', \$argv)) {
-            foreach (\$argv['join'] as \$by => \$tables) {
+        if (array_key_exists(self::JOIN, \$argv) && !empty(\$argv[self::JOIN])) {
+            if (!is_array(\$argv[self::JOIN])) { 
+                throw new PublicAlert('The restful join field must be an array.');
+            }
+            foreach (\$argv[self::JOIN] as \$by => \$tables) {
                 \$buildJoin = static function (\$method) use (\$tables, &\$join, &\$tableList) {
+                    \$joinColumns = [];
                     foreach (\$tables as \$table => \$stmt) {
                         \$tableList[] = \$table;
-                        switch (count(\$stmt)) {
+                        switch (count(\$stmt)) {   
                             case 2: 
                                 if (is_string(\$stmt[0]) && is_string(\$stmt[1])) {
+                                    \$joinColumns[] = \$stmt[0];
+                                    \$joinColumns[] = \$stmt[1];
                                     \$join .= \$method . \$table . ' ON ' . \$stmt[0] . '=' . \$stmt[1];
                                 } else {
-                                    return false; // todo debugging
+                                    throw new PublicAlert('One or more of the array values provided in the restful JOIN condition are not strings.');
                                 }
                                 break;
                             case 3:
                                 if (is_string(\$stmt[0]) && is_string(\$stmt[1]) && is_string(\$stmt[2])) {
+                                    if (!((bool) preg_match('#^=|>=|<=$#', \$stmt[1]))){ 
+                                        throw new PublicAlert('Restful column joins may only use one (=,>=, or <=).');
+                                    }
+                                    \$joinColumns[] = \$stmt[0];
+                                    \$joinColumns[] = \$stmt[2];
                                     \$join .= \$method . \$table . ' ON ' . \$stmt[0] . \$stmt[1] . \$stmt[2]; 
                                 } else {
-                                    return false; // todo debugging
+                                    throw new PublicAlert('One or more of the array values provided in the restful JOIN condition are not strings.');
                                 }
                                 break;
                             default:
-                                return false; // todo debug check, common when joins are not a list of values
+                                throw new PublicAlert('Restful joins across two tables must be populated with two or three array values with column names, or an appropriate joining operator and column names.');
+                        }
+                    } 
+                    foreach (\$joinColumns as \$columnName) { 
+                        if (!parent::validateColumnName(\$columnName, \$tableList)) {
+                             throw new PublicAlert("Could not validate join column \$columnName. Be sure correct restful tables are referenced.");
                         }
                     }
                     return true;
                 };
                 switch (\$by) {
-                    case 'inner':
+                    case self::INNER:
                         if (!\$buildJoin(' INNER JOIN ')) {
-                            return false; 
+                            throw new PublicAlert('The restful inner join had an unknown error.');
                         }
                         break;
-                    case 'left':
+                    case self::LEFT:
                         if (!\$buildJoin(' LEFT JOIN ')) {
-                            return false; 
+                            throw new PublicAlert('The restful left join had an unknown error.'); 
                         }
                         break;
-                    case 'right':
+                    case self::RIGHT:
                         if (!\$buildJoin(' RIGHT JOIN ')) {
-                            return false; 
+                            throw new PublicAlert('The restful right join had an unknown error.'); 
                         }
                         break;
                     default:
-                        return false; // todo - debugging stmts
+                        throw new PublicAlert('Restful join stmt may only use one of (' .  self::INNER . ',' . self::LEFT . ', or ' . self::RIGHT . ').');
                 }
             }
         }
@@ -1018,15 +1201,14 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
                 \$aggregate = true;
             } else {  
                 \$valid = false;
-                \$tablesReffrenced = \$tableList;
-                while (!empty(\$tablesReffrenced)) {
-                     \$table = __NAMESPACE__ . '\\\' . array_pop(\$tablesReffrenced);
+                \$tablesReferenced = \$tableList;
+                while (!empty(\$tablesReferenced)) {
+                     \$table = __NAMESPACE__ . '\\\' . array_pop(\$tablesReferenced);
                      
                      if (!class_exists(\$table)){
                          continue;
                      }
                      \$imp = array_map('strtolower', array_keys(class_implements(\$table)));
-                    
                    
                      /** @noinspection ClassConstantUsageCorrectnessInspection */
                      if (!in_array(strtolower(iRest::class), \$imp, true) && 
@@ -1041,7 +1223,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
                      }
                 }
                 if (!\$valid) {
-                    return false;
+                    throw new PublicAlert('Could not validate the column \$column');
                 }
                 \$sql .= \$column;
                 \$aggregate = true;
@@ -1053,7 +1235,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
         if (null === \$primary) {
             /** @noinspection NestedPositiveIfStatementsInspection */
             if (!empty(\$where)) {
-                \$sql .= ' WHERE ' . self::buildWhere(\$where, \$pdo);
+                \$sql .= ' WHERE ' . self::buildWhere(\$where, \$pdo, '{{TableName}}', self::PDO_VALIDATION);
             }
         } {{#primary}}{{#sql}}else {
             {{{sql}}}
@@ -1065,7 +1247,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
 
         \$sql .= \$limit;
 
-        {{#json}}self::jsonSQLReporting(\\func_get_args(), \$sql);{{/json}}
+        {{#json}}self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
 
         return '(' . \$sql . ')';
     }
@@ -1074,6 +1256,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
     * @param array \$return
     {{#primaryExists}}* @param string \$primary{{/primaryExists}}
     * @param array \$argv
+    * @throws PublicAlert
     * @return bool
     */
     public static function Put(array &\$return, {{#primaryExists}}string \$primary,{{/primaryExists}} array \$argv) : bool
@@ -1082,7 +1265,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
         
         {{#primaryExists}}
         if (empty(\$primary)) {
-            return false;
+            throw new PublicAlert('Restful tables which have a primary key must be updated by its primary key.');
         }
         
         if (array_key_exists(self::UPDATE, \$argv)) {
@@ -1095,19 +1278,17 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
         \$argv = \$argv[self::UPDATE];
 
         if (empty(\$where) || empty(\$argv)) {
-            return false;
+            throw new PublicAlert('Restful tables which have no primary key must be updated specific where conditions.');
         }
         {{/primaryExists}}
         
         foreach (\$argv as \$key => \$value) {
             if (!array_key_exists(\$key, self::PDO_VALIDATION)){
-                return false;
+                throw new PublicAlert('Restful table could not update column \$key, because it does not appear to exist.');
             }
         }
 
-        \$sql = 'UPDATE {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}{{TableName}} ';
-
-        \$sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
+        \$sql = 'UPDATE {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}{{TableName}} ' . ' SET '; // intellij cant handle this otherwise
 
         \$set = '';
 
@@ -1116,19 +1297,15 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
             \$set .= '{{name}}={{#binary}}UNHEX(:{{name}}){{/binary}}{{^binary}}:{{name}}{{/binary}},';
         }
         {{/explode}}
-
-        if (empty(\$set)){
-            return false;
-        }
-
+        
         \$sql .= substr(\$set, 0, -1);
 
         \$pdo = self::database();
 
         {{#primary}}{{{sql}}}{{/primary}}
-        {{^primary}}\$sql .= ' WHERE ' . self::buildWhere(\$where, \$pdo);{{/primary}}
+        {{^primary}}\$sql .= ' WHERE ' . self::buildWhere(\$where, \$pdo, '{{TableName}}', self::PDO_VALIDATION);{{/primary}}
 
-        {{#json}}self::jsonSQLReporting(\\func_get_args(), \$sql);{{/json}}
+        {{#json}}self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
 
         \$stmt = \$pdo->prepare(\$sql);
 
@@ -1147,7 +1324,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
         self::bind(\$stmt);
 
         if (!\$stmt->execute()) {
-            return false;
+            throw new PublicAlert('Restful table {{ucEachTableName}} failed to execute the update query.');
         }
         
         \$argv = array_combine(
@@ -1168,6 +1345,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
     * @param array \$remove
     * @param string|null \$primary
     * @param array \$argv
+    * @throws PublicAlert
     * @return bool
     */
     public static function Delete(array &\$remove, {{#primaryExists}}string \$primary = null, {{/primaryExists}}array \$argv) : bool
@@ -1183,7 +1361,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
          *   n00bs and future self, "I got chu."
          */
         if (empty(\$argv)) {
-            return false;
+            throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.');
         }
 
         self::\$injection = []; 
@@ -1195,9 +1373,9 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
 
         \$pdo = self::database();
 
-        \$sql .= ' WHERE ' . self::buildWhere(\$argv, \$pdo);{{#json}}
+        \$sql .= ' WHERE ' . self::buildWhere(\$argv, \$pdo, '{{TableName}}', self::PDO_VALIDATION);{{#json}}
         
-        self::jsonSQLReporting(\\func_get_args(), \$sql);{{/json}}
+        self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
 
         \$stmt = \$pdo->prepare(\$sql);
 
@@ -1218,7 +1396,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
         \$sql = 'DELETE FROM {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}{{TableName}} ';
 
         \$pdo = self::database();
-        {{#primary}}
+        {{#primary}}{{#name}}
         if (null === \$primary) {
            /**
             *   While useful, we've decided to disallow full
@@ -1226,24 +1404,24 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
             *   n00bs and future self, "I got chu."
             */
             if (empty(\$argv)) {
-                return false;
+                throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.');
             }
             
-            \$where = self::buildWhere(\$argv, \$pdo);
+            \$where = self::buildWhere(\$argv, \$pdo, '{{TableName}}', self::PDO_VALIDATION);
             
             if (empty(\$where)) {
-                return false;
+                throw new PublicAlert('The where conditon provided appears invalid.');
             }
 
             \$sql .= ' WHERE ' . \$where;
         } {{#sql}}else {
         {{{sql}}}
-        }{{/sql}}{{/primary}}
+        }{{/sql}}{{/name}}{{/primary}}
                
         {{^primary}}
-        \$sql .= ' WHERE ' . self::buildWhere(\$argv, \$pdo);{{/primary}}
+        \$sql .= ' WHERE ' . self::buildWhere(\$argv, \$pdo, '{{TableName}}', self::PDO_VALIDATION);{{/primary}}
 
-        {{#json}}self::jsonSQLReporting(\\func_get_args(), \$sql);{{/json}}
+        {{#json}}self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
 
         \$stmt = \$pdo->prepare(\$sql);
 

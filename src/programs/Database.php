@@ -10,7 +10,9 @@ namespace CarbonPHP\Programs;
 
 
 use CarbonPHP\Database as DB;
+use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\interfaces\iCommand;
+use Throwable;
 
 class Database implements iCommand
 {
@@ -31,8 +33,7 @@ class Database implements iCommand
         
         -s --save
         -r --rebuild                 Update the projects database configurations.
-
-
+        -m --mysql_native_password      Change mysql to default to a native password.
 
 usage;
     }
@@ -57,6 +58,10 @@ usage;
                 case '--rebuild':
                     DB::setUp(false, true);   // Redirect = false
                     // this is going to the CLI so no need to run/attach redirect scripts
+                    exit(0);
+                case '-m':
+                case '--mysql_native_password':
+                    $this->mysql_native_password();
                     exit(0);
                 case '-s':
                 case'--save':

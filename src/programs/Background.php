@@ -6,6 +6,8 @@ namespace CarbonPHP\Programs;
 // TODO - probably should be named better but were preserving backwards compatibility (BC)
 trait Background
 {
+    protected static bool $colorCodeBool = true;
+
     public function background($cmd, $outputFile = null)
     {
         try {
@@ -26,6 +28,10 @@ trait Background
 
     public static function colorCode(string $message, string $color = 'green'): void
     {
+        if (!self::$colorCodeBool) {
+            print $message;
+            return;
+        }
         $failed = false;
         $buffer = '\e[1;';
         $colors = [
@@ -53,7 +59,7 @@ trait Background
             $buffer .= "$colors[$color]m    $message";
         }
 
-        print shell_exec('echo "' . $buffer . '\e[0m"');
+        print shell_exec('printf "' . $buffer . '\e[0m"');
 
         if ($failed) {
             exit(1);

@@ -30,14 +30,14 @@ class SectionCompletedExamples extends React.Component {
                                 without going into to much detail. The most important takeaways are: <b>dynamic
                                 routes conforming to C6 standards will use an MVC where controllers
                                 validate all user input, model layers update and insert data into the database,
-                                and strictly views print data to the user. </b>
+                                and views strictly print data to the user. </b>
                             </h4>
                             <h4>
                                 If user input is taken it must be validated to protect against cross site scripting
                                 attacks. The guys over at OWASP do a good job explaining the complexity of protecting
                                 yourself against a XSS attack. Simply put, if the user is capable of modifying the
                                 information, a variable we need in a routine, it must be validated. The MVC pattern
-                                is simplistic in that it's separation of concerns is conducive to good validation
+                                is simplistic in that its separation of concerns is conducive to good validation
                                 practices.
                             </h4>
                             <h4>
@@ -47,17 +47,20 @@ class SectionCompletedExamples extends React.Component {
                                 class should be in a file named the same name of the class, and if you're lost you
                                 should
                                 check out the <b>N00B Guid for beginners</b>.
-                                This bootstrap typically contains little to no business logic and simply maps urls to
+                                This bootstrap typically contains little to no business logic and only maps urls to
                                 other methods.
-                                In a pure C6 implementation the first step after a url is matched is the controller.
+                                In a pure C6 implementation the first step after a uri is matched is the controller.
                             </h4>
                             <b>{'$this->structure($this->MVC());'}</b>
                             <br/>
-                            <b>{'$this->match(\'Recover/{user_email?}/{user_generated_string?}/\', \'User\', \'recover\')()'}</b>
+                            <b>{'$this->match(\'Recover/{user_email?}/{user_generated_string?}\', \'User\', \'recover\')()'}</b>
                             <h4>
                                 We would expect to find the above code in the bootstrap. This would move to
-                                the <b>controller/User.php </b>
-                                file. More on this later, but lets take a look at whats inside this file.
+                                the <b>Controller/User </b>
+                                class mapped by composers psr4 standard.
+                                C6 also features a runtime psr4 auto loading feature, though it is not recommended over composer's.
+                                For legacy reasons it is remains a permanent fixture.
+                                More on this later, but lets take a look at whats inside this file.
                             </h4>
 
 
@@ -65,9 +68,7 @@ class SectionCompletedExamples extends React.Component {
                                 or url mapping file, we phase any
                                 url parameters and send them to the Controller. This is not the only data that must
                                 be validated. All form data is received in the $_POST[], $_GET[], $_FILES[], $_COOKIE[],
-                                ect.. super
-                                globals predefined by
-                                PHP must also be validated.
+                                ect.. super globals predefined by PHP must also be validated.
                             </h4>
 
                             <GridContainer justify="center">
@@ -94,28 +95,28 @@ class SectionCompletedExamples extends React.Component {
                                 </div>
                                 <br/>
                                 <div className={classes.typo}>
-                                    <div className={classes.note}><b>Browser->+Index: 1</b><br/></div>
+                                    <div className={classes.note}><b>Browser-&gt;+Index: 1</b><br/></div>
                                     <h3>1) A 'user' request is received by our server<br/></h3>
                                 </div>
                                 <br/>
                                 <br/>
                                 <div className={classes.typo}>
-                                    <div className={classes.note}><b>Index->+C6: 2</b><br/></div>
+                                    <div className={classes.note}><b>Index-&gt;+C6: 2</b><br/></div>
                                     <h3>2) Send relative path to configuration file as string<br/></h3>
                                 </div>
                                 <br/>
                                 <div className={classes.typo}>
-                                    <div className={classes.note}><b>C6->C6: 3</b><br/></div>
+                                    <div className={classes.note}><b>C6-&gt;C6: 3</b><br/></div>
                                     <h3>3) Setup with option and define global helper functions<br/></h3>
                                 </div>
                                 <br/>
                                 <div className={classes.typo}>
-                                    <div className={classes.note}><b>C6->-Index: 4</b><br/></div>
+                                    <div className={classes.note}><b>C6-&gt;-Index: 4</b><br/></div>
                                     <h3>4) Returns the C6 Instance<br/></h3>
                                 </div>
                                 <br/>
                                 <div className={classes.typo}>
-                                    <div className={classes.note}><b>Index->+C6: 5</b><br/></div>
+                                    <div className={classes.note}><b>Index-&gt;+C6: 5</b><br/></div>
                                     <h3>5) Pass a class that extends <b>CarbonPHP/Application::class</b>.</h3>
                                     <br/>
                                     The above implies that the following to abstractions are present in your routing
@@ -130,12 +131,12 @@ class SectionCompletedExamples extends React.Component {
                                 </div>
                                 <br/><br/><br/>
                                 <div className={classes.typo}>
-                                    <div className={classes.note}><b>C6->+Bootstrap: 6</b><br/></div>
+                                    <div className={classes.note}><b>C6-&gt;+Bootstrap: 6</b><br/></div>
                                     <h3>6) Runs the global function <b>startApplication( YouRoutingClass::class )</b>.
                                     </h3><br/>
                                     <small>
                                         This will ultimately run <br/>
-                                        <b>(new YourRoutingClass::class)->startApplication( $uri )</b><br/>
+                                        <b>(new YourRoutingClass::class)-&gt;startApplication( $uri )</b><br/>
                                         defined in your route class. <b>startApplication</b> is designed to allow
                                         recursive program flow.<br/>
                                         So between steps 6-15
@@ -152,27 +153,27 @@ class SectionCompletedExamples extends React.Component {
                                         <b>startApplication( '/profile' )</b>
                                         <br/><br/>
                                         The '/' page, or home page, will always run the <br/>
-                                        <b>YourRoutingClass->defaultRoute();</b><br/>
+                                        <b>YourRoutingClass-&gt;defaultRoute();</b><br/>
                                         then return to the index.
 
                                     </small>
                                 </div>
                                 <br/><br/>
                                 <div className={classes.typo}>
-                                    <div className={classes.note}><b>Bootstrap->Bootstrap: 7</b></div>
-                                    <h3>7) Set <b>$this->structure( $this->MVC() );</b> as the method to use is a match
+                                    <div className={classes.note}><b>Bootstrap-&gt;Bootstrap: 7</b></div>
+                                    <h3>7) Set <b>$this-&gt;structure( $this-&gt;MVC() );</b> as the method to use is a match
                                         is
                                         found.</h3>
                                 </div>
                                 <div className={classes.typo}>
-                                    <div className={classes.note}><b>Bootstrap->+Controller: 8</b></div>
+                                    <div className={classes.note}><b>Bootstrap-&gt;+Controller: 8</b></div>
                                     8) Passes provided arguments to match followed by url variables. The
                                     controllers job is to strictly validate data. This could mean database
                                     requests, but typically does not. By design, no database modification
                                     should be made in this step.
                                 </div>
                                 <div className={classes.typo}>
-                                    <div className={classes.note}><b>Controller-->-Bootstrap: 9</b></div>
+                                    <div className={classes.note}><b>Controller--&gt;-Bootstrap: 9</b></div>
                                     9) The responce to validation.
                                     If false is returned from the controller, the program execution will effectively
                                     stop.
@@ -199,7 +200,7 @@ class SectionCompletedExamples extends React.Component {
 
                                 <div className={classes.typo}>
                                     <div className={classes.note}><b>
-                                        Bootstrap->+Model: 10</b>
+                                        Bootstrap-&gt;+Model: 10</b>
                                     </div>
                                     10) The Bootstrap will logically decide what file and function should be executed
                                     next. If a value other than null or false is returned from the controller, the model
@@ -211,7 +212,7 @@ class SectionCompletedExamples extends React.Component {
 
                                 <div className={classes.typo}>
                                     <div className={classes.note}><b>
-                                        Model-->-Bootstrap: 11
+                                        Model--&gt;-Bootstrap: 11
                                     </b></div>
                                     11) The model can still cancel the view from sending by returning false. This
                                     returns the stack to the index
@@ -230,7 +231,7 @@ class SectionCompletedExamples extends React.Component {
                                 </div>
                                 <div className={classes.typo}>
                                     <div className={classes.note}>
-                                        Bootstrap->+View: 12
+                                        Bootstrap-&gt;+View: 12
                                     </div>
                                     12) The view is typically handled by CarbonPHP's built-in internals. You can choose
                                     to render Mustache Templates or PHP files from the <b>View::content()</b> method.
@@ -247,7 +248,7 @@ class SectionCompletedExamples extends React.Component {
                                 <div className={classes.typo}>
 
                                     <div className={classes.note}>
-                                        View-->-Bootstrap: 14
+                                        View--&gt;-Bootstrap: 14
                                     </div>
                                     14) Safely returning
                                 </div>
@@ -264,19 +265,19 @@ class SectionCompletedExamples extends React.Component {
 
                                 <div className={classes.typo}>
                                     <div className={classes.note}>
-                                        Bootstrap-->-C6: 15
+                                        Bootstrap--&gt;-C6: 15
                                     </div>
                                     15) Safely returning
                                 </div>
                                 <div className={classes.typo}>
                                     <div className={classes.note}>
-                                        C6-->-Index: 16
+                                        C6--&gt;-Index: 16
                                     </div>
                                     16) Safely returning
                                 </div>
                                 <div className={classes.typo}>
                                     <div className={classes.note}>
-                                        Index->-Browser: 17
+                                        Index-&gt;-Browser: 17
                                     </div>
                                     17) All code is finished and the connection is closed.
                                 </div>

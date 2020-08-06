@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use CarbonPHP\CarbonPHP;
 use CarbonPHP\Tables\Carbon_Location_References;
 use CarbonPHP\Tables\Carbon_Locations;
 use CarbonPHP\Tables\Carbon_Users as Users;
@@ -54,7 +55,8 @@ final class RestTest extends Config
 
         // Should return a unique hex id
         $this->assertInternalType('string', $pool = Carbons::Post([
-            Carbons::ENTITY_PK => '8544e3d581ba11e8942cd89ef3fc55fa'
+            Carbons::ENTITY_PK => '8544e3d581ba11e8942cd89ef3fc55fa',
+            Carbons::ENTITY_TAG => self::class
         ]));
     }
 
