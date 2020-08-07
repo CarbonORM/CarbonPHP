@@ -4,8 +4,6 @@ namespace CarbonPHP;
 
 use CarbonPHP\Helpers\Serialized;
 use CarbonPHP\Interfaces\iConfig;
-use CarbonPHP\interfaces\iRest;
-use CarbonPHP\interfaces\iRestfulReferences;
 use CarbonPHP\Programs\CLI;
 use CarbonPHP\Error\ErrorCatcher;
 use Tests\RestTest;
@@ -189,7 +187,7 @@ class CarbonPHP
             defined('TEST') OR define('TEST', $_ENV['TEST'] ??= false);
 
             // CLI is not the CLI server
-            defined('CLI') or define('CLI', PHP_SAPI === 'cli');
+            defined('CLI') or define('CLI', TEST || PHP_SAPI === 'cli');
 
             if (TEST) {     // TODO - remove server vars not needed in testing && update version dynamically?
                 RestTest::setupServerVariables();

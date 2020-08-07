@@ -14,7 +14,6 @@ import PageNotFound from "views/Errors/PageNotFound";
 // This is our ajax class
 import withStyles from "@material-ui/core/styles/withStyles";
 import {AxiosInstance} from "axios";
-import {createStyles} from "@material-ui/core";
 
 const styles = {
   ...appStyle,
@@ -24,10 +23,11 @@ const styles = {
 class bootstrap extends React.Component<any, {
   axios: AxiosInstance,
   authenticate: string,
-  authenticated ?: boolean,
-  alert ?: SweetAlert,
+  authenticated?: boolean,
+  alert?: SweetAlert,
   operationActive: boolean,
-  isLoaded: boolean
+  isLoaded: boolean,
+  alertsWaiting: Array<any>
 }> {
   constructor(props) {
     super(props);
@@ -37,7 +37,8 @@ class bootstrap extends React.Component<any, {
       authenticated: null,
       alert: null,
       operationActive: false,
-      isLoaded: false
+      isLoaded: false,
+      alertsWaiting: []
     };
     this.handleResponseCodes = this.handleResponseCodes.bind(this);
     this.authenticate = this.authenticate.bind(this);
@@ -48,7 +49,7 @@ class bootstrap extends React.Component<any, {
   semaphoreLock = <T extends React.Component>(context ?: T): Function =>
     (callback: Function, localLock: boolean = false): Function => (opt ?: any): boolean => {
 
-    const criticalSection = async (): Promise<void> => {
+      const criticalSection = async (): Promise<void> => {
         console.time("Critical Section");
         try {
           if (context === undefined) {
@@ -75,15 +76,15 @@ class bootstrap extends React.Component<any, {
 
       const lockError = () => {
         this.setState({
-          alert: <SweetAlert warning title="Good job!" onConfirm={()=>this.setState({alert:null})}>
+          alert: <SweetAlert warning title="Good job!" onConfirm={() => this.setState({ alert: null })}>
             An issue with out system has occurred.
           </SweetAlert>
         })
       };
 
       if (!this.state.operationActive) {
-        if (!localLock){
-          this.setState({operationActive:true},
+        if (!localLock) {
+          this.setState({ operationActive: true },
             () => criticalSection().catch(lockError))
         } else {
           criticalSection().catch(lockError)
@@ -176,6 +177,7 @@ class bootstrap extends React.Component<any, {
 
   handleResponseCodes = data => {
     console.log("handleResponseCodes data", data);
+
     let alert = a => {
       let message,
         type,
@@ -207,6 +209,7 @@ class bootstrap extends React.Component<any, {
       } else {
         console.log("Could not handle alert", obj);
       }
+
       if (message === undefined) {
         message = "An alert was encountered, but no message could be parsed.";
       }
@@ -217,6 +220,9 @@ class bootstrap extends React.Component<any, {
         title = "Danger! You didn't set a title in your react alert.";
       }
 
+      let alertsWaiting = this.state.alertsWaiting;
+
+      // @ts-ignore
       return (
         <SweetAlert
           type={type}
@@ -225,7 +231,10 @@ class bootstrap extends React.Component<any, {
             marginTop: "-200px"
           }}
           title={title}
-          onConfirm={() => this.setState({ alert: stack })}
+          onConfirm={() => this.setState({
+            alert: stack ? stack : alertsWaiting.pop(),
+            alertsWaiting: alertsWaiting
+          })}
           confirmBtnCssClass={
             this.props.classes.button + " " + this.props.classes.success
           }
@@ -242,7 +251,7 @@ class bootstrap extends React.Component<any, {
       "object" === typeof data.data &&
       "alert" in data.data
     ) {
-      console.log("handleResponceCodes ∈ Login");
+      console.log("handleResponseCodes ∈ Bootstrap");
 
       let a = data.data.alert, stack = [];
 
@@ -257,16 +266,25 @@ class bootstrap extends React.Component<any, {
                 'title': value,
                 'type': value,
               })
-            })
+            });
             console.log("stack", Object.assign({}, stack));
-
           }
         })
       } else {
-        stack.slice();
+        console.log('failed to decode the alert');
       }
 
-      this.setState({ alert: alert(stack) });
+      if (this.state.alert === null) {
+        this.setState({
+          alert: alert(stack)
+        });
+      } else {
+        let alertsQ = this.state.alertsWaiting;
+        alertsQ.push(alert(stack));
+        this.setState({
+          alertsWaiting: alertsQ
+        });
+      }
     }
   };
 
@@ -327,15 +345,15 @@ class bootstrap extends React.Component<any, {
             key={key}
             path="/"
             render={props => (authenticated ?
-              <Private
-                axios={this.state.axios}
-                subRoutingSwitch={this.subRoutingSwitch}
-                authenticated={authenticated}
-                authenticate={this.authenticate}
-                changeLoggedInStatus={this.changeLoggedInStatus}
-                path={path}
-                {...props}
-              /> :
+                <Private
+                  axios={this.state.axios}
+                  subRoutingSwitch={this.subRoutingSwitch}
+                  authenticated={authenticated}
+                  authenticate={this.authenticate}
+                  changeLoggedInStatus={this.changeLoggedInStatus}
+                  path={path}
+                  {...props}
+                /> :
                 <Public
                   axios={this.state.axios}
                   subRoutingSwitch={this.subRoutingSwitch}

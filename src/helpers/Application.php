@@ -148,32 +148,36 @@ namespace {                                     // This runs the following code 
     function sortDump($mixed, $fullReport = false, $die = true)
     {
         // Notify that sort dump was executed
-        alert(__FUNCTION__);
+        CLI or alert(__FUNCTION__);
 
         // Generate Report
         ob_start();
-        print "\n################### SortDump Called From ################\n<br><pre>";
-        print '<pre>';
+        print CLI ? PHP_EOL . PHP_EOL : '<br>';
+        print TEST ? 'SortDump Called From' : '################### SortDump Called From ################';
+        print CLI ? PHP_EOL . PHP_EOL : '<br><pre>';
         /** @noinspection ForgottenDebugOutputInspection */
         $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,2);
         /** @noinspection ForgottenDebugOutputInspection */
         var_dump($backtrace[1] ?? $backtrace[0]);
-        print '</pre>';
-        print "\n####################### VAR DUMP ########################\n\n<br><pre>";
+        print CLI ? PHP_EOL . PHP_EOL : '<br></pre>';
+        print '####################### VAR DUMP ########################';
+        print CLI ? PHP_EOL . PHP_EOL : '<br><pre>';
         /** @noinspection ForgottenDebugOutputInspection */
         var_dump($mixed);
-        print '</pre><br><br><br>#########################################################';
+        print CLI ? PHP_EOL : '<br>';
+        print '#########################################################';
         if ($fullReport) {
-            echo "\n####################### MIXED DUMP ########################\n\n<br><pre>";
+            echo '####################### MIXED DUMP ########################';
             $mixed = (\is_array($mixed) && \count($mixed) === 1 ? array_pop($mixed) : $mixed);
-            echo '<pre>';
+            print CLI ? PHP_EOL . PHP_EOL : '<br><pre>';
             /** @noinspection ForgottenDebugOutputInspection */
             debug_zval_dump($mixed ?: $GLOBALS);
-            echo '</pre><br><br>';
+            print CLI ? PHP_EOL . PHP_EOL : '</pre><br><br>';
             echo "\n####################### BACK TRACE ########################\n\n<br><pre>";
+            print CLI ? PHP_EOL . PHP_EOL : '<br><pre>';
             /** @noinspection ForgottenDebugOutputInspection */
             var_dump(debug_backtrace());
-            echo '</pre>';
+            print CLI ? PHP_EOL : '</pre>';
         }
 
         $report = ob_get_clean();

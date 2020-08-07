@@ -97,7 +97,7 @@ class AccessControl extends React.Component<ILandingPage, {
         this.setState({
           users: response.data.rest
         })
-      })
+      });
 
     axios.get('/rest/' + C6.carbon_features.TABLE_NAME + '/', {
       params: {
@@ -110,6 +110,21 @@ class AccessControl extends React.Component<ILandingPage, {
         features: response.data.rest
       })
     })
+
+
+
+    axios.get('/rest/' + C6.carbons.TABLE_NAME + '/', {
+      params: {
+        [C6.PAGINATION]: {
+          [C6.LIMIT]: 10
+        }
+      }
+    }).then(response => {
+      this.setState({
+        features: response.data.rest
+      })
+    })
+
   }
 
 
@@ -123,12 +138,6 @@ class AccessControl extends React.Component<ILandingPage, {
       )
     })
   }
-
-
-
-
-
-
 
 
   render() {

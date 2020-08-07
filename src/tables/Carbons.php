@@ -2,100 +2,90 @@
 
 namespace CarbonPHP\Tables;
 
+use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Interfaces\iRest;
+use CarbonPHP\Interfaces\iRestfulReferences;
+use CarbonPHP\Rest;
 use PDO;
-use PDOStatement;
-
+use Config\Config;
 use function array_key_exists;
 use function count;
 use function func_get_args;
 use function is_array;
-use CarbonPHP\Rest;
-use CarbonPHP\Interfaces\iRest;
-use CarbonPHP\Interfaces\iRestfulReferences;
-use CarbonPHP\Error\PublicAlert;
 
 
 class Carbons extends Rest implements iRest
 {
-    
+
     public const TABLE_NAME = 'carbons';
-    public const ENTITY_PK = 'carbons.entity_pk'; 
-    public const ENTITY_FK = 'carbons.entity_fk'; 
-    public const ENTITY_TAG = 'carbons.entity_tag'; 
+    public const ENTITY_PK = 'carbons.entity_pk';
+    public const ENTITY_FK = 'carbons.entity_fk';
+    public const ENTITY_TAG = 'carbons.entity_tag';
 
     public const PRIMARY = [
         'carbons.entity_pk',
     ];
 
     public const COLUMNS = [
-        'carbons.entity_pk' => 'entity_pk','carbons.entity_fk' => 'entity_fk','carbons.entity_tag' => 'entity_tag',
+        'carbons.entity_pk' => 'entity_pk', 'carbons.entity_fk' => 'entity_fk', 'carbons.entity_tag' => 'entity_tag',
     ];
 
     public const PDO_VALIDATION = [
-        'carbons.entity_pk' => ['binary', '2', '16'],'carbons.entity_fk' => ['binary', '2', '16'],'carbons.entity_tag' => ['varchar', '2', '100'],
+        'carbons.entity_pk' => ['binary', '2', '16'], 'carbons.entity_fk' => ['binary', '2', '16'], 'carbons.entity_tag' => ['varchar', '2', '100'],
     ];
- 
-    public const PHP_VALIDATION = []; 
- 
-    public const REGEX_VALIDATION = []; 
-    
-     
-    public static function jsonSQLReporting($argv, $sql) : void {
-        global $json;
-        if (!is_array($json)) {
-            $json = [];
-        }
-        if (!isset($json['sql'])) {
-            $json['sql'] = [];
-        }
-        $json['sql'][] = [
-            $argv,
-            $sql
-        ];
-    }
-    
+
+    public const PHP_VALIDATION = [
+        [Config::class => 'testAlertAndValidation']
+    ];
+
+    public const REGEX_VALIDATION = [];
+
+
+
     /**
-    *
-    *   $argv = [
-    *       'select' => [
-    *                          '*column name array*', 'etc..'
-    *        ],
-    *
-    *       'where' => [
-    *              'Column Name' => 'Value To Constrain',
-    *              'Defaults to AND' => 'Nesting array switches to OR',
-    *              [
-    *                  'Column Name' => 'Value To Constrain',
-    *                  'This array is OR'ed togeather' => 'Another sud array would `AND`'
-    *                  [ etc... ]
-    *              ]
-    *        ],
-    *
-    *        'pagination' => [
-    *              'limit' => (int) 90, // The maximum number of rows to return,
-    *                       setting the limit explicitly to 1 will return a key pair array of only the
-    *                       singular result. SETTING THE LIMIT TO NULL WILL ALLOW INFINITE RESULTS (NO LIMIT).
-    *                       The limit defaults to 100 by design.
-    *
-    *              'order' => '*column name* [ASC|DESC]',  // i.e.  'username ASC' or 'username, email DESC'
-    *
-    *
-    *         ],
-    *
-    *   ];
-    *
-    *
-    * @param array $return
-    * @param string|null $primary
-    * @param array $argv
-    * @return bool
-    */
+     *
+     *   $argv = [
+     *       'select' => [
+     *                          '*column name array*', 'etc..'
+     *        ],
+     *
+     *       'where' => [
+     *              'Column Name' => 'Value To Constrain',
+     *              'Defaults to AND' => 'Nesting array switches to OR',
+     *              [
+     *                  'Column Name' => 'Value To Constrain',
+     *                  'This array is OR'ed togeather' => 'Another sud array would `AND`'
+     *                  [ etc... ]
+     *              ]
+     *        ],
+     *
+     *        'pagination' => [
+     *              'limit' => (int) 90, // The maximum number of rows to return,
+     *                       setting the limit explicitly to 1 will return a key pair array of only the
+     *                       singular result. SETTING THE LIMIT TO NULL WILL ALLOW INFINITE RESULTS (NO LIMIT).
+     *                       The limit defaults to 100 by design.
+     *
+     *              'order' => '*column name* [ASC|DESC]',  // i.e.  'username ASC' or 'username, email DESC'
+     *
+     *
+     *         ],
+     *
+     *   ];
+     *
+     *
+     * @param array $return
+     * @param string|null $primary
+     * @param array $argv
+     * @return bool
+     * @throws PublicAlert
+     */
     public static function Get(array &$return, string $primary = null, array $argv): bool
     {
         $pdo = self::database();
 
-        $sql = self::buildSelectQuery($primary, $argv, $pdo);
-        
+        $sql = trim(self::buildSelectQuery($primary, $argv, $pdo), '()');
+
+
         $stmt = $pdo->prepare($sql);
 
         self::bind($stmt);
@@ -107,17 +97,17 @@ class Carbons extends Rest implements iRest
         $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         /**
-        *   The next part is so every response from the rest api
-        *   formats to a set of rows. Even if only one row is returned.
-        *   You must set the third parameter to true, otherwise '0' is
-        *   apparently in the self::PDO_VALIDATION
-        */
+         *   The next part is so every response from the rest api
+         *   formats to a set of rows. Even if only one row is returned.
+         *   You must set the third parameter to true, otherwise '0' is
+         *   apparently in the self::PDO_VALIDATION
+         */
 
-        
+
         if ($primary !== null || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
             $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
             // promise this is needed and will still return the desired array except for a single record will not be an array
-        
+
         }
 
         return true;
@@ -125,20 +115,20 @@ class Carbons extends Rest implements iRest
 
     /**
      * @param array $argv
-     * @param string|null $dependantEntityId - a C6 Hex entity key 
+     * @param string|null $dependantEntityId - a C6 Hex entity key
      * @return bool|string
      * @throws PublicAlert
      */
     public static function Post(array $argv, string $dependantEntityId = null)
     {
-        self::$injection = []; 
-         
+        self::$injection = [];
+
         foreach ($argv as $columnName => $postValue) {
-            if (!array_key_exists($columnName, self::PDO_VALIDATION)){
+            if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
                 throw new PublicAlert("Restful table could not post column $columnName, because it does not appear to exist.");
             }
-        } 
-        
+        }
+
         /** @noinspection SqlResolve */
         $sql = 'INSERT INTO carbons (entity_pk, entity_fk, entity_tag) VALUES ( UNHEX(:entity_pk), UNHEX(:entity_fk), :entity_tag)';
 
@@ -146,38 +136,27 @@ class Carbons extends Rest implements iRest
 
         $stmt = self::database()->prepare($sql);
 
-    
+
         $entity_pk = $id = $argv['carbons.entity_pk'] ?? self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
-        $stmt->bindParam(':entity_pk',$entity_pk, 2, 16);
-    
-        $entity_fk =  $argv['carbons.entity_fk'] ?? null;
-        $stmt->bindParam(':entity_fk',$entity_fk, 2, 16);
-    
+        $stmt->bindParam(':entity_pk', $entity_pk, 2, 16);
+
+        $entity_fk = $argv['carbons.entity_fk'] ?? null;
+        $stmt->bindParam(':entity_fk', $entity_fk, 2, 16);
+
         $entity_tag = $argv['carbons.entity_tag'];
-        $stmt->bindParam(':entity_tag',$entity_tag, 2, 100);
-    
+        $stmt->bindParam(':entity_tag', $entity_tag, 2, 100);
 
 
         return $stmt->execute() ? $id : false;
-    
+
     }
-     
-    /**
-     * @param string|null $primary
-     * @param array $argv
-     * @param PDO|null $pdo
-     * @return string
-     * @throws PublicAlert
-     */
-    public static function subSelect(string $primary = null, array $argv, PDO $pdo = null): string
+
+
+    public static function validateSelectColumn($column): bool
     {
-        return 'C6SUB253' . self::buildSelectQuery($primary, $argv, $pdo, true);
+        return (bool)preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|-|/| |carbons||\.entity_pk|\.entity_fk|\.entity_tag))+\)*)+ *(as [a-z]+)?#i', $column);
     }
-    
-    public static function validateSelectColumn($column) : bool {
-        return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|-|/| |carbons||\.entity_pk|\.entity_fk|\.entity_tag))+\)*)+ *(as [a-z]+)?#i', $column);
-    }
-    
+
     /**
      * @param string|null $primary
      * @param array $argv
@@ -186,12 +165,11 @@ class Carbons extends Rest implements iRest
      * @return string
      * @throws PublicAlert
      */
-    public static function buildSelectQuery(string $primary = null, array $argv, PDO $pdo = null, bool $noHEX = false) : string 
+    public static function buildSelectQuery(string $primary = null, array $argv, PDO $pdo = null, bool $noHEX = false): string
     {
         if ($pdo === null) {
             $pdo = self::database();
         }
-        self::$injection = [];
         $aggregate = false;
         $group = [];
         $sql = '';
@@ -199,11 +177,11 @@ class Carbons extends Rest implements iRest
         $where = $argv['where'] ?? [];
 
         // pagination [self::PAGINATION][self::LIMIT]
-        if (array_key_exists(self::PAGINATION,$argv)) {
+        if (array_key_exists(self::PAGINATION, $argv)) {
             if (!empty($argv[self::PAGINATION]) && is_string($argv[self::PAGINATION])) {
                 $argv['pagination'] = json_decode($argv[self::PAGINATION], true);
             }
-            if (array_key_exists(self::LIMIT,$argv[self::PAGINATION]) && is_numeric($argv[self::PAGINATION][self::LIMIT])) {
+            if (array_key_exists(self::LIMIT, $argv[self::PAGINATION]) && is_numeric($argv[self::PAGINATION][self::LIMIT])) {
                 if (array_key_exists(self::PAGE, $argv[self::PAGINATION])) {
                     $limit = ' LIMIT ' . (($argv[self::PAGINATION][self::PAGE] - 1) * $argv[self::PAGINATION][self::LIMIT]) . ',' . $argv[self::PAGINATION][self::LIMIT];
                 } else {
@@ -218,7 +196,7 @@ class Carbons extends Rest implements iRest
 
                 $order = ' ORDER BY ';
 
-                if (array_key_exists(self::ORDER,$argv[self::PAGINATION]) && is_string($argv[self::PAGINATION][self::ORDER])) {
+                if (array_key_exists(self::ORDER, $argv[self::PAGINATION]) && is_string($argv[self::PAGINATION][self::ORDER])) {
                     if (is_array($argv[self::PAGINATION][self::ORDER])) {
                         foreach ($argv[self::PAGINATION][self::ORDER] as $item => $sort) {
                             $order .= "$item $sort";
@@ -231,15 +209,17 @@ class Carbons extends Rest implements iRest
                 }
             }
             $limit = "$order $limit";
+        } else if (!$noHEX) {
+            $limit = ' ORDER BY entity_pk ASC LIMIT 100 OFFSET 0';
         } else {
-            $limit = ' ORDER BY entity_pk ASC LIMIT 100';
+            $limit = '';
         }
 
         // join 
-        $join = ''; 
+        $join = '';
         $tableList = [];
         if (array_key_exists(self::JOIN, $argv) && !empty($argv[self::JOIN])) {
-            if (!is_array($argv[self::JOIN])) { 
+            if (!is_array($argv[self::JOIN])) {
                 throw new PublicAlert('The restful join field must be an array.');
             }
             foreach ($argv[self::JOIN] as $by => $tables) {
@@ -247,8 +227,8 @@ class Carbons extends Rest implements iRest
                     $joinColumns = [];
                     foreach ($tables as $table => $stmt) {
                         $tableList[] = $table;
-                        switch (count($stmt)) {   
-                            case 2: 
+                        switch (count($stmt)) {
+                            case 2:
                                 if (is_string($stmt[0]) && is_string($stmt[1])) {
                                     $joinColumns[] = $stmt[0];
                                     $joinColumns[] = $stmt[1];
@@ -259,12 +239,12 @@ class Carbons extends Rest implements iRest
                                 break;
                             case 3:
                                 if (is_string($stmt[0]) && is_string($stmt[1]) && is_string($stmt[2])) {
-                                    if (!((bool) preg_match('#^=|>=|<=$#', $stmt[1]))){ 
+                                    if (!((bool)preg_match('#^=|>=|<=$#', $stmt[1]))) {
                                         throw new PublicAlert('Restful column joins may only use one (=,>=, or <=).');
                                     }
                                     $joinColumns[] = $stmt[0];
                                     $joinColumns[] = $stmt[2];
-                                    $join .= $method . $table . ' ON ' . $stmt[0] . $stmt[1] . $stmt[2]; 
+                                    $join .= $method . $table . ' ON ' . $stmt[0] . $stmt[1] . $stmt[2];
                                 } else {
                                     throw new PublicAlert('One or more of the array values provided in the restful JOIN condition are not strings.');
                                 }
@@ -272,10 +252,10 @@ class Carbons extends Rest implements iRest
                             default:
                                 throw new PublicAlert('Restful joins across two tables must be populated with two or three array values with column names, or an appropriate joining operator and column names.');
                         }
-                    } 
-                    foreach ($joinColumns as $columnName) { 
+                    }
+                    foreach ($joinColumns as $columnName) {
                         if (!parent::validateColumnName($columnName, $tableList)) {
-                             throw new PublicAlert("Could not validate join column $columnName. Be sure correct restful tables are referenced.");
+                            throw new PublicAlert("Could not validate join column $columnName. Be sure correct restful tables are referenced.");
                         }
                     }
                     return true;
@@ -288,22 +268,22 @@ class Carbons extends Rest implements iRest
                         break;
                     case self::LEFT:
                         if (!$buildJoin(' LEFT JOIN ')) {
-                            throw new PublicAlert('The restful left join had an unknown error.'); 
+                            throw new PublicAlert('The restful left join had an unknown error.');
                         }
                         break;
                     case self::RIGHT:
                         if (!$buildJoin(' RIGHT JOIN ')) {
-                            throw new PublicAlert('The restful right join had an unknown error.'); 
+                            throw new PublicAlert('The restful right join had an unknown error.');
                         }
                         break;
                     default:
-                        throw new PublicAlert('Restful join stmt may only use one of (' .  self::INNER . ',' . self::LEFT . ', or ' . self::RIGHT . ').');
+                        throw new PublicAlert('Restful join stmt may only use one of (' . self::INNER . ',' . self::LEFT . ', or ' . self::RIGHT . ').');
                 }
             }
         }
 
         // Select
-        foreach($get as $key => $column){
+        foreach ($get as $key => $column) {
             if (!empty($sql)) {
                 $sql .= ', ';
             }
@@ -319,34 +299,34 @@ class Carbons extends Rest implements iRest
                     $group[] = $column;
                 } elseif ($columnExists) {
                     $sql .= $column;
-                    $group[] = $column;  
-                }  
+                    $group[] = $column;
+                }
             } else if (self::validateSelectColumn($column)) {
                 $sql .= $column;
                 $group[] = $column;
                 $aggregate = true;
-            } else {  
+            } else {
                 $valid = false;
                 $tablesReferenced = $tableList;
                 while (!empty($tablesReferenced)) {
-                     $table = __NAMESPACE__ . '\\' . array_pop($tablesReferenced);
-                     
-                     if (!class_exists($table)){
-                         continue;
-                     }
-                     $imp = array_map('strtolower', array_keys(class_implements($table)));
-                   
-                     /** @noinspection ClassConstantUsageCorrectnessInspection */
-                     if (!in_array(strtolower(iRest::class), $imp, true) && 
-                         !in_array(strtolower(iRestfulReferences::class), $imp, true)) {
-                         continue;
-                     }
-                     /** @noinspection PhpUndefinedMethodInspection */
-                     if ($table::validateSelectColumn($column)) { 
+                    $table = __NAMESPACE__ . '\\' . array_pop($tablesReferenced);
+
+                    if (!class_exists($table)) {
+                        continue;
+                    }
+                    $imp = array_map('strtolower', array_keys(class_implements($table)));
+
+                    /** @noinspection ClassConstantUsageCorrectnessInspection */
+                    if (!in_array(strtolower(iRest::class), $imp, true) &&
+                        !in_array(strtolower(iRestfulReferences::class), $imp, true)) {
+                        continue;
+                    }
+                    /** @noinspection PhpUndefinedMethodInspection */
+                    if ($table::validateSelectColumn($column)) {
                         $group[] = $column;
                         $valid = true;
-                        break; 
-                     }
+                        break;
+                    }
                 }
                 if (!$valid) {
                     throw new PublicAlert('Could not validate the column $column');
@@ -356,19 +336,20 @@ class Carbons extends Rest implements iRest
             }
         }
 
-        $sql = 'SELECT ' .  $sql . ' FROM carbons ' . $join;
-       
+        // case sensitive select 
+        $sql = 'SELECT ' . $sql . ' FROM carbons ' . $join;
+
         if (null === $primary) {
             /** @noinspection NestedPositiveIfStatementsInspection */
             if (!empty($where)) {
                 $sql .= ' WHERE ' . self::buildWhere($where, $pdo, 'carbons', self::PDO_VALIDATION);
             }
         } else {
-            $sql .= ' WHERE  entity_pk=UNHEX('.self::addInjection($primary, $pdo, 'carbons').')';
+            $sql .= ' WHERE  entity_pk=UNHEX(' . self::addInjection($primary, $pdo, 'carbons') . ')';
         }
 
-        if ($aggregate  && !empty($group)) {
-            $sql .= ' GROUP BY ' . implode(', ', $group). ' ';
+        if ($aggregate && !empty($group)) {
+            $sql .= ' GROUP BY ' . implode(', ', $group) . ' ';
         }
 
         $sql .= $limit;
@@ -379,26 +360,26 @@ class Carbons extends Rest implements iRest
     }
 
     /**
-    * @param array $return
-    * @param string $primary
-    * @param array $argv
-    * @throws PublicAlert
-    * @return bool
-    */
-    public static function Put(array &$return, string $primary, array $argv) : bool
+     * @param array $return
+     * @param string $primary
+     * @param array $argv
+     * @return bool
+     * @throws PublicAlert
+     */
+    public static function Put(array &$return, string $primary, array $argv): bool
     {
-        self::$injection = []; 
-        
+        self::$injection = [];
+
         if (empty($primary)) {
             throw new PublicAlert('Restful tables which have a primary key must be updated by its primary key.');
         }
-        
+
         if (array_key_exists(self::UPDATE, $argv)) {
             $argv = $argv[self::UPDATE];
         }
-        
+
         foreach ($argv as $key => $value) {
-            if (!array_key_exists($key, self::PDO_VALIDATION)){
+            if (!array_key_exists($key, self::PDO_VALIDATION)) {
                 throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.');
             }
         }
@@ -416,13 +397,13 @@ class Carbons extends Rest implements iRest
         if (array_key_exists('carbons.entity_tag', $argv)) {
             $set .= 'entity_tag=:entity_tag,';
         }
-        
+
         $sql .= substr($set, 0, -1);
 
         $pdo = self::database();
 
-        $sql .= ' WHERE  entity_pk=UNHEX('.self::addInjection($primary, $pdo, 'carbons').')';
-        
+        $sql .= ' WHERE  entity_pk=UNHEX(' . self::addInjection($primary, $pdo, 'carbons') . ')';
+
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -430,15 +411,15 @@ class Carbons extends Rest implements iRest
 
         if (array_key_exists('carbons.entity_pk', $argv)) {
             $entity_pk = $argv['carbons.entity_pk'];
-            $stmt->bindParam(':entity_pk',$entity_pk, 2, 16);
+            $stmt->bindParam(':entity_pk', $entity_pk, 2, 16);
         }
         if (array_key_exists('carbons.entity_fk', $argv)) {
             $entity_fk = $argv['carbons.entity_fk'];
-            $stmt->bindParam(':entity_fk',$entity_fk, 2, 16);
+            $stmt->bindParam(':entity_fk', $entity_fk, 2, 16);
         }
         if (array_key_exists('carbons.entity_tag', $argv)) {
             $entity_tag = $argv['carbons.entity_tag'];
-            $stmt->bindParam(':entity_tag',$entity_tag, 2, 100);
+            $stmt->bindParam(':entity_tag', $entity_tag, 2, 100);
         }
 
         self::bind($stmt);
@@ -446,10 +427,12 @@ class Carbons extends Rest implements iRest
         if (!$stmt->execute()) {
             throw new PublicAlert('Restful table Carbons failed to execute the update query.');
         }
-        
+
         $argv = array_combine(
             array_map(
-                static function($k) { return str_replace('carbons.', '', $k); },
+                static function ($k) {
+                    return str_replace('carbons.', '', $k);
+                },
                 array_keys($argv)
             ),
             array_values($argv)
@@ -462,41 +445,40 @@ class Carbons extends Rest implements iRest
     }
 
     /**
-    * @param array $remove
-    * @param string|null $primary
-    * @param array $argv
-    * @throws PublicAlert
-    * @return bool
-    */
-    public static function Delete(array &$remove, string $primary = null, array $argv) : bool
+     * @param array $remove
+     * @param string|null $primary
+     * @param array $argv
+     * @return bool
+     * @throws PublicAlert
+     */
+    public static function Delete(array &$remove, string $primary = null, array $argv): bool
     {
-        self::$injection = []; 
-        
+        self::$injection = [];
+
         /** @noinspection SqlResolve */
         /** @noinspection SqlWithoutWhere */
         $sql = 'DELETE FROM carbons ';
 
         $pdo = self::database();
-        
+
         if (null === $primary) {
-           /**
-            *   While useful, we've decided to disallow full
-            *   table deletions through the rest api. For the
-            *   n00bs and future self, "I got chu."
-            */
+            /**
+             *   While useful, we've decided to disallow full
+             *   table deletions through the rest api. For the
+             *   n00bs and future self, "I got chu."
+             */
             if (empty($argv)) {
                 throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.');
             }
-            
+
             $where = self::buildWhere($argv, $pdo, 'carbons', self::PDO_VALIDATION);
-            
+
             if (empty($where)) {
-                throw new PublicAlert('The where conditon provided appears invalid.');
+                throw new PublicAlert('The where condition provided appears invalid.');
             }
 
             $sql .= ' WHERE ' . $where;
-        } 
-               
+        }
 
 
         self::jsonSQLReporting(func_get_args(), $sql);

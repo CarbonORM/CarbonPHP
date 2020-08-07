@@ -90,6 +90,7 @@ class Carbon_Photos extends Rest implements iRest
     * @param array $return
     * @param string|null $primary
     * @param array $argv
+    * @throws PublicAlert
     * @return bool
     */
     public static function Get(array &$return, string $primary = null, array $argv): bool
@@ -149,7 +150,7 @@ class Carbon_Photos extends Rest implements iRest
         $stmt = self::database()->prepare($sql);
 
     
-        $parent_id = $id = $argv['carbon_photos.parent_id'] ?? self::beginTransaction('carbon_photos', $dependantEntityId);
+        $parent_id = $id = $argv['carbon_photos.parent_id'] ?? self::beginTransaction(self::class, $dependantEntityId);
         $stmt->bindParam(':parent_id',$parent_id, 2, 16);
     
         $photo_id = $argv['carbon_photos.photo_id'];
@@ -169,18 +170,7 @@ class Carbon_Photos extends Rest implements iRest
     
     }
      
-    /**
-     * @param string|null $primary
-     * @param array $argv
-     * @param PDO|null $pdo
-     * @return string
-     * @throws PublicAlert
-     */
-    public static function subSelect(string $primary = null, array $argv, PDO $pdo = null): string
-    {
-        return 'C6SUB253' . self::buildSelectQuery($primary, $argv, $pdo, true);
-    }
-    
+   
     public static function validateSelectColumn($column) : bool {
         return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|-|/| |carbon_photos||\.parent_id|\.photo_id|\.user_id|\.photo_path|\.photo_description))+\)*)+ *(as [a-z]+)?#i', $column);
     }
@@ -238,8 +228,10 @@ class Carbon_Photos extends Rest implements iRest
                 }
             }
             $limit = "$order $limit";
-        } else {
+        } else if (!$noHEX) {
             $limit = ' ORDER BY parent_id ASC LIMIT 100';
+        } else { 
+            $limit = '';
         }
 
         // join 
@@ -362,7 +354,8 @@ class Carbon_Photos extends Rest implements iRest
                 $aggregate = true;
             }
         }
-
+ 
+        // case sensitive select 
         $sql = 'SELECT ' .  $sql . ' FROM carbon_photos ' . $join;
        
         if (null === $primary) {

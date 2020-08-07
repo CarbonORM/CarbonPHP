@@ -93,6 +93,7 @@ class Carbon_User_Tasks extends Rest implements iRest
     * @param array $return
     * @param string|null $primary
     * @param array $argv
+    * @throws PublicAlert
     * @return bool
     */
     public static function Get(array &$return, string $primary = null, array $argv): bool
@@ -155,7 +156,7 @@ class Carbon_User_Tasks extends Rest implements iRest
         $task_id = $argv['carbon_user_tasks.task_id'];
         $stmt->bindParam(':task_id',$task_id, 2, 16);
     
-        $user_id = $id = $argv['carbon_user_tasks.user_id'] ?? self::beginTransaction('carbon_user_tasks', $dependantEntityId);
+        $user_id = $id = $argv['carbon_user_tasks.user_id'] ?? self::beginTransaction(self::class, $dependantEntityId);
         $stmt->bindParam(':user_id',$user_id, 2, 16);
     
         $from_id =  $argv['carbon_user_tasks.from_id'] ?? null;
@@ -179,18 +180,7 @@ class Carbon_User_Tasks extends Rest implements iRest
     
     }
      
-    /**
-     * @param string|null $primary
-     * @param array $argv
-     * @param PDO|null $pdo
-     * @return string
-     * @throws PublicAlert
-     */
-    public static function subSelect(string $primary = null, array $argv, PDO $pdo = null): string
-    {
-        return 'C6SUB253' . self::buildSelectQuery($primary, $argv, $pdo, true);
-    }
-    
+   
     public static function validateSelectColumn($column) : bool {
         return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|-|/| |carbon_user_tasks||\.task_id|\.user_id|\.from_id|\.task_name|\.task_description|\.percent_complete|\.start_date|\.end_date))+\)*)+ *(as [a-z]+)?#i', $column);
     }
@@ -248,8 +238,10 @@ class Carbon_User_Tasks extends Rest implements iRest
                 }
             }
             $limit = "$order $limit";
-        } else {
+        } else if (!$noHEX) {
             $limit = ' ORDER BY user_id ASC LIMIT 100';
+        } else { 
+            $limit = '';
         }
 
         // join 
@@ -372,7 +364,8 @@ class Carbon_User_Tasks extends Rest implements iRest
                 $aggregate = true;
             }
         }
-
+ 
+        // case sensitive select 
         $sql = 'SELECT ' .  $sql . ' FROM carbon_user_tasks ' . $join;
        
         if (null === $primary) {

@@ -91,6 +91,7 @@ class Carbon_User_Sessions extends Rest implements iRest
     * @param array $return
     * @param string|null $primary
     * @param array $argv
+    * @throws PublicAlert
     * @return bool
     */
     public static function Get(array &$return, string $primary = null, array $argv): bool
@@ -174,18 +175,7 @@ class Carbon_User_Sessions extends Rest implements iRest
     
     }
      
-    /**
-     * @param string|null $primary
-     * @param array $argv
-     * @param PDO|null $pdo
-     * @return string
-     * @throws PublicAlert
-     */
-    public static function subSelect(string $primary = null, array $argv, PDO $pdo = null): string
-    {
-        return 'C6SUB253' . self::buildSelectQuery($primary, $argv, $pdo, true);
-    }
-    
+   
     public static function validateSelectColumn($column) : bool {
         return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|-|/| |carbon_user_sessions||\.user_id|\.user_ip|\.session_id|\.session_expires|\.session_data|\.user_online_status))+\)*)+ *(as [a-z]+)?#i', $column);
     }
@@ -243,8 +233,10 @@ class Carbon_User_Sessions extends Rest implements iRest
                 }
             }
             $limit = "$order $limit";
-        } else {
+        } else if (!$noHEX) {
             $limit = ' ORDER BY session_id ASC LIMIT 100';
+        } else { 
+            $limit = '';
         }
 
         // join 
@@ -367,7 +359,8 @@ class Carbon_User_Sessions extends Rest implements iRest
                 $aggregate = true;
             }
         }
-
+ 
+        // case sensitive select 
         $sql = 'SELECT ' .  $sql . ' FROM carbon_user_sessions ' . $join;
        
         if (null === $primary) {
@@ -522,7 +515,7 @@ class Carbon_User_Sessions extends Rest implements iRest
             $where = self::buildWhere($argv, $pdo, 'carbon_user_sessions', self::PDO_VALIDATION);
             
             if (empty($where)) {
-                throw new PublicAlert('The where conditon provided appears invalid.');
+                throw new PublicAlert('The where condition provided appears invalid.');
             }
 
             $sql .= ' WHERE ' . $where;

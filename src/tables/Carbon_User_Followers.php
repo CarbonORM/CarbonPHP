@@ -88,6 +88,7 @@ class Carbon_User_Followers extends Rest implements iRest
     * @param array $return
     * @param string|null $primary
     * @param array $argv
+    * @throws PublicAlert
     * @return bool
     */
     public static function Get(array &$return, string $primary = null, array $argv): bool
@@ -147,7 +148,7 @@ class Carbon_User_Followers extends Rest implements iRest
         $stmt = self::database()->prepare($sql);
 
     
-        $follower_table_id = $id = $argv['carbon_user_followers.follower_table_id'] ?? self::beginTransaction('carbon_user_followers', $dependantEntityId);
+        $follower_table_id = $id = $argv['carbon_user_followers.follower_table_id'] ?? self::beginTransaction(self::class, $dependantEntityId);
         $stmt->bindParam(':follower_table_id',$follower_table_id, 2, 16);
     
         $follows_user_id = $argv['carbon_user_followers.follows_user_id'];
@@ -162,18 +163,7 @@ class Carbon_User_Followers extends Rest implements iRest
     
     }
      
-    /**
-     * @param string|null $primary
-     * @param array $argv
-     * @param PDO|null $pdo
-     * @return string
-     * @throws PublicAlert
-     */
-    public static function subSelect(string $primary = null, array $argv, PDO $pdo = null): string
-    {
-        return 'C6SUB253' . self::buildSelectQuery($primary, $argv, $pdo, true);
-    }
-    
+   
     public static function validateSelectColumn($column) : bool {
         return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|-|/| |carbon_user_followers||\.follower_table_id|\.follows_user_id|\.user_id))+\)*)+ *(as [a-z]+)?#i', $column);
     }
@@ -231,8 +221,10 @@ class Carbon_User_Followers extends Rest implements iRest
                 }
             }
             $limit = "$order $limit";
-        } else {
+        } else if (!$noHEX) {
             $limit = ' ORDER BY follower_table_id ASC LIMIT 100';
+        } else { 
+            $limit = '';
         }
 
         // join 
@@ -355,7 +347,8 @@ class Carbon_User_Followers extends Rest implements iRest
                 $aggregate = true;
             }
         }
-
+ 
+        // case sensitive select 
         $sql = 'SELECT ' .  $sql . ' FROM carbon_user_followers ' . $join;
        
         if (null === $primary) {

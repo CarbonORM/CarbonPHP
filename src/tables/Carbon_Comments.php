@@ -93,6 +93,7 @@ class Carbon_Comments extends Rest implements iRest
     * @param array $return
     * @param string|null $primary
     * @param array $argv
+    * @throws PublicAlert
     * @return bool
     */
     public static function Get(array &$return, string $primary = null, array $argv): bool
@@ -155,7 +156,7 @@ class Carbon_Comments extends Rest implements iRest
         $parent_id = $argv['carbon_comments.parent_id'];
         $stmt->bindParam(':parent_id',$parent_id, 2, 16);
     
-        $comment_id = $id = $argv['carbon_comments.comment_id'] ?? self::beginTransaction('carbon_comments', $dependantEntityId);
+        $comment_id = $id = $argv['carbon_comments.comment_id'] ?? self::beginTransaction(self::class, $dependantEntityId);
         $stmt->bindParam(':comment_id',$comment_id, 2, 16);
     
         $user_id = $argv['carbon_comments.user_id'];
@@ -169,18 +170,7 @@ class Carbon_Comments extends Rest implements iRest
     
     }
      
-    /**
-     * @param string|null $primary
-     * @param array $argv
-     * @param PDO|null $pdo
-     * @return string
-     * @throws PublicAlert
-     */
-    public static function subSelect(string $primary = null, array $argv, PDO $pdo = null): string
-    {
-        return 'C6SUB253' . self::buildSelectQuery($primary, $argv, $pdo, true);
-    }
-    
+   
     public static function validateSelectColumn($column) : bool {
         return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|-|/| |carbon_comments||\.parent_id|\.comment_id|\.user_id|\.comment))+\)*)+ *(as [a-z]+)?#i', $column);
     }
@@ -238,8 +228,10 @@ class Carbon_Comments extends Rest implements iRest
                 }
             }
             $limit = "$order $limit";
-        } else {
+        } else if (!$noHEX) {
             $limit = ' ORDER BY comment_id ASC LIMIT 100';
+        } else { 
+            $limit = '';
         }
 
         // join 
@@ -362,7 +354,8 @@ class Carbon_Comments extends Rest implements iRest
                 $aggregate = true;
             }
         }
-
+ 
+        // case sensitive select 
         $sql = 'SELECT ' .  $sql . ' FROM carbon_comments ' . $join;
        
         if (null === $primary) {

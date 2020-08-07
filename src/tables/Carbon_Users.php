@@ -112,6 +112,7 @@ class Carbon_Users extends Rest implements iRest
     * @param array $return
     * @param string|null $primary
     * @param array $argv
+    * @throws PublicAlert
     * @return bool
     */
     public static function Get(array &$return, string $primary = null, array $argv): bool
@@ -177,7 +178,7 @@ class Carbon_Users extends Rest implements iRest
         $user_password = $argv['carbon_users.user_password'];
         $stmt->bindParam(':user_password',$user_password, 2, 225);
     
-        $user_id = $id = $argv['carbon_users.user_id'] ?? self::beginTransaction('carbon_users', $dependantEntityId);
+        $user_id = $id = $argv['carbon_users.user_id'] ?? self::beginTransaction(self::class, $dependantEntityId);
         $stmt->bindParam(':user_id',$user_id, 2, 16);
     
         $user_type =  $argv['carbon_users.user_type'] ?? 'Athlete';
@@ -250,18 +251,7 @@ class Carbon_Users extends Rest implements iRest
     
     }
      
-    /**
-     * @param string|null $primary
-     * @param array $argv
-     * @param PDO|null $pdo
-     * @return string
-     * @throws PublicAlert
-     */
-    public static function subSelect(string $primary = null, array $argv, PDO $pdo = null): string
-    {
-        return 'C6SUB253' . self::buildSelectQuery($primary, $argv, $pdo, true);
-    }
-    
+   
     public static function validateSelectColumn($column) : bool {
         return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|-|/| |carbon_users||\.user_username|\.user_password|\.user_id|\.user_type|\.user_sport|\.user_session_id|\.user_facebook_id|\.user_first_name|\.user_last_name|\.user_profile_pic|\.user_profile_uri|\.user_cover_photo|\.user_birthday|\.user_gender|\.user_about_me|\.user_rank|\.user_email|\.user_email_code|\.user_email_confirmed|\.user_generated_string|\.user_membership|\.user_deactivated|\.user_last_login|\.user_ip|\.user_education_history|\.user_location|\.user_creation_date))+\)*)+ *(as [a-z]+)?#i', $column);
     }
@@ -319,8 +309,10 @@ class Carbon_Users extends Rest implements iRest
                 }
             }
             $limit = "$order $limit";
-        } else {
+        } else if (!$noHEX) {
             $limit = ' ORDER BY user_id ASC LIMIT 100';
+        } else { 
+            $limit = '';
         }
 
         // join 
@@ -443,7 +435,8 @@ class Carbon_Users extends Rest implements iRest
                 $aggregate = true;
             }
         }
-
+ 
+        // case sensitive select 
         $sql = 'SELECT ' .  $sql . ' FROM carbon_users ' . $join;
        
         if (null === $primary) {

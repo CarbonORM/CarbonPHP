@@ -89,6 +89,7 @@ class Carbon_Reports extends Rest implements iRestfulReferences
     * @param array $return
     * @param string|null $primary
     * @param array $argv
+    * @throws PublicAlert
     * @return bool
     */
     public static function Get(array &$return, array $argv): bool
@@ -158,18 +159,7 @@ class Carbon_Reports extends Rest implements iRestfulReferences
     
     }
      
-    /**
-     * @param string|null $primary
-     * @param array $argv
-     * @param PDO|null $pdo
-     * @return string
-     * @throws PublicAlert
-     */
-    public static function subSelect(string $primary = null, array $argv, PDO $pdo = null): string
-    {
-        return 'C6SUB253' . self::buildSelectQuery($primary, $argv, $pdo, true);
-    }
-    
+   
     public static function validateSelectColumn($column) : bool {
         return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|-|/| |carbon_reports||\.log_level|\.report|\.date|\.call_trace))+\)*)+ *(as [a-z]+)?#i', $column);
     }
@@ -227,8 +217,10 @@ class Carbon_Reports extends Rest implements iRestfulReferences
                 }
             }
             $limit = "$order $limit";
-        } else {
+        } else if (!$noHEX) {
             $limit = ' ORDER BY  ASC LIMIT 100';
+        } else { 
+            $limit = '';
         }
 
         // join 
@@ -351,7 +343,8 @@ class Carbon_Reports extends Rest implements iRestfulReferences
                 $aggregate = true;
             }
         }
-
+ 
+        // case sensitive select 
         $sql = 'SELECT ' .  $sql . ' FROM carbon_reports ' . $join;
        
         if (null === $primary) {

@@ -861,17 +861,14 @@ export interface  i{{ucEachTableName}}{
 {{#carbon_namespace}}namespace CarbonPHP\Tables;{{/carbon_namespace}}
 
 use PDO;
-use PDOStatement;
-
-use function array_key_exists;
-use function count;
-use function func_get_args;
-use function is_array;
 use CarbonPHP\Rest;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestfulReferences;
 use CarbonPHP\Error\PublicAlert;
-
+use function array_key_exists;
+use function count;
+use function func_get_args;
+use function is_array;
 
 class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/primaryExists}}{{^primaryExists}}iRestfulReferences{{/primaryExists}}
 {
@@ -903,22 +900,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
     public const REGEX_VALIDATION = [];{{/regex_validation}} 
     {{#regex_validation}}
     {{{regex_validation}}} 
-    {{/regex_validation}}{{#json}}
-     
-    public static function jsonSQLReporting(\$argv, \$sql) : void {
-        global \$json;
-        if (!is_array(\$json)) {
-            \$json = [];
-        }
-        if (!isset(\$json['sql'])) {
-            \$json['sql'] = [];
-        }
-        \$json['sql'][] = [
-            \$argv,
-            \$sql
-        ];
-    }
-    {{/json}}
+    {{/regex_validation}}
     
     /**
     *
@@ -954,6 +936,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
     * @param array \$return
     * @param string|null \$primary
     * @param array \$argv
+    * @throws PublicAlert
     * @return bool
     */
     public static function Get(array &\$return, {{#primaryExists}}string \$primary = null, {{/primaryExists}}array \$argv): bool
@@ -999,9 +982,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
      * @throws PublicAlert
      */
     public static function Post(array \$argv, string \$dependantEntityId = null){{^primaryExists}}: bool{{/primaryExists}}
-    {
-        self::\$injection = []; 
-         
+    {   
         foreach (\$argv as \$columnName => \$postValue) {
             if (!array_key_exists(\$columnName, self::PDO_VALIDATION)){
                 throw new PublicAlert("Restful table could not post column \$columnName, because it does not appear to exist.");
@@ -1019,7 +1000,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
         \${{name}} = \$id = \$argv['{{TableName}}.{{name}}'] ?? self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
         \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
     {{/carbon_table}}{{#carbon_table}}
-        \${{name}} = \$id = \$argv['{{TableName}}.{{name}}'] ?? self::beginTransaction('{{TableName}}', \$dependantEntityId);
+        \${{name}} = \$id = \$argv['{{TableName}}.{{name}}'] ?? self::beginTransaction(self::class, \$dependantEntityId);
         \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
     {{/carbon_table}}{{/primary_binary}}{{^primary_binary}}{{^skip}}{{^length}}
         \$stmt->bindValue(':{{name}}',{{#json}}json_encode(\$argv['{{TableName}}.{{name}}']){{/json}}{{^json}}{{^default}}\$argv['{{TableName}}.{{name}}']{{/default}}{{#default}}array_key_exists('{{TableName}}.{{name}}',\$argv) ? \$argv['{{TableName}}.{{name}}'] : {{default}}{{/default}}{{/json}}, {{type}});{{/length}}
@@ -1036,18 +1017,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
     {{/carbon_table}}{{/binary_primary}}
     }
      
-    /**
-     * @param string|null \$primary
-     * @param array \$argv
-     * @param PDO|null \$pdo
-     * @return string
-     * @throws PublicAlert
-     */
-    public static function subSelect(string \$primary = null, array \$argv, PDO \$pdo = null): string
-    {
-        return '{{subQuery}}' . self::buildSelectQuery(\$primary, \$argv, \$pdo, true);
-    }
-    
+   
     public static function validateSelectColumn(\$column) : bool {
         return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|-|/| |{{TableName}}|{{#explode}}|\.{{name}}{{/explode}}))+\)*)+ *(as [a-z]+)?#i', \$column);
     }
@@ -1065,12 +1035,11 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
         if (\$pdo === null) {
             \$pdo = self::database();
         }
-        self::\$injection = [];
         \$aggregate = false;
         \$group = [];
         \$sql = '';
-        \$get = \$argv['select'] ?? array_keys(self::PDO_VALIDATION);
-        \$where = \$argv['where'] ?? [];
+        \$get = \$argv[self::SELECT] ?? array_keys(self::PDO_VALIDATION);
+        \$where = \$argv[self::WHERE] ?? [];
 
         // pagination [self::PAGINATION][self::LIMIT]
         if (array_key_exists(self::PAGINATION,\$argv)) {
@@ -1105,8 +1074,10 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
                 }
             }
             \$limit = "\$order \$limit";
-        } else {
+        } else if (!\$noHEX) {
             \$limit = ' ORDER BY {{primarySort}} ASC LIMIT 100';
+        } else { 
+            \$limit = '';
         }
 
         // join 
@@ -1229,7 +1200,8 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
                 \$aggregate = true;
             }
         }
-
+ 
+        // case sensitive select 
         \$sql = 'SELECT ' .  \$sql . ' FROM {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}{{TableName}} ' . \$join;
        
         if (null === \$primary) {
@@ -1261,8 +1233,6 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
     */
     public static function Put(array &\$return, {{#primaryExists}}string \$primary,{{/primaryExists}} array \$argv) : bool
     {
-        self::\$injection = []; 
-        
         {{#primaryExists}}
         if (empty(\$primary)) {
             throw new PublicAlert('Restful tables which have a primary key must be updated by its primary key.');
@@ -1363,8 +1333,6 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
         if (empty(\$argv)) {
             throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.');
         }
-
-        self::\$injection = []; 
         
         /** @noinspection SqlResolve */
         /** @noinspection SqlWithoutWhere */
@@ -1389,8 +1357,6 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
         return \$r;
     {{/carbon_table}}
     {{^carbon_table}}
-        self::\$injection = []; 
-        
         /** @noinspection SqlResolve */
         /** @noinspection SqlWithoutWhere */
         \$sql = 'DELETE FROM {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}{{TableName}} ';
@@ -1410,7 +1376,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
             \$where = self::buildWhere(\$argv, \$pdo, '{{TableName}}', self::PDO_VALIDATION);
             
             if (empty(\$where)) {
-                throw new PublicAlert('The where conditon provided appears invalid.');
+                throw new PublicAlert('The where condition provided appears invalid.');
             }
 
             \$sql .= ' WHERE ' . \$where;

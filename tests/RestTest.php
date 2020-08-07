@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
-use CarbonPHP\CarbonPHP;
+use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Tables\Carbon_Location_References;
 use CarbonPHP\Tables\Carbon_Locations;
 use CarbonPHP\Tables\Carbon_Users as Users;
@@ -23,6 +23,10 @@ use CarbonPHP\Tables\Carbons;
 final class RestTest extends Config
 {
 
+    /**
+     * @param string $key
+     * @throws PublicAlert
+     */
     private function KeyExistsAndRemove(string $key): void
     {
         $store = [];
@@ -38,6 +42,9 @@ final class RestTest extends Config
     }
 
 
+    /**
+     * @throws PublicAlert
+     */
     public function testRestApiCanPost(): void
     {
         $this->KeyExistsAndRemove('8544e3d581ba11e8942cd89ef3fc55fa'); //a
@@ -63,6 +70,7 @@ final class RestTest extends Config
 
     /**
      * @depends testRestApiCanPost
+     * @throws PublicAlert
      */
     public function testRestApiCanGet(): void
     {
@@ -85,6 +93,7 @@ final class RestTest extends Config
 
     /**
      * @depends testRestApiCanGet
+     * @throws PublicAlert
      */
     public function testRestApiCanPut(): void
     {
@@ -109,7 +118,8 @@ final class RestTest extends Config
     }
 
     /**
-     *
+     * @depends testRestApiCanPost
+     * @throws PublicAlert
      */
     public function testRestApiCanDelete(): void
     {
@@ -135,25 +145,25 @@ final class RestTest extends Config
     }
 
     /**
-     *
+     * @throws PublicAlert
+     * @depends testRestApiCanPost
      */
     public function testRestApiCanJoin(): void
     {
         $user = [];
         if (Users::Get($user, null, [
-            Users::SELECT => [
-                Users::USER_ID
-            ],
-            Users::WHERE => [
-                Users::USER_USERNAME => Config::ADMIN_USERNAME
-            ],
-            Users::PAGINATION => [
-                Users::LIMIT => 1
-            ]
-        ]) && !empty($user)){
+                Users::SELECT => [
+                    Users::USER_ID
+                ],
+                Users::WHERE => [
+                    Users::USER_USERNAME => Config::ADMIN_USERNAME
+                ],
+                Users::PAGINATION => [
+                    Users::LIMIT => 1
+                ]
+            ]) && !empty($user)) {
             $this->assertTrue(Users::Delete($user, $user[Users::COLUMNS[Users::USER_ID]], []));
         }
-
 
         $this->assertInternalType('string', $uid = Users::Post([
             Users::USER_TYPE => 'Athlete',
@@ -183,7 +193,7 @@ final class RestTest extends Config
 
         $user = [];
 
-        Users::Get($user, $uid, [
+        $this->assertTrue(Users::Get($user, $uid, [
             Users::SELECT => [
                 Users::USER_USERNAME,
                 Carbon_Locations::STATE
@@ -204,7 +214,7 @@ final class RestTest extends Config
                 Users::LIMIT => 1,
                 Users::ORDER => Users::USER_USERNAME . Users::ASC
             ]
-        ]);
+        ]));
 
         $this->assertArrayHasKey(Users::COLUMNS[Users::USER_USERNAME], $user);
 
@@ -212,5 +222,80 @@ final class RestTest extends Config
 
         $this->assertEquals('Texas', $user[Carbon_Locations::COLUMNS[Carbon_Locations::STATE]]);
     }
+
+
+    /**
+     * @depends testRestApiCanPost
+     * @throws PublicAlert
+     */
+    public function testRestApiCanSubQuery(): void
+    {
+        $user = [];
+
+        define('testlazy', true);
+
+        $subSelect = Users::subSelect(null, [
+            Users::SELECT => [
+                Users::USER_ID
+            ],
+            Users::WHERE => [
+                Users::USER_USERNAME => Config::ADMIN_USERNAME
+            ]
+        ]);
+
+        $this->assertTrue(Users::$allowSubSelectQueries);
+
+        $this->assertSame(strpos($subSelect, '(SELECT '), 0);
+
+        $this->assertTrue(Carbons::Get($user, null, [
+            Carbons::SELECT => [
+                Carbons::ENTITY_PK
+            ],
+            Carbons::WHERE => [
+                Carbons::ENTITY_PK =>
+                    $subSelect
+            ],
+            Carbons::PAGINATION => [
+                Carbons::LIMIT =>
+                    1
+            ]
+        ]));
+
+        $this->assertNotEmpty($user, 'Could not get user admin via sub query.');
+
+        $this->assertArrayHasKey(Carbons::COLUMNS[Carbons::ENTITY_PK], $user);
+
+    }
+
+
+    /**
+     * TODO - this could be better showcasing more things
+     * @throws PublicAlert
+     * @depends testRestApiCanPost
+     */
+    public function testCascadeDelete(): void
+    {
+        $user = [Users::USER_USERNAME => Config::ADMIN_USERNAME];
+
+        $this->assertTrue(Users::Delete($user, null, [
+            Users::USER_USERNAME => Config::ADMIN_USERNAME
+        ]));
+
+        $this->assertEmpty($user, 'Could not delete user admin in cascade delete function.');
+
+        $this->assertInternalType('array', $user, 'Delete functions did not clear provided array to 
+        empty array.');
+
+
+        $this->assertTrue(Users::Get($user, null, [
+            Users::WHERE => [
+                Users::USER_USERNAME => Config::ADMIN_USERNAME
+            ]
+        ]));
+
+
+        $this->assertEmpty($user, 'Cascade delete failed.');
+    }
+
 
 }

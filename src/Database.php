@@ -10,7 +10,11 @@ use CarbonPHP\Tables\Carbons;
 use Exception;
 use PDO;
 use PDOStatement;
+use RuntimeException;
 use stdClass;
+use function array_shift;
+use function count;
+use function is_array;
 
 
 /**
@@ -381,6 +385,7 @@ class Database
      * @link https://dev.mysql.com/doc/refman/5.7/en/innodb-index-types.html
      * @param $id - Remove entity_pk form carbon
      * @return bool
+     * @throws PublicAlert
      */
     protected static function remove_entity($id): bool
     {
@@ -414,10 +419,10 @@ class Database
         if (!$stmt->execute($execute) && !$stmt->execute($execute)) { // try it twice, you never know..
             return [];
         }
-        if (\count($stmt = $stmt->fetchAll(PDO::FETCH_ASSOC)) !== 1) {
+        if (count($stmt = $stmt->fetchAll(PDO::FETCH_ASSOC)) !== 1) {
             return $stmt;
         }
-        \is_array($stmt) and $stmt = \array_shift($stmt);
+        is_array($stmt) and $stmt = array_shift($stmt);
         return $stmt;   // promise this is needed and will still return the desired array
     }
 
@@ -438,12 +443,12 @@ class Database
         if (!$stmt->execute($execute)) {
             return [];
         }
-        $count = \count($stmt = $stmt->fetchAll(PDO::FETCH_ASSOC));
+        $count = count($stmt = $stmt->fetchAll(PDO::FETCH_ASSOC));
         if ($count === 0) {
             return $stmt;
         }
         if ($count === 1) {
-            while (\is_array($stmt)) {
+            while (is_array($stmt)) {
                 $stmt = array_shift($stmt);
             }
             return [$stmt];
@@ -472,10 +477,10 @@ class Database
         $stmt = self::database()->prepare($sql);
         $stmt->setFetchMode(PDO::FETCH_CLASS, \stdClass::class);
         if (!$stmt->execute($execute)) {
-            throw new \RuntimeException('Failed to Execute');
+            throw new RuntimeException('Failed to Execute');
         }
         $stmt = $stmt->fetchAll();  // user obj
-        return (\is_array($stmt) && \count($stmt) === 1 ? $stmt[0] : new stdClass);
+        return (is_array($stmt) && count($stmt) === 1 ? $stmt[0] : new stdClass);
     }
 
     /** Each row received will be converted into its own object

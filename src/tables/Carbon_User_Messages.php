@@ -91,6 +91,7 @@ class Carbon_User_Messages extends Rest implements iRest
     * @param array $return
     * @param string|null $primary
     * @param array $argv
+    * @throws PublicAlert
     * @return bool
     */
     public static function Get(array &$return, string $primary = null, array $argv): bool
@@ -150,7 +151,7 @@ class Carbon_User_Messages extends Rest implements iRest
         $stmt = self::database()->prepare($sql);
 
     
-        $message_id = $id = $argv['carbon_user_messages.message_id'] ?? self::beginTransaction('carbon_user_messages', $dependantEntityId);
+        $message_id = $id = $argv['carbon_user_messages.message_id'] ?? self::beginTransaction(self::class, $dependantEntityId);
         $stmt->bindParam(':message_id',$message_id, 2, 16);
     
         $from_user_id = $argv['carbon_user_messages.from_user_id'];
@@ -170,18 +171,7 @@ class Carbon_User_Messages extends Rest implements iRest
     
     }
      
-    /**
-     * @param string|null $primary
-     * @param array $argv
-     * @param PDO|null $pdo
-     * @return string
-     * @throws PublicAlert
-     */
-    public static function subSelect(string $primary = null, array $argv, PDO $pdo = null): string
-    {
-        return 'C6SUB253' . self::buildSelectQuery($primary, $argv, $pdo, true);
-    }
-    
+   
     public static function validateSelectColumn($column) : bool {
         return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|-|/| |carbon_user_messages||\.message_id|\.from_user_id|\.to_user_id|\.message|\.message_read|\.creation_date))+\)*)+ *(as [a-z]+)?#i', $column);
     }
@@ -239,8 +229,10 @@ class Carbon_User_Messages extends Rest implements iRest
                 }
             }
             $limit = "$order $limit";
-        } else {
+        } else if (!$noHEX) {
             $limit = ' ORDER BY message_id ASC LIMIT 100';
+        } else { 
+            $limit = '';
         }
 
         // join 
@@ -363,7 +355,8 @@ class Carbon_User_Messages extends Rest implements iRest
                 $aggregate = true;
             }
         }
-
+ 
+        // case sensitive select 
         $sql = 'SELECT ' .  $sql . ' FROM carbon_user_messages ' . $join;
        
         if (null === $primary) {

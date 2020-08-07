@@ -15,6 +15,12 @@ use CarbonPHP\View;
 
 class Config extends Application implements iConfig
 {
+
+    public static function testAlertAndValidation() {
+        PublicAlert::info('im an alert message.');
+    }
+
+
     // these are all relative to the /view/ directory
     private const REACT = 'react/material-dashboard-react-c6/build/index.html';
 

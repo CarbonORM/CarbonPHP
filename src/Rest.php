@@ -22,7 +22,7 @@ abstract class Rest extends Database
     public const RIGHT = 'right';
 
     #SQL helpful constants
-    public const DESC = ' DESC'; // not case sensitive but helpful for reporting to remain upper
+    public const DESC = ' DESC'; // not case sensitive but helpful for reporting to remain uppercase
     public const ASC = ' ASC';
 
     #PAGINATION properties
@@ -42,7 +42,7 @@ abstract class Rest extends Database
 
     public static array $injection = [];
 
-    abstract public static function validateSelectColumn($column) : bool;
+    abstract public static function validateSelectColumn($column): bool;
 
     public static function validateColumnName($column, $tableList): bool
     {
@@ -72,6 +72,26 @@ abstract class Rest extends Database
 
 
     /**
+     * @param $argv
+     * @param $sql
+     */
+    public static function jsonSQLReporting($argv, $sql): void
+    {
+        global $json;
+        if (!is_array($json)) {
+            $json = [];
+        }
+        if (!isset($json['sql'])) {
+            $json['sql'] = [];
+        }
+        $json['sql'][] = [
+            $argv,
+            $sql
+        ];
+    }
+
+
+    /**
      * @param Route $route
      * @param string $prefix
      * @return Route
@@ -87,6 +107,67 @@ abstract class Rest extends Database
             });
     }
 
+
+    /**
+     * @param $method
+     * @param $args
+     * @param $regex
+     * @param $php_validation
+     * @return bool
+     * @throws PublicAlert
+     */
+    public static function validateRestfulArguments(string $method, array $args, array $regex, array $php_validation): bool
+    {
+        if (array_key_exists(0, $php_validation)) {
+            if (is_array($php_validation[0])) {
+                foreach ($php_validation[0] as $class => $php_validation_method) {
+                    if (!class_exists($class)) {
+                        throw new PublicAlert('A class reference in PHP_VALIDATION failed.');
+                    }
+                    if (false === call_user_func([$class, $php_validation_method], $args)) {
+                        throw new PublicAlert('The global request validation failed, please make sure arguments are correct.');
+                    }
+                }
+            } else {
+                throw new PublicAlert('The first numeric key 0 in PHP_VALIDATION must be an array with call => method structure. Refer to Carbonphp.com for more info.');
+            }
+        }
+
+        if (array_key_exists($method, $php_validation) && array_key_exists(0, $php_validation[$method])) {
+            foreach ($php_validation[$method][0] as $class => $php_validation_method) {
+                if (!is_array($php_validation)) {
+                    if (false === call_user_func([$class, $php_validation_method], $args)) {
+                        throw new PublicAlert('The request failed, please make sure arguments are correct for this method.');
+                    }
+                } else {
+                    throw new PublicAlert('The first numeric key 0 in PHP_VALIDATION must be an array with class => method structure. Refer to Carbonphp.com for more info.');
+                }
+            }
+        }
+
+        foreach ($args as $column => $value) {
+            if (array_key_exists($column, $regex) &&
+                preg_match_all($regex[$column], $value, $matches, PREG_SET_ORDER) < 1) {  // can return 0 or false
+                throw new PublicAlert('The request failed the regex test, please make sure arguments are correct.');
+            }
+            if (array_key_exists($column, $php_validation)) {
+                foreach ($php_validation[$column] as $class => $validationMethod) {
+                    if (false === call_user_func([$class, $validationMethod], $value)) {
+                        throw new PublicAlert('The request failed, please make sure arguments are correct.');
+                    }
+                }
+            }
+            if (array_key_exists($column, $php_validation[$method] ?? [])) {
+                foreach ($php_validation[$method][$column] as $class => $validationMethod) {
+                    if (false === call_user_func([$class, $validationMethod], $value)) {
+                        throw new PublicAlert('The request failed, please make sure arguments are correct.');
+                    }
+                }
+            }
+        }
+        return true;
+
+    }
 
     /**
      * @param string $table
@@ -117,7 +198,9 @@ abstract class Rest extends Database
 
         $imp = array_map('strtolower', array_keys(class_implements($table)));
 
-        if (!($hasPrimary = in_array(strtolower(iRest::class), $imp, true)) &&
+        $hasPrimary = in_array(strtolower(iRest::class), $imp, true);
+
+        if (!$hasPrimary &&
             !in_array(strtolower(iRestfulReferences::class), $imp, true)) {
             throw new PublicAlert('The table does not implement the correct interfaces. (' . iRest::class . ' or ' . iRestfulReferences::class . ').');
         }
@@ -134,56 +217,7 @@ abstract class Rest extends Database
             throw new PublicAlert('The table does not implement PHP_VALIDATION. This can be an empty static array.');
         }
 
-        $validate = static function ($method, $args) use ($regex, $php_validation) {
-            if (array_key_exists(0, $php_validation)) {
-                foreach ($php_validation[0] as $class => $php_validation_method) {
-                    if (!is_array($php_validation)) {
-                        if (!call_user_func([$class, $php_validation_method], $args)) {
-                            throw new PublicAlert('The request failed, please make sure arguments are correct.');
-                        }
-                    } else {
-                        throw new PublicAlert('The first numeric key 0 in PHP_VALIDATION must be an array with call => method structure. Refer to Carbonphp.com for more info.');
-                    }
-                }
-            }
-
-            if (array_key_exists($method, $php_validation) && array_key_exists(0, $php_validation[$method])) {
-                foreach ($php_validation[$method][0] as $class => $php_validation_method) {
-                    if (!is_array($php_validation)) {
-                        if (!call_user_func([$class, $php_validation_method], $args)) {
-                            throw new PublicAlert('The request failed, please make sure arguments are correct.');
-                        }
-                    } else {
-                        throw new PublicAlert('The first numeric key 0 in PHP_VALIDATION must be an array with call => method structure. Refer to Carbonphp.com for more info.');
-                    }
-                }
-            }
-
-            foreach ($args as $column => $value) {
-                if (array_key_exists($column, $regex) &&
-                    preg_match_all($regex[$column], $value, $matches, PREG_SET_ORDER) < 1) {  // can return 0 or false
-                    throw new PublicAlert('The request failed, please make sure arguments are correct.');
-                }
-                if (array_key_exists($column, $php_validation)) {
-                    foreach ($php_validation[$column] as $class => $validationMethod) {
-                        if (!call_user_func([$class, $validationMethod], $value)) {
-                            throw new PublicAlert('The request failed, please make sure arguments are correct.');
-                        }
-                    }
-                }
-                if (array_key_exists($column, $php_validation[$method] ?? [])) {
-                    foreach ($php_validation[$method][$column] as $class => $validationMethod) {
-                        if (!call_user_func([$class, $validationMethod], $value)) {
-                            throw new PublicAlert('The request failed, please make sure arguments are correct.');
-                        }
-                    }
-                }
-            }
-            return true;
-        };
-
         $method = strtoupper($_SERVER['REQUEST_METHOD']);
-        $methodCase = ucfirst(strtolower($_SERVER['REQUEST_METHOD']));  // this is to match actual method spelling
 
         switch ($method) {
             case self::PUT:
@@ -192,9 +226,18 @@ abstract class Rest extends Database
                 }
             case self::DELETE:
             case self::GET:
-                $args = $method === REST::GET ? $_GET : $_POST;
+                if ($method === self::GET) {
+                    if (is_string($_GET[self::WHERE] ??= [])) {
+                        $_GET[self::WHERE] = json_decode($_GET[self::WHERE], true);
+                    }
+                    $args = $_GET;
+                } else {
+                    $args = $_POST;
+                }
 
-                empty($args[self::WHERE] ?? null) or $validate($method, $args[self::WHERE]);
+                self::validateRestfulArguments($method, $args[self::WHERE], $regex, $php_validation);
+
+                $methodCase = ucfirst(strtolower($_SERVER['REQUEST_METHOD']));  // this is to match actual method spelling
 
                 $return = [];
                 if (!call_user_func_array([$table, $methodCase], $hasPrimary ? [&$return, $primary, $args] : [&$return, $args])) {
@@ -203,12 +246,18 @@ abstract class Rest extends Database
 
                 $json['rest'] = $return;
                 break;
+
             case self::POST:
-                empty($_POST) or $validate($method, $_POST);
+
+                empty($_POST) or self::validateRestfulArguments($method, $_POST, $regex, $php_validation);
+
+                $methodCase = ucfirst(strtolower($_SERVER['REQUEST_METHOD']));  // this is to match actual method spelling
+
                 if (!$id = call_user_func([$table, $methodCase], $_POST, $primary)) {
                     throw new PublicAlert('The request failed, please make sure arguments are correct.');
                 }
                 $json['rest'] = ['created' => $id];
+
                 break;
         }
         headers_sent() or header('Content-Type: application/json');
@@ -216,31 +265,58 @@ abstract class Rest extends Database
         return true; // stmt unreachable
     }
 
+    // validating across joins for rest is hard enough. I'm not going to allow user/FED provided sub queries
+    public static bool $allowSubSelectQueries = false; // todo - maybe C6v8.0.0 maybe?
+
+    /**
+     * @param string|null $primary
+     * @param array $argv
+     * @param PDO|null $pdo
+     * @param bool $noHEX
+     * @return string
+     * @throws PublicAlert
+     */
+    abstract public static function buildSelectQuery(string $primary = null, array $argv, PDO $pdo = null, bool $noHEX = false): string;
+
+
+    /**
+     * @param string|null $primary
+     * @param array $argv
+     * @param PDO|null $pdo
+     * @return string
+     * @throws PublicAlert
+     */
+    public static function subSelect(string $primary = null, array $argv, PDO $pdo = null): string
+    {
+        self::$allowSubSelectQueries = true;
+        return static::buildSelectQuery($primary, $argv, $pdo, true);
+    }
 
     public static function buildWhere(array $set, PDO $pdo, string $tableName, array $validation, $join = 'AND'): string
     {
         $sql = '(';
-        $bump = false;
+        $addJoinNext = false;
+
         foreach ($set as $column => $value) {
             if (is_array($value)) {
-                if ($bump) {
+                if ($addJoinNext) {
                     $sql .= " $join ";
                 }
-                $bump = true;
+                $addJoinNext = true;
+                // recurse and change join method
                 $sql .= self::buildWhere($value, $pdo, $tableName, $validation, $join === 'AND' ? 'OR' : 'AND');
             } else if (array_key_exists($column, $validation)) {
-                $bump = false;
+                $addJoinNext = false;
                 /** @noinspection SubStrUsedAsStrPosInspection */
-                if (substr($value, 0, '8') === 'C6SUB522') {
-                    $subQuery = substr($value, '8');
-                    $sql .= "($column = $subQuery ) $join ";
+                if (self::$allowSubSelectQueries && substr($value, 0, '8') === '(SELECT ') {
+                    $sql .= "($column = $value ) $join ";
                 } else if ($validation[$column][0] === 'binary') {
                     $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo, $tableName) . ")) $join ";
                 } else {
                     $sql .= "($column = " . self::addInjection($value, $pdo, $tableName) . ") $join ";
                 }
             } else {
-                $bump = false;
+                $addJoinNext = false;
                 $sql .= "($column = " . self::addInjection($value, $pdo, $tableName) . ") $join ";
             }
         }
@@ -259,5 +335,6 @@ abstract class Rest extends Database
         foreach (self::$injection as $key => $value) {
             $stmt->bindValue($key, $value);
         }
+        self::$injection = [];
     }
 }

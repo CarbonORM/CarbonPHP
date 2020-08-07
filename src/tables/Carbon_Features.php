@@ -88,6 +88,7 @@ class Carbon_Features extends Rest implements iRest
     * @param array $return
     * @param string|null $primary
     * @param array $argv
+    * @throws PublicAlert
     * @return bool
     */
     public static function Get(array &$return, string $primary = null, array $argv): bool
@@ -147,7 +148,7 @@ class Carbon_Features extends Rest implements iRest
         $stmt = self::database()->prepare($sql);
 
     
-        $feature_entity_id = $id = $argv['carbon_features.feature_entity_id'] ?? self::beginTransaction('carbon_features', $dependantEntityId);
+        $feature_entity_id = $id = $argv['carbon_features.feature_entity_id'] ?? self::beginTransaction(self::class, $dependantEntityId);
         $stmt->bindParam(':feature_entity_id',$feature_entity_id, 2, 16);
     
         $feature_code = $argv['carbon_features.feature_code'];
@@ -159,18 +160,7 @@ class Carbon_Features extends Rest implements iRest
     
     }
      
-    /**
-     * @param string|null $primary
-     * @param array $argv
-     * @param PDO|null $pdo
-     * @return string
-     * @throws PublicAlert
-     */
-    public static function subSelect(string $primary = null, array $argv, PDO $pdo = null): string
-    {
-        return 'C6SUB253' . self::buildSelectQuery($primary, $argv, $pdo, true);
-    }
-    
+   
     public static function validateSelectColumn($column) : bool {
         return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|-|/| |carbon_features||\.feature_entity_id|\.feature_code|\.feature_creation_date))+\)*)+ *(as [a-z]+)?#i', $column);
     }
@@ -228,8 +218,10 @@ class Carbon_Features extends Rest implements iRest
                 }
             }
             $limit = "$order $limit";
-        } else {
+        } else if (!$noHEX) {
             $limit = ' ORDER BY feature_entity_id ASC LIMIT 100';
+        } else { 
+            $limit = '';
         }
 
         // join 
@@ -352,7 +344,8 @@ class Carbon_Features extends Rest implements iRest
                 $aggregate = true;
             }
         }
-
+ 
+        // case sensitive select 
         $sql = 'SELECT ' .  $sql . ' FROM carbon_features ' . $join;
        
         if (null === $primary) {
