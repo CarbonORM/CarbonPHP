@@ -13,6 +13,11 @@ export const C6 = {
     INNER: 'inner',
     LEFT: 'left',
     RIGHT: 'right',
+    DISTINCT: 'distinct',
+    COUNT: 'count',
+    SUM: 'sum',
+    MIN: 'min',
+    MAX: 'max',
 
     
 
@@ -59,25 +64,10 @@ export const C6 = {
   carbon_feature_group_references: {
     TABLE_NAME:'carbon_feature_group_references',
     FEATURE_ENTITY_ID: 'carbon_feature_group_references.feature_entity_id',
-    REFERENCE_ENTITY_ID: 'carbon_feature_group_references.reference_entity_id',
+    GROUP_ENTITY_ID: 'carbon_feature_group_references.group_entity_id',
     PRIMARY: [],
     COLUMNS: {
-      'carbon_feature_group_references.feature_entity_id':'feature_entity_id','carbon_feature_group_references.reference_entity_id':'reference_entity_id',
-    },
-    REGEX_VALIDATION: {
-    }
-
-  },
-
-  carbon_feature_groups: {
-    TABLE_NAME:'carbon_feature_groups',
-    GROUP_NAME: 'carbon_feature_groups.group_name',
-    ENTITY_ID: 'carbon_feature_groups.entity_id',
-    CREATED_BY: 'carbon_feature_groups.created_by',
-    CREATION_DATE: 'carbon_feature_groups.creation_date',
-    PRIMARY: [],
-    COLUMNS: {
-      'carbon_feature_groups.group_name':'group_name','carbon_feature_groups.entity_id':'entity_id','carbon_feature_groups.created_by':'created_by','carbon_feature_groups.creation_date':'creation_date',
+      'carbon_feature_group_references.feature_entity_id':'feature_entity_id','carbon_feature_group_references.group_entity_id':'group_entity_id',
     },
     REGEX_VALIDATION: {
     }
@@ -96,6 +86,25 @@ export const C6 = {
     ],
     COLUMNS: {
       'carbon_features.feature_entity_id':'feature_entity_id','carbon_features.feature_code':'feature_code','carbon_features.feature_creation_date':'feature_creation_date',
+    },
+    REGEX_VALIDATION: {
+    }
+
+  },
+
+  carbon_groups: {
+    TABLE_NAME:'carbon_groups',
+    GROUP_NAME: 'carbon_groups.group_name',
+    ENTITY_ID: 'carbon_groups.entity_id',
+    CREATED_BY: 'carbon_groups.created_by',
+    CREATION_DATE: 'carbon_groups.creation_date',
+    PRIMARY: [
+        'carbon_groups.entity_id',
+    
+        
+    ],
+    COLUMNS: {
+      'carbon_groups.group_name':'group_name','carbon_groups.entity_id':'entity_id','carbon_groups.created_by':'created_by','carbon_groups.creation_date':'creation_date',
     },
     REGEX_VALIDATION: {
     }
@@ -362,7 +371,8 @@ export const C6 = {
     }
 
   },
-}
+    
+};
 
 
 
@@ -377,17 +387,17 @@ export interface  iCarbons{
   
 
 export interface  iCarbon_Feature_Group_References{
-      'feature_entity_id'?: string;'reference_entity_id'?: string;
-}
-  
-
-export interface  iCarbon_Feature_Groups{
-      'group_name'?: string;'entity_id'?: string;'created_by'?: string;'creation_date'?: string;
+      'feature_entity_id'?: string;'group_entity_id'?: string;
 }
   
 
 export interface  iCarbon_Features{
       'feature_entity_id'?: string;'feature_code'?: string;'feature_creation_date'?: string;
+}
+  
+
+export interface  iCarbon_Groups{
+      'group_name'?: string;'entity_id'?: string;'created_by'?: string;'creation_date'?: string;
 }
   
 
@@ -455,4 +465,26 @@ export interface  iSessions{
       'user_id'?: string;'user_ip'?: string;'session_id'?: string;'session_expires'?: string;'session_data'?: string;'user_online_status'?: string;
 }
   
+
+export const COLUMNS = {
+      
+'carbon_comments.parent_id':'parent_id','carbon_comments.comment_id':'comment_id','carbon_comments.user_id':'user_id','carbon_comments.comment':'comment',
+'carbons.entity_pk':'entity_pk','carbons.entity_fk':'entity_fk','carbons.entity_tag':'entity_tag',
+'carbon_feature_group_references.feature_entity_id':'feature_entity_id','carbon_feature_group_references.group_entity_id':'group_entity_id',
+'carbon_features.feature_entity_id':'feature_entity_id','carbon_features.feature_code':'feature_code','carbon_features.feature_creation_date':'feature_creation_date',
+'carbon_groups.group_name':'group_name','carbon_groups.entity_id':'entity_id','carbon_groups.created_by':'created_by','carbon_groups.creation_date':'creation_date',
+'carbon_location_references.entity_reference':'entity_reference','carbon_location_references.location_reference':'location_reference','carbon_location_references.location_time':'location_time',
+'carbon_locations.entity_id':'entity_id','carbon_locations.latitude':'latitude','carbon_locations.longitude':'longitude','carbon_locations.street':'street','carbon_locations.city':'city','carbon_locations.state':'state','carbon_locations.elevation':'elevation','carbon_locations.zip':'zip',
+'carbon_photos.parent_id':'parent_id','carbon_photos.photo_id':'photo_id','carbon_photos.user_id':'user_id','carbon_photos.photo_path':'photo_path','carbon_photos.photo_description':'photo_description',
+'carbon_reports.log_level':'log_level','carbon_reports.report':'report','carbon_reports.date':'date','carbon_reports.call_trace':'call_trace',
+'carbon_user_followers.follower_table_id':'follower_table_id','carbon_user_followers.follows_user_id':'follows_user_id','carbon_user_followers.user_id':'user_id',
+'carbon_user_groups.group_id':'group_id','carbon_user_groups.user_id':'user_id',
+'carbon_user_messages.message_id':'message_id','carbon_user_messages.from_user_id':'from_user_id','carbon_user_messages.to_user_id':'to_user_id','carbon_user_messages.message':'message','carbon_user_messages.message_read':'message_read','carbon_user_messages.creation_date':'creation_date',
+'carbon_user_sessions.user_id':'user_id','carbon_user_sessions.user_ip':'user_ip','carbon_user_sessions.session_id':'session_id','carbon_user_sessions.session_expires':'session_expires','carbon_user_sessions.session_data':'session_data','carbon_user_sessions.user_online_status':'user_online_status',
+'carbon_user_tasks.task_id':'task_id','carbon_user_tasks.user_id':'user_id','carbon_user_tasks.from_id':'from_id','carbon_user_tasks.task_name':'task_name','carbon_user_tasks.task_description':'task_description','carbon_user_tasks.percent_complete':'percent_complete','carbon_user_tasks.start_date':'start_date','carbon_user_tasks.end_date':'end_date',
+'carbon_users.user_username':'user_username','carbon_users.user_password':'user_password','carbon_users.user_id':'user_id','carbon_users.user_type':'user_type','carbon_users.user_sport':'user_sport','carbon_users.user_session_id':'user_session_id','carbon_users.user_facebook_id':'user_facebook_id','carbon_users.user_first_name':'user_first_name','carbon_users.user_last_name':'user_last_name','carbon_users.user_profile_pic':'user_profile_pic','carbon_users.user_profile_uri':'user_profile_uri','carbon_users.user_cover_photo':'user_cover_photo','carbon_users.user_birthday':'user_birthday','carbon_users.user_gender':'user_gender','carbon_users.user_about_me':'user_about_me','carbon_users.user_rank':'user_rank','carbon_users.user_email':'user_email','carbon_users.user_email_code':'user_email_code','carbon_users.user_email_confirmed':'user_email_confirmed','carbon_users.user_generated_string':'user_generated_string','carbon_users.user_membership':'user_membership','carbon_users.user_deactivated':'user_deactivated','carbon_users.user_last_login':'user_last_login','carbon_users.user_ip':'user_ip','carbon_users.user_education_history':'user_education_history','carbon_users.user_location':'user_location','carbon_users.user_creation_date':'user_creation_date',
+'creation_logs.uuid':'uuid','creation_logs.resource_type':'resource_type','creation_logs.resource_uuid':'resource_uuid',
+'history_logs.uuid':'uuid','history_logs.resource_type':'resource_type','history_logs.resource_uuid':'resource_uuid','history_logs.operation_type':'operation_type','history_logs.data':'data',
+'sessions.user_id':'user_id','sessions.user_ip':'user_ip','sessions.session_id':'session_id','sessions.session_expires':'session_expires','sessions.session_data':'session_data','sessions.user_online_status':'user_online_status',
+};
 

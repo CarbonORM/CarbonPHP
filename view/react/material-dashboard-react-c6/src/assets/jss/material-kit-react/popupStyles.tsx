@@ -15,11 +15,6 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import { container, title } from "../material-kit-react";
-
-import modalStyle from "./modalStyle";
-import tooltipsStyle from "./tooltipsStyle";
-import popoverStyles from "./popoverStyles";
 import { createStyles } from "@material-ui/core";
 
 const popupStyles = createStyles({

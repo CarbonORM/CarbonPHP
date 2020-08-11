@@ -24,7 +24,7 @@ class bootstrap extends React.Component<any, {
   axios: AxiosInstance,
   authenticate: string,
   authenticated?: boolean,
-  alert?: SweetAlert,
+  alert?: any,
   operationActive: boolean,
   isLoaded: boolean,
   alertsWaiting: Array<any>
@@ -76,7 +76,9 @@ class bootstrap extends React.Component<any, {
 
       const lockError = () => {
         this.setState({
-          alert: <SweetAlert warning title="Good job!" onConfirm={() => this.setState({ alert: null })}>
+          alert: <SweetAlert
+            warning
+            title="Oh no!" onConfirm={() => this.setState({ alert: null })}>
             An issue with out system has occurred.
           </SweetAlert>
         })
@@ -226,10 +228,6 @@ class bootstrap extends React.Component<any, {
       return (
         <SweetAlert
           type={type}
-          style={{
-            display: "block",
-            marginTop: "-200px"
-          }}
           title={title}
           onConfirm={() => this.setState({
             alert: stack ? stack : alertsWaiting.pop(),
@@ -266,15 +264,19 @@ class bootstrap extends React.Component<any, {
                 'title': value,
                 'type': value,
               })
+              return null;
             });
             console.log("stack", Object.assign({}, stack));
           }
+          return null;
         })
       } else {
         console.log('failed to decode the alert');
       }
 
-      if (this.state.alert === null) {
+      console.log(this.state.alert, this.state.alert !== null,  this.state.alert !== undefined)
+
+      if (this.state.alert === null || this.state.alert === undefined) {
         this.setState({
           alert: alert(stack)
         });
@@ -310,7 +312,7 @@ class bootstrap extends React.Component<any, {
       error => {
         // Do something with response error
         this.handleResponseCodes(error.response);
-        console.log("Carbon Axios Caught A Responce Error response :: ", error.response);
+        console.log("Carbon Axios Caught A Response Error response :: ", error.response);
         // return Promise.reject(error);
         return error.response;
       }
@@ -322,7 +324,7 @@ class bootstrap extends React.Component<any, {
   render() {
     console.log("LOGIN JSX RENDER");
 
-    const { isLoaded, authenticated, axios, alert } = this.state;
+    const { isLoaded, authenticated, alert } = this.state;
 
     if (!isLoaded) {
       return <h2>Loading...</h2>;

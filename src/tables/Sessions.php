@@ -1,19 +1,15 @@
-<?php
+<?php /** @noinspection PhpFullyQualifiedNameUsageInspection */
 
 namespace CarbonPHP\Tables;
 
 use PDO;
-use PDOStatement;
-
+use CarbonPHP\Rest;
+use CarbonPHP\Interfaces\iRest;
+use CarbonPHP\Error\PublicAlert;
 use function array_key_exists;
 use function count;
 use function func_get_args;
 use function is_array;
-use CarbonPHP\Rest;
-use CarbonPHP\Interfaces\iRest;
-use CarbonPHP\Interfaces\iRestfulReferences;
-use CarbonPHP\Error\PublicAlert;
-
 
 class Sessions extends Rest implements iRest
 {
@@ -41,21 +37,6 @@ class Sessions extends Rest implements iRest
     public const PHP_VALIDATION = []; 
  
     public const REGEX_VALIDATION = []; 
-    
-     
-    public static function jsonSQLReporting($argv, $sql) : void {
-        global $json;
-        if (!is_array($json)) {
-            $json = [];
-        }
-        if (!isset($json['sql'])) {
-            $json['sql'] = [];
-        }
-        $json['sql'][] = [
-            $argv,
-            $sql
-        ];
-    }
     
     /**
     *
@@ -98,7 +79,9 @@ class Sessions extends Rest implements iRest
     {
         $pdo = self::database();
 
-        $sql = self::buildSelectQuery($primary, $argv, $pdo);
+        $sql = self::buildSelectQuery($primary, $argv, '', $pdo);
+        
+        self::jsonSQLReporting(func_get_args(), $sql);
         
         $stmt = $pdo->prepare($sql);
 
@@ -134,9 +117,7 @@ class Sessions extends Rest implements iRest
      * @throws PublicAlert
      */
     public static function Post(array $argv, string $dependantEntityId = null)
-    {
-        self::$injection = []; 
-         
+    {   
         foreach ($argv as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)){
                 throw new PublicAlert("Restful table could not post column $columnName, because it does not appear to exist.");
@@ -151,19 +132,29 @@ class Sessions extends Rest implements iRest
         $stmt = self::database()->prepare($sql);
 
     
+    
+        if (!array_key_exists('sessions.user_id', $argv)) {
+            throw new PublicAlert('Required argument "sessions.user_id" is missing from the request.');
+        }
         $user_id = $argv['sessions.user_id'];
         $stmt->bindParam(':user_id',$user_id, 2, 16);
+    
     
         $user_ip =  $argv['sessions.user_ip'] ?? null;
         $stmt->bindParam(':user_ip',$user_ip, 2, 20);
     
+    
+        if (!array_key_exists('sessions.session_id', $argv)) {
+            throw new PublicAlert('Required argument "sessions.session_id" is missing from the request.');
+        }
         $session_id = $argv['sessions.session_id'];
         $stmt->bindParam(':session_id',$session_id, 2, 255);
     
         $stmt->bindValue(':session_expires',$argv['sessions.session_expires'], 2);
-
+    
         $stmt->bindValue(':session_data',$argv['sessions.session_data'], 2);
-
+    
+    
         $user_online_status =  $argv['sessions.user_online_status'] ?? '1';
         $stmt->bindParam(':user_online_status',$user_online_status, 0, 1);
     
@@ -174,215 +165,8 @@ class Sessions extends Rest implements iRest
         return $stmt->execute();
     
     }
-     
    
-    public static function validateSelectColumn($column) : bool {
-        return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|-|/| |sessions||\.user_id|\.user_ip|\.session_id|\.session_expires|\.session_data|\.user_online_status))+\)*)+ *(as [a-z]+)?#i', $column);
-    }
     
-    /**
-     * @param string|null $primary
-     * @param array $argv
-     * @param PDO|null $pdo
-     * @param bool $noHEX
-     * @return string
-     * @throws PublicAlert
-     */
-    public static function buildSelectQuery(string $primary = null, array $argv, PDO $pdo = null, bool $noHEX = false) : string 
-    {
-        if ($pdo === null) {
-            $pdo = self::database();
-        }
-        self::$injection = [];
-        $aggregate = false;
-        $group = [];
-        $sql = '';
-        $get = $argv['select'] ?? array_keys(self::PDO_VALIDATION);
-        $where = $argv['where'] ?? [];
-
-        // pagination [self::PAGINATION][self::LIMIT]
-        if (array_key_exists(self::PAGINATION,$argv)) {
-            if (!empty($argv[self::PAGINATION]) && is_string($argv[self::PAGINATION])) {
-                $argv['pagination'] = json_decode($argv[self::PAGINATION], true);
-            }
-            if (array_key_exists(self::LIMIT,$argv[self::PAGINATION]) && is_numeric($argv[self::PAGINATION][self::LIMIT])) {
-                if (array_key_exists(self::PAGE, $argv[self::PAGINATION])) {
-                    $limit = ' LIMIT ' . (($argv[self::PAGINATION][self::PAGE] - 1) * $argv[self::PAGINATION][self::LIMIT]) . ',' . $argv[self::PAGINATION][self::LIMIT];
-                } else {
-                    $limit = ' LIMIT ' . $argv[self::PAGINATION][self::LIMIT];
-                }
-            } else {
-                $limit = '';
-            }
-
-            $order = '';
-            if (!empty($limit)) {
-
-                $order = ' ORDER BY ';
-
-                if (array_key_exists(self::ORDER,$argv[self::PAGINATION]) && is_string($argv[self::PAGINATION][self::ORDER])) {
-                    if (is_array($argv[self::PAGINATION][self::ORDER])) {
-                        foreach ($argv[self::PAGINATION][self::ORDER] as $item => $sort) {
-                            $order .= "$item $sort";
-                        }
-                    } else {
-                        $order .= $argv[self::PAGINATION][self::ORDER];
-                    }
-                } else {
-                    $order .= 'session_id ASC';
-                }
-            }
-            $limit = "$order $limit";
-        } else if (!$noHEX) {
-            $limit = ' ORDER BY session_id ASC LIMIT 100';
-        } else { 
-            $limit = '';
-        }
-
-        // join 
-        $join = ''; 
-        $tableList = [];
-        if (array_key_exists(self::JOIN, $argv) && !empty($argv[self::JOIN])) {
-            if (!is_array($argv[self::JOIN])) { 
-                throw new PublicAlert('The restful join field must be an array.');
-            }
-            foreach ($argv[self::JOIN] as $by => $tables) {
-                $buildJoin = static function ($method) use ($tables, &$join, &$tableList) {
-                    $joinColumns = [];
-                    foreach ($tables as $table => $stmt) {
-                        $tableList[] = $table;
-                        switch (count($stmt)) {   
-                            case 2: 
-                                if (is_string($stmt[0]) && is_string($stmt[1])) {
-                                    $joinColumns[] = $stmt[0];
-                                    $joinColumns[] = $stmt[1];
-                                    $join .= $method . $table . ' ON ' . $stmt[0] . '=' . $stmt[1];
-                                } else {
-                                    throw new PublicAlert('One or more of the array values provided in the restful JOIN condition are not strings.');
-                                }
-                                break;
-                            case 3:
-                                if (is_string($stmt[0]) && is_string($stmt[1]) && is_string($stmt[2])) {
-                                    if (!((bool) preg_match('#^=|>=|<=$#', $stmt[1]))){ 
-                                        throw new PublicAlert('Restful column joins may only use one (=,>=, or <=).');
-                                    }
-                                    $joinColumns[] = $stmt[0];
-                                    $joinColumns[] = $stmt[2];
-                                    $join .= $method . $table . ' ON ' . $stmt[0] . $stmt[1] . $stmt[2]; 
-                                } else {
-                                    throw new PublicAlert('One or more of the array values provided in the restful JOIN condition are not strings.');
-                                }
-                                break;
-                            default:
-                                throw new PublicAlert('Restful joins across two tables must be populated with two or three array values with column names, or an appropriate joining operator and column names.');
-                        }
-                    } 
-                    foreach ($joinColumns as $columnName) { 
-                        if (!parent::validateColumnName($columnName, $tableList)) {
-                             throw new PublicAlert("Could not validate join column $columnName. Be sure correct restful tables are referenced.");
-                        }
-                    }
-                    return true;
-                };
-                switch ($by) {
-                    case self::INNER:
-                        if (!$buildJoin(' INNER JOIN ')) {
-                            throw new PublicAlert('The restful inner join had an unknown error.');
-                        }
-                        break;
-                    case self::LEFT:
-                        if (!$buildJoin(' LEFT JOIN ')) {
-                            throw new PublicAlert('The restful left join had an unknown error.'); 
-                        }
-                        break;
-                    case self::RIGHT:
-                        if (!$buildJoin(' RIGHT JOIN ')) {
-                            throw new PublicAlert('The restful right join had an unknown error.'); 
-                        }
-                        break;
-                    default:
-                        throw new PublicAlert('Restful join stmt may only use one of (' .  self::INNER . ',' . self::LEFT . ', or ' . self::RIGHT . ').');
-                }
-            }
-        }
-
-        // Select
-        foreach($get as $key => $column){
-            if (!empty($sql)) {
-                $sql .= ', ';
-            }
-            $columnExists = array_key_exists($column, self::PDO_VALIDATION);
-            if ($columnExists) {
-                if (!$noHEX && self::PDO_VALIDATION[$column][0] === 'binary') {
-                    $asShort = trim($column, self::TABLE_NAME . '.');
-                    $prefix = self::TABLE_NAME . '.';
-                    if (strpos($column, $prefix) === 0) {
-                        $asShort = substr($column, strlen($prefix));
-                    }
-                    $sql .= "HEX($column) as $asShort";
-                    $group[] = $column;
-                } elseif ($columnExists) {
-                    $sql .= $column;
-                    $group[] = $column;  
-                }  
-            } else if (self::validateSelectColumn($column)) {
-                $sql .= $column;
-                $group[] = $column;
-                $aggregate = true;
-            } else {  
-                $valid = false;
-                $tablesReferenced = $tableList;
-                while (!empty($tablesReferenced)) {
-                     $table = __NAMESPACE__ . '\\' . array_pop($tablesReferenced);
-                     
-                     if (!class_exists($table)){
-                         continue;
-                     }
-                     $imp = array_map('strtolower', array_keys(class_implements($table)));
-                   
-                     /** @noinspection ClassConstantUsageCorrectnessInspection */
-                     if (!in_array(strtolower(iRest::class), $imp, true) && 
-                         !in_array(strtolower(iRestfulReferences::class), $imp, true)) {
-                         continue;
-                     }
-                     /** @noinspection PhpUndefinedMethodInspection */
-                     if ($table::validateSelectColumn($column)) { 
-                        $group[] = $column;
-                        $valid = true;
-                        break; 
-                     }
-                }
-                if (!$valid) {
-                    throw new PublicAlert('Could not validate the column $column');
-                }
-                $sql .= $column;
-                $aggregate = true;
-            }
-        }
- 
-        // case sensitive select 
-        $sql = 'SELECT ' .  $sql . ' FROM sessions ' . $join;
-       
-        if (null === $primary) {
-            /** @noinspection NestedPositiveIfStatementsInspection */
-            if (!empty($where)) {
-                $sql .= ' WHERE ' . self::buildWhere($where, $pdo, 'sessions', self::PDO_VALIDATION);
-            }
-        } else {
-            $sql .= ' WHERE  session_id='.self::addInjection($primary, $pdo, 'sessions').'';
-        }
-
-        if ($aggregate  && !empty($group)) {
-            $sql .= ' GROUP BY ' . implode(', ', $group). ' ';
-        }
-
-        $sql .= $limit;
-
-        self::jsonSQLReporting(func_get_args(), $sql);
-
-        return '(' . $sql . ')';
-    }
-
     /**
     * @param array $return
     * @param string $primary
@@ -392,8 +176,6 @@ class Sessions extends Rest implements iRest
     */
     public static function Put(array &$return, string $primary, array $argv) : bool
     {
-        self::$injection = []; 
-        
         if (empty($primary)) {
             throw new PublicAlert('Restful tables which have a primary key must be updated by its primary key.');
         }
@@ -435,7 +217,7 @@ class Sessions extends Rest implements iRest
 
         $pdo = self::database();
 
-        $sql .= ' WHERE  session_id='.self::addInjection($primary, $pdo, 'sessions').'';
+        $sql .= ' WHERE  session_id='.self::addInjection($primary, $pdo).'';
         
 
         self::jsonSQLReporting(func_get_args(), $sql);
@@ -471,6 +253,10 @@ class Sessions extends Rest implements iRest
             throw new PublicAlert('Restful table Sessions failed to execute the update query.');
         }
         
+        if (!$stmt->rowCount()) {
+            throw new PublicAlert('Failed to update the target row.');
+        }
+        
         $argv = array_combine(
             array_map(
                 static function($k) { return str_replace('sessions.', '', $k); },
@@ -494,8 +280,6 @@ class Sessions extends Rest implements iRest
     */
     public static function Delete(array &$remove, string $primary = null, array $argv) : bool
     {
-        self::$injection = []; 
-        
         /** @noinspection SqlResolve */
         /** @noinspection SqlWithoutWhere */
         $sql = 'DELETE FROM sessions ';

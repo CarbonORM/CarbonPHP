@@ -10,16 +10,20 @@ use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iConfig;
 use CarbonPHP\Request;
 use CarbonPHP\Rest;
+use CarbonPHP\Tables\Carbon_Feature_Groups;
 use CarbonPHP\Tables\Carbon_Users;
 use CarbonPHP\View;
 
 class Config extends Application implements iConfig
 {
 
-    public static function testAlertAndValidation() {
-        PublicAlert::info('im an alert message.');
+    public static function createdByMe(&$request) {
+        $request[Carbon_Feature_Groups::CREATED_BY] = $_SESSION['id'];
     }
 
+    public static function testAlertAndValidation() {
+        // PublicAlert::info('im an alert message.');
+    }
 
     // these are all relative to the /view/ directory
     private const REACT = 'react/material-dashboard-react-c6/build/index.html';
@@ -247,7 +251,7 @@ class Config extends Application implements iConfig
                         $this->wrap()($this->adminLTE['Home']);
                     }
                     return true;
-                case '5.0':
+                case '6.0':
                     $this->fullPage()('react/material-dashboard-react-c6/build/index.html');
                     return true;
                 default:
@@ -282,7 +286,7 @@ class Config extends Application implements iConfig
      */
     public static function getUser(string $id = ''): void
     {
-        global $users;
+        global $users, $json;
 
         if (!is_array($users)) {
             $users = [];
@@ -297,7 +301,7 @@ class Config extends Application implements iConfig
             REST::WHERE => [
                 [
                     Carbon_Users::USER_USERNAME => $id,
-                    Carbon_Users::USER_ID => $id
+                    Carbon_Users::USER_PASSWORD => $id
                 ]
             ],
             REST::PAGINATION => [
@@ -309,7 +313,7 @@ class Config extends Application implements iConfig
         }
 
         if (!empty($me)) {
-            PublicAlert::success('Welcome back. ' . $id);
+            $_SESSION['id'] = $json['id'] = $me[Carbon_Users::COLUMNS[Carbon_Users::USER_ID]];
         } else if (is_string($id = Carbon_Users::Post([         // required fields :P
                 Carbon_Users::USER_USERNAME => $id,
                 Carbon_Users::USER_PASSWORD => $id,
@@ -319,7 +323,7 @@ class Config extends Application implements iConfig
                 Carbon_Users::USER_EMAIL => 'N/A',
                 Carbon_Users::USER_IP => IP
             ])) && Database::commit()) {
-            PublicAlert::info('You session has been established. ' . $id);
+            PublicAlert::info('A new session has been established with the id ' . $id);
         } else {
             PublicAlert::warning('Failed to create you a new user. Some demos may not function as expected.');
         }

@@ -9,7 +9,6 @@ import List from "@material-ui/icons/List";
 // core components
 import GridContainer from "components/Grid/GridContainer.jsx";
 import GridItem from "components/Grid/GridItem.jsx";
-import CustomTabs from "components/CustomTabs/CustomTabs.jsx";
 import completedStyle from "assets/jss/material-kit-react/views/componentsSections/completedStyle.jsx";
 import NavPills from "components/NavPills/NavPills";
 import {Button, Card} from "@material-ui/core/index";

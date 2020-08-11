@@ -1,6 +1,5 @@
 import React from "react";
 import cx from "classnames";
-import PropTypes from "prop-types";
 // creates a beautiful scrollbar
 import PerfectScrollbar from "perfect-scrollbar";
 import "perfect-scrollbar/css/perfect-scrollbar.css";
@@ -20,7 +19,7 @@ import appStyle from "assets/jss/material-dashboard-react/layouts/dashboardStyle
 import image from "assets/img/Carbon-teal-180.png";
 import logo from "assets/img/reactlogo.png";
 
-var ps;
+let ps;
 
 class Private extends React.Component<any, any> {
   state = {

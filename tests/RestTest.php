@@ -31,7 +31,8 @@ final class RestTest extends Config
     {
         $store = [];
 
-        Carbons::Get($store, $key, []);
+        $this->assertTrue(Carbons::Get($store, $key, []),
+            'Failed to see if user exists, post is actually dependant on GET.');
 
         if (!empty($store)) {
             $this->assertTrue(
@@ -47,8 +48,9 @@ final class RestTest extends Config
      */
     public function testRestApiCanPost(): void
     {
-        $this->KeyExistsAndRemove('8544e3d581ba11e8942cd89ef3fc55fa'); //a
-        $this->KeyExistsAndRemove('8544e3d581ba11e8942cd89ef3fc55fb'); //b
+        $this->KeyExistsAndRemove('8544e3d581ba11e8942cd89ef3fc55fa');
+
+        $this->KeyExistsAndRemove('8544e3d581ba11e8942cd89ef3fc55fb');
 
         $store = [];
 
@@ -91,6 +93,32 @@ final class RestTest extends Config
         // This route redirects to home, thus ending in false
     }
 
+
+    /**
+     * @depends testRestApiCanPost
+     * @throws PublicAlert
+     */
+    public function testRestAdiCanAggregate(): void {
+        $temp = [];
+
+        $this->assertTrue(Carbons::Get($temp, '8544e3d581ba11e8942cd89ef3fc55fa', []));
+
+        $this->assertArrayHasKey('entity_pk', $temp);
+
+        $temp = [];
+
+        $this->assertTrue(Carbons::Get($temp, null, [
+            Carbons::WHERE => [
+                Carbons::ENTITY_PK => '8544e3d581ba11e8942cd89ef3fc55fa'
+            ],
+            Carbons::PAGINATION => [
+                Carbons::LIMIT => 1
+            ]
+        ]));
+
+        $this->assertArrayHasKey('entity_pk', $temp, 'failed on PAGINATION:LIMIT');
+    }
+
     /**
      * @depends testRestApiCanGet
      * @throws PublicAlert
@@ -110,12 +138,16 @@ final class RestTest extends Config
 
         $this->assertEquals('8544e3d581ba11e8942cd89ef3fc55fb', $store['entity_pk']);
 
-        $this->assertTrue(Carbons::Get($store, null, [
-            Carbons::WHERE => [
-                Carbons::ENTITY_PK => '8544e3d581ba11e8942cd89ef3fc55fb'
-            ]
-        ]));
+        $store = [];
+
+        $this->assertTrue(Carbons::Get($store, '8544e3d581ba11e8942cd89ef3fc55fb', []));
+
+        $this->assertArrayHasKey('entity_pk', $store,
+            'Failed to see updated record in database.');
+
     }
+
+
 
     /**
      * @depends testRestApiCanPost
@@ -125,17 +157,13 @@ final class RestTest extends Config
     {
         $temp = [];
 
-        $this->assertTrue(Carbons::Get($temp, null, [
-            Carbons::WHERE => [
-                Carbons::ENTITY_PK => '8544e3d581ba11e8942cd89ef3fc55fb'
-            ],
-            Carbons::PAGINATION => [
-                Carbons::LIMIT => 1
-            ]
-        ]));
+        $this->assertTrue(Carbons::Get($temp, '8544e3d581ba11e8942cd89ef3fc55fa', []));
 
-        $this->assertTrue(array_key_exists('entity_fk', $temp),
-            'Failed asserting that ' . print_r($temp, true) . ' has the key \'entity_fk\'.');
+        if (empty($temp)) {
+            $this->assertTrue(Carbons::Get($temp, '8544e3d581ba11e8942cd89ef3fc55fb', []));
+        }
+
+        $this->assertArrayHasKey('entity_fk', $temp);
 
         $this->assertTrue(
             Carbons::Delete($temp, $temp['entity_pk'], [])
@@ -192,6 +220,8 @@ final class RestTest extends Config
         $this->commit();
 
         $user = [];
+
+        define('love', 1);
 
         $this->assertTrue(Users::Get($user, $uid, [
             Users::SELECT => [
