@@ -162,7 +162,6 @@ class Carbon_Photos extends Rest implements iRest
         return $stmt->execute() ? $id : false;
     
     }
-   
     
     /**
     * @param array $return

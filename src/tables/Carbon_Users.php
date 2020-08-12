@@ -274,7 +274,6 @@ class Carbon_Users extends Rest implements iRest
         return $stmt->execute() ? $id : false;
     
     }
-   
     
     /**
     * @param array $return

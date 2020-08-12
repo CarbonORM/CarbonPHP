@@ -138,7 +138,6 @@ class Carbon_Feature_Group_References extends Rest implements iRestfulReferences
         return $stmt->execute();
     
     }
-   
     
     /**
     * @param array $return

@@ -73,9 +73,10 @@ class PublicAlert extends CustomException {
      * @param string $message the message to be stored in the alert variable
      * @param string $code you may choose between success, info, danger, or warning
      */
-    private static function alert(string $message, string $code) {
+    private static function alert(string $message, string $code): void
+    {
         global $json;
-        if ($code !== 'success' && $code !== 'info') {
+        if (($message[-1] ?? '') === '.' && $code !== 'success' && $code !== 'info') {
             $message .= ' Contact us if problem persists.';
         }
         $json['alert'][$code][] = $message;
@@ -84,7 +85,7 @@ class PublicAlert extends CustomException {
     /**
      * @param string $message results in a green alert box
      */
-    public static function success(string $message)
+    public static function success(string $message): void
     {
         global $json;
         $json['alert']['success'][] = $message;
@@ -93,7 +94,7 @@ class PublicAlert extends CustomException {
     /**
      * @param string $message results in a blue alert box
      */
-    public static function info(string $message)
+    public static function info(string $message): void
     {
         global $json;
         $json['alert']['info'][] = $message;
@@ -102,7 +103,7 @@ class PublicAlert extends CustomException {
     /**
      * @param string $message results in a red alert box
      */
-    public static function danger(string $message)
+    public static function danger(string $message): void
     {
         global $json;
         $json['alert']['danger'][] = $message;
@@ -112,7 +113,7 @@ class PublicAlert extends CustomException {
     /**
      * @param string $message results in a yellow alert box
      */
-    public static function warning(string $message)
+    public static function warning(string $message): void
     {
         global $json;
         $json['alert']['warning'][] = $message;

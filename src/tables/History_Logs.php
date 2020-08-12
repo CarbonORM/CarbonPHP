@@ -154,7 +154,6 @@ class History_Logs extends Rest implements iRestfulReferences
         return $stmt->execute();
     
     }
-   
     
     /**
     * @param array $return

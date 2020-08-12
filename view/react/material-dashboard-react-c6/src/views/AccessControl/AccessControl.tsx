@@ -98,8 +98,12 @@ class AccessControl extends React.Component<ILandingPage, {
     const { axios } = this.props;
 
     axios.get('/rest/' + C6.carbon_users.TABLE_NAME, {
-      params: {
+      params: ({  // qs.stringify
         [C6.SELECT]: [
+          C6.carbon_users.USER_USERNAME,
+          C6.carbon_users.USER_FIRST_NAME,
+          C6.carbon_users.USER_LAST_NAME,
+          C6.carbon_users.USER_ID,
           [C6.DISTINCT, C6.carbon_features.FEATURE_CODE]
         ],
         [C6.JOIN]: {
@@ -125,14 +129,16 @@ class AccessControl extends React.Component<ILandingPage, {
         [C6.PAGINATION]: {
           [C6.LIMIT]: 10
         }
-      }
+      })
     }).then(response => {
       this.setState({
         users: response.data.rest
       })
     });
 
-    axios.get('/rest/' + C6.carbon_features.TABLE_NAME).then(response => {
+
+
+   /* axios.get('/rest/' + C6.carbon_features.TABLE_NAME).then(response => {
       this.setState({
         features: response.data.rest
       })
@@ -151,7 +157,7 @@ class AccessControl extends React.Component<ILandingPage, {
           groups: response.data.rest
         })
       })
-
+*/
   }
 
   newFeature() {

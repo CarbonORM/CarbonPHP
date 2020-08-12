@@ -138,7 +138,6 @@ class Carbon_User_Groups extends Rest implements iRestfulReferences
         return $stmt->execute();
     
     }
-   
     
     /**
     * @param array $return

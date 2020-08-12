@@ -149,7 +149,6 @@ class Carbon_Groups extends Rest implements iRest
         return $stmt->execute() ? $id : false;
     
     }
-   
     
     /**
     * @param array $return

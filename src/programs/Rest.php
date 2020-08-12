@@ -677,6 +677,7 @@ export const C6 = {
     SUM: '" . \CarbonPHP\Rest::SUM . "',
     MIN: '" . \CarbonPHP\Rest::MIN . "',
     MAX: '" . \CarbonPHP\Rest::MAX . "',
+    GROUP_CONCAT: '" . \CarbonPHP\Rest::GROUP_CONCAT . "',
 
     $references_tsx
     

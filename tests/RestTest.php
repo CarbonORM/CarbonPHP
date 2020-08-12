@@ -221,8 +221,6 @@ final class RestTest extends Config
 
         $user = [];
 
-        define('love', 1);
-
         $this->assertTrue(Users::Get($user, $uid, [
             Users::SELECT => [
                 Users::USER_USERNAME,

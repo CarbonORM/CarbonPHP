@@ -160,7 +160,6 @@ class Carbon_User_Messages extends Rest implements iRest
         return $stmt->execute() ? $id : false;
     
     }
-   
     
     /**
     * @param array $return

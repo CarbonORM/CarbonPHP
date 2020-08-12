@@ -165,7 +165,6 @@ class Sessions extends Rest implements iRest
         return $stmt->execute();
     
     }
-   
     
     /**
     * @param array $return

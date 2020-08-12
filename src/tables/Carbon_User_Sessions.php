@@ -165,7 +165,6 @@ class Carbon_User_Sessions extends Rest implements iRest
         return $stmt->execute();
     
     }
-   
     
     /**
     * @param array $return

@@ -25,6 +25,7 @@ abstract class Rest extends Database
     public const SUM = 'sum';
     public const MIN = 'min';
     public const MAX = 'max';
+    public const GROUP_CONCAT = 'GROUP_CONCAT';
 
     #SQL helpful constants
     public const DESC = ' DESC'; // not case sensitive but helpful for reporting to remain uppercase
@@ -51,30 +52,22 @@ abstract class Rest extends Database
      * @param $column
      * @param $tableList
      * @return string|null
+     * @throws PublicAlert
      */
     public static function validateColumnName($column, $tableList): ?string
     {
         if (array_key_exists($column, static::PDO_VALIDATION)) {
-            return true;
+            return static::class;
         }
 
         // todo - this is where we move php val & regex
-        while (!empty($tableList)) {               // todo - this should work on all the columns with each new table reff
+
+        // I like the while loop bc it shrinks the array with ever iteration
+        while (!empty($tableList)) {             // todo - this should work on all the columns with each new table reff
             $table = array_pop($tableList);
 
-            if (!class_exists($table)) {
-                continue;
-            }
-
-            $imp = array_map('strtolower', array_keys(class_implements($table)));
-
-            /** @noinspection ClassConstantUsageCorrectnessInspection */
-            if (!in_array(strtolower(iRest::class), $imp, true) &&
-                !in_array(strtolower(iRestfulReferences::class), $imp, true)) {
-                continue;
-            }
-
-            if (array_key_exists($column, $table::PDO_VALIDATION)) {
+            if (array_key_exists($column, $table::PDO_VALIDATION) ||
+                in_array($column, $table::COLUMNS, true)) {      // allow short tags
                 return $table;
             }
         }
@@ -170,6 +163,7 @@ abstract class Rest extends Database
                 }
             }
         }
+
 
         if ($method === self::POST) {
             $where = &$args;
@@ -272,8 +266,13 @@ abstract class Rest extends Database
                     }
                 case self::DELETE:
                 case self::GET:
-                    if ($method === self::GET) {
-                        if (array_key_exists(self::WHERE, $_GET) && is_string($_GET[self::WHERE])) {
+                    if ($method === self::GET) {                  // I think it's silly we cant sent json in a get
+                        if (array_key_exists(0, $_GET)) {
+                            $_GET = json_decode($_GET[0], true);    // which is why this is here
+                            if (null === $_GET) {
+                                $_GET = [];
+                            }
+                        } else if (array_key_exists(self::WHERE, $_GET) && is_string($_GET[self::WHERE])) {
                             $_GET[self::WHERE] = json_decode($_GET[self::WHERE], true);
                         }
                         $args = $_GET;
@@ -281,7 +280,7 @@ abstract class Rest extends Database
                         $args = $_POST;
                     }
 
-                    self::validateRestfulArguments($method, $args, $regex, $php_validation);
+                    empty($args) or self::validateRestfulArguments($method, $args, $regex, $php_validation);
 
                     $methodCase = ucfirst(strtolower($_SERVER['REQUEST_METHOD']));  // this is to match actual method spelling
 
@@ -307,7 +306,7 @@ abstract class Rest extends Database
                         throw new PublicAlert('Failed to commit the transaction. Please, try again.');
                     }
 
-                    $json['rest'] = ['created' => $id];
+                    $json['rest'] = ['created' => $id ];
 
                     break;
             }
@@ -341,13 +340,15 @@ abstract class Rest extends Database
         }
 
         $aggregate = false;
-        $tableClassList = [static::class];
+        $tableClassList = [];
         $joinColumns = [];
         $group = [];
         $join = '';
         $sql = '';
+
         $get = $argv[self::SELECT] ?? array_keys(static::PDO_VALIDATION);
         $where = $argv[self::WHERE] ?? [];
+
 
         if (is_string($get)) {
             $argv[self::JOIN] = json_decode($argv[self::JOIN], true);
@@ -366,9 +367,21 @@ abstract class Rest extends Database
             }
             foreach ($argv[self::JOIN] as $by => $tables) {
                 $buildJoin = static function ($method) use ($tablePrefix, $tables, &$join, &$tableClassList, &$joinColumns) {
-
                     foreach ($tables as $table => $stmt) {
-                        $tableClassList[] = $tablePrefix . ucwords($table, '_');
+                        $tableClassList[] = $JoiningClass = $tablePrefix . ucwords($table, '_');
+
+                        if (!class_exists($JoiningClass)) {
+                            throw new PublicAlert('A table provided in the Restful join request was not found in the system. This may mean you need to auto generate your restful tables in the CLI.');
+                        }
+
+                        $imp = array_map('strtolower', array_keys(class_implements($JoiningClass)));
+
+                        /** @noinspection ClassConstantUsageCorrectnessInspection */
+                        if (!in_array(strtolower(iRest::class), $imp, true) &&
+                            !in_array(strtolower(iRestfulReferences::class), $imp, true)) {
+                            throw new PublicAlert('Rest error, class/table exists in the restful generation folder which does not implement the correct interfaces. Please re-run rest generation.');
+                        }
+
                         switch (count($stmt)) {
                             case 2:
                                 if (is_string($stmt[0]) && is_string($stmt[1])) {
@@ -446,14 +459,27 @@ abstract class Rest extends Database
 
                 if (array_key_exists(self::ORDER, $argv[self::PAGINATION]) && is_string($argv[self::PAGINATION][self::ORDER])) {
                     if (is_array($argv[self::PAGINATION][self::ORDER])) {
+                        $orderArray = [];
                         foreach ($argv[self::PAGINATION][self::ORDER] as $item => $sort) {
-                            $order .= "$item $sort";                                            // todo - validation
+                            if (!in_array($sort, [self::ASC, self::DESC], true)) {
+                                throw new PublicAlert('Restful order by failed to validate sorting method.');
+                            }
+                            if (null === $inTable = self::validateColumnName($item, $tableClassList)) {
+                              throw new PublicAlert('Failed to validate order by column.');
+                            }
+                            $orderArray[] = "$item $sort";                                            // todo - validation
                         }
+                        $order = implode(', ', $orderArray);
+                        unset($orderArray);
                     } else {
                         $order .= $argv[self::PAGINATION][self::ORDER];
                     }
                 } else if (array_key_exists(0, static::PRIMARY)) {
-                    $order .= static::PRIMARY[0] . self::DESC;
+                    if ('binary' === (static::PDO_VALIDATION[static::PRIMARY[0]][0] ?? '')) {
+                        $order .= static::COLUMNS[static::PRIMARY[0]] . self::DESC;
+                    } else {
+                        $order .= static::PRIMARY[0] . self::DESC;
+                    }
                 }
             }
             $limit = "$order $limit";
@@ -463,10 +489,11 @@ abstract class Rest extends Database
             $limit = '';
         }
 
+        //is_string($argv[0] ?? false) and sortDump($argv);
 
-        // Select
         foreach ($get as $key => $column) {
-            if (!empty($sql)) {
+
+            if (!empty($sql) && ',' !== $sql[-2]) {
                 $sql .= ', ';
             }
 
@@ -474,24 +501,45 @@ abstract class Rest extends Database
                 if (count($column) !== 2) {
                     throw new PublicAlert('An array in the GET Restful Request must be two values: [aggregate, column]');
                 }
-                [$aggregate, $column] = $column;
-                if (!in_array($aggregate, [self::MAX, self::MIN, self::SUM, self::DISTINCT], true)) {
+                [$aggregate, $column] = $column;    // todo - nested aggregates :: [$aggregate, string | array ]
+
+                if (!in_array($aggregate, [
+                    self::MAX,
+                    self::MIN,
+                    self::SUM,
+                    self::DISTINCT,
+                    self::GROUP_CONCAT
+                ], true)) {
                     throw new PublicAlert('The aggregate method in the GET request must be one of the following: ' . implode(', ', [self::MAX, self::MIN, self::SUM, self::DISTINCT]));
                 }
+
                 if (null === $table = self::validateColumnName($column, $tableClassList)) {
                     throw new PublicAlert('Could not validate a column ' . $column . ' in the request.'); // todo html entities
                 }
-                if ($aggregate === self::DISTINCT) {
-                    if (!$noHEX && $table::PDO_VALIDATION[$column][0] === 'binary') {
-                        $sql .= "$aggregate HEX($column) as " . $table::COLUMNS[$column];
-                    } else {
-                        $sql .= "$aggregate $column";
-                    }
-                } else {
-                    $sql .= "$aggregate($column)";
+
+                switch ($aggregate) {
+                    case self::GROUP_CONCAT:
+                        if (!$noHEX && $table::PDO_VALIDATION[$column][0] === 'binary') {
+                            $sql = "GROUP_CONCAT(DISTINCT HEX($column)) ORDER BY $column ASC SEPARATOR ',') as " . $table::COLUMNS[$column] . ', ' . $sql;
+                        } else {
+                            $sql = "GROUP_CONCAT(DISTINCT($column)) ORDER BY $column ASC SEPARATOR ',') as " . $table::COLUMNS[$column] . ', ' . $sql;
+                        }
+                        $sql = rtrim($sql, ', ');
+                        break;
+                    case self::DISTINCT:
+                        if (!$noHEX && $table::PDO_VALIDATION[$column][0] === 'binary') {
+                            $sql = "$aggregate HEX($column) as " . $table::COLUMNS[$column] . ', ' . $sql;
+                            $group[] = $table::COLUMNS[$column];
+                        } else {
+                            $sql = "$aggregate($column), $sql";
+                            $group[] = $column;
+                        }
+                        $sql = rtrim($sql, ' ,');
+                        break;
+                    default:
+                        $sql .= "$aggregate($column)";
+                        $group[] = $column;
                 }
-                $group[] = $column;
-                $aggregate = true;
                 continue;               // next foreach iteration
             }
 
@@ -500,23 +548,6 @@ abstract class Rest extends Database
             }
 
             if (array_key_exists($column, $joinColumns)) {
-                continue;
-            }
-
-            if (array_key_exists($column, static::PDO_VALIDATION)) {
-                if (!$noHEX && static::PDO_VALIDATION[$column][0] === 'binary') {
-                    $prefix = static::TABLE_NAME . '.';
-                    if (strpos($column, $prefix) === 0) {
-                        $asShort = substr($column, strlen($prefix));   //
-                    } else {
-                        $asShort = $column;
-                    }
-                    $sql .= "HEX($column) as $asShort";
-                    $group[] = $column;
-                } else {
-                    $sql .= $column;
-                    $group[] = $column;
-                }
                 continue;
             }
 
@@ -531,7 +562,7 @@ abstract class Rest extends Database
                 continue;
             }
 
-            throw new PublicAlert('Could not validate a column ' . $column . ' in the request');
+            throw new PublicAlert('Could not validate a column ' . $column . ' in the request.');
         }
 
         // case sensitive select

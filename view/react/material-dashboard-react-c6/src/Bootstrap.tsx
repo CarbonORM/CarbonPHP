@@ -14,6 +14,8 @@ import PageNotFound from "views/Errors/PageNotFound";
 // This is our ajax class
 import withStyles from "@material-ui/core/styles/withStyles";
 import {AxiosInstance} from "axios";
+import qs from 'qs';
+
 
 const styles = {
   ...appStyle,
@@ -274,7 +276,7 @@ class bootstrap extends React.Component<any, {
         console.log('failed to decode the alert');
       }
 
-      console.log(this.state.alert, this.state.alert !== null,  this.state.alert !== undefined)
+      console.log(this.state.alert, this.state.alert !== null, this.state.alert !== undefined)
 
       if (this.state.alert === null || this.state.alert === undefined) {
         this.setState({
@@ -291,6 +293,15 @@ class bootstrap extends React.Component<any, {
   };
 
   componentDidMount() {
+    this.state.axios.interceptors.request.use(req => {
+        if (req.method === 'get') {
+          req.params = JSON.stringify(req.params)
+        }
+        return req;
+      }, error => {
+        return Promise.reject(error);
+      }
+    );
     this.state.axios.interceptors.response.use(
       response => {
         // Do something with response data

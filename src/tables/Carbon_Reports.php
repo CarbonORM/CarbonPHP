@@ -140,7 +140,6 @@ class Carbon_Reports extends Rest implements iRestfulReferences
         return $stmt->execute();
     
     }
-   
     
     /**
     * @param array $return

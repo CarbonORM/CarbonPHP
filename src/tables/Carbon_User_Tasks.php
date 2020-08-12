@@ -170,7 +170,6 @@ class Carbon_User_Tasks extends Rest implements iRest
         return $stmt->execute() ? $id : false;
     
     }
-   
     
     /**
     * @param array $return

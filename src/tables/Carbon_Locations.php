@@ -168,7 +168,6 @@ class Carbon_Locations extends Rest implements iRest
         return $stmt->execute() ? $id : false;
     
     }
-   
     
     /**
     * @param array $return

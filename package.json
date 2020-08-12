@@ -14,7 +14,8 @@
     "jquery-backstretch": "2.1.16",
     "jquery-form": "^4.3.0",
     "jquery-pjax": "^2.0.1",
-    "mustache": "^2.3.2"
+    "mustache": "^2.3.2",
+    "qs": "^6.9.4"
   },
   "repository": {
     "type": "git",

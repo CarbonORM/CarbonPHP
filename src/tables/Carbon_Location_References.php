@@ -149,7 +149,6 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
         return $stmt->execute();
     
     }
-   
     
     /**
     * @param array $return

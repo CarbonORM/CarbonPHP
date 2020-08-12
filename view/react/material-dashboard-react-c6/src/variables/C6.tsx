@@ -18,6 +18,7 @@ export const C6 = {
     SUM: 'sum',
     MIN: 'min',
     MAX: 'max',
+    GROUP_CONCAT: 'GROUP_CONCAT',
 
     
 
