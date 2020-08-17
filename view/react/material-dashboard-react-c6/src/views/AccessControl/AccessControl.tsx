@@ -31,8 +31,6 @@ import {WithStyles} from "@material-ui/styles";
 
 import Card from "../../components/Card/Card";
 import CardHeader from "../../components/Card/CardHeader";
-import Popup from "../../components/Popup/Popup";
-import CustomTabs from "../../components/CustomTabs/CustomTabs";
 import CardBody from "../../components/Card/CardBody";
 import Table from "../../components/Table/Table";
 import {AxiosInstance} from "axios";
@@ -51,7 +49,7 @@ import withStyles from "@material-ui/core/styles/withStyles";
 
 
 // @ts-ignore
-interface ILandingPage extends WithStyles<typeof landingPageStyle> {
+interface iAccessConrol extends WithStyles<typeof landingPageStyle> {
   axios: AxiosInstance;
   testRestfulPostResponse: Function;
 }
@@ -61,21 +59,22 @@ interface UserAccessControl extends iCarbon_Users {
   feature_code?: string
 }
 
-interface GroupFeatures extends iCarbon_Groups, iCarbon_Features {
+interface iGroupFeatures extends iCarbon_Groups, iCarbon_Features {
+  allowed_to_grant_group_id?: string;
 }
 
 
-class AccessControl extends React.Component<ILandingPage, {
+class AccessControl extends React.Component<iAccessConrol, {
   currency: 'USD' | 'GBP' | 'EUR' | 'PLN',
   grantRolesModalOpen: boolean,
   createRolesAndAssignModalOpen: boolean,
   users?: Array<UserAccessControl>,
   features?: Array<iCarbon_Features>,
-  groups?: Array<GroupFeatures>,
+  groups?: Array<iGroupFeatures>,
   alert?: any,
   role?: string,
   feature: iCarbon_Features,
-  group: GroupFeatures,
+  group: iGroupFeatures,
   user: UserAccessControl,
 }> {
   constructor(props) {
@@ -162,10 +161,15 @@ class AccessControl extends React.Component<ILandingPage, {
         [C6.SELECT]: [
           C6.carbon_groups.ENTITY_ID,
           C6.carbon_groups.GROUP_NAME,
-          [C6.GROUP_CONCAT, C6.carbon_features.FEATURE_CODE]
+          [C6.GROUP_CONCAT, C6.carbon_features.FEATURE_CODE],
+          [C6.GROUP_CONCAT, C6.carbon_group_references.ALLOWED_TO_GRANT_GROUP_ID]
         ],
         [C6.JOIN]: {
           [C6.LEFT]: {
+            [C6.carbon_group_references.TABLE_NAME]: [
+              C6.carbon_group_references.GROUP_ID,
+              C6.carbon_groups.ENTITY_ID
+            ],
             [C6.carbon_feature_group_references.TABLE_NAME]: [
               C6.carbon_groups.ENTITY_ID,
               C6.carbon_feature_group_references.GROUP_ENTITY_ID
@@ -186,10 +190,12 @@ class AccessControl extends React.Component<ILandingPage, {
 
   deleteFeatureFromGroup(groupId: string, featureId: string) {
     this.props.axios.delete('/rest/' + C6.carbon_feature_group_references.TABLE_NAME, {
-      data: {[C6.WHERE]: {
-        [C6.carbon_feature_group_references.FEATURE_ENTITY_ID]: featureId,
-        [C6.carbon_feature_group_references.GROUP_ENTITY_ID]: groupId,
-      }}
+      data: {
+        [C6.WHERE]: {
+          [C6.carbon_feature_group_references.FEATURE_ENTITY_ID]: featureId,
+          [C6.carbon_feature_group_references.GROUP_ENTITY_ID]: groupId,
+        }
+      }
     })
       .then(response => this.setState({
         groups: this.state.groups.map(obj => {
@@ -209,18 +215,20 @@ class AccessControl extends React.Component<ILandingPage, {
 
   deleteGroupFromUser(userId: string, groupId: string) {
     this.props.axios.delete('/rest/' + C6.carbon_user_groups.TABLE_NAME, {
-      data: {[C6.WHERE]: {
-        [C6.carbon_user_groups.GROUP_ID]: userId,
-        [C6.carbon_user_groups.USER_ID]: groupId,
-      }}
+      data: {
+        [C6.WHERE]: {
+          [C6.carbon_user_groups.GROUP_ID]: userId,
+          [C6.carbon_user_groups.USER_ID]: groupId,
+        }
+      }
     })
       .then(response => this.setState({
         users: this.state.users.map(obj => {
           if (obj.user_id !== userId) {
             return obj;
           }
-          const fullGroup: GroupFeatures =
-            this.state.groups.find((group: GroupFeatures) => group.entity_id === groupId);
+          const fullGroup: iGroupFeatures =
+            this.state.groups.find((group: iGroupFeatures) => group.entity_id === groupId);
 
           let regex = new RegExp('(^|,)' + fullGroup.group_name + ',?', 'g');
 
@@ -229,7 +237,51 @@ class AccessControl extends React.Component<ILandingPage, {
           return obj;
         })
       }))
+  }
 
+  newGroupGrantabillity(modifyGroupId: string, allowGroupGrantRightsId: string) {
+    let id = '';
+    this.setState({ alert: null }, () =>
+      this.props.axios.post('/rest/' + C6.carbon_group_references.TABLE_NAME,{
+          [C6.carbon_group_references.GROUP_ID]: modifyGroupId,
+          [C6.carbon_group_references.ALLOWED_TO_GRANT_GROUP_ID]: allowGroupGrantRightsId,
+        })
+        .then(response => (id = this.props.testRestfulPostResponse(response, 'Successfully Created Feature Code',
+          'An unknown issue occurred. We will be looking into this shortly.'))
+          && this.setState({
+            groups: this.state.groups.map(obj => {
+              if (obj.entity_id !== modifyGroupId) {
+                return obj;
+              }
+              obj.allowed_to_grant_group_id += ',' + allowGroupGrantRightsId;
+              return obj
+            })
+          }))
+    )
+  }
+
+  deleteGroupGrantabillity(modifyGroupId: string, allowGroupGrantRightsId: string) {
+    this.props.axios.delete('/rest/' + C6.carbon_group_references.TABLE_NAME, {
+      data: {
+        [C6.WHERE]: {
+          [C6.carbon_group_references.GROUP_ID]: modifyGroupId,
+          [C6.carbon_group_references.ALLOWED_TO_GRANT_GROUP_ID]: allowGroupGrantRightsId,
+        }
+      }
+    })
+      .then(response => this.setState({
+        groups: this.state.groups.map(obj => {
+          if (obj.entity_id !== modifyGroupId) {
+            return obj;
+          }
+
+          let regex = new RegExp('(^|,)' + allowGroupGrantRightsId + ',?', 'g');
+
+          obj.allowed_to_grant_group_id = obj.allowed_to_grant_group_id.replace(regex, ',');
+
+          return obj;
+        })
+      }))
   }
 
   newFeature() {
@@ -338,8 +390,8 @@ class AccessControl extends React.Component<ILandingPage, {
               if (obj.user_id !== userId) {
                 return obj;
               }
-              const fullGroup: GroupFeatures =
-                this.state.groups.find((group: GroupFeatures) => group.entity_id === groupId);
+              const fullGroup: iGroupFeatures =
+                this.state.groups.find((group: iGroupFeatures) => group.entity_id === groupId);
               obj.group_name += ',' + fullGroup.group_name;
               return obj;
             })
@@ -459,7 +511,41 @@ class AccessControl extends React.Component<ILandingPage, {
                               {enabled ? " Enabled " : "Disabled"}
                             </Button>
                           }),
-                          <Button onClick={this.handleModalChange} color="danger">Admin</Button>
+
+                          <Button onClick={() => swal(<GridContainer>
+                              <GridItem xs={12} sm={12} md={12}>
+                                <div>
+                                  <h5><b>You will be affecting 9 users already assigned to this role.</b></h5>
+                                  <br/>
+                                  <p>Moving to the Grant Ability.... will allow this user to... create and manage
+                                    other users...</p>
+                                </div>
+                                <Table
+                                  tableHeaderColor="info"
+                                  tableHead={["Group #", "Group Name", "Grantability Status"]}
+                                  tableData={
+                                    this.state.groups.map((SubGroup, key) => {
+
+                                      let regex = new RegExp('(^|,)' + SubGroup.entity_id + ',?', 'g');
+
+                                      let enabled = regex.test(group.allowed_to_grant_group_id);
+
+                                      return [
+                                        key,
+                                        SubGroup.group_name,
+                                        <Button color={enabled ? "success" : "default"}
+                                                onClick={() => enabled ?
+                                                  this.deleteGroupGrantabillity(group.entity_id, SubGroup.entity_id) :
+                                                  this.newGroupGrantabillity(group.entity_id, SubGroup.entity_id)}>
+                                          {enabled ? " Can Give Access " : "Can not Grant"}
+                                        </Button>
+                                      ]
+                                    })
+                                  }
+                                />
+                              </GridItem>
+                            </GridContainer>
+                          )} color="danger">Admin</Button>
                         ]
                       })
                     }
@@ -567,9 +653,7 @@ class AccessControl extends React.Component<ILandingPage, {
                           />
                           <hr/>
                         </form>
-                    }).then(shouldSubmit => shouldSubmit && this.newUser())
-
-                    }
+                    }).then(shouldSubmit => shouldSubmit && this.newUser())}
                   >
                     Create New User
                   </Button>
@@ -608,51 +692,6 @@ class AccessControl extends React.Component<ILandingPage, {
             </GridItem>
           </GridContainer>
         </GridItem>
-        <Popup
-          open={this.state.grantRolesModalOpen}
-          handleClose={this.handleModalChange}>
-          < CustomTabs
-            headerColor="warning"
-            tabs={
-              [
-                {
-                  tabName: "Warning",
-                  tabContent: (
-                    <div>
-                      <h5><b>You will be affecting 9 users already assigned to this role.</b></h5>
-                      <br/>
-                      <p>Moving to the Grant Ability.... will allow this user to... create and manage
-                        other users...</p>
-                    </div>
-                  )
-                },
-                {
-                  tabName: "Grant Grantability Status",
-                  tabContent: (
-                    <GridContainer>
-                      <GridItem xs={12} sm={12} md={12}>
-                        <Table
-                          tableHeaderColor="info"
-                          tableHead={["Role Name", "Grantability Status"]}
-                          tableData={[
-                            ["Pharmacists", <Button color="success">Granted</Button>],
-                            ["Store Manager", <Button color="success">Granted</Button>],
-                            ["Order People", <Button color="info">Assign</Button>],
-                            ["Role 1", <Button color="info">Assign</Button>],
-                            ["Role 2 < insert Buzz Word Here >",
-                              <Button color="info">Assign</Button>],
-                            ["Role CSOS", <Button color="info">Assign</Button>],
-                            ["R2D2", <Button color="success">Assign</Button>],
-                          ]}
-                        />
-                      </GridItem>
-                    </GridContainer>
-                  )
-                },
-              ]
-            }
-          />
-        </Popup>
       </div>
     );
   }
