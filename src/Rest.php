@@ -164,7 +164,6 @@ abstract class Rest extends Database
             }
         }
 
-
         if ($method === self::POST) {
             $where = &$args;
         } else {
@@ -175,7 +174,7 @@ abstract class Rest extends Database
             foreach ($where as $column => &$value) {
                 if (array_key_exists($column, $regex) &&
                     preg_match_all($regex[$column], $value, $matches, PREG_SET_ORDER) < 1) {  // can return 0 or false
-                    throw new PublicAlert('The request failed the regex test, please make sure arguments are correct.');
+                    throw new PublicAlert('The request failed the regex (' . $regex[$column] . ') test, please make sure arguments are correct.');
                 }
                 if (array_key_exists($column, $php_validation)) {
                     foreach ($php_validation[$column] as $validation) {
@@ -183,10 +182,10 @@ abstract class Rest extends Database
                         $validationMethod = $validation[$class];
                         unset($validation[$class]);
                         if (!class_exists($class)) {
-                            throw new PublicAlert('A class reference in PHP_VALIDATION[$column] failed. Make sure arrow \'=>\' is use and not a comma \',\'.');
+                            throw new PublicAlert('A class reference in PHP_VALIDATION[$column] failed. Make sure an arrow \'=>\' is use and not a comma \',\'.');
                         }
                         if (false === call_user_func_array([$class, $validationMethod], [&$value, ...$validation])) {
-                            throw new PublicAlert('The request failed, please make sure arguments are correct.');
+                            throw new PublicAlert('Restful PHP validation returned false for column (' . $column . '). The request failed, please make sure arguments are correct.');
                         }
                     }
                 }
@@ -218,6 +217,8 @@ abstract class Rest extends Database
     public static function RestfulRequests(string $table, string $primary = null, string $namespace = 'Tables\\'): bool
     {
         global $json;
+
+        $json = []; // clear all prior reporting
 
         try {
             if (APP_ROOT . 'src' . DS === CARBON_ROOT) {
@@ -306,7 +307,7 @@ abstract class Rest extends Database
                         throw new PublicAlert('Failed to commit the transaction. Please, try again.');
                     }
 
-                    $json['rest'] = ['created' => $id ];
+                    $json['rest'] = ['created' => $id];
 
                     break;
             }
@@ -465,7 +466,7 @@ abstract class Rest extends Database
                                 throw new PublicAlert('Restful order by failed to validate sorting method.');
                             }
                             if (null === $inTable = self::validateColumnName($item, $tableClassList)) {
-                              throw new PublicAlert('Failed to validate order by column.');
+                                throw new PublicAlert('Failed to validate order by column.');
                             }
                             $orderArray[] = "$item $sort";                                            // todo - validation
                         }
@@ -520,9 +521,9 @@ abstract class Rest extends Database
                 switch ($aggregate) {
                     case self::GROUP_CONCAT:
                         if (!$noHEX && $table::PDO_VALIDATION[$column][0] === 'binary') {
-                            $sql = "GROUP_CONCAT(DISTINCT HEX($column)) ORDER BY $column ASC SEPARATOR ',') as " . $table::COLUMNS[$column] . ', ' . $sql;
+                            $sql = "GROUP_CONCAT(DISTINCT HEX($column) ORDER BY $column ASC SEPARATOR ',') as " . $table::COLUMNS[$column] . ', ' . $sql;
                         } else {
-                            $sql = "GROUP_CONCAT(DISTINCT($column)) ORDER BY $column ASC SEPARATOR ',') as " . $table::COLUMNS[$column] . ', ' . $sql;
+                            $sql = "GROUP_CONCAT(DISTINCT($column) ORDER BY $column ASC SEPARATOR ',') as " . $table::COLUMNS[$column] . ', ' . $sql;
                         }
                         $sql = rtrim($sql, ', ');
                         break;
@@ -534,7 +535,7 @@ abstract class Rest extends Database
                             $sql = "$aggregate($column), $sql";
                             $group[] = $column;
                         }
-                        $sql = rtrim($sql, ' ,');
+                        $sql = rtrim($sql, ', ');
                         break;
                     default:
                         $sql .= "$aggregate($column)";
@@ -543,11 +544,12 @@ abstract class Rest extends Database
                 continue;               // next foreach iteration
             }
 
+
             if (!is_string($column)) {         // is this even possible at this point?
                 throw new PublicAlert('C6 Rest client could not validate a column in the GET:[] request.');
             }
 
-            if (array_key_exists($column, $joinColumns)) {
+            if (array_key_exists($column, $joinColumns)) {  // todo - we need to cache everywhere / for every / validateColumnName
                 continue;
             }
 

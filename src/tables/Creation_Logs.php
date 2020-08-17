@@ -1,7 +1,8 @@
-<?php /** @noinspection PhpFullyQualifiedNameUsageInspection */
+<?php 
 
 namespace CarbonPHP\Tables;
 
+// Restful defaults
 use PDO;
 use CarbonPHP\Rest;
 use CarbonPHP\Interfaces\iRestfulReferences;
@@ -10,6 +11,9 @@ use function array_key_exists;
 use function count;
 use function func_get_args;
 use function is_array;
+
+// Custom User Imports
+
 
 class Creation_Logs extends Rest implements iRestfulReferences
 {
@@ -85,7 +89,7 @@ class Creation_Logs extends Rest implements iRestfulReferences
         self::bind($stmt);
 
         if (!$stmt->execute()) {
-            throw new PublicAlert('Failed to execute the query on Creation_Logs.');
+            throw new PublicAlert('Failed to execute the query on Creation_Logs.', 'danger');
         }
 
         $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -112,7 +116,7 @@ class Creation_Logs extends Rest implements iRestfulReferences
     {   
         foreach ($argv as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)){
-                throw new PublicAlert("Restful table could not post column $columnName, because it does not appear to exist.");
+                throw new PublicAlert("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
             }
         } 
         
@@ -158,12 +162,12 @@ class Creation_Logs extends Rest implements iRestfulReferences
         $argv = $argv[self::UPDATE];
 
         if (empty($where) || empty($argv)) {
-            throw new PublicAlert('Restful tables which have no primary key must be updated specific where conditions.');
+            throw new PublicAlert('Restful tables which have no primary key must be updated specific where conditions.', 'danger');
         }
         
         foreach ($argv as $key => $value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.');
+                throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.', 'danger');
             }
         }
 
@@ -208,11 +212,11 @@ class Creation_Logs extends Rest implements iRestfulReferences
         self::bind($stmt);
 
         if (!$stmt->execute()) {
-            throw new PublicAlert('Restful table Creation_Logs failed to execute the update query.');
+            throw new PublicAlert('Restful table Creation_Logs failed to execute the update query.', 'danger');
         }
         
         if (!$stmt->rowCount()) {
-            throw new PublicAlert('Failed to update the target row.');
+            throw new PublicAlert('Failed to update the target row.', 'danger');
         }
         
         $argv = array_combine(
@@ -244,7 +248,11 @@ class Creation_Logs extends Rest implements iRestfulReferences
 
         $pdo = self::database();
         
-               
+     
+        if (empty($argv)) {
+            throw new PublicAlert('When deleting from restful tables with out a primary key additional arguments must be provided.', 'danger');
+        } 
+         
         $sql .= ' WHERE ' . self::buildWhere($argv, $pdo, 'creation_logs', self::PDO_VALIDATION);
 
         self::jsonSQLReporting(func_get_args(), $sql);
@@ -259,4 +267,7 @@ class Creation_Logs extends Rest implements iRestfulReferences
 
         return $r;
     }
+     
+
+    
 }

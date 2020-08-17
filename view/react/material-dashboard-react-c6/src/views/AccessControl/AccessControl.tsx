@@ -15,7 +15,7 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import React from "react";
+import React, {ChangeEvent} from "react";
 // nodejs library to set properties for components
 // nodejs library that concatenates classes
 // @material-ui/core components
@@ -36,29 +36,47 @@ import CustomTabs from "../../components/CustomTabs/CustomTabs";
 import CardBody from "../../components/Card/CardBody";
 import Table from "../../components/Table/Table";
 import {AxiosInstance} from "axios";
-import {C6, COLUMNS, iCarbon_Features, iCarbon_Groups, iCarbon_Users} from "variables/C6";
-import {withStyles} from "@material-ui/core";
-import SweetAlert from "react-bootstrap-sweetalert";
-import {SweetAlertRenderProps} from "react-bootstrap-sweetalert/dist/types";
+import {
+  C6,
+  convertForRequestBody,
+  iCarbon_Feature_Group_References,
+  iCarbon_Features,
+  iCarbon_Groups,
+  iCarbon_User_Groups,
+  iCarbon_Users
+} from "variables/C6";
+import CustomInput from "../../components/CustomInput/CustomInput";
+import swal from '@sweetalert/with-react';
+import withStyles from "@material-ui/core/styles/withStyles";
 
 
 // @ts-ignore
 interface ILandingPage extends WithStyles<typeof landingPageStyle> {
-  axios: AxiosInstance
+  axios: AxiosInstance;
+  testRestfulPostResponse: Function;
 }
+
+interface UserAccessControl extends iCarbon_Users {
+  group_name?: string,
+  feature_code?: string
+}
+
+interface GroupFeatures extends iCarbon_Groups, iCarbon_Features {
+}
+
 
 class AccessControl extends React.Component<ILandingPage, {
   currency: 'USD' | 'GBP' | 'EUR' | 'PLN',
   grantRolesModalOpen: boolean,
   createRolesAndAssignModalOpen: boolean,
-  users?: Array<iCarbon_Users>,
+  users?: Array<UserAccessControl>,
   features?: Array<iCarbon_Features>,
-  groups?: Array<iCarbon_Groups>,
+  groups?: Array<GroupFeatures>,
   alert?: any,
   role?: string,
-  feature?: iCarbon_Features,
-  group?: iCarbon_Groups,
-  user?: iCarbon_Users,
+  feature: iCarbon_Features,
+  group: GroupFeatures,
+  user: UserAccessControl,
 }> {
   constructor(props) {
     super(props);
@@ -69,7 +87,10 @@ class AccessControl extends React.Component<ILandingPage, {
       users: [],
       alert: null,
       features: [],
-      groups: []
+      groups: [],
+      group: {},
+      feature: {},
+      user: {}
     };
 
     this.newFeature = this.newFeature.bind(this);
@@ -98,13 +119,14 @@ class AccessControl extends React.Component<ILandingPage, {
     const { axios } = this.props;
 
     axios.get('/rest/' + C6.carbon_users.TABLE_NAME, {
-      params: ({  // qs.stringify
+      params: {
         [C6.SELECT]: [
           C6.carbon_users.USER_USERNAME,
           C6.carbon_users.USER_FIRST_NAME,
           C6.carbon_users.USER_LAST_NAME,
           C6.carbon_users.USER_ID,
-          [C6.DISTINCT, C6.carbon_features.FEATURE_CODE]
+          [C6.GROUP_CONCAT, C6.carbon_features.FEATURE_CODE],
+          [C6.GROUP_CONCAT, C6.carbon_groups.GROUP_NAME]
         ],
         [C6.JOIN]: {
           [C6.LEFT]: {
@@ -129,61 +151,202 @@ class AccessControl extends React.Component<ILandingPage, {
         [C6.PAGINATION]: {
           [C6.LIMIT]: 10
         }
-      })
-    }).then(response => {
-      this.setState({
-        users: response.data.rest
-      })
-    });
+      }
+    }).then(response => this.setState({ users: response.data.rest }));
 
-
-
-   /* axios.get('/rest/' + C6.carbon_features.TABLE_NAME).then(response => {
-      this.setState({
-        features: response.data.rest
-      })
-    });
-
+    axios.get('/rest/' + C6.carbon_features.TABLE_NAME)
+      .then(response => this.setState({ features: response.data.rest }));
 
     axios.get('/rest/' + C6.carbon_groups.TABLE_NAME, {
       params: {
+        [C6.SELECT]: [
+          C6.carbon_groups.ENTITY_ID,
+          C6.carbon_groups.GROUP_NAME,
+          [C6.GROUP_CONCAT, C6.carbon_features.FEATURE_CODE]
+        ],
+        [C6.JOIN]: {
+          [C6.LEFT]: {
+            [C6.carbon_feature_group_references.TABLE_NAME]: [
+              C6.carbon_groups.ENTITY_ID,
+              C6.carbon_feature_group_references.GROUP_ENTITY_ID
+            ],
+            [C6.carbon_features.TABLE_NAME]: [
+              C6.carbon_features.FEATURE_ENTITY_ID,
+              C6.carbon_feature_group_references.FEATURE_ENTITY_ID
+            ]
+          }
+        },
         [C6.PAGINATION]: {
-          [C6.LIMIT]: 2
+          [C6.LIMIT]: 10
         }
       }
+    }).then(response => this.setState({ groups: response.data.rest }))
+
+  }
+
+  deleteFeatureFromGroup(groupId: string, featureId: string) {
+    this.props.axios.delete('/rest/' + C6.carbon_feature_group_references.TABLE_NAME, {
+      data: {[C6.WHERE]: {
+        [C6.carbon_feature_group_references.FEATURE_ENTITY_ID]: featureId,
+        [C6.carbon_feature_group_references.GROUP_ENTITY_ID]: groupId,
+      }}
     })
-      .then(response => {
-        this.setState({
-          groups: response.data.rest
+      .then(response => this.setState({
+        groups: this.state.groups.map(obj => {
+          if (obj.entity_id !== groupId) {
+            return obj;
+          }
+          const fullFeature: iCarbon_Features = this.state.features.find((feature: iCarbon_Features) => feature.feature_entity_id === featureId);
+
+          let regex = new RegExp('(^|,)' + fullFeature.feature_code + ',?', 'g');
+
+          obj.feature_code = obj.feature_code.replace(regex, ',');
+
+          return obj;
         })
-      })
-*/
+      }))
+  }
+
+  deleteGroupFromUser(userId: string, groupId: string) {
+    this.props.axios.delete('/rest/' + C6.carbon_user_groups.TABLE_NAME, {
+      data: {[C6.WHERE]: {
+        [C6.carbon_user_groups.GROUP_ID]: userId,
+        [C6.carbon_user_groups.USER_ID]: groupId,
+      }}
+    })
+      .then(response => this.setState({
+        users: this.state.users.map(obj => {
+          if (obj.user_id !== userId) {
+            return obj;
+          }
+          const fullGroup: GroupFeatures =
+            this.state.groups.find((group: GroupFeatures) => group.entity_id === groupId);
+
+          let regex = new RegExp('(^|,)' + fullGroup.group_name + ',?', 'g');
+
+          obj.group_name = obj.group_name.replace(regex, ',');
+
+          return obj;
+        })
+      }))
+
   }
 
   newFeature() {
-    const { axios } = this.props;
-    axios.post('/rest/' + C6.carbon_features.TABLE_NAME, {
-      [C6.carbon_features.FEATURE_CODE]: this.state.feature.feature_code,
-    }).then(response => { // todo check status
-      this.setState({ alert: null });
-    })
+    let id = '';
+    this.setState({ alert: null }, () =>
+      this.props.axios.post('/rest/' + C6.carbon_features.TABLE_NAME,
+        convertForRequestBody(this.state.feature, C6.carbon_features.TABLE_NAME))
+        .then(response => (id = this.props.testRestfulPostResponse(response, 'Successfully Created Feature Code',
+          'An unknown issue occurred. We will be looking into this shortly.')) && this.setState({
+          feature: {
+            feature_code: this.state.feature.feature_code,
+            feature_entity_id: id
+          }
+        }, () => this.setState({
+          features: [
+            ...this.state.features,
+            this.state.feature
+          ]
+        }))))
   }
 
+  newUser() {
+    const { axios } = this.props;
+    let id = '';
+    this.setState({ alert: null }, () =>
+      axios.post('/rest/' + C6.carbon_users.TABLE_NAME,
+        convertForRequestBody(this.state.user, C6.carbon_users.TABLE_NAME))
+        .then(response => (id =
+          this.props.testRestfulPostResponse(response,
+            'New User Successfully Created',
+            'An unknown issue occurred. We will be looking into this shortly.'
+          )) && this.setState({
+          user: {
+            ...this.state.users,
+            user_id: id
+          }
+        }, () => this.setState({
+          users: [
+            ...this.state.users,
+            this.state.user
+          ]
+        }))))
+  }
 
   newGroup() {
     const { axios } = this.props;
-    axios.post('/rest/' + C6.carbon_groups.TABLE_NAME, {
-      [C6.carbon_groups.GROUP_NAME]: this.state.group.group_name,
-    }).then(response => {
-      console.log(
-        response.data.rest
-      )
-    })
+    let id = '';
+    this.setState({ alert: null }, () =>
+      axios.post('/rest/' + C6.carbon_groups.TABLE_NAME,
+        convertForRequestBody(this.state.group, C6.carbon_groups.TABLE_NAME))
+        .then(response =>
+          (id = this.props.testRestfulPostResponse(response, 'Successfully Created The Group',
+            'An unknown issue occurred. We will be looking into this shortly.')) && this.setState({
+            group: {
+              group_name: this.state.group.group_name,
+              entity_id: id
+            }
+          }, () => this.setState({
+            groups: [
+              ...this.state.groups,
+              this.state.group,
+            ]
+          }))));
   }
 
-  featureButtonMappings(code) {
-    return this.state.features.map(() => <Button color="default">disabled</Button>);
+  addFeatureToGroup(featureId: string, groupId: string) {
+    const { axios } = this.props;
+    let id = '';
+    const payload: iCarbon_Feature_Group_References = {
+      feature_entity_id: featureId,
+      group_entity_id: groupId
+    };
+
+    this.setState({ alert: null }, () =>
+      axios.post('/rest/' + C6.carbon_feature_group_references.TABLE_NAME,
+        convertForRequestBody(payload, C6.carbon_feature_group_references.TABLE_NAME))
+        .then(response =>
+          (id = this.props.testRestfulPostResponse(response, null,
+            'An unknown issue occurred. We will be looking into this shortly.')) && this.setState({
+            groups: this.state.groups.map(obj => {
+              if (obj.entity_id !== groupId) {
+                return obj;
+              }
+              const fullFeature: iCarbon_Features = this.state.features.find((feature: iCarbon_Features) => feature.feature_entity_id === featureId);
+              obj.feature_code += ',' + fullFeature.feature_code;
+              return obj
+            })
+          })));
   }
+
+  addUserToGroup(userId: string, groupId: string) {
+    const { axios } = this.props;
+    let id = '';
+    const payload: iCarbon_User_Groups = {
+      group_id: groupId,
+      user_id: userId
+    };
+    this.setState({ alert: null }, () =>
+      axios.post('/rest/' + C6.carbon_user_groups.TABLE_NAME,
+        convertForRequestBody(payload, C6.carbon_user_groups.TABLE_NAME))
+        .then(response =>
+          (id = this.props.testRestfulPostResponse(response, null,
+            'An unknown issue occurred. We will be looking into this shortly.')) &&
+          this.setState({
+            users: this.state.users.map(obj => {
+              if (obj.user_id !== userId) {
+                return obj;
+              }
+              const fullGroup: GroupFeatures =
+                this.state.groups.find((group: GroupFeatures) => group.entity_id === groupId);
+              obj.group_name += ',' + fullGroup.group_name;
+              return obj;
+            })
+          })
+        ));
+  }
+
 
   render() {
     const { alert, features } = this.state;
@@ -213,88 +376,89 @@ class AccessControl extends React.Component<ILandingPage, {
                   </p>
                   <Button
                     color="default"
-                    onClick={() => this.setState({
-                      alert: <SweetAlert
-                        title={<>Create a new feature flag <br/> (Site Admin Only)</>}
-                        customButtons={<>
-                          <Button color="default" onClick={() => this.setState({ alert: null })}>Cancel</Button>
-                          <Button color="info" onClick={this.newFeature}>Submit</Button></>}
-                        onConfirm={() => this.setState({ alert: null })}
-                        onCancel={() => this.setState({ alert: null })}
-                        dependencies={[this.state.user]}
-                      >
-                        {(renderProps: SweetAlertRenderProps) => (
-                          <>
-                            Your New Feature Name:
-                            <hr/>
-                            <input
-                              type={'text'}
-                              ref={renderProps.setAutoFocusInputRef}
-                              className="form-control"
-                              value={this.state.feature.feature_code}
-                              onKeyDown={renderProps.onEnterKeyDownConfirm}
-                              onChange={(e) => this.setState({
-                                feature: {
-                                  ...this.state.feature,
-                                  feature_code: e.target.value
-                                }
-                              })}
-                              placeholder={'Feature Flag Name'}
-                            />
-                            <br/>
-                            <hr/>
-                          </>
-                        )}
-                      </SweetAlert>
-                    })}
+                    onClick={() => swal({
+                      buttons: true,
+                      content: <div><h2>Create a new feature flag</h2><b>(Site Admin Only)</b><br/><br/>
+                        Your New Feature Name:
+                        <hr/>
+                        <CustomInput
+                          success
+                          labelText="Feature Flag Name"
+                          id="Feature_Flag_Name"
+                          formControlProps={{
+                            fullWidth: true
+                          }}
+                          inputProps={{
+                            onChange: (e: ChangeEvent<HTMLInputElement>) => this.setState({
+                              feature: {
+                                ...this.state.feature,
+                                feature_code: e.target.value
+                              }
+                            })
+                          }}
+                        />
+                        <br/>
+                        <hr/>
+                      </div>
+                    }).then(shouldSubmit => shouldSubmit && this.newFeature())}
                   >
                     Start New Feature
                   </Button>
                   <Button color="warning"
-                          onClick={() => this.setState({
-                            alert: <SweetAlert
-                              title={<>Create a permission group</>}
-                              customButtons={<>
-                                <Button color="default" onClick={() => this.setState({ alert: null })}>Cancel</Button>
-                                <Button color="info" onClick={this.newGroup}>Submit</Button></>}
-                              onConfirm={() => this.setState({ alert: null })}
-                              onCancel={() => this.setState({ alert: null })}
-                              dependencies={[this.state.user]}
-                            >
-                              {(renderProps: SweetAlertRenderProps) => (
-                                <>
+                          onClick={() =>
+                            swal({
+                              buttons: true,
+                              content:
+                                <div>Create a permission group <br/>
                                   Your New Group Name:
                                   <hr/>
-                                  <input
-                                    type={'text'}
-                                    ref={renderProps.setAutoFocusInputRef}
-                                    className="form-control"
-                                    value={this.state.group.group_name}
-                                    onKeyDown={renderProps.onEnterKeyDownConfirm}
-                                    onChange={(e) => this.setState({
-                                      group: {
-                                        ...this.state.group,
-                                        group_name: e.target.value
-                                      }
-                                    })}
-                                    placeholder={'Group Permissions Name'}
+                                  <CustomInput
+                                    success
+                                    labelText="Permissions Group Name"
+                                    id="Permissions_Group_Name"
+                                    formControlProps={{
+                                      fullWidth: true
+                                    }}
+                                    inputProps={{
+                                      onChange: (e: ChangeEvent<HTMLInputElement>) => this.setState({
+                                        group: {
+                                          ...this.state.group,
+                                          group_name: e.target.value
+                                        }
+                                      })
+                                    }}
                                   />
                                   <br/>
                                   <hr/>
-                                </>
-                              )}</SweetAlert>
-                          })}>Create New Group</Button>
+                                </div>
+                            })
+                          }>Create New Group</Button>
                 </CardHeader>
                 <CardBody>
                   <Table
                     tableHeaderColor="success"
-                    tableHead={["Role Name", ...featureCodes, "Admin"]}
+                    tableHead={["Group Name", ...featureCodes, "Admin"]}
                     tableData={
                       this.state.groups.map(group => {
                         const name = humanize(group.group_name);
+
                         return [
                           <p onClick={this.handleNatModalChange}>{name}</p>,
-                          ...this.featureButtonMappings(name),
+                          ...this.state.features.map(feature => {
+
+                            const enabled = group.feature_code?.includes(',' + feature.feature_code + ',')
+                              || group.feature_code?.startsWith(feature.feature_code + ',')
+                              || group.feature_code?.includes(',' + feature.feature_code)
+                              || group.feature_code === feature.feature_code;
+
+                            return <Button color={enabled ? "success" : "default"}
+                                           onClick={() => enabled ?
+                                             this.deleteFeatureFromGroup(group.entity_id, feature.feature_entity_id) :
+                                             this.addFeatureToGroup(feature.feature_entity_id, group.entity_id)}
+                            >
+                              {enabled ? " Enabled " : "Disabled"}
+                            </Button>
+                          }),
                           <Button onClick={this.handleModalChange} color="danger">Admin</Button>
                         ]
                       })
@@ -315,71 +479,128 @@ class AccessControl extends React.Component<ILandingPage, {
 
                   <Button
                     color="default"
-                    onClick={() => this.setState({
-                      alert: <SweetAlert
-                        title={<>Create a new User<br/> (Site Admin Only)</>}
-                        customButtons={<>
-                          <Button color="default" onClick={() => this.setState({ alert: null })}>Cancel</Button>
-                          <Button color="info">Submit</Button></>}
-                        onConfirm={() => this.setState({ alert: null })}
-                        onCancel={() => this.setState({ alert: null })}
-                        dependencies={[this.state.user]}
-                      >
-                        {(renderProps: SweetAlertRenderProps) => (
-                          <form>
-                            New user's name
-                            is: {this.state.user ? this.state.user[C6.carbon_users.USER_FIRST_NAME] : ""}{" "}
-                            {this.state.user ? this.state.user[C6.carbon_users.USER_LAST_NAME] : ""}
-                            <hr/>
-                            <input
-                              type={'text'}
-                              ref={renderProps.setAutoFocusInputRef}
-                              className="form-control"
-                              value={this.state.user && this.state.user[C6.carbon_users.USER_FIRST_NAME]}
-                              onKeyDown={renderProps.onEnterKeyDownConfirm}
-                              onChange={(e) => this.setState({
+                    onClick={() => swal({
+                      buttons: true,
+                      content:
+                        <form>
+                          <h2>Create a new user</h2><br/>
+                          <hr/>
+                          <CustomInput
+                            success
+                            labelText="First Name"
+                            id="user_first_name"
+                            formControlProps={{
+                              fullWidth: true
+                            }}
+                            inputProps={{
+                              onChange: (e: ChangeEvent<HTMLInputElement>) => this.setState({
                                 user: {
                                   ...this.state.user,
-                                  [C6.carbon_users.USER_FIRST_NAME]: e.target.value
-                                },
-                              })}
-                              placeholder={'First name'}
-                            />
-                            <br/>
-                            <input
-                              type={'text'}
-                              className="form-control"
-                              value={this.state.user && this.state.user[COLUMNS[C6.carbon_users.USER_LAST_NAME]]}
-                              onKeyDown={renderProps.onEnterKeyDownConfirm}
-                              onChange={(e) => this.setState({
+                                  user_first_name: e.target.value
+                                }
+                              })
+                            }}
+                          />
+                          <CustomInput
+                            success
+                            labelText="Last Name"
+                            id="user_last_name"
+                            formControlProps={{
+                              fullWidth: true
+                            }}
+                            inputProps={{
+                              onChange: (e: ChangeEvent<HTMLInputElement>) => this.setState({
                                 user: {
                                   ...this.state.user,
-                                  [C6.carbon_users.USER_LAST_NAME]: e.target.value
-                                },
-                              })}
-                              placeholder={'Last name'}
-                            />
-                            <hr/>
-                          </form>
-                        )}
-                      </SweetAlert>
-                    })}
+                                  user_last_name: e.target.value
+                                }
+                              })
+                            }}
+                          />
+                          <CustomInput
+                            success
+                            labelText="Username"
+                            id="user_username"
+                            formControlProps={{
+                              fullWidth: true
+                            }}
+                            inputProps={{
+                              onChange: (e: ChangeEvent<HTMLInputElement>) => this.setState({
+                                user: {
+                                  ...this.state.user,
+                                  user_username: e.target.value
+                                }
+                              })
+                            }}
+                          />
+                          <CustomInput
+                            success
+                            labelText="Password"
+                            id="user_password"
+                            formControlProps={{
+                              fullWidth: true
+                            }}
+                            inputProps={{
+                              onChange: (e: ChangeEvent<HTMLInputElement>) => this.setState({
+                                user: {
+                                  ...this.state.user,
+                                  user_password: e.target.value
+                                }
+                              })
+                            }}
+                          />
+                          <CustomInput
+                            success
+                            labelText="Email"
+                            id="user_email"
+                            formControlProps={{
+                              fullWidth: true
+                            }}
+                            inputProps={{
+                              onChange: (e: ChangeEvent<HTMLInputElement>) => this.setState({
+                                user: {
+                                  ...this.state.user,
+                                  user_email: e.target.value
+                                }
+                              })
+                            }}
+                          />
+                          <hr/>
+                        </form>
+                    }).then(shouldSubmit => shouldSubmit && this.newUser())
+
+                    }
                   >
-                    Start New Feature
+                    Create New User
                   </Button>
 
                 </CardHeader>
                 <CardBody>
                   <Table
                     tableHeaderColor="info"
-                    tableHead={["User ID", "User Name", "Some Role A", "Some Role B", "Some Role C"]}
+                    tableHead={["User ID", "First Name", "Last Name", "Username/Session", ...this.state.groups.map(group => group.group_name)]}
                     tableData={
                       this.state.users.map((user, key) => [
                         user.user_id,
+                        user.user_first_name,
+                        user.user_last_name,
                         user.user_username,
-                        <Button color="success">Granted</Button>,
-                        <Button color="success">Granted</Button>,
-                        <Button color="success">Granted</Button>])
+                        ...this.state.groups.map(group => {
+
+                          const enabled = user.group_name?.includes(',' + group.group_name + ',')
+                            || user.group_name?.startsWith(group.group_name + ',')
+                            || user.group_name?.includes(',' + group.group_name)
+                            || user.group_name === group.group_name;
+
+                          return <Button color={enabled ? "success" : "default"}
+                                         onClick={() => enabled ?
+                                           this.deleteGroupFromUser(user.user_id, group.entity_id) :
+                                           this.addUserToGroup(user.user_id, group.entity_id)}
+                          >
+                            {enabled ? " Enabled " : "Disabled"}
+                          </Button>
+                        })
+                      ])
                     }
                   />
                 </CardBody>
@@ -390,44 +611,46 @@ class AccessControl extends React.Component<ILandingPage, {
         <Popup
           open={this.state.grantRolesModalOpen}
           handleClose={this.handleModalChange}>
-          <CustomTabs
+          < CustomTabs
             headerColor="warning"
-            tabs={[
-              {
-                tabName: "Warning",
-                tabContent: (
-                  <div>
-                    <h5><b>You will be affecting 9 users already assigned to this role.</b></h5>
-                    <br/>
-                    <p>Moving to the Grant Ability.... will allow this user to... create and manage
-                      other users...</p>
-                  </div>
-                )
-              },
-              {
-                tabName: "Grant Grantability Status",
-                tabContent: (
-                  <GridContainer>
-                    <GridItem xs={12} sm={12} md={12}>
-                      <Table
-                        tableHeaderColor="info"
-                        tableHead={["Role Name", "Grantability Status"]}
-                        tableData={[
-                          ["Pharmacists", <Button color="success">Granted</Button>],
-                          ["Store Manager", <Button color="success">Granted</Button>],
-                          ["Order People", <Button color="info">Assign</Button>],
-                          ["Role 1", <Button color="info">Assign</Button>],
-                          ["Role 2 < insert Buzz Word Here >",
-                            <Button color="info">Assign</Button>],
-                          ["Role CSOS", <Button color="info">Assign</Button>],
-                          ["R2D2", <Button color="success">Assign</Button>],
-                        ]}
-                      />
-                    </GridItem>
-                  </GridContainer>
-                )
-              },
-            ]}
+            tabs={
+              [
+                {
+                  tabName: "Warning",
+                  tabContent: (
+                    <div>
+                      <h5><b>You will be affecting 9 users already assigned to this role.</b></h5>
+                      <br/>
+                      <p>Moving to the Grant Ability.... will allow this user to... create and manage
+                        other users...</p>
+                    </div>
+                  )
+                },
+                {
+                  tabName: "Grant Grantability Status",
+                  tabContent: (
+                    <GridContainer>
+                      <GridItem xs={12} sm={12} md={12}>
+                        <Table
+                          tableHeaderColor="info"
+                          tableHead={["Role Name", "Grantability Status"]}
+                          tableData={[
+                            ["Pharmacists", <Button color="success">Granted</Button>],
+                            ["Store Manager", <Button color="success">Granted</Button>],
+                            ["Order People", <Button color="info">Assign</Button>],
+                            ["Role 1", <Button color="info">Assign</Button>],
+                            ["Role 2 < insert Buzz Word Here >",
+                              <Button color="info">Assign</Button>],
+                            ["Role CSOS", <Button color="info">Assign</Button>],
+                            ["R2D2", <Button color="success">Assign</Button>],
+                          ]}
+                        />
+                      </GridItem>
+                    </GridContainer>
+                  )
+                },
+              ]
+            }
           />
         </Popup>
       </div>

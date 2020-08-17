@@ -2,10 +2,10 @@
 
 namespace CarbonPHP;
 
+use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Helpers\Serialized;
 use CarbonPHP\Interfaces\iConfig;
 use CarbonPHP\Programs\CLI;
-use CarbonPHP\Error\ErrorCatcher;
 use Tests\RestTest;
 use Throwable;
 use function define;
@@ -31,7 +31,8 @@ class CarbonPHP
 {
     public static string $not_invoked_application = '';
 
-    public static Application $application;
+    // This should be type defined as Application, but we need to be able to unset which would not be allowed
+    public static $application;
 
     public static bool $safelyExit = false;
 
@@ -55,6 +56,10 @@ class CarbonPHP
         self::$application = $application;
     }
 
+    /**
+     * while this could return null by type constraints, I would like that case to raise an error here
+     * @return Application
+     */
     public static function getApplication(): Application
     {
         return self::$application;
@@ -69,10 +74,12 @@ class CarbonPHP
         if (empty($application)) {
             if (!empty(self::$not_invoked_application)) {
                 $application = self::$not_invoked_application;
+
                 self::setApplication(new $application);
+
             } else {
                 print 'Null may only be passed to the static run method or _invoke when the configuration is a class '
-                        . ' with implements iConfig and extends Application ';
+                    . ' with implements iConfig and extends Application ';
                 return self::$safelyExit = true; // no use for this in C6 but possible for user reporting
             }
         } else if (is_string($application)) {
@@ -90,7 +97,7 @@ class CarbonPHP
         Session::update(true);        // Check wrapper / session callback
         View::$forceWrapper = true;
         Request::changeURI('/');
-        $application = self::$application;
+        $application = self::getApplication();
         $application->matched = true;
         $application->defaultRoute();
         return true;
@@ -106,7 +113,7 @@ class CarbonPHP
      */
     public static function startApplication(string $uri = ''): ?bool
     {
-        $application = self::$application;
+        $application = self::getApplication();
 
         if ($uri === '') {
             Session::update(false);       // Check wrapper / session callback
@@ -122,7 +129,13 @@ class CarbonPHP
 
         $application->matched = false;          // We can assume your in need of route matching again
 
-        return $application->startApplication($uri) ? null : false;
+        $return = $application->startApplication($uri) ? null : false;
+
+        // we need to invoke the destruct magic method which is inherited my Application from Route
+        unset($application);
+        self::$application = null;
+
+        return $return;
     }
 
     /**

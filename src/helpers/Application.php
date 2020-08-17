@@ -42,6 +42,30 @@ namespace {                                     // This runs the following code 
      * @param $argv - if a filepath is given load it from memory,
      *  otherwise highlight the string provided as code
      *
+     * adding the following to your css will be essential
+
+
+    pre {
+      background-color:rgba(255,255,255,0.9);
+      max-height: 30%;
+      overflow:scroll;
+      margin:0 0 1em;
+      padding:.5em 1em;
+    }
+    ::-webkit-scrollbar {
+      -webkit-appearance: none;
+      width: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      border-radius: 5px;
+      background-color: rgba(230,32,45,0.5);
+      -webkit-box-shadow: 0 0 1px rgba(255,255,255,.5);
+    }
+
+     *
+     * which implies you wrap this function in pre. *not required atm* aka done 4 u
+     *
      * @param bool $fileExt
      * @return string -- the text highlighted and converted to html
      */
@@ -63,6 +87,9 @@ namespace {                                     // This runs the following code 
 
         if (file_exists($argv)) {
             $text = file_get_contents($argv);
+
+            $lines = implode('<br />', range(1, count(file($argv))));
+
             $fileExt = $fileExt ?: pathinfo($argv, PATHINFO_EXTENSION);
 
             if ($fileExt !== 'php') {
@@ -70,6 +97,9 @@ namespace {                                     // This runs the following code 
             }
         } else {
             $text = ' <?php ' . $argv;
+
+            $lines = implode('<br />', range(1, count(explode(PHP_EOL, $text))));
+
         }
 
         $text = highlight_string($text, true);  // highlight_string() requires opening PHP tag or otherwise it will not colorize the text
@@ -92,7 +122,8 @@ namespace {                                     // This runs the following code 
 
         $text = '<span style="overflow-x: scroll">' . $text . '</span>';
 
-        return $text;
+        return "<table style='width: 100%'><tr><td class=\"num\">\n$lines\n</td><td>\n$text\n</td></tr></table>";
+
     }
 
 
@@ -196,6 +227,20 @@ namespace {                                     // This runs the following code 
         if ($die) {
             exit(1);
         }
+    }
+
+    /**
+     * Will typically be one more than expected as the reference
+     * to this function will add one to the total
+     * @link https://www.php.net/manual/en/function.debug-zval-dump.php
+     * @param $mixed
+     */
+    function zValue($mixed) {
+        print CLI ? PHP_EOL . PHP_EOL : '<br><pre>';
+        /** @noinspection ForgottenDebugOutputInspection */
+        debug_zval_dump($mixed);
+        print CLI ? PHP_EOL . PHP_EOL : '</pre><br><br>';
+        exit(1);
     }
 
 }

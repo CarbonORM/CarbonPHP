@@ -1,10 +1,7 @@
 import React from "react";
 import {Redirect, Route, Switch} from "react-router-dom";
 
-import SweetAlert from "react-bootstrap-sweetalert";
-
-import appStyle from "assets/jss/material-dashboard-react/layouts/carbonPHPStyles";
-import sweetAlertStyle from "assets/jss/material-dashboard-react/views/sweetAlertStyle";
+import swal from '@sweetalert/with-react';
 
 import context from "variables/carbonphp";
 
@@ -12,21 +9,14 @@ import Public from "layouts/Public";
 import Private from "layouts/Private";
 import PageNotFound from "views/Errors/PageNotFound";
 // This is our ajax class
-import withStyles from "@material-ui/core/styles/withStyles";
 import {AxiosInstance} from "axios";
-import qs from 'qs';
 
-
-const styles = {
-  ...appStyle,
-  ...sweetAlertStyle
-};
 
 class bootstrap extends React.Component<any, {
   axios: AxiosInstance,
   authenticate: string,
   authenticated?: boolean,
-  alert?: any,
+  alert?: boolean,
   operationActive: boolean,
   isLoaded: boolean,
   alertsWaiting: Array<any>
@@ -37,7 +27,7 @@ class bootstrap extends React.Component<any, {
       axios: context.axios,
       authenticate: "/carbon/authenticated",
       authenticated: null,
-      alert: null,
+      alert: false,
       operationActive: false,
       isLoaded: false,
       alertsWaiting: []
@@ -46,6 +36,7 @@ class bootstrap extends React.Component<any, {
     this.authenticate = this.authenticate.bind(this);
     this.subRoutingSwitch = this.subRoutingSwitch.bind(this);
     this.semaphoreLock = this.semaphoreLock.bind(this);
+    this.testRestfulPostResponse = this.testRestfulPostResponse.bind(this);
   }
 
   semaphoreLock = <T extends React.Component>(context ?: T): Function =>
@@ -77,12 +68,11 @@ class bootstrap extends React.Component<any, {
       };
 
       const lockError = () => {
-        this.setState({
-          alert: <SweetAlert
-            warning
-            title="Oh no!" onConfirm={() => this.setState({ alert: null })}>
-            An issue with out system has occurred.
-          </SweetAlert>
+        swal({
+          text: 'An issue with out system has occurred.',
+          buttons: {
+            cancel: "Close",
+          }
         })
       };
 
@@ -133,6 +123,7 @@ class bootstrap extends React.Component<any, {
                     authenticated={this.state.authenticated}
                     authenticate={this.authenticate}
                     changeLoggedInStatus={this.changeLoggedInStatus}
+                    testRestfulPostResponse={this.testRestfulPostResponse}
                     path={prop.path}
                     {...x}
                     {...y}
@@ -178,123 +169,108 @@ class bootstrap extends React.Component<any, {
     });
   };
 
+  testRestfulPostResponse = (response, success, error) => {
+    if (('data' in response) && ('rest' in response.data) && ('created' in response.data.rest)) {
+      if (typeof success === 'function') {
+        return success();
+      }
+      success === null || typeof success === 'string' && swal("Success!", success, "success");
+
+      return response.data.rest.created;
+    }
+    if (typeof error === 'function') {
+      return error();
+    }
+    error === null || typeof error === 'string' && swal("Whoops!", error, "error");
+    return false;
+  };
 
   handleResponseCodes = data => {
     console.log("handleResponseCodes data", data);
 
-    let alert = a => {
-      let message,
-        type,
-        title,
-        obj,
-        stack = a;
+    interface iAlert {
+      intercept?: boolean,
+      message?: string,
+      title?: string,
+      type?: string,
+    }
 
-      if (Array.isArray(stack)) {
-        if (!stack.length) {
-          // recursive ending condition
-          return null;
-        }
-        do {
-          obj = stack.shift();
-        } while (stack.length && (obj && !obj.intercept));  // only catch alerts marked for intercept
-        stack = alert(stack);
-      } else {
-        obj = stack;
+    let handleAlert = (alert: iAlert): void => {
+
+      console.log("alert", Object.assign({}, alert));
+
+      if (alert.intercept === false) {
+        return null; // recursive ending condition
       }
 
-      if ("object" === typeof obj) {
-        if ("intercept" in obj && !obj.intercept) return null;
-        if ("message" in obj) message = obj.message;
-        if ("title" in obj) title = obj.title;
-        if ("type" in obj) type = obj.type;
-      } else if ("string" === typeof obj) {
-        type = "success";
-        message = obj;
-      } else {
-        console.log("Could not handle alert", obj);
-      }
+      swal({
+        title: alert.title || 'Danger! You didn\'t set a title in your react alert.',
+        text: alert.message || 'An alert was encountered, but no message could be parsed.',
+        icon: alert.type || 'error',
+      }).then(() => {
+        let alertsWaiting = this.state.alertsWaiting;
+        let nextAlert = alertsWaiting?.pop();
+        this.setState({
+          alert: nextAlert !== undefined,
+          alertsWaiting: alertsWaiting
+        }, () => nextAlert !== undefined && handleAlert(nextAlert));     // this is another means to end. note: doesn't hurt
+      });
 
-      if (message === undefined) {
-        message = "An alert was encountered, but no message could be parsed.";
-      }
-      if (type === undefined) {
-        type = "danger";
-      }
-      if (title === undefined) {
-        title = "Danger! You didn't set a title in your react alert.";
-      }
-
-      let alertsWaiting = this.state.alertsWaiting;
-
-      // @ts-ignore
-      return (
-        <SweetAlert
-          type={type}
-          title={title}
-          onConfirm={() => this.setState({
-            alert: stack ? stack : alertsWaiting.pop(),
-            alertsWaiting: alertsWaiting
-          })}
-          confirmBtnCssClass={
-            this.props.classes.button + " " + this.props.classes.success
-          }
-        >
-          {message}
-        </SweetAlert>
-      );
+      //
     };
 
-    if (
-      "object" === typeof data &&
-      data.hasOwnProperty("data") &&
-      data.data !== null &&
-      "object" === typeof data.data &&
-      "alert" in data.data
-    ) {
+    if (data?.data?.alert) {
       console.log("handleResponseCodes ∈ Bootstrap");
 
-      let a = data.data.alert, stack = [];
+      let a: iAlert = data.data.alert, stack: Array<iAlert> = [];
 
       // C6 Public Alerts
-      if (typeof a === 'object' && a !== null) {
-        ['info', 'success', 'warning', 'danger'].map(value => {
-          if (value in a) {
-            a[value].map(message => {
-              stack.push({
-                'intercept': true,
-                'message': message,
-                'title': value,
-                'type': value,
-              })
-              return null;
+
+      ['info', 'success', 'warning', 'danger'].map(value => {
+        if (value in a) {
+          a[value].map(message => {
+            stack.push({
+              'intercept': true,    // for now lets intercept all
+              'message': message,
+              'title': value,
+              'type': value,
             });
-            console.log("stack", Object.assign({}, stack));
-          }
-          return null;
-        })
-      } else {
-        console.log('failed to decode the alert');
+            return null;
+          });
+          console.log("stack", Object.assign({}, stack));
+        }
+        return false; // free up memory through a map
+      });
+
+      if (stack.length === 0) {
+        return null;
       }
 
-      console.log(this.state.alert, this.state.alert !== null, this.state.alert !== undefined)
-
-      if (this.state.alert === null || this.state.alert === undefined) {
+      if (this.state.alert === true) {
+        let alertsWaiting = this.state.alertsWaiting;
+        alertsWaiting.push(stack);
         this.setState({
-          alert: alert(stack)
+          alertsWaiting: alertsWaiting
         });
-      } else {
-        let alertsQ = this.state.alertsWaiting;
-        alertsQ.push(alert(stack));
-        this.setState({
-          alertsWaiting: alertsQ
-        });
+        return null;
       }
+
+      let alert = stack.pop();
+
+      console.log("alert", Object.assign({}, alert));
+
+      this.setState({
+        alert: true,
+        alertsWaiting: stack
+      });
+
+      handleAlert(alert);
     }
   };
 
   componentDidMount() {
     this.state.axios.interceptors.request.use(req => {
-        if (req.method === 'get') {
+        if (req.method === 'get' && req.url.match(/^\/rest\/.*$/)) {
           req.params = JSON.stringify(req.params)
         }
         return req;
@@ -309,23 +285,25 @@ class bootstrap extends React.Component<any, {
           "Every Axios response is logged in login.jsx :: ",
           response
         );
-        if (
-          response.hasOwnProperty("data") &&
-          "object" === typeof response.data &&
-          response.data !== null &&
-          "alert" in response.data
-        ) {
+        if (response?.data?.alert) {
           console.log("alert ∈ response");
           this.handleResponseCodes(response);
+          return (response?.data?.alert?.error || response?.data?.alert?.danger) ?
+            Promise.reject(response) :
+            response;
         }
         return response;
       },
       error => {
-        // Do something with response error
+        /* Do something with response error
+           this changes from project to project depending on how your server uses response codes.
+           when you can control all errors universally from a single api, return Promise.reject(error);
+           is the way to go.
+        */
         this.handleResponseCodes(error.response);
         console.log("Carbon Axios Caught A Response Error response :: ", error.response);
-        // return Promise.reject(error);
-        return error.response;
+        return Promise.reject(error);
+        // return error.response;
       }
     );
 
@@ -364,6 +342,7 @@ class bootstrap extends React.Component<any, {
                   authenticated={authenticated}
                   authenticate={this.authenticate}
                   changeLoggedInStatus={this.changeLoggedInStatus}
+                  testRestfulPostResponse={this.testRestfulPostResponse}
                   path={path}
                   {...props}
                 /> :
@@ -373,6 +352,7 @@ class bootstrap extends React.Component<any, {
                   authenticated={authenticated}
                   authenticate={this.authenticate}
                   changeLoggedInStatus={this.changeLoggedInStatus}
+                  testRestfulPostResponse={this.testRestfulPostResponse}
                   path={path}
                   {...props}
                 />
@@ -391,4 +371,4 @@ class bootstrap extends React.Component<any, {
   }
 }
 
-export default withStyles(styles)(bootstrap);
+export default bootstrap;

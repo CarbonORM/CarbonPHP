@@ -1,7 +1,8 @@
-<?php /** @noinspection PhpFullyQualifiedNameUsageInspection */
+<?php 
 
 namespace CarbonPHP\Tables;
 
+// Restful defaults
 use PDO;
 use CarbonPHP\Rest;
 use CarbonPHP\Interfaces\iRest;
@@ -10,6 +11,9 @@ use function array_key_exists;
 use function count;
 use function func_get_args;
 use function is_array;
+
+// Custom User Imports
+
 
 class Carbons extends Rest implements iRest
 {
@@ -32,7 +36,7 @@ class Carbons extends Rest implements iRest
     ];
  
     public const PHP_VALIDATION = [
-        [\Config\Config::class => 'testAlertAndValidation']
+        [Config::class => 'testAlertAndValidation']
     ]; 
  
     public const REGEX_VALIDATION = []; 
@@ -87,7 +91,7 @@ class Carbons extends Rest implements iRest
         self::bind($stmt);
 
         if (!$stmt->execute()) {
-            throw new PublicAlert('Failed to execute the query on Carbons.');
+            throw new PublicAlert('Failed to execute the query on Carbons.', 'danger');
         }
 
         $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -119,7 +123,7 @@ class Carbons extends Rest implements iRest
     {   
         foreach ($argv as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)){
-                throw new PublicAlert("Restful table could not post column $columnName, because it does not appear to exist.");
+                throw new PublicAlert("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
             }
         } 
         
@@ -140,7 +144,7 @@ class Carbons extends Rest implements iRest
     
     
         if (!array_key_exists('carbons.entity_tag', $argv)) {
-            throw new PublicAlert('Required argument "carbons.entity_tag" is missing from the request.');
+            throw new PublicAlert('Required argument "carbons.entity_tag" is missing from the request.', 'danger');
         }
         $entity_tag = $argv['carbons.entity_tag'];
         $stmt->bindParam(':entity_tag',$entity_tag, 2, 100);
@@ -161,7 +165,7 @@ class Carbons extends Rest implements iRest
     public static function Put(array &$return, string $primary, array $argv) : bool
     {
         if (empty($primary)) {
-            throw new PublicAlert('Restful tables which have a primary key must be updated by its primary key.');
+            throw new PublicAlert('Restful tables which have a primary key must be updated by its primary key.', 'danger');
         }
         
         if (array_key_exists(self::UPDATE, $argv)) {
@@ -170,7 +174,7 @@ class Carbons extends Rest implements iRest
         
         foreach ($argv as $key => $value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.');
+                throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.', 'danger');
             }
         }
 
@@ -215,11 +219,11 @@ class Carbons extends Rest implements iRest
         self::bind($stmt);
 
         if (!$stmt->execute()) {
-            throw new PublicAlert('Restful table Carbons failed to execute the update query.');
+            throw new PublicAlert('Restful table Carbons failed to execute the update query.', 'danger');
         }
         
         if (!$stmt->rowCount()) {
-            throw new PublicAlert('Failed to update the target row.');
+            throw new PublicAlert('Failed to update the target row.', 'danger');
         }
         
         $argv = array_combine(
@@ -258,18 +262,18 @@ class Carbons extends Rest implements iRest
             *   n00bs and future self, "I got chu."
             */
             if (empty($argv)) {
-                throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.');
+                throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.', 'danger');
             }
             
             $where = self::buildWhere($argv, $pdo, 'carbons', self::PDO_VALIDATION);
             
             if (empty($where)) {
-                throw new PublicAlert('The where condition provided appears invalid.');
+                throw new PublicAlert('The where condition provided appears invalid.', 'danger');
             }
 
             $sql .= ' WHERE ' . $where;
         } 
-               
+     
 
 
         self::jsonSQLReporting(func_get_args(), $sql);
@@ -284,4 +288,7 @@ class Carbons extends Rest implements iRest
 
         return $r;
     }
+     
+
+    
 }

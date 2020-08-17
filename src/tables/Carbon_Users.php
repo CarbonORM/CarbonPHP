@@ -1,7 +1,8 @@
-<?php /** @noinspection PhpFullyQualifiedNameUsageInspection */
+<?php 
 
 namespace CarbonPHP\Tables;
 
+// Restful defaults
 use PDO;
 use CarbonPHP\Rest;
 use CarbonPHP\Interfaces\iRest;
@@ -10,6 +11,9 @@ use function array_key_exists;
 use function count;
 use function func_get_args;
 use function is_array;
+
+// Custom User Imports
+
 
 class Carbon_Users extends Rest implements iRest
 {
@@ -52,10 +56,12 @@ class Carbon_Users extends Rest implements iRest
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_users.user_username' => ['varchar', '2', '100'],'carbon_users.user_password' => ['varchar', '2', '225'],'carbon_users.user_id' => ['binary', '2', '16'],'carbon_users.user_type' => ['varchar', '2', '20'],'carbon_users.user_sport' => ['varchar', '2', '20'],'carbon_users.user_session_id' => ['varchar', '2', '225'],'carbon_users.user_facebook_id' => ['varchar', '2', '225'],'carbon_users.user_first_name' => ['varchar', '2', '25'],'carbon_users.user_last_name' => ['varchar', '2', '25'],'carbon_users.user_profile_pic' => ['varchar', '2', '225'],'carbon_users.user_profile_uri' => ['varchar', '2', '225'],'carbon_users.user_cover_photo' => ['varchar', '2', '225'],'carbon_users.user_birthday' => ['varchar', '2', '9'],'carbon_users.user_gender' => ['varchar', '2', '25'],'carbon_users.user_about_me' => ['varchar', '2', '225'],'carbon_users.user_rank' => ['int', '2', ''],'carbon_users.user_email' => ['varchar', '2', '50'],'carbon_users.user_email_code' => ['varchar', '2', '225'],'carbon_users.user_email_confirmed' => ['varchar', '2', '20'],'carbon_users.user_generated_string' => ['varchar', '2', '200'],'carbon_users.user_membership' => ['int', '2', ''],'carbon_users.user_deactivated' => ['tinyint', '0', '1'],'carbon_users.user_last_login' => ['datetime', '2', ''],'carbon_users.user_ip' => ['varchar', '2', '20'],'carbon_users.user_education_history' => ['varchar', '2', '200'],'carbon_users.user_location' => ['varchar', '2', '20'],'carbon_users.user_creation_date' => ['datetime', '2', ''],
+        'carbon_users.user_username' => ['varchar', '2', '100'],'carbon_users.user_password' => ['varchar', '2', '225'],'carbon_users.user_id' => ['binary', '2', '16'],'carbon_users.user_type' => ['varchar', '2', '20'],'carbon_users.user_sport' => ['varchar', '2', '20'],'carbon_users.user_session_id' => ['varchar', '2', '225'],'carbon_users.user_facebook_id' => ['varchar', '2', '225'],'carbon_users.user_first_name' => ['varchar', '2', '25'],'carbon_users.user_last_name' => ['varchar', '2', '25'],'carbon_users.user_profile_pic' => ['varchar', '2', '225'],'carbon_users.user_profile_uri' => ['varchar', '2', '225'],'carbon_users.user_cover_photo' => ['varchar', '2', '225'],'carbon_users.user_birthday' => ['varchar', '2', '9'],'carbon_users.user_gender' => ['varchar', '2', '25'],'carbon_users.user_about_me' => ['varchar', '2', '225'],'carbon_users.user_rank' => ['int', '2', ''],'carbon_users.user_email' => ['varchar', '2', '50'],'carbon_users.user_email_code' => ['varchar', '2', '225'],'carbon_users.user_email_confirmed' => ['tinyint', '0', '1'],'carbon_users.user_generated_string' => ['varchar', '2', '200'],'carbon_users.user_membership' => ['int', '2', ''],'carbon_users.user_deactivated' => ['tinyint', '0', '1'],'carbon_users.user_last_login' => ['datetime', '2', ''],'carbon_users.user_ip' => ['varchar', '2', '20'],'carbon_users.user_education_history' => ['varchar', '2', '200'],'carbon_users.user_location' => ['varchar', '2', '20'],'carbon_users.user_creation_date' => ['datetime', '2', ''],
     ];
  
-    public const PHP_VALIDATION = []; 
+    public const PHP_VALIDATION = [
+        [[\Config\Validate::class => 'addToPostRequest', self::USER_IP, IP]]
+    ]; 
  
     public const REGEX_VALIDATION = []; 
     
@@ -109,7 +115,7 @@ class Carbon_Users extends Rest implements iRest
         self::bind($stmt);
 
         if (!$stmt->execute()) {
-            throw new PublicAlert('Failed to execute the query on Carbon_Users.');
+            throw new PublicAlert('Failed to execute the query on Carbon_Users.', 'danger');
         }
 
         $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -141,7 +147,7 @@ class Carbon_Users extends Rest implements iRest
     {   
         foreach ($argv as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)){
-                throw new PublicAlert("Restful table could not post column $columnName, because it does not appear to exist.");
+                throw new PublicAlert("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
             }
         } 
         
@@ -155,14 +161,14 @@ class Carbon_Users extends Rest implements iRest
     
     
         if (!array_key_exists('carbon_users.user_username', $argv)) {
-            throw new PublicAlert('Required argument "carbon_users.user_username" is missing from the request.');
+            throw new PublicAlert('Required argument "carbon_users.user_username" is missing from the request.', 'danger');
         }
         $user_username = $argv['carbon_users.user_username'];
         $stmt->bindParam(':user_username',$user_username, 2, 100);
     
     
         if (!array_key_exists('carbon_users.user_password', $argv)) {
-            throw new PublicAlert('Required argument "carbon_users.user_password" is missing from the request.');
+            throw new PublicAlert('Required argument "carbon_users.user_password" is missing from the request.', 'danger');
         }
         $user_password = $argv['carbon_users.user_password'];
         $stmt->bindParam(':user_password',$user_password, 2, 225);
@@ -188,14 +194,14 @@ class Carbon_Users extends Rest implements iRest
     
     
         if (!array_key_exists('carbon_users.user_first_name', $argv)) {
-            throw new PublicAlert('Required argument "carbon_users.user_first_name" is missing from the request.');
+            throw new PublicAlert('Required argument "carbon_users.user_first_name" is missing from the request.', 'danger');
         }
         $user_first_name = $argv['carbon_users.user_first_name'];
         $stmt->bindParam(':user_first_name',$user_first_name, 2, 25);
     
     
         if (!array_key_exists('carbon_users.user_last_name', $argv)) {
-            throw new PublicAlert('Required argument "carbon_users.user_last_name" is missing from the request.');
+            throw new PublicAlert('Required argument "carbon_users.user_last_name" is missing from the request.', 'danger');
         }
         $user_last_name = $argv['carbon_users.user_last_name'];
         $stmt->bindParam(':user_last_name',$user_last_name, 2, 25);
@@ -217,10 +223,7 @@ class Carbon_Users extends Rest implements iRest
         $stmt->bindParam(':user_birthday',$user_birthday, 2, 9);
     
     
-        if (!array_key_exists('carbon_users.user_gender', $argv)) {
-            throw new PublicAlert('Required argument "carbon_users.user_gender" is missing from the request.');
-        }
-        $user_gender = $argv['carbon_users.user_gender'];
+        $user_gender =  $argv['carbon_users.user_gender'] ?? null;
         $stmt->bindParam(':user_gender',$user_gender, 2, 25);
     
     
@@ -231,7 +234,7 @@ class Carbon_Users extends Rest implements iRest
     
     
         if (!array_key_exists('carbon_users.user_email', $argv)) {
-            throw new PublicAlert('Required argument "carbon_users.user_email" is missing from the request.');
+            throw new PublicAlert('Required argument "carbon_users.user_email" is missing from the request.', 'danger');
         }
         $user_email = $argv['carbon_users.user_email'];
         $stmt->bindParam(':user_email',$user_email, 2, 50);
@@ -242,7 +245,7 @@ class Carbon_Users extends Rest implements iRest
     
     
         $user_email_confirmed =  $argv['carbon_users.user_email_confirmed'] ?? '0';
-        $stmt->bindParam(':user_email_confirmed',$user_email_confirmed, 2, 20);
+        $stmt->bindParam(':user_email_confirmed',$user_email_confirmed, 0, 1);
     
     
         $user_generated_string =  $argv['carbon_users.user_generated_string'] ?? null;
@@ -256,7 +259,7 @@ class Carbon_Users extends Rest implements iRest
     
     
         if (!array_key_exists('carbon_users.user_ip', $argv)) {
-            throw new PublicAlert('Required argument "carbon_users.user_ip" is missing from the request.');
+            throw new PublicAlert('Required argument "carbon_users.user_ip" is missing from the request.', 'danger');
         }
         $user_ip = $argv['carbon_users.user_ip'];
         $stmt->bindParam(':user_ip',$user_ip, 2, 20);
@@ -285,7 +288,7 @@ class Carbon_Users extends Rest implements iRest
     public static function Put(array &$return, string $primary, array $argv) : bool
     {
         if (empty($primary)) {
-            throw new PublicAlert('Restful tables which have a primary key must be updated by its primary key.');
+            throw new PublicAlert('Restful tables which have a primary key must be updated by its primary key.', 'danger');
         }
         
         if (array_key_exists(self::UPDATE, $argv)) {
@@ -294,7 +297,7 @@ class Carbon_Users extends Rest implements iRest
         
         foreach ($argv as $key => $value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.');
+                throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.', 'danger');
             }
         }
 
@@ -468,7 +471,7 @@ class Carbon_Users extends Rest implements iRest
         }
         if (array_key_exists('carbon_users.user_email_confirmed', $argv)) {
             $user_email_confirmed = $argv['carbon_users.user_email_confirmed'];
-            $stmt->bindParam(':user_email_confirmed',$user_email_confirmed, 2, 20);
+            $stmt->bindParam(':user_email_confirmed',$user_email_confirmed, 0, 1);
         }
         if (array_key_exists('carbon_users.user_generated_string', $argv)) {
             $user_generated_string = $argv['carbon_users.user_generated_string'];
@@ -503,11 +506,11 @@ class Carbon_Users extends Rest implements iRest
         self::bind($stmt);
 
         if (!$stmt->execute()) {
-            throw new PublicAlert('Restful table Carbon_Users failed to execute the update query.');
+            throw new PublicAlert('Restful table Carbon_Users failed to execute the update query.', 'danger');
         }
         
         if (!$stmt->rowCount()) {
-            throw new PublicAlert('Failed to update the target row.');
+            throw new PublicAlert('Failed to update the target row.', 'danger');
         }
         
         $argv = array_combine(
@@ -543,7 +546,7 @@ class Carbon_Users extends Rest implements iRest
          *   n00bs and future self, "I got chu."
          */
         if (empty($argv)) {
-            throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.');
+            throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.', 'danger');
         }
         
         /** @noinspection SqlResolve */
@@ -568,4 +571,16 @@ class Carbon_Users extends Rest implements iRest
 
         return $r;
     }
+     
+    /**
+     * @param bool $doIt
+     * @throws PublicAlert
+     */
+    public function throwErrors(bool $doIt = true)
+    {
+        if ($doIt) {
+            throw new PublicAlert('ha');
+        }
+    }
+    
 }

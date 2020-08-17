@@ -65,16 +65,20 @@ abstract class Route
      */
     public function __destruct()
     {
-        // in direct invocation this class may be needlessly initialized
-        if ($this->matched || CLI || TEST) {
-            return;
+        try {
+            // in direct invocation this class may be needlessly initialized
+            if (CarbonPHP::$safelyExit || $this->matched || CLI || TEST) {
+                return;
+            }
+            if (SOCKET) {
+                print 'Socket Left Route Class Un-Matched' . PHP_EOL;
+                exit(1);
+            }
+            $this->matched = true;
+            $this->defaultRoute();
+        } catch (Throwable $e) {
+            ErrorCatcher::generateBrowserReportFromError($e);
         }
-        if (SOCKET) {
-            print 'Socket Left Route Class Un-Matched' . PHP_EOL;
-            exit(1);
-        }
-        $this->matched = true;
-        $this->defaultRoute();
     }
 
 

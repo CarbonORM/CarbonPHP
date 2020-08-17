@@ -1,7 +1,8 @@
-<?php /** @noinspection PhpFullyQualifiedNameUsageInspection */
+<?php 
 
 namespace CarbonPHP\Tables;
 
+// Restful defaults
 use PDO;
 use CarbonPHP\Rest;
 use CarbonPHP\Interfaces\iRest;
@@ -10,6 +11,9 @@ use function array_key_exists;
 use function count;
 use function func_get_args;
 use function is_array;
+
+// Custom User Imports
+
 
 class Carbon_Groups extends Rest implements iRest
 {
@@ -32,9 +36,15 @@ class Carbon_Groups extends Rest implements iRest
         'carbon_groups.group_name' => ['varchar', '2', '20'],'carbon_groups.entity_id' => ['binary', '2', '16'],'carbon_groups.created_by' => ['binary', '2', '16'],'carbon_groups.creation_date' => ['datetime', '2', ''],
     ];
  
-    public const PHP_VALIDATION = []; 
+    public const PHP_VALIDATION = [
+        self::GROUP_NAME => [
+            [ \Config\Validate::class => 'validateUnique', self::class, self::GROUP_NAME]
+        ]
+    ]; 
  
-    public const REGEX_VALIDATION = []; 
+    public const REGEX_VALIDATION = [
+        self::GROUP_NAME => '#^[A-Za-z_]{4,28}$#'
+    ]; 
     
     /**
     *
@@ -86,7 +96,7 @@ class Carbon_Groups extends Rest implements iRest
         self::bind($stmt);
 
         if (!$stmt->execute()) {
-            throw new PublicAlert('Failed to execute the query on Carbon_Groups.');
+            throw new PublicAlert('Failed to execute the query on Carbon_Groups.', 'danger');
         }
 
         $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -118,7 +128,7 @@ class Carbon_Groups extends Rest implements iRest
     {   
         foreach ($argv as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)){
-                throw new PublicAlert("Restful table could not post column $columnName, because it does not appear to exist.");
+                throw new PublicAlert("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
             }
         } 
         
@@ -132,7 +142,7 @@ class Carbon_Groups extends Rest implements iRest
     
     
         if (!array_key_exists('carbon_groups.group_name', $argv)) {
-            throw new PublicAlert('Required argument "carbon_groups.group_name" is missing from the request.');
+            throw new PublicAlert('Required argument "carbon_groups.group_name" is missing from the request.', 'danger');
         }
         $group_name = $argv['carbon_groups.group_name'];
         $stmt->bindParam(':group_name',$group_name, 2, 20);
@@ -160,7 +170,7 @@ class Carbon_Groups extends Rest implements iRest
     public static function Put(array &$return, string $primary, array $argv) : bool
     {
         if (empty($primary)) {
-            throw new PublicAlert('Restful tables which have a primary key must be updated by its primary key.');
+            throw new PublicAlert('Restful tables which have a primary key must be updated by its primary key.', 'danger');
         }
         
         if (array_key_exists(self::UPDATE, $argv)) {
@@ -169,7 +179,7 @@ class Carbon_Groups extends Rest implements iRest
         
         foreach ($argv as $key => $value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.');
+                throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.', 'danger');
             }
         }
 
@@ -220,11 +230,11 @@ class Carbon_Groups extends Rest implements iRest
         self::bind($stmt);
 
         if (!$stmt->execute()) {
-            throw new PublicAlert('Restful table Carbon_Groups failed to execute the update query.');
+            throw new PublicAlert('Restful table Carbon_Groups failed to execute the update query.', 'danger');
         }
         
         if (!$stmt->rowCount()) {
-            throw new PublicAlert('Failed to update the target row.');
+            throw new PublicAlert('Failed to update the target row.', 'danger');
         }
         
         $argv = array_combine(
@@ -260,7 +270,7 @@ class Carbon_Groups extends Rest implements iRest
          *   n00bs and future self, "I got chu."
          */
         if (empty($argv)) {
-            throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.');
+            throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.', 'danger');
         }
         
         /** @noinspection SqlResolve */
@@ -285,4 +295,7 @@ class Carbon_Groups extends Rest implements iRest
 
         return $r;
     }
+     
+
+    
 }

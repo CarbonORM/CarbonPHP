@@ -3,11 +3,13 @@
 namespace CarbonPHP\Programs;
 
 
-use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\interfaces\iCommand;
 use CarbonPHP\interfaces\iRest;
 use CarbonPHP\interfaces\iRestfulReferences;
+use CarbonPHP\Tables\Carbons;
 use PDO;
+use ReflectionException;
+use ReflectionMethod;
 use function count;
 use function in_array;
 use function random_int;
@@ -101,7 +103,7 @@ END;
     public function run(array $argv): void
     {
         // Check command line args, password is optional
-        self::colorCode( "\tBuilding Rest Api!\n", 'blue');
+        self::colorCode("\tBuilding Rest Api!\n", 'blue');
 
         // C syntax
         $argc = count($argv);
@@ -115,7 +117,7 @@ END;
         $json = $carbon_namespace = APP_ROOT . 'src' . DS === CARBON_ROOT;
         $targetDir = APP_ROOT . ($carbon_namespace ? 'src/tables/' : 'tables/');
         $only_these_tables = $history_table_query = $mysql = null;
-        $verbose = $debug = $primary_required = $delete_dump = $skipTable = $logClasses =  false;
+        $verbose = $debug = $primary_required = $delete_dump = $skipTable = $logClasses = false;
 
 
         $react = $carbon_namespace ? APP_ROOT . 'view/react/material-dashboard-react-c6/src/variables/' : false;
@@ -129,7 +131,7 @@ END;
             switch ($argv[$i]) {
                 case '-react':
                     if ($carbon_namespace) {
-                        self::colorCode("\tReact directory hardcoded for C6, unnecessary flag.\n",'blue');
+                        self::colorCode("\tReact directory hardcoded for C6, unnecessary flag.\n", 'blue');
                         break;
                     }
                     $react = $argv[++$i];
@@ -337,6 +339,7 @@ END;
                         'TableName' => $tableName,
                         'ucEachTableName' => implode('_', array_map('ucfirst', explode('_', $tableName))),
                         'primarySort' => '',
+                        'custom_methods' => '',
                         'primary' => [],
                     ];
 
@@ -355,6 +358,68 @@ END;
                         if (isset($matches[0][0])) {
                             $rest[$tableName]['php_validation'] = $matches[0][0];
                         }
+
+                        /// todo - namespaces
+
+
+
+                        $restStaticNameSpaces = $this->restTemplateStaticNameSpace();
+
+                        array_splice($restStaticNameSpaces, 2, 0, [
+                            'use CarbonPHP\Interfaces\iRest;',
+                            'use CarbonPHP\Interfaces\iRestfulReferences;',
+                        ]);
+
+                        $matches = [];
+
+                        // the second half of this regex is from google which matches
+                        if (false === preg_match_all('#\n(use (function)? ?(([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff\\]*[a-zA-Z0-9_\x7f-\xff]+)|[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]+);)#', $validation, $matches)) {
+                            print 'An unexpected regex error occured during the namespace matching/cache';
+                            exit(1);
+                        }
+
+                        $userCustomImports = array_diff(
+                            $matches[1],
+                            $restStaticNameSpaces);
+
+
+                        $rest[$tableName]['CustomImports'] = implode(PHP_EOL, $userCustomImports);
+
+                        // methods
+                        $fulTableClassName = $carbon_namespace ? 'CarbonPHP\Tables\\' . $tableName : 'Tables\\' . $tableName;
+
+                        $methods = array_diff(
+                            get_class_methods($fulTableClassName),
+                            get_class_methods(Carbons::class));
+
+                        foreach ($methods as $method) {
+
+                            try {
+                                $func = new ReflectionMethod($fulTableClassName, $method);
+
+                                $comment = $func->getDocComment();
+
+                            } catch (ReflectionException $e) {
+                                print 'Failed to load custom functions defined in restful class using ReflectionMethod.';
+                                exit(1);
+                            }
+
+                            $f = $func->getFileName();
+
+                            $start_line = $func->getStartLine() - 1;
+
+                            $end_line = $func->getEndLine();
+
+                            $length = $end_line - $start_line;
+
+                            $source = file_get_contents($f);
+
+                            $source = preg_split('/' . PHP_EOL . '/', $source);
+
+                            $body = implode(PHP_EOL, array_slice($source, $start_line, $length));
+
+                            $rest[$tableName]['custom_methods'] .= ($comment ? "    $comment\n" : '') . $body . PHP_EOL . PHP_EOL;
+                        }
                     }
 
 
@@ -371,7 +436,7 @@ END;
                     }
 
                     if ($verbose) {
-                        self::colorCode( "\tGenerating {$tableName}\n", 'blue');
+                        self::colorCode("\tGenerating {$tableName}\n", 'blue');
                         /** @noinspection ForgottenDebugOutputInspection */
                         $debug and var_dump($table);
                     }
@@ -524,7 +589,7 @@ END;
             if (empty($rest[$tableName]['primary'])) {
                 $verbose and self::colorCode("\n\nThe tables {$rest[$tableName]['TableName']} does not have a primary key.\n", 'yellow');
                 if ($primary_required) {
-                    self::colorCode( " \tSkipping...\n ", );
+                    self::colorCode(" \tSkipping...\n ",);
                     continue;
                 }
             } else {
@@ -579,6 +644,8 @@ END;
             // Remove unneeded comma at begging of string
             $rest[$tableName]['implode'] = implode(',', $rest[$tableName]['implode']);
 
+            $rest[$tableName]['custom_methods'] = rtrim($rest[$tableName]['custom_methods'], PHP_EOL);
+
             $logClasses && print $rest[$tableName]['TableName'] . ', ';
 
             file_put_contents($targetDir . $rest[$tableName]['ucEachTableName'] . '.php', $mustache->render($this->restTemplate(), $rest[$tableName]));
@@ -586,14 +653,15 @@ END;
 
         foreach ($rest as $tableName => $parsed) {
             if (empty($rest[$tableName]['explode'])) {
-                self::colorCode( "\nYou have a reference with wasn't resolved in the dump. Please search for '$tableName' in your "
-                . "mysqldump.sql file. This typically occurs when resolving to an outside schema, which typically indicates and error.\n", 'red');
+                self::colorCode("\nYou have a reference with wasn't resolved in the dump. Please search for '$tableName' in your "
+                    . "mysqldump.sql file. This typically occurs when resolving to an outside schema, which typically indicates and error.\n", 'red');
             }
         }
 
         if ($react) {
             [$restAccessors, $interfaces] = $this->reactTemplate();
             $references_tsx = $interfaces_tsx = $global_column_tsx = '';
+            $all_interface_types = [];
             foreach ($rest as $tableName => $parsed) {
                 if (empty($rest[$tableName]['explode'])) {
                     continue;
@@ -625,12 +693,10 @@ END;
 
                     if (!empty($regex_validations)) {
 
-                        $str_lreplace = static function (string $search, string $replace, string $subject)
-                        {
+                        $str_lreplace = static function (string $search, string $replace, string $subject) {
                             $pos = strrpos($subject, $search);
 
-                            if($pos !== false)
-                            {
+                            if ($pos !== false) {
                                 $subject = substr_replace($subject, $replace, $pos, strlen($search));
                             }
 
@@ -650,14 +716,25 @@ END;
                     }
                 }
 
-
                 $references_tsx .= PHP_EOL . $mustache->render($restAccessors, $parsed);
                 $interfaces_tsx .= PHP_EOL . $mustache->render($interfaces, $parsed);
-                $global_column_tsx .= PHP_EOL . $mustache->render(/** @lang Handlebars */ "{{#explode}}'{{TableName}}.{{name}}':'{{name}}',{{/explode}}", $parsed);
+                $global_column_tsx .= PHP_EOL . $mustache->render(/** @lang Handlebars */ "{{#explode}}'{{TableName}}.{{name}}':'{{name}}',\n    {{/explode}}", $parsed);
+                $all_interface_types[] = 'i' . $rest[$tableName]['ucEachTableName'];
+                $all_table_names_types[] = $rest[$tableName]['TableName'];
             }
 
-            $export = /** @lang ECMAScript 6 */
+            if (empty($all_interface_types) || empty($all_table_names_types)) {
+                self::colorCode('The value of $all_interface_types must not be empty. Rest Failed.', 'red');
+                exit(1);
+            }
+
+            $all_interface_types = implode(' | ', $all_interface_types);
+
+            // $all_table_names_types = implode(PHP_EOL . '" | "', $all_table_names_types);
+
+            $export = /** @lang TypeScript JSX */
                 "
+
 export const C6 = {
 
     SELECT: '" . \CarbonPHP\Rest::SELECT . "',
@@ -678,6 +755,7 @@ export const C6 = {
     MIN: '" . \CarbonPHP\Rest::MIN . "',
     MAX: '" . \CarbonPHP\Rest::MAX . "',
     GROUP_CONCAT: '" . \CarbonPHP\Rest::GROUP_CONCAT . "',
+    
 
     $references_tsx
     
@@ -689,14 +767,33 @@ export const COLUMNS = {
       $global_column_tsx
 };
 
+//export type RestTables = \"\$all_table_names_types\";
+
+export type RestTableInterfaces = $all_interface_types;
+
+export const convertForRequestBody = function(restfulObject: RestTableInterfaces, tableName: string) {
+  let payload = {};
+  Object.keys(restfulObject).map(value => {
+    let exactReference = value.toUpperCase();
+    if (exactReference in C6[tableName]) {
+      payload[C6[tableName][exactReference]] = restfulObject[value]
+    }
+  });
+  return payload;
+};
+
 ";
-            file_put_contents($react  . 'C6.tsx', $export);
+            file_put_contents($react . 'C6.tsx', $export);
         }
 
         // todo - log classes
         $logClasses && print "\n";
 
         self::colorCode("\tFinished Building REST ORM!\n\n");
+
+
+        // TODO - validate the methods defined in table space
+
         /**
          * Now that the full dump has been parsed, we need to build our triggers
          * using the foreign key analysis
@@ -724,7 +821,7 @@ export const COLUMNS = {
         /** @noinspection ForgottenDebugOutputInspection */
         $debug and var_dump($rest['clients']);
 
-        self::colorCode( "\tSuccess!\n\n");
+        self::colorCode("\tSuccess!\n\n");
 
     }
 
@@ -843,43 +940,62 @@ TRIGGER;
     {{#explode}}
     {{caps}}: '{{TableName}}.{{name}}',
     {{/explode}}
-    PRIMARY: [{{#primary}}
-        {{#name}}'{{TableName}}.{{name}}',{{/name}}
-    {{/primary}}],
+    PRIMARY: [
+        {{#primary}}{{#name}}'{{TableName}}.{{name}}',{{/name}}
+        {{/primary}}
+    ],
     COLUMNS: {
-      {{#explode}}'{{TableName}}.{{name}}':'{{name}}',{{/explode}}
+      {{#explode}}'{{TableName}}.{{name}}':'{{name}}',
+      {{/explode}}
     },
     REGEX_VALIDATION: {
-    {{#regex_validation}}
-    '{{name}}': {{validation}},
-    {{/regex_validation}}
+        {{#regex_validation}}
+        '{{name}}': {{validation}},
+        {{/regex_validation}}
     }
 
   },", /** @lang Handlebars */ "
 export interface  i{{ucEachTableName}}{
-      {{#explode}}'{{name}}'?: string;{{/explode}}
+      {{#explode}}'{{name}}'?: string;
+      {{/explode}}
 }
   "];
     }
 
 
-
+    private function restTemplateStaticNameSpace() : array
+    {
+        return [
+            'use PDO;',
+            'use CarbonPHP\Rest;',
+            'use CarbonPHP\Error\PublicAlert;',
+            'use function array_key_exists;',
+            'use function count;',
+            'use function func_get_args;',
+            'use function is_array;'
+        ];
+    }
 
     private function restTemplate(): string
     {
+        $staticNamespaces= $this->restTemplateStaticNameSpace();
+
+        array_splice($staticNamespaces,2,0, [
+            'use CarbonPHP\Interfaces\\{{#primaryExists}}iRest{{/primaryExists}}{{^primaryExists}}iRestfulReferences{{/primaryExists}};',
+        ]);
+
+        $staticNamespaces = implode(PHP_EOL, $staticNamespaces);
+
         return /** @lang Handlebars */ <<<STRING
-<?php /** @noinspection PhpFullyQualifiedNameUsageInspection */
+<?php 
 {{^carbon_namespace}}namespace Tables;{{/carbon_namespace}}
 {{#carbon_namespace}}namespace CarbonPHP\Tables;{{/carbon_namespace}}
 
-use PDO;
-use CarbonPHP\Rest;
-use CarbonPHP\Interfaces\\{{#primaryExists}}iRest{{/primaryExists}}{{^primaryExists}}iRestfulReferences{{/primaryExists}};
-use CarbonPHP\Error\PublicAlert;
-use function array_key_exists;
-use function count;
-use function func_get_args;
-use function is_array;
+// Restful defaults
+$staticNamespaces
+
+// Custom User Imports
+{{#CustomImports}}{{{CustomImports}}}{{/CustomImports}}
 
 class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/primaryExists}}{{^primaryExists}}iRestfulReferences{{/primaryExists}}
 {
@@ -963,7 +1079,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
         self::bind(\$stmt);
 
         if (!\$stmt->execute()) {
-            throw new PublicAlert('Failed to execute the query on {{ucEachTableName}}.');
+            throw new PublicAlert('Failed to execute the query on {{ucEachTableName}}.', 'danger');
         }
 
         \$return = \$stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -998,7 +1114,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
     {   
         foreach (\$argv as \$columnName => \$postValue) {
             if (!array_key_exists(\$columnName, self::PDO_VALIDATION)){
-                throw new PublicAlert("Restful table could not post column \$columnName, because it does not appear to exist.");
+                throw new PublicAlert("Restful table could not post column \$columnName, because it does not appear to exist.", 'danger');
             }
         } 
         
@@ -1019,7 +1135,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
         \$stmt->bindValue(':{{name}}',{{#json}}json_encode(\$argv['{{TableName}}.{{name}}']){{/json}}{{^json}}{{^default}}\$argv['{{TableName}}.{{name}}']{{/default}}{{#default}}array_key_exists('{{TableName}}.{{name}}',\$argv) ? \$argv['{{TableName}}.{{name}}'] : {{default}}{{/default}}{{/json}}, {{type}});{{/length}}
     {{#length}}{{^default}}
         if (!array_key_exists('{{TableName}}.{{name}}', \$argv)) {
-            throw new PublicAlert('Required argument "{{TableName}}.{{name}}" is missing from the request.');
+            throw new PublicAlert('Required argument "{{TableName}}.{{name}}" is missing from the request.', 'danger');
         }{{/default}}
         \${{name}} = {{^default}}\$argv['{{TableName}}.{{name}}']{{/default}}{{#default}} \$argv['{{TableName}}.{{name}}'] ?? {{{default}}}{{/default}};
         \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
@@ -1044,7 +1160,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
     {
         {{#primaryExists}}
         if (empty(\$primary)) {
-            throw new PublicAlert('Restful tables which have a primary key must be updated by its primary key.');
+            throw new PublicAlert('Restful tables which have a primary key must be updated by its primary key.', 'danger');
         }
         
         if (array_key_exists(self::UPDATE, \$argv)) {
@@ -1057,13 +1173,13 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
         \$argv = \$argv[self::UPDATE];
 
         if (empty(\$where) || empty(\$argv)) {
-            throw new PublicAlert('Restful tables which have no primary key must be updated specific where conditions.');
+            throw new PublicAlert('Restful tables which have no primary key must be updated specific where conditions.', 'danger');
         }
         {{/primaryExists}}
         
         foreach (\$argv as \$key => \$value) {
             if (!array_key_exists(\$key, self::PDO_VALIDATION)){
-                throw new PublicAlert('Restful table could not update column \$key, because it does not appear to exist.');
+                throw new PublicAlert('Restful table could not update column \$key, because it does not appear to exist.', 'danger');
             }
         }
 
@@ -1103,11 +1219,11 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
         self::bind(\$stmt);
 
         if (!\$stmt->execute()) {
-            throw new PublicAlert('Restful table {{ucEachTableName}} failed to execute the update query.');
+            throw new PublicAlert('Restful table {{ucEachTableName}} failed to execute the update query.', 'danger');
         }
         
         if (!\$stmt->rowCount()) {
-            throw new PublicAlert('Failed to update the target row.');
+            throw new PublicAlert('Failed to update the target row.', 'danger');
         }
         
         \$argv = array_combine(
@@ -1144,7 +1260,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
          *   n00bs and future self, "I got chu."
          */
         if (empty(\$argv)) {
-            throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.');
+            throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.', 'danger');
         }
         
         /** @noinspection SqlResolve */
@@ -1183,21 +1299,25 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
             *   n00bs and future self, "I got chu."
             */
             if (empty(\$argv)) {
-                throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.');
+                throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.', 'danger');
             }
             
             \$where = self::buildWhere(\$argv, \$pdo, '{{TableName}}', self::PDO_VALIDATION);
             
             if (empty(\$where)) {
-                throw new PublicAlert('The where condition provided appears invalid.');
+                throw new PublicAlert('The where condition provided appears invalid.', 'danger');
             }
 
             \$sql .= ' WHERE ' . \$where;
         } {{#sql}}else {
         {{{sql}}}
         }{{/sql}}{{/name}}{{/primary}}
-               
+     
         {{^primary}}
+        if (empty(\$argv)) {
+            throw new PublicAlert('When deleting from restful tables with out a primary key additional arguments must be provided.', 'danger');
+        } 
+         
         \$sql .= ' WHERE ' . self::buildWhere(\$argv, \$pdo, '{{TableName}}', self::PDO_VALIDATION);{{/primary}}
 
         {{#json}}self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
@@ -1213,6 +1333,9 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
         return \$r;
     {{/carbon_table}}
     }
+     
+{{{custom_methods}}}
+    
 }
 
 STRING;

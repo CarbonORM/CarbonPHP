@@ -15,27 +15,27 @@ use function is_array;
 // Custom User Imports
 
 
-class Carbon_User_Groups extends Rest implements iRestfulReferences
+class Carbon_Group_References extends Rest implements iRestfulReferences
 {
     
-    public const TABLE_NAME = 'carbon_user_groups';
-    public const GROUP_ID = 'carbon_user_groups.group_id'; 
-    public const USER_ID = 'carbon_user_groups.user_id'; 
+    public const TABLE_NAME = 'carbon_group_references';
+    public const GROUP_ID = 'carbon_group_references.group_id'; 
+    public const ALLOWED_TO_GRANT_GROUP_ID = 'carbon_group_references.allowed_to_grant_group_id'; 
 
     public const PRIMARY = [
         
     ];
 
     public const COLUMNS = [
-        'carbon_user_groups.group_id' => 'group_id','carbon_user_groups.user_id' => 'user_id',
+        'carbon_group_references.group_id' => 'group_id','carbon_group_references.allowed_to_grant_group_id' => 'allowed_to_grant_group_id',
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_user_groups.group_id' => ['binary', '2', '16'],'carbon_user_groups.user_id' => ['binary', '2', '16'],
+        'carbon_group_references.group_id' => ['binary', '2', '16'],'carbon_group_references.allowed_to_grant_group_id' => ['binary', '2', '16'],
     ];
- 
+    
     public const PHP_VALIDATION = []; 
- 
+    
     public const REGEX_VALIDATION = []; 
     
     /**
@@ -88,7 +88,7 @@ class Carbon_User_Groups extends Rest implements iRestfulReferences
         self::bind($stmt);
 
         if (!$stmt->execute()) {
-            throw new PublicAlert('Failed to execute the query on Carbon_User_Groups.', 'danger');
+            throw new PublicAlert('Failed to execute the query on Carbon_Group_References.', 'danger');
         }
 
         $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -120,7 +120,7 @@ class Carbon_User_Groups extends Rest implements iRestfulReferences
         } 
         
         /** @noinspection SqlResolve */
-        $sql = 'INSERT INTO carbon_user_groups (group_id, user_id) VALUES ( UNHEX(:group_id), UNHEX(:user_id))';
+        $sql = 'INSERT INTO carbon_group_references (group_id, allowed_to_grant_group_id) VALUES ( UNHEX(:group_id), UNHEX(:allowed_to_grant_group_id))';
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -128,12 +128,12 @@ class Carbon_User_Groups extends Rest implements iRestfulReferences
 
     
     
-        $group_id =  $argv['carbon_user_groups.group_id'] ?? null;
+        $group_id =  $argv['carbon_group_references.group_id'] ?? null;
         $stmt->bindParam(':group_id',$group_id, 2, 16);
     
     
-        $user_id =  $argv['carbon_user_groups.user_id'] ?? null;
-        $stmt->bindParam(':user_id',$user_id, 2, 16);
+        $allowed_to_grant_group_id =  $argv['carbon_group_references.allowed_to_grant_group_id'] ?? null;
+        $stmt->bindParam(':allowed_to_grant_group_id',$allowed_to_grant_group_id, 2, 16);
     
 
 
@@ -166,15 +166,15 @@ class Carbon_User_Groups extends Rest implements iRestfulReferences
             }
         }
 
-        $sql = 'UPDATE carbon_user_groups ' . ' SET '; // intellij cant handle this otherwise
+        $sql = 'UPDATE carbon_group_references ' . ' SET '; // intellij cant handle this otherwise
 
         $set = '';
 
-        if (array_key_exists('carbon_user_groups.group_id', $argv)) {
+        if (array_key_exists('carbon_group_references.group_id', $argv)) {
             $set .= 'group_id=UNHEX(:group_id),';
         }
-        if (array_key_exists('carbon_user_groups.user_id', $argv)) {
-            $set .= 'user_id=UNHEX(:user_id),';
+        if (array_key_exists('carbon_group_references.allowed_to_grant_group_id', $argv)) {
+            $set .= 'allowed_to_grant_group_id=UNHEX(:allowed_to_grant_group_id),';
         }
         
         $sql .= substr($set, 0, -1);
@@ -182,25 +182,25 @@ class Carbon_User_Groups extends Rest implements iRestfulReferences
         $pdo = self::database();
 
         
-        $sql .= ' WHERE ' . self::buildWhere($where, $pdo, 'carbon_user_groups', self::PDO_VALIDATION);
+        $sql .= ' WHERE ' . self::buildWhere($where, $pdo, 'carbon_group_references', self::PDO_VALIDATION);
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 
-        if (array_key_exists('carbon_user_groups.group_id', $argv)) {
-            $group_id = $argv['carbon_user_groups.group_id'];
+        if (array_key_exists('carbon_group_references.group_id', $argv)) {
+            $group_id = $argv['carbon_group_references.group_id'];
             $stmt->bindParam(':group_id',$group_id, 2, 16);
         }
-        if (array_key_exists('carbon_user_groups.user_id', $argv)) {
-            $user_id = $argv['carbon_user_groups.user_id'];
-            $stmt->bindParam(':user_id',$user_id, 2, 16);
+        if (array_key_exists('carbon_group_references.allowed_to_grant_group_id', $argv)) {
+            $allowed_to_grant_group_id = $argv['carbon_group_references.allowed_to_grant_group_id'];
+            $stmt->bindParam(':allowed_to_grant_group_id',$allowed_to_grant_group_id, 2, 16);
         }
 
         self::bind($stmt);
 
         if (!$stmt->execute()) {
-            throw new PublicAlert('Restful table Carbon_User_Groups failed to execute the update query.', 'danger');
+            throw new PublicAlert('Restful table Carbon_Group_References failed to execute the update query.', 'danger');
         }
         
         if (!$stmt->rowCount()) {
@@ -209,7 +209,7 @@ class Carbon_User_Groups extends Rest implements iRestfulReferences
         
         $argv = array_combine(
             array_map(
-                static function($k) { return str_replace('carbon_user_groups.', '', $k); },
+                static function($k) { return str_replace('carbon_group_references.', '', $k); },
                 array_keys($argv)
             ),
             array_values($argv)
@@ -232,7 +232,7 @@ class Carbon_User_Groups extends Rest implements iRestfulReferences
     {
         /** @noinspection SqlResolve */
         /** @noinspection SqlWithoutWhere */
-        $sql = 'DELETE FROM carbon_user_groups ';
+        $sql = 'DELETE FROM carbon_group_references ';
 
         $pdo = self::database();
         
@@ -241,7 +241,7 @@ class Carbon_User_Groups extends Rest implements iRestfulReferences
             throw new PublicAlert('When deleting from restful tables with out a primary key additional arguments must be provided.', 'danger');
         } 
          
-        $sql .= ' WHERE ' . self::buildWhere($argv, $pdo, 'carbon_user_groups', self::PDO_VALIDATION);
+        $sql .= ' WHERE ' . self::buildWhere($argv, $pdo, 'carbon_group_references', self::PDO_VALIDATION);
 
         self::jsonSQLReporting(func_get_args(), $sql);
 

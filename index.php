@@ -14,6 +14,8 @@ if (false === (include 'vendor' . DS . 'autoload.php')) {     // Load the autolo
     die(1);
 }
 
+// todo - regex new functions and namespaces
 (new CarbonPHP(Config::class))();
 
-return true;    // do this
+return true;
+

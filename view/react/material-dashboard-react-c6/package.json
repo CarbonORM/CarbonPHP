@@ -8,6 +8,7 @@
   "dependencies": {
     "@material-ui/core": "4.3.2",
     "@material-ui/icons": "4.2.1",
+    "@sweetalert/with-react": "^0.1.1",
     "@types/history": "^4.7.2",
     "@types/jest": "24.0.15",
     "@types/node": "12.6.8",
@@ -28,7 +29,6 @@
     "react": "^16.10.2",
     "react-animate-on-scroll": "^2.1.5",
     "react-big-calendar": "0.20.1",
-    "react-bootstrap-sweetalert": "5.2.0",
     "react-chartist": "0.13.3",
     "react-datetime": "^2.16.3",
     "react-dom": "^16.10.2",
@@ -42,7 +42,7 @@
     "react-swipeable-views": "^0.13.3",
     "react-table": "6.8.6",
     "react-tagsinput": "^3.19.0",
-    "sweetalert": "^2.1.0",
+    "sweetalert": "^2.1.2",
     "typescript": "3.9.7"
   },
   "scripts": {

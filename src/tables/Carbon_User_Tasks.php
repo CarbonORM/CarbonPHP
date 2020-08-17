@@ -1,7 +1,8 @@
-<?php /** @noinspection PhpFullyQualifiedNameUsageInspection */
+<?php 
 
 namespace CarbonPHP\Tables;
 
+// Restful defaults
 use PDO;
 use CarbonPHP\Rest;
 use CarbonPHP\Interfaces\iRest;
@@ -10,6 +11,9 @@ use function array_key_exists;
 use function count;
 use function func_get_args;
 use function is_array;
+
+// Custom User Imports
+
 
 class Carbon_User_Tasks extends Rest implements iRest
 {
@@ -90,7 +94,7 @@ class Carbon_User_Tasks extends Rest implements iRest
         self::bind($stmt);
 
         if (!$stmt->execute()) {
-            throw new PublicAlert('Failed to execute the query on Carbon_User_Tasks.');
+            throw new PublicAlert('Failed to execute the query on Carbon_User_Tasks.', 'danger');
         }
 
         $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -122,7 +126,7 @@ class Carbon_User_Tasks extends Rest implements iRest
     {   
         foreach ($argv as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)){
-                throw new PublicAlert("Restful table could not post column $columnName, because it does not appear to exist.");
+                throw new PublicAlert("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
             }
         } 
         
@@ -136,7 +140,7 @@ class Carbon_User_Tasks extends Rest implements iRest
     
     
         if (!array_key_exists('carbon_user_tasks.task_id', $argv)) {
-            throw new PublicAlert('Required argument "carbon_user_tasks.task_id" is missing from the request.');
+            throw new PublicAlert('Required argument "carbon_user_tasks.task_id" is missing from the request.', 'danger');
         }
         $task_id = $argv['carbon_user_tasks.task_id'];
         $stmt->bindParam(':task_id',$task_id, 2, 16);
@@ -150,7 +154,7 @@ class Carbon_User_Tasks extends Rest implements iRest
     
     
         if (!array_key_exists('carbon_user_tasks.task_name', $argv)) {
-            throw new PublicAlert('Required argument "carbon_user_tasks.task_name" is missing from the request.');
+            throw new PublicAlert('Required argument "carbon_user_tasks.task_name" is missing from the request.', 'danger');
         }
         $task_name = $argv['carbon_user_tasks.task_name'];
         $stmt->bindParam(':task_name',$task_name, 2, 40);
@@ -181,7 +185,7 @@ class Carbon_User_Tasks extends Rest implements iRest
     public static function Put(array &$return, string $primary, array $argv) : bool
     {
         if (empty($primary)) {
-            throw new PublicAlert('Restful tables which have a primary key must be updated by its primary key.');
+            throw new PublicAlert('Restful tables which have a primary key must be updated by its primary key.', 'danger');
         }
         
         if (array_key_exists(self::UPDATE, $argv)) {
@@ -190,7 +194,7 @@ class Carbon_User_Tasks extends Rest implements iRest
         
         foreach ($argv as $key => $value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.');
+                throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.', 'danger');
             }
         }
 
@@ -267,11 +271,11 @@ class Carbon_User_Tasks extends Rest implements iRest
         self::bind($stmt);
 
         if (!$stmt->execute()) {
-            throw new PublicAlert('Restful table Carbon_User_Tasks failed to execute the update query.');
+            throw new PublicAlert('Restful table Carbon_User_Tasks failed to execute the update query.', 'danger');
         }
         
         if (!$stmt->rowCount()) {
-            throw new PublicAlert('Failed to update the target row.');
+            throw new PublicAlert('Failed to update the target row.', 'danger');
         }
         
         $argv = array_combine(
@@ -307,7 +311,7 @@ class Carbon_User_Tasks extends Rest implements iRest
          *   n00bs and future self, "I got chu."
          */
         if (empty($argv)) {
-            throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.');
+            throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.', 'danger');
         }
         
         /** @noinspection SqlResolve */
@@ -332,4 +336,7 @@ class Carbon_User_Tasks extends Rest implements iRest
 
         return $r;
     }
+     
+
+    
 }

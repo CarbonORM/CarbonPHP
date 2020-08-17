@@ -10,20 +10,11 @@ use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iConfig;
 use CarbonPHP\Request;
 use CarbonPHP\Rest;
-use CarbonPHP\Tables\Carbon_Feature_Groups;
 use CarbonPHP\Tables\Carbon_Users;
 use CarbonPHP\View;
 
 class Config extends Application implements iConfig
 {
-
-    public static function createdByMe(&$request) {
-        $request[Carbon_Feature_Groups::CREATED_BY] = $_SESSION['id'];
-    }
-
-    public static function testAlertAndValidation() {
-        // PublicAlert::info('im an alert message.');
-    }
 
     // these are all relative to the /view/ directory
     private const REACT = 'react/material-dashboard-react-c6/build/index.html';
@@ -80,6 +71,7 @@ class Config extends Application implements iConfig
      */
     public function __construct($structure = null)
     {
+
         if (CarbonPHP::$safelyExit) {
             return;
         }
@@ -177,6 +169,7 @@ class Config extends Application implements iConfig
      */
     public function startApplication(string $uri): bool
     {
+
         global $json;
 
         $json['APP_LOCAL'] = APP_LOCAL;
@@ -298,6 +291,13 @@ class Config extends Application implements iConfig
 
         $me = [];
         if (!Carbon_Users::Get($me, null, [
+            REST::SELECT => [
+                Carbon_Users::USER_ID,
+                Carbon_Users::USER_USERNAME,
+                Carbon_Users::USER_PASSWORD,
+                Carbon_Users::USER_FIRST_NAME,
+                Carbon_Users::USER_LAST_NAME
+            ],
             REST::WHERE => [
                 [
                     Carbon_Users::USER_USERNAME => $id,
@@ -364,9 +364,9 @@ class Config extends Application implements iConfig
                 'CALLBACK' => static function () {         // optional variable $reset which would be true if a url is passed to startApplication()
                     // optional variable $reset which would be true if a url is passed to startApplication()
                     // This is a special case used for documentation and should not be used in prod. See repo stats.coach for example
-                    if ($_SESSION['id'] ??= false) {
-                        self::getUser(session_id());
-                    }
+                    /*if ($_SESSION['id'] ??= false) {
+                        self::getUser(session_id());       // todo - opted for the run in self::defaultRoute &| self::startApplication
+                    }*/
                 },
             ],
             'SOCKET' => [

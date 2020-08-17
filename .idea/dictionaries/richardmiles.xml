@@ -4,10 +4,12 @@
       <w>autoloading</w>
       <w>axios</w>
       <w>bcrypt</w>
+      <w>carbonphp</w>
       <w>mysqldump</w>
       <w>pcntl</w>
       <w>phpsessid</w>
       <w>strtolower</w>
+      <w>swal</w>
       <w>testdox</w>
       <w>websocketd</w>
       <w>websockets</w>
