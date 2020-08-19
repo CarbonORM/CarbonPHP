@@ -1,0 +1,118 @@
+<!-- Content Header (Page header) -->
+<div class="box box-solid box-default" style="margin-top: 20px;">
+    <div class="box-header">
+        <div class="content-header">
+            <h1 class="text-purple" style="margin: 0">
+                <i class="fa fa-folder"></i>
+                <b>Recommended Project Directory Structure</b>
+            </h1>
+        </div>
+    </div>
+
+    <div class="box-body">
+        <!-- Main content -->
+        <div class="content body">
+            <p>
+                We decided <a href="https://framework.zend.com/manual/1.10/en/project-structure.project.html"
+                              class="text-purple">Zend
+                    Framework</a> has a very
+                intuitive and clear file architecture. We're going to use their recommended file hierarchy with a few
+                tweaks. We do this because
+                The <a href="https://en.wikipedia.org/wiki/Model–view–controller" class="text-purple">Controller ->
+                    Model -> View (MVC,
+                    rolls
+                    off the tong better) coding pattern</a>
+                is in alphabetical order. So in most editors you can think of it as top down. I recommend viewing the
+                files,
+            </p>
+            <br>
+            <ol>
+                <li><h4><b>Controllers - accepts input and converts it to commands for the model or view</b></h4>
+                    <ul>
+                        <li>If the controller returns false, or nothing, the model code layer will not be run</li>
+                        <li>Data returned by will be passed as parameters to the model</li>
+                    </ul>
+                </li>
+                <li><h4><b>Models - may accept data from the controller, but is not required</b></h4>
+                    <ul>
+                        <li>Models usually run functions provided in the Tables folder then work to prepare it for the
+                            view
+                        </li>
+                        <li>Tables should have a corresponding file of the same name</li>
+                    </ul>
+                </li>
+                <li><h4><b>Tables - preform database operations</b></h4>
+                    <ul>
+                        <li>Tables should extends 'Entities' and implements 'iTable'</li>
+                    </ul>
+                </li>
+                <li><h4><b>View - holds all html data</b></h4>
+                    <ul>
+                        <li>All logic in the view should be based on presents of variables</li>
+                        <li>Mustache templates are recommend</li>
+                    </ul>
+                </li>
+            </ol>
+            <br>
+            <div class="col-md-offset-4 col-md-4">
+                <a href="Installation">
+                    <button type="button" class="btn bg-purple col-md-12" data-toggle="modal" data-target="#modal-success">
+                        Setup a new application!
+                    </button>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<pre class="hierarchy bring-up"><code class="language-bash" data-lang="bash">File Hierarchy of C6
+
+      C6/
+      ├── Application/
+      │   ├── Controller/
+      │   │     └──       Validate user input (type checks)
+      │   ├── Model/
+      │   │     └──       Validate against database + other database operations
+      │   ├── Tables/
+      │   │     └──       Every table in you database should implement iEntity
+      │   ├── View/
+      │   │     └──       HTML goes here (mostly likely a php file)
+      │   ├── Route.php
+      ├── config/
+      │   ├── Config.php
+      │   │     └──       CarbonPHP's configuration file
+      │   └── setting.yml
+      │         └──       Google App Engine Support (ignore if you do not host with google)
+      │
+      └── Data/
+          ├── Indexes/
+          │     └──       For lists, like state in the US..
+          ├── Sessions/
+          │     └──       You can choose where to store sessions in Config.php
+          ├── Temp/
+          ├── Uploads/
+          └── Vendors/    Libraries like CarbonPHP will be stored here by Composer
+</code></pre>
+
+<section id="MVC">
+    <div class="box box-solid box-default">
+        <div class="box-header">
+            <h2 style="margin:0;"><b>CarbonPHP</b> uses an MVC structure.</h2>
+        </div>
+        <div class="box-body">
+            <p class="lead">
+                The following function is used for many all routes involving <a href="<?=SITE?>" class="text-purple">user
+                    input or dynamic view.</a>
+            </p>
+            <p>It is useful to separate the Controller->Model function for events that
+                    only return json data. If the HTML requested is not dynamic than you can directly run the
+                    <code>View::Content()</code> static method.
+                    <a href="<?=SITE?>" class="text-purple">This will wrap the html in the provided wrapper.</a>
+            </p>
+            <pre>        <code><span style="overflow-x: scroll">&nbsp;<span style="color: #0000BB">&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/**Stands&nbsp;for&nbsp;Controller&nbsp;-&gt;&nbsp;Model&nbsp;.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;This&nbsp;will&nbsp;run&nbsp;the&nbsp;controller/$class.$method().<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;If&nbsp;the&nbsp;method&nbsp;returns&nbsp;true&nbsp;the&nbsp;model/$class.$method()&nbsp;will&nbsp;be<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;invoked.&nbsp;If&nbsp;an&nbsp;array&nbsp;is&nbsp;returned&nbsp;from&nbsp;the&nbsp;controller&nbsp;its&nbsp;values<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;will&nbsp;be&nbsp;passed&nbsp;as&nbsp;parameters&nbsp;to&nbsp;our&nbsp;model.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;@link&nbsp;http://php.net/manual/en/function.call-user-func-array.php<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;@param&nbsp;string&nbsp;$class&nbsp;This&nbsp;class&nbsp;name&nbsp;to&nbsp;autoload<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;@param&nbsp;string&nbsp;$method&nbsp;The&nbsp;method&nbsp;within&nbsp;the&nbsp;provided&nbsp;class<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;@param&nbsp;array&nbsp;$argv&nbsp;Arguments&nbsp;to&nbsp;be&nbsp;passed&nbsp;to&nbsp;method<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;@return&nbsp;mixed&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the&nbsp;returned&nbsp;value&nbsp;from&nbsp;model/$class.$method()&nbsp;or&nbsp;false&nbsp;|&nbsp;void<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;@throws&nbsp;Exception<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*/<br>&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">CM</span><span style="color: #007700">(</span><span style="color: #0000BB">string&nbsp;</span><span style="color: #007700">&amp;</span><span style="color: #0000BB">$class</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">string&nbsp;</span><span style="color: #007700">&amp;</span><span style="color: #0000BB">$method</span><span style="color: #007700">,&nbsp;array&nbsp;&amp;</span><span style="color: #0000BB">$argv&nbsp;</span><span style="color: #007700">=&nbsp;[])<br>&nbsp;&nbsp;&nbsp;&nbsp;{<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$class&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">ucfirst</span><span style="color: #007700">(</span><span style="color: #0000BB">strtolower</span><span style="color: #007700">(</span><span style="color: #0000BB">$class</span><span style="color: #007700">));&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;Prevent&nbsp;malformed&nbsp;class&nbsp;names<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$controller&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"Controller\$class"</span><span style="color: #007700">;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;add&nbsp;namespace&nbsp;for&nbsp;autoloader<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$model&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">"Model\$class"</span><span style="color: #007700">;<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$method&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">strtolower</span><span style="color: #007700">(</span><span style="color: #0000BB">$method</span><span style="color: #007700">);&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;Prevent&nbsp;malformed&nbsp;method&nbsp;names<br><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Make&nbsp;sure&nbsp;our&nbsp;class&nbsp;exists<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">if&nbsp;(!</span><span style="color: #0000BB">class_exists</span><span style="color: #007700">(</span><span style="color: #0000BB">$controller</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">true</span><span style="color: #007700">)&nbsp;||&nbsp;!</span><span style="color: #0000BB">class_exists</span><span style="color: #007700">(</span><span style="color: #0000BB">$model</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">true</span><span style="color: #007700">))&nbsp;{<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw&nbsp;new&nbsp;</span><span style="color: #0000BB">InvalidArgumentException</span><span style="color: #007700">(</span><span style="color: #DD0000">"Invalid&nbsp;Class&nbsp;</span><span style="color: #007700">{</span><span style="color: #0000BB">$class</span><span style="color: #007700">}</span><span style="color: #DD0000">&nbsp;Passed&nbsp;to&nbsp;MVC"</span><span style="color: #007700">);<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;the&nbsp;array&nbsp;$argv&nbsp;will&nbsp;be&nbsp;passed&nbsp;as&nbsp;arguments&nbsp;to&nbsp;the&nbsp;method&nbsp;requested,&nbsp;see&nbsp;link&nbsp;above<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$exec&nbsp;</span><span style="color: #007700">=&nbsp;function&nbsp;(</span><span style="color: #0000BB">$class</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$argv</span><span style="color: #007700">)&nbsp;use&nbsp;(</span><span style="color: #0000BB">$method</span><span style="color: #007700">)&nbsp;{<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;\</span><span style="color: #0000BB">call_user_func_array</span><span style="color: #007700">([new&nbsp;</span><span style="color: #0000BB">$class</span><span style="color: #007700">,&nbsp;</span><span style="color: #DD0000">"</span><span style="color: #0000BB">$method</span><span style="color: #DD0000">"</span><span style="color: #007700">],&nbsp;(array)</span><span style="color: #0000BB">$argv</span><span style="color: #007700">);<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;};<br><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">catchErrors</span><span style="color: #007700">(function&nbsp;()&nbsp;use&nbsp;(</span><span style="color: #0000BB">$exec</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$controller</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$model</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$argv</span><span style="color: #007700">)&nbsp;{<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(</span><span style="color: #0000BB">$argv&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">$exec</span><span style="color: #007700">(</span><span style="color: #0000BB">$controller</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$argv</span><span style="color: #007700">))&nbsp;{<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">$exec</span><span style="color: #007700">(</span><span style="color: #0000BB">$model</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$argv</span><span style="color: #007700">);<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">$argv</span><span style="color: #007700">;<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})();<br>&nbsp;&nbsp;&nbsp;&nbsp;}<br><br>&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">/**&nbsp;Stands&nbsp;for&nbsp;Controller&nbsp;-&gt;&nbsp;Model&nbsp;-&gt;&nbsp;View<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;This&nbsp;will&nbsp;run&nbsp;the&nbsp;controller/$class.$method().<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;If&nbsp;the&nbsp;method&nbsp;returns&nbsp;true&nbsp;the&nbsp;model/$class.$method()&nbsp;will&nbsp;be<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;invoked.&nbsp;If&nbsp;an&nbsp;array&nbsp;is&nbsp;returned&nbsp;from&nbsp;the&nbsp;controller&nbsp;its&nbsp;values<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;will&nbsp;be&nbsp;passed&nbsp;as&nbsp;parameters&nbsp;to&nbsp;our&nbsp;model.&nbsp;Finally&nbsp;the&nbsp;View&nbsp;will<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;be&nbsp;executed.&nbsp;The&nbsp;file&nbsp;should&nbsp;be&nbsp;in&nbsp;the&nbsp;APP_VIEW&nbsp;directory&nbsp;(set&nbsp;in&nbsp;config)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;with&nbsp;the&nbsp;following&nbsp;naming&nbsp;convention<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;&nbsp;APP_VIEW&nbsp;/&nbsp;$class&nbsp;/&nbsp;$method&nbsp;.&nbsp;(php&nbsp;|&nbsp;hbs)&nbsp;&nbsp;-&nbsp;We&nbsp;accept&nbsp;handlebar&nbsp;templates.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;The&nbsp;view&nbsp;will&nbsp;be&nbsp;processed&nbsp;server-side&nbsp;and&nbsp;returned<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;@link&nbsp;http://php.net/manual/en/function.call-user-func-array.php<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;@param&nbsp;string&nbsp;$class&nbsp;This&nbsp;class&nbsp;name&nbsp;to&nbsp;autoload<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;@param&nbsp;string&nbsp;$method&nbsp;The&nbsp;method&nbsp;within&nbsp;the&nbsp;provided&nbsp;class<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;@param&nbsp;array&nbsp;$argv&nbsp;Arguments&nbsp;to&nbsp;be&nbsp;passed&nbsp;to&nbsp;method<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;@return&nbsp;mixed&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the&nbsp;returned&nbsp;value&nbsp;from&nbsp;model/$class.$method()&nbsp;or&nbsp;false&nbsp;|&nbsp;void<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;@throws&nbsp;Exception<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*/<br>&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">MVC</span><span style="color: #007700">(</span><span style="color: #0000BB">string&nbsp;$class</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">string&nbsp;$method</span><span style="color: #007700">,&nbsp;array&nbsp;&amp;</span><span style="color: #0000BB">$argv&nbsp;</span><span style="color: #007700">=&nbsp;[])<br>&nbsp;&nbsp;&nbsp;&nbsp;{<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">CM</span><span style="color: #007700">(</span><span style="color: #0000BB">$class</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$method</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">$argv</span><span style="color: #007700">);&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;Controller&nbsp;-&gt;&nbsp;Model<br><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;This&nbsp;could&nbsp;cache&nbsp;or&nbsp;send<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$file&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">APP_VIEW&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #DD0000">"</span><span style="color: #0000BB">$class</span><span style="color: #DD0000">/</span><span style="color: #0000BB">$method</span><span style="color: #DD0000">"</span><span style="color: #007700">;<br><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(!</span><span style="color: #0000BB">file_exists</span><span style="color: #007700">(</span><span style="color: #0000BB">SERVER_ROOT&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$file&nbsp;</span><span style="color: #007700">.&nbsp;(</span><span style="color: #0000BB">$ext&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'.php'</span><span style="color: #007700">))&nbsp;&amp;&amp;&nbsp;!</span><span style="color: #0000BB">file_exists</span><span style="color: #007700">(</span><span style="color: #0000BB">SERVER_ROOT&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$file&nbsp;</span><span style="color: #007700">.&nbsp;(</span><span style="color: #0000BB">$ext&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'.hbs'</span><span style="color: #007700">)))&nbsp;{<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$ext&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">''</span><span style="color: #007700">;<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">View</span><span style="color: #007700">::</span><span style="color: #0000BB">content</span><span style="color: #007700">(</span><span style="color: #0000BB">$file&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$ext</span><span style="color: #007700">);&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;View<br>&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">}</span>
+
+            </span>        </code></pre>
+            <br>
+        </div>
+</section><!-- /#introduction -->
+
+

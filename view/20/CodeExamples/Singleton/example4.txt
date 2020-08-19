@@ -1,0 +1,72 @@
+include 'ExampleClass.php';
+
+class Bar () {
+    use Singleton;       // we're not storing this classes data on destruct
+
+    private $foo;
+
+    public function setFoo($foo){
+        $this->foo = $foo;
+    }
+
+    /** Private is more like public in a singleton, this gains in portability
+     * defined private are accessible to the global scope and overridabillity
+     * at call time. You may cringe if unfamiliar with the php language. However,
+     * I recommend you read this article.
+     * @link https://ocramius.github.io/blog/accessing-private-php-class-members-without-reflection/
+    **/
+    private function fooToss() {
+        print 'A random method implementation, ' . $this->foo;
+    }
+}
+
+$classBar = new Bar;    // no need to get the instance this time
+
+$classBar->setFoo('hi');
+
+// The following is no mistake
+$classBar->fooToss();   // prints: A random method implementation, hi
+
+$classBar->fooToss = function() {
+    print 'hello';
+};
+
+$classBar->fooToss();                       // prints: hello
+
+$classBar->fooToss = 'I need a beer';
+
+print $classBar->fooToss;                   // prints: I need a beern
+
+$classBar->fooToss();
+
+// Lets override a class and namespace, this my be useful when geveloping around interfaces or debugging
+
+$request = Request::setInstance(new class {      // Takes over the namespace
+
+public $foo;
+    public $bar;
+
+    public function __construct(){
+        print 'Fourth exe';
+        $oldClass = Request::getInstance();
+        $this->foo = $oldClass->foo;
+        $this->bar = $oldClass->hello;
+    }
+});
+
+// after the setInstance() method is complete the previous class will destruct and store in the session
+// other files may now use the getInstance() to retreive our newly created class
+
+$request = Request::getInstance();  // Will return the new quickly created class
+
+$request->superClosure();     // This will throw a new Exception
+// -- There is valid method or closure with the given name 'superClosure' to call
+
+$request->superClosure = function () { print $this->foo . PHP_EOL . $this->hello; };
+
+$request->superClosure();     // Output: Hello World. We're assigning a new variable.
+
+$request = Request::setInstance($classBar);     // You getting this? class bar is now retreivable with Request::getInstance()
+
+$request->superClosure();     // This will throw a new Exception
+// -- There is valid method or closure with the given name 'superClosure' to call

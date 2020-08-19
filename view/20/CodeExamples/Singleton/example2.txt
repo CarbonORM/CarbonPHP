@@ -1,0 +1,12 @@
+include 'ExampleClass.php';
+
+$object = ExampleClass::getInstance('Hello World.');    // invokes the constructor and Sets the value of foo
+
+$object->bar();                                 // Prints $foo which is = 'Hello World'
+
+// the following is normally not available, but Singleton...
+$object->bar = 'implicit definition';           // bar was not defined prior, but will hold state between requests
+
+print $object->foo . ' ' . $object->bar;        // Print "Hello World. implicit definition";
+
+die;                                            // invokes the destructor in Singleton (exit/die is not required)
