@@ -51,7 +51,7 @@ class View
 
             if (!file_exists($directoryContext . $file)) {
                 // It was already handled if it was an hbs, but lets remind people that both are supported
-                self::bootstrapAlert("The file ($file.(hbs|php))requested could not be found.", 'danger');
+                self::bootstrapAlert("The file ($file) requested could not be found.", 'danger');
             } else if (!SOCKET) {
                 /** @noinspection PhpIncludeInspection */
                 include $directoryContext . $file;          // TODO - remove socket check?

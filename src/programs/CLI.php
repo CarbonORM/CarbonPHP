@@ -116,6 +116,7 @@ class CLI implements iCommand
 
                 /** @noinspection PhpIncludeInspection */
                 if (false === include($path . $name . '.php')) {
+                    // todo error catcher
                     die('Failed loading file "' . $name . '.php". Please no syntax errors exist in this file.');
                 }
 

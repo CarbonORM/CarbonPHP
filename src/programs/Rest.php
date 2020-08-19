@@ -778,6 +778,7 @@ export const convertForRequestBody = function(restfulObject: RestTableInterfaces
     if (exactReference in C6[tableName]) {
       payload[C6[tableName][exactReference]] = restfulObject[value]
     }
+    return true;
   });
   return payload;
 };

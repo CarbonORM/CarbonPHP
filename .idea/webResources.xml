@@ -9,6 +9,7 @@
             <path value="file://$PROJECT_DIR$/vendor" />
             <path value="file://$PROJECT_DIR$/view" />
             <path value="file://$PROJECT_DIR$/view/react/material-dashboard-react-c6" />
+            <path value="file://$PROJECT_DIR$/view/assets/react" />
           </resourceRoots>
         </entryData>
       </entry>

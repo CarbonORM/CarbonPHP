@@ -15,6 +15,13 @@ use Mustache_Exception_InvalidArgumentException;
 
 abstract class Application extends Route
 {
+
+    /*
+     * This functions should change the $matched property in the extended Route class to true.
+     * public bool $matched = false;
+     * This can happen by using the Routing methods to produce a match, or setting it explicitly.
+     * If the start application method finishes with $matched = false; your defaultRoute() method will run.
+     */
     abstract public function startApplication(string $uri): bool;
 
     /**

@@ -483,7 +483,7 @@ PRODUCTION;
 }
 
 html { 
-  background: url("/view/mustache/img/Carbon-red.png") no-repeat center center fixed; 
+  background: url("/view/assets/img/Carbon-red.png") no-repeat center center fixed; 
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;

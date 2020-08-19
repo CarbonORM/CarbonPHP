@@ -17,34 +17,34 @@ class Config extends Application implements iConfig
 {
 
     // these are all relative to the /view/ directory
-    private const REACT = 'react/material-dashboard-react-c6/build/index.html';
+    private const REACT = '60/index.html';
 
-    private array $adminLTE = [
-        'Home' => 'mustache/Documentation/Home.hbs',
-        'CarbonPHP' => 'mustache/Documentation/Introduction.hbs',
-        'Installation' => 'mustache/Documentation/Installation.hbs',
-        'Implementations' => 'mustache/Documentation/Implementations.hbs',
-        'Dependencies' => 'mustache/Documentation/Dependencies.hbs',
-        'FileStructure' => 'mustache/Documentation/QuickStart/FileStructure.hbs',
-        'Environment' => 'mustache/Documentation/QuickStart/Environment.hbs',
-        'Options' => 'mustache/Documentation/QuickStart/Options.hbs',
-        'Bootstrap' => 'mustache/Documentation/QuickStart/Bootstrap.hbs',
-        'Wrapper' => 'mustache/Documentation/QuickStart/Wrapper.hbs',
-        'Parallel' => 'mustache/Documentation/QuickStart/ParallelProcessing.hbs',
-        'Overview' => 'mustache/Documentation/PHP/Overview.hbs',
-        'Entities' => 'mustache/Documentation/PHP/Entities.hbs',
-        'Request' => 'mustache/Documentation/PHP/Request.hbs',
-        'Route' => 'mustache/Documentation/PHP/Route.hbs',
-        'Server' => 'mustache/Documentation/PHP/Server.hbs',
-        'Session' => 'mustache/Documentation/PHP/Session.hbs',
-        'Singleton' => 'mustache/Documentation/PHP/Singleton.hbs',
-        'View' => 'mustache/Documentation/PHP/View.hbs',
-        'OSSupport' => 'mustache/Documentation/PlatformSupport.hbs',
-        'UpgradeGuide' => 'mustache/Documentation/PlatformSupport.hbs',
-        'Support' => 'mustache/Documentation/Support.hbs',
-        'License' => 'mustache/Documentation/License.hbs',
-        'AdminLTE' => 'mustache/Documentation/AdminLTE.hbs',
-        'N00B' => 'mustache/Documentation/N00B.hbs'
+    private array $version2Dot0 = [
+        'Home' => '20/Home.hbs',
+        'CarbonPHP' => '20/Introduction.hbs',
+        'Installation' => '20/Installation.hbs',
+        'Implementations' => '20/Implementations.hbs',
+        'Dependencies' => '20/Dependencies.hbs',
+        'FileStructure' => '20/QuickStart/FileStructure.hbs',
+        'Environment' => '20/QuickStart/Environment.hbs',
+        'Options' => '20/QuickStart/Options.hbs',
+        'Bootstrap' => '20/QuickStart/Bootstrap.hbs',
+        'Wrapper' => '20/QuickStart/Wrapper.hbs',
+        'Parallel' => '20/QuickStart/ParallelProcessing.hbs',
+        'Overview' => '20/PHP/Overview.hbs',
+        'Entities' => '20/PHP/Entities.hbs',
+        'Request' => '20/PHP/Request.hbs',
+        'Route' => '20/PHP/Route.hbs',
+        'Server' => '20/PHP/Server.hbs',
+        'Session' => '20/PHP/Session.hbs',
+        'Singleton' => '20/PHP/Singleton.hbs',
+        'View' => '20/PHP/View.hbs',
+        'OSSupport' => '20/PlatformSupport.hbs',
+        'UpgradeGuide' => '20/PlatformSupport.hbs',
+        'Support' => '20/Support.hbs',
+        'License' => '20/License.hbs',
+        'AdminLTE' => '20/AdminLTE.hbs',
+        'N00B' => '20/N00B.hbs'
     ];
 
 
@@ -57,6 +57,11 @@ class Config extends Application implements iConfig
         self::getUser();
 
         View::$forceWrapper = true; // this will hard refresh the wrapper
+
+        if (APP_LOCAL) {
+            // todo - whoami check
+            throw new PublicAlert('You need to be on port 3000 :)');
+        }
 
         $this->fullPage()(self::REACT);
     }
@@ -169,7 +174,6 @@ class Config extends Application implements iConfig
      */
     public function startApplication(string $uri): bool
     {
-
         global $json;
 
         $json['APP_LOCAL'] = APP_LOCAL;
@@ -193,8 +197,8 @@ class Config extends Application implements iConfig
             } else {
                 $json['colorCode'] = '';
             }
-            View::$wrapper = APP_ROOT . APP_VIEW . 'mustache/AdminLTE/wrapper.hbs';
-            return View::content(APP_VIEW . 'color'. DS .'color.php', APP_ROOT);
+            View::$wrapper = APP_ROOT . APP_VIEW . 'assets/AdminLTE/wrapper.hbs';
+            return View::content(APP_VIEW . 'color'. DS .'color.hbs', APP_ROOT);
         })()) {
             return true;
         }
@@ -211,17 +215,17 @@ class Config extends Application implements iConfig
                     $AdminLTE = 'widgets';
                 }
 
-                if (file_exists(APP_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . $AdminLTE . '.php') ||
-                    file_exists(APP_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Charts' . DS . $AdminLTE . '.php') ||
-                    file_exists(APP_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Examples' . DS . $AdminLTE . '.php') ||
-                    file_exists(APP_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Forms' . DS . $AdminLTE . '.php') ||
-                    file_exists(APP_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Layout' . DS . $AdminLTE . '.php') ||
-                    file_exists(APP_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Mailbox' . DS . $AdminLTE . '.php') ||
-                    file_exists(APP_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'Tables' . DS . $AdminLTE . '.php') ||
-                    file_exists(APP_ROOT . APP_VIEW . $path = 'mustache' . DS . 'AdminLTE' . DS . 'UI' . DS . $AdminLTE . '.php')) {
+                if (file_exists(APP_ROOT . APP_VIEW . $path = 'assets' . DS . 'AdminLTE' . DS . $AdminLTE . '.php') ||
+                    file_exists(APP_ROOT . APP_VIEW . $path = 'assets' . DS . 'AdminLTE' . DS . 'Charts' . DS . $AdminLTE . '.php') ||
+                    file_exists(APP_ROOT . APP_VIEW . $path = 'assets' . DS . 'AdminLTE' . DS . 'Examples' . DS . $AdminLTE . '.php') ||
+                    file_exists(APP_ROOT . APP_VIEW . $path = 'assets' . DS . 'AdminLTE' . DS . 'Forms' . DS . $AdminLTE . '.php') ||
+                    file_exists(APP_ROOT . APP_VIEW . $path = 'assets' . DS . 'AdminLTE' . DS . 'Layout' . DS . $AdminLTE . '.php') ||
+                    file_exists(APP_ROOT . APP_VIEW . $path = 'assets' . DS . 'AdminLTE' . DS . 'Mailbox' . DS . $AdminLTE . '.php') ||
+                    file_exists(APP_ROOT . APP_VIEW . $path = 'assets' . DS . 'AdminLTE' . DS . 'Tables' . DS . $AdminLTE . '.php') ||
+                    file_exists(APP_ROOT . APP_VIEW . $path = 'assets' . DS . 'AdminLTE' . DS . 'UI' . DS . $AdminLTE . '.php')) {
 
                     // this needs to be in this if block
-                    View::$wrapper = APP_ROOT . APP_VIEW . 'mustache/AdminLTE/wrapper.hbs';
+                    View::$wrapper = APP_ROOT . APP_VIEW . 'assets/AdminLTE/wrapper.hbs';
 
                     $this->wrap()(APP_VIEW . $path);    // still relative to APP_ROOT
                 }
@@ -238,14 +242,14 @@ class Config extends Application implements iConfig
 
                     $page or View::$forceWrapper = true;
 
-                    if ($page && array_key_exists($page, $this->adminLTE)) {
-                        $this->wrap()($this->adminLTE[$page]);
+                    if ($page && array_key_exists($page, $this->version2Dot0)) {
+                        $this->wrap()($this->version2Dot0[$page]);
                     } else {
-                        $this->wrap()($this->adminLTE['Home']);
+                        $this->wrap()($this->version2Dot0['Home']);
                     }
                     return true;
                 case '6.0':
-                    $this->fullPage()('react/material-dashboard-react-c6/build/index.html');
+                    $this->fullPage()('60/index.html');
                     return true;
                 default:
                     break;
@@ -389,11 +393,11 @@ class Config extends Application implements iConfig
             'VIEW' => [
                 // TODO - THIS IS USED AS A URL AND DIRECTORY PATH. THIS IS BAD. WE NEED DS
                 'VIEW' => 'view/',  // This is where the MVC() function will map the HTML.PHP and HTML.HBS . See Carbonphp.com/mvc
-                'WRAPPER' => 'mustache/Documentation/Wrapper.hbs',     // View::content() will produce this
+                'WRAPPER' => '20/Wrapper.hbs',     // View::content() will produce this
             ],
             'MINIFY' => [
                 'CSS' => [
-                    'OUT' => APP_ROOT . 'view/mustache/css/style.css',
+                    'OUT' => APP_ROOT . 'view/assets/css/style.css',
                     APP_ROOT . 'node_modules/admin-lte/bower_components/bootstrap/dist/css/bootstrap.min.css',
                     APP_ROOT . 'node_modules/admin-lte/dist/css/AdminLTE.min.css',
                     APP_ROOT . 'node_modules/admin-lte/dist/css/skins/_all-skins.min.css',
@@ -416,10 +420,10 @@ class Config extends Application implements iConfig
                     APP_ROOT . 'node_modules/admin-lte/bower_components/fullcalendar/dist/fullcalendar.min.css'
                 ],
                 'JS' => [
-                    'OUT' => APP_ROOT . 'view/mustache/js/javascript.js',
+                    'OUT' => APP_ROOT . 'view/assets/js/javascript.js',
                     APP_ROOT . 'node_modules/admin-lte/bower_components/jquery/dist/jquery.js',  // do not use slim version
                     APP_ROOT . 'node_modules/jquery-pjax/jquery.pjax.js',
-                    APP_ROOT . 'view/mustache/Layout/mustache.js',
+                    APP_ROOT . 'node_modules/mustache/mustache.js',
                     CARBON_ROOT . 'helpers/Carbon.js',
                     CARBON_ROOT . 'helpers/asynchronous.js',
                     APP_ROOT . 'node_modules/jquery-form/src/jquery.form.js',
