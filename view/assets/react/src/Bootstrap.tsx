@@ -10,7 +10,8 @@ import Private from "layouts/Private";
 import PageNotFound from "views/Errors/PageNotFound";
 // This is our ajax class
 import {AxiosInstance} from "axios";
-import {CodeBlock, googlecode} from "react-code-blocks";
+import {CodeBlock, googlecode, dracula} from "react-code-blocks";
+
 
 
 class bootstrap extends React.Component<any, {
@@ -38,14 +39,15 @@ class bootstrap extends React.Component<any, {
     this.subRoutingSwitch = this.subRoutingSwitch.bind(this);
     this.semaphoreLock = this.semaphoreLock.bind(this);
     this.testRestfulPostResponse = this.testRestfulPostResponse.bind(this);
+    this.codeBlock = this.codeBlock.bind(this);
   }
 
-  codeBlock = (markdown: String, highlight: String = "", language: String = "php") => {
+  codeBlock = (markdown: String, highlight: String = "", language: String = "php", dark: boolean = false) => {
     return <CodeBlock
       text={markdown}
       language={language}
       showLineNumbers={true}
-      theme={googlecode}
+      theme={dark ? dracula : googlecode}
       highlight={highlight}
     />
   };
@@ -356,6 +358,7 @@ class bootstrap extends React.Component<any, {
             path="/"
             render={props => (authenticated ?
                 <Private
+                  codeBlock={this.codeBlock}
                   axios={this.state.axios}
                   subRoutingSwitch={this.subRoutingSwitch}
                   authenticated={authenticated}
@@ -366,6 +369,7 @@ class bootstrap extends React.Component<any, {
                   {...props}
                 /> :
                 <Public
+                  codeBlock={this.codeBlock}
                   axios={this.state.axios}
                   subRoutingSwitch={this.subRoutingSwitch}
                   authenticated={authenticated}

@@ -38,7 +38,11 @@ class CarbonPHP
 
     public static bool $setupComplete = false;
 
-    public function __construct(string $PHP = null)
+    /**
+     * CarbonPHP constructor.
+     * @param iConfig|string|null $PHP
+     */
+    public function __construct($PHP = null)
     {
         self::make($PHP);
     }
@@ -71,24 +75,22 @@ class CarbonPHP
             return true;
         }
 
-        if (empty($application)) {
-            if (!empty(self::$not_invoked_application)) {
-                $application = self::$not_invoked_application;
-
+        if (empty(self::$application)) {
+            if ($application instanceof Application) {
+                self::setApplication($application);
+            } else if (class_exists($application)) {
                 self::setApplication(new $application);
-
+            } else if (empty($application) && !empty(self::$not_invoked_application)) {
+                $application = self::$not_invoked_application;
+                self::setApplication(new $application);
             } else {
-                print 'Null may only be passed to the static run method or _invoke when the configuration is a class '
-                    . ' with implements iConfig and extends Application ';
-                return self::$safelyExit = true; // no use for this in C6 but possible for user reporting
+                print 'Argument passed to the static run method or _invoke should be a reference to a child of the abstract Application class.'
+                    . 'If no argument is supplied the configuration passed to the constructor must implement iConfig and extend the Application class.';
+                return self::$safelyExit = true;
             }
-        } else if (is_string($application)) {
-            self::setApplication(new $application);
-        } else {
-            self::setApplication($application);
         }
 
-        return self::startApplication();
+        return self::startApplication() !== false; // startApplication can return null which is not allowed here
     }
 
     public static function resetApplication(): bool
@@ -129,7 +131,7 @@ class CarbonPHP
 
         $application->matched = false;          // We can assume your in need of route matching again
 
-        $return = $application->startApplication($uri) ? null : false;
+        $return = $application->startApplication($uri) ? null : false; // this is for a recursive ending condition for Application::ControllerModelView
 
         // we need to invoke the destruct magic method which is inherited my Application from Route
         unset($application);
@@ -139,11 +141,15 @@ class CarbonPHP
     }
 
 
-    public static function make(string $configFilePath = null): void
+    /**
+     * @param iConfig|string|null $configuration
+     * @todo - php 8 add strict types
+     */
+    public static function make($configuration = null): void
     {
 
         try {
-            // TODO - make a cache of these consts
+            // TODO - make a cache of these constants
 
             ####################  Sockets will have already claimed this global
             defined('TEST') OR define('TEST', $_ENV['TEST'] ??= false);
@@ -167,9 +173,6 @@ class CarbonPHP
             ####################  Did we use >> php -S localhost:8080 index.php
             defined('APP_LOCAL') OR define('APP_LOCAL', self::isClientServer());
 
-
-            //print  APP_LOCAL; die;
-
             ####################  May as well make composer a dependency
             defined('COMPOSER_ROOT') OR define('COMPOSER_ROOT', dirname(CARBON_ROOT, 2) . DS);
 
@@ -184,46 +187,49 @@ class CarbonPHP
             }
 
             ####################  Now load config file so globals above & stacktrace security
-            if ($configFilePath !== null) {
+            if ($configuration === null) {
+                $PHP = [];
+            } else if ($configuration instanceof iConfig) {
+                $PHP = $configuration !== null ? $configuration::configuration() : [];
+                if ($configuration instanceof Application) {
+                    self::$application = $configuration;
+                }
+            } else if (class_exists($configuration)) {
 
-                if (class_exists($configFilePath)) {
+                $imp = array_map('strtolower', array_keys(class_implements($configuration)));
 
-                    $imp = array_map('strtolower', array_keys(class_implements($configFilePath)));
+                /** @noinspection ClassConstantUsageCorrectnessInspection */
+                if (!in_array(strtolower(iConfig::class), $imp, true)) {
+                    print 'The configuration class passed to C6 must implement the interface iConfig!';
+                    self::$safelyExit = true;
+                    return;
+                }
 
-                    /** @noinspection ClassConstantUsageCorrectnessInspection */
-                    if (!in_array(strtolower(iConfig::class), $imp, true)) {
-                        print 'The configuration class passed to C6 must implement the interface iConfig!';
-                        self::$safelyExit = true;
-                        return;
-                    }
+                if (is_subclass_of($configuration, Application::class)) {
+                    // only invoke this when setup is finished so constructors have access to constants
+                    self::$not_invoked_application = $configuration;
+                }
 
-                    if (is_subclass_of($configFilePath, Application::class)) {
-                        // only invoke this when setup is finished so constructors have access to constants
-                        self::$not_invoked_application = $configFilePath;
-                    }
+                /** @noinspection PhpUndefinedMethodInspection */
+                $PHP = $configuration::configuration();
 
-                    /** @noinspection PhpUndefinedMethodInspection */
-                    $PHP = $configFilePath::configuration();
+            } else if (file_exists($configuration)) {
+                /** @var array $PHP */
+                /** @noinspection PhpIncludeInspection */
 
-                } else if (file_exists($configFilePath)) {
-                    /** @var array $PHP */
-                    /** @noinspection PhpIncludeInspection */
+                $PHP = include $configuration;            // TODO - change the variable
 
-                    $PHP = include $configFilePath;            // TODO - change the variable
-
-                    if (!is_array($PHP)) {
-                        print 'The configuration file passed to C6 must return an array!';
-                        self::$safelyExit = true;
-                        return;
-                    }
-                } else {
-                    print 'Invalid configuration path given! ' . $configFilePath;
+                if (!is_array($PHP)) {
+                    print 'The configuration file passed to C6 must return an array!';
                     self::$safelyExit = true;
                     return;
                 }
             } else {
-                $PHP = [];
+                print 'Invalid configuration path given! ' . $configuration;
+                self::$safelyExit = true;
+                return;
             }
+
 
             #######################   VIEW      ######################
             define('APP_VIEW', $PHP['VIEW']['VIEW'] ?? DS);         // Public Folder
@@ -255,16 +261,6 @@ class CarbonPHP
             }
 
             #####################   ERRORS    #######################
-            /**
-             * TODO - debating on removing the start and attempting to catch our own errors. look into later
-             * So I've looked into it and discovered thrown errors can return to the current execution point
-             * We must now decide how and when we throw errors / exceptions..
-             *
-             * Questions still to test. When does the error catcher get resorted to?
-             * Do Try Catch block have a higher precedence than the error catcher?
-             * What if that error is thrown multiple function levels down in a block?
-             **/
-
             if ($PHP['ERROR'] ?? false) {
                 ErrorCatcher::$defaultLocation = REPORTS . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
                 ErrorCatcher::$fullReports = $PHP['ERROR']['FULL'] ?? true;
@@ -280,6 +276,7 @@ class CarbonPHP
                 Database::$username = $PHP['DATABASE']['DB_USER'] ?? '';
                 Database::$password = $PHP['DATABASE']['DB_PASS'] ?? '';
                 Database::$setup = $PHP['DATABASE']['DB_BUILD'] ?? '';
+                Database::$initialized = true;
             }
 
             #################  SITE  ########################

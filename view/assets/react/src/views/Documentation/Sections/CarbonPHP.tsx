@@ -7,6 +7,12 @@ import {
   Announcement,
   Dashboard,
   Exposure,
+  Looks3,
+  Looks4,
+  Looks5,
+  Looks6,
+  LooksOne,
+  LooksTwo,
   Power,
   RecentActors,
   Restaurant,
@@ -18,24 +24,29 @@ import {
 // core components
 import GridContainer from "components/Grid/GridContainer.jsx";
 import GridItem from "components/Grid/GridItem.jsx";
-import completedStyle from "assets/jss/material-kit-react/views/componentsSections/completedStyle.jsx";
 import NavPills from "components/NavPills/NavPills";
-import dashboardStyle from "assets/jss/material-dashboard-react/views/dashboardStyle.jsx";
+import dashboardStyle from "assets/jss/material-dashboard-react/views/dashboardStyle";
 // wip
-import {CodeBlock, googlecode} from "react-code-blocks";
 import raw from "raw.macro";
+import {WithStyles} from "@material-ui/styles";
+import {AxiosInstance} from "axios";
 
-const markdown = raw("../../../assets/examples/HelloWorld.php");
+;
+
+const HelloWorld = raw("../../../assets/examples/HelloWorld.php");
+const WhatsRequired = raw("../../../assets/examples/WhatsRequired.php");
+const markdown = WhatsRequired;
+
+interface iCarbonPHP extends WithStyles<typeof dashboardStyle> {
+  axios: AxiosInstance;
+  testRestfulPostResponse: Function;
+  codeBlock: (markdown: String, highlight ?: String, language ?: String) => any;
+}
 
 
-let style = {
-  ...completedStyle,
-  ...dashboardStyle
-};
-
-class CarbonPHP extends React.Component {
+class CarbonPHP extends React.Component<iCarbonPHP, any> {
   render() {
-    const { classes } = this.props;
+    const { classes, codeBlock } = this.props;
     return (
       <GridContainer justify="center">
         <GridItem xs={12} sm={12} md={8}>
@@ -93,22 +104,63 @@ class CarbonPHP extends React.Component {
 
                     <br/>
                     <h2>The Skinny</h2>
-                    <CodeBlock
-                      text={"const APP_ROOT = __DIR__ . DIRECTORY_SEPARATOR;\ninclude 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php'\n(new CarbonPHP\\CarbonPHP(Config\\Config::class))();"}
-                      language={"php"}
-                      showLineNumbers={true}
-                      //theme={dracula}
-                      //highlight={"3"}
-                    />
-
+                    {codeBlock("const APP_ROOT = __DIR__ . DIRECTORY_SEPARATOR;\ninclude 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php'\n(new CarbonPHP\\CarbonPHP( Config\\Config::class ))();")}
                     <br/>
+                    <h2>Increasingly Verbose</h2>
+                    <NavPills
+                      color="info"
+                      tabs={[
+                        {
+                          tabButton: "Whats Required",
+                          tabIcon: LooksOne,
+                          tabContent: (
+                            <>
+                              <h4>index.php</h4>
+                              {codeBlock(markdown)}
+                            </>
+                          )
+                        },
+                        {
+                          tabButton: "Hello World",
+                          tabIcon: LooksTwo,
+                          tabContent: (
+                            <>
+                              {codeBlock(markdown)}
+                            </>
 
-                    <CodeBlock
-                      text={markdown}
-                      language={"php"}
-                      showLineNumbers={true}
-                      theme={googlecode}
-                      highlight={"11,14,19,23,32,40"}
+                          )
+                        },
+                        {
+                          tabButton: "iConfig",
+                          tabIcon: Looks3,
+                          tabContent: (
+                            <>
+                              {codeBlock(markdown)}
+                            </>
+                          )
+                        },
+                        {
+                          tabButton: "Instant Chat",
+                          tabIcon: Looks4,
+                          tabContent: (
+                            <h2>W00t</h2>
+                          )
+                        },
+                        {
+                          tabButton: "https://CarbonPHP.com/",
+                          tabIcon: Looks5,
+                          tabContent: (
+                            <h2>W00t</h2>
+                          )
+                        },
+                        {
+                          tabButton: "https://Stats.Coach/",
+                          tabIcon: Looks6,
+                          tabContent: (
+                            <h2>W00t</h2>
+                          )
+                        },
+                      ]}
                     />
 
 
@@ -301,4 +353,4 @@ class CarbonPHP extends React.Component {
   }
 }
 
-export default withStyles(style)(CarbonPHP);
+export default withStyles(dashboardStyle)(CarbonPHP);

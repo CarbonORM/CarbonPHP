@@ -33,34 +33,40 @@ use function is_array;
  */
 class Database
 {
+    /**
+     * @var bool - error catcher needs to initialize quickly,
+     * and can relies on a data connection which may not be set here at the moment of its own initialization
+     * This bool will determine this use case.
+     */
+    public static bool $initialized = false;
     /** Represents a connection between PHP and a database server.
      * @link http://php.net/manual/en/class.pdo.php
-     * @var PDO $database
+     * @var PDO|null $database // todo php 8.0
      */
     public static $database;
 
-    public static $username;
+    public static string $username;
 
-    public static $password;
+    public static string $password;
     /**
      * @var string $dsn holds the connection protocol
      * @link http://php.net/manual/en/pdo.construct.php
      */
-    public static $dsn;
+    public static string $dsn;
 
     /**
      * @var string holds the path of the users database set up file
      */
-    public static $setup;
+    public static string $setup;
 
     /**
      * @var bool - Represents a post, aka new row inception with foreign keys, in progress.
      */
-    private static $inTransaction = false;
+    private static bool $inTransaction = false;
     /**
      * @var array - new key inserted but not verified currently
      */
-    private static $entityTransactionKeys;
+    private static array $entityTransactionKeys;
 
     /** the database method will return a connection to the database.
      * Before returning a connection it must pass an active check.

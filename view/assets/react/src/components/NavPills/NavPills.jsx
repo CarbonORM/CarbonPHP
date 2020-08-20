@@ -123,7 +123,7 @@ NavPills.propTypes = {
   tabs: PropTypes.arrayOf(
     PropTypes.shape({
       tabButton: PropTypes.string,
-      tabIcon: PropTypes.func,
+      tabIcon: PropTypes.any,
       tabContent: PropTypes.node
     })
   ).isRequired,

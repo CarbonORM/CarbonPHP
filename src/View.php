@@ -17,9 +17,10 @@ class View
      */
     public static bool $forceWrapper = false;
     /**
-     * @var
+     * @var string
      */
     public static string $wrapper;
+
 
     /**
      * @param string $file

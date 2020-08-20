@@ -11,16 +11,22 @@ namespace CarbonPHP;
 
 use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Error\PublicAlert;
+use Error;
 use Mustache_Exception_InvalidArgumentException;
 
 abstract class Application extends Route
 {
 
-    /*
+    /**
      * This functions should change the $matched property in the extended Route class to true.
      * public bool $matched = false;
      * This can happen by using the Routing methods to produce a match, or setting it explicitly.
      * If the start application method finishes with $matched = false; your defaultRoute() method will run.
+     *
+     *
+     * @param string $uri
+     * @return bool  - REQUIRED, it seems like we use it anywhere at first glance, but its apart of a
+     *                  recursive ending condition for Application::ControllerModelView
      */
     abstract public function startApplication(string $uri): bool;
 
@@ -79,7 +85,7 @@ abstract class Application extends Route
 
             // Make sure our Controller exists
             if (!class_exists($controller)) {
-                print "Invalid Controller ({$controller}) Passed to MVC. Please ensure your namespace mappings are correct!";
+                throw new Error("Invalid Controller ({$controller}) Passed to MVC. Please ensure your namespace mappings are correct!");
             }
 
             $argv = \call_user_func_array([new $controller, $method], $argv);
@@ -88,7 +94,7 @@ abstract class Application extends Route
 
                 // Make sure our Model exists
                 if (!class_exists($model)) {
-                    print "Invalid Model ({$model}) Passed to MVC. Please ensure your namespace mappings are correct!";
+                    throw new Error( "Invalid Model ({$model}) Passed to MVC. Please ensure your namespace mappings are correct!");
                 }
 
                 return \call_user_func_array([new $model, $method], is_array($argv) ? $argv : [$argv]);

@@ -210,11 +210,11 @@ END;
             $browserOutput = [];
 
             // refer to link on this one
-            if (!(error_reporting() & $errorLevel)) {
+            /*if (!(error_reporting() & $errorLevel)) {
                 // This error code is not included in error_reporting, so let it fall
                 // through to the standard PHP error handler
                 return false;
-            }
+            }*/
 
             switch ($errorLevel) {
                 case E_USER_ERROR:
@@ -347,19 +347,25 @@ END;
         }
 
         if (self::$storeReport === true || self::$storeReport === 'database') {
-            try {
-                if (!Carbon_Reports::Post([
-                    Carbon_Reports::LOG_LEVEL => $level,
-                    Carbon_Reports::REPORT => $cliOutput,
-                    Carbon_Reports::CALL_TRACE => $trace
-                ])) {
-                    error_log($message = 'Failed storing log in database. The restful Carbon_Reports table returned false.');
+            if (Database::$initialized) {
+                try {
+                    if (!Carbon_Reports::Post([
+                        Carbon_Reports::LOG_LEVEL => $level,
+                        Carbon_Reports::REPORT => $cliOutput,
+                        Carbon_Reports::CALL_TRACE => $trace
+                    ])) {
+                        error_log($message = 'Failed storing log in database. The restful Carbon_Reports table returned false.');
+                        $browserOutput['[C6] ISSUE'] = $message;
+                        die(1);
+                    }
+                } catch (PublicAlert $e) {
+                    error_log($message = 'Failed storing log in database. The restful Carbon_Reports table through and error :: ' . $e->getMessage());
                     $browserOutput['[C6] ISSUE'] = $message;
-                    die(1);
                 }
-            } catch (PublicAlert $e) {
-                error_log($message = 'Failed storing log in database. The restful Carbon_Reports table through and error :: ' . $e->getMessage());
+            } else {
+                error_log($message = 'An error occurred before the database use initialized. This likely means you have no database configurations, or a general configuration issue issues occurred :: ' . $e->getMessage());
                 $browserOutput['[C6] ISSUE'] = $message;
+                $browserOutput['[C6] STORAGE ISSUE'] = 'The database was not initialized when the error occurred. Storage to the database was not possible.';
             }
         }
 

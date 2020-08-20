@@ -753,7 +753,7 @@
    'str' => 'application/vnd.pg.format',
    'stw' => 'application/vnd.sun.xml.writer.template',
    'sub' => 'image/vnd.dvb.subtitle',
-   'sub' => 'text/vnd.dvb.subtitle',
+   'sub2' => 'text/vnd.dvb.subtitle',       // actually just dup sub, renamed for collision
    'sus' => 'application/vnd.sus-calendar',
    'susp' => 'application/vnd.sus-calendar',
    'sv4cpio' => 'application/x-sv4cpio',
@@ -896,7 +896,7 @@
    'wmv' => 'video/x-ms-wmv',
    'wmx' => 'video/x-ms-wmx',
    'wmz' => 'application/x-ms-wmz',
-   'wmz' => 'application/x-msmetafile',
+   'wmz2' => 'application/x-msmetafile', // actually just wmz, renamed for collision
    'woff' => 'font/woff',
    'woff2' => 'font/woff2',
    'wpd' => 'application/vnd.wordperfect',

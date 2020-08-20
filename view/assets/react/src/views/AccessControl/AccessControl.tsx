@@ -48,8 +48,7 @@ import swal from '@sweetalert/with-react';
 import withStyles from "@material-ui/core/styles/withStyles";
 
 
-// @ts-ignore
-interface iAccessConrol extends WithStyles<typeof landingPageStyle> {
+interface iAccessControl extends WithStyles<typeof landingPageStyle> {
   axios: AxiosInstance;
   testRestfulPostResponse: Function;
 }
@@ -64,7 +63,7 @@ interface iGroupFeatures extends iCarbon_Groups, iCarbon_Features {
 }
 
 
-class AccessControl extends React.Component<iAccessConrol, {
+class AccessControl extends React.Component<iAccessControl, {
   currency: 'USD' | 'GBP' | 'EUR' | 'PLN',
   grantRolesModalOpen: boolean,
   createRolesAndAssignModalOpen: boolean,

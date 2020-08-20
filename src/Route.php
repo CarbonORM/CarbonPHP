@@ -12,6 +12,10 @@ namespace CarbonPHP;
 use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Error\PublicAlert;
 use Throwable;
+use function count;
+use function defined;
+use function explode;
+use function substr_count;
 
 abstract class Route
 {
@@ -86,20 +90,19 @@ abstract class Route
      * Route constructor. If the url is / or null then our
      * default route will be invoked.
      * @param callable|null $structure
-     * @throws PublicAlert
      */
     public function __construct(callable $structure = null)
     {
         $this->closure = $structure;
         // This check allows Route to be independent of Carbon/Application, but benefit if we've already initiated
-        if (\defined('URI') && !SOCKET) {
+        if (defined('URI') && !SOCKET) {
             $this->uri = URI;
             $this->uriExplode = explode('/', trim(URI, '/'));
-            $this->uriLength = \count($this->uriExplode);
+            $this->uriLength = count($this->uriExplode);
         } else {
             $this->uri = trim(urldecode(parse_url(trim(preg_replace('/\s+/', ' ', $_SERVER['REQUEST_URI'])), PHP_URL_PATH)));
-            $this->uriExplode = explode('/', $this->uri, ' /');
-            $this->uriLength = \substr_count($this->uri, '/') + 1; // I need the exploded string
+            $this->uriExplode = explode('/', $this->uri,);
+            $this->uriLength = substr_count($this->uri, '/') + 1; // I need the exploded string
         }
     }
 
@@ -108,6 +111,8 @@ abstract class Route
      */
     public function changeURI(string $uri): void
     {
+
+
         $this->uri = $uri = trim($uri, '/');
         $this->uriExplode = explode('/', $uri);
         $this->uriLength = substr_count($uri, '/') + 1;
@@ -153,7 +158,6 @@ abstract class Route
                 return $this;
             }
         } catch (Throwable $exception) {
-            //ErrorCatcher::generateLog($exception);
             throw new PublicAlert('The following regex failed :: ' . $regexToMatch);
         }
         $this->matched = true;
@@ -191,7 +195,7 @@ abstract class Route
     {
         $uri = $this->uriExplode;
         $arrayToMatch = explode('/', trim($pathToMatch, '/'));
-        $pathLength = \count($arrayToMatch);
+        $pathLength = count($arrayToMatch);
         $pathLength === 0 and $pathToMatch = '*';   // shorthand if stmt
         // The order of the following
         if ($pathLength < $this->uriLength && substr($pathToMatch, -1) !== '*') {
