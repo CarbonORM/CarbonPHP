@@ -20,14 +20,10 @@ use Throwable;
 class Setup implements iCommand
 {
     use MySQL {
-        /** @noinspection ImplicitMagicMethodCallInspection */
         cleanUp as removeFiles;
     }
 
-
     private string $configFile;
-
-
 
     public function usage() : void
     {
@@ -96,13 +92,14 @@ usage;
         }
     }
 
-    public function cleanUp($argv) : void
+    public function cleanUp() : void
     {
         // TODO: Implement cleanUp() method.
     }
 
 
-    private function options(){
+    private function options(): array
+    {
         return [
             'DATABASE' => [
 
@@ -122,7 +119,7 @@ usage;
             'SITE' => [
                 'URL' => 'carbonphp.com',    // Evaluated and if not the accurate Redirect. Local php server okay. Remove for any domain
 
-                'ROOT' => APP_ROOT,          // This was defined in our ../index.php
+                'ROOT' => CarbonPHP::$app_root,          // This was defined in our ../index.php
 
                 'CACHE_CONTROL' => [
                     'ico|pdf|flv' => 'Cache-Control: max-age=29030400, public',
@@ -173,7 +170,7 @@ usage;
 
             // ERRORS on point
             'ERROR' => [
-                'LOCATION' => APP_ROOT . 'logs' . DS ,
+                'LOCATION' => CarbonPHP::$app_root . 'logs' . DS ,
 
                 'LEVEL' =>  E_ALL | E_STRICT,  // php ini level
 

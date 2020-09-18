@@ -20,7 +20,7 @@
             <div class="box box-primary" data-widget="">
                 <div class="box-body box-profile">
                     <img class="profile-user-img img-responsive img-circle"
-                         src="<?= SITE . APP_VIEW ?>Img\defaults\morgan.png" alt="User profile picture">
+                         src="<?= CarbonPHP::$site . CarbonPHP::$app_view ?>Img\defaults\morgan.png" alt="User profile picture">
                     <h3 class="profile-username text-center">
                         Jill Taylor
                     </h3>

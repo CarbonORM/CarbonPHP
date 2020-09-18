@@ -5,12 +5,15 @@
       <w>axios</w>
       <w>bcrypt</w>
       <w>carbonphp</w>
+      <w>falsey</w>
       <w>googlecode</w>
       <w>grantability</w>
       <w>grantabillity</w>
       <w>mysqldump</w>
       <w>pcntl</w>
       <w>phpsessid</w>
+      <w>pjax</w>
+      <w>signatured</w>
       <w>strtolower</w>
       <w>swal</w>
       <w>testdox</w>

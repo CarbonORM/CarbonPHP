@@ -3,6 +3,7 @@
 namespace CarbonPHP\Tables;
 
 // Restful defaults
+use Config\Validate;
 use PDO;
 use CarbonPHP\Rest;
 use CarbonPHP\Interfaces\iRest;
@@ -60,7 +61,7 @@ class Carbon_Users extends Rest implements iRest
     ];
  
     public const PHP_VALIDATION = [
-        [[\Config\Validate::class => 'addToPostRequest', self::USER_IP, IP]]
+        [[Validate::class => 'addToPostRequest', self::USER_IP, 'IP']]
     ]; 
  
     public const REGEX_VALIDATION = []; 

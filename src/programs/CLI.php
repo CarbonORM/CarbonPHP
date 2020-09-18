@@ -9,6 +9,7 @@
 namespace CarbonPHP\Programs;
 
 
+use CarbonPHP\CarbonPHP;
 use CarbonPHP\interfaces\iCommand;
 
 class CLI implements iCommand
@@ -16,14 +17,75 @@ class CLI implements iCommand
     use Background;
 
     private array $CONFIG;
+    private array $ARGV;
+
     private array $C6Programs = [];
     private array $UserPrograms = [];
     private string $userProgramsDirectory = '';
 
-    public function __construct(array $CONFIG)
+
+    private static ?iCommand $program;
+
+    public function __construct(array $configuration)
     {
-        $this->CONFIG = $CONFIG;
+        CarbonPHP::$socket = true;
+
+        [$this->CONFIG, $this->ARGV] = $configuration;
+
         $this->programList();
+
+        $PHP = $this->CONFIG;
+        $argv = &$this->ARGV;
+
+        $fullCommand = 'php ' . implode(' ', $argv);
+        self::colorCode("\nCLI Command Parsed >>", 'blue');
+        self::colorCode($fullCommand. "\n\n", 'black');
+
+        array_shift($argv);
+
+        $program = array_shift($argv);
+
+        $searchAndConstruct = static function ($array, bool $C6Internal = true) use ($program, $PHP, $argv) {
+            // Validation with this loop
+            foreach ($array as $name) {
+
+                // I prefer this loop so I catch
+                if (strtolower($program) !== strtolower($name)) {
+                    continue;
+                }
+
+                $namespace = ($C6Internal ? "CarbonPHP\\" : '') . "Programs\\$name";
+
+                if (!class_exists($namespace)) {
+                    self::colorCode("Failed to load the class ($namespace)");
+                    die('Failed to load the class ("' . $namespace . '")');
+                }
+
+                $imp = class_implements($namespace);
+
+                if (!array_key_exists(iCommand::class, $imp)) {
+                    die('The program class "' . $namespace . '" should also implement iCommand. ' . print_r($imp, true));
+                }
+
+                self::colorCode("\nConstructing Program >> $namespace", 'blue');
+                $cmd = new $namespace([$PHP, $argv]);
+
+                if ($cmd instanceof iCommand) { // only because my editor is dumb
+                    self::$program = $cmd;
+                } else {
+                    self::colorCode("\nA very unexpected error occurred. Your command doesn't implement iCommand?", 'red');
+                    exit(1);
+                }
+                return true;
+            }
+            return false;
+        };
+
+        // while way more likely to run a C6 program and not user defined, precedence says a user program should
+        // overwrite a C6
+        // If a user makes a program with a name C6 will later take, for example, backwards compatibility
+        $searchAndConstruct($this->UserPrograms, false) or
+            $searchAndConstruct($this->C6Programs);
     }
 
     public function programList(): void
@@ -32,10 +94,10 @@ class CLI implements iCommand
             $program = basename($program, '.php');
         };
 
-        if (!file_exists(APP_ROOT . 'composer.json')) {
-            print "\tCouldn't find composer.json under the APP_ROOT.\n\tLearn how to add cli programs at CarbonPHP.com";
+        if (!file_exists(CarbonPHP::$app_root . 'composer.json')) {
+            print "\tCouldn't find composer.json under the CarbonPHP::$app_root.\n\tLearn how to add cli programs at CarbonPHP.com";
         } else {
-            $json = file_get_contents(APP_ROOT . 'composer.json');
+            $json = file_get_contents(CarbonPHP::$app_root . 'composer.json');
             $json = json_decode($json, true);
             if ($json === null) {
                 print "\n\tThe decoding of composer.json failed. Please make sure the file contains a valid json.\n\n";
@@ -43,9 +105,9 @@ class CLI implements iCommand
             }
             $this->userProgramsDirectory = $programDirectory = $json['autoload']['psr-4']["Programs\\"] ??= false;
 
-            if (is_string(APP_ROOT . $programDirectory)) {
+            if (is_string(CarbonPHP::$app_root . $programDirectory)) {
 
-                $programDirectory = APP_ROOT . $programDirectory;
+                $programDirectory = CarbonPHP::$app_root . $programDirectory;
 
                 if (!is_dir($programDirectory)) {
                     print "The directory defined for the Programs Namespace ($programDirectory) in composer.json does not exist.";
@@ -67,17 +129,16 @@ class CLI implements iCommand
 
         // the following removes helper classes invalid responses and unfinished tools
         $program = array_diff(
-            scandir(CARBON_ROOT . 'programs', null),
+            scandir(CarbonPHP::CARBON_ROOT . 'programs', null),
             array(
                 '.',
                 '..',
                 'CLI.php',
                 'Background.php',
+                'ColorCode.php',
                 'MySQL.php',
                 'TestAutomationServer.php',
                 'testBuilder.php',
-                'Websocketd.php',
-                'WebSocketPHP.php'
             ));
 
 
@@ -87,6 +148,8 @@ class CLI implements iCommand
 
         $this->C6Programs = $program;
     }
+
+
 
     /** Command Line Interface. Use
      *  I pass the php array to this function
@@ -98,62 +161,22 @@ class CLI implements iCommand
     public function run(array $argv): void
     {
         $PHP = $this->CONFIG;
-
         // I do this so the I can pass the argvs correctly to the php executables
-        self::colorCode("\nCalling Command >>", 'blue');
-        self::colorCode('php ' . implode(' ', $argv) . "\n\n", 'black');
+        self::colorCode("\nRunning Command", 'blue');
 
         array_shift($argv);
 
         $program = array_shift($argv);
 
-        $searchAndExecute = static function ($path, $array) use ($program, $PHP, $argv) {
-            foreach ($array as $name) {
-                // I prefer this loop so I catch
-                if (strtolower($program) !== strtolower($name)) {
-                    continue;
-                }
-
-                /** @noinspection PhpIncludeInspection */
-                if (false === include($path . $name . '.php')) {
-                    // todo error catcher
-                    die('Failed loading file "' . $name . '.php". Please no syntax errors exist in this file.');
-                }
-
-                $classes = get_declared_classes();
-
-                $class = end($classes);
-
-                if (!class_exists($class)) {
-                    die('Failed to load the class ("' . $class . '")');
-                }
-
-                $imp = class_implements($class);
-
-                if (!array_key_exists(iCommand::class, $imp)) {
-                    die('The program class "' . $class . '" should also implement iCommand. ' . print_r($imp, true));
-                }
-
-                // We're only using this closure to reinforce our iCommand // type hint
-                $run = static function (iCommand $cmd) use ($argv) {
-                    $cmd->run($argv);
-                    $cmd->cleanUp($argv);
-                    return 0;               // successful exit code is 0
-                };
-
-                exit($run(new $class($PHP)));
-            }
-        };
-
-        // while way more likely to run a C6 program and not user defined, precedence says a user program should
-        // overwrite a C6
-        $searchAndExecute(APP_ROOT . $this->userProgramsDirectory, $this->UserPrograms);
-
-        // If a user makes a program with a name C6 will later take, for example, backwards compatibility
-        $searchAndExecute(CARBON_ROOT . 'programs/', $this->C6Programs);
+        if (isset(self::$program)) {
+            $cmd = self::$program;
+            $cmd->run($argv);
+            $cmd->cleanUp();
+            return;
+        }
 
         // executables switch TODO - make these programs
-        switch ($program) {
+        switch (strtolower($program)) {
             case 'minify':
                 print "\n\nminify\n\n";
                 break;
@@ -169,11 +192,7 @@ class CLI implements iCommand
                 print shell_exec('composer test');
                 print PHP_EOL;
                 break;
-            case 'websocketphp':
-                print 'Starting PHP Websocket' . PHP_EOL;
-                $CMD = 'php ' . CARBON_ROOT . 'Server.php ' . APP_ROOT . ' ' . $PHP['SITE']['CONFIG'];
-                print `$CMD`;
-                break;
+
             case 'help':
             default:
                 $this->usage();
@@ -185,7 +204,7 @@ class CLI implements iCommand
         // common knowledge tabs do not work well across os
         $c6 = implode("\n                        ", $this->C6Programs);
 
-        if (APP_ROOT . 'src/' !== CARBON_ROOT) {
+        if (CarbonPHP::$app_root . 'src/' !== CarbonPHP::CARBON_ROOT) {
             if (!empty($this->UserPrograms)) {
                 $UserPrograms = implode("\n                        ", $this->UserPrograms);
 
@@ -202,7 +221,7 @@ END;
                 print <<<END
           You can create custom commands by adding the "Programs//" namespace to 
           
-                  APP_ROOT . composers.json
+                  CarbonPHP::\$app_root . composers.json
                   
                 .
                 .
@@ -239,7 +258,7 @@ END;
 
         // $c6
 
-        print <<<END
+        self::colorCode("
           
           CarbonPHP Built-in commands ::
         
@@ -247,8 +266,7 @@ END;
                         [command] -help               - display a list of options for each sub command
                         Test                          - Run PHPUnit tests
                         Rest                          - auto generate rest api from mysqldump
-                        WebSocketPHP                  - start a HTTP 5 web socket server written in PHP
-                        WebSocketGO                   - start a HTTP 5 web socket server written in Google Go
+                        WebSocket                     - start a HTTP 5 web socket server written in PHP or Google Go
                         Database                      - cache current database schema or rebuild cached schema
                         Minify                        - minify css and js files defined in configuration 
                         Setup                         - wip
@@ -258,11 +276,10 @@ END;
           While CarbonPHP displays this in the cli, it does not exit here. Custom functions may 
           be written after the CarbonPHP invocation. The CLI execution will however, stop the 
           routing of HTTP(S) request normally invoked through the (index.php). <-- Which could really 
-          be any file run in CLI with CarbonPHP invoked.\n\n
-END;
+          be any file run in CLI with CarbonPHP invoked.\n\n", 'blue');
     }
 
-    public function cleanUp($PHP): void
+    public function cleanUp(): void
     {
     }
 }

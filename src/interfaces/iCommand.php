@@ -13,5 +13,5 @@ interface iCommand
 {
     public function usage(): void;
     public function run(array $argv): void;
-    public function cleanUp(array $argv): void;
+    public function cleanUp(): void;
 }

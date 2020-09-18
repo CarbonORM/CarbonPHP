@@ -179,36 +179,36 @@ namespace {                                     // This runs the following code 
     function sortDump($mixed, $fullReport = false, $die = true)
     {
         // Notify that sort dump was executed
-        CLI or alert(__FUNCTION__);
+        CarbonPHP::$cli or alert(__FUNCTION__);
 
         // Generate Report
         ob_start();
-        print CLI ? PHP_EOL . PHP_EOL : '<br>';
-        print TEST ? 'SortDump Called From' : '################### SortDump Called From ################';
-        print CLI ? PHP_EOL . PHP_EOL : '<br><pre>';
+        print CarbonPHP::$cli ? PHP_EOL . PHP_EOL : '<br>';
+        print CarbonPHP::$test ? 'SortDump Called From' : '################### SortDump Called From ################';
+        print CarbonPHP::$cli ? PHP_EOL . PHP_EOL : '<br><pre>';
         /** @noinspection ForgottenDebugOutputInspection */
         $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,2);
         /** @noinspection ForgottenDebugOutputInspection */
         var_dump($backtrace[1] ?? $backtrace[0]);
-        print CLI ? PHP_EOL . PHP_EOL : '<br></pre>';
+        print CarbonPHP::$cli ? PHP_EOL . PHP_EOL : '<br></pre>';
         print '####################### VAR DUMP ########################';
-        print CLI ? PHP_EOL . PHP_EOL : '<br><pre>';
+        print CarbonPHP::$cli ? PHP_EOL . PHP_EOL : '<br><pre>';
         /** @noinspection ForgottenDebugOutputInspection */
         var_dump($mixed);
-        print CLI ? PHP_EOL : '<br>';
+        print CarbonPHP::$cli ? PHP_EOL : '<br>';
         print '#########################################################';
         if ($fullReport) {
             echo '####################### MIXED DUMP ########################';
             $mixed = (\is_array($mixed) && \count($mixed) === 1 ? array_pop($mixed) : $mixed);
-            print CLI ? PHP_EOL . PHP_EOL : '<br><pre>';
+            print CarbonPHP::$cli ? PHP_EOL . PHP_EOL : '<br><pre>';
             /** @noinspection ForgottenDebugOutputInspection */
             debug_zval_dump($mixed ?: $GLOBALS);
-            print CLI ? PHP_EOL . PHP_EOL : '</pre><br><br>';
+            print CarbonPHP::$cli ? PHP_EOL . PHP_EOL : '</pre><br><br>';
             echo "\n####################### BACK TRACE ########################\n\n<br><pre>";
-            print CLI ? PHP_EOL . PHP_EOL : '<br><pre>';
+            print CarbonPHP::$cli ? PHP_EOL . PHP_EOL : '<br><pre>';
             /** @noinspection ForgottenDebugOutputInspection */
             var_dump(debug_backtrace());
-            print CLI ? PHP_EOL : '</pre>';
+            print CarbonPHP::$cli ? PHP_EOL : '</pre>';
         }
 
         $report = ob_get_clean();
@@ -219,7 +219,7 @@ namespace {                                     // This runs the following code 
 
         print $report . PHP_EOL;
         // Output to browser
-        if (defined('AJAX') && AJAX) {  //
+        if (defined('AJAX') && CarbonPHP::$ajax) {  //
             print $report;
         } else {
             View::$bufferedContent = base64_encode($report);
@@ -236,10 +236,10 @@ namespace {                                     // This runs the following code 
      * @param $mixed
      */
     function zValue($mixed) {
-        print CLI ? PHP_EOL . PHP_EOL : '<br><pre>';
+        print CarbonPHP::$cli ? PHP_EOL . PHP_EOL : '<br><pre>';
         /** @noinspection ForgottenDebugOutputInspection */
         debug_zval_dump($mixed);
-        print CLI ? PHP_EOL . PHP_EOL : '</pre><br><br>';
+        print CarbonPHP::$cli ? PHP_EOL . PHP_EOL : '</pre><br><br>';
         exit(1);
     }
 

@@ -1,3 +1,9 @@
+<?php
+
+use CarbonPHP\CarbonPHP;
+use Config\Documentation;
+
+?>
 <!-- Content Header (Page header) -->
 <section class="content-header">
     <h1>
@@ -904,8 +910,8 @@
 <!-- page script -->
 <script>
     Carbon(() =>
-        $.fn.CarbonJS('<?=  SITE . TEMPLATE . '/bower_components/datatables.net/js/jquery.dataTables.min.js'?>', () =>
-            $.fn.CarbonJS("<?=  SITE . TEMPLATE . 'bower_components/datatables.net-bs/js/dataTables.bootstrap.js' ?>", () => {
+        $.fn.CarbonJS('<?=  CarbonPHP::$site . Documentation::TEMPLATE . '/bower_components/datatables.net/js/jquery.dataTables.min.js'?>', () =>
+            $.fn.CarbonJS("<?=  CarbonPHP::$site . Documentation::TEMPLATE . 'bower_components/datatables.net-bs/js/dataTables.bootstrap.js' ?>", () => {
                 $('#example1').DataTable()
                 $('#example2').DataTable({
                     'paging': true,

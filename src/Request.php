@@ -40,7 +40,7 @@ class Request   // requires carbon::application;
      */
     public static function sendHeaders(): void
     {
-        if (!(SOCKET || headers_sent())) {
+        if (!(CarbonPHP::$socket || headers_sent())) {
             if (isset($_SESSION['Cookies']) && is_array($_SESSION['Cookies'])) {
                 foreach ($_SESSION['Cookies'] as $key => $array) {
                     if ($array[1] ?? false) {
@@ -92,7 +92,7 @@ class Request   // requires carbon::application;
      */
     public static function setHeader(string $string): void
     {
-        if (!(defined('SOCKET') && SOCKET)) {
+        if (!CarbonPHP::$socket) {
             if (headers_sent()) {
                 $_SESSION['Headers'][] = $string;
             } else {
@@ -110,7 +110,7 @@ class Request   // requires carbon::application;
     public static function changeURI(string $string): void
     {
         $_SERVER['REQUEST_URI'] = $string;
-        static::setHeader('X-PJAX-URL: ' . SITE . $string);
+        static::setHeader('X-PJAX-URL: ' . CarbonPHP::$site . $string);
     }
 
 

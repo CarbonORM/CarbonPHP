@@ -24,7 +24,7 @@ trait MySQL
 
     public function __construct($CONFIG)
     {
-        $this->config = $CONFIG;
+        [$this->config] = $CONFIG;
     }
 
     private function mysql_native_password() : void

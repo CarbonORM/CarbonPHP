@@ -8,17 +8,18 @@
 
 namespace CarbonPHP\Programs;
 
+use CarbonPHP\CarbonPHP;
 use MatthiasMullie\Minify as Run;
 use CarbonPHP\interfaces\iCommand;
 use Patchwork\JSqueeze;
 
 class Minify implements iCommand
 {
-    private $PHP;
+    private array $PHP;
 
-    public function __construct($PHP)
+    public function __construct(array $PHP)
     {
-        $this->PHP = $PHP;
+        [$this->PHP] = $PHP;
     }
 
     public function usage() : void
@@ -59,8 +60,8 @@ class Minify implements iCommand
 
                 The output path(s) will be :: 
                 
-                    APP_ROOT . 'view/carbon.css'
-                    APP_ROOT . 'view/carbon.js'
+                    CarbonPHP::$app_root . 'view/carbon.css'
+                    CarbonPHP::$app_root . 'view/carbon.js'
 
                 
                 
@@ -73,7 +74,7 @@ USE;
         if (empty($files)) {
             $this->usage();
         }
-        $minifiedPath = $files['OUT'] ?? APP_ROOT . APP_VIEW . 'CSS' . DS . 'style.css';
+        $minifiedPath = $files['OUT'] ?? CarbonPHP::$app_root . CarbonPHP::$app_view . 'CSS' . DS . 'style.css';
 
         unset($files['OUT']);
 
@@ -100,7 +101,7 @@ USE;
         if (empty($files)) {
             $this->usage();
         }
-        $minifiedPath = $files['OUT'] ?? APP_ROOT . APP_VIEW . 'js/javascript.js';
+        $minifiedPath = $files['OUT'] ?? CarbonPHP::$app_root . CarbonPHP::$app_view  . 'js/javascript.js';
 
         unset($files['OUT']);
 
@@ -132,10 +133,6 @@ USE;
             print "Failed to save the minified javascript!!\n\n\n";
         }
 
-        /*
-        $min = new Run\CSS(... $files);
-        $min->minify($minifiedPath);
-        */
         print "\tThe minified javascript (js) was stored to ::\n\n\t\t\t $minifiedPath\n\n";
     }
 
@@ -158,7 +155,7 @@ USE;
         }
     }
 
-    public function cleanUp($argv) : void
+    public function cleanUp() : void
     {
         
     }

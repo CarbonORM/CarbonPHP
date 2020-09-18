@@ -3,7 +3,10 @@ import React from "react";
 import classNames from "classnames";
 // nodejs library to set properties for components
 import PropTypes from "prop-types";
+
 import SwipeableViews from "react-swipeable-views";
+import { bindKeyboard } from 'react-swipeable-views-utils';
+
 
 // @material-ui/core components
 import withStyles from "@material-ui/core/styles/withStyles";
@@ -15,6 +18,10 @@ import GridContainer from "components/Grid/GridContainer.jsx";
 import GridItem from "components/Grid/GridItem.jsx";
 
 import navPillsStyle from "assets/jss/material-kit-react/components/navPillsStyle.jsx";
+
+
+const BindKeyboardSwipeableViews = bindKeyboard(SwipeableViews);
+
 
 class NavPills extends React.Component {
   constructor(props) {
@@ -80,21 +87,25 @@ class NavPills extends React.Component {
         })}
       </Tabs>
     );
+
+    const SlideComponent = horizontal ? SwipeableViews : BindKeyboardSwipeableViews;
+
     const tabContent = (
       <div className={classes.contentWrapper}>
-        <SwipeableViews
+        <SlideComponent
           axis={direction === "rtl" ? "x-reverse" : "x"}
+          enableMouseEvents={true}
           index={this.state.active}
           onChangeIndex={this.handleChangeIndex}
         >
           {tabs.map((prop, key) => {
             return (
               <div className={classes.tabContent} key={key}>
-                {prop.tabContent}
+                {key === this.state.active ? prop.tabContent : ""}
               </div>
             );
           })}
-        </SwipeableViews>
+        </SlideComponent>
       </div>
     );
     return horizontal !== undefined ? (

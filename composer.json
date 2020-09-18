@@ -17,10 +17,13 @@
     "patchwork/jsqueeze": "^2.0",
     "ext-json": "*",
     "ext-pdo": "*",
-    "ext-curl": "*"
+    "ext-curl": "*",
+    "ext-openssl": "*",
+    "ext-fileinfo": "*"
   },
   "require-dev": {
-    "phpunit/phpunit-selenium": "4.1.0"
+    "phpunit/phpunit-selenium": "4.1.0",
+    "phpmetrics/phpmetrics": "^2.7"
   },
   "authors": [
     {
@@ -60,7 +63,10 @@
       "php index.php rest -json -logClasses"
     ],
     "test": [
-      "./vendor/bin/phpunit  --testdox || ./vendor/bin/phpunit"
+      "./vendor/bin/phpunit --log-junit junit.xml  --testdox || ./vendor/bin/phpunit  --log-junit junit.xml"
+    ],
+    "metrics": [
+      "php ./vendor/bin/phpmetrics --config=php-metrics.json /Users/richardmiles/GitHub/CarbonPHP"
     ]
   }
 }

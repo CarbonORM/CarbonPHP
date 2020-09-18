@@ -1,5 +1,11 @@
+<?php
 
-    <!-- Content Header (Page header) -->
+use CarbonPHP\CarbonPHP;
+use Config\Documentation;
+
+?>
+
+<!-- Content Header (Page header) -->
     <section class="content-header">
       <h1>
         Invoice
@@ -120,9 +126,9 @@
         <div class="col-xs-6">
           <p class="lead">Payment Methods:</p>
           <img src="/view/dist/img/credit/visa.png" alt="Visa">
-          <img src="<?=SITE.TEMPLATE?>dist/img/credit/mastercard.png" alt="Mastercard">
-          <img src="<?=SITE.TEMPLATE?>dist/img/credit/american-express.png" alt="American Express">
-          <img src="<?=SITE.TEMPLATE?>dist/img/credit/paypal2.png" alt="Paypal">
+          <img src="<?=CarbonPHP::$site.Documentation::TEMPLATE?>dist/img/credit/mastercard.png" alt="Mastercard">
+          <img src="<?=CarbonPHP::$site.Documentation::TEMPLATE?>dist/img/credit/american-express.png" alt="American Express">
+          <img src="<?=CarbonPHP::$site.Documentation::TEMPLATE?>dist/img/credit/paypal2.png" alt="Paypal">
 
           <p class="text-muted well well-sm no-shadow" style="margin-top: 10px;">
             Etsy doostang zoodles disqus groupon greplin oooj voxy zoodles, weebly ning heekya handango imeem plugg
@@ -161,7 +167,7 @@
       <!-- this row will not appear when printing -->
       <div class="row no-print">
         <div class="col-xs-12">
-          <a href="<?=SITE.TEMPLATE?>UIElements/invoicePrint" target="_blank" class="btn btn-default"><i class="fa fa-print"></i> Print</a>
+          <a href="<?=CarbonPHP::$site.Documentation::TEMPLATE?>UIElements/invoicePrint" target="_blank" class="btn btn-default"><i class="fa fa-print"></i> Print</a>
           <button type="button" class="btn btn-success pull-right"><i class="fa fa-credit-card"></i> Submit Payment
           </button>
           <button type="button" class="btn btn-primary pull-right" style="margin-right: 5px;">

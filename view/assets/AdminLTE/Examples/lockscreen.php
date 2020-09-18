@@ -1,3 +1,8 @@
+<?php
+
+use CarbonPHP\CarbonPHP;
+
+?>
 <!-- Automatic element centering -->
 <div class="lockscreen-wrapper bg-gray" style="border-radius: 10px">
     <!-- User name -->
@@ -8,7 +13,7 @@
     <div class="lockscreen-item">
         <!-- lockscreen image -->
         <div class="lockscreen-image">
-            <img src="<?=SITE.APP_VIEW?>Img\defaults\madi.png" alt="User Image">
+            <img src="<?=CarbonPHP::$site.CarbonPHP::$app_view?>assets\img\defaults\madi.png" alt="User Image">
         </div>
         <!-- /.lockscreen-image -->
 

@@ -42,7 +42,7 @@ class bootstrap extends React.Component<any, {
     this.codeBlock = this.codeBlock.bind(this);
   }
 
-  codeBlock = (markdown: String, highlight: String = "", language: String = "php", dark: boolean = false) => {
+  codeBlock = (markdown: String, highlight: String = "", language: String = "php", dark: boolean = true) => {
     return <CodeBlock
       text={markdown}
       language={language}

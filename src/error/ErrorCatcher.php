@@ -6,6 +6,7 @@ namespace CarbonPHP\Error;
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
+use CarbonPHP\Programs\Background;
 use CarbonPHP\Tables\Carbon_Reports;
 use CarbonPHP\View;
 use ReflectionException;
@@ -24,6 +25,8 @@ use Throwable;
  */
 class ErrorCatcher
 {
+    use Background;
+
     /**
      * @var string TODO - re-setup logs saving to files
      */
@@ -67,7 +70,7 @@ class ErrorCatcher
             } catch (Throwable $e) {
                 if (!$e instanceof PublicAlert) {
                     $message = 'Developers make mistakes, and you found a big one! We\'ve logged this event and will be investigating soon.';
-                    if (APP_LOCAL) {
+                    if (CarbonPHP::$app_local) {
                         PublicAlert::info($message);
                         PublicAlert::danger(\get_class($e) . ' ' . $e->getMessage());
                     } else {
@@ -148,12 +151,12 @@ END;
         static $count = 0;
         $count++;
 
-        if (APP_LOCAL) {
+        if (CarbonPHP::$app_local) {
             self::errorTemplate($errorForTemplate, 500);
         }
 
         // try resetting to the default page if conditions correct, we've already generated a log and optionally printed
-        if (CLI || SOCKET || !CarbonPHP::$setupComplete) {
+        if (CarbonPHP::$cli || CarbonPHP::$socket || !CarbonPHP::$setupComplete) {
             die(1);
         }
 
@@ -182,7 +185,7 @@ END;
 
         error_reporting(self::$level);
 
-        if (TEST) {
+        if (CarbonPHP::$test) {
             return;
         }
 
@@ -230,19 +233,20 @@ END;
                     $browserOutput["NOTICE [$errorLevel]"] = $errorString;
                     break;
                 default:
-                    echo $browserOutput["Unknown error type: [$errorLevel]"] = $errorString;
+                    $browserOutput["Unknown error type: [$errorLevel]"] = $errorString;
                     break;
             }
 
             $browserOutput['FILE'] = $errorFile;
             $browserOutput['LINE'] = (string) $errorLine;
 
-            $browserOutput = array_merge($browserOutput, self::generateLog());
+            self::generateLog(null, 'log', $browserOutput);
 
-            self::generateBrowserReport($browserOutput);
+            !CarbonPHP::$cli && self::generateBrowserReport($browserOutput);
 
             /* Don't execute PHP internal error handler */
-            return false;                                                // todo this will continue execution
+            exit(1);
+            # return false;  // todo this will continue execution
         };
 
         /**
@@ -257,7 +261,7 @@ END;
 
             $browserOutput = self::generateLog($exception);
 
-            self::generateBrowserReport($browserOutput);    // this will die
+            !CarbonPHP::$cli && self::generateBrowserReport($browserOutput);    // this will die
 
             return false;
         };
@@ -279,11 +283,12 @@ END;
      *
      * @param Throwable|array|null $e
      * @param string $level
+     * @param array $browserOutput
      * @return array
      * @internal param $argv
      * @noinspection ForgottenDebugOutputInspection
      */
-    public static function generateLog(Throwable $e = null, string $level = 'log'): array
+    public static function generateLog(Throwable $e = null, string $level = 'log', array &$browserOutput = []): array
     {
         if (ob_get_status()) {
             // Attempt to remove any previous in-progress output buffers
@@ -291,7 +296,6 @@ END;
         }
 
         $cliOutput = '';
-        $browserOutput = [];
 
         if ($e instanceof Throwable) {
             $class = \get_class($e);
@@ -315,25 +319,23 @@ END;
 
         $cliOutput .= $trace;
 
-        /** @noinspection ForgottenDebugOutputInspection */
-        error_log($cliOutput);
 
-        if (APP_LOCAL || self::$printToScreen) { // todo - what the fuck is this supposed to do?
+        if (CarbonPHP::$app_local || self::$printToScreen) { // todo - what the fuck is this supposed to do?
             if (self::$printToScreen) {
-                $browserOutput['ERROR LIKE THIS WILL SHOW IN PRODUCTION'] = 'The following configuration option should be set to APP_LOCAL or false when not debugging a production environment :: $config[\'ERROR\'][\'SHOW\'] = (bool)';
+                $browserOutput['ERROR LIKE THIS COULD SHOW IN PRODUCTION'] = 'Please be sure $config["ERROR"]["SHOW"] = (bool) is set to CarbonPHP::$app_local';
             } else {
-                $browserOutput['THIS WILL NOT BE REPORTED IN PRODUCTION'] = 'To debug an error in a production environment set the following configuration option to true :: $config[\'ERROR\'][\'SHOW\'] = (bool)';
+                $browserOutput['THIS WILL NOT BE REPORTED IN PRODUCTION'] = 'To debug an error in a production environment set the following configuration option to true :: $config["ERROR"]["SHOW"] = (bool)';
             }
             $browserOutput['[C6] CARBONPHP'] = 'ErrorCatcher::generateLog';
             $browserOutput['TRACE'] = "<pre>$trace</pre>";
         }
 
         if (self::$storeReport === true || self::$storeReport === 'file') {
-            if (!is_dir(REPORTS) && !mkdir($concurrentDirectory = REPORTS) && !is_dir($concurrentDirectory)) {
-                error_log($message = 'Failed storing to custom log. The directory could not be found or created :: ' . REPORTS);
+            if (!is_dir(CarbonPHP::$reports) && !mkdir($concurrentDirectory = CarbonPHP::$reports) && !is_dir($concurrentDirectory)) {
+                error_log($message = 'Failed storing to custom log. The directory could not be found or created :: ' . CarbonPHP::$reports);
                 $browserOutput['[C6] ISSUE'] = $message;
             } else {
-                $file = fopen($fileName = REPORTS . 'Log_' . time() . '.log', 'ab');
+                $file = fopen($fileName = CarbonPHP::$reports . 'Log_' . time() . '.log', 'ab');
 
                 if (!\is_resource($file)) {
                     error_log($message = 'Failed writing to log to file. The file could not opened :: ' . $fileName);
@@ -368,6 +370,8 @@ END;
                 $browserOutput['[C6] STORAGE ISSUE'] = 'The database was not initialized when the error occurred. Storage to the database was not possible.';
             }
         }
+
+        self::colorCode(implode(PHP_EOL, $browserOutput), 'red');
 
         return $browserOutput; // as array
     }
@@ -433,7 +437,7 @@ END;
 
         $cleanErrorReport = '';
 
-        if (APP_LOCAL) {
+        if (CarbonPHP::$app_local) {
             $codePreview = self::grabCodeSnippet();
 
             foreach ($message as $left => $right) {

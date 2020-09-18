@@ -12,7 +12,7 @@ import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
 import Icon from "@material-ui/core/Icon";
 // core components
-import HeaderLinks from "components/Header/HeaderLinks.jsx";
+import HeaderLinks from "components/Header/HeaderLinks";
 
 import sidebarStyle from "assets/jss/material-dashboard-react/components/sidebarStyle.jsx";
 

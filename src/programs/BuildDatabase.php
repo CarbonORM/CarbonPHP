@@ -9,18 +9,18 @@
 namespace CarbonPHP\Programs;
 
 
+use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database as DB;
-use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\interfaces\iCommand;
-use Throwable;
 
-class Database implements iCommand
+class BuildDatabase implements iCommand
 {
-    use MySQL {
+    use ColorCode, MySQL {
         cleanUp as removeFiles;
     }
 
-    public function cleanUp($argv) : void {
+
+    public function cleanUp() : void {
         $this->removeFiles();
     }
 
@@ -36,6 +36,7 @@ class Database implements iCommand
         -m --mysql_native_password      Change mysql to default to a native password.
 
 usage;
+        exit(1);
     }
 
     public function run($argv) : void
@@ -44,7 +45,6 @@ usage;
 
         if ($argc === 0) {
             $this->usage();
-            exit(1);
         }
 
         /** @noinspection ForeachInvariantsInspection */
@@ -192,18 +192,18 @@ TAGS;
 }
 FOOT;
 
-        if (!is_dir(APP_ROOT . 'config') && !mkdir($concurrentDirectory = APP_ROOT . 'config') && !is_dir($concurrentDirectory)) {
-            print 'failed to create directory' . PHP_EOL . "\t" . APP_ROOT . 'config';
+        if (!is_dir(CarbonPHP::$app_root . 'config') && !mkdir($concurrentDirectory = CarbonPHP::$app_root . 'config') && !is_dir($concurrentDirectory)) {
+            print 'failed to create directory' . PHP_EOL . "\t" . CarbonPHP::$app_root . 'config';
             return;
         }
 
 
-        if (!file_put_contents(APP_ROOT . 'config' . DS . 'buildDatabase.php', $build)) {
+        if (!file_put_contents(CarbonPHP::$app_root . 'config' . DS . 'buildDatabase.php', $build)) {
             print 'failed storing database build to file';
             return;
         }
 
-        print "\t" . 'Successfully created/updated database build "' . APP_ROOT . 'config' . DS . 'buildDatabase.php' . '"'
+        print "\t" . 'Successfully created/updated database build "' . CarbonPHP::$app_root . 'config' . DS . 'buildDatabase.php' . '"'
             . PHP_EOL . PHP_EOL;
     }
 }

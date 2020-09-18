@@ -221,7 +221,7 @@ abstract class Rest extends Database
         $json = []; // clear all prior reporting
 
         try {
-            if (APP_ROOT . 'src' . DS === CARBON_ROOT) {
+            if (CarbonPHP::$app_local . 'src' . DS === CarbonPHP::CARBON_ROOT) {
                 $namespace = 'CarbonPHP\\Tables\\';
             }
 
@@ -348,15 +348,15 @@ abstract class Rest extends Database
         $sql = '';
 
         $get = $argv[self::SELECT] ?? array_keys(static::PDO_VALIDATION);
-        $where = $argv[self::WHERE] ?? [];
 
+        $where = $argv[self::WHERE] ?? [];
 
         if (is_string($get)) {
             $argv[self::JOIN] = json_decode($argv[self::JOIN], true);
         }
 
-        // CARBON_ROOT === APP_ROOT is also $database = '' in this context, but cheers to clarity!
-        $tablePrefix = CARBON_ROOT === APP_ROOT . 'src' . DS ? 'CarbonPHP\\Tables\\' : 'Tables\\';
+        // CARBON_ROOT === CarbonPHP::$app_root is also $database = '' in this context, but cheers to clarity!
+        $tablePrefix = CarbonPHP::CARBON_ROOT === CarbonPHP::$app_root . 'src' . DS ? 'CarbonPHP\\Tables\\' : 'Tables\\';
 
         // build join
         if (array_key_exists(self::JOIN, $argv) && !empty($argv[self::JOIN])) {

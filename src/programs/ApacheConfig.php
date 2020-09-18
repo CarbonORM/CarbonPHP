@@ -2,6 +2,7 @@
 
 namespace CarbonPHP\Programs;
 
+use CarbonPHP\CarbonPHP;
 use CarbonPHP\interfaces\iCommand;
 
 class ApacheConfig implements iCommand
@@ -12,7 +13,7 @@ class ApacheConfig implements iCommand
 
     public function __construct($CONFIG)
     {
-        $this->CONFIG = $CONFIG;
+        [$this->CONFIG] = $CONFIG;
     }
 
     public function usage(): void
@@ -22,14 +23,14 @@ class ApacheConfig implements iCommand
         exit(1);
     }
 
-    public function cleanUp($argv): void
+    public function cleanUp(): void
     {
         // do nothing
     }
 
     public function run($argv): void
     {
-        $C6 = CARBON_ROOT === APP_ROOT . 'src' . DS;
+        $C6 = CarbonPHP::CARBON_ROOT === CarbonPHP::$app_root . 'src' . DS;
         $argc = count($argv);
         $serverAdmin = $C6 ? 'Support@Miles.Systems' : '';
         $url = $this->CONFIG['SITE']['URL'] ?? 'example.com';
@@ -47,7 +48,7 @@ class ApacheConfig implements iCommand
                     break;
                 case '-help':
                 default:
-                    if (\$C6) {
+                    if ($C6) {
                         self::colorCode("\tYou da bomb :)\n", 'blue');
                         break;
                     }
@@ -57,7 +58,7 @@ class ApacheConfig implements iCommand
             }
         }
 
-        if (!file_put_contents($dest = APP_ROOT . '.htaccess', $this->getConfiguration($serverAdmin, $url, $port))) {
+        if (!file_put_contents($dest = CarbonPHP::$app_root . '.htaccess', $this->getConfiguration($serverAdmin, $url, $port))) {
             print "\n\n\tFailed to copy the Apache configuration file.\n\n";
             exit(1);
         }

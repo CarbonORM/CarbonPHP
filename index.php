@@ -1,20 +1,14 @@
 <?php
 
 use CarbonPHP\CarbonPHP;
-use Config\Config;
-
-const DS = DIRECTORY_SEPARATOR;
-
-// I would like to change to only using app_root soon
-const APP_ROOT = __DIR__ . DS;
+use Config\Documentation;
 
 // Composer autoload
-if (false === (include 'vendor' . DS . 'autoload.php')) {     // Load the autoload() for composer dependencies located in the Services folder
-    print '<h1>Composer Failed</h1>';
+if (false === (include 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php')) {
+    print '<h1>Composer Failed. Please run <b>composer install</b>.</h1>';
     die(1);
 }
 
-(new CarbonPHP(Config::class))();
+(new CarbonPHP(Documentation::class, __DIR__ . DIRECTORY_SEPARATOR))();
 
 return true;
-

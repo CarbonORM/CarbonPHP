@@ -3,6 +3,7 @@
 namespace CarbonPHP\Programs;
 
 
+use CarbonPHP\CarbonPHP;
 use CarbonPHP\interfaces\iCommand;
 use CarbonPHP\interfaces\iRest;
 use CarbonPHP\interfaces\iRestfulReferences;
@@ -17,7 +18,9 @@ use function random_int;
 
 class Rest implements iCommand
 {
-    use Composer, Background, MySQL {
+    use ColorCode, Composer, Background, MySQL {
+        ColorCode::colorCode insteadof Background;
+        ColorCode::colorCode insteadof Composer;
         __construct as setup;
         cleanUp as removeFiles;
     }
@@ -27,7 +30,7 @@ class Rest implements iCommand
     private string $password;
     private bool $cleanUp = false;
 
-    public function cleanUp(array $argv): void
+    public function cleanUp(): void
     {
         $this->cleanUp and $this->removeFiles();
     }
@@ -58,10 +61,10 @@ class Rest implements iCommand
 \t                                              Defaults to DB_PASS in config file passed to CarbonPHP
 \t                                              Currently: "$this->password"
 
-\t       -autoTarget                   - Use composer.json's ['autoload']['psr-4']['Tables\\'] value under APP_ROOT
+\t       -autoTarget                   - Use composer.json's ['autoload']['psr-4']['Tables\\'] value under CarbonPHP::\$app_root
 
 \t       -target [rest_dir_path]       - the dir to store the rest generated api
-\t                                              Defaults to APP_ROOT . 'tables/'
+\t                                              Defaults to CarbonPHP::$app_root . 'tables/'
 
 \t       -json                         - enable global json reporting (recommended)
 
@@ -93,8 +96,8 @@ END;
 
     public function __construct($CONFIG)
     {
+        [$CONFIG] = $CONFIG;
         $this->setup($CONFIG);
-
         $this->schema = $CONFIG['DATABASE']['DB_NAME'] ?? '';
         $this->user = $CONFIG['DATABASE']['DB_USER'] ?? '';
         $this->password = $CONFIG['DATABASE']['DB_PASS'] ?? '';
@@ -114,13 +117,13 @@ END;
         $rest = [];
         /** @noinspection PhpUnusedLocalVariableInspection */
         $clean = true;
-        $json = $carbon_namespace = APP_ROOT . 'src' . DS === CARBON_ROOT;
-        $targetDir = APP_ROOT . ($carbon_namespace ? 'src/tables/' : 'tables/');
+        $json = $carbon_namespace = CarbonPHP::$app_root . 'src' . DS === CarbonPHP::CARBON_ROOT;
+        $targetDir = CarbonPHP::$app_root . ($carbon_namespace ? 'src/tables/' : 'tables/');
         $only_these_tables = $history_table_query = $mysql = null;
         $verbose = $debug = $primary_required = $delete_dump = $skipTable = $logClasses = false;
 
 
-        $react = $carbon_namespace ? APP_ROOT . 'view/react/material-dashboard-react-c6/src/variables/' : false;
+        $react = $carbon_namespace ? CarbonPHP::$app_root . 'view/react/material-dashboard-react-c6/src/variables/' : false;
 
         // TODO - we shouldn't open ourselfs for sql injection, was this a bandage
         $subQuery = 'C6SUB' . random_int(0, 1000);
@@ -150,7 +153,7 @@ END;
                             "\tThe -autoTarget flag failed the build.";
                         exit(1);
                     }
-                    $targetDir = APP_ROOT . $composer;
+                    $targetDir = CarbonPHP::$app_root . $composer;
                     unset($composer);
                     break;
                 case '-target':
@@ -865,6 +868,7 @@ END;
             switch ($operation_type) {
                 case 'POST':
                     // todo - triggers? logs? idk.. i dont remember
+                    /** @noinspection SqlResolve */
                     $query = "INSERT INTO carbon_creation_logs (`uuid`, `resource_type`, `resource_uuid`)
             VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), '$table', $relative_time.$primary);\n";
                 case 'PUT':

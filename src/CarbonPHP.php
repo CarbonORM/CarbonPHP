@@ -6,6 +6,9 @@ use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Helpers\Serialized;
 use CarbonPHP\Interfaces\iConfig;
 use CarbonPHP\Programs\CLI;
+use CarbonPHP\Programs\ColorCode;
+use CarbonPHP\Programs\WebSocket;
+use CarbonPHP\Programs\WebSocketPHP;
 use Tests\RestTest;
 use Throwable;
 use function define;
@@ -29,29 +32,69 @@ use function is_callable;
  */
 class CarbonPHP
 {
-    public static string $not_invoked_application = '';
+    use ColorCode;
 
-    // This should be type defined as Application, but we need to be able to unset which would not be allowed
-    public static $application;
+    // folder locations
+    public const CARBON_ROOT = __DIR__ . DIRECTORY_SEPARATOR;
+    public static string $app_root;
+    public static string $app_view = 'view/';
+    public static string $reports = '/';
+    private static string $composer_root;
 
+
+    // C6 options
+    public static array $configuration = [];
+    public static string $not_invoked_application = '';     // string namespace
+    public static string $not_invoked_configuration = '';   // string namespace
+    public static ?CLI $commandLineInterface;
+    public static ?Application $application;
+    public static bool $setupComplete = false;
+
+    // Application invocation method
+    public static bool $app_local = false;
+    public static bool $socket = false;
+    public static bool $cli = false;
+    public static bool $test = false;
+    public static bool $pjax = false;
+    public static bool $ajax = false;
+    public static bool $https = false;
+    public static bool $http = false;
+
+    // Validated Server Values
+    public static string $server_ip = '127.0.0.1';
+    public static ?string $user_ip = null;
+    public static string $uri;          // part after url
+    public static string $url;
+    public static string $site;         // $url . '/'
+    public static string $protocol;     // http , ws , wss , https
+
+
+    // Don't run the application on invocation
     public static bool $safelyExit = false;
 
-    public static bool $setupComplete = false;
+    // basic view payload info and reporting info
+    public static string $site_title;
+    public static string $site_version;
+    public static string $system_email;
+    public static string $reply_email;
+
 
     /**
      * CarbonPHP constructor.
-     * @param iConfig|string|null $PHP
+     * @param iConfig|string|null $config
+     * @param string|null $app_root
      */
-    public function __construct($PHP = null)
+    public function __construct($config = null, string $app_root = null)
     {
-        self::make($PHP);
+        self::make($config, $app_root);
     }
 
+    /**
+     * @param Application|string|null $application
+     * @return bool
+     */
     public function __invoke($application = null): bool
     {
-        if (self::$safelyExit) {
-            return true;
-        }
         return self::run($application);
     }
 
@@ -69,25 +112,45 @@ class CarbonPHP
         return self::$application;
     }
 
+    /**
+     * @param Application|string|null $application
+     * @return bool
+     */
     public static function run($application): bool
     {
-        if (self::$safelyExit) {
-            return true;
+        if (!self::$safelyExit) {
+            self::$socket = false;
         }
 
         if (empty(self::$application)) {
-            if ($application instanceof Application) {
+            if (empty($application)) {
+                if (!empty(self::$not_invoked_application)) {
+                    $application = self::$not_invoked_application;
+                    self::setApplication(new $application);
+                }
+                // we're not required to pass any arguments so this is essentially a break stmt
+                // this also works as the condition to move to cli
+            } else if ($application instanceof Application) {
                 self::setApplication($application);
             } else if (class_exists($application)) {
                 self::setApplication(new $application);
-            } else if (empty($application) && !empty(self::$not_invoked_application)) {
-                $application = self::$not_invoked_application;
-                self::setApplication(new $application);
-            } else {
-                print 'Argument passed to the static run method or _invoke should be a reference to a child of the abstract Application class.'
-                    . 'If no argument is supplied the configuration passed to the constructor must implement iConfig and extend the Application class.';
+            } else if (!self::$safelyExit) {
+                print 'Your trying to run CarbonPHP without a valid Application configured. '
+                    . 'Argument passed to the static run method or _invoke should be a reference to a child of the abstract Application class. '
+                    . 'This could be a fully qualified namespace or an instantiated object.'
+                    . 'If no argument is supplied the configuration passed to the constructor, which implements iConfig, must also extend the Application class.';
                 return self::$safelyExit = true;
             }
+        }
+
+        if (self::$safelyExit) {
+            if (self::$cli && !self::$test) {
+                self::$safelyExit = true;
+                $cli = self::$commandLineInterface;
+                $cli->run($_SERVER['argv'] ?? ['index.php', null]);
+                $cli->cleanUp();
+            }
+            return true;
         }
 
         return self::startApplication() !== false; // startApplication can return null which is not allowed here
@@ -100,7 +163,7 @@ class CarbonPHP
         View::$forceWrapper = true;
         Request::changeURI('/');
         $application = self::getApplication();
-        $application->matched = true;
+        $application::$matched = true;
         $application->defaultRoute();
         return true;
     }
@@ -129,7 +192,7 @@ class CarbonPHP
             $_POST = [];
         }
 
-        $application->matched = false;          // We can assume your in need of route matching again
+        $application::$matched = false;          // We can assume your in need of route matching again
 
         $return = $application->startApplication($uri) ? null : false; // this is for a recursive ending condition for Application::ControllerModelView
 
@@ -141,205 +204,221 @@ class CarbonPHP
     }
 
 
-    /**
-     * @param iConfig|string|null $configuration
-     * @todo - php 8 add strict types
-     */
-    public static function make($configuration = null): void
+    private static function parseConfiguration($configuration): array
     {
+        ####################  Now load config file so globals above & stacktrace security
+        if ($configuration === null) {
+            return self::$configuration = $config = [];
+        }
 
-        try {
-            // TODO - make a cache of these constants
+        if ($configuration instanceof iConfig) {
+            self::$configuration = $config = $configuration !== null ? $configuration::configuration() : [];
+            if ($configuration instanceof Application) {
+                self::$application = $configuration;
+            }
+            return self::$configuration;
+        }
 
-            ####################  Sockets will have already claimed this global
-            defined('TEST') OR define('TEST', $_ENV['TEST'] ??= false);
+        if (class_exists($configuration)) {
 
-            // CLI is not the CLI server
-            defined('CLI') or define('CLI', TEST || PHP_SAPI === 'cli');
+            $imp = array_map('strtolower', array_keys(class_implements($configuration)));
 
-            if (TEST) {     // TODO - remove server vars not needed in testing && update version dynamically?
-                RestTest::setupServerVariables();
+            /** @noinspection ClassConstantUsageCorrectnessInspection */
+            if (!in_array(strtolower(iConfig::class), $imp, true)) {
+                print 'The configuration class passed to C6 must implement the interface iConfig!';
+                self::$safelyExit = true;
+                exit(1);
             }
 
-            ####################  Sockets will have already claimed this global
-            defined('SOCKET') OR define('SOCKET', false);
+            self::$not_invoked_configuration = $configuration;  // this is only ever needed for websockets
+
+            if (is_subclass_of($configuration, Application::class)) {
+                // only invoke this when setup is finished so constructors have access to constants
+                self::$not_invoked_application = $configuration;
+            }
+
+            /** @noinspection PhpUndefinedMethodInspection */
+            return self::$configuration = $config = $configuration::configuration();
+
+        }
+
+        if (file_exists($configuration)) {
+            /** @var array $config */
+            /** @noinspection PhpIncludeInspection */
+            $config = include $configuration;            // TODO - change the variable
+
+            if (!is_array($config)) {
+                print 'The configuration file passed to C6 must return an array!';
+                exit(1);
+            }
+
+            return self::$configuration = $config;
+
+        }
+
+        if (is_string($configuration)) {
+            print 'Invalid configuration path given! See CarbonPHP.com for instructions. ' . $configuration;
+        } else {
+            print 'Invalid configuration provided. See CarbonPHP.com for instructions.';
+        }
+
+        exit(1);
+    }
+
+    /**
+     * @param iConfig|string|null $configuration
+     * @param string|null $app_root
+     * @todo - php 8 add strict types
+     */
+    public static function make($configuration = null, string $app_root = null): void
+    {
+        try {
+            if ($app_root !== null) {
+                self::$app_root = $app_root;
+            }
+
+            defined('DS') OR define('DS', DIRECTORY_SEPARATOR);
+
+            ####################  CLI is not the CLI server
+            self::$cli = self::$test || PHP_SAPI === 'cli';
+
+            self::$test and RestTest::setupServerVariables();
 
             ####################  Define your own server root
-            defined('APP_ROOT') OR define('APP_ROOT', CARBON_ROOT);
+            self::$app_root ??= self::CARBON_ROOT;
 
-            ####################  For help loading our Carbon.js
-            defined('CARBON_ROOT') OR define('CARBON_ROOT', __DIR__ . DS);
+            if ($ip = filter_var($_SERVER['REMOTE_ADDR'] ??= '127.0.0.1', FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                self::$server_ip = $ip;
+            }
 
             ####################  Did we use >> php -S localhost:8080 index.php
-            defined('APP_LOCAL') OR define('APP_LOCAL', self::isClientServer());
+            self::$app_local = self::$cli ?: self::isClientServer();
 
-            ####################  May as well make composer a dependency
-            defined('COMPOSER_ROOT') OR define('COMPOSER_ROOT', dirname(CARBON_ROOT, 2) . DS);
-
-            ####################  Template Root
-            defined('TEMPLATE_ROOT') OR define('TEMPLATE_ROOT', CARBON_ROOT);
-
+            ####################  todo - look into removing this and validating send resource starts with view location
+            self::$composer_root = dirname(self::CARBON_ROOT, 2) . DS;
 
             ################  Helpful Global Functions ####################
-            if (!file_exists(CARBON_ROOT . 'helpers' . DS . 'Application.php') || !include CARBON_ROOT . 'helpers' . DS . 'Application.php') {
+            if (!file_exists(self::CARBON_ROOT . 'helpers' . DS . 'Application.php')
+                || !include self::CARBON_ROOT . 'helpers' . DS . 'Application.php') {
                 print '<h1>Your instance of CarbonPHP appears corrupt. Please see CarbonPHP.com for Documentation.</h1>';
                 die(1);
             }
 
-            ####################  Now load config file so globals above & stacktrace security
-            if ($configuration === null) {
-                $PHP = [];
-            } else if ($configuration instanceof iConfig) {
-                $PHP = $configuration !== null ? $configuration::configuration() : [];
-                if ($configuration instanceof Application) {
-                    self::$application = $configuration;
-                }
-            } else if (class_exists($configuration)) {
+            $config = self::parseConfiguration($configuration);
 
-                $imp = array_map('strtolower', array_keys(class_implements($configuration)));
-
-                /** @noinspection ClassConstantUsageCorrectnessInspection */
-                if (!in_array(strtolower(iConfig::class), $imp, true)) {
-                    print 'The configuration class passed to C6 must implement the interface iConfig!';
-                    self::$safelyExit = true;
-                    return;
-                }
-
-                if (is_subclass_of($configuration, Application::class)) {
-                    // only invoke this when setup is finished so constructors have access to constants
-                    self::$not_invoked_application = $configuration;
-                }
-
-                /** @noinspection PhpUndefinedMethodInspection */
-                $PHP = $configuration::configuration();
-
-            } else if (file_exists($configuration)) {
-                /** @var array $PHP */
-                /** @noinspection PhpIncludeInspection */
-
-                $PHP = include $configuration;            // TODO - change the variable
-
-                if (!is_array($PHP)) {
-                    print 'The configuration file passed to C6 must return an array!';
-                    self::$safelyExit = true;
-                    return;
-                }
-            } else {
-                print 'Invalid configuration path given! ' . $configuration;
-                self::$safelyExit = true;
-                return;
+            #################  DATABASE  ########################
+            if ($config['DATABASE'] ?? false) {
+                Database::$dsn = 'mysql:host=' . ($config['DATABASE']['DB_HOST'] ?? '') . ';dbname=' . ($config['DATABASE']['DB_NAME'] ?? '') . ';port=' . ($config['DATABASE']['DB_PORT'] ?? '3306');
+                Database::$username = $config['DATABASE']['DB_USER'] ?? '';
+                Database::$password = $config['DATABASE']['DB_PASS'] ?? '';
+                Database::$setup = $config['DATABASE']['DB_BUILD'] ?? '';
+                Database::$initialized = true;
             }
 
-
             #######################   VIEW      ######################
-            define('APP_VIEW', $PHP['VIEW']['VIEW'] ?? DS);         // Public Folder
+            self::$app_view = $config['VIEW']['VIEW'] ?? DS;         // Public Folder
 
-            View::$wrapper = APP_ROOT . APP_VIEW . ($PHP['VIEW']['WRAPPER'] ?? '');
+            View::$wrapper = self::$app_root . self::$app_view . ($config['VIEW']['WRAPPER'] ?? '');
 
             ####################  GENERAL CONF  ######################
-            error_reporting($PHP['ERROR']['LEVEL'] ?? E_ALL | E_STRICT);
+            error_reporting($config['ERROR']['LEVEL'] ?? E_ALL | E_STRICT);
 
-            ini_set('display_errors', $PHP['ERROR']['SHOW'] ?? true);
+            ini_set('display_errors', $config['ERROR']['SHOW'] ?? true);
 
-            date_default_timezone_set($PHP['SITE']['TIMEZONE'] ?? 'America/Chicago');
+            date_default_timezone_set($config['SITE']['TIMEZONE'] ?? 'America/Chicago');
 
-            defined('DS') OR define('DS', DIRECTORY_SEPARATOR);
-
-            defined('APP_ROOT') OR define('APP_ROOT', CARBON_ROOT);
-
-            define('REPORTS', $PHP['ERROR']['LOCATION'] ?? APP_ROOT);
+            self::$reports = $config['ERROR']['LOCATION'] ?? $config;
 
             #####################   AUTOLOAD    #######################
-            if ($PHP['AUTOLOAD'] ?? false) {
-                $PSR4 = include CARBON_ROOT . 'AutoLoad.php';
-                if (is_array($PHP['AUTOLOAD'] ?? false)) {
-                    /** @noinspection PhpUndefinedVariableInspection */
-                    foreach ($PHP['AUTOLOAD'] as $name => $path) {
+            if ($config['AUTOLOAD'] ?? false) {
+                $PSR4 = new Autoload();
+                if (is_array($config['AUTOLOAD'] ?? false)) {
+                    foreach ($config['AUTOLOAD'] as $name => $path) {
                         $PSR4->addNamespace($name, $path);
                     }
                 }
             }
 
-            #####################   ERRORS    #######################
-            if ($PHP['ERROR'] ?? false) {
-                ErrorCatcher::$defaultLocation = REPORTS . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
-                ErrorCatcher::$fullReports = $PHP['ERROR']['FULL'] ?? true;
-                ErrorCatcher::$printToScreen = $PHP['ERROR']['SHOW'] ?? true;
-                ErrorCatcher::$storeReport = $PHP['ERROR']['STORE'] ?? false;
-                ErrorCatcher::$level = $PHP['ERROR']['LEVEL'] ?? ' E_ALL | E_STRICT';
+            #####################   ERRORS + Warnings + Alerts    #######################
+            if ($config['ERROR'] ??= false) {
+                ErrorCatcher::$defaultLocation ??= self::$reports . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
+                ErrorCatcher::$fullReports ??= $config['ERROR']['FULL'] ?? true;
+                ErrorCatcher::$printToScreen ??= $config['ERROR']['SHOW'] ?? true;
+                ErrorCatcher::$storeReport ??= $config['ERROR']['STORE'] ?? false;
+                ErrorCatcher::$level ??= $config['ERROR']['LEVEL'] ?? ' E_ALL | E_STRICT';
                 ErrorCatcher::start();
-            } // Catch application errors and alerts
-
-            #################  DATABASE  ########################
-            if ($PHP['DATABASE'] ?? false) {
-                Database::$dsn = 'mysql:host=' . ($PHP['DATABASE']['DB_HOST'] ?? '') . ';dbname=' . ($PHP['DATABASE']['DB_NAME'] ?? '') . ';port=' . ($PHP['DATABASE']['DB_PORT'] ?? '3306');
-                Database::$username = $PHP['DATABASE']['DB_USER'] ?? '';
-                Database::$password = $PHP['DATABASE']['DB_PASS'] ?? '';
-                Database::$setup = $PHP['DATABASE']['DB_BUILD'] ?? '';
-                Database::$initialized = true;
             }
+
 
             #################  SITE  ########################
-            if ($PHP['SITE'] ?? false) {
-                define('SITE_TITLE', $PHP['SITE']['TITLE'] ?? 'CarbonPHP');                     // Carbon doesnt use
-                define('SITE_VERSION', $PHP['SITE']['VERSION'] ?? PHP_VERSION);                // printed in the footer
-                define('SYSTEM_EMAIL', $PHP['SEND_EMAIL'] ?? '');                               // server email system
-                define('REPLY_EMAIL', $PHP['REPLY_EMAIL'] ?? '');                               // I give you options :P
+            if ($config['SITE'] ?? false) {
+                self::$site_title ??= $config['SITE']['TITLE'] ?? 'CarbonPHP [C6]';
+                self::$site_version ??= $config['SITE']['VERSION'] ?? PHP_VERSION;                // printed in the footer
+                self::$system_email ??= $config['SEND_EMAIL'] ?? '';                               // server email system
+                self::$reply_email ??= $config['REPLY_EMAIL'] ?? '';                               // I give you options :P
             }
 
-            // TODO - move to app invocation
-            // PHPUnit Runs in a cli to ini the 'CarbonPHP' env.
-            // We're not testing out extra resources
-            if (CLI && !TEST && !SOCKET) {
+            if (self::$cli && !self::$test) {
                 self::$safelyExit = true;
-                /** @noinspection PhpUndefinedVariableInspection */
-                $cli = new CLI($PHP ??= []);
-                $cli->run($_SERVER['argv'] ?? ['index.php', null]);
-                $cli->cleanUp($PHP);
-                return;
+                self::$commandLineInterface =
+                    new CLI([self::$configuration, $_SERVER['argv'] ?? ['index.php', null]]);
             }
 
             ##################  VALIDATE URL / URI ##################
-            // This is the first step that could kick users out of our application.
-            // Even if a request is bad, we need to store the log
-            if (!defined('IP')) {
+            if (!self::$cli && !isset(self::$server_ip)) {
                 self::IP_FILTER();
             }
 
-            // This is the first event that could resolve the request (to a file), respond, and exit safely
-            self::URI_FILTER($PHP['SITE']['URL'] ?? '', $PHP['SITE']['CACHE_CONTROL'] ?? []);
+            self::$uri ??= trim(urldecode(parse_url(trim(preg_replace('/\s+/', ' ', $_SERVER['REQUEST_URI'] ?? '')), PHP_URL_PATH)), '/');
 
-
-            // TODO - move this to the cli
-            if ($PHP['DATABASE']['REBUILD'] ?? false) {
-                Database::setUp(false);   // Redirect = false
-                self::$safelyExit = true;
-                return;
+            switch ($_SERVER['SERVER_PORT'] ??= 80) {
+                default:
+                case 80:
+                    self::$protocol = 'http://';
+                    break;
+                case 443:
+                    self::$protocol = 'https://';
+                    break;
+                case WebSocket::$port:
+                    self::$protocol = 'wss://';
             }
 
-            #######################   Pjax Ajax Refresh   ######################
-            // Must return a non empty value
-            SOCKET or $headers = self::headers();
 
-            define('PJAX', SOCKET ? false : isset($headers['X-PJAX']) || isset($_GET['_pjax']) || (isset($_SERVER['HTTP_X_PJAX']) && $_SERVER['HTTP_X_PJAX']));
+            $_SERVER['SERVER_NAME'] ??= self::$server_ip;
 
-            if ($_SERVER['REQUEST_METHOD'] !== 'GET' && empty($_POST)) {
-                # try to json decode. Json payloads ar sent to the input stream
-                $_POST = json_decode(file_get_contents('php://input'), true);
-                if ($_POST === null) {
-                    $_POST = [];
+            self::$url = self::$protocol . $_SERVER['SERVER_NAME'] . (self::$app_local ? ':' . $_SERVER['SERVER_PORT'] : '');
+
+            self::$site = self::$url . '/';
+
+            if (!self::$cli) {
+                self::URI_FILTER($config['SITE']['URL'] ?? '', $config['SITE']['CACHE_CONTROL'] ?? []);
+
+                #######################   Pjax Ajax Refresh   ######################
+                // Must return a non empty value
+                $headers = self::headers();
+
+                self::$pjax = (isset($headers['X-PJAX']) || isset($_GET['_pjax']) || ($_SERVER['HTTP_X_PJAX'] ?? false));
+
+                if ($_SERVER['REQUEST_METHOD'] !== 'GET' && empty($_POST)) {
+                    # try to json decode. Json payloads ar sent to the input stream
+                    $_POST = json_decode(file_get_contents('php://input'), true);
+                    if ($_POST === null) {
+                        $_POST = [];
+                    }
                 }
+
+                // (PJAX == true) return required, else (!PJAX && AJAX) return optional (socket valid)
+                self::$ajax = (self::$pjax ||
+                    ('XMLHttpRequest' === ($headers['X-Requested-With'] ?? '')) ||
+                    (strtolower($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'xmlhttprequest'));
+
+                self::$https = (($_SERVER['HTTP_X_FORWARDED_PROTO'] ??= false) === 'https' ||
+                    ($_SERVER['HTTPS'] ?? 'off') !== 'off');
+
+                self::$https or self::$ajax or self::$http = true;
             }
-
-            // (PJAX == true) return required, else (!PJAX && AJAX) return optional (socket valid)
-            define('AJAX', SOCKET ? false : PJAX || ('XMLHttpRequest' === ($headers['X-Requested-With'] ?? false)) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'));
-
-            define('HTTPS', SOCKET ? false : ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? false) === 'https' || ($_SERVER['HTTPS'] ?? 'off') !== 'off');
-
-            define('HTTP', !(HTTPS || SOCKET || AJAX));
-
             // PHPUnit testing should not exit on explicit http(s) requests
-            if (!TEST && HTTP && !($PHP['SITE']['HTTP'] ?? true)) {
+            if (!self::$test && self::$http && !($config['SITE']['HTTP'] ?? true)) {
                 if (headers_sent()) {
                     print '<h1>Failed to switch to https, headers already sent! Please contact the server administrator.</h1>';
                 } else {
@@ -349,23 +428,24 @@ class CarbonPHP
             }
 
             ########################  Session Management ######################
-            if ($PHP['SESSION'] ?? true) {
-                if ($PHP['SESSION']['PATH'] ?? false) {
-                    session_save_path($PHP['SESSION']['PATH'] ?? '');   // Manually Set where the Users Session Data is stored
+            if ($config['SESSION'] ?? true) {
+                if ($config['SESSION']['PATH'] ?? false) {
+                    session_save_path($config['SESSION']['PATH'] ?? '');   // Manually Set where the Users Session Data is stored
                 }
 
-                new Session(IP, $PHP['SESSION']['REMOTE'] ?? false); // session start
+                // this start a session in every possible runtime except WebSocket::$minimiseResources
+                new Session(self::$user_ip, $config['SESSION']['REMOTE'] ?? false);
 
-                $_SESSION['id'] = array_key_exists('id', $_SESSION ?? []) ? $_SESSION['id'] : false;
+                $config['ERROR'] and
+                    ErrorCatcher::$defaultLocation = self::$reports . 'Log_' . ($_SESSION['id'] ?? 'WebSocket') . '_' . time() . '.log';
 
-                if (is_callable($PHP['SESSION']['CALLBACK'] ?? null)) {
-                    /** @noinspection PhpUndefinedVariableInspection */
-                    Session::updateCallback($PHP['SESSION']['CALLBACK']); // Pull From Database, manage socket ip
+                if (is_callable($config['SESSION']['CALLBACK'] ?? null)) {
+                    Session::updateCallback($config['SESSION']['CALLBACK']); // Pull From Database, manage socket ip
                 }
             }
 
-            if (is_array($PHP['SESSION']['SERIALIZE'] ?? false)) {
-                forward_static_call_array([Serialized::class, 'start'], $PHP['SESSION']['SERIALIZE']);    // Pull theses from session, and store on shutdown
+            if (!self::$cli && is_array($config['SESSION']['SERIALIZE'] ?? false)) {
+                forward_static_call_array([Serialized::class, 'start'], $config['SESSION']['SERIALIZE']);    // Pull theses from session, and store on shutdown
             }
 
             self::$setupComplete = true;
@@ -374,7 +454,7 @@ class CarbonPHP
             print PHP_EOL . 'Carbon Failed Initialization' . PHP_EOL;
             print "\t" . $e->getMessage() . PHP_EOL . PHP_EOL;
 
-            if (defined('APP_LOCAL') && APP_LOCAL && function_exists('sortDump')) {
+            if (self::$app_local && function_exists('sortDump')) {
                 sortDump($e, true, false);
                 print PHP_EOL . PHP_EOL;
             }
@@ -388,17 +468,9 @@ class CarbonPHP
      * otherwise returns false.
      * @return bool|mixed|string
      */
-    private static function isClientServer()
+    private static function isClientServer(): bool
     {
-        if (PHP_SAPI === 'cli-server' || CLI || in_array($_SERVER['REMOTE_ADDR'] ?? [], ['127.0.0.1', 'fe80::1', '::1'], false)) {
-            if (SOCKET && $ip = filter_var($_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-                define('IP', $ip);
-                return false;
-            }
-            define('IP', '127.0.0.1');
-            return IP;
-        }
-        return false;
+        return PHP_SAPI === 'cli-server' || in_array($_SERVER['REMOTE_ADDR'] ??= '', ['127.0.0.1', 'fe80::1', '::1'], false);
     }
 
     /** If a url is encoded in a version control View::versionControl()
@@ -412,32 +484,23 @@ class CarbonPHP
      * @param array|null $cacheControl
      * @return bool
      */
-    private static function URI_FILTER(string $URL = 'CarbonPHP.com', array $cacheControl = null): bool
+    private static function URI_FILTER(string $URL = '', array $cacheControl = null): bool
     {
-        if (!empty($URL = strtolower($URL)) && $_SERVER['SERVER_NAME'] !== $URL && !APP_LOCAL) {
+        if (!empty($URL = strtolower($URL)) && $_SERVER['SERVER_NAME'] !== $URL && !self::$app_local) {
             header("Refresh:0; url=$URL");
-            /** @noinspection UnterminatedStatementJS */
             print '<html lang="en"><head><!--suppress InjectedReferences -->
     <meta http-equiv="refresh" content="5; url=' . $URL . '"></head><body>' .
-                IP . '<h1>You appear to be lost.</h1><h2>Moving to <a href="' . $URL . '"> ' . $URL . '</a></h2>' .
+                self::$server_ip . '<h1>You appear to be lost.</h1><h2>Moving to <a href="' . $URL . '"> ' . $URL . '</a></h2>' .
                 "<script>window.location.type = $URL</script></body></html>";
-            self::$safelyExit = true;
+            exit(1);
         }
 
-        define('URI', trim(urldecode(parse_url(trim(preg_replace('/\s+/', ' ', $_SERVER['REQUEST_URI'])), PHP_URL_PATH)), '/'));
-
-        define('URL',
-            (isset($_SERVER['SERVER_NAME']) ?
-                ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] === 443 ? 'https://' : 'http://') .
-                $_SERVER['SERVER_NAME'] . (APP_LOCAL ? ':' . $_SERVER['SERVER_PORT'] : '') : null));
-
-        define('SITE', URL . '/');   // http(s)://example.com/  - URL's require a forward slash so DS may not work on os (windows)
 
         // It does not matter if this matches, we will take care of that in the next if.
 
         $allowedEXT = implode('|', array_keys($cacheControl));
 
-        preg_match("#^(.*\.)($allowedEXT)\?*.*#", URI, $matches, PREG_OFFSET_CAPTURE);
+        preg_match("#^(.*\.)($allowedEXT)\?*.*#", self::$uri, $matches, PREG_OFFSET_CAPTURE);
 
         // So if the request has an extension that's not allowed we ignore it and keep processing as a valid route
         $ext = $matches[2][0] ?? '';    // routes should be null
@@ -446,11 +509,12 @@ class CarbonPHP
             return true;
         }
 
+        // todo validate were pulling from view dir
 
         // we need to ensure valid access
         $allowedAccess = false;
         foreach ($cacheControl as $extension => $headers) {
-            if (strpos($extension, $ext) !== false) {
+            if (strpos($extension, $ext) !== false) {   // todo - this makes sense but will false positive for woff when only woff2 is allowed
                 $allowedAccess = true;
                 header($headers);
                 break;
@@ -459,22 +523,20 @@ class CarbonPHP
 
         if (!$allowedAccess) {
             http_response_code(403);            // This is a Forbidden response
-            exit(1);                                        // This is an exit with error
+            exit(0);                                        // This is an exit with error
         }
 
         // Look for versioning
         View::unVersion($_SERVER['REQUEST_URI']);           // This may exit and send a file
 
-
         // add cache control
-
-        if (file_exists(COMPOSER_ROOT . URI)) {             // Composer is now always the base uri
-            View::sendResource(COMPOSER_ROOT . URI, $ext);
+        if (file_exists(self::$composer_root . self::$uri)) {             // Composer is now always the base uri
+            View::sendResource(self::$composer_root . self::$uri, $ext);
         }
 
         // Not versioned, so see it it exists
-        if (file_exists(APP_ROOT . URI)) {      //  also may send and exit
-            View::sendResource(URI, $ext);
+        if (file_exists(self::$app_root . self::$uri)) {      //  also may send and exit
+            View::sendResource(self::$uri, $ext);
         }
         http_response_code(404);           // If we haven't found the request send code 404 not found
         die(1);
@@ -492,15 +554,19 @@ class CarbonPHP
         foreach ($ip_keys as $key) {
             if (array_key_exists($key, $_SERVER) === true) {
                 foreach (explode(',', $_SERVER[$key]) as $ip) {
-                    // trim for safety measures
+
                     $ip = trim($ip);
+
+                    if (self::$app_local && $ip === '127.0.0.1') {
+                        return self::$server_ip = $ip;
+                    }
+
                     if ($ip = filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-                        define('IP', $ip);
-                        return IP;
+                        return self::$server_ip = $ip;
                     }
                 }
             }
-        }   // TODO - log invalid ip addresses
+        }
         print 'Could not establish an IP address.';
         die(1);
     }

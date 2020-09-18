@@ -6,7 +6,7 @@ use CarbonPHP\Interfaces\iConfig;
 
 const DS = DIRECTORY_SEPARATOR;
 
-const APP_ROOT = __DIR__ . DS;
+CarbonPHP::$app_root = __DIR__ . DS;
 
 // Composer autoload
 if (false === (include 'vendor' . DS . 'autoload.php')) {
@@ -15,9 +15,7 @@ if (false === (include 'vendor' . DS . 'autoload.php')) {
 }
 
 (new CarbonPHP(new class extends Application implements iConfig {
-        /**
-         * @inheritDoc
-         */
+
         public function startApplication(string $uri): bool
         {
             return $this->regexMatch('#home#i', static function () {
@@ -43,4 +41,3 @@ HTML;
 ))();
 
 return true;
-

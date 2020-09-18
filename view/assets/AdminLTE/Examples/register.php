@@ -7,7 +7,7 @@
         <div id="alert"></div>
 
         <p class="login-box-msg">Register a new membership</p>
-        <form data-pjax action="<?= SITE ?>Register/" method="post">
+        <form data-pjax action="<?= CarbonPHP::$site ?>Register/" method="post">
 
             <div class="form-group has-feedback">
                 <input type="text" class="form-control" placeholder="First Name" name="firstname">

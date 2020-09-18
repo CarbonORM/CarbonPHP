@@ -2,19 +2,22 @@
 
 namespace CarbonPHP\Programs;
 
+use CarbonPHP\CarbonPHP;
+
 trait Composer
 {
+    use ColorCode;
+
     public static function getComposerConfig(): array
     {
-        if (!file_exists(APP_ROOT . 'composer.json')) {
-            print "\tCouldn't find composer.json under the APP_ROOT.\n\tLearn how to add cli programs at CarbonPHP.com\n\n";
+        if (!file_exists(CarbonPHP::$app_root . 'composer.json')) {
+            self::colorCode("\tCouldn't find composer.json under the CarbonPHP::$app_root.\n\tLearn how to add cli programs at CarbonPHP.com\n\n", 'red');
             exit(1);
         }
-
-        $json = file_get_contents(APP_ROOT . 'composer.json');
+        $json = file_get_contents(CarbonPHP::$app_root . 'composer.json');
         $json = json_decode($json, true);
         if ($json === null) {
-            print "\n\tThe decoding of composer.json failed. Please make sure the file contains a valid json.\n\n";
+            self::colorCode("\n\tThe decoding of " . CarbonPHP::$app_root . "composer.json failed. Please make sure the file contains a valid json.\n\n", 'red');
             exit(1);
         }
 

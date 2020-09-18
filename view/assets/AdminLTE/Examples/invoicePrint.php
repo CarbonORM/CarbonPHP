@@ -1,3 +1,9 @@
+<?php
+
+use CarbonPHP\CarbonPHP;
+use Config\Documentation;
+
+?>
 <!-- Main content -->
 <section class="invoice">
     <!-- title row -->
@@ -98,10 +104,10 @@
         <!-- accepted payments column -->
         <div class="col-xs-6">
             <p class="lead">Payment Methods:</p>
-            <img src="<?=SITE.TEMPLATE?>dist/img/credit/visa.png" alt="Visa">
-            <img src="<?=SITE.TEMPLATE?>dist/img/credit/mastercard.png" alt="Mastercard">
-            <img src="<?=SITE.TEMPLATE?>dist/img/credit/american-express.png" alt="American Express">
-            <img src="<?=SITE.TEMPLATE?>dist/img/credit/paypal2.png" alt="Paypal">
+            <img src="<?=CarbonPHP::$site.Documentation::TEMPLATE?>dist/img/credit/visa.png" alt="Visa">
+            <img src="<?=CarbonPHP::$site.Documentation::TEMPLATE?>dist/img/credit/mastercard.png" alt="Mastercard">
+            <img src="<?=CarbonPHP::$site.Documentation::TEMPLATE?>dist/img/credit/american-express.png" alt="American Express">
+            <img src="<?=CarbonPHP::$site.Documentation::TEMPLATE?>dist/img/credit/paypal2.png" alt="Paypal">
 
             <p class="text-muted well well-sm no-shadow" style="margin-top: 10px;">
                 Etsy doostang zoodles disqus groupon greplin oooj voxy zoodles, weebly ning heekya handango imeem

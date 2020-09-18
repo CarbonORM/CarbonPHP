@@ -299,7 +299,7 @@
                                         <span class="direct-chat-timestamp pull-right">23 Jan 2:00 pm</span>
                                     </div>
                                     <!-- /.direct-chat-info -->
-                                    <img class="direct-chat-img" src="/view/mustache/img/defaults/madi.png"
+                                    <img class="direct-chat-img" src="/view/assets/img/defaults/madi.png"
                                          alt="message user image">
                                     <!-- /.direct-chat-img -->
                                     <div class="direct-chat-text">
@@ -316,7 +316,7 @@
                                         <span class="direct-chat-timestamp pull-left">23 Jan 2:05 pm</span>
                                     </div>
                                     <!-- /.direct-chat-info -->
-                                    <img class="direct-chat-img" src="/view/mustache/img/defaults/katie.png"
+                                    <img class="direct-chat-img" src="/view/assets/img/defaults/katie.png"
                                          alt="message user image">
                                     <!-- /.direct-chat-img -->
                                     <div class="direct-chat-text">
@@ -333,7 +333,7 @@
                                         <span class="direct-chat-timestamp pull-right">23 Jan 5:37 pm</span>
                                     </div>
                                     <!-- /.direct-chat-info -->
-                                    <img class="direct-chat-img" src="/view/mustache/img/defaults/madi.png"
+                                    <img class="direct-chat-img" src="/view/assets/img/defaults/madi.png"
                                          alt="message user image">
                                     <!-- /.direct-chat-img -->
                                     <div class="direct-chat-text">
@@ -350,7 +350,7 @@
                                         <span class="direct-chat-timestamp pull-left">23 Jan 6:10 pm</span>
                                     </div>
                                     <!-- /.direct-chat-info -->
-                                    <img class="direct-chat-img" src="/view/mustache/img/defaults/katie.png"
+                                    <img class="direct-chat-img" src="/view/assets/img/defaults/katie.png"
                                          alt="message user image">
                                     <!-- /.direct-chat-img -->
                                     <div class="direct-chat-text">
@@ -368,7 +368,7 @@
                                 <ul class="contacts-list">
                                     <li>
                                         <a href="#">
-                                            <img class="contacts-list-img" src="/view/mustache/img/defaults/madi.png"
+                                            <img class="contacts-list-img" src="/view/assets/img/defaults/madi.png"
                                                  alt="User Image">
 
                                             <div class="contacts-list-info">
@@ -384,7 +384,7 @@
                                     <!-- End Contact Item -->
                                     <li>
                                         <a href="#">
-                                            <img class="contacts-list-img" src="/view/mustache/img/defaults/morgan.png"
+                                            <img class="contacts-list-img" src="/view/assets/img/defaults/morgan.png"
                                                  alt="User Image">
 
                                             <div class="contacts-list-info">
@@ -400,7 +400,7 @@
                                     <!-- End Contact Item -->
                                     <li>
                                         <a href="#">
-                                            <img class="contacts-list-img" src="/view/mustache/img/defaults/katie.png"
+                                            <img class="contacts-list-img" src="/view/assets/img/defaults/katie.png"
                                                  alt="User Image">
 
                                             <div class="contacts-list-info">
@@ -416,7 +416,7 @@
                                     <!-- End Contact Item -->
                                     <li>
                                         <a href="#">
-                                            <img class="contacts-list-img" src="/view/mustache/img/defaults/madi.png"
+                                            <img class="contacts-list-img" src="/view/assets/img/defaults/madi.png"
                                                  alt="User Image">
 
                                             <div class="contacts-list-info">
@@ -432,7 +432,7 @@
                                     <!-- End Contact Item -->
                                     <li>
                                         <a href="#">
-                                            <img class="contacts-list-img" src="/view/mustache/img/defaults/zab.png"
+                                            <img class="contacts-list-img" src="/view/assets/img/defaults/zab.png"
                                                  alt="User Image">
 
                                             <div class="contacts-list-info">
@@ -448,7 +448,7 @@
                                     <!-- End Contact Item -->
                                     <li>
                                         <a href="#">
-                                            <img class="contacts-list-img" src="/view/mustache/img/defaults/mom.png"
+                                            <img class="contacts-list-img" src="/view/assets/img/defaults/mom.png"
                                                  alt="User Image">
 
                                             <div class="contacts-list-info">
@@ -505,42 +505,42 @@
                         <div class="box-body no-padding">
                             <ul class="users-list clearfix">
                                 <li>
-                                    <img src="/view/mustache/img/defaults/madi.png" alt="User Image">
+                                    <img src="/view/assets/img/defaults/madi.png" alt="User Image">
                                     <a class="users-list-name" href="#">Alexander Pierce</a>
                                     <span class="users-list-date">Today</span>
                                 </li>
                                 <li>
-                                    <img src="/view/mustache/img/defaults/mom.png" alt="User Image">
+                                    <img src="/view/assets/img/defaults/mom.png" alt="User Image">
                                     <a class="users-list-name" href="#">Norman</a>
                                     <span class="users-list-date">Yesterday</span>
                                 </li>
                                 <li>
-                                    <img src="/view/mustache/img/defaults/morgan.png" alt="User Image">
+                                    <img src="/view/assets/img/defaults/morgan.png" alt="User Image">
                                     <a class="users-list-name" href="#">Jane</a>
                                     <span class="users-list-date">12 Jan</span>
                                 </li>
                                 <li>
-                                    <img src="/view/mustache/img/defaults/zab.png" alt="User Image">
+                                    <img src="/view/assets/img/defaults/zab.png" alt="User Image">
                                     <a class="users-list-name" href="#">John</a>
                                     <span class="users-list-date">12 Jan</span>
                                 </li>
                                 <li>
-                                    <img src="/view/mustache/img/defaults/summer.png" alt="User Image">
+                                    <img src="/view/assets/img/defaults/summer.png" alt="User Image">
                                     <a class="users-list-name" href="#">Alexander</a>
                                     <span class="users-list-date">13 Jan</span>
                                 </li>
                                 <li>
-                                    <img src="/view/mustache/img/defaults/madi.png" alt="User Image">
+                                    <img src="/view/assets/img/defaults/madi.png" alt="User Image">
                                     <a class="users-list-name" href="#">Sarah</a>
                                     <span class="users-list-date">14 Jan</span>
                                 </li>
                                 <li>
-                                    <img src="/view/mustache/img/defaults/richard.png" alt="User Image">
+                                    <img src="/view/assets/img/defaults/richard.png" alt="User Image">
                                     <a class="users-list-name" href="#">Nora</a>
                                     <span class="users-list-date">15 Jan</span>
                                 </li>
                                 <li>
-                                    <img src="/view/mustache/img/defaults/katie.png" alt="User Image">
+                                    <img src="/view/assets/img/defaults/katie.png" alt="User Image">
                                     <a class="users-list-name" href="#">Nadia</a>
                                     <span class="users-list-date">15 Jan</span>
                                 </li>
@@ -586,7 +586,7 @@
                             </thead>
                             <tbody>
                             <tr>
-                                <td><a href="<?=SITE?>UIElements/invoice">OR9842</a></td>
+                                <td><a href="/2.0/UIElements/invoice">OR9842</a></td>
                                 <td>Call of Duty IV</td>
                                 <td><span class="label label-success">Shipped</span></td>
                                 <td>
@@ -595,7 +595,7 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td><a href="<?=SITE?>UIElements/invoice">OR1848</a></td>
+                                <td><a href="/2.0/UIElements/invoice">OR1848</a></td>
                                 <td>Samsung Smart TV</td>
                                 <td><span class="label label-warning">Pending</span></td>
                                 <td>
@@ -604,7 +604,7 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td><a href="<?=SITE?>UIElements/invoice">OR7429</a></td>
+                                <td><a href="/2.0/UIElements/invoice">OR7429</a></td>
                                 <td>iPhone 6 Plus</td>
                                 <td><span class="label label-danger">Delivered</span></td>
                                 <td>
@@ -613,7 +613,7 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td><a href="<?=SITE?>UIElements/invoice">OR7429</a></td>
+                                <td><a href="/2.0/UIElements/invoice">OR7429</a></td>
                                 <td>Samsung Smart TV</td>
                                 <td><span class="label label-info">Processing</span></td>
                                 <td>
@@ -622,7 +622,7 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td><a href="<?=SITE?>UIElements/invoice">OR1848</a></td>
+                                <td><a href="/2.0/UIElements/invoice">OR1848</a></td>
                                 <td>Samsung Smart TV</td>
                                 <td><span class="label label-warning">Pending</span></td>
                                 <td>
@@ -631,7 +631,7 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td><a href="<?=SITE?>UIElements/invoice">OR7429</a></td>
+                                <td><a href="/2.0/UIElements/invoice">OR7429</a></td>
                                 <td>iPhone 6 Plus</td>
                                 <td><span class="label label-danger">Delivered</span></td>
                                 <td>

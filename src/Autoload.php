@@ -55,7 +55,7 @@ class Autoload
      *
      * @var array
      */
-    protected $prefixes = array();
+    protected array $prefixes = array();
 
 
     // This should be set to the applications file structure
@@ -189,5 +189,3 @@ class Autoload
         return false;
     }
 }
-
-return new Autoload();

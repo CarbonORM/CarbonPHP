@@ -117,7 +117,7 @@
                 <div class="box-body chat" id="chat-box">
                     <!-- chat item -->
                     <div class="item">
-                        <img src="/view/mustache/img/defaults/mom.png" alt="user image" class="online">
+                        <img src="/view/assets/img/defaults/mom.png" alt="user image" class="online">
 
                         <p class="message">
                             <a href="#" class="name">
@@ -144,7 +144,7 @@
                     <!-- /.item -->
                     <!-- chat item -->
                     <div class="item">
-                        <img src="/view/mustache/img/defaults/morgan.png" alt="user image" class="offline">
+                        <img src="/view/assets/img/defaults/morgan.png" alt="user image" class="offline">
 
                         <p class="message">
                             <a href="#" class="name">
@@ -159,7 +159,7 @@
                     <!-- /.item -->
                     <!-- chat item -->
                     <div class="item">
-                        <img src="/view/mustache/img/defaults/madi.png" alt="user image" class="offline">
+                        <img src="/view/assets/img/defaults/madi.png" alt="user image" class="offline">
 
                         <p class="message">
                             <a href="#" class="name">
