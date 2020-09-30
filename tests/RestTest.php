@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace Tests;
 
 use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Rest;
 use CarbonPHP\Tables\Carbon_Location_References;
 use CarbonPHP\Tables\Carbon_Locations;
 use CarbonPHP\Tables\Carbon_Users as Users;
@@ -31,11 +32,11 @@ final class RestTest extends Config
     {
         $store = [];
 
-        $this->assertTrue(Carbons::Get($store, $key, []),
+        self::assertTrue(Carbons::Get($store, $key, []),
             'Failed to see if user exists, post is actually dependant on GET.');
 
         if (!empty($store)) {
-            $this->assertTrue(
+            self::assertTrue(
                 Carbons::Delete($store, $key, []),
                 'Rest api failed to remove the test key ' . $key
             );
@@ -55,7 +56,7 @@ final class RestTest extends Config
         $store = [];
 
         if (!empty($store)) {
-            $this->assertTrue(
+            self::assertTrue(
                 Carbons::Delete($store, $store['entity_pk'], []),
                 'Rest api failed to remove the test key.'
             );
@@ -63,7 +64,7 @@ final class RestTest extends Config
 
 
         // Should return a unique hex id
-        $this->assertInternalType('string', $pool = Carbons::Post([
+        self::assertInternalType('string', $pool = Carbons::Post([
             Carbons::ENTITY_PK => '8544e3d581ba11e8942cd89ef3fc55fa',
             Carbons::ENTITY_TAG => self::class
         ]));
@@ -77,15 +78,15 @@ final class RestTest extends Config
     public function testRestApiCanGet(): void
     {
         $store = [];
-        $this->assertTrue(Carbons::Get($store, '8544e3d581ba11e8942cd89ef3fc55fa', []));
+        self::assertTrue(Carbons::Get($store, '8544e3d581ba11e8942cd89ef3fc55fa', []));
 
-        $this->assertInternalType('array', $store);
+        self::assertInternalType('array', $store);
 
         if (!empty($store)) {
-            $this->assertArrayHasKey('entity_fk', $store);
+            self::assertArrayHasKey('entity_fk', $store);
         }
 
-        $this->assertTrue(Carbons::Get($store, null,
+        self::assertTrue(Carbons::Get($store, null,
             [
                 Carbons::ENTITY_PK => '8544e3d581ba11e8942cd89ef3fc55fa'
             ]));
@@ -101,13 +102,13 @@ final class RestTest extends Config
     public function testRestAdiCanAggregate(): void {
         $temp = [];
 
-        $this->assertTrue(Carbons::Get($temp, '8544e3d581ba11e8942cd89ef3fc55fa', []));
+        self::assertTrue(Carbons::Get($temp, '8544e3d581ba11e8942cd89ef3fc55fa', []));
 
-        $this->assertArrayHasKey('entity_pk', $temp);
+        self::assertArrayHasKey('entity_pk', $temp);
 
         $temp = [];
 
-        $this->assertTrue(Carbons::Get($temp, null, [
+        self::assertTrue(Carbons::Get($temp, null, [
             Carbons::WHERE => [
                 Carbons::ENTITY_PK => '8544e3d581ba11e8942cd89ef3fc55fa'
             ],
@@ -116,7 +117,7 @@ final class RestTest extends Config
             ]
         ]));
 
-        $this->assertArrayHasKey('entity_pk', $temp, 'failed on PAGINATION:LIMIT');
+        self::assertArrayHasKey('entity_pk', $temp, 'failed on PAGINATION:LIMIT');
     }
 
     /**
@@ -127,22 +128,22 @@ final class RestTest extends Config
     {
         $store = [];
 
-        $this->assertTrue(Carbons::Get($store, '8544e3d581ba11e8942cd89ef3fc55fa', []));
+        self::assertTrue(Carbons::Get($store, '8544e3d581ba11e8942cd89ef3fc55fa', []));
 
-        $this->assertArrayHasKey('entity_fk', $store);
+        self::assertArrayHasKey('entity_fk', $store);
 
-        $this->assertTrue(
+        self::assertTrue(
             Carbons::Put($store, $store['entity_pk'], [
                 Carbons::ENTITY_PK => '8544e3d581ba11e8942cd89ef3fc55fb'
             ]), 'Failed Updating Records.');
 
-        $this->assertEquals('8544e3d581ba11e8942cd89ef3fc55fb', $store['entity_pk']);
+        self::assertEquals('8544e3d581ba11e8942cd89ef3fc55fb', $store['entity_pk']);
 
         $store = [];
 
-        $this->assertTrue(Carbons::Get($store, '8544e3d581ba11e8942cd89ef3fc55fb', []));
+        self::assertTrue(Carbons::Get($store, '8544e3d581ba11e8942cd89ef3fc55fb', []));
 
-        $this->assertArrayHasKey('entity_pk', $store,
+        self::assertArrayHasKey('entity_pk', $store,
             'Failed to see updated record in database.');
 
     }
@@ -157,19 +158,19 @@ final class RestTest extends Config
     {
         $temp = [];
 
-        $this->assertTrue(Carbons::Get($temp, '8544e3d581ba11e8942cd89ef3fc55fa', []));
+        self::assertTrue(Carbons::Get($temp, '8544e3d581ba11e8942cd89ef3fc55fa', []));
 
         if (empty($temp)) {
-            $this->assertTrue(Carbons::Get($temp, '8544e3d581ba11e8942cd89ef3fc55fb', []));
+            self::assertTrue(Carbons::Get($temp, '8544e3d581ba11e8942cd89ef3fc55fb', []));
         }
 
-        $this->assertArrayHasKey('entity_fk', $temp);
+        self::assertArrayHasKey('entity_fk', $temp);
 
-        $this->assertTrue(
+        self::assertTrue(
             Carbons::Delete($temp, $temp['entity_pk'], [])
         );
 
-        $this->assertEmpty($temp);
+        self::assertEmpty($temp);
     }
 
     /**
@@ -190,10 +191,10 @@ final class RestTest extends Config
                     Users::LIMIT => 1
                 ]
             ]) && !empty($user)) {
-            $this->assertTrue(Users::Delete($user, $user[Users::COLUMNS[Users::USER_ID]], []));
+            self::assertTrue(Users::Delete($user, $user[Users::COLUMNS[Users::USER_ID]], []));
         }
 
-        $this->assertInternalType('string', $uid = Users::Post([
+        self::assertInternalType('string', $uid = Users::Post([
             Users::USER_TYPE => 'Athlete',
             Users::USER_IP => '127.0.0.1',
             Users::USER_SPORT => 'GOLF',
@@ -206,13 +207,13 @@ final class RestTest extends Config
             Users::USER_GENDER => 'Male'
         ]), 'No string ID was returned');
 
-        $this->assertInternalType('string', $lid = Carbon_Locations::Post([
+        self::assertInternalType('string', $lid = Carbon_Locations::Post([
             Carbon_Locations::CITY => 'Grapevine',
             Carbon_Locations::STATE => 'Texas',
             Carbon_Locations::ZIP => 76051
         ]), 'Failed to create location entity.');
 
-        $this->assertTrue(Carbon_Location_References::Post([
+        self::assertTrue(Carbon_Location_References::Post([
             Carbon_Location_References::ENTITY_REFERENCE => $uid,
             Carbon_Location_References::LOCATION_REFERENCE => $lid
         ]), 'Failed to create location references.');
@@ -221,7 +222,7 @@ final class RestTest extends Config
 
         $user = [];
 
-        $this->assertTrue(Users::Get($user, $uid, [
+        self::assertTrue(Users::Get($user, $uid, [
             Users::SELECT => [
                 Users::USER_USERNAME,
                 Carbon_Locations::STATE
@@ -244,11 +245,11 @@ final class RestTest extends Config
             ]
         ]));
 
-        $this->assertArrayHasKey(Users::COLUMNS[Users::USER_USERNAME], $user);
+        self::assertArrayHasKey(Users::COLUMNS[Users::USER_USERNAME], $user);
 
-        $this->assertEquals(Config::ADMIN_USERNAME, $user[Users::COLUMNS[Users::USER_USERNAME]]);
+        self::assertEquals(Config::ADMIN_USERNAME, $user[Users::COLUMNS[Users::USER_USERNAME]]);
 
-        $this->assertEquals('Texas', $user[Carbon_Locations::COLUMNS[Carbon_Locations::STATE]]);
+        self::assertEquals('Texas', $user[Carbon_Locations::COLUMNS[Carbon_Locations::STATE]]);
     }
 
 
@@ -271,11 +272,11 @@ final class RestTest extends Config
             ]
         ]);
 
-        $this->assertTrue(Users::$allowSubSelectQueries);
+        self::assertTrue(Users::$allowSubSelectQueries);
 
-        $this->assertSame(strpos($subSelect, '(SELECT '), 0);
+        self::assertSame(strpos($subSelect, '(SELECT '), 0);
 
-        $this->assertTrue(Carbons::Get($user, null, [
+        self::assertTrue(Carbons::Get($user, null, [
             Carbons::SELECT => [
                 Carbons::ENTITY_PK
             ],
@@ -289,9 +290,52 @@ final class RestTest extends Config
             ]
         ]));
 
-        $this->assertNotEmpty($user, 'Could not get user admin via sub query.');
+        self::assertNotEmpty($user, 'Could not get user admin via sub query.');
 
-        $this->assertArrayHasKey(Carbons::COLUMNS[Carbons::ENTITY_PK], $user);
+        self::assertArrayHasKey(Carbons::COLUMNS[Carbons::ENTITY_PK], $user);
+
+    }
+
+
+    /**
+     * @depends testRestApiCanPost
+     */
+    public function testExternalRequestValidationRoutines(): void
+    {
+
+        $_POST = [Users::SELECT => [
+            Users::USER_USERNAME,
+            Carbon_Locations::STATE
+        ],
+            Users::JOIN => [
+                Users::INNER => [
+                    Carbon_Location_References::TABLE_NAME => [
+                        Users::USER_ID,
+                        Carbon_Location_References::ENTITY_REFERENCE
+                    ],
+                    Carbon_Locations::TABLE_NAME => [
+                        Carbon_Locations::ENTITY_ID,
+                        Carbon_Location_References::LOCATION_REFERENCE
+                    ]
+                ]
+            ],
+            Users::PAGINATION => [
+                Users::LIMIT => 10,
+                Users::ORDER => Users::USER_USERNAME . Users::ASC
+            ]];
+
+
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+
+        ob_start(null, 0, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
+
+        Rest::RestfulRequests(Users::TABLE_NAME, null);
+
+        $out = trim(ob_get_clean());
+
+        self::assertNotEmpty($GLOBALS['json']['rest']);
+
+        self::assertStringEndsWith('}', $out, 'Did not detect json output.');
 
     }
 
@@ -305,24 +349,24 @@ final class RestTest extends Config
     {
         $user = [Users::USER_USERNAME => Config::ADMIN_USERNAME];
 
-        $this->assertTrue(Users::Delete($user, null, [
+        self::assertTrue(Users::Delete($user, null, [
             Users::USER_USERNAME => Config::ADMIN_USERNAME
         ]));
 
-        $this->assertEmpty($user, 'Could not delete user admin in cascade delete function.');
+        self::assertEmpty($user, 'Could not delete user admin in cascade delete function.');
 
-        $this->assertInternalType('array', $user, 'Delete functions did not clear provided array to 
+        self::assertInternalType('array', $user, 'Delete functions did not clear provided array to 
         empty array.');
 
 
-        $this->assertTrue(Users::Get($user, null, [
+        self::assertTrue(Users::Get($user, null, [
             Users::WHERE => [
                 Users::USER_USERNAME => Config::ADMIN_USERNAME
             ]
         ]));
 
 
-        $this->assertEmpty($user, 'Cascade delete failed.');
+        self::assertEmpty($user, 'Cascade delete failed.');
     }
 
 

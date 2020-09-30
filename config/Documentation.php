@@ -183,7 +183,8 @@ class Documentation extends Application implements iConfig
         self::getUser();
 
         /**
-         *  This is a horrible idea.
+         *  This is a horrible idea. Because sockets need to be allowed to analyse all routes.
+         *  (at least in this application context)
          *
          *   if (CarbonPHP::$socket) {
          *      self::$matched = true;

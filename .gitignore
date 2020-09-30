@@ -13,3 +13,5 @@
 /mysqldump.sql
 /scratch/
 /.htaccess
+/junit.xml
+/PhpMetrics

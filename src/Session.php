@@ -235,7 +235,7 @@ class Session implements \SessionHandlerInterface
 
         $db = Database::database();
 
-        $sql = 'SELECT count(*) FROM sessions WHERE user_ip = ? AND session_id = ? LIMIT 1';
+        $sql = 'SELECT count(*) FROM '.Sessions::TABLE_NAME.' WHERE '.Sessions::USER_IP.' = ? AND '.Sessions::SESSION_ID.' = ? LIMIT 1';
 
         $stmt = $db->prepare($sql);
 
@@ -265,7 +265,7 @@ class Session implements \SessionHandlerInterface
     public function open($savePath, $sessionName): bool
     {
         try {
-            Database::database()->prepare('SELECT count(*) FROM sessions LIMIT 1')->execute();
+            Database::database()->prepare('SELECT count(*) FROM '.Sessions::TABLE_NAME.' LIMIT 1')->execute();
         } catch (PDOException $e) {
             if ($e->getCode()) {
                 print "<h1>Setting up database {$e->getCode()}</h1>";
@@ -300,7 +300,7 @@ class Session implements \SessionHandlerInterface
     public function read($id): string
     {
         // TODO - if ip has changed and session id hasn't invalidated // assume man in the middle not cell phone tower change
-        $stmt = Database::database()->prepare('SELECT session_data FROM sessions WHERE session_id = ?');
+        $stmt = Database::database()->prepare('SELECT '.Sessions::SESSION_DATA.' FROM '.Sessions::TABLE_NAME.' WHERE '.Sessions::SESSION_ID.' = ?');
         $stmt->execute([$id]);
         return $stmt->fetchColumn() ?: '';
     }
@@ -320,11 +320,12 @@ class Session implements \SessionHandlerInterface
         $NewDateTime = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . ' + 1 d,lay'));  // so from time of last write and whenever the gc_collector hits
 
         try {
-            $db->prepare('REPLACE INTO sessions SET session_id = ?, user_id = UNHEX(?), user_ip = ?,  session_expires = ?, session_data = ?')->execute([
+            $db->prepare('REPLACE INTO '.Sessions::TABLE_NAME.' SET '.Sessions::SESSION_ID.' = ?, '.Sessions::USER_ID.' = UNHEX(?), '.Sessions::USER_IP.' = ?,  '.Sessions::SESSION_EXPIRES.' = ?, '.Sessions::SESSION_DATA.' = ?')->execute([
                 $id,
                 static::$user_id,
                 CarbonPHP::$server_ip,
-                $NewDateTime, $data
+                $NewDateTime,
+                $data
             ]);
         } catch (PDOException $e) {
             sortDump($e); // todo - error catching
@@ -340,7 +341,7 @@ class Session implements \SessionHandlerInterface
     public function destroy($id): bool
     {
         $db = Database::database();
-        return $db->prepare('DELETE FROM sessions WHERE user_id = UNHEX(?) OR session_id = ?')->execute([self::$user_id, $id]) ?
+        return $db->prepare('DELETE FROM '.Sessions::TABLE_NAME.' WHERE '.Sessions::USER_ID.' = UNHEX(?) OR '.Sessions::SESSION_ID.' = ?')->execute([self::$user_id, $id]) ?
             true : false;
     }
 
@@ -353,7 +354,7 @@ class Session implements \SessionHandlerInterface
     public function gc($maxLife): bool
     {
         $db = Database::database();
-        return $db->prepare('DELETE FROM sessions WHERE (UNIX_TIMESTAMP(session_expires) + ? ) < UNIX_TIMESTAMP(?)')->execute([$maxLife, date('Y-m-d H:i:s')]) ?
+        return $db->prepare('DELETE FROM '.Sessions::TABLE_NAME.' WHERE (UNIX_TIMESTAMP('.Sessions::SESSION_EXPIRES.') + ? ) < UNIX_TIMESTAMP(?)')->execute([$maxLife, date('Y-m-d H:i:s')]) ?
             true : false;
     }
 }

@@ -300,7 +300,7 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                     </p>
                     <p>
                       If user input is taken it must be validated to protect against cross site scripting
-                      attacks. The guys over at <a href="https://owasp.org/www-project-top-ten/">OWASP </a>
+                      attacks. The folks over at <a href="https://owasp.org/www-project-top-ten/">OWASP </a>
                       do a good job explaining the complexity of protecting
                       yourself against a XSS attack. Simply put, if the user is capable of modifying the
                       information, a variable we need in a routine, it must be validated. The MVC pattern

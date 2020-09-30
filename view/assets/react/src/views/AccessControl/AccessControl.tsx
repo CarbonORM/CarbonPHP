@@ -150,10 +150,10 @@ class AccessControl extends React.Component<iAccessControl, {
           [C6.LIMIT]: 100
         }
       }
-    }).then(response => this.setState({ users: response.data.rest }));
+    }).then(response => this.setState({ users: (response.data.rest || []) }));
 
     axios.get('/rest/' + C6.carbon_features.TABLE_NAME)
-      .then(response => this.setState({ features: response.data.rest }));
+      .then(response => this.setState({ features: (response.data.rest || []) }));
 
     axios.get('/rest/' + C6.carbon_groups.TABLE_NAME, {
       params: {

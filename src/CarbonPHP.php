@@ -46,7 +46,7 @@ class CarbonPHP
     public static array $configuration = [];
     public static string $not_invoked_application = '';     // string namespace
     public static string $not_invoked_configuration = '';   // string namespace
-    public static ?CLI $commandLineInterface;
+    public static ?CLI $commandLineInterface = null;
     public static ?Application $application;
     public static bool $setupComplete = false;
 
@@ -144,7 +144,7 @@ class CarbonPHP
         }
 
         if (self::$safelyExit) {
-            if (self::$cli && !self::$test) {
+            if (self::$cli && !self::$test && self::$commandLineInterface !== null) {
                 self::$safelyExit = true;
                 $cli = self::$commandLineInterface;
                 $cli->run($_SERVER['argv'] ?? ['index.php', null]);
@@ -358,7 +358,11 @@ class CarbonPHP
                 self::$reply_email ??= $config['REPLY_EMAIL'] ?? '';                               // I give you options :P
             }
 
-            if (self::$cli && !self::$test) {
+            if (self::$cli && !self::$test && !self::$safelyExit) {
+
+
+
+
                 self::$safelyExit = true;
                 self::$commandLineInterface =
                     new CLI([self::$configuration, $_SERVER['argv'] ?? ['index.php', null]]);
@@ -380,7 +384,7 @@ class CarbonPHP
                     self::$protocol = 'https://';
                     break;
                 case WebSocket::$port:
-                    self::$protocol = 'wss://';
+                    self::$protocol = 'wss://';    // todo - ws vs wss
             }
 
 

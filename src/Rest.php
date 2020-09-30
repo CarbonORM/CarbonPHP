@@ -111,152 +111,225 @@ abstract class Rest extends Database
             });
     }
 
+    /**
+     * @param string $method
+     * @param array $args
+     * @param array $where
+     * @param array $table_php_validation
+     * @throws PublicAlert
+     */
+    public static function validateRestfulRequestWithCustomMethods(string $method, array &$args, array $where, array $table_php_validation): void
+    {
+        foreach ($table_php_validation as $php_validation) {
+            if (empty($php_validation)) {
+                continue;
+            }
+
+            // these function maps are designed to run on every request
+            if (array_key_exists(0, $php_validation)) {
+                if (is_array($php_validation[0])) {
+                    foreach ($php_validation[0] as $validation) {
+                        if (is_array($validation)) {
+                            $class = array_key_first($validation);
+                            $validationMethod = $validation[$class];
+                            unset($validation[$class]);
+                            if (!class_exists($class)) {
+                                throw new PublicAlert('A class reference in PHP_VALIDATION failed.');
+                            }
+                            if (false === call_user_func_array([$class, $validationMethod], [&$args, ...$validation])) {
+                                throw new PublicAlert('The global request validation failed, please make sure arguments are correct.');
+                            }
+                        } else {
+                            throw new PublicAlert('PHP_VALIDATION[0][] should equal = arrays with [ call => method , structure followed by any additional arguments ]. Refer to Carbonphp.com for more info.');
+                        }
+                    }
+                } else {
+                    throw new PublicAlert('The first numeric key 0 in PHP_VALIDATION must be an array. Refer to Carbonphp.com for more info.');
+                }
+            }
+
+            // these function maps are designed to run on specific $method request
+            if (array_key_exists($method, $php_validation) && is_array($php_validation[$method]) && array_key_exists(0, $php_validation[$method])) {
+                foreach ($php_validation[$method][0] as $validation) {
+                    if (is_array($validation)) {
+
+                        $class = array_key_first($validation);
+                        $validationMethod = $validation[$class];
+                        unset($validation[$class]);
+
+                        if (!class_exists($class)) {
+                            throw new PublicAlert('A class reference in PHP_VALIDATION failed. Make sure arrow \'=>\' is use and not a comma \',\'.');
+                        }
+                        if (false === call_user_func_array([$class, $validationMethod], [&$args, ...$validation])) {
+                            throw new PublicAlert('The request failed, please make sure arguments are correct for this method.');
+                        }
+                    } else {
+                        throw new PublicAlert('The first numeric key for PHP_VALIDATION["$method"][0][] should equal = arrays with [ call => method , structure followed by any additional arguments ]. Refer to Carbonphp.com for more info.');
+                    }
+                }
+            }
+
+            // these function maps are designed column values
+            if (is_array($where) && !empty($where)) {
+                foreach ($where as $column => &$value) {
+
+                    // this maybe for every method (GET,PUT,POST,DELETE)
+                    if (array_key_exists($column, $php_validation)) {
+                        foreach ($php_validation[$column] as $validation) {
+                            $class = array_key_first($validation);
+                            $validationMethod = $validation[$class];
+                            unset($validation[$class]);
+                            if (!class_exists($class)) {
+                                throw new PublicAlert('A class reference in PHP_VALIDATION[$column] failed. Make sure an arrow \'=>\' is use and not a comma \',\' for class method pair.');
+                            }
+                            if (false === call_user_func_array([$class, $validationMethod], [&$value, ...$validation])) {
+                                throw new PublicAlert('Restful PHP validation returned false for column (' . $column . '). The request failed, please make sure arguments are correct.');
+                            }
+                        }
+                    }
+
+                    // Or specific methods
+                    if (array_key_exists($column, $php_validation[$method] ?? [])) {
+                        foreach ($php_validation[$method][$column] as $validation) {
+                            $class = array_key_first($validation);
+                            $validationMethod = $validation[$class];
+                            unset($validation[$class]);
+                            if (!class_exists($class)) {
+                                throw new PublicAlert('A class reference in PHP_VALIDATION[$method][$column] failed. Make sure arrow \'=>\' is use and not a comma \',\' for class method  pair..');
+                            }
+                            if (false === call_user_func([$class, $validationMethod], [&$value, ...$validation])) {
+                                throw new PublicAlert('The request failed, please make sure arguments are correct.');
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @param array $where
+     * @param array $regex
+     * @throws PublicAlert
+     */
+    public static function validateRestfulRequestWithCustomRegexps(array $where, array $regex): void
+    {
+        if (is_array($where) && !empty($where)) {
+            foreach ($where as $column => &$value) {
+                if (array_key_exists($column, $regex) &&
+                    preg_match_all($regex[$column], $value, $matches, PREG_SET_ORDER) < 1) {  // can return 0 or false
+                    throw new PublicAlert('The request failed the column (' . $column . ') regex (' . $regex[$column] . ') test, please make sure arguments are correct.');
+                }
+            }
+        }
+    }
+
 
     /**
      * @param $method
      * @param $args
-     * @param $regex
+     * @param $regex_validation
      * @param $php_validation
      * @return bool
      * @throws PublicAlert
      */
-    public static function validateRestfulArguments(string $method, array &$args, array $regex, array $php_validation): bool
+    public static function validateRestfulArguments(string $method, array &$args, array $regex_validation, array $php_validation): void
     {
-        if (array_key_exists(0, $php_validation)) {
-            if (is_array($php_validation[0])) {
-                foreach ($php_validation[0] as $validation) {
-                    if (is_array($validation)) {
-                        $class = array_key_first($validation);
-                        $validationMethod = $validation[$class];
-                        unset($validation[$class]);
-                        if (!class_exists($class)) {
-                            throw new PublicAlert('A class reference in PHP_VALIDATION failed.');
-                        }
-                        if (false === call_user_func_array([$class, $validationMethod], [&$args, ...$validation])) {
-                            throw new PublicAlert('The global request validation failed, please make sure arguments are correct.');
-                        }
-                    } else {
-                        throw new PublicAlert('PHP_VALIDATION[0][] should equal = arrays with [ call => method , structure followed by any additional arguments ]. Refer to Carbonphp.com for more info.');
-                    }
-                }
-            } else {
-                throw new PublicAlert('The first numeric key 0 in PHP_VALIDATION must be an array. Refer to Carbonphp.com for more info.');
-            }
-        }
-
-        if (array_key_exists($method, $php_validation) && is_array($php_validation[$method]) && array_key_exists(0, $php_validation[$method])) {
-            foreach ($php_validation[$method][0] as $validation) {
-                if (is_array($validation)) {
-
-                    $class = array_key_first($validation);
-                    $validationMethod = $validation[$class];
-                    unset($validation[$class]);
-
-                    if (!class_exists($class)) {
-                        throw new PublicAlert('A class reference in PHP_VALIDATION failed. Make sure arrow \'=>\' is use and not a comma \',\'.');
-                    }
-                    if (false === call_user_func_array([$class, $validationMethod], [&$args, ...$validation])) {
-                        throw new PublicAlert('The request failed, please make sure arguments are correct for this method.');
-                    }
-                } else {
-                    throw new PublicAlert('The first numeric key for PHP_VALIDATION["$method"][0][] should equal = arrays with [ call => method , structure followed by any additional arguments ]. Refer to Carbonphp.com for more info.');
-                }
-            }
-        }
-
         if ($method === self::POST) {
             $where = &$args;
         } else {
             $where = &$args[self::WHERE] ?? [];
         }
 
-        if (is_array($where) && !empty($where)) {
-            foreach ($where as $column => &$value) {
-                if (array_key_exists($column, $regex) &&
-                    preg_match_all($regex[$column], $value, $matches, PREG_SET_ORDER) < 1) {  // can return 0 or false
-                    throw new PublicAlert('The request failed the regex (' . $regex[$column] . ') test, please make sure arguments are correct.');
-                }
-                if (array_key_exists($column, $php_validation)) {
-                    foreach ($php_validation[$column] as $validation) {
-                        $class = array_key_first($validation);
-                        $validationMethod = $validation[$class];
-                        unset($validation[$class]);
-                        if (!class_exists($class)) {
-                            throw new PublicAlert('A class reference in PHP_VALIDATION[$column] failed. Make sure an arrow \'=>\' is use and not a comma \',\'.');
-                        }
-                        if (false === call_user_func_array([$class, $validationMethod], [&$value, ...$validation])) {
-                            throw new PublicAlert('Restful PHP validation returned false for column (' . $column . '). The request failed, please make sure arguments are correct.');
-                        }
-                    }
-                }
-                if (array_key_exists($column, $php_validation[$method] ?? [])) {
-                    foreach ($php_validation[$method][$column] as $validation) {
-                        $class = array_key_first($validation);
-                        $validationMethod = $validation[$class];
-                        unset($validation[$class]);
-                        if (!class_exists($class)) {
-                            throw new PublicAlert('A class reference in PHP_VALIDATION[$method][$column] failed. Make sure arrow \'=>\' is use and not a comma \',\'.');
-                        }
-                        if (false === call_user_func([$class, $validationMethod], [&$value, ...$validation])) {
-                            throw new PublicAlert('The request failed, please make sure arguments are correct.');
-                        }
-                    }
-                }
-            }
-        }
-        return true;
+        self::validateRestfulRequestWithCustomRegexps($where, $regex_validation);
+
+        self::validateRestfulRequestWithCustomMethods($method, $args, $where, $php_validation);
 
     }
 
     /**
-     * @param string $table
+     * @param string $mainTable
      * @param string|null $primary
      * @param string $namespace
      * @return bool
      */
-    public static function RestfulRequests(string $table, string $primary = null, string $namespace = 'Tables\\'): bool
+    public static function RestfulRequests(string $mainTable, string $primary = null, string $namespace = 'Tables\\'): bool
     {
         global $json;
 
-        $json = []; // clear all prior reporting
+        $json = [];
 
         try {
-            if (CarbonPHP::$app_local . 'src' . DS === CarbonPHP::CARBON_ROOT) {
+            if (CarbonPHP::$app_root . 'src' . DS === CarbonPHP::CARBON_ROOT) {
                 $namespace = 'CarbonPHP\\Tables\\';
             }
+
+            $mainTable = explode('_', $mainTable);      // table name semantics vs class name
+
+            $mainTable = array_map('ucfirst', $mainTable);
+
+            $mainTable = implode('_', $mainTable);
+
+            $tables = [&$mainTable];
+
+            $requestTableHasPrimary = in_array(strtolower(iRest::class),
+                array_map('strtolower', array_keys(class_implements($namespace . $mainTable))), true);
 
             if (!in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PUT', 'GET', 'DELETE'])) {
                 throw new PublicAlert('The table does not implement the correct interfaces. (iRest::class or iRestfulReferences::class).');
             }
 
-            if (!class_exists($table = $namespace . $table)) {
-                throw new PublicAlert('Failed to find the table requested');
+            // get table list
+
+            foreach ($_POST[self::JOIN] as $key => $value) {
+                if (!empty($_POST[self::JOIN][$key])) {
+                    $tables = [...$tables, ...array_keys($_POST[self::JOIN][$key])];
+                }
             }
 
-            if (!is_subclass_of($table, self::class)) {
-                throw new PublicAlert('The table must extent :: ' . self::class);
+
+            $php_validations = $regex_validations = [];
+
+
+            foreach ($tables as &$table) {
+
+                $table = explode('_', $table);      // table name semantics vs class name
+
+                $table = array_map('ucfirst', $table);
+
+                $table = implode('_', $table);
+
+                if (!class_exists($table = $namespace . $table)) {
+                    throw new PublicAlert("Failed to find the table ($table) requested");
+                }
+
+                if (!is_subclass_of($table, self::class)) {
+                    throw new PublicAlert('The table must extent :: ' . self::class);
+                }
+
+                $imp = array_map('strtolower', array_keys(class_implements($table)));
+
+                if (!in_array(strtolower(iRest::class), $imp, true) &&
+                    !in_array(strtolower(iRestfulReferences::class), $imp, true)) {
+                    throw new PublicAlert('The table does not implement the correct interface. Requires (' . iRest::class . ' or ' . iRestfulReferences::class . ').');
+                }
+
+                if (defined("$table::REGEX_VALIDATION")) {
+                    $regex_validations[] = constant("$table::REGEX_VALIDATION");
+                } else {
+                    throw new PublicAlert('The table does not implement REGEX_VALIDATION. This can be an empty static array.');
+                }
+
+                if (defined("$table::PHP_VALIDATION")) {
+                    $php_validations[] = constant("$table::PHP_VALIDATION");
+                } else {
+                    throw new PublicAlert('The table does not implement PHP_VALIDATION. This can be an empty static array.');
+                }
             }
 
-            $imp = array_map('strtolower', array_keys(class_implements($table)));
+            unset($table);
 
-            $hasPrimary = in_array(strtolower(iRest::class), $imp, true);
-
-            if (!$hasPrimary &&
-                !in_array(strtolower(iRestfulReferences::class), $imp, true)) {
-                throw new PublicAlert('The table does not implement the correct interfaces. (' . iRest::class . ' or ' . iRestfulReferences::class . ').');
-            }
-
-            if (defined("$table::REGEX_VALIDATION")) {
-                $regex = constant("$table::REGEX_VALIDATION");
-            } else {
-                throw new PublicAlert('The table does not implement REGEX_VALIDATION. This can be an empty static array.');
-            }
-
-            if (defined("$table::PHP_VALIDATION")) {
-                $php_validation = constant("$table::PHP_VALIDATION");
-            } else {
-                throw new PublicAlert('The table does not implement PHP_VALIDATION. This can be an empty static array.');
-            }
+            $regex_validations = array_merge([], ...$regex_validations);    // todo - is [] actually providing clarity // needed?
 
             $method = strtoupper($_SERVER['REQUEST_METHOD']);
 
@@ -281,12 +354,12 @@ abstract class Rest extends Database
                         $args = $_POST;
                     }
 
-                    empty($args) or self::validateRestfulArguments($method, $args, $regex, $php_validation);
+                    empty($args) or self::validateRestfulArguments($method, $args, $regex_validations, $php_validations);
 
                     $methodCase = ucfirst(strtolower($_SERVER['REQUEST_METHOD']));  // this is to match actual method spelling
 
                     $return = [];
-                    if (!call_user_func_array([$table, $methodCase], $hasPrimary ? [&$return, $primary, $args] : [&$return, $args])) {
+                    if (!call_user_func_array([$mainTable, $methodCase], $requestTableHasPrimary ? [&$return, $primary, $args] : [&$return, $args])) {
                         throw new PublicAlert('The request failed, please make sure arguments are correct.');
                     }
 
@@ -295,11 +368,11 @@ abstract class Rest extends Database
 
                 case self::POST:
 
-                    empty($_POST) or self::validateRestfulArguments($method, $_POST, $regex, $php_validation);
+                    empty($_POST) or self::validateRestfulArguments($method, $_POST, $regex_validations, $php_validations);
 
                     $methodCase = ucfirst(strtolower($_SERVER['REQUEST_METHOD']));  // this is to match actual method spelling
 
-                    if (!$id = call_user_func([$table, $methodCase], $_POST, $primary)) {
+                    if (!$id = call_user_func([$mainTable, $methodCase], $_POST, $primary)) {
                         throw new PublicAlert('The request failed, please make sure arguments are correct.');
                     }
 

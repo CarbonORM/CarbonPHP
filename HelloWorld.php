@@ -1,43 +1,56 @@
 <?php
 
-use CarbonPHP\Application;
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\Interfaces\iConfig;
-
-const DS = DIRECTORY_SEPARATOR;
-
-CarbonPHP::$app_root = __DIR__ . DS;
+use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Rest;
+use Config\Documentation;
+use CarbonPHP\Tables\Carbon_Location_References;
+use CarbonPHP\Tables\Carbon_Locations;
+use CarbonPHP\Tables\Carbon_Users as Users;
 
 // Composer autoload
-if (false === (include 'vendor' . DS . 'autoload.php')) {
-    print '<h1>Composer Failed</h1>';
+if (false === (include 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php')) {
+    print '<h1>Composer Failed. Please run <b>composer install</b>.</h1>';
     die(1);
 }
 
-(new CarbonPHP(new class extends Application implements iConfig {
 
-        public function startApplication(string $uri): bool
-        {
-            return $this->regexMatch('#home#i', static function () {
-                print '<h1>Hello World! My name is ' . ucfirst(trim(`whoami`) ). '.</h1>';
-            })();
-        }
+CarbonPHP::$safelyExit = true;
 
-        public function defaultRoute()
-        {
-            print <<<HTML
-<html>
-    <head><title>[C6] Hello World - No Route Matched</title></head>
-    <body><h1>Country roads, take me <a href="/home">home</a></h1></body>
-</html>
-HTML;
-        }
+(new CarbonPHP(Documentation::class, __DIR__ . DIRECTORY_SEPARATOR))();
 
-        public static function configuration(): array
-        {
-            return [];
-        }
-    }
-))();
+print 'testing playground' . PHP_EOL;
+
+$_POST = [Users::SELECT => [
+        Users::USER_USERNAME,
+        Carbon_Locations::STATE
+    ],
+    Users::JOIN => [
+        Users::INNER => [
+            Carbon_Location_References::TABLE_NAME => [
+                Users::USER_ID,
+                Carbon_Location_References::ENTITY_REFERENCE
+            ],
+            Carbon_Locations::TABLE_NAME => [
+                Carbon_Locations::ENTITY_ID,
+                Carbon_Location_References::LOCATION_REFERENCE
+            ]
+        ]
+    ],
+    Users::PAGINATION => [
+        Users::LIMIT => 10,
+        Users::ORDER => Users::USER_USERNAME . Users::ASC
+    ]];
+
+
+$_SERVER['REQUEST_METHOD'] = 'GET';
+
+Rest::RestfulRequests(Users::TABLE_NAME, null);
+
+sortDump($GLOBALS['json']['rest']);
+
+
+
+
 
 return true;

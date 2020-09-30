@@ -40,7 +40,8 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
     ]; 
  
     public const REGEX_VALIDATION = [
-
+        self::ENTITY_REFERENCE => self::VALIDATE_C6_ENTITY_ID_REGEX,
+        self::LOCATION_REFERENCE => self::VALIDATE_C6_ENTITY_ID_REGEX
     ]; 
     
     /**

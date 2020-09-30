@@ -25,18 +25,19 @@ class HeaderLinks extends React.Component<any, any> {
       zoom: 100,
     };
     this.zoom = this.zoom.bind(this);
+    document.body.style.overflowX = 'hidden';
   }
 
   zoom(operator) {
     switch (operator) {
       case "+":
         this.setState({
-          zoom: this.state.zoom + 25
+          zoom: this.state.zoom + 10
         }, () => document.body.style.zoom = this.state.zoom + "%");
         break;
       case "-":
         this.setState({
-          zoom: this.state.zoom - 25
+          zoom: this.state.zoom - 10
         }, () => document.body.style.zoom = this.state.zoom + "%");
         break;
       default:

@@ -2,8 +2,11 @@
 
 namespace {                                     // This runs the following code in the global scope
     use CarbonPHP\CarbonPHP;
-    use CarbonPHP\Error\PublicAlert;               //  Displays alerts nicely
-    use CarbonPHP\View;                            //  Seamlessly include the DOM
+    use CarbonPHP\Error\PublicAlert;
+    use CarbonPHP\View;
+
+    //  Displays alerts nicely
+    //  Seamlessly include the DOM
 
     /**
      * @param $message
@@ -23,13 +26,13 @@ namespace {                                     // This runs the following code 
      * store that instance in a static variable and reuse it for the proccess life.
      *
      * @param $reset
-     * @link
-     *
      * @return null|bool - if this is called recursively we want to make sure were not
      * returning true to a controller function, thus causing the model to run when unneeded.
      * So yes this is a self-stupid check..............
+     * @link
+     *
      */
-    function startApplication($reset = '') : ? bool
+    function startApplication($reset = ''): ?bool
     {
         return CarbonPHP::startApplication($reset);
     }
@@ -43,26 +46,25 @@ namespace {                                     // This runs the following code 
      *  otherwise highlight the string provided as code
      *
      * adding the following to your css will be essential
-
-
-    pre {
-      background-color:rgba(255,255,255,0.9);
-      max-height: 30%;
-      overflow:scroll;
-      margin:0 0 1em;
-      padding:.5em 1em;
-    }
-    ::-webkit-scrollbar {
-      -webkit-appearance: none;
-      width: 10px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      border-radius: 5px;
-      background-color: rgba(230,32,45,0.5);
-      -webkit-box-shadow: 0 0 1px rgba(255,255,255,.5);
-    }
-
+     *
+     *
+     * pre {
+     * background-color:rgba(255,255,255,0.9);
+     * max-height: 30%;
+     * overflow:scroll;
+     * margin:0 0 1em;
+     * padding:.5em 1em;
+     * }
+     * ::-webkit-scrollbar {
+     * -webkit-appearance: none;
+     * width: 10px;
+     * }
+     *
+     * ::-webkit-scrollbar-thumb {
+     * border-radius: 5px;
+     * background-color: rgba(230,32,45,0.5);
+     * -webkit-box-shadow: 0 0 1px rgba(255,255,255,.5);
+     * }
      *
      * which implies you wrap this function in pre. *not required atm* aka done 4 u
      *
@@ -165,16 +167,16 @@ namespace {                                     // This runs the following code 
      *       [$var, $var2, $anotherVar]
      *
      * @param bool $fullReport this outputs a backtrace and zvalues
+     * @param bool $die -
+     * @link http://php.net/manual/en/internals2.php                 -- the hackers guide
+     * @link http://php.net/manual/en/function.debug-zval-dump.php
+     *
      * @link http://php.net/manual/en/function.debug-backtrace.php
      *
      * From personal experience you should not worry about Z-values, as it is almost
      * never ever the issue. I'm 99.9% sure of this, but if you don't trust me you
      * should read this full manual page
      *
-     * @link http://php.net/manual/en/internals2.php                 -- the hackers guide
-     * @link http://php.net/manual/en/function.debug-zval-dump.php
-     *
-     * @param bool $die -
      */
     function sortDump($mixed, $fullReport = false, $die = true)
     {
@@ -187,7 +189,7 @@ namespace {                                     // This runs the following code 
         print CarbonPHP::$test ? 'SortDump Called From' : '################### SortDump Called From ################';
         print CarbonPHP::$cli ? PHP_EOL . PHP_EOL : '<br><pre>';
         /** @noinspection ForgottenDebugOutputInspection */
-        $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,2);
+        $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
         /** @noinspection ForgottenDebugOutputInspection */
         var_dump($backtrace[1] ?? $backtrace[0]);
         print CarbonPHP::$cli ? PHP_EOL . PHP_EOL : '<br></pre>';
@@ -234,13 +236,45 @@ namespace {                                     // This runs the following code 
      * to this function will add one to the total
      * @link https://www.php.net/manual/en/function.debug-zval-dump.php
      * @param $mixed
+     * @noinspection PhpExpressionResultUnusedInspection
+     * @noinspection ForgottenDebugOutputInspection
      */
-    function zValue($mixed) {
+    function zValue($mixed)
+    {
         print CarbonPHP::$cli ? PHP_EOL . PHP_EOL : '<br><pre>';
-        /** @noinspection ForgottenDebugOutputInspection */
         debug_zval_dump($mixed);
         print CarbonPHP::$cli ? PHP_EOL . PHP_EOL : '</pre><br><br>';
         exit(1);
+    }
+
+
+    /**
+     * This is array_merge_recursive but add
+     * @return array Merged array
+     * @link https://wordpress-seo.wp-a2z.org/oik_api/wpseo_metaarray_merge_recursive_distinct/
+     */
+    function array_merge_recursive_distinct()
+    {
+        $arrays = func_get_args();
+        if (count($arrays) < 2) {
+            if ($arrays === []) {
+                return [];
+            }
+            return $arrays[0];
+        }
+
+        $merged = array_shift($arrays);
+
+        foreach ($arrays as $array) {
+            foreach ($array as $key => $value) {
+                if (is_array($value) && (isset($merged[$key]) && is_array($merged[$key]))) {
+                    $merged[$key] = array_merge_recursive_distinct($merged[$key], $value);
+                } else {
+                    $merged[$key] = $value;
+                }
+            }
+        }
+        return $merged;
     }
 
 }
