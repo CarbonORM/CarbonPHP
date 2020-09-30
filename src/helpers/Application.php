@@ -3,6 +3,7 @@
 namespace {                                     // This runs the following code in the global scope
     use CarbonPHP\CarbonPHP;
     use CarbonPHP\Error\PublicAlert;
+    use CarbonPHP\Programs\ColorCode;
     use CarbonPHP\View;
 
     //  Displays alerts nicely
@@ -176,50 +177,57 @@ namespace {                                     // This runs the following code 
      * From personal experience you should not worry about Z-values, as it is almost
      * never ever the issue. I'm 99.9% sure of this, but if you don't trust me you
      * should read this full manual page
-     *
+     * @noinspection ForgottenDebugOutputInspection
+     * @noinspection PhpExpressionResultUnusedInspection
      */
-    function sortDump($mixed, $fullReport = false, $die = true)
+    function sortDump($mixed, bool $fullReport = false, bool $die = true)
     {
         // Notify that sort dump was executed
         CarbonPHP::$cli or alert(__FUNCTION__);
 
-        // Generate Report
-        ob_start();
-        print CarbonPHP::$cli ? PHP_EOL . PHP_EOL : '<br>';
-        print CarbonPHP::$test ? 'SortDump Called From' : '################### SortDump Called From ################';
-        print CarbonPHP::$cli ? PHP_EOL . PHP_EOL : '<br><pre>';
-        /** @noinspection ForgottenDebugOutputInspection */
         $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
-        /** @noinspection ForgottenDebugOutputInspection */
-        var_dump($backtrace[1] ?? $backtrace[0]);
-        print CarbonPHP::$cli ? PHP_EOL . PHP_EOL : '<br></pre>';
-        print '####################### VAR DUMP ########################';
-        print CarbonPHP::$cli ? PHP_EOL . PHP_EOL : '<br><pre>';
-        /** @noinspection ForgottenDebugOutputInspection */
-        var_dump($mixed);
-        print CarbonPHP::$cli ? PHP_EOL : '<br>';
-        print '#########################################################';
-        if ($fullReport) {
-            echo '####################### MIXED DUMP ########################';
-            $mixed = (\is_array($mixed) && \count($mixed) === 1 ? array_pop($mixed) : $mixed);
-            print CarbonPHP::$cli ? PHP_EOL . PHP_EOL : '<br><pre>';
-            /** @noinspection ForgottenDebugOutputInspection */
-            debug_zval_dump($mixed ?: $GLOBALS);
-            print CarbonPHP::$cli ? PHP_EOL . PHP_EOL : '</pre><br><br>';
-            echo "\n####################### BACK TRACE ########################\n\n<br><pre>";
-            print CarbonPHP::$cli ? PHP_EOL . PHP_EOL : '<br><pre>';
-            /** @noinspection ForgottenDebugOutputInspection */
-            var_dump(debug_backtrace());
-            print CarbonPHP::$cli ? PHP_EOL : '</pre>';
-        }
 
-        $report = ob_get_clean();
+
+        // Generate Report -- keep in mind were in a buffer here
+        $output = static function (bool $cli) use ($mixed, $fullReport, $backtrace) : string {
+            ob_start();
+            print $cli ? PHP_EOL . PHP_EOL : '<br>';
+            print $cli ? 'SortDump Called From' : '################### SortDump Called From ################';
+            print $cli ? PHP_EOL . PHP_EOL : '<br><pre>';
+            var_dump($backtrace[1] ?? $backtrace[0]);
+            print $cli ? PHP_EOL . PHP_EOL : '<br></pre>';
+            print '####################### VAR DUMP ########################';
+            print $cli ? PHP_EOL . PHP_EOL : '<br><pre>';
+            var_dump($mixed);
+            print $cli ? PHP_EOL : '<br>';
+            print '#########################################################';
+            if ($fullReport) {
+                print '####################### MIXED DUMP ########################';
+                $mixed = (\is_array($mixed) && \count($mixed) === 1 ? array_pop($mixed) : $mixed);
+                print $cli ? PHP_EOL . PHP_EOL : '<br><pre>';
+                debug_zval_dump($mixed ?: $GLOBALS);
+                print $cli ? PHP_EOL . PHP_EOL : '</pre><br><br>';
+                echo "\n####################### BACK TRACE ########################\n\n<br><pre>";
+                print $cli ? PHP_EOL . PHP_EOL : '<br><pre>';
+                var_dump(debug_backtrace());
+                print $cli ? PHP_EOL : '</pre>';
+            }
+            return ob_get_clean();
+        };
+
 
         // TODO - re-create a store to file configuration option
         #$file = REPORTS . 'Dumped/Sort_' . time() . '.log';
         #Files::storeContent($file, $report);
 
-        print $report . PHP_EOL;
+        if (CarbonPHP::$cli) {
+            print $report = $output(true);
+            ColorCode::colorCode($report . PHP_EOL);
+        } else {
+            print $report = $output(false);
+            ColorCode::colorCode($output(true) . PHP_EOL);
+        }
+
         // Output to browser
         if (defined('AJAX') && CarbonPHP::$ajax) {  //
             print $report;

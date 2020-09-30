@@ -12,6 +12,7 @@ use PDOStatement;
 
 abstract class Rest extends Database
 {
+
     #restful identifiers
     public const SELECT = 'select';
     public const UPDATE = 'update';
@@ -52,15 +53,12 @@ abstract class Rest extends Database
      * @param $column
      * @param $tableList
      * @return string|null
-     * @throws PublicAlert
      */
     public static function validateColumnName($column, $tableList): ?string
     {
         if (array_key_exists($column, static::PDO_VALIDATION)) {
             return static::class;
         }
-
-        // todo - this is where we move php val & regex
 
         // I like the while loop bc it shrinks the array with ever iteration
         while (!empty($tableList)) {             // todo - this should work on all the columns with each new table reff
@@ -134,7 +132,7 @@ abstract class Rest extends Database
                             $validationMethod = $validation[$class];
                             unset($validation[$class]);
                             if (!class_exists($class)) {
-                                throw new PublicAlert('A class reference in PHP_VALIDATION failed.');
+                                throw new PublicAlert("A class reference in PHP_VALIDATION failed. Class ($class) not found.");
                             }
                             if (false === call_user_func_array([$class, $validationMethod], [&$args, ...$validation])) {
                                 throw new PublicAlert('The global request validation failed, please make sure arguments are correct.');
@@ -238,14 +236,82 @@ abstract class Rest extends Database
         if ($method === self::POST) {
             $where = &$args;
         } else {
-            $where = &$args[self::WHERE] ?? [];
+            $args[self::WHERE] ??= [];
+            $where = &$args[self::WHERE];
         }
 
-        self::validateRestfulRequestWithCustomRegexps($where, $regex_validation);
+        empty($where) or self::validateRestfulRequestWithCustomRegexps($where, $regex_validation);
 
         self::validateRestfulRequestWithCustomMethods($method, $args, $where, $php_validation);
 
     }
+
+
+    /**
+     * @param string $mainTable
+     * @param string $namespace
+     * @param array $requestBody
+     * @return array
+     * @throws PublicAlert
+     */
+    public static function gatherValidationsForRequest(string &$mainTable, string $namespace, array $requestBody): array
+    {
+        $tables = [&$mainTable];
+
+        if (array_key_exists(self::JOIN, $requestBody)) {
+            foreach ($requestBody[self::JOIN] as $key => $value) {
+                if (!empty($requestBody[self::JOIN][$key])) {
+                    $tables = [...$tables, ...array_keys($requestBody[self::JOIN][$key])];
+                }
+            }
+        }
+
+        $php_validations = $regex_validations = [];
+
+        foreach ($tables as &$table) {
+
+            $table = explode('_', $table);      // table name semantics vs class name
+
+            $table = array_map('ucfirst', $table);
+
+            $table = implode('_', $table);
+
+            if (!class_exists($table = $namespace . $table)) {
+                throw new PublicAlert("Failed to find the table ($table) requested");
+            }
+
+            if (!is_subclass_of($table, self::class)) {
+                throw new PublicAlert('The table must extent :: ' . self::class);
+            }
+
+            $imp = array_map('strtolower', array_keys(class_implements($table)));
+
+            if (!in_array(strtolower(iRest::class), $imp, true) &&
+                !in_array(strtolower(iRestfulReferences::class), $imp, true)) {
+                throw new PublicAlert('The table does not implement the correct interface. Requires (' . iRest::class . ' or ' . iRestfulReferences::class . ').');
+            }
+
+            if (defined("$table::REGEX_VALIDATION")) {
+                $regex_validations[] = constant("$table::REGEX_VALIDATION");
+            } else {
+                throw new PublicAlert('The table does not implement REGEX_VALIDATION. This can be an empty static array.');
+            }
+
+            if (defined("$table::PHP_VALIDATION")) {
+                $php_validations[] = constant("$table::PHP_VALIDATION");
+            } else {
+                throw new PublicAlert('The table does not implement PHP_VALIDATION. This can be an empty static array.');
+            }
+        }
+
+        unset($table);
+
+        return [
+            array_merge([], ...$regex_validations),
+            $php_validations
+        ];
+    }
+
 
     /**
      * @param string $mainTable
@@ -270,90 +336,45 @@ abstract class Rest extends Database
 
             $mainTable = implode('_', $mainTable);
 
-            $tables = [&$mainTable];
-
             $requestTableHasPrimary = in_array(strtolower(iRest::class),
                 array_map('strtolower', array_keys(class_implements($namespace . $mainTable))), true);
-
-            if (!in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PUT', 'GET', 'DELETE'])) {
-                throw new PublicAlert('The table does not implement the correct interfaces. (iRest::class or iRestfulReferences::class).');
-            }
-
-            // get table list
-
-            foreach ($_POST[self::JOIN] as $key => $value) {
-                if (!empty($_POST[self::JOIN][$key])) {
-                    $tables = [...$tables, ...array_keys($_POST[self::JOIN][$key])];
-                }
-            }
-
-
-            $php_validations = $regex_validations = [];
-
-
-            foreach ($tables as &$table) {
-
-                $table = explode('_', $table);      // table name semantics vs class name
-
-                $table = array_map('ucfirst', $table);
-
-                $table = implode('_', $table);
-
-                if (!class_exists($table = $namespace . $table)) {
-                    throw new PublicAlert("Failed to find the table ($table) requested");
-                }
-
-                if (!is_subclass_of($table, self::class)) {
-                    throw new PublicAlert('The table must extent :: ' . self::class);
-                }
-
-                $imp = array_map('strtolower', array_keys(class_implements($table)));
-
-                if (!in_array(strtolower(iRest::class), $imp, true) &&
-                    !in_array(strtolower(iRestfulReferences::class), $imp, true)) {
-                    throw new PublicAlert('The table does not implement the correct interface. Requires (' . iRest::class . ' or ' . iRestfulReferences::class . ').');
-                }
-
-                if (defined("$table::REGEX_VALIDATION")) {
-                    $regex_validations[] = constant("$table::REGEX_VALIDATION");
-                } else {
-                    throw new PublicAlert('The table does not implement REGEX_VALIDATION. This can be an empty static array.');
-                }
-
-                if (defined("$table::PHP_VALIDATION")) {
-                    $php_validations[] = constant("$table::PHP_VALIDATION");
-                } else {
-                    throw new PublicAlert('The table does not implement PHP_VALIDATION. This can be an empty static array.');
-                }
-            }
-
-            unset($table);
-
-            $regex_validations = array_merge([], ...$regex_validations);    // todo - is [] actually providing clarity // needed?
 
             $method = strtoupper($_SERVER['REQUEST_METHOD']);
 
             switch ($method) {
+                case self::GET:
+                    if (array_key_exists(0, $_GET)) {
+                        $_GET = json_decode($_GET[0], true);    // which is why this is here
+                        if (null === $_GET) {
+                            $_GET = [];
+                        }
+                    } else {
+                        array_key_exists(self::SELECT, $_GET) and $_GET[self::SELECT] = json_decode($_GET[self::SELECT], true);
+                        array_key_exists(self::JOIN, $_GET) and $_GET[self::JOIN] = json_decode($_GET[self::JOIN], true);
+                        array_key_exists(self::WHERE, $_GET) and $_GET[self::WHERE] = json_decode($_GET[self::WHERE], true);
+                        array_key_exists(self::PAGINATION, $_GET) and $_GET[self::PAGINATION] = json_decode($_GET[self::PAGINATION], true);
+                    }
+                    $args = $_GET;
+                    break;
                 case self::PUT:
                     if ($primary === null) {
                         throw new PublicAlert('Updating restful records requires a primary key.');
                     }
+                case self::POST:
+                case self::DELETE:
+                    $args = $_POST;
+                    break;
+                default:
+                    throw new PublicAlert('The REQUEST_METHOD is not RESTFUL. Method must be either \'POST\', \'PUT\', \'GET\', or \'DELETE\'.');
+            }
+
+            [$regex_validations, $php_validations] = self::gatherValidationsForRequest($mainTable, $namespace, $args);
+
+
+            switch ($method) {
+                case self::PUT:
                 case self::DELETE:
                 case self::GET:
-                    if ($method === self::GET) {                  // I think it's silly we cant sent json in a get
-                        if (array_key_exists(0, $_GET)) {
-                            $_GET = json_decode($_GET[0], true);    // which is why this is here
-                            if (null === $_GET) {
-                                $_GET = [];
-                            }
-                        } else if (array_key_exists(self::WHERE, $_GET) && is_string($_GET[self::WHERE])) {
-                            $_GET[self::WHERE] = json_decode($_GET[self::WHERE], true);
-                        }
-                        $args = $_GET;
-                    } else {
-                        $args = $_POST;
-                    }
-
                     empty($args) or self::validateRestfulArguments($method, $args, $regex_validations, $php_validations);
 
                     $methodCase = ucfirst(strtolower($_SERVER['REQUEST_METHOD']));  // this is to match actual method spelling
@@ -424,18 +445,12 @@ abstract class Rest extends Database
 
         $where = $argv[self::WHERE] ?? [];
 
-        if (is_string($get)) {
-            $argv[self::JOIN] = json_decode($argv[self::JOIN], true);
-        }
 
         // CARBON_ROOT === CarbonPHP::$app_root is also $database = '' in this context, but cheers to clarity!
         $tablePrefix = CarbonPHP::CARBON_ROOT === CarbonPHP::$app_root . 'src' . DS ? 'CarbonPHP\\Tables\\' : 'Tables\\';
 
         // build join
         if (array_key_exists(self::JOIN, $argv) && !empty($argv[self::JOIN])) {
-            if (is_string($argv[self::JOIN])) {
-                $argv[self::JOIN] = json_decode($argv[self::JOIN], true);
-            }
             if (!is_array($argv[self::JOIN])) {
                 throw new PublicAlert('The restful join field must be an array.');
             }
@@ -512,10 +527,7 @@ abstract class Rest extends Database
         }
 
         // pagination [self::PAGINATION][self::LIMIT]
-        if (array_key_exists(self::PAGINATION, $argv)) {    // !empty should not be in this block - I look all the time
-            if (!empty($argv[self::PAGINATION]) && is_string($argv[self::PAGINATION])) {
-                $argv[self::PAGINATION] = json_decode($argv[self::PAGINATION], true);
-            }
+        if (array_key_exists(self::PAGINATION, $argv) && !empty($argv[self::PAGINATION])) {    // !empty should not be in this block - I look all the time
             if (array_key_exists(self::LIMIT, $argv[self::PAGINATION]) && is_numeric($argv[self::PAGINATION][self::LIMIT])) {
                 if (array_key_exists(self::PAGE, $argv[self::PAGINATION])) {
                     $limit = ' LIMIT ' . (($argv[self::PAGINATION][self::PAGE] - 1) * $argv[self::PAGINATION][self::LIMIT]) . ',' . $argv[self::PAGINATION][self::LIMIT];

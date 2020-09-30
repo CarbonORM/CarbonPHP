@@ -481,7 +481,7 @@ class AccessControl extends React.Component<iAccessControl, {
                                   <br/>
                                   <hr/>
                                 </div>
-                            })
+                            }).then(shouldSubmit => shouldSubmit && this.newGroup())
                           }>Create New Group</Button>
                 </CardHeader>
                 <CardBody>

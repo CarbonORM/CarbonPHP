@@ -3,6 +3,7 @@
 namespace CarbonPHP\Tables;
 
 // Restful defaults
+use CarbonPHP\Helpers\RestfulValidation;
 use PDO;
 use CarbonPHP\Rest;
 use CarbonPHP\Interfaces\iRest;
@@ -37,8 +38,13 @@ class Carbon_Groups extends Rest implements iRest
     ];
  
     public const PHP_VALIDATION = [
+        self::POST => [
+            0 => [
+                [ RestfulValidation::class => 'addIDToPostRequest', self::CREATED_BY]
+            ]
+        ],
         self::GROUP_NAME => [
-            [ \Config\Validate::class => 'validateUnique', self::class, self::GROUP_NAME]
+            [ RestfulValidation::class => 'validateUnique', self::class, self::GROUP_NAME]
         ]
     ]; 
  

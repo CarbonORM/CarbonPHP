@@ -1,15 +1,16 @@
 <?php
 
 
-namespace Config;
+namespace CarbonPHP\Helpers;
 
 
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\interfaces\iRest;
 use CarbonPHP\interfaces\iRestfulReferences;
 use CarbonPHP\Rest;
+use CarbonPHP\Session;
 
-class Validate
+final class RestfulValidation
 {
 
     /**
@@ -64,6 +65,10 @@ class Validate
      */
     public static function addToPostRequest(array &$request, string $column, string $value) : void {
         $request[$column] = $value;
+    }
+
+    public static function addIDToPostRequest(array &$request, string $column) : void {
+        $request[$column] = Session::$user_id;
     }
 
 }
