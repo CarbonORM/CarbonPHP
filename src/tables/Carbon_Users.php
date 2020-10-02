@@ -18,7 +18,7 @@ use function is_array;
 
 class Carbon_Users extends Rest implements iRest
 {
-
+    
     public const TABLE_NAME = 'carbon_users';
     public const USER_USERNAME = 'carbon_users.user_username'; 
     public const USER_PASSWORD = 'carbon_users.user_password'; 
@@ -64,11 +64,11 @@ class Carbon_Users extends Rest implements iRest
         0 => [
             [RestfulValidation::class => 'addToPostRequest', self::USER_IP, 'IP']
         ]
-    ];
-
+    ]; 
+ 
     public const REGEX_VALIDATION = [
         self::USER_ID => self::VALIDATE_C6_ENTITY_ID_REGEX
-    ];
+    ]; 
     
     /**
     *
@@ -82,7 +82,7 @@ class Carbon_Users extends Rest implements iRest
     *              'Defaults to AND' => 'Nesting array switches to OR',
     *              [
     *                  'Column Name' => 'Value To Constrain',
-    *                  'This array is OR'ed together' => 'Another sud array would `AND`'
+    *                  'This array is OR'ed togeather' => 'Another sud array would `AND`'
     *                  [ etc... ]
     *              ]
     *        ],
@@ -149,7 +149,7 @@ class Carbon_Users extends Rest implements iRest
      * @throws PublicAlert
      */
     public static function Post(array $argv, string $dependantEntityId = null)
-    {
+    {   
         foreach ($argv as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)){
                 throw new PublicAlert("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
@@ -576,5 +576,7 @@ class Carbon_Users extends Rest implements iRest
 
         return $r;
     }
+     
+
     
 }

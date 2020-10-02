@@ -889,7 +889,7 @@ class WebSocket extends Request implements iCommand
 
     }
 
-    public function usage(): void
+    public function usage(): void // todo - update
     {
         print <<<END
 \n
@@ -903,7 +903,7 @@ class WebSocket extends Request implements iCommand
 
 \t       -singleProcess               - use a single process for all websocket connections
 
-\t       -echoInternalContent         - if this is set, content sent in the pipe will be redirected to the browser 
+\t       -echoInternalContent         - WIP : if this is set, content sent in the pipe will be redirected to the browser 
 \t                                         instead of directly executed with startApplication. This is typically faster.
 \n
 END;

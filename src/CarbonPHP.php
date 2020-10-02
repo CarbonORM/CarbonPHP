@@ -359,10 +359,6 @@ class CarbonPHP
             }
 
             if (self::$cli && !self::$test && !self::$safelyExit) {
-
-
-
-
                 self::$safelyExit = true;
                 self::$commandLineInterface =
                     new CLI([self::$configuration, $_SERVER['argv'] ?? ['index.php', null]]);

@@ -151,6 +151,8 @@ export const C6 = {
 'carbon_location_references.location_time':'location_time',
     },
     REGEX_VALIDATION: {
+        'carbon_location_references.entity_reference': /^([a-fA-F0-9]{20,35})$/,
+        'carbon_location_references.location_reference': /^([a-fA-F0-9]{20,35})$/,
     }
 
   },
@@ -402,6 +404,7 @@ export const C6 = {
 'carbon_users.user_creation_date':'user_creation_date',
     },
     REGEX_VALIDATION: {
+        'carbon_users.user_id': /^([a-fA-F0-9]{20,35})$/,
     }
 
   },

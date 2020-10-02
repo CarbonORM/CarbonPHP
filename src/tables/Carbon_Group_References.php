@@ -33,9 +33,9 @@ class Carbon_Group_References extends Rest implements iRestfulReferences
     public const PDO_VALIDATION = [
         'carbon_group_references.group_id' => ['binary', '2', '16'],'carbon_group_references.allowed_to_grant_group_id' => ['binary', '2', '16'],
     ];
-    
+ 
     public const PHP_VALIDATION = []; 
-    
+ 
     public const REGEX_VALIDATION = []; 
     
     /**

@@ -96,8 +96,8 @@ END;
 
     public function __construct($CONFIG)
     {
-        [$CONFIG] = $CONFIG;
         $this->setup($CONFIG);
+        [$CONFIG] = $CONFIG;
         $this->schema = $CONFIG['DATABASE']['DB_NAME'] ?? '';
         $this->user = $CONFIG['DATABASE']['DB_USER'] ?? '';
         $this->password = $CONFIG['DATABASE']['DB_PASS'] ?? '';
@@ -123,7 +123,7 @@ END;
         $verbose = $debug = $primary_required = $delete_dump = $skipTable = $logClasses = false;
 
 
-        $react = $carbon_namespace ? CarbonPHP::$app_root . 'view/react/material-dashboard-react-c6/src/variables/' : false;
+        $react = $carbon_namespace ? CarbonPHP::$app_root . 'view/assets/react/src/variables/' : false;
 
         // TODO - we shouldn't open ourselfs for sql injection, was this a bandage
         $subQuery = 'C6SUB' . random_int(0, 1000);
@@ -548,10 +548,14 @@ END;
                             // otherwise just create the stmt normally
                             $sql[] = ' ' . $key . '=\'.self::addInjection($primary, $pdo).\'';
                         }
-                        $rest[$tableName]['primary'][] = ['name' => $key];
+                        $rest[$tableName]['primary'][] = [ 'name' => $key ];
                     }
                     $rest[$tableName]['primary'][] = ['sql' => '$sql .= \' WHERE ' . implode(' OR ', $sql) . '\';'];
                     // end - soon to deprecate
+
+                    if ($tableName === 'carbon') {
+                        sortDump($rest[$tableName]['primary']);
+                    }
 
                 } else if ($words_in_insert_stmt[0] === 'CONSTRAINT') {
 

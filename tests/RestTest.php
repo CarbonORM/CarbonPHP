@@ -180,6 +180,7 @@ final class RestTest extends Config
     public function testRestApiCanJoin(): void
     {
         $user = [];
+
         if (Users::Get($user, null, [
                 Users::SELECT => [
                     Users::USER_ID
@@ -271,6 +272,7 @@ final class RestTest extends Config
                 Users::USER_USERNAME => Config::ADMIN_USERNAME
             ]
         ]);
+
 
         self::assertTrue(Users::$allowSubSelectQueries);
 
@@ -365,6 +367,8 @@ final class RestTest extends Config
             ]
         ]));
 
+        self::assertTrue(Users::Delete($user, '8544e3d581ba11e8942cd89ef3fc55fb', []),
+            'Test can delete by primary key.php');
 
         self::assertEmpty($user, 'Cascade delete failed.');
     }

@@ -345,6 +345,25 @@ class AccessControl extends React.Component<iAccessControl, {
           }))));
   }
 
+  deleteGroup(id: string) {
+    const { axios } = this.props;
+    this.setState({ alert: null }, () =>
+      axios.delete('/rest/' + C6.carbon_groups.TABLE_NAME + '/' + id)
+        .then(response =>
+          (id = this.props.testRestfulPostResponse(response, 'Successfully Created The Group',
+            'An unknown issue occurred. We will be looking into this shortly.')) && this.setState({
+            group: {
+              group_name: this.state.group.group_name,
+              entity_id: id
+            }
+          }, () => this.setState({
+            groups: [
+              ...this.state.groups,
+              this.state.group,
+            ]
+          }))));
+  }
+
   addFeatureToGroup(featureId: string, groupId: string) {
     const { axios } = this.props;
     const payload: iCarbon_Feature_Group_References = {
@@ -487,7 +506,9 @@ class AccessControl extends React.Component<iAccessControl, {
                 <CardBody>
                   <Table
                     tableHeaderColor="success"
-                    tableHead={["Group Name", ...featureCodes, "Admin"]}
+                    tableHead={["Group Name", ...featureCodes.map(((value, index) => {
+                      return <p onClick={()=>swal("here")} key={index}>{value}</p>
+                    })), "Admin"]}
                     tableData={
                       this.state.groups.map(group => {
                         const name = humanize(group.group_name);
@@ -510,40 +531,74 @@ class AccessControl extends React.Component<iAccessControl, {
                             </Button>
                           }),
 
-                          <Button onClick={() => swal(<GridContainer>
-                              <GridItem xs={12} sm={12} md={12}>
-                                <div>
-                                  <h5><b>You will be affecting 9 users already assigned to this role.</b></h5>
-                                  <br/>
-                                  <p>Moving to the Grant Ability.... will allow this user to... create and manage
-                                    other users...</p>
-                                </div>
-                                <Table
-                                  tableHeaderColor="info"
-                                  tableHead={["Group #", "Group Name", "Grantability Status"]}
-                                  tableData={
-                                    this.state.groups.map((SubGroup, key) => {
+                          <Button onClick={() => swal({
+                              dangerMode: true,
+                              buttons: {
+                                delete: "Delete Group",
+                                cancel: "Close Admin Settings"
+                              },
+                              content:
+                                <GridContainer>
+                                  <GridItem xs={12} sm={12} md={12}>
+                                    <div>
+                                      <h5><b>You will be affecting 9 users already assigned to this role.</b></h5>
+                                      <br/>
+                                      <p>Moving to the Grant Ability.... will allow this user to... create and manage
+                                        other users...</p>
+                                    </div>
+                                    <Table
+                                      tableHeaderColor="info"
+                                      tableHead={["Group #", "Group Name", "Grantability Status"]}
+                                      tableData={
+                                        this.state.groups.map((SubGroup, key) => {
 
-                                      let regex = new RegExp('(^|,)' + SubGroup.entity_id + ',?', 'g');
+                                          let regex = new RegExp('(^|,)' + SubGroup.entity_id + ',?', 'g');
 
-                                      let enabled = regex.test(group.allowed_to_grant_group_id);
+                                          let enabled = regex.test(group.allowed_to_grant_group_id);
 
-                                      return [
-                                        key,
-                                        SubGroup.group_name,
-                                        <Button color={enabled ? "success" : "default"}
-                                                onClick={() => enabled ?
-                                                  this.deleteGroupGrantabillity(group.entity_id, SubGroup.entity_id) :
-                                                  this.newGroupGrantabillity(group.entity_id, SubGroup.entity_id)}>
-                                          {enabled ? " Can Give Access " : "Can not Grant"}
-                                        </Button>
-                                      ]
-                                    })
-                                  }
-                                />
-                              </GridItem>
-                            </GridContainer>
-                          )} color="danger">Admin</Button>
+                                          return [
+                                            key,
+                                            SubGroup.group_name,
+                                            <Button color={enabled ? "success" : "default"}
+                                                    onClick={() => enabled ?
+                                                      this.deleteGroupGrantabillity(group.entity_id, SubGroup.entity_id) :
+                                                      this.newGroupGrantabillity(group.entity_id, SubGroup.entity_id)}>
+                                              {enabled ? " Can Give Access " : "Can not Grant"}
+                                            </Button>
+                                          ]
+                                        })
+                                      }
+                                    />
+                                  </GridItem>
+                                </GridContainer>
+                            }
+                          ).then((value) => {
+                            switch (value) {
+                              case "delete":
+                                swal({
+                                  title: "Are you sure?",
+                                  text: "Once deleted, accounts will have the group association, thereby site permissions, removed!",
+                                  icon: "warning",
+                                  buttons: true,
+                                  dangerMode: true,
+                                })
+                                  .then((willDelete) => {
+                                    if (willDelete) {
+                                      swal("TODO - remove row!", {
+                                        icon: "success",
+                                      });
+                                    } else {
+                                      swal("Canceled");
+                                    }
+                                  });
+                                break;
+                              case "cancel":
+                                swal("Gotcha!", "Pikachu was caught!", "success");
+                                break;
+                              default:
+                                swal("Got away safely!");
+                            }
+                          })} color="danger">Admin</Button>
                         ]
                       })
                     }

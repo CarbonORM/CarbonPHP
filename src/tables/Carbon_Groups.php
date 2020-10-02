@@ -40,7 +40,7 @@ class Carbon_Groups extends Rest implements iRest
     public const PHP_VALIDATION = [
         self::POST => [
             0 => [
-                [ RestfulValidation::class => 'addIDToPostRequest', self::CREATED_BY]
+                [ RestfulValidation::class => 'addIDToPostRequest', self::CREATED_BY ]
             ]
         ],
         self::GROUP_NAME => [
@@ -157,7 +157,10 @@ class Carbon_Groups extends Rest implements iRest
         $stmt->bindParam(':entity_id',$entity_id, 2, 16);
     
     
-        $created_by =  $argv['carbon_groups.created_by'] ?? null;
+        if (!array_key_exists('carbon_groups.created_by', $argv)) {
+            throw new PublicAlert('Required argument "carbon_groups.created_by" is missing from the request.', 'danger');
+        }
+        $created_by = $argv['carbon_groups.created_by'];
         $stmt->bindParam(':created_by',$created_by, 2, 16);
     
 
