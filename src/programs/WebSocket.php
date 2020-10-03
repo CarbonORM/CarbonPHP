@@ -187,9 +187,9 @@ class WebSocket extends Request implements iCommand
 
         self::colorCode("\nStream Socket Server Created\n");
 
-        !self::$minimiseResources and
-        $this->ServerAcceptNewConnections();      // parent thread will always be in this loop
-
+        if (!self::$minimiseResources) {
+            $this->ServerAcceptNewConnections();      // parent thread will always be in this loop
+        }
     }
 
     public function run(array $argv): void
@@ -415,7 +415,7 @@ class WebSocket extends Request implements iCommand
                     $pipeToDeleteKey = array_search($information['user_pipe'], $allConnectedResources, true);
 
                     if (!is_resource($WebsocketToPipeRelations[$key]['user_pipe'])) {
-                        self::colorCode('Pipe not resource. This is unexpected.' , 'red');
+                        self::colorCode('Pipe not resource. This is unexpected.', 'red');
                     } else {
                         @fclose($WebsocketToPipeRelations[$key]['user_pipe']);
                     }
@@ -441,13 +441,13 @@ class WebSocket extends Request implements iCommand
             if ($number === 0) {
                 $manual_garbage_collection++;
                 $count = count(self::$userResourceConnections);
-                self::colorCode($count . ' user(s) connected. ' . ($count > 0 ? " (gc:$manual_garbage_collection)" : '') , 'cyan');
+                self::colorCode($count . ' user(s) connected. ' . ($count > 0 ? " (gc:$manual_garbage_collection)" : ''), 'cyan');
                 if ($manual_garbage_collection > 11) {
 
                 }
                 continue;
             }
-            $manual_garbage_collection=0;
+            $manual_garbage_collection = 0;
 
             self::colorCode("\n$number, stream(s) are requesting to be processed.\n");
 
@@ -509,7 +509,7 @@ class WebSocket extends Request implements iCommand
                         if ($pipeRelation['user_socket'] === $connection) {
                             self::colorCode('User Socket Connecting Through Same Resource :)');
                         } else {
-                            self::colorCode('User Socket Connecting Through Different Resource. Closing Old Connection.','blue');
+                            self::colorCode('User Socket Connecting Through Different Resource. Closing Old Connection.', 'blue');
                             $userToUpdateKey = array_search($pipeRelation['user_socket'], self::$userResourceConnections, true);
                             $userToUpdateKey2 = array_search($pipeRelation['user_socket'], $allConnectedResources, true);
                             @fclose($pipeRelation['user_socket']);  // todo - allow multiple browsers

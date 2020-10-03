@@ -381,9 +381,7 @@ END;
                             exit(1);
                         }
 
-                        if ($tableName === 'carbon_users') {
-                            sortDump($matches);
-                        }
+
 
                         $userCustomImports = array_diff(
                             $matches[1],

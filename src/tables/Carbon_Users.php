@@ -3,7 +3,6 @@
 namespace CarbonPHP\Tables;
 
 // Restful defaults
-use CarbonPHP\Helpers\RestfulValidation;
 use PDO;
 use CarbonPHP\Rest;
 use CarbonPHP\Interfaces\iRest;
@@ -14,7 +13,7 @@ use function func_get_args;
 use function is_array;
 
 // Custom User Imports
-
+use CarbonPHP\Helpers\RestfulValidation;
 
 class Carbon_Users extends Rest implements iRest
 {
