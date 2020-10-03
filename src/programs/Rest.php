@@ -376,12 +376,10 @@ END;
                         $matches = [];
 
                         // the second half of this regex is from google which matches
-                        if (false === preg_match_all('#\n(use (!?function)? ?(([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff\\]*[a-zA-Z0-9_\x7f-\xff]+)|[a-zA-Z_\x80-\xff][\\\a-zA-Z0-9_\x80-\xff]+);)#i', $validation, $matches)) {
+                        if (false === preg_match_all('#\n(use (?:function)? ?(?:(?:[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff\\]*[a-zA-Z0-9_\x7f-\xff]+)|[a-zA-Z_\x80-\xff][\\\a-zA-Z0-9_\x80-\xff]+);)#i', $validation, $matches)) {
                             print 'An unexpected regex error occurred during the namespace matching/cache';
                             exit(1);
                         }
-
-
 
                         $userCustomImports = array_diff(
                             $matches[1],
