@@ -116,6 +116,7 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
      * @param string|null $dependantEntityId - a C6 Hex entity key 
      * @return bool|string
      * @throws PublicAlert
+     * @noinspection SqlResolve
      */
     public static function Post(array $argv, string $dependantEntityId = null): bool
     {   
@@ -244,6 +245,7 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
     * @param string|null $primary
     * @param array $argv
     * @throws PublicAlert
+    * @noinspection SqlResolve
     * @return bool
     */
     public static function Delete(array &$remove, array $argv) : bool

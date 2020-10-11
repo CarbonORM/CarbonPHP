@@ -119,6 +119,7 @@ class Sessions extends Rest implements iRest
      * @param string|null $dependantEntityId - a C6 Hex entity key 
      * @return bool|string
      * @throws PublicAlert
+     * @noinspection SqlResolve
      */
     public static function Post(array $argv, string $dependantEntityId = null)
     {   
@@ -279,6 +280,7 @@ class Sessions extends Rest implements iRest
     * @param string|null $primary
     * @param array $argv
     * @throws PublicAlert
+    * @noinspection SqlResolve
     * @return bool
     */
     public static function Delete(array &$remove, string $primary = null, array $argv) : bool
@@ -306,7 +308,9 @@ class Sessions extends Rest implements iRest
             }
 
             $sql .= ' WHERE ' . $where;
-        } 
+        } else {
+            $sql .= ' WHERE  session_id='.self::addInjection($primary, $pdo).'';
+        }
      
 
 

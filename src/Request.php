@@ -71,7 +71,7 @@ class Request   // requires carbon::application;
         if (headers_sent()) {
             $_SESSION['Cookies'][] = [$key => [$value, $time]];
         } else {
-            setcookie($key, $value, time() + $time, '/', SITE, HTTPS, true);
+            setcookie($key, $value, time() + $time, '/', CarbonPHP::$site, CarbonPHP::$https, true);
         }
     }
 

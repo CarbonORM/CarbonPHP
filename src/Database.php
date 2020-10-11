@@ -246,7 +246,7 @@ class Database
             die(1);
         }
         if ($refresh) {
-            $cli ?: print '<br><br><h2>Refreshing in 6 seconds</h2><script>let t1 = window.setTimeout(function(){ window.location.href = \'' . SITE . '\'; },6000);</script>';
+            $cli ?: print '<br><br><h2>Refreshing in 6 seconds</h2><script>let t1 = window.setTimeout(function(){ window.location.href = \'' . CarbonPHP::$site . '\'; },6000);</script>';
             exit(1);
         }
         CarbonPHP::$cli and print PHP_EOL . PHP_EOL . PHP_EOL;

@@ -533,6 +533,8 @@ END;
 
                     $column++;
                 } else if ($words_in_insert_stmt[0] === 'PRIMARY') {
+
+
                     // Composite Primary Keys are a thing,  TODO - optimise the template for none vs single vs double key
                     $primary = explode('`,`', trim($words_in_insert_stmt[2], '(`),'));
 
@@ -553,8 +555,9 @@ END;
                     $rest[$tableName]['primary'][] = ['sql' => '$sql .= \' WHERE ' . implode(' OR ', $sql) . '\';'];
                     // end - soon to deprecate
 
-                    if ($tableName === 'carbon') {
-                        sortDump($rest[$tableName]['primary']);
+
+                    if ($tableName === 'carbons') {
+                       # sortDump($rest[$tableName]['primary']);
                     }
 
                 } else if ($words_in_insert_stmt[0] === 'CONSTRAINT') {
@@ -1118,6 +1121,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
      * @param string|null \$dependantEntityId - a C6 Hex entity key 
      * @return bool|string
      * @throws PublicAlert
+     * @noinspection SqlResolve
      */
     public static function Post(array \$argv, string \$dependantEntityId = null){{^primaryExists}}: bool{{/primaryExists}}
     {   
@@ -1254,6 +1258,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
     * @param string|null \$primary
     * @param array \$argv
     * @throws PublicAlert
+    * @noinspection SqlResolve
     * @return bool
     */
     public static function Delete(array &\$remove, {{#primaryExists}}string \$primary = null, {{/primaryExists}}array \$argv) : bool
@@ -1318,9 +1323,9 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
             }
 
             \$sql .= ' WHERE ' . \$where;
-        } {{#sql}}else {
-        {{{sql}}}
-        }{{/sql}}{{/name}}{{/primary}}
+        } {{/name}}{{#sql}}else {
+            {{{sql}}}
+        }{{/sql}}{{/primary}}
      
         {{^primary}}
         if (empty(\$argv)) {

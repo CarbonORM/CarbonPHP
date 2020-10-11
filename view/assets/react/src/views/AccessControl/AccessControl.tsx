@@ -240,10 +240,10 @@ class AccessControl extends React.Component<iAccessControl, {
 
   newGroupGrantabillity(modifyGroupId: string, allowGroupGrantRightsId: string) {
     this.setState({ alert: null }, () =>
-      this.props.axios.post('/rest/' + C6.carbon_group_references.TABLE_NAME,{
-          [C6.carbon_group_references.GROUP_ID]: modifyGroupId,
-          [C6.carbon_group_references.ALLOWED_TO_GRANT_GROUP_ID]: allowGroupGrantRightsId,
-        })
+      this.props.axios.post('/rest/' + C6.carbon_group_references.TABLE_NAME, {
+        [C6.carbon_group_references.GROUP_ID]: modifyGroupId,
+        [C6.carbon_group_references.ALLOWED_TO_GRANT_GROUP_ID]: allowGroupGrantRightsId,
+      })
         .then(response => (this.props.testRestfulPostResponse(response, 'Successfully Created Feature Code',
           'An unknown issue occurred. We will be looking into this shortly.'))
           && this.setState({
@@ -301,6 +301,17 @@ class AccessControl extends React.Component<iAccessControl, {
         }))))
   }
 
+  deleteFeature(id: string) {
+    this.setState({ alert: null }, () =>
+      this.props.axios.delete('/rest/' + C6.carbon_features.TABLE_NAME + '/' + id)
+        .then(response => (id = this.props.testRestfulPostResponse(response, 'Successfully Created Feature Code',
+          'An unknown issue occurred. We will be looking into this shortly.')) && this.setState({
+          features: this.state.features.map((value) => {
+            return value.feature_entity_id !== id ? value : null;
+          })
+        })))
+  }
+
   newUser() {
     const { axios } = this.props;
     let id = '';
@@ -350,18 +361,12 @@ class AccessControl extends React.Component<iAccessControl, {
     this.setState({ alert: null }, () =>
       axios.delete('/rest/' + C6.carbon_groups.TABLE_NAME + '/' + id)
         .then(response =>
-          (id = this.props.testRestfulPostResponse(response, 'Successfully Created The Group',
+          (id = this.props.testRestfulPostResponse(response, 'Successfully Deleted The Group',
             'An unknown issue occurred. We will be looking into this shortly.')) && this.setState({
-            group: {
-              group_name: this.state.group.group_name,
-              entity_id: id
-            }
-          }, () => this.setState({
-            groups: [
-              ...this.state.groups,
-              this.state.group,
-            ]
-          }))));
+            groups: this.state.groups.map(((value, index) => {
+              return value.entity_id !== id ? value : null;
+            }))
+          })));
   }
 
   addFeatureToGroup(featureId: string, groupId: string) {
@@ -428,8 +433,6 @@ class AccessControl extends React.Component<iAccessControl, {
       }
       return frags.join(' ');
     }
-
-    const featureCodes: Array<string> = features.map(value => humanize(value.feature_code));
 
     return (
       <div>
@@ -506,9 +509,9 @@ class AccessControl extends React.Component<iAccessControl, {
                 <CardBody>
                   <Table
                     tableHeaderColor="success"
-                    tableHead={["Group Name", ...featureCodes.map(((value, index) => {
-                      return <p onClick={()=>swal("here")} key={index}>{value}</p>
-                    })), "Admin"]}
+                    tableHead={["Group Name", ...features.map((value: iCarbon_Features, index: number) => <p
+                      onClick={() => this.deleteFeature(value.feature_entity_id)}
+                      key={index}>{humanize(value.feature_code)}</p>), "Admin"]}
                     tableData={
                       this.state.groups.map(group => {
                         const name = humanize(group.group_name);
