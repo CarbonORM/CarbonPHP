@@ -720,7 +720,7 @@ h2.title {
 .off-canvas-sidebar .nav li>a {
     margin: 10px 15px 0;
     border-radius: 3px;
-    color: #3C4858;
+    color: rgb(188,201,218);
 }
 
 .sidebar .nav li:first-child>a,
@@ -731,7 +731,7 @@ h2.title {
 .sidebar .nav li:hover>a,
 .off-canvas-sidebar .nav li:hover>a {
     background: rgba(200, 200, 200, 0.2);
-    color: #3C4858;
+    color: rgb(188,201,218);
 }
 
 .sidebar .nav li.active>a,
@@ -821,7 +821,7 @@ h2.title {
     padding: 5px 0px;
     display: block;
     font-size: 18px;
-    color: #3C4858;
+    color: rgb(188,201,218);
     text-align: center;
     font-weight: 400;
     line-height: 30px;
@@ -2384,8 +2384,8 @@ fieldset[disabled] .navbar .navbar-nav>li>a.btn.btn-rose.active {
 }
 
 body {
-    background-color: #EEEEEE;
-    color: #3C4858;
+    background-color: rgb(40,40,40);
+    color: rgb(188,201,218);
 }
 
 body.inverse {
@@ -3415,7 +3415,7 @@ select.form-control[multiple],
 
 .alert-default a,
 .alert-default .alert-link {
-    color: rgba(0, 0, 0, 0.87);
+    ;
 }
 
 .alert i[data-notify="icon"] {
@@ -4050,7 +4050,7 @@ fieldset[disabled] .form-group.is-focused .togglebutton label {
 .section-dark .nav-pills>li>a:focus,
 .section-image .nav-pills>li>a:hover,
 .section-image .nav-pills>li>a:focus {
-    background-color: #EEEEEE;
+    background-color: rgb(40,40,40);
 }
 
 .nav-pills>li>a {
@@ -5092,7 +5092,7 @@ footer .btn {
     margin: 25px 0;
     box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.14);
     border-radius: 3px;
-    color: rgba(0, 0, 0, 0.87);
+    color: rgb(188,201,218);
     background: #fff;
 }
 
@@ -5272,7 +5272,7 @@ footer .btn {
 }
 
 .card .author a {
-    color: #3C4858;
+    color: rgb(188,201,218);
     text-decoration: none;
 }
 

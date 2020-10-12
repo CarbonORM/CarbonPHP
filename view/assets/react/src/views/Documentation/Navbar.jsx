@@ -70,7 +70,7 @@ class Navbar extends React.Component {
                 <div className={classes.container}>
                     <HeaderTop
                         brand={brand ? brand : "Documentation"}
-                        color={color ? color : "info"}
+                        color={color ? color : "dark"}
                         rightLinks={
                             <List className={classes.list}>
                                 {tabs}

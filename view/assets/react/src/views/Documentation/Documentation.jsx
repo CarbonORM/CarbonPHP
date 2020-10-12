@@ -69,12 +69,6 @@ class Documentation extends React.Component {
         component: Dependencies
       },
       {
-        path: "/6.0/Documentation/Dependencies",
-        name: "Constants",
-        icon: DashboardIcon,
-        component: Bootstrap
-      },
-      {
         path: "/6.0/Documentation/BrowserOSSupport",
         name: "Changelog",
         icon: DashboardIcon,

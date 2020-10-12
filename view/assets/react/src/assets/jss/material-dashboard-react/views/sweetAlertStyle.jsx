@@ -9,7 +9,7 @@ const sweetAlertStyle = createStyles({
   cardTitle: {
     marginTop: "0",
     marginBottom: "3px",
-    color: "#3C4858",
+    color: "rgb(188,201,218)",
     fontSize: "18px"
   },
   center: {

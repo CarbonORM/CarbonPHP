@@ -50,7 +50,7 @@ import withStyles from "@material-ui/core/styles/withStyles";
 
 interface iAccessControl extends WithStyles<typeof landingPageStyle> {
   axios: AxiosInstance;
-  testRestfulPostResponse: Function;
+  testRestfulPostPutDeleteResponse: Function;
 }
 
 interface UserAccessControl extends iCarbon_Users {
@@ -244,7 +244,7 @@ class AccessControl extends React.Component<iAccessControl, {
         [C6.carbon_group_references.GROUP_ID]: modifyGroupId,
         [C6.carbon_group_references.ALLOWED_TO_GRANT_GROUP_ID]: allowGroupGrantRightsId,
       })
-        .then(response => (this.props.testRestfulPostResponse(response, 'Successfully Created Feature Code',
+        .then(response => (this.props.testRestfulPostPutDeleteResponse(response, 'Successfully Created Feature Code',
           'An unknown issue occurred. We will be looking into this shortly.'))
           && this.setState({
             groups: this.state.groups.map(obj => {
@@ -287,7 +287,7 @@ class AccessControl extends React.Component<iAccessControl, {
     this.setState({ alert: null }, () =>
       this.props.axios.post('/rest/' + C6.carbon_features.TABLE_NAME,
         convertForRequestBody(this.state.feature, C6.carbon_features.TABLE_NAME))
-        .then(response => (id = this.props.testRestfulPostResponse(response, 'Successfully Created Feature Code',
+        .then(response => (id = this.props.testRestfulPostPutDeleteResponse(response, 'Successfully Created Feature Code',
           'An unknown issue occurred. We will be looking into this shortly.')) && this.setState({
           feature: {
             feature_code: this.state.feature.feature_code,
@@ -304,11 +304,9 @@ class AccessControl extends React.Component<iAccessControl, {
   deleteFeature(id: string) {
     this.setState({ alert: null }, () =>
       this.props.axios.delete('/rest/' + C6.carbon_features.TABLE_NAME + '/' + id)
-        .then(response => (id = this.props.testRestfulPostResponse(response, 'Successfully Created Feature Code',
+        .then(response => (id = this.props.testRestfulPostPutDeleteResponse(response, 'Successfully Deleted Feature Code',
           'An unknown issue occurred. We will be looking into this shortly.')) && this.setState({
-          features: this.state.features.map((value) => {
-            return value.feature_entity_id !== id ? value : null;
-          })
+          features: this.state.features.filter(value => value.feature_entity_id !== id)
         })))
   }
 
@@ -319,7 +317,7 @@ class AccessControl extends React.Component<iAccessControl, {
       axios.post('/rest/' + C6.carbon_users.TABLE_NAME,
         convertForRequestBody(this.state.user, C6.carbon_users.TABLE_NAME))
         .then(response => (id =
-          this.props.testRestfulPostResponse(response,
+          this.props.testRestfulPostPutDeleteResponse(response,
             'New User Successfully Created',
             'An unknown issue occurred. We will be looking into this shortly.'
           )) && this.setState({
@@ -342,7 +340,7 @@ class AccessControl extends React.Component<iAccessControl, {
       axios.post('/rest/' + C6.carbon_groups.TABLE_NAME,
         convertForRequestBody(this.state.group, C6.carbon_groups.TABLE_NAME))
         .then(response =>
-          (id = this.props.testRestfulPostResponse(response, 'Successfully Created The Group',
+          (id = this.props.testRestfulPostPutDeleteResponse(response, 'Successfully Created The Group',
             'An unknown issue occurred. We will be looking into this shortly.')) && this.setState({
             group: {
               group_name: this.state.group.group_name,
@@ -361,11 +359,9 @@ class AccessControl extends React.Component<iAccessControl, {
     this.setState({ alert: null }, () =>
       axios.delete('/rest/' + C6.carbon_groups.TABLE_NAME + '/' + id)
         .then(response =>
-          (id = this.props.testRestfulPostResponse(response, 'Successfully Deleted The Group',
+          (id = this.props.testRestfulPostPutDeleteResponse(response, 'Successfully Deleted The Group',
             'An unknown issue occurred. We will be looking into this shortly.')) && this.setState({
-            groups: this.state.groups.map(((value, index) => {
-              return value.entity_id !== id ? value : null;
-            }))
+            groups: this.state.groups.filter(value => value.entity_id !== id)
           })));
   }
 
@@ -380,7 +376,7 @@ class AccessControl extends React.Component<iAccessControl, {
       axios.post('/rest/' + C6.carbon_feature_group_references.TABLE_NAME,
         convertForRequestBody(payload, C6.carbon_feature_group_references.TABLE_NAME))
         .then(response =>
-          (this.props.testRestfulPostResponse(response, null,
+          (this.props.testRestfulPostPutDeleteResponse(response, null,
             'An unknown issue occurred. We will be looking into this shortly.')) && this.setState({
             groups: this.state.groups.map(obj => {
               if (obj.entity_id !== groupId) {
@@ -403,7 +399,7 @@ class AccessControl extends React.Component<iAccessControl, {
       axios.post('/rest/' + C6.carbon_user_groups.TABLE_NAME,
         convertForRequestBody(payload, C6.carbon_user_groups.TABLE_NAME))
         .then(response =>
-          (this.props.testRestfulPostResponse(response, null,
+          (this.props.testRestfulPostPutDeleteResponse(response, null,
             'An unknown issue occurred. We will be looking into this shortly.')) &&
           this.setState({
             users: this.state.users.map(obj => {
@@ -425,6 +421,9 @@ class AccessControl extends React.Component<iAccessControl, {
   render() {
     const { alert, features } = this.state;
     const { classes } = this.props;
+
+    console.log("features", features);
+
 
     function humanize(str) {
       let i, frags = str.split('_');
@@ -463,8 +462,9 @@ class AccessControl extends React.Component<iAccessControl, {
                           inputProps={{
                             onChange: (e: ChangeEvent<HTMLInputElement>) => this.setState({
                               feature: {
-                                ...this.state.feature,
-                                feature_code: e.target.value
+                                feature_code: e.target.value,
+                                feature_entity_id: null,
+                                feature_creation_date: null
                               }
                             })
                           }}
@@ -508,7 +508,7 @@ class AccessControl extends React.Component<iAccessControl, {
                 </CardHeader>
                 <CardBody>
                   <Table
-                    tableHeaderColor="success"
+                    tableHeaderColor="info"
                     tableHead={["Group Name", ...features.map((value: iCarbon_Features, index: number) => <p
                       onClick={() => this.deleteFeature(value.feature_entity_id)}
                       key={index}>{humanize(value.feature_code)}</p>), "Admin"]}

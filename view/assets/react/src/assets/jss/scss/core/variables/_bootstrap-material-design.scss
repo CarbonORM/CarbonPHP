@@ -78,7 +78,7 @@ $brand-warning:     $orange !default;
 $brand-info:        $cyan !default;
 $brand-rose:        $pink !default;
 
-$black-color:           #3C4858 !default;
+$black-color:           rgb(188,201,218) !default;
 
 // Dropdowns
 
@@ -126,7 +126,7 @@ $bmd-radio-color-disabled-inverse: rgba(
 $white-color: #fff !default;
 $navbar-color: #555 !default;
 $pills-color: $navbar-color !default;
-$black-color: #3C4858 !default;
+$black-color: rgb(188,201,218) !default;
 $link-color: $brand-primary;
 $white-transparent: rgba($white-color, .8);
 $transparent: transparent;

@@ -11,6 +11,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/helpers" isTestSource="false" packagePrefix="CarbonPHP\Helpers\" />
       <sourceFolder url="file://$MODULE_DIR$/src/tables" isTestSource="false" packagePrefix="CarbonPHP\Tables\" />
       <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="false" packagePrefix="Tests\" />
+      <sourceFolder url="file://$MODULE_DIR$/view/assets/react/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/scratch" />
       <excludeFolder url="file://$MODULE_DIR$/vendor" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/composer" />

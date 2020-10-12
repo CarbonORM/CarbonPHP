@@ -49,7 +49,7 @@ const Minification = raw("../../../assets/examples/Minification.php");
 
 interface iCarbonPHP extends WithStyles<typeof dashboardStyle> {
   axios: AxiosInstance;
-  testRestfulPostResponse: Function;
+  testRestfulPostPutDeleteResponse: Function;
   codeBlock: (markdown: String, highlight ?: String, language ?: String, dark ?: boolean) => any;
 }
 

@@ -43,7 +43,7 @@ const card = {
   margin: "25px 0",
   boxShadow: "0 1px 4px 0 rgba(0, 0, 0, 0.14)",
   borderRadius: "3px",
-  color: "rgba(0, 0, 0, 0.87)",
+  color: "rgb(188,201,218)",
   background: "#fff"
 };
 
@@ -135,7 +135,7 @@ const defaultBoxShadow = {
 };
 
 const title = {
-  color: "#3C4858",
+  color: "rgb(188,201,218)",
   textDecoration: "none",
   fontWeight: "300",
   marginTop: "30px",

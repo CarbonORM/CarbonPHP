@@ -58,8 +58,8 @@ html * {
     -moz-osx-font-smoothing: grayscale;
 }
 body {
-    background-color: #EEEEEE;
-    color: #3C4858;
+    background-color: rgb(40,40,40);
+    color: rgb(188,201,218);
     margin: 0;
     font-family: Roboto, Helvetica, Arial, sans-serif;
     font-weight: 300;
@@ -107,8 +107,8 @@ h6 {
 }
 
 body {
-    background-color: #EEEEEE;
-    color: #3C4858;
+    background-color: rgb(40,40,40);
+    color: rgb(188,201,218);
 }
 
 blockquote p {

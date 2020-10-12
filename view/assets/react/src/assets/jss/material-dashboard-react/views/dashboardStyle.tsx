@@ -6,7 +6,7 @@ const dashboardStyle = createStyles({
     textAlign: "center"
   },
   title: {
-    color: "#3C4858",
+    color: "rgb(188,201,218)",
     margin: "1.75rem 0 0.875rem",
     textDecoration: "none",
     fontWeight: 700,
@@ -56,7 +56,7 @@ const dashboardStyle = createStyles({
     marginBottom: "0"
   },
   cardTitle: {
-    color: "#3C4858",
+    color: "rgb(188,201,218)",
     marginTop: "0px",
     minHeight: "auto",
     fontWeight: 300,

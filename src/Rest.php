@@ -385,6 +385,13 @@ abstract class Rest extends Database
                     }
 
                     $json['rest'] = $return;
+
+                    if ($method === self::PUT) {
+                        $json['rest']['updated'] = $primary ?? $args;
+                    } elseif ($method === self::DELETE) {
+                        $json['rest']['deleted'] = $primary ?? $args;
+                    }
+
                     break;
 
                 case self::POST:

@@ -1,6 +1,6 @@
 body{
     background-color: #E5E5E5;
-    color: #3C4858;
+    color: rgb(188,201,218);
 }
 
 .section .wizard-card{
@@ -241,7 +241,7 @@ body{
     display: block;
 }
 .separator.separator-gray{
-    background-color: #EEEEEE;
+    background-color: rgb(40,40,40);
 }
 .social-buttons-demo .btn{
     margin-right: 5px;
@@ -377,7 +377,7 @@ body{
     border-radius: 0;
 }
 .section-tabs{
-    background: #EEEEEE;
+    background: rgb(40,40,40);
 }
 .section-pagination{
     padding-bottom: 0;
@@ -599,7 +599,7 @@ footer .footer-brand {
   margin-left: -15px;
 }
 footer .footer-brand:hover, footer .footer-brand:focus {
-  color: #3C4858;
+  color: rgb(188,201,218);
 }
 footer .copyright {
   padding: 15px 0;

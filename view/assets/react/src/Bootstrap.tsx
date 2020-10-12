@@ -38,7 +38,7 @@ class bootstrap extends React.Component<any, {
     this.authenticate = this.authenticate.bind(this);
     this.subRoutingSwitch = this.subRoutingSwitch.bind(this);
     this.semaphoreLock = this.semaphoreLock.bind(this);
-    this.testRestfulPostResponse = this.testRestfulPostResponse.bind(this);
+    this.testRestfulPostPutDeleteResponse = this.testRestfulPostPutDeleteResponse.bind(this);
     this.codeBlock = this.codeBlock.bind(this);
   }
 
@@ -137,7 +137,7 @@ class bootstrap extends React.Component<any, {
                     authenticated={this.state.authenticated}
                     authenticate={this.authenticate}
                     changeLoggedInStatus={this.changeLoggedInStatus}
-                    testRestfulPostResponse={this.testRestfulPostResponse}
+                    testRestfulPostPutDeleteResponse={this.testRestfulPostPutDeleteResponse}
                     path={prop.path}
                     {...x}
                     {...y}
@@ -183,20 +183,24 @@ class bootstrap extends React.Component<any, {
     });
   };
 
-  testRestfulPostResponse = (response, success, error) => {
-    if (('data' in response) && ('rest' in response.data) && ('created' in response.data.rest)) {
+  testRestfulPostPutDeleteResponse = (response, success, error) => {
+    if (('data' in response) && ('rest' in response.data) &&
+      (('created' in response.data.rest) ||
+      ('updated' in response.data.rest) ||
+      ('deleted' in response.data.rest))
+    ) {
       if (typeof success === 'function') {
-        return success();
+        return success(response);
       }
       if (success === null || typeof success === 'string') {
         swal("Success!", success, "success");
       }
 
-      return response.data.rest.created;
+      return response.data.rest?.created ?? response.data.rest?.updated ?? response.data.rest?.deleted ?? true;
     }
 
     if (typeof error === 'function') {
-      return error();
+      return error(response);
     }
 
     if (error === null || typeof error === 'string') {
@@ -364,7 +368,7 @@ class bootstrap extends React.Component<any, {
                   authenticated={authenticated}
                   authenticate={this.authenticate}
                   changeLoggedInStatus={this.changeLoggedInStatus}
-                  testRestfulPostResponse={this.testRestfulPostResponse}
+                  testRestfulPostPutDeleteResponse={this.testRestfulPostPutDeleteResponse}
                   path={path}
                   {...props}
                 /> :
@@ -375,7 +379,7 @@ class bootstrap extends React.Component<any, {
                   authenticated={authenticated}
                   authenticate={this.authenticate}
                   changeLoggedInStatus={this.changeLoggedInStatus}
-                  testRestfulPostResponse={this.testRestfulPostResponse}
+                  testRestfulPostPutDeleteResponse={this.testRestfulPostPutDeleteResponse}
                   path={path}
                   {...props}
                 />

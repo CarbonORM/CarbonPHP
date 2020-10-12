@@ -35,7 +35,7 @@ const signupPageStyle = createStyles({
     padding: "14px"
   },
   checked: {
-    color: "#3C4858 !important"
+    color: "rgb(188,201,218) !important"
   },
   checkedIcon: {
     width: "20px",
@@ -54,7 +54,7 @@ const signupPageStyle = createStyles({
   sectionDark,
   mlAuto,
   title: {
-    color: "#3C4858",
+    color: "rgb(188,201,218)",
     textDecoration: "none",
     marginTop: "30px",
     marginBottom: "25px",

@@ -120,7 +120,11 @@ END;
             return '<div>Failed to load code preview in ErrorCatcher class using ReflectionMethod.<div>';
         }
 
-        $f = $func->getFileName();
+        $f = $func->getFileName(); // stub says string but may also produce false
+
+        if (empty($f)) {
+            return '';
+        }
 
         $start_line = $func->getStartLine() - 1;
 
