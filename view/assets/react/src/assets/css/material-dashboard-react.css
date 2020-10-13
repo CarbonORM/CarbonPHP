@@ -9,10 +9,35 @@
  * Licensed under MIT (https://github.com/creativetimofficial/material-dashboard-react/blob/master/LICENSE.md)
 
  =========================================================
-
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
  */
+
+
+.swal-icon--success__hide-corners {
+    display: none;
+}
+
+.swal-icon--success:before {
+    display: none;
+}
+
+.swal-icon--success:after {
+    display: none;
+}
+
+.swal-overlay {
+    background-color: rgba(0, 0, 0, 0.45);
+}
+
+.swal-modal {
+    background-color: rgba(40,40,40,0.99);
+    border: 3px solid black;
+}
+
+.swal-text {
+    color: rgb(188, 201, 218);
+}
+
 .ct-grid {
     stroke: rgba(255, 255, 255, 0.2);
     stroke-width: 1px;

@@ -195,9 +195,10 @@ class AccessControl extends React.Component<iAccessControl, {
           [C6.carbon_feature_group_references.GROUP_ENTITY_ID]: groupId,
         }
       }
-    })
-      .then(response => this.setState({
+    }).then(response => this.props.testRestfulPostPutDeleteResponse(response, 'Successfully deleted the feature from the group.',
+      'Failed to remove the feature from the group. Please try again later.') && this.setState({
         groups: this.state.groups.map(obj => {
+
           if (obj.entity_id !== groupId) {
             return obj;
           }
@@ -267,8 +268,10 @@ class AccessControl extends React.Component<iAccessControl, {
         }
       }
     })
-      .then(response => this.setState({
+      .then(response => this.props.testRestfulPostPutDeleteResponse(response, 'Removed the ability to grant group.',
+        'Failed to remove status') && this.setState({
         groups: this.state.groups.map(obj => {
+
           if (obj.entity_id !== modifyGroupId) {
             return obj;
           }
@@ -440,7 +443,7 @@ class AccessControl extends React.Component<iAccessControl, {
           <GridContainer>
             <GridItem xs={12} sm={12} md={12}>
               <Card className={classes.whiteOpacity}>
-                <CardHeader color="success">
+                <CardHeader color="info">
                   <h4 className={classes.cardTitleWhite}>Assignable Roles Table</h4>
                   <p className={classes.cardCategoryWhite}>
                     The roles created here can be assigned to users you manage
@@ -509,9 +512,54 @@ class AccessControl extends React.Component<iAccessControl, {
                 <CardBody>
                   <Table
                     tableHeaderColor="info"
-                    tableHead={["Group Name", ...features.map((value: iCarbon_Features, index: number) => <p
-                      onClick={() => this.deleteFeature(value.feature_entity_id)}
-                      key={index}>{humanize(value.feature_code)}</p>), "Admin"]}
+                    tableHead={["Group Name", ...features.map((feature: iCarbon_Features, index: number) => <p
+                      onClick={() => swal({
+                        dangerMode: true,
+                        buttons: {
+                          rename: "Rename Feature",
+                          delete: "Delete Feature",
+                          cancel: "Close Options"
+                        },
+                        content: <GridContainer>
+                          <GridItem xs={12} sm={12} md={12}>
+                            <div>
+                              <h5><b>Modifying a feature is extremely dangerous.
+                              </b></h5>
+                              <br/>
+                              <p>Features are typically hardcoded in the codebase to be validated for existence on
+                                request.
+                                Renaming or deleting a feature may cause users to be unable to access critical site
+                                functionality.
+                                When a feature is designated as critical, or even just used at all, it should be
+                                'restfully' validated so it may not be removed or updated.
+                              </p>
+                            </div>
+                          </GridItem>
+                        </GridContainer>
+                      }).then(value => {
+                        switch (value) {
+                          case "delete":
+                            swal({
+                              title: "Are you sure?",
+                              text: "Once deleted, accounts will have the group association, thereby site permissions, removed!",
+                              icon: "warning",
+                              buttons: true,
+                              dangerMode: true,
+                            })
+                              .then((willDelete) => {
+                                if (willDelete) {
+                                  this.deleteFeature(feature.feature_entity_id)
+                                } else {
+                                  swal("Canceled");
+                                }
+                              });
+                            break;
+                            default:
+                          case "cancel":
+                            break;
+                        }
+                      })}
+                      key={index}>{humanize(feature.feature_code)}</p>), "Admin"]}
                     tableData={
                       this.state.groups.map(group => {
                         const name = humanize(group.group_name);
@@ -585,7 +633,7 @@ class AccessControl extends React.Component<iAccessControl, {
                                   buttons: true,
                                   dangerMode: true,
                                 })
-                                  .then((willDelete) => {
+                                  .then(willDelete => {
                                     if (willDelete) {
                                       swal("TODO - remove row!", {
                                         icon: "success",
@@ -595,11 +643,9 @@ class AccessControl extends React.Component<iAccessControl, {
                                     }
                                   });
                                 break;
-                              case "cancel":
-                                swal("Gotcha!", "Pikachu was caught!", "success");
-                                break;
                               default:
-                                swal("Got away safely!");
+                              case "cancel":
+                                break;
                             }
                           })} color="danger">Admin</Button>
                         ]
@@ -611,7 +657,7 @@ class AccessControl extends React.Component<iAccessControl, {
             </GridItem>
             <GridItem xs={12} sm={12} md={12}>
               <Card className={classes.whiteOpacity}>
-                <CardHeader color="success">
+                <CardHeader color="info">
                   <h4 className={classes.cardTitleWhite}>
                     Create New Users
                   </h4>
