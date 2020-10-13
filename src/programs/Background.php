@@ -6,6 +6,10 @@ namespace CarbonPHP\Programs;
 // TODO - probably should be named better but were preserving backwards compatibility (BC)
 trait Background
 {
+    use ColorCode;
+
+    protected static bool $colorCodeBool = true;
+
     public function background($cmd, $outputFile = null)
     {
         try {
@@ -22,42 +26,6 @@ trait Background
         } catch (\Throwable $e) {
         }
         return $pid[0] ?? 'Failed to execute cmd!';
-    }
-
-    public static function colorCode(string $message, string $color = 'green'): void
-    {
-        $failed = false;
-        $buffer = '\e[1;';
-        $colors = [
-            'black' => '30',
-            'red' => '31',
-            'green' => '32',
-            'yellow' => '33',
-            'blue' => '34',
-            'magenta' => '35',
-            'cyan' => '36',
-            'white' => '37',
-            'background_black' => '40',
-            'background_red' => '41',
-            'background_green' => '42',
-            'background_yellow' => '43',
-            'background_blue' => '44',
-            'background_magenta' => '45',
-            'background_cyan' => '46',
-            'background_white' => '47',
-        ];
-
-        if (!array_key_exists($color, $colors)) {
-            $buffer .= $colors['red'] . 'mColor Coding Failed, invalid color.';
-        } else {
-            $buffer .= "$colors[$color]m    $message";
-        }
-
-        print shell_exec('echo "' . $buffer . '\e[0m"');
-
-        if ($failed) {
-            exit(1);
-        }
     }
 
     public static function executeAndCheckStatus($command): void

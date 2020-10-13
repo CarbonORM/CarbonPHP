@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Tables\Carbon_Users as Users;
 use CarbonPHP\Database;
 
@@ -24,6 +25,7 @@ final class UserTest extends Config
     /**
      * Ideally this is run with a fresh build. If not, the relation between create new users
      * must depend on can be deleted. This is cyclic and can not be annotated.
+     * @throws PublicAlert
      */
     public function setUp(): void /* The :void return type declaration that should be here would cause a BC issue */
     {
@@ -41,7 +43,10 @@ final class UserTest extends Config
     }
 
 
-
+    /**
+     * @return string
+     * @throws PublicAlert
+     */
     public function testUserCanBeCreated(): string
     {
         if (!empty($this->user)) {
@@ -63,13 +68,13 @@ final class UserTest extends Config
 
         $this->commit();
 
-        /** @noinspection PhpStrictTypeCheckingInspection */
         return $id;
     }
 
 
     /**
      * @depends testUserCanBeCreated
+     * @throws PublicAlert
      */
     public function testUserCanBeRetrieved(): void
     {
@@ -95,6 +100,7 @@ final class UserTest extends Config
 
     /**
      * @depends testUserCanBeRetrieved
+     * @throws PublicAlert
      */
     public function testUserCanBeUpdated(): void
     {
@@ -137,6 +143,7 @@ final class UserTest extends Config
 
     /**
      * @depends testUserCanBeRetrieved
+     * @throws PublicAlert
      */
     public function testUserCanBeDeleted(): void
     {

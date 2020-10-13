@@ -13,7 +13,11 @@
 
 namespace CarbonPHP\Helpers;
 
-abstract class Serialized {
+use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Error\PublicAlert;
+
+abstract class Serialized
+{
 
     /**
      * @var array $sessionVar is an array who's values equal variables
@@ -26,39 +30,37 @@ abstract class Serialized {
      * the global scope.
      * @param array ...$argv
      */
-    public static function start(...$argv) : void
-	{
-	    //TODO - make base64 optional
+    public static function start(...$argv): void
+    {
+        //TODO - make base64 optional
         self::$sessionVar = $argv;
-		foreach (self::$sessionVar as $value){
-			if (isset($_SESSION[__CLASS__][$value])) {
-                $GLOBALS[$value] = $_SESSION[__CLASS__][$value];
-                #self::is_serialized( base64_decode(  $_SESSION[__CLASS__][$value] ), $GLOBALS[$value] );
-            }
-		}
+        foreach (self::$sessionVar as $value) {
+            $GLOBALS[$value] = $_SESSION[__CLASS__][$value] ??= null;
+            #self::is_serialized( base64_decode(  $_SESSION[__CLASS__][$value] ), $GLOBALS[$value] );
+        }
 
-		// You CAN register multiple shutdown functions
-		register_shutdown_function( static function () use ($argv) {
+        // You CAN register multiple shutdown functions
+        register_shutdown_function(static function () use ($argv) {
             $last_error = error_get_last();
             if (($last_error['type'] ?? false) && $last_error['type'] === E_ERROR) {
-                sortDump(['register_shutdown_function captured an error', $last_error]);
-            } else {
-                foreach ($argv as $value) {
-                    if (isset($GLOBALS[$value])) {
-                        $_SESSION[__CLASS__][$value] = $GLOBALS[$value];
-                        #$_SESSION[__CLASS__][$value] = base64_encode( serialize( $GLOBALS[$value] ) );
-                    }
+                ErrorCatcher::generateLog();
+                throw new PublicAlert(['register_shutdown_function captured an error', $last_error]);
+            }
+            foreach ($argv as $value) {
+                if (isset($GLOBALS[$value])) {
+                    $_SESSION[__CLASS__][$value] = $GLOBALS[$value] ??= null;
+                    #$_SESSION[__CLASS__][$value] = base64_encode( serialize( $GLOBALS[$value] ) );
                 }
             }
-		} );
-	}
+        });
+    }
 
     /**
      * Clear any variables given to the start method.
      * This does not stop caching, just removes all data
      * from current variables and cache.
      */
-    public static function clear() : void
+    public static function clear(): void
     {
         if (!empty(self::$sessionVar)) {
             foreach (self::$sessionVar as $value) {
@@ -86,81 +88,81 @@ abstract class Serialized {
      * <li>null: <code>N;</code></li>
      * </ul>
      *
-     * @author		Chris Smith <code+php@chris.cs278.org>
-     * @copyright	Copyright (c) 2009 Chris Smith (http://www.cs278.org/)
-     * @license		http://sam.zoy.org/wtfpl/ WTFPL
-     * @param		string	$value	Value to test for serialized form
-     * @param		mixed	$result	Result of unserialize() of the $value
-     * @return		boolean			True if $value is serialized data, otherwise false
+     * @param string $value Value to test for serialized form
+     * @param mixed $result Result of unserialize() of the $value
+     * @return        boolean            True if $value is serialized data, otherwise false
+     * @author        Chris Smith <code+php@chris.cs278.org>
+     * @copyright    Copyright (c) 2009 Chris Smith (http://www.cs278.org/)
+     * @license        http://sam.zoy.org/wtfpl/ WTFPL
      */
-	public static function is_serialized($value, &$result = null) : bool
-	{
-		// Bit of a give away this one
-		if (!\is_string( $value )) {
+    public static function is_serialized($value, &$result = null): bool
+    {
+        // Bit of a give away this one
+        if (!\is_string($value)) {
             return false;
         }
 
-		// Serialized false, return true. unserialize() returns false on an
-		// invalid string or it could return false if the string is serialized
-		// false, eliminate that possibility.
-		if ($value === 'b:0;') {
-			$result = false;
-			return true;
-		}
+        // Serialized false, return true. unserialize() returns false on an
+        // invalid string or it could return false if the string is serialized
+        // false, eliminate that possibility.
+        if ($value === 'b:0;') {
+            $result = false;
+            return true;
+        }
 
-		$length = \strlen( $value );
-		$end = '';
+        $length = \strlen($value);
+        $end = '';
 
-		switch ($value[0]) {
-			case 's':
-				if ($value[$length - 2] !== '"') {
-					return false;
-				}
-			case 'b':
-			case 'i':
-			case 'd':
-				// This looks odd but it is quicker than isset()ing
-				$end .= ';';
-			case 'a':
-			case 'O':
-				$end .= '}';
+        switch ($value[0]) {
+            case 's':
+                if ($value[$length - 2] !== '"') {
+                    return false;
+                }
+            case 'b':
+            case 'i':
+            case 'd':
+                // This looks odd but it is quicker than isset()ing
+                $end .= ';';
+            case 'a':
+            case 'O':
+                $end .= '}';
 
-				if ($value[1] !== ':') {
-					return false;
-				}
+                if ($value[1] !== ':') {
+                    return false;
+                }
 
-				switch ($value[2]) {
-					case 0:
-					case 1:
-					case 2:
-					case 3:
-					case 4:
-					case 5:
-					case 6:
-					case 7:
-					case 8:
-					case 9:
-						break;
+                switch ($value[2]) {
+                    case 0:
+                    case 1:
+                    case 2:
+                    case 3:
+                    case 4:
+                    case 5:
+                    case 6:
+                    case 7:
+                    case 8:
+                    case 9:
+                        break;
 
-					default:
-						return false;
-				}
-			case 'N':
-				$end .= ';';
+                    default:
+                        return false;
+                }
+            case 'N':
+                $end .= ';';
 
-				if ($value[$length - 1] !== $end[0]) {
-					return false;
-				}
-				break;
+                if ($value[$length - 1] !== $end[0]) {
+                    return false;
+                }
+                break;
 
-			default:
-				return false;
-		}
+            default:
+                return false;
+        }
 
-		if (($result = @unserialize( $value, true )) === false) {
-			$result = null;
-			return false;
-		}
-		return true;
-	}
+        if (($result = @unserialize($value, true)) === false) {
+            $result = null;
+            return false;
+        }
+        return true;
+    }
 }

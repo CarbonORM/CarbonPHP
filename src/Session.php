@@ -17,23 +17,35 @@ namespace CarbonPHP;
 
 use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Helpers\Serialized;
+use CarbonPHP\Programs\Background;
+use CarbonPHP\Programs\WebSocket;
 use CarbonPHP\Tables\Sessions;
+use PDOException;
+use Throwable;
+use function define;
+use function defined;
+use function is_array;
+use function is_callable;
 
 
 // most important line - session_set_save_handler($this, false)
 class Session implements \SessionHandlerInterface
 {
+    use Background;
+
+
+    protected static ?Session $singleton = null;
     /**
      * @var string - if we need to close or pause the session in the middle of execution,
      * this will persistently hold our session_id.
      */
-    protected static string $session_id;
+    public static ?string $session_id;
 
     /**
      * @var string $user_id - After a session is closed the session data is serialized and removed
      * from the global (accessible) scope.
      */
-    protected static string $user_id;
+    public static ?string $user_id;
 
     /**
      * @var callable $callback - if the session is reset using the startApplication function,
@@ -43,37 +55,45 @@ class Session implements \SessionHandlerInterface
 
     /**
      * Session constructor. This
-     * @param null $ip
+     * @param string|null $ip
      * @param bool $dbStore
-     * @param bool $verifySocket
      */
-    public function __construct($ip = null, $dbStore = false, $verifySocket = true)
+    public function __construct(string $ip = null, $dbStore = false)
     {
-        session_write_close(); //cancel the session's auto start, important
+        static $count = false;
 
-        headers_sent() or ini_set('session.use_strict_mode', 1);
+        if (!$count) {
+            $count = true;
 
-        if ($ip === false) {
-            die('Carbon has detected ip spoofing.');
-        }
+            self::$singleton = $this;
 
-        if ($dbStore) {
-            headers_sent() or ini_set('session.gc_probability', 1);  // Clear any lingering session data in default locations
-            if (!session_set_save_handler($this, false)) {                             // set this class as the session handler
-                die('Session failed to store remotely');
+            session_write_close(); //cancel the session's auto start, important
+
+            headers_sent() or ini_set('session.use_strict_mode', 1);
+
+            if ($dbStore && !headers_sent()) {
+                ini_set('session.gc_probability', 1);  // Clear any lingering session data in default locations
+                if (!session_set_save_handler($this, false)) {           // set this class as the session handler
+                    die('Session failed to store remotely');
+                }
             }
-        }
 
-        if (SOCKET && $verifySocket) {
-            $this->verifySocket($ip);
+            if (CarbonPHP::$cli && (!CarbonPHP::$socket || WebSocket::$minimiseResources)) {
+                return;
+            }
         }
 
         try {
-            // this should throw an error.. but if it doesnt we will catch and die
+            // this should not throw an error.. but if it doesnt we will catch and die
             if (false === session_start()) {
                 die('Carbon failed to start your session');
             }
-        } catch (\Throwable $e){
+
+            static::$session_id = session_id();
+
+            $_SESSION['id'] = array_key_exists('id', $_SESSION ??= []) ? $_SESSION['id'] : false;
+
+        } catch (Throwable $e) {
             ErrorCatcher::generateLog($e);
             die(1);
         }
@@ -92,11 +112,17 @@ class Session implements \SessionHandlerInterface
     /**
      *   After a session is stopped with session_write_close() or paused with self::pause()
      *   It maybe resumed assuming the original id was stored in self::$session_id
+     * @param string|null $session_id
+     * @return Session
      */
-    public static function resume(): void
+    public static function resume(string $session_id = null): self
     {
+        if ($session_id !== null) {
+            static::$session_id = $session_id;
+        }
         session_id(static::$session_id);
         session_start();
+        return self::$singleton;
     }
 
 
@@ -126,16 +152,16 @@ class Session implements \SessionHandlerInterface
             Serialized::clear();
         }
 
-        if (!\is_array($user)) {
+        if (!is_array($user)) {
             $user = array();
         }
 
         if (static::$user_id = $_SESSION['id']) {
-            $_SESSION['X_PJAX_Version'] = 'v' . SITE_VERSION . 'u' . $_SESSION['id'];
+            $_SESSION['X_PJAX_Version'] = 'v' . CarbonPHP::$site_version . 'u' . $_SESSION['id'];
         } // force reload occurs when X_PJAX_Version changes between requests
 
         if (!isset($_SESSION['X_PJAX_Version'])) {
-            $_SESSION['X_PJAX_Version'] = SITE_VERSION;     // static::$user_id, keep this static
+            $_SESSION['X_PJAX_Version'] = CarbonPHP::$site_version;     // static::$user_id, keep this static
         }
 
         Request::setHeader('X-PJAX-Version: ' . $_SESSION['X_PJAX_Version']);
@@ -145,18 +171,19 @@ class Session implements \SessionHandlerInterface
          * everything
          * */
 
-        if (\is_callable(self::$callback)) {
+        if (is_callable(self::$callback)) {
             /** @noinspection OnlyWritesOnParameterInspection */
             ($lambda = self::$callback)($clear);    // you must have callable in a variable in fn scope
         }
-        if (!\defined('X_PJAX_VERSION')) {
-            \define('X_PJAX_VERSION', $_SESSION['X_PJAX_Version']);
+        if (!defined('X_PJAX_VERSION')) {
+            define('X_PJAX_VERSION', $_SESSION['X_PJAX_Version']);
         }
         Request::sendHeaders();  // Send any stored headers
     }
 
     /**
      * This will remove our session data from our scope and the database
+     * @throws Error\PublicAlert
      */
     public static function clear(): void
     {
@@ -166,10 +193,10 @@ class Session implements \SessionHandlerInterface
             session_write_close();
             # $db = Database::database();
             # $db->prepare('DELETE FROM sessions WHERE session_id = ?')->execute([$id]);
-            sessions::Delete($_SESSION,$id,[]);
+            sessions::Delete($_SESSION, $id, []);
             session_start();
-        } catch (\PDOException $e) {
-            sortDump($e);
+        } catch (PDOException $e) {
+            ErrorCatcher::generateLog($e);               // todo - error catcher
         }
     }
 
@@ -178,35 +205,54 @@ class Session implements \SessionHandlerInterface
      * session storage is turned off this method will fail and exit.
      *
      * @param $ip - the ip address to look up from our database.
+     * @return bool
      */
-    private function verifySocket($ip): void
+    public static function verifySocket($ip): bool
     {
+        self::colorCode('Verify Socket');
+
         if ($ip) {
             $_SERVER['REMOTE_ADDR'] = $ip;
         }
 
-        preg_match ('#PHPSESSID=([^;\s]+)#', $_SERVER['HTTP_COOKIE'] ??= false, $array, PREG_OFFSET_CAPTURE);
+        $_SERVER['HTTP_COOKIE'] ??= '';
+
+        self::colorCode('User sent Cookie(s) :: ' . $_SERVER['HTTP_COOKIE'] . "\n\n");
+
+        if (false === @preg_match('#PHPSESSID=([^;\s]+)#', $_SERVER['HTTP_COOKIE'], $array, PREG_OFFSET_CAPTURE)) {
+            self::colorCode('Failed to verify socket IP address.', 'red');
+            return false;
+        }
+
+        self::colorCode('Parsed Session ID Correctly');
 
         $session_id = $array[1][0] ?? false;
 
-        if (!$session_id) {
-            print 'Failed to capture PHPSESSID' . PHP_EOL;
-            die(1);
+        if (false === $session_id) {
+            self::colorCode("\nCould not parse session id\n", 'red');
+            return false;
         }
 
         $db = Database::database();
-        $sql = 'SELECT count(*) FROM sessions WHERE user_ip = ? AND session_id = ? LIMIT 1';
+
+        $sql = 'SELECT count(*) FROM '.Sessions::TABLE_NAME.' WHERE '.Sessions::USER_IP.' = ? AND '.Sessions::SESSION_ID.' = ? LIMIT 1';
+
         $stmt = $db->prepare($sql);
-        $stmt->execute([$_SERVER['REMOTE_ADDR'], $session_id]);
+
+        $stmt->execute([CarbonPHP::$server_ip, $session_id]);
+
         $session = $stmt->fetchColumn();
-        self::$session_id = $session_id;
+
         if (!$session) {
-            if (SOCKET) {
-                print 'BAD ADDRESS :: ' . $_SERVER['REMOTE_ADDR'] . "\n\n";
-            }
-            die(0);
+            self::colorCode('BAD ADDRESS :: ' . $_SERVER['REMOTE_ADDR'] . "\n\n",'red');
+            return false;
         }
+
+        self::$session_id = $session_id;    // this
+
         session_id($session_id);
+
+        return true;
     }
 
     /** This is required for the session save handler interface.
@@ -216,11 +262,11 @@ class Session implements \SessionHandlerInterface
      * @param string $sessionName
      * @return bool
      */
-    public function open($savePath, $sessionName) : bool
+    public function open($savePath, $sessionName): bool
     {
         try {
-            Database::database()->prepare('SELECT count(*) FROM sessions LIMIT 1')->execute();
-        } catch (\PDOException $e) {
+            Database::database()->prepare('SELECT count(*) FROM '.Sessions::TABLE_NAME.' LIMIT 1')->execute();
+        } catch (PDOException $e) {
             if ($e->getCode()) {
                 print "<h1>Setting up database {$e->getCode()}</h1>";
                 Database::setUp();
@@ -230,10 +276,18 @@ class Session implements \SessionHandlerInterface
         return true;
     }
 
+
+    public static function writeCloseClean(): void
+    {
+        session_write_close();
+        self::$session_id = null;
+        self::$user_id = null;
+    }
+
     /** Make user our session data gets stored in the db.
      * @return bool
      */
-    public function close() : bool
+    public function close(): bool
     {
         register_shutdown_function('session_write_close');
         return true;
@@ -243,10 +297,10 @@ class Session implements \SessionHandlerInterface
      * @param string $id
      * @return string
      */
-    public function read($id) : string
+    public function read($id): string
     {
-        //TODO - if ip has changed and session id hasn't invalidate
-        $stmt = Database::database()->prepare('SELECT session_data FROM sessions WHERE session_id = ?');
+        // TODO - if ip has changed and session id hasn't invalidated // assume man in the middle not cell phone tower change
+        $stmt = Database::database()->prepare('SELECT '.Sessions::SESSION_DATA.' FROM '.Sessions::TABLE_NAME.' WHERE '.Sessions::SESSION_ID.' = ?');
         $stmt->execute([$id]);
         return $stmt->fetchColumn() ?: '';
     }
@@ -257,7 +311,7 @@ class Session implements \SessionHandlerInterface
      * @param string $data
      * @return bool
      */
-    public function write($id, $data) : bool
+    public function write($id, $data): bool
     {
         $db = Database::database();
         if (empty(self::$user_id)) {
@@ -266,9 +320,14 @@ class Session implements \SessionHandlerInterface
         $NewDateTime = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . ' + 1 d,lay'));  // so from time of last write and whenever the gc_collector hits
 
         try {
-            $db->prepare('REPLACE INTO sessions SET session_id = ?, user_id = UNHEX(?), user_ip = ?,  session_expires = ?, session_data = ?')->execute([
-                $id, static::$user_id, IP, $NewDateTime, $data]);
-        } catch (\PDOException $e) {
+            $db->prepare('REPLACE INTO '.Sessions::TABLE_NAME.' SET '.Sessions::SESSION_ID.' = ?, '.Sessions::USER_ID.' = UNHEX(?), '.Sessions::USER_IP.' = ?,  '.Sessions::SESSION_EXPIRES.' = ?, '.Sessions::SESSION_DATA.' = ?')->execute([
+                $id,
+                static::$user_id,
+                CarbonPHP::$server_ip,
+                $NewDateTime,
+                $data
+            ]);
+        } catch (PDOException $e) {
             sortDump($e); // todo - error catching
         }
         return true;
@@ -279,10 +338,10 @@ class Session implements \SessionHandlerInterface
      * @param string $id
      * @return bool
      */
-    public function destroy($id) : bool
+    public function destroy($id): bool
     {
         $db = Database::database();
-        return $db->prepare('DELETE FROM sessions WHERE user_id = UNHEX(?) OR session_id = ?')->execute([self::$user_id, $id]) ?
+        return $db->prepare('DELETE FROM '.Sessions::TABLE_NAME.' WHERE '.Sessions::USER_ID.' = UNHEX(?) OR '.Sessions::SESSION_ID.' = ?')->execute([self::$user_id, $id]) ?
             true : false;
     }
 
@@ -292,10 +351,10 @@ class Session implements \SessionHandlerInterface
      * @param int $maxLife
      * @return bool
      */
-    public function gc($maxLife) : bool
+    public function gc($maxLife): bool
     {
         $db = Database::database();
-        return $db->prepare('DELETE FROM sessions WHERE (UNIX_TIMESTAMP(session_expires) + ? ) < UNIX_TIMESTAMP(?)')->execute([$maxLife, date('Y-m-d H:i:s')]) ?
+        return $db->prepare('DELETE FROM '.Sessions::TABLE_NAME.' WHERE (UNIX_TIMESTAMP('.Sessions::SESSION_EXPIRES.') + ? ) < UNIX_TIMESTAMP(?)')->execute([$maxLife, date('Y-m-d H:i:s')]) ?
             true : false;
     }
 }

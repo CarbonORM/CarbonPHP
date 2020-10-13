@@ -86,9 +86,9 @@ class Files
     {
         $user = get_current_user();                            // get current process user
 
-        print exec("chown -R {$user}:{$user} " . APP_ROOT);  // We need to modify the permissions so users can write to it
+        print exec("chown -R {$user}:{$user} " . CarbonPHP::$app_root);  // We need to modify the permissions so users can write to it
 
-        if (!mkdir(APP_ROOT . $location, 755, true) && !is_dir($location)) {
+        if (!mkdir(CarbonPHP::$app_root . $location, 755, true) && !is_dir($location)) {
             throw new \RuntimeException("Failed to create directory $location");
         }
         return is_dir($location);

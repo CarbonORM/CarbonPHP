@@ -11,11 +11,25 @@ namespace CarbonPHP;
 
 use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Error\PublicAlert;
+use Error;
 use Mustache_Exception_InvalidArgumentException;
 
 abstract class Application extends Route
 {
-    abstract public function startApplication(string $uri) : bool;
+
+    /**
+     * This functions should change the $matched property in the extended Route class to true.
+     * public bool $matched = false;
+     * This can happen by using the Routing methods to produce a match, or setting it explicitly.
+     * If the start application method finishes with $matched = false; your defaultRoute() method will run.
+     *
+     *
+     * @param string $uri
+     * @return bool  - REQUIRED, it seems like we use it anywhere at first glance, but its apart of a
+     *                  recursive ending condition for Application::ControllerModelView
+     */
+    abstract public function startApplication(string $uri): bool;
+
     /**
      * App constructor. If no uri is set than
      * the Route constructor will execute the
@@ -24,24 +38,24 @@ abstract class Application extends Route
      * @throws Mustache_Exception_InvalidArgumentException
      */
 
-    public function fullPage() : callable
+    public function fullPage(): callable
     {
-        return function (string $file) {
-            $this->matched = true;
-            return include APP_VIEW . $file;
+        return static function (string $file) {
+             self::$matched = true;
+            return include CarbonPHP::$app_root . CarbonPHP::$app_view . $file;
         };
     }
 
-    public function wrap() : callable
+    public function wrap(): callable
     {
         /**
-         * @throws Mustache_Exception_InvalidArgumentException
          * @param string $file
          * @return bool
+         * @throws Mustache_Exception_InvalidArgumentException
          */
-        return function (string $file) : bool {
-            $this->matched = true;
-            return View::content(APP_VIEW . $file);
+        return static function (string $file): bool {
+             self::$matched = true;
+            return View::content(CarbonPHP::$app_view . $file, CarbonPHP::$app_root);
         };
     }
 
@@ -71,7 +85,7 @@ abstract class Application extends Route
 
             // Make sure our Controller exists
             if (!class_exists($controller)) {
-                print "Invalid Controller ({$controller}) Passed to MVC. Please ensure your namespace mappings are correct!";
+                throw new Error("Invalid Controller ({$controller}) Passed to MVC. Please ensure your namespace mappings are correct!");
             }
 
             $argv = \call_user_func_array([new $controller, $method], $argv);
@@ -80,7 +94,7 @@ abstract class Application extends Route
 
                 // Make sure our Model exists
                 if (!class_exists($model)) {
-                    print "Invalid Model ({$model}) Passed to MVC. Please ensure your namespace mappings are correct!";
+                    throw new Error( "Invalid Model ({$model}) Passed to MVC. Please ensure your namespace mappings are correct!");
                 }
 
                 return \call_user_func_array([new $model, $method], is_array($argv) ? $argv : [$argv]);
@@ -96,10 +110,10 @@ abstract class Application extends Route
      * If the method returns true the model/$class.$method() will be
      * invoked. If an array is returned from the controller its values
      * will be passed as parameters to our model. Finally the View will
-     * be executed. The file should be in the APP_VIEW directory (set in config)
+     * be executed. The file should be in the CarbonPHP::$app_view directory (set in config)
      * with the following naming convention
      *
-     *  APP_VIEW / $class / $method . (php | hbs)  - We accept handlebar templates.
+     *  CarbonPHP::$app_view / $class / $method . (php | hbs)  - We accept handlebar templates.
      *
      * The view will be processed server-side and returned
      *
@@ -136,36 +150,36 @@ abstract class Application extends Route
         }
 
         // try to find the file
-        $file = APP_VIEW . strtolower(self::$CLASS) . '/' . strtolower(self::$METHOD);
+        $file = CarbonPHP::$app_view . strtolower(self::$CLASS) . '/' . strtolower(self::$METHOD);
 
-        if (!file_exists(APP_ROOT . $file . ($ext = '.php')) && !file_exists(APP_ROOT . $file . ($ext = '.hbs'))) {
+        if (!file_exists(CarbonPHP::$app_root . $file . ($ext = '.php')) && !file_exists(CarbonPHP::$app_root . $file . ($ext = '.hbs'))) {
             $ext = '';
         }
 
         // tell the view to send this file
-        return View::content($file . $ext);
+        return View::content($file . $ext, CarbonPHP::$app_root);
     }
 
-    public function MVC() : callable
+    public function MVC(): callable
     {
         return function (string $class, string $method, array &$argv = []) {
-            $this->matched = true;
+             self::$matched = true;
             return self::ControllerModelView($class, $method, $argv);
         };
     }
 
-    public function JSON($selector = '#pjax-content') : callable
+    public function JSON($selector = '#pjax-content'): callable
     {
         return function ($class, $method, $argv) use ($selector) {
             global $alert, $json;
 
-            $this->matched = true;
+             self::$matched = true;
 
             if (false === $return = ErrorCatcher::catchErrors(static::CM($class, $method, $argv))()) {
                 return null;
             }
 
-            if (!file_exists(APP_ROOT . $file = (APP_VIEW . $class . DS . $method . '.hbs'))) {
+            if (!file_exists(CarbonPHP::$app_root . $file = (CarbonPHP::$app_view . $class . DS . $method . '.hbs'))) {
                 $alert = 'Mustache Template Not Found ' . $file;
             }
 
@@ -173,7 +187,7 @@ abstract class Application extends Route
                 $alert = [];
             }
 
-            if (!\is_array($json)){
+            if (!\is_array($json)) {
                 $json = [];
             }
 
@@ -193,7 +207,7 @@ abstract class Application extends Route
                 $json = json_encode($json); // todo - why did we retry?
             }
 
-            SOCKET and $json = PHP_EOL . $json . PHP_EOL;
+            CarbonPHP::$socket and $json = PHP_EOL . $json . PHP_EOL;
 
             print $json; // new line ensures it sends through the socket
 

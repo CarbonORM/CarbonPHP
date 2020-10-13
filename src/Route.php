@@ -9,7 +9,13 @@
 namespace CarbonPHP;
 
 
+use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Error\PublicAlert;
+use Throwable;
+use function count;
+use function defined;
+use function explode;
+use function substr_count;
 
 abstract class Route
 {
@@ -34,7 +40,7 @@ abstract class Route
      * If a function has been executed the value of matched will be
      * true;
      */
-    public bool $matched = false;             // a bool
+    public static bool $matched = false;             // a bool
     /**
      * @var callable $closure will hold the function to execute if
      * the match function should accept a given path-to-match. Arguments
@@ -63,16 +69,20 @@ abstract class Route
      */
     public function __destruct()
     {
-        // in direct invocation this class may be needlessly initialized
-        if ($this->matched || CLI || TEST) {
-            return;
+        try {
+            // in direct invocation this class may be needlessly initialized
+            if (CarbonPHP::$safelyExit || self::$matched || CarbonPHP::$cli || CarbonPHP::$test) {
+                return;
+            }
+            if (CarbonPHP::$socket) {
+                print 'Socket Left Route Class Un-Matched' . PHP_EOL;
+                exit(1);
+            }
+            self::$matched = true;
+            $this->defaultRoute();
+        } catch (Throwable $e) {
+            ErrorCatcher::generateBrowserReportFromError($e);
         }
-        if (SOCKET) {
-            print 'Socket Left Route Class Un-Matched' . PHP_EOL;
-            exit(1);
-        }
-        $this->matched = true;
-        $this->defaultRoute();
     }
 
 
@@ -80,20 +90,19 @@ abstract class Route
      * Route constructor. If the url is / or null then our
      * default route will be invoked.
      * @param callable|null $structure
-     * @throws PublicAlert
      */
     public function __construct(callable $structure = null)
     {
         $this->closure = $structure;
         // This check allows Route to be independent of Carbon/Application, but benefit if we've already initiated
-        if (\defined('URI') && !SOCKET) {
-            $this->uri = URI;
-            $this->uriExplode = explode('/', trim(URI, '/'));
-            $this->uriLength = \count($this->uriExplode);
+        if (isset(CarbonPHP::$uri) && !CarbonPHP::$socket) {
+            $this->uri = CarbonPHP::$uri;
+            $this->uriExplode = explode('/', trim(CarbonPHP::$uri, '/'));
+            $this->uriLength = count($this->uriExplode);
         } else {
             $this->uri = trim(urldecode(parse_url(trim(preg_replace('/\s+/', ' ', $_SERVER['REQUEST_URI'])), PHP_URL_PATH)));
-            $this->uriExplode = explode('/', $this->uri, ' /');
-            $this->uriLength = \substr_count($this->uri, '/') + 1; // I need the exploded string
+            $this->uriExplode = explode('/', $this->uri,);
+            $this->uriLength = substr_count($this->uri, '/') + 1; // I need the exploded string
         }
     }
 
@@ -102,20 +111,22 @@ abstract class Route
      */
     public function changeURI(string $uri): void
     {
+
+
         $this->uri = $uri = trim($uri, '/');
         $this->uriExplode = explode('/', $uri);
         $this->uriLength = substr_count($uri, '/') + 1;
-        $this->matched = false;
+        self::$matched = false;
     }
 
-    /** This will return the current value of $this->matched.
+    /** This will return the current value of  self::$matched.
      * Added to allow us to quickly check the status using the
      * (string) type cast
      * @return bool
      */
     public function __invoke()
     {
-        return (bool)$this->matched;
+        return (bool) self::$matched;
     }
 
     /** This sets a default route to execute immediately when
@@ -141,22 +152,27 @@ abstract class Route
     public function regexMatch(string $regexToMatch, ...$argv): self
     {
         $matches = [];
-        if (1 > preg_match_all($regexToMatch, $this->uri, $matches, PREG_SET_ORDER)) {  // can return 0 or false
-            return $this;
+
+        try {
+            if (1 > @preg_match_all($regexToMatch, $this->uri, $matches, PREG_SET_ORDER)) {  // can return 0 or false
+                return $this;
+            }
+        } catch (Throwable $exception) {
+            throw new PublicAlert('The following regex failed :: ' . $regexToMatch);
         }
-        $this->matched = true;
+         self::$matched = true;
         $matches = array_shift($matches);
         array_shift($matches);  // could care less about the full match
         // Variables captured in the path to match will passed to the closure
         if (is_callable($argv[0])) {
-            if (call_user_func_array($argv[0], $matches) === false) {
-                throw new PublicAlert('Bad Closure Passed to Route::match(). The return value must not be false.');
-            }
+            $callable = array_shift($argv);
+            $argv = array_merge($argv, $matches);
+            call_user_func_array($callable, $argv); // I'm ignoring this return now,
             return $this;
         }
         // If variables were captured in our path to match, they will be merged with our variable list provided with $argv
         if (is_callable($this->closure)) {
-            $argv[] = &$matches;        // todo - review this logic
+            $argv = array_merge($argv, $matches);
             call_user_func_array($this->closure, $argv);
             return $this;
         }
@@ -179,7 +195,7 @@ abstract class Route
     {
         $uri = $this->uriExplode;
         $arrayToMatch = explode('/', trim($pathToMatch, '/'));
-        $pathLength = \count($arrayToMatch);
+        $pathLength = count($arrayToMatch);
         $pathLength === 0 and $pathToMatch = '*';   // shorthand if stmt
         // The order of the following
         if ($pathLength < $this->uriLength && substr($pathToMatch, -1) !== '*') {
@@ -194,7 +210,7 @@ abstract class Route
             }
             switch ($arrayToMatch[$i][0]) {
                 case  '*':
-                    $this->matched = true;
+                     self::$matched = true;
                     $referenceVariables = [];
                     foreach ($variables as $key => $value) {
                         $GLOBALS[$key] = $value;                    // this must be done in two lines
@@ -202,17 +218,19 @@ abstract class Route
                     }
                     // Variables captured in the path to match will passed to the closure
                     if (is_callable($argv[0])) {
-                        if (call_user_func_array($argv[0], $referenceVariables) === false) {
-                            throw new PublicAlert('Bad Closure Passed to Route::match()');
-                        }
+                        $callable = array_shift($argv);
+                        $argv = array_merge($argv, $referenceVariables);
+                        call_user_func_array($callable, $argv); // I'm ignoring this return now,
                         return $this;
                     }
+
                     // If variables were captured in our path to match, they will be merged with our variable list provided with $argv
                     if (is_callable($this->closure)) {
-                        $argv[] = &$referenceVariables;
+                        $argv = array_merge($argv, $referenceVariables);
                         call_user_func_array($this->closure, $argv);
                         return $this;
                     }
+
                     return $this;
                 case '{': // this is going to indicate the start of a variable name
                     if (substr($arrayToMatch[$i], -1) !== '}') {

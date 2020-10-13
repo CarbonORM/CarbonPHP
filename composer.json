@@ -17,10 +17,13 @@
     "patchwork/jsqueeze": "^2.0",
     "ext-json": "*",
     "ext-pdo": "*",
-    "ext-curl": "*"
+    "ext-curl": "*",
+    "ext-openssl": "*",
+    "ext-fileinfo": "*"
   },
   "require-dev": {
-    "phpunit/phpunit-selenium": "4.1.0"
+    "phpunit/phpunit-selenium": "4.1.0",
+    "phpmetrics/phpmetrics": "^2.7"
   },
   "authors": [
     {
@@ -38,7 +41,8 @@
       "CarbonPHP\\Programs\\": "src/programs/",
       "CarbonPHP\\Tables\\": "src/tables/",
       "CarbonPHP\\": "src/",
-      "Tests\\": "tests/"
+      "Tests\\": "tests/",
+      "Config\\": "config/"
     }
   },
   "scripts": {
@@ -50,6 +54,7 @@
       "composer setup"
     ],
     "setup": [
+      "php index.php ApacheConfig",
       "npm install",
       "php index.php minify",
       "cd view/react/material-dashboard-react-c6 && npm install && npm run build"
@@ -58,7 +63,10 @@
       "php index.php rest -json -logClasses"
     ],
     "test": [
-      "./vendor/bin/phpunit  --testdox || ./vendor/bin/phpunit"
+      "./vendor/bin/phpunit --log-junit junit.xml  --testdox || ./vendor/bin/phpunit  --log-junit junit.xml"
+    ],
+    "metrics": [
+      "php ./vendor/bin/phpmetrics --config=php-metrics.json /Users/richardmiles/GitHub/CarbonPHP"
     ]
   }
 }

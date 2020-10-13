@@ -1,0 +1,24 @@
+{
+  "includes": [
+    "src"
+  ],
+  "exclude": [
+    "tests",
+    "vendor"
+  ],
+  "report": {
+    "html": "PhpMetrics"
+  },
+  "groups": [
+    {
+      "name": "CarbonPHP Tables",
+      "match": "!CarbonPHP\\\\Tables!"
+    }
+  ],
+  "plugins": {
+    "junit": {
+      "file": "junit.xml"
+    }
+  },
+  "extensions": [ "php", "inc" ]
+}

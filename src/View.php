@@ -15,23 +15,27 @@ class View
     /**
      * @var bool
      */
-    public static $forceWrapper = false;
+    public static bool $forceWrapper = false;
     /**
-     * @var
+     * @var string
      */
-    public static $wrapper;
+    public static string $wrapper;
+
 
     /**
      * @param string $file
+     * @param string|null $directoryContext
      * @return bool
-     * @throws \Mustache_Exception_InvalidArgumentException
      */
-    public static function content(string $file): bool
+    public static function content(string $file, string $directoryContext = null): bool
     {
         global $json;
 
+        if ($directoryContext === null) {
+            $directoryContext = CarbonPHP::$app_root;
+        }
 
-        $buffer = static function () use ($file) : string {         // closure  $buffer();
+        $buffer = static function () use ($directoryContext, $file) : string {         // closure  $buffer();
 
             global $json;              // Buffer contents may not need to be run if AJAX or SOCKET
 
@@ -46,14 +50,15 @@ class View
                 $alert = null;
             }
 
-            if (!file_exists($file) && !file_exists($file = APP_ROOT . $file)) {
+            if (!file_exists($directoryContext . $file)) {
                 // It was already handled if it was an hbs, but lets remind people that both are supported
-                self::bootstrapAlert("The file ($file.(hbs|php))requested could not be found.", 'danger');
-            } else if (!SOCKET) {
-                include $file;          // TODO - remove socket check?
+                self::bootstrapAlert("The file ($file) requested could not be found.", 'danger');
+            } else if (!CarbonPHP::$socket) {
+                /** @noinspection PhpIncludeInspection */
+                include $directoryContext . $file;          // TODO - remove socket check?
             } else {
                 $json = array_merge([
-                    'Mustache' => DS . $file,           // dont change this to SITE
+                    'Mustache' => '/' . str_replace('\\', '/', $file),      // dont change this to SITE, dont add DS
                     'Widget' => '#pjax-content'
                 ], $json);
                 print PHP_EOL . json_encode($json) . PHP_EOL;
@@ -61,19 +66,19 @@ class View
             return ob_get_clean();
         };
 
-
-        if (SOCKET) {
+        if (CarbonPHP::$socket) {
             print $buffer() . PHP_EOL;
             return true;
         }
+
         if (pathinfo($file, PATHINFO_EXTENSION) === 'hbs') {
 
             $mustache = new \Mustache_Engine();
 
-            if (SOCKET || (!self::$forceWrapper && PJAX && AJAX)) {        // Send JSON To Socket
+            if (CarbonPHP::$socket || (!self::$forceWrapper && CarbonPHP::$pjax && CarbonPHP::$ajax)) {        // Send JSON To Socket
 
                 $json = array_merge([
-                    'Mustache' => SITE . $file,
+                    'Mustache' => CarbonPHP::$site . $file,
                     'Widget' => '#pjax-content'
                 ], $json);
 
@@ -95,9 +100,9 @@ class View
         if (!\is_string($buffer)) {
             $buffer = "<script>Carbon(() => carbon.alert('Content Buffer Failed ($file)', 'danger'))</script>";
         }
-        if (!self::$forceWrapper && (PJAX || AJAX)) {        // Send only inner content?
+        if (!self::$forceWrapper && (CarbonPHP::$pjax || CarbonPHP::$ajax)) {        // Send only inner content?
             print $buffer;
-        #################### Send the Outer Wrapper
+            #################### Send the Outer Wrapper
         } else if (pathinfo(self::$wrapper, PATHINFO_EXTENSION) === 'hbs') {   // Outer Wrapper is Mustache
             $json['content'] = $buffer;
             $mustache = $mustache ?? new \Mustache_Engine();
@@ -133,11 +138,11 @@ class View
 
     public static function versionControl($file)
     {
-        if (!\defined('SERVER_ROOT')) {
+        if (!isset(CarbonPHP::$app_root)) {
             return DS . $file;
         }
         try {
-            if (!file_exists($absolute = APP_ROOT . $file) || !($time = @filemtime($absolute))) {
+            if (!file_exists($absolute = CarbonPHP::$app_root . $file) || !($time = @filemtime($absolute))) {
                 return DS . $file;
             }
             return preg_replace('{\\.([^./]+)$}', '.' . $time . '.\$1', DS . $file);
@@ -158,21 +163,12 @@ class View
      */
     public static function unVersion($uri)
     {
-        if (!\defined('SERVER_ROOT')) {
-            return DS . $uri;
-        }
         if (preg_match('#^(.*)\.[\d]{10}\.(css|js)#', $uri, $matches, PREG_OFFSET_CAPTURE)) {
 
             $uri = trim($matches[1][0] . '.' . $matches[2][0], '/');
 
-            if (file_exists(APP_ROOT . $uri)) {
+            if (file_exists(CarbonPHP::$app_root . $uri)) {
                 self::sendResource($uri, $matches[2][0]);
-            }
-            if (file_exists(TEMPLATE_ROOT . $uri)) {
-                self::sendResource(TEMPLATE_ROOT . $uri, $matches[2][0]);
-            }
-            if (file_exists(COMPOSER_ROOT . $uri)) {
-                self::sendResource(COMPOSER_ROOT . $uri, $matches[2][0]);
             }
         }
         return false;
@@ -218,7 +214,7 @@ class View
      */
     public static function mimeType($file, $ext): string
     {
-        $mime_types = include CARBON_ROOT . 'extras/mimeTypes.php';
+        $mime_types = include CarbonPHP::CARBON_ROOT . 'extras' . DS . 'mimeTypes.php';
         if (array_key_exists($ext, $mime_types)) {
             return $mime_types[$ext];
         }

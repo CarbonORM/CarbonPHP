@@ -49,7 +49,6 @@ class Pipe
             return false;
         }                   # create a named pipe 0644
 
-
         // future self, please read the function doc above before wondering why this is commented out
 
         #$user = get_current_user();                            // get current process user
@@ -57,6 +56,10 @@ class Pipe
         #exec("chown -R {$user} $fifoPath");                    // We need to modify the permissions so users can write to it
 
         $fifoFile = fopen($fifoPath, 'rb+');              // Now we open the named pipe we Already created
+
+        if (false === $fifoFile) {
+            return false;
+        }
 
         stream_set_blocking($fifoFile, false);           // setting to true (resource heavy) activates the handshake feature, aka timeout
 

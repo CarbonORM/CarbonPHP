@@ -1,17 +1,18 @@
-<?php
+<?php 
 
 namespace CarbonPHP\Tables;
 
+// Restful defaults
 use PDO;
-use PDOStatement;
-
-use function array_key_exists;
-use function count;
-use function is_array;
 use CarbonPHP\Rest;
-use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestfulReferences;
 use CarbonPHP\Error\PublicAlert;
+use function array_key_exists;
+use function count;
+use function func_get_args;
+use function is_array;
+
+// Custom User Imports
 
 
 class Carbon_Location_References extends Rest implements iRestfulReferences
@@ -33,70 +34,16 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
     public const PDO_VALIDATION = [
         'carbon_location_references.entity_reference' => ['binary', '2', '16'],'carbon_location_references.location_reference' => ['binary', '2', '16'],'carbon_location_references.location_time' => ['datetime', '2', ''],
     ];
+ 
+    public const PHP_VALIDATION = [
+
+    ]; 
+ 
+    public const REGEX_VALIDATION = [
+        self::ENTITY_REFERENCE => self::VALIDATE_C6_ENTITY_ID_REGEX,
+        self::LOCATION_REFERENCE => self::VALIDATE_C6_ENTITY_ID_REGEX
+    ]; 
     
-    public const VALIDATION = [];
-
-    public static array $injection = [];
-
-    public static function jsonSQLReporting($argv, $sql) : void {
-        global $json;
-        if (!is_array($json)) {
-            $json = [];
-        }
-        if (!isset($json['sql'])) {
-            $json['sql'] = [];
-        }
-        $json['sql'][] = [
-            $argv,
-            $sql
-        ];
-    }
-    
-    public static function buildWhere(array $set, PDO $pdo, $join = 'AND') : string
-    {
-        $sql = '(';
-        $bump = false;
-        foreach ($set as $column => $value) {
-            if (is_array($value)) {
-                if ($bump) {
-                    $sql .= " $join ";
-                }
-                $bump = true;
-                $sql .= self::buildWhere($value, $pdo, $join === 'AND' ? 'OR' : 'AND');
-            } else if (array_key_exists($column, self::PDO_VALIDATION)) {
-                $bump = false;
-                /** @noinspection SubStrUsedAsStrPosInspection */
-                if (substr($value, 0, '8') === 'C6SUB748') {
-                    $subQuery = substr($value, '8');
-                    $sql .= "($column = $subQuery ) $join ";
-                } else if (self::PDO_VALIDATION[$column][0] === 'binary') {
-                    $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $join ";
-                } else {
-                    $sql .= "($column = " . self::addInjection($value, $pdo) . ") $join ";
-                }
-            } else {
-                $bump = false;
-                $sql .= "($column = " . self::addInjection($value, $pdo) . ") $join ";
-            }
-        }
-        return rtrim($sql, " $join") . ')';
-    }
-
-    public static function addInjection($value, PDO $pdo, $quote = false): string
-    {
-        $inject = ':injection' . count(self::$injection) . 'carbon_location_references';
-        self::$injection[$inject] = $quote ? $pdo->quote($value) : $value;
-        return $inject;
-    }
-
-    public static function bind(PDOStatement $stmt): void 
-    {
-        foreach (self::$injection as $key => $value) {
-            $stmt->bindValue($key,$value);
-        }
-    }
-
-
     /**
     *
     *   $argv = [
@@ -131,20 +78,23 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
     * @param array $return
     * @param string|null $primary
     * @param array $argv
+    * @throws PublicAlert
     * @return bool
     */
     public static function Get(array &$return, array $argv): bool
     {
         $pdo = self::database();
 
-        $sql = self::buildSelectQuery(null, $argv, $pdo);
+        $sql = self::buildSelectQuery(null, $argv, '', $pdo);
+        
+        self::jsonSQLReporting(func_get_args(), $sql);
         
         $stmt = $pdo->prepare($sql);
 
         self::bind($stmt);
 
         if (!$stmt->execute()) {
-            return false;
+            throw new PublicAlert('Failed to execute the query on Carbon_Location_References.', 'danger');
         }
 
         $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -166,21 +116,35 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
      * @param string|null $dependantEntityId - a C6 Hex entity key 
      * @return bool|string
      * @throws PublicAlert
+     * @noinspection SqlResolve
      */
     public static function Post(array $argv, string $dependantEntityId = null): bool
-    {
-        self::$injection = [];
+    {   
+        foreach ($argv as $columnName => $postValue) {
+            if (!array_key_exists($columnName, self::PDO_VALIDATION)){
+                throw new PublicAlert("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
+            }
+        } 
+        
         /** @noinspection SqlResolve */
         $sql = 'INSERT INTO carbon_location_references (entity_reference, location_reference) VALUES ( UNHEX(:entity_reference), UNHEX(:location_reference))';
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        self::jsonSQLReporting(func_get_args(), $sql);
 
         $stmt = self::database()->prepare($sql);
 
     
+    
+        if (!array_key_exists('carbon_location_references.entity_reference', $argv)) {
+            throw new PublicAlert('Required argument "carbon_location_references.entity_reference" is missing from the request.', 'danger');
+        }
         $entity_reference = $argv['carbon_location_references.entity_reference'];
         $stmt->bindParam(':entity_reference',$entity_reference, 2, 16);
     
+    
+        if (!array_key_exists('carbon_location_references.location_reference', $argv)) {
+            throw new PublicAlert('Required argument "carbon_location_references.location_reference" is missing from the request.', 'danger');
+        }
         $location_reference = $argv['carbon_location_references.location_reference'];
         $stmt->bindParam(':location_reference',$location_reference, 2, 16);
     
@@ -191,214 +155,31 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
         return $stmt->execute();
     
     }
-     
-    public static function subSelect(string $primary = null, array $argv, PDO $pdo = null): string
-    {
-        return 'C6SUB748' . self::buildSelectQuery($primary, $argv, $pdo, true);
-    }
     
-    public static function validateSelectColumn($column) : bool {
-        return (bool) preg_match('#(((((hex|argv|count|sum|min|max) *\(+ *)+)|(distinct|\*|\+|-|/| |carbon_location_references\.entity_reference|carbon_location_references\.location_reference|carbon_location_references\.location_time))+\)*)+ *(as [a-z]+)?#i', $column);
-    }
-    
-    public static function buildSelectQuery(string $primary = null, array $argv, PDO $pdo = null, bool $noHEX = false) : string 
-    {
-        if ($pdo === null) {
-            $pdo = self::database();
-        }
-        self::$injection = [];
-        $aggregate = false;
-        $group = [];
-        $sql = '';
-        $get = $argv['select'] ?? array_keys(self::PDO_VALIDATION);
-        $where = $argv['where'] ?? [];
-
-        // pagination
-        if (array_key_exists('pagination',$argv)) {
-            if (!empty($argv['pagination']) && !is_array($argv['pagination'])) {
-                $argv['pagination'] = json_decode($argv['pagination'], true);
-            }
-            if (array_key_exists('limit',$argv['pagination']) && $argv['pagination']['limit'] !== null) {
-                $limit = ' LIMIT ' . $argv['pagination']['limit'];
-            } else {
-                $limit = '';
-            }
-
-            $order = '';
-            if (!empty($limit)) {
-
-                $order = ' ORDER BY ';
-
-                if (array_key_exists('order',$argv['pagination']) && $argv['pagination']['order'] !== null) {
-                    if (is_array($argv['pagination']['order'])) {
-                        foreach ($argv['pagination']['order'] as $item => $sort) {
-                            $order .= "$item $sort";
-                        }
-                    } else {
-                        $order .= $argv['pagination']['order'];
-                    }
-                } else {
-                    $order .= ' ASC';
-                }
-            }
-            $limit = "$order $limit";
-        } else {
-            $limit = ' ORDER BY  ASC LIMIT 100';
-        }
-
-        // join 
-        $join = ''; 
-        $tableList = [];
-        if (array_key_exists('join', $argv)) {
-            foreach ($argv['join'] as $by => $tables) {
-                $buildJoin = static function ($method) use ($tables, &$join, &$tableList) {
-                    foreach ($tables as $table => $stmt) {
-                        $tableList[] = $table;
-                        switch (count($stmt)) {
-                            case 2: 
-                                if (is_string($stmt[0]) && is_string($stmt[1])) {
-                                    $join .= $method . $table . ' ON ' . $stmt[0] . '=' . $stmt[1];
-                                } else {
-                                    return false; // todo debugging
-                                }
-                                break;
-                            case 3:
-                                if (is_string($stmt[0]) && is_string($stmt[1]) && is_string($stmt[2])) {
-                                    $join .= $method . $table . ' ON ' . $stmt[0] . $stmt[1] . $stmt[2]; 
-                                } else {
-                                    return false; // todo debugging
-                                }
-                                break;
-                            default:
-                                return false; // todo debug check, common when joins are not a list of values
-                        }
-                    }
-                    return true;
-                };
-                switch ($by) {
-                    case 'inner':
-                        if (!$buildJoin(' INNER JOIN ')) {
-                            return false; 
-                        }
-                        break;
-                    case 'left':
-                        if (!$buildJoin(' LEFT JOIN ')) {
-                            return false; 
-                        }
-                        break;
-                    case 'right':
-                        if (!$buildJoin(' RIGHT JOIN ')) {
-                            return false; 
-                        }
-                        break;
-                    default:
-                        return false; // todo - debugging stmts
-                }
-            }
-        }
-
-        // Select
-        foreach($get as $key => $column){
-            if (!empty($sql)) {
-                $sql .= ', ';
-            }
-            $columnExists = array_key_exists($column, self::PDO_VALIDATION);
-            if ($columnExists) {
-                if (!$noHEX && self::PDO_VALIDATION[$column][0] === 'binary') {
-                    $asShort = trim($column, self::TABLE_NAME . '.');
-                    $prefix = self::TABLE_NAME . '.';
-                    if (strpos($column, $prefix) === 0) {
-                        $asShort = substr($column, strlen($prefix));
-                    }
-                    $sql .= "HEX($column) as $asShort";
-                    $group[] = $column;
-                } elseif ($columnExists) {
-                    $sql .= $column;
-                    $group[] = $column;  
-                }  
-            } else if (self::validateSelectColumn($column)) {
-                $sql .= $column;
-                $group[] = $column;
-                $aggregate = true;
-            } else {  
-                $valid = false;
-                $tablesReffrenced = $tableList;
-                while (!empty($tablesReffrenced)) {
-                     $table = __NAMESPACE__ . '\\' . array_pop($tablesReffrenced);
-                     
-                     if (!class_exists($table)){
-                         continue;
-                     }
-                     $imp = array_map('strtolower', array_keys(class_implements($table)));
-                    
-                   
-                     /** @noinspection ClassConstantUsageCorrectnessInspection */
-                     if (!in_array(strtolower(iRest::class), $imp, true) && 
-                         !in_array(strtolower(iRestfulReferences::class), $imp, true)) {
-                         continue;
-                     }
-                     /** @noinspection PhpUndefinedMethodInspection */
-                     if ($table::validateSelectColumn($column)) { 
-                        $group[] = $column;
-                        $valid = true;
-                        break; 
-                     }
-                }
-                if (!$valid) {
-                    return false;
-                }
-                $sql .= $column;
-                $aggregate = true;
-            }
-        }
-
-        $sql = 'SELECT ' .  $sql . ' FROM carbon_location_references ' . $join;
-       
-        if (null === $primary) {
-            /** @noinspection NestedPositiveIfStatementsInspection */
-            if (!empty($where)) {
-                $sql .= ' WHERE ' . self::buildWhere($where, $pdo);
-            }
-        } 
-
-        if ($aggregate  && !empty($group)) {
-            $sql .= ' GROUP BY ' . implode(', ', $group). ' ';
-        }
-
-        $sql .= $limit;
-
-        self::jsonSQLReporting(\func_get_args(), $sql);
-
-        return '(' . $sql . ')';
-    }
-
     /**
     * @param array $return
     
     * @param array $argv
+    * @throws PublicAlert
     * @return bool
     */
     public static function Put(array &$return,  array $argv) : bool
     {
-        self::$injection = []; 
-        
         $where = $argv[self::WHERE];
 
         $argv = $argv[self::UPDATE];
 
         if (empty($where) || empty($argv)) {
-            return false;
+            throw new PublicAlert('Restful tables which have no primary key must be updated specific where conditions.', 'danger');
         }
         
         foreach ($argv as $key => $value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return false;
+                throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.', 'danger');
             }
         }
 
-        $sql = 'UPDATE carbon_location_references ';
-
-        $sql .= ' SET ';        // my editor yells at me if I don't separate this from the above stmt
+        $sql = 'UPDATE carbon_location_references ' . ' SET '; // intellij cant handle this otherwise
 
         $set = '';
 
@@ -411,19 +192,15 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
         if (array_key_exists('carbon_location_references.location_time', $argv)) {
             $set .= 'location_time=:location_time,';
         }
-
-        if (empty($set)){
-            return false;
-        }
-
+        
         $sql .= substr($set, 0, -1);
 
         $pdo = self::database();
 
         
-        $sql .= ' WHERE ' . self::buildWhere($where, $pdo);
+        $sql .= ' WHERE ' . self::buildWhere($where, $pdo, 'carbon_location_references', self::PDO_VALIDATION);
 
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        self::jsonSQLReporting(func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 
@@ -442,7 +219,11 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
         self::bind($stmt);
 
         if (!$stmt->execute()) {
-            return false;
+            throw new PublicAlert('Restful table Carbon_Location_References failed to execute the update query.', 'danger');
+        }
+        
+        if (!$stmt->rowCount()) {
+            throw new PublicAlert('Failed to update the target row.', 'danger');
         }
         
         $argv = array_combine(
@@ -463,22 +244,26 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
     * @param array $remove
     * @param string|null $primary
     * @param array $argv
+    * @throws PublicAlert
+    * @noinspection SqlResolve
     * @return bool
     */
     public static function Delete(array &$remove, array $argv) : bool
     {
-        self::$injection = []; 
-        
         /** @noinspection SqlResolve */
         /** @noinspection SqlWithoutWhere */
         $sql = 'DELETE FROM carbon_location_references ';
 
         $pdo = self::database();
+        
+     
+        if (empty($argv)) {
+            throw new PublicAlert('When deleting from restful tables with out a primary key additional arguments must be provided.', 'danger');
+        } 
+         
+        $sql .= ' WHERE ' . self::buildWhere($argv, $pdo, 'carbon_location_references', self::PDO_VALIDATION);
 
-               
-        $sql .= ' WHERE ' . self::buildWhere($argv, $pdo);
-
-        self::jsonSQLReporting(\func_get_args(), $sql);
+        self::jsonSQLReporting(func_get_args(), $sql);
 
         $stmt = $pdo->prepare($sql);
 
@@ -490,4 +275,7 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
 
         return $r;
     }
+     
+
+    
 }

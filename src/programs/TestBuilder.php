@@ -3,6 +3,7 @@
 
 namespace CarbonPHP\Programs;
 
+use CarbonPHP\CarbonPHP;
 use CarbonPHP\interfaces\iCommand;
 
 
@@ -29,15 +30,15 @@ class TestBuilder implements iCommand
         print 'This builds a string you can execute to create a live websocket connection with your application.';
     }
 
-    public function cleanUp($argv): void
+    public function cleanUp(): void
     {
         // nothing
     }
 
     public function run($argv): void
     {
-        $CMD = 'php -S localhost:9999 "' . CARBON_ROOT . 'programs' . DS . 'TestAutomationServer.php" "' . APP_ROOT . '" "' . ($this->CONFIG['SITE']['CONFIG'] ?? APP_ROOT) . '" ';
-        print 'pid == ' . $this->background($CMD, APP_ROOT . 'TestCaseBuilder_log.txt');
+        $CMD = 'php -S localhost:9999 "' . CarbonPHP::CARBON_ROOT . 'programs' . DS . 'TestAutomationServer.php" "' . CarbonPHP::$app_root . '" "' . ($this->CONFIG['SITE']['CONFIG'] ?? CarbonPHP::$app_root) . '" ';
+        print 'pid == ' . $this->background($CMD, CarbonPHP::$app_root . 'TestCaseBuilder_log.txt');
         print "\n\n\tTest Automation Server started in the background, done!\n\n";
         //`$CMD`;
     }

@@ -5,12 +5,20 @@ namespace CarbonPHP;
 use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Helpers\Globals;
+use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Tables\Carbon_Tag;
 use CarbonPHP\Tables\Carbons;
+use Error;
 use Exception;
 use PDO;
+use PDOException;
 use PDOStatement;
+use RuntimeException;
 use stdClass;
+use Throwable;
+use function array_shift;
+use function count;
+use function is_array;
 
 
 /**
@@ -29,34 +37,40 @@ use stdClass;
  */
 class Database
 {
+    /**
+     * @var bool - error catcher needs to initialize quickly,
+     * and can relies on a data connection which may not be set here at the moment of its own initialization
+     * This bool will determine this use case.
+     */
+    public static bool $initialized = false;
     /** Represents a connection between PHP and a database server.
      * @link http://php.net/manual/en/class.pdo.php
-     * @var PDO $database
+     * @var PDO|null $database // todo php 8.0
      */
-    public static $database;
+    private static ?PDO $database = null;
 
-    public static $username;
+    public static string $username;
 
-    public static $password;
+    public static string $password;
     /**
      * @var string $dsn holds the connection protocol
      * @link http://php.net/manual/en/pdo.construct.php
      */
-    public static $dsn;
+    public static string $dsn;
 
     /**
      * @var string holds the path of the users database set up file
      */
-    public static $setup;
+    public static string $setup;
 
     /**
      * @var bool - Represents a post, aka new row inception with foreign keys, in progress.
      */
-    private static $inTransaction = false;
+    private static bool $inTransaction = false;
     /**
      * @var array - new key inserted but not verified currently
      */
-    private static $entityTransactionKeys;
+    private static array $entityTransactionKeys;
 
     /** the database method will return a connection to the database.
      * Before returning a connection it must pass an active check.
@@ -65,15 +79,16 @@ class Database
      */
     public static function database(): PDO
     {
-        if (null === self::$database || !self::$database instanceof PDO) {
+        if (null === self::$database) {
             return static::reset();
         }
         try {
             error_reporting(0);
-            self::$database->prepare('SELECT 1');     // This has had a history of causing spotty error.. if this is the location of your error, you should keep looking...
+            self::$database->prepare('SELECT 1')->execute();     // This has had a history of causing spotty error.. if this is the location of your error, you should keep looking...
             error_reporting(ErrorCatcher::$level);
             return static::$database;                       // Why should this work again?
-        } catch (\Error | Exception | \PDOException $e) {                       // added for socket support
+        } catch (Error | Exception | PDOException $e) {// added for socket support
+            ColorCode::colorCode('Attempting to reset the database. Possible disconnect.', 'red');
             error_reporting(ErrorCatcher::$level);
             return static::reset();
         }
@@ -83,7 +98,7 @@ class Database
     {
         try {
             return $closure();
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
 
             switch ($e->getCode()) {        // Database has not been created
 
@@ -98,12 +113,12 @@ class Database
                     }
 
                     Try {
-                        $prep = function (PDO $db): PDO {
+                        $prep = static function (PDO $db): PDO {
                             $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-                            $db->setAttribute(PDO::ATTR_PERSISTENT, SOCKET);
+                            $db->setAttribute(PDO::ATTR_PERSISTENT, CarbonPHP::$cli);
 
-                            $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
+                            $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
                             static::$database = $db;
 
@@ -111,7 +126,7 @@ class Database
                         };
 
                         $db = $prep(@new PDO($query[0], static::$username, static::$password));
-                    } catch (\PDOException $e) {
+                    } catch (PDOException $e) {
                         if ($e->getCode() === 1049) {
                             print '<h1>Auto Setup Failed!</h1><h3>Your database DSN may be slightly malformed.</h3>';
                             print '<p>CarbonPHP requires the host come before the database in your DNS.</p>';
@@ -159,14 +174,16 @@ class Database
      */
     public static function reset(): PDO // built to help preserve database in sockets and forks
     {
+        self::$database = null;
+
         $attempts = 0;
 
         $prep = static function (PDO $db): PDO {
             $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-            $db->setAttribute(PDO::ATTR_PERSISTENT, SOCKET);
+            $db->setAttribute(PDO::ATTR_PERSISTENT, CarbonPHP::$cli);
 
-            $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
+            $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
             static::$database = $db;
 
@@ -179,12 +196,14 @@ class Database
                     static function () use ($prep) {
                         return $prep(@new PDO(static::$dsn, static::$username, static::$password));
                     });
-            } catch (\Error $e) {                   // The error catcher
+            } catch (Throwable $e) {
                 $attempts++;
             }
         } while ($attempts < 3);
 
-        print 'We failed to connect to our database, please try again later.' . PHP_EOL . $e->getMessage();
+        ColorCode::colorCode('Failed to connect to database.' , 'red');
+
+        ErrorCatcher::generateLog($e);
 
         die(1);
     }
@@ -216,10 +235,10 @@ class Database
         } else {
             print '<h3>This build is automatically generated by CarbonPHP. When you add a database be sure to re-execute the <br><br><br><b>>> php index.php buildDatabase</b></h3>' . PHP_EOL . PHP_EOL;
         }
-        if (file_exists(APP_ROOT . 'config/buildDatabase.php')) {
+        if (file_exists(CarbonPHP::$app_root . 'config/buildDatabase.php')) {
             print ($cli ? 'Connecting on ' . self::$dsn . PHP_EOL
                 : '<h1>Connecting on </h1>' . self::$dsn . '<br>');
-            include APP_ROOT . 'config/buildDatabase.php';
+            include CarbonPHP::$app_root . 'config' . DS . 'buildDatabase.php';
         } else {
             $php_errormsg = 'Could not find database setup. Please see Carbonphp.com for more documentation.';
             print ($cli ? $php_errormsg :
@@ -227,14 +246,13 @@ class Database
             die(1);
         }
         if ($refresh) {
-            $cli ?: print '<br><br><h2>Refreshing in 6 seconds</h2><script>let t1 = window.setTimeout(function(){ window.location.href = \'' . SITE . '\'; },6000);</script>';
+            $cli ?: print '<br><br><h2>Refreshing in 6 seconds</h2><script>let t1 = window.setTimeout(function(){ window.location.href = \'' . CarbonPHP::$site . '\'; },6000);</script>';
             exit(1);
         }
-        CLI and print PHP_EOL . PHP_EOL . PHP_EOL;
+        CarbonPHP::$cli and print PHP_EOL . PHP_EOL . PHP_EOL;
 
         return static::database();
     }
-
 
     /** Check our database to verify that a transaction
      *  didn't fail after adding an a new primary key.
@@ -247,6 +265,7 @@ class Database
      *
      * @param string|null $errorMessage
      * @return bool
+     * @throws PublicAlert
      */
     public static function verify(string $errorMessage = null): bool
     {
@@ -260,7 +279,7 @@ class Database
                     static::remove_entity($key);
                 }
             }
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {                     // todo - think about this more
             PublicAlert::danger($e->getMessage());
         } finally {
             if (null !== $errorMessage) {
@@ -274,8 +293,9 @@ class Database
      * @link http://php.net/manual/en/pdo.rollback.php
      * @param callable|mixed $lambda
      * @return bool
+     * @throws PublicAlert
      */
-    protected static function commit(callable $lambda = null): bool
+    public static function commit(callable $lambda = null): bool
     {
         if (!self::$inTransaction) {
             return true;
@@ -296,7 +316,7 @@ class Database
         $return = $lambda();
 
         if (!is_bool($return)) {
-            throw new \Error('The return type of the lambda supplied should be a boolean');
+            throw new Error('The return type of the lambda supplied should be a boolean');
         }
 
         return $return;
@@ -363,19 +383,13 @@ class Database
         do {
             $count++;
             $id = Carbons::Post([
+                Carbons::ENTITY_TAG => $tag_id,
                 Carbons::ENTITY_FK => $dependant
             ]);
         } while ($id === false && $count < 4);  // todo - why four?
 
         if ($id === false) {
             throw new PublicAlert('C6 failed to create a new entity.');
-        }
-
-        if (!carbon_tag::Post([
-            carbon_tag::TAG_ID => $tag_id,    // will end up being the table name generated by >> php index.php buildDatabase
-            carbon_tag::ENTITY_ID => $id,
-        ])) {
-            throw new PublicAlert('C6 failed to create a new tag.');
         }
 
         self::$entityTransactionKeys[] = $id;
@@ -387,6 +401,7 @@ class Database
      * @link https://dev.mysql.com/doc/refman/5.7/en/innodb-index-types.html
      * @param $id - Remove entity_pk form carbon
      * @return bool
+     * @throws PublicAlert
      */
     protected static function remove_entity($id): bool
     {
@@ -420,10 +435,10 @@ class Database
         if (!$stmt->execute($execute) && !$stmt->execute($execute)) { // try it twice, you never know..
             return [];
         }
-        if (\count($stmt = $stmt->fetchAll(PDO::FETCH_ASSOC)) !== 1) {
+        if (count($stmt = $stmt->fetchAll(PDO::FETCH_ASSOC)) !== 1) {
             return $stmt;
         }
-        \is_array($stmt) and $stmt = \array_shift($stmt);
+        is_array($stmt) and $stmt = array_shift($stmt);
         return $stmt;   // promise this is needed and will still return the desired array
     }
 
@@ -444,12 +459,12 @@ class Database
         if (!$stmt->execute($execute)) {
             return [];
         }
-        $count = \count($stmt = $stmt->fetchAll(PDO::FETCH_ASSOC));
+        $count = count($stmt = $stmt->fetchAll(PDO::FETCH_ASSOC));
         if ($count === 0) {
             return $stmt;
         }
         if ($count === 1) {
-            while (\is_array($stmt)) {
+            while (is_array($stmt)) {
                 $stmt = array_shift($stmt);
             }
             return [$stmt];
@@ -478,10 +493,10 @@ class Database
         $stmt = self::database()->prepare($sql);
         $stmt->setFetchMode(PDO::FETCH_CLASS, \stdClass::class);
         if (!$stmt->execute($execute)) {
-            throw new \RuntimeException('Failed to Execute');
+            throw new RuntimeException('Failed to Execute');
         }
         $stmt = $stmt->fetchAll();  // user obj
-        return (\is_array($stmt) && \count($stmt) === 1 ? $stmt[0] : new stdClass);
+        return (is_array($stmt) && count($stmt) === 1 ? $stmt[0] : new stdClass);
     }
 
     /** Each row received will be converted into its own object
