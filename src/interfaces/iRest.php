@@ -6,7 +6,7 @@
  * Time: 6:57 PM
  */
 
-namespace CarbonPHP\interfaces;
+namespace CarbonPHP\Interfaces;
 
 use CarbonPHP\Error\PublicAlert;
 
