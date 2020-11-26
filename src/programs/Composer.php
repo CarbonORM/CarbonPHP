@@ -11,7 +11,7 @@ trait Composer
     public static function getComposerConfig(): array
     {
         if (!file_exists(CarbonPHP::$app_root . 'composer.json')) {
-            self::colorCode("\tCouldn't find composer.json under the CarbonPHP::$app_root.\n\tLearn how to add cli programs at CarbonPHP.com\n\n", 'red');
+            self::colorCode("\tCouldn't find composer.json under the CarbonPHP::\$app_root ( " . CarbonPHP::$app_root . " ).\n\tLearn how to add cli programs at CarbonPHP.com\n\n", 'red');
             exit(1);
         }
         $json = file_get_contents(CarbonPHP::$app_root . 'composer.json');

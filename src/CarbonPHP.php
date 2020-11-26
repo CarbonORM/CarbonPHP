@@ -327,7 +327,7 @@ class CarbonPHP
 
             date_default_timezone_set($config['SITE']['TIMEZONE'] ?? 'America/Chicago');
 
-            self::$reports = $config['ERROR']['LOCATION'] ?? $config;
+            self::$reports = $config['ERROR']['LOCATION'] ?? '';
 
             #####################   AUTOLOAD    #######################
             if ($config['AUTOLOAD'] ?? false) {
@@ -365,7 +365,7 @@ class CarbonPHP
             }
 
             ##################  VALIDATE URL / URI ##################
-            if (!self::$cli && !isset(self::$server_ip)) {
+            if (!self::$cli || !isset(self::$server_ip)) {
                 self::IP_FILTER();
             }
 

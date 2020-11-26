@@ -4,6 +4,8 @@ namespace CarbonPHP\Programs;
 
 
 // TODO - probably should be named better but were preserving backwards compatibility (BC)
+use Throwable;
+
 trait Background
 {
     use ColorCode;
@@ -23,7 +25,7 @@ trait Background
                 print $cmd . PHP_EOL . PHP_EOL;
                 exec($cmd, $pid);
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
         }
         return $pid[0] ?? 'Failed to execute cmd!';
     }

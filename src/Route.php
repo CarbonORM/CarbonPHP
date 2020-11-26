@@ -100,7 +100,7 @@ abstract class Route
             $this->uriExplode = explode('/', trim(CarbonPHP::$uri, '/'));
             $this->uriLength = count($this->uriExplode);
         } else {
-            $this->uri = trim(urldecode(parse_url(trim(preg_replace('/\s+/', ' ', $_SERVER['REQUEST_URI'])), PHP_URL_PATH)));
+            $this->uri = trim(urldecode(parse_url(trim(preg_replace('/\s+/', ' ', $_SERVER['REQUEST_URI'] ?? '')), PHP_URL_PATH)));
             $this->uriExplode = explode('/', $this->uri,);
             $this->uriLength = substr_count($this->uri, '/') + 1; // I need the exploded string
         }

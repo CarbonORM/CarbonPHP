@@ -45,6 +45,12 @@ class CLI implements iCommand
 
         $program = array_shift($argv);
 
+        if (empty($program)) {
+            self::colorCode('No command provided. Printing help.');
+            $this->usage();
+            exit(1);
+        }
+
         $searchAndConstruct = static function ($array, bool $C6Internal = true) use ($program, $PHP, $argv) {
             // Validation with this loop
             foreach ($array as $name) {
@@ -95,7 +101,7 @@ class CLI implements iCommand
         };
 
         if (!file_exists(CarbonPHP::$app_root . 'composer.json')) {
-            print "\tCouldn't find composer.json under the CarbonPHP::$app_root.\n\tLearn how to add cli programs at CarbonPHP.com";
+            self::colorCode("\tCouldn't find composer.json under the CarbonPHP::\$app_root ( " . CarbonPHP::$app_root . " ).\n\tLearn how to add cli programs at CarbonPHP.com", 'red');
         } else {
             $json = file_get_contents(CarbonPHP::$app_root . 'composer.json');
             $json = json_decode($json, true);
