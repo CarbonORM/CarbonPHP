@@ -1,11 +1,13 @@
 import React from "react";
 // @material-ui/core components
 import withStyles from "@material-ui/core/styles/withStyles";
+
 // core components
 import GridContainer from "components/Grid/GridContainer.jsx";
 import GridItem from "components/Grid/GridItem.jsx";
 import completedStyle from "assets/jss/material-kit-react/views/componentsSections/completedStyle.jsx";
 // @material-ui/icons
+
 
 
 // TODO - <GridContainer justify="center"> ?????
@@ -106,6 +108,7 @@ class Dependencies extends React.Component {
       </div>
     )
   }
+
 }
 
 export default withStyles(completedStyle)(Dependencies);

@@ -38,6 +38,7 @@ import AccessControl from "../../AccessControl/AccessControl";
 import swal from '@sweetalert/with-react';
 
 
+
 const HelloWorld = raw("../../../assets/examples/HelloWorld.php");
 const RoutingEx1 = raw("../../../assets/examples/RoutingEx1.php");
 const iConfig = raw("../../../assets/examples/iConfig.php");
@@ -323,6 +324,7 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                     {codeBlock("$this->structure($this->MVC());", "", "php", true)}
                     <br/>
                     {codeBlock('$this->match(\'Recover/{user_email?}/{user_generated_string?}\', \'User\', \'recover\')()', "", "php", true)}
+
                     <p>
                       We would expect to find the above code in the bootstrap. This would move to
                       the <b>Controller/User </b>
@@ -415,7 +417,6 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                       is
                       found.</h3>
                     <b>Bootstrap-&gt;+Controller: 8</b>
-
                     <h3>8) Passes provided arguments to match followed by url variables.</h3>
                     The
                     controllers job is to strictly validate data. This could mean database
@@ -452,12 +453,14 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                       Model--&gt;-Bootstrap: 11
                     </b>
                     <h3>11) The model can still cancel the view from sending by returning false.</h3> This
+
                     returns the stack to the index
                     and safely exits.
                     end
                     <br/>
                     opt
                     Bootstrap-&gt;+View: 12
+
                     <h3>12) The view is typically handled by CarbonPHP's built-in internals.</h3> You can choose
                     to render Mustache Templates or PHP files from the <b>View::content()</b> method.
                     The method will decide which to use based off the files extension.
@@ -469,6 +472,7 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                     <h3>14) Safely returning
                       end</h3>
                     <br/>
+
                     <br/>
                     end
 
@@ -538,6 +542,7 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                         <br/><p>
                         Special thanks to Creative Tim and all the ladies and gents contributing to the
                         open source Material Kit and Material Dashboard. My work here is to further the love.
+
                       </p><br/>
                         <p>
                           Creative Tim's Material series implementation Material Bootstrap 4 Admin with
@@ -573,6 +578,7 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                 tabIcon: Storage,
                 tabButton: "ORM",
                 tabContent: (
+
                   <>
                     <h3 className={classes.textCenter}>
                       C6 is shipped with a custom ORM which generates PHP code and Typescript MYSQL bindings.
@@ -617,6 +623,7 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                     testRestfulPostPutDeleteResponse={this.props.testRestfulPostPutDeleteResponse}
                     axios={this.props.axios}
                   /></>
+
               },
               {
                 tabIcon: Exposure,
@@ -639,6 +646,7 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                       More specifically by the
                       field: {codeBlock("$return['MINIFY']['CSS']['OUT']\n$return['MINIFY']['JS']['OUT']", "", "php", true)}
                     </p>
+
                     {codeBlock(Minification)}
                   </p>
                 )
@@ -725,6 +733,7 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                     <h3 className={classes.textCenter}>
                     </h3>
                     <FileStructure/>
+
                   </p>
                 )
               },
@@ -751,6 +760,7 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                     {codeBlock("php index.php websocket", "", "php", true)}
                     <br/><br/>
                     <p></p>
+
                   </p>
                 )
               }

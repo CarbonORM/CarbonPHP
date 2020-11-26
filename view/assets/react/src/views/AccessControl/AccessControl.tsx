@@ -49,6 +49,7 @@ import withStyles from "@material-ui/core/styles/withStyles";
 import state from "sweetalert/typings/modules/state";
 
 
+
 interface iAccessControl extends WithStyles<typeof landingPageStyle> {
   axios: AxiosInstance;
   testRestfulPostPutDeleteResponse: Function;
@@ -95,6 +96,7 @@ class AccessControl extends React.Component<iAccessControl, {
     this.newFeature = this.newFeature.bind(this);
     this.newGroup = this.newGroup.bind(this);
     this.renameGroup = this.renameGroup.bind(this);
+
   }
 
   handleChange = event => {
@@ -359,6 +361,7 @@ class AccessControl extends React.Component<iAccessControl, {
           }))));
   }
 
+
   renameGroup(newName: string) {
     const { axios } = this.props;
     let id = '';
@@ -379,6 +382,7 @@ class AccessControl extends React.Component<iAccessControl, {
             )
           }))));
   }
+
 
   deleteGroup(id: string) {
     const { axios } = this.props;

@@ -19,6 +19,7 @@ import Footer from "../../components/Footer/Footer";
 import HeaderTop from "components/HeaderTop/HeaderTop";
 import HeaderLinks from "components/HeaderTop/HeaderLinks";
 import Changelog from "./Sections/Changelog";
+
 import Support from "./Sections/Support";
 import License from "./Sections/License";
 
