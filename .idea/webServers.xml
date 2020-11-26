@@ -2,8 +2,8 @@
 <project version="4">
   <component name="WebServers">
     <option name="servers">
-      <webServer id="e2a69378-7318-4216-b3c7-840aa3c7e058" name="Google" url="http://34.68.75.41">
-        <fileTransfer host="34.68.75.41" port="22" privateKey="$USER_HOME$/.ssh/google_compute_engine" rootFolder="/var/www/carbonphp.com" accessType="SFTP" keyPair="true">
+      <webServer id="e2a69378-7318-4216-b3c7-840aa3c7e058" name="Google" url="http://35.225.141.114">
+        <fileTransfer host="35.225.141.114" port="22" privateKey="$USER_HOME$/.ssh/google_compute_engine" rootFolder="/var/www/carbonphp.com" accessType="SFTP" keyPair="true">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" muteSftpMessages="true" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>

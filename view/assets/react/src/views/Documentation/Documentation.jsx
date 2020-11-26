@@ -6,8 +6,7 @@ import withStyles from "@material-ui/core/styles/withStyles";
 import GridItem from "components/Grid/GridItem.jsx";
 import CarbonPHP from "./Sections/CarbonPHP";
 import Dependencies from "./Sections/Dependencies";
-import Installation from "./Sections/Installation.jsx";
-import Bootstrap from "./Sections/Bootstrap.jsx";
+import Implementations from "./Sections/Implementations.jsx";
 // FileStructure OptionsIndex Bootstrap Wrapper ParallelProcessing
 import componentsStyle from "assets/jss/material-kit-react/views/components.jsx";
 
@@ -19,8 +18,8 @@ import Footer from "../../components/Footer/Footer";
 
 import HeaderTop from "components/HeaderTop/HeaderTop";
 import HeaderLinks from "components/HeaderTop/HeaderLinks";
-import DashboardIcon from "@material-ui/icons/Dashboard";
-import BrowserOSSupport from "./Sections/BrowserOSSupport";
+import Changelog from "./Sections/Changelog";
+
 import Support from "./Sections/Support";
 import License from "./Sections/License";
 
@@ -59,37 +58,31 @@ class Documentation extends React.Component {
       {
         path: "/6.0/Documentation/CarbonPHP",     // I'm leaving this here for the time being as an example
         name: "Documentation",          // This should be loaded under a different wrapper
-        icon: DashboardIcon,
         component: CarbonPHP
       },
       {
         path: "/6.0/Documentation/Dependencies",
         name: "Dependencies",
-        icon: DashboardIcon,
         component: Dependencies
       },
       {
         path: "/6.0/Documentation/BrowserOSSupport",
         name: "Changelog",
-        icon: DashboardIcon,
-        component: BrowserOSSupport
+        component: Changelog
       },
       {
         path: "/6.0/Documentation/Implementations",
         name: "Implementations",
-        icon: DashboardIcon,
-        component: Installation
+        component: Implementations
       },
       {
         path: "/6.0/Documentation/Support",
         name: "Support",
-        icon: DashboardIcon,
         component: Support
       },
       {
         path: "/6.0/Documentation/License",
         name: "License",
-        icon: DashboardIcon,
         component: License
       },
       {
