@@ -46,6 +46,7 @@ import {
 import CustomInput from "../../components/CustomInput/CustomInput";
 import swal from '@sweetalert/with-react';
 import withStyles from "@material-ui/core/styles/withStyles";
+import state from "sweetalert/typings/modules/state";
 
 
 interface iAccessControl extends WithStyles<typeof landingPageStyle> {
@@ -93,6 +94,7 @@ class AccessControl extends React.Component<iAccessControl, {
 
     this.newFeature = this.newFeature.bind(this);
     this.newGroup = this.newGroup.bind(this);
+    this.renameGroup = this.renameGroup.bind(this);
   }
 
   handleChange = event => {
@@ -357,6 +359,27 @@ class AccessControl extends React.Component<iAccessControl, {
           }))));
   }
 
+  renameGroup(newName: string) {
+    const { axios } = this.props;
+    let id = '';
+    this.setState({ alert: null }, () =>
+      axios.put('/rest/' + C6.carbon_groups.TABLE_NAME,
+        convertForRequestBody(this.state.group, C6.carbon_groups.TABLE_NAME))
+        .then(response =>
+          (id = this.props.testRestfulPostPutDeleteResponse(response, 'Successfully Created The Group',
+            'An unknown issue occurred. We will be looking into this shortly.')) && this.setState({
+            group: {
+              group_name: newName,
+              entity_id: id
+            }
+          }, () => this.setState({
+            groups: this.state.groups.map((value: iGroupFeatures) => {
+                return value.entity_id === id ? (value.group_name = newName, value) : value;
+              }
+            )
+          }))));
+  }
+
   deleteGroup(id: string) {
     const { axios } = this.props;
     this.setState({ alert: null }, () =>
@@ -449,7 +472,7 @@ class AccessControl extends React.Component<iAccessControl, {
                     The roles created here can be assigned to users you manage
                   </p>
                   <Button
-                    color="default"
+                    color="success"
                     onClick={() => swal({
                       buttons: true,
                       content: <div><h2>Create a new feature flag</h2><b>(Site Admin Only)</b><br/><br/>
@@ -555,6 +578,22 @@ class AccessControl extends React.Component<iAccessControl, {
                               });
                             break;
                             default:
+                          case "rename":
+                            swal({
+                              title: "Are you sure?",
+                              text: "Once deleted, accounts will have the group association, thereby site permissions, removed!",
+                              icon: "warning",
+                              buttons: true,
+                              dangerMode: true,
+                            })
+                              .then((willDelete) => {
+                                if (willDelete) {
+                                  this.renameGroup(feature.feature_entity_id)
+                                } else {
+                                  swal("todo "); // todo - rename group
+                                }
+                              });
+                            break;
                           case "cancel":
                             break;
                         }
@@ -666,7 +705,7 @@ class AccessControl extends React.Component<iAccessControl, {
                   </p>
 
                   <Button
-                    color="default"
+                    color="success"
                     onClick={() => swal({
                       buttons: true,
                       content:

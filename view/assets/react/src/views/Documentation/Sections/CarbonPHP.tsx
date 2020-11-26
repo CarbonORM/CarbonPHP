@@ -32,8 +32,10 @@ import raw from "raw.macro";
 import {WithStyles} from "@material-ui/styles";
 import {AxiosInstance} from "axios";
 // pages
-import SequenceDiagram from "assets/img/SD.png";
+import SequenceDiagram from "assets/img/invertSD.png";
 import FileStructure from "./FileStructure";
+import AccessControl from "../../AccessControl/AccessControl";
+import swal from '@sweetalert/with-react';
 
 
 const HelloWorld = raw("../../../assets/examples/HelloWorld.php");
@@ -122,7 +124,7 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                       until CarbonPHP is invoked. For the N00B's this is the ending '();' on line 3. This means all C6
                       configuration will be available for the Config's constructor.
                     </p>
-                    {codeBlock("const APP_ROOT = __DIR__ . DIRECTORY_SEPARATOR;\ninclude 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php'\n(new CarbonPHP\\CarbonPHP( Config\\Config::class ))();", "", "php", true)}
+                    {codeBlock("include 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php'\n(new CarbonPHP\\CarbonPHP( Config\\Config::class ), __DIR__ . DIRECTORY_SEPARATOR)();", "", "php", true)}
                     <br/>
                     <p>In this example the <b>Config\Config::class</b> implements the
                       interface <b>CarbonPHP\Interfaces\iConfig</b>.
@@ -224,7 +226,7 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                                 The following is an excerpt of the PHPDoc for the expected input to the C6 setup method.
                                 It is syntactically formatted to show type then the default option if any.
                               </p>
-                              {codeBlock(iConfigPHPDOC, "", "PHP", false)}
+                              {codeBlock(iConfigPHPDOC, "", "PHP", true)}
                               <p>
                                 * Deprecation notice :: we support passing the configuration file as an absolute path to
                                 a php file which returns an array. This feature will be removed in the next major
@@ -318,9 +320,9 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                       other methods.
                       In a pure C6 implementation the first step after a uri is matched is the controller.
                     </p>
-                    <b>{'$this->structure($this->MVC());'}</b>
+                    {codeBlock("$this->structure($this->MVC());", "", "php", true)}
                     <br/>
-                    <b>{'$this->match(\'Recover/{user_email?}/{user_generated_string?}\', \'User\', \'recover\')()'}</b>
+                    {codeBlock('$this->match(\'Recover/{user_email?}/{user_generated_string?}\', \'User\', \'recover\')()', "", "php", true)}
                     <p>
                       We would expect to find the above code in the bootstrap. This would move to
                       the <b>Controller/User </b>
@@ -413,12 +415,14 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                       is
                       found.</h3>
                     <b>Bootstrap-&gt;+Controller: 8</b>
-                    8) Passes provided arguments to match followed by url variables. The
+
+                    <h3>8) Passes provided arguments to match followed by url variables.</h3>
+                    The
                     controllers job is to strictly validate data. This could mean database
                     requests, but typically does not. By design, no database modification
                     should be made in this step.
                     <b>Controller--&gt;-Bootstrap: 9</b>
-                    9) The responce to validation.
+                    <h3>9) The responce to validation.</h3>
                     If false is returned from the controller, the program execution will effectively
                     stop.
                     The stack will be returned to the index and safely exit with no responce.
@@ -437,8 +441,8 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                     opt</b>
                     <b>
                       Bootstrap-&gt;+Model: 10</b>
-                    10) The Bootstrap will logically decide what file and function should be executed
-                    next. If a value other than null or false is returned from the controller, the model
+                    <h3>10) The Bootstrap will logically decide what file and function should be executed
+                      next. </h3>If a value other than null or false is returned from the controller, the model
                     will run.
                     All data is this step is considered validated. This step is generally reserved for
                     most database requests.
@@ -447,23 +451,24 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                     <b>
                       Model--&gt;-Bootstrap: 11
                     </b>
-                    11) The model can still cancel the view from sending by returning false. This
+                    <h3>11) The model can still cancel the view from sending by returning false.</h3> This
                     returns the stack to the index
                     and safely exits.
                     end
                     <br/>
                     opt
                     Bootstrap-&gt;+View: 12
-                    12) The view is typically handled by CarbonPHP's built-in internals. You can choose
+                    <h3>12) The view is typically handled by CarbonPHP's built-in internals.</h3> You can choose
                     to render Mustache Templates or PHP files from the <b>View::content()</b> method.
                     The method will decide which to use based off the files extension.
                     note over View,Browser: 13
-                    13) Print and send the content. This could be a JSON, HTML, or any other vector of
-                    responce.
+                    <h3>13) Print and send the content. This could be a JSON, HTML, or any other vector of
+                    response.</h3>
 
                     View--&gt;-Bootstrap: 14
-                    14) Safely returning
-                    end<br/>
+                    <h3>14) Safely returning
+                      end</h3>
+                    <br/>
                     <br/>
                     end
 
@@ -525,13 +530,14 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                           applications
                           needs.
                         </p>
-
                       </div>
+                      <br/>
                       <div>
-                        <h5 className={classes.textCenter}><b>REACT</b> is <b>Javascript, Fast, Cost Effective</b></h5>
+                        <h3 className={classes.textCenter}><b>REACT</b><br/>
+                          <b>Fast User Experience, Cost Effective, Mobile Friendly</b></h3>
                         <br/><p>
                         Special thanks to Creative Tim and all the ladies and gents contributing to the
-                        open source Material Kit and Material Dashboard.
+                        open source Material Kit and Material Dashboard. My work here is to further the love.
                       </p><br/>
                         <p>
                           Creative Tim's Material series implementation Material Bootstrap 4 Admin with
@@ -567,21 +573,50 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                 tabIcon: Storage,
                 tabButton: "ORM",
                 tabContent: (
-                  <p>
+                  <>
                     <h3 className={classes.textCenter}>
+                      C6 is shipped with a custom ORM which generates PHP code and Typescript MYSQL bindings.
                     </h3>
-                  </p>
+                    <p>The command line interface is used to generate and regenerate bindings.</p>
+                    {codeBlock("php index.php rest", "", "php", true)}
+                    <small>You may append the <b>"-help"</b> flag to see a full list or options.</small>
+                    <h4>Overview</h4>
+                    <ol>
+                      <li>Entity System</li>
+                      <li>Restful API</li>
+                      <li>Internal API</li>
+                      <li>Validation Filters
+                        <ul>
+                          <li>Restful
+                            <ol>
+                              <li>Column Regexps</li>
+                              <li>Filter Every Request</li>
+                              <li>Filter Specific Request Method</li>
+                              <li>Column Specific Callbacks</li>
+                            </ol>
+                          </li>
+                          <li>Internal
+                            <ol>
+                              <li>Running Restful Validation Helpers</li>
+                              <li>Using Access Control With Delegated Administration</li>
+                            </ol>
+                          </li>
+                        </ul>
+                      </li>
+                      <li>Data Retention with <i>-Triggers</i></li>
+                    </ol>
+                  </>
                 )
               },
               {
                 tabIcon: RecentActors,
                 tabButton: "Session",
-                tabContent: (
-                  <p>
-                    <h3 className={classes.textCenter}>
-                    </h3>
-                  </p>
-                )
+                tabContent: <>
+                  {codeBlock("php index.php rest", "", "bash", true)}
+                  <AccessControl
+                    testRestfulPostPutDeleteResponse={this.props.testRestfulPostPutDeleteResponse}
+                    axios={this.props.axios}
+                  /></>
               },
               {
                 tabIcon: Exposure,
@@ -589,7 +624,21 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                 tabContent: (
                   <p>
                     <h3 className={classes.textCenter}>
+                      Minification is supported for Javascript and CSS
                     </h3>
+                    <p>This process shrinks load time by reducing file sizes.</p>
+                    <br/><br/>
+                    {codeBlock("php index.php minify", "", "php", true)}
+                    <small>Use the command above built into the CLI to execute this routing. It is recommended to add
+                      this to your build routine.</small>
+                    <br/><br/>
+                    <p>The file below is a bootstrap with only one feature, Minification. The result of running the
+                      command above
+                      would be a file, or two, being created/overwritten in the location dictated by the array returned
+                      by the configuration.
+                      More specifically by the
+                      field: {codeBlock("$return['MINIFY']['CSS']['OUT']\n$return['MINIFY']['JS']['OUT']", "", "php", true)}
+                    </p>
                     {codeBlock(Minification)}
                   </p>
                 )
@@ -623,6 +672,48 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                     <h3 className={classes.textCenter}>
                       https://sweetalert.js.org/guides/
                     </h3>
+                    <a onClick={()=>swal({
+                    text: 'Search for a movie. e.g. "La La Land".',
+                    content: "input",
+                    button: {
+                    text: "Search!",
+                    closeModal: false,
+                  },
+                  })
+                    .then(name => {
+                    if (!name) throw null;
+
+                    return fetch(`https://itunes.apple.com/search?term=${name}&entity=movie`);
+                  })
+                    .then(results => {
+                    return results.json();
+                  })
+                    .then(json => {
+                    const movie = json.results[0];
+
+                    if (!movie) {
+                    return swal("No movie was found!");
+                  }
+
+                    const name = movie.trackName;
+                    const imageURL = movie.artworkUrl100;
+
+                    swal({
+                    title: "Top result:",
+                    text: name,
+                    icon: imageURL,
+                  });
+                  })
+                    .catch(err => {
+                    if (err) {
+                    swal("Oh noes!", "The AJAX request failed!", "error");
+                  } else {
+                    swal.stopLoading();
+                    swal.close();
+                  }
+                  })}>
+                      Click here for an example!
+                    </a>
                   </p>
                 )
               },
@@ -633,7 +724,7 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                   <p>
                     <h3 className={classes.textCenter}>
                     </h3>
-                    <FileStructure />
+                    <FileStructure/>
                   </p>
                 )
               },
@@ -653,7 +744,13 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                 tabContent: (
                   <p>
                     <h3 className={classes.textCenter}>
+                      The Websocket Protocol
                     </h3>
+                    <small>Websockets all for realtime persistent communication.</small>
+                    <br/><br/>
+                    {codeBlock("php index.php websocket", "", "php", true)}
+                    <br/><br/>
+                    <p></p>
                   </p>
                 )
               }

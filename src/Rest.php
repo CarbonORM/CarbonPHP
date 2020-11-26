@@ -224,11 +224,11 @@ abstract class Rest extends Database
 
 
     /**
-     * @param $method
-     * @param $args
-     * @param $regex_validation
-     * @param $php_validation
-     * @return bool
+     * @param string $method
+     * @param array $args
+     * @param array $regex_validation
+     * @param array $php_validation
+     * @return void
      * @throws PublicAlert
      */
     public static function validateRestfulArguments(string $method, array &$args, array $regex_validation, array $php_validation): void
