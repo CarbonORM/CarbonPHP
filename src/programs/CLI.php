@@ -70,7 +70,7 @@ class CLI implements iCommand
                 $imp = class_implements($namespace);
 
                 if (!array_key_exists(iCommand::class, $imp)) {
-                    die('The program class "' . $namespace . '" should also implement iCommand. ' . print_r($imp, true));
+                    die('The program class "' . $namespace . '" should also implement iCommand ("'.iCommand::class.'"). ' . print_r($imp, true));
                 }
 
                 self::colorCode("\nConstructing Program >> $namespace", 'blue');

@@ -274,7 +274,7 @@ class CarbonPHP
     {
         try {
             if ($app_root !== null) {
-                self::$app_root = $app_root;
+                self::$app_root = rtrim($app_root, DS) . DS;    // an extra check
             }
 
             defined('DS') OR define('DS', DIRECTORY_SEPARATOR);

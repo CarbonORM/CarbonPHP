@@ -10,8 +10,6 @@ trait Background
 {
     use ColorCode;
 
-    protected static bool $colorCodeBool = true;
-
     public function background($cmd, $outputFile = null)
     {
         try {
