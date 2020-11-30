@@ -5,8 +5,8 @@ namespace CarbonPHP\Helpers;
 
 
 use CarbonPHP\Error\PublicAlert;
-use CarbonPHP\interfaces\iRest;
-use CarbonPHP\interfaces\iRestfulReferences;
+use CarbonPHP\Interfaces\iRest;
+use CarbonPHP\Interfaces\iRestfulReferences;
 use CarbonPHP\Rest;
 use CarbonPHP\Session;
 

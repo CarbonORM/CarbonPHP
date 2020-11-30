@@ -3,7 +3,7 @@
 namespace CarbonPHP\Programs;
 
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\interfaces\iCommand;
+use CarbonPHP\Interfaces\iCommand;
 
 class ApacheConfig implements iCommand
 {

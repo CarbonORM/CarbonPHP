@@ -4,9 +4,9 @@ namespace CarbonPHP\Programs;
 
 
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\interfaces\iCommand;
-use CarbonPHP\interfaces\iRest;
-use CarbonPHP\interfaces\iRestfulReferences;
+use CarbonPHP\Interfaces\iCommand;
+use CarbonPHP\Interfaces\iRest;
+use CarbonPHP\Interfaces\iRestfulReferences;
 use CarbonPHP\Tables\Carbons;
 use PDO;
 use ReflectionException;

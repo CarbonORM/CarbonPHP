@@ -11,7 +11,7 @@ namespace CarbonPHP\Programs;
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database as DB;
-use CarbonPHP\interfaces\iCommand;
+use CarbonPHP\Interfaces\iCommand;
 
 class BuildDatabase implements iCommand
 {

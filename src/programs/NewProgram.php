@@ -4,7 +4,7 @@
 namespace CarbonPHP\Programs;
 
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\interfaces\iCommand;
+use CarbonPHP\Interfaces\iCommand;
 
 
 /* @author Richard Tyler Miles
@@ -80,7 +80,7 @@ class NewProgram implements iCommand
 
 $namespace
 
-use CarbonPHP\interfaces\iCommand;
+use CarbonPHP\Interfaces\iCommand;
 
 class $programName implements iCommand
 {

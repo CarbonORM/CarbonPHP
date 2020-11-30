@@ -6,7 +6,7 @@
 
 namespace CarbonPHP\Error;
 
-use CarbonPHP\interfaces\iException;
+use CarbonPHP\Interfaces\iException;
 
 abstract class CustomException extends \Exception implements iException
 {

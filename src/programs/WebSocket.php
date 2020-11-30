@@ -6,7 +6,7 @@ use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
 use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Helpers\Pipe;
-use CarbonPHP\interfaces\iCommand;
+use CarbonPHP\Interfaces\iCommand;
 use CarbonPHP\Request;
 use CarbonPHP\Route;
 use CarbonPHP\Session;

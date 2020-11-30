@@ -14,7 +14,7 @@ namespace CarbonPHP\Programs;
 
 use CarbonPHP\Database;
 use CarbonPHP\Error\ErrorCatcher;
-use CarbonPHP\interfaces\iCommand;
+use CarbonPHP\Interfaces\iCommand;
 use Throwable;
 
 class Setup implements iCommand

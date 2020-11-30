@@ -10,7 +10,7 @@ namespace CarbonPHP\Programs;
 
 use CarbonPHP\CarbonPHP;
 use MatthiasMullie\Minify as Run;
-use CarbonPHP\interfaces\iCommand;
+use CarbonPHP\Interfaces\iCommand;
 use Patchwork\JSqueeze;
 
 class Minify implements iCommand
