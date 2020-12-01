@@ -10,7 +10,7 @@ namespace CarbonPHP\Programs;
 
 
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\interfaces\iCommand;
+use CarbonPHP\Interfaces\iCommand;
 
 class CLI implements iCommand
 {
@@ -248,7 +248,7 @@ END;
 
                 namespace Programs;
 
-                use CarbonPHP\interfaces\iCommand;
+                use CarbonPHP\Interfaces\iCommand;
                 
                 class YourNewProgram implements iCommand 
                 { 
