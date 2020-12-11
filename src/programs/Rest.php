@@ -1072,6 +1072,7 @@ export interface  i{{ucEachTableName}}{
 
         return /** @lang Handlebars */ <<<STRING
 <?php 
+
 namespace {{namespace}};
 
 // Restful defaults

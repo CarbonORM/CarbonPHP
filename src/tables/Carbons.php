@@ -128,6 +128,7 @@ class Carbons extends Rest implements iRest
             }
         } 
         
+        /** @noinspection SqlResolve */
         $sql = 'INSERT INTO carbons (entity_pk, entity_fk, entity_tag) VALUES ( UNHEX(:entity_pk), UNHEX(:entity_fk), :entity_tag)';
 
         self::jsonSQLReporting(func_get_args(), $sql);

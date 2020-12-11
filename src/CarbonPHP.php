@@ -273,11 +273,11 @@ class CarbonPHP
     public static function make($configuration = null, string $app_root = null): void
     {
         try {
+            defined('DS') OR define('DS', DIRECTORY_SEPARATOR);
+
             if ($app_root !== null) {
                 self::$app_root = rtrim($app_root, DS) . DS;    // an extra check
             }
-
-            defined('DS') OR define('DS', DIRECTORY_SEPARATOR);
 
             ####################  CLI is not the CLI server
             self::$cli = self::$test || PHP_SAPI === 'cli';

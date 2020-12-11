@@ -143,6 +143,8 @@ class Carbon_Features extends Rest implements iRest
         }
         $feature_code = $argv['carbon_features.feature_code'];
         $stmt->bindParam(':feature_code',$feature_code, 2, 30);
+    
+
 
         return $stmt->execute() ? $id : false;
     
