@@ -70,7 +70,7 @@ IDENTIFIED;
         }
 
         if (empty($this->config['SITE']['CONFIG'])) {
-            print 'The [\'SITE\'][\'CONFIG\'] option is missing. It does not look like CarbonPHP is setup correctly. Run `>> php index.php setup` to fix this.' . PHP_EOL;
+            print 'The [\'SITE\'][\'CONFIG\'] option is missing. It should have the value __FILE__. This helps with debugging.' . PHP_EOL;
             exit(1);
         }
 
