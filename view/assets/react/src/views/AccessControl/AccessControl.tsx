@@ -188,7 +188,6 @@ class AccessControl extends React.Component<iAccessControl, {
         }
       }
     }).then(response => this.setState({ groups: response.data.rest }))
-
   }
 
   deleteFeatureFromGroup(groupId: string, featureId: string) {

@@ -36,7 +36,8 @@ import SequenceDiagram from "assets/img/invertSD.png";
 import FileStructure from "./FileStructure";
 import AccessControl from "../../AccessControl/AccessControl";
 import swal from '@sweetalert/with-react';
-
+import Button from "../../../components/CustomButtons/Button";
+import {C6, iCarbon_Features, iCarbon_Groups, iCarbon_Users} from "../../../variables/C6";
 
 
 const HelloWorld = raw("../../../assets/examples/HelloWorld.php");
@@ -49,6 +50,99 @@ const CarbonPHPConfig = raw("../../../assets/examples/CarbonPHPConfig.php");
 const StatsCoach = raw("../../../assets/examples/StatsCoach.php");
 const CacheControl = raw("../../../assets/examples/CacheControl.php");
 const Minification = raw("../../../assets/examples/Minification.php");
+const minimalRestExample = raw("../../../assets/examples/minimalRestEx.php");
+const restExplanationEx0 = raw("../../../assets/examples/restExplanationEx0.php");
+const restTypeScriptEx1 = raw("../../../variables/C6.tsx");
+const restTest = raw("../../../../../../../tests/RestTest.php");
+const restUserTest = raw("../../../../../../../tests/UserTest.php");
+const iRest = raw("../../../../../../../src/interfaces/iRest.php");
+const iRestfulReferences = raw("../../../../../../../src/interfaces/iRestfulReferences.php");
+
+
+const JS_ORM_EXAMPLE_1 = `# React Code
+<Button color="info" round onClick={() => {
+  axios.get('/rest/' + C6.carbon_features.TABLE_NAME)
+    .then(response => this.setState({ features: (response.data.rest || []) }));
+}}>
+  Example #1
+</Button>`;
+const JS_ORM_EXAMPLE_2 = `# React Code
+<Button color="info" round onClick={() => {
+  // noinspection DuplicatedCode
+  axios.get('/rest/' + C6.carbon_groups.TABLE_NAME, {
+    params: {
+      [C6.SELECT]: [
+        C6.carbon_groups.ENTITY_ID,
+        C6.carbon_groups.GROUP_NAME,
+        [C6.GROUP_CONCAT, C6.carbon_features.FEATURE_CODE],
+        [C6.GROUP_CONCAT, C6.carbon_group_references.ALLOWED_TO_GRANT_GROUP_ID]
+      ],
+      [C6.JOIN]: {
+        [C6.LEFT]: {
+          [C6.carbon_group_references.TABLE_NAME]: [
+            C6.carbon_group_references.GROUP_ID,
+            C6.carbon_groups.ENTITY_ID
+          ],
+          [C6.carbon_feature_group_references.TABLE_NAME]: [
+            C6.carbon_groups.ENTITY_ID,
+            C6.carbon_feature_group_references.GROUP_ENTITY_ID
+          ],
+          [C6.carbon_features.TABLE_NAME]: [
+            C6.carbon_features.FEATURE_ENTITY_ID,
+            C6.carbon_feature_group_references.FEATURE_ENTITY_ID
+          ]
+        }
+      },
+      [C6.PAGINATION]: {
+        [C6.LIMIT]: 100
+      }
+    }
+  }).then(response => this.setState({ groups: response.data.rest }))
+}}>
+  Example #2
+</Button>`;
+const JS_ORM_EXAMPLE_3 = `# React Code
+<Button color="info" round onClick={() => {
+  // noinspection DuplicatedCode
+  axios.get('/rest/' + C6.carbon_users.TABLE_NAME, {
+    params: {
+      [C6.SELECT]: [
+        C6.carbon_users.USER_USERNAME,
+        C6.carbon_users.USER_FIRST_NAME,
+        C6.carbon_users.USER_LAST_NAME,
+        C6.carbon_users.USER_ID,
+        [C6.GROUP_CONCAT, C6.carbon_features.FEATURE_CODE],
+        [C6.GROUP_CONCAT, C6.carbon_groups.GROUP_NAME]
+      ],
+      [C6.JOIN]: {
+        [C6.LEFT]: {
+          [C6.carbon_user_groups.TABLE_NAME]: [
+            C6.carbon_users.USER_ID,
+            C6.carbon_user_groups.USER_ID
+          ],
+          [C6.carbon_groups.TABLE_NAME]: [
+            C6.carbon_user_groups.GROUP_ID,
+            C6.carbon_groups.ENTITY_ID
+          ],
+          [C6.carbon_feature_group_references.TABLE_NAME]: [
+            C6.carbon_groups.ENTITY_ID,
+            C6.carbon_feature_group_references.GROUP_ENTITY_ID
+          ],
+          [C6.carbon_features.TABLE_NAME]: [
+            C6.carbon_features.FEATURE_ENTITY_ID,
+            C6.carbon_feature_group_references.FEATURE_ENTITY_ID
+          ]
+        }
+      },
+      [C6.PAGINATION]: {
+        [C6.LIMIT]: 100
+      }
+    }
+  }).then(response => this.setState({ users: (response.data.rest || []) }));
+}}>
+  Example #3
+</Button>`;
+
 
 interface iCarbonPHP extends WithStyles<typeof dashboardStyle> {
   axios: AxiosInstance;
@@ -56,10 +150,41 @@ interface iCarbonPHP extends WithStyles<typeof dashboardStyle> {
   codeBlock: (markdown: String, highlight ?: String, language ?: String, dark ?: boolean) => any;
 }
 
+interface UserAccessControl extends iCarbon_Users {
+  group_name?: string,
+  feature_code?: string
+}
 
-class CarbonPHP extends React.Component<iCarbonPHP, any> {
+interface iGroupFeatures extends iCarbon_Groups, iCarbon_Features {
+  allowed_to_grant_group_id?: string;
+}
+
+class CarbonPHP extends React.Component<iCarbonPHP, {
+  users?: Array<UserAccessControl>,
+  features?: Array<iCarbon_Features>,
+  groups?: Array<iGroupFeatures>,
+  exampleCode: string,
+  jsonStringOutput: string,
+  exampleCodeAPI: string,
+  exampleInterface: string
+}> {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      exampleCodeAPI: '',
+      exampleInterface: '',
+      exampleCode: '',
+      jsonStringOutput: '',
+      groups: [],
+      features: [],
+      users: []
+    };
+  }
+
   render() {
-    const { classes, codeBlock } = this.props;
+    const { axios, classes, codeBlock } = this.props;
+
     return (
       <GridContainer justify="center">
         <GridItem xs={12} sm={12} md={8}>
@@ -84,7 +209,7 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                 tabContent: (
                   <p>
                     <h3 className={classes.textCenter}>
-                      <b>Version 6.1 of C6</b> is <b>production ready</b>.
+                      <b>Version 6 of C6</b> is <b>production ready</b>.
                     </h3>
                     The PHP language is written and compiled from C code. Most Operating
                     systems now a day come pre-packaged with PHP. During my undergrad, while
@@ -112,7 +237,8 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                     resource for code in CarbonPHP's context.
                     <br/><br/>
                     Features can be modified or replaced to suit your development.
-                    Here are some modules for quick reference.
+                    The remainder of this page is dedicated to C6's internal routing, though <b>existing applications </b>
+                    may find the <b>Auto-Generated REST ORM</b> aka just the <b>"ORM" tab</b> to be a better introduction.
                     <br/><br/>
 
                     <br/>
@@ -466,7 +592,7 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                     The method will decide which to use based off the files extension.
                     note over View,Browser: 13
                     <h3>13) Print and send the content. This could be a JSON, HTML, or any other vector of
-                    response.</h3>
+                      response.</h3>
 
                     View--&gt;-Bootstrap: 14
                     <h3>14) Safely returning
@@ -578,17 +704,26 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                 tabIcon: Storage,
                 tabButton: "ORM",
                 tabContent: (
-
                   <>
                     <h3 className={classes.textCenter}>
                       C6 is shipped with a custom ORM which generates PHP code and Typescript MYSQL bindings.
                     </h3>
+                    <p>Writing sql in code is a long process which is hard to maintain over time. C6 automates that.
+                      When a reference no longer exists in MYSQL it will not be generated. Your editor will highlight it
+                      as undefined,
+                      giving you the opportunity to fix it. With code references generated for you writing your sql is
+                      easier than ever. Statement and columns will autocomplete giving you ease of mind every time. Queries
+                      generated will be validated automatically using PDO based off table data from the mysql dump. The
+                      REST ORM C6 ships with allows gives you a full api with customizable endpoints and validation functions.
+                    </p>
+                    <br/>
                     <p>The command line interface is used to generate and regenerate bindings.</p>
                     {codeBlock("php index.php rest", "", "php", true)}
                     <small>You may append the <b>"-help"</b> flag to see a full list or options.</small>
-                    <h4>Overview</h4>
-                    <ol>
-                      <li>Entity System</li>
+                    <h3>Overview</h3>
+                    <ol {...{ 'start': 0 }}>
+                      <li>Examples</li>
+                      <li>Requirements</li>
                       <li>Restful API</li>
                       <li>Internal API</li>
                       <li>Validation Filters
@@ -610,7 +745,211 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                         </ul>
                       </li>
                       <li>Data Retention with <i>-Triggers</i></li>
+                      <li>Entity System</li>
                     </ol>
+                    <br/>
+                    <h2>Examples</h2>
+                    <p>
+                      These are real restful requests which use the autogenerated syntax to communicate with the api.
+                      You can see these request in a nice user interface in the 'Sessions' tab. This layout is intended
+                      to show the raw response from the server. The following examples are built with the <b>-json </b>
+                      flag. Removing such would cause the extra "sql" reporting information to not displayed.
+                      <br/>
+                      <br/>
+                      <Button color="info" round onClick={() => {
+                        axios.get('/rest/' + C6.carbon_features.TABLE_NAME)
+                          .then(response => this.setState({
+                            features: (response.data.rest || []),
+                            exampleCode: JS_ORM_EXAMPLE_1,
+                            jsonStringOutput: JSON.stringify(response.data, null, 2)
+                          }));
+                      }}>
+                        Simple Select All
+                      </Button>
+                      <Button color="info" round onClick={() => {
+                        // noinspection DuplicatedCode
+                        axios.get('/rest/' + C6.carbon_groups.TABLE_NAME, {
+                          params: {
+                            [C6.SELECT]: [
+                              C6.carbon_groups.ENTITY_ID,
+                              C6.carbon_groups.GROUP_NAME,
+                              [C6.GROUP_CONCAT, C6.carbon_features.FEATURE_CODE],
+                              [C6.GROUP_CONCAT, C6.carbon_group_references.ALLOWED_TO_GRANT_GROUP_ID]
+                            ],
+                            [C6.JOIN]: {
+                              [C6.LEFT]: {
+                                [C6.carbon_group_references.TABLE_NAME]: [
+                                  C6.carbon_group_references.GROUP_ID,
+                                  C6.carbon_groups.ENTITY_ID
+                                ],
+                                [C6.carbon_feature_group_references.TABLE_NAME]: [
+                                  C6.carbon_groups.ENTITY_ID,
+                                  C6.carbon_feature_group_references.GROUP_ENTITY_ID
+                                ],
+                                [C6.carbon_features.TABLE_NAME]: [
+                                  C6.carbon_features.FEATURE_ENTITY_ID,
+                                  C6.carbon_feature_group_references.FEATURE_ENTITY_ID
+                                ]
+                              }
+                            },
+                            [C6.PAGINATION]: {
+                              [C6.LIMIT]: 100
+                            }
+                          }
+                        }).then(response => this.setState({
+                          groups: response.data.rest,
+                          exampleCode: JS_ORM_EXAMPLE_2,
+                          jsonStringOutput: JSON.stringify(response.data, null, 2)
+                        }))
+                      }}>
+                        Table Joins
+                      </Button>
+                      <Button color="info" round onClick={() => {
+                        // noinspection DuplicatedCode
+                        axios.get('/rest/' + C6.carbon_users.TABLE_NAME, {
+                          params: {
+                            [C6.SELECT]: [
+                              C6.carbon_users.USER_USERNAME,
+                              C6.carbon_users.USER_FIRST_NAME,
+                              C6.carbon_users.USER_LAST_NAME,
+                              C6.carbon_users.USER_ID,
+                              [C6.GROUP_CONCAT, C6.carbon_features.FEATURE_CODE],
+                              [C6.GROUP_CONCAT, C6.carbon_groups.GROUP_NAME]
+                            ],
+                            [C6.JOIN]: {
+                              [C6.LEFT]: {
+                                [C6.carbon_user_groups.TABLE_NAME]: [
+                                  C6.carbon_users.USER_ID,
+                                  C6.carbon_user_groups.USER_ID
+                                ],
+                                [C6.carbon_groups.TABLE_NAME]: [
+                                  C6.carbon_user_groups.GROUP_ID,
+                                  C6.carbon_groups.ENTITY_ID
+                                ],
+                                [C6.carbon_feature_group_references.TABLE_NAME]: [
+                                  C6.carbon_groups.ENTITY_ID,
+                                  C6.carbon_feature_group_references.GROUP_ENTITY_ID
+                                ],
+                                [C6.carbon_features.TABLE_NAME]: [
+                                  C6.carbon_features.FEATURE_ENTITY_ID,
+                                  C6.carbon_feature_group_references.FEATURE_ENTITY_ID
+                                ]
+                              }
+                            },
+                            [C6.PAGINATION]: {
+                              [C6.LIMIT]: 100
+                            }
+                          }
+                        }).then(response => this.setState({
+                          users: (response.data.rest || []),
+                          exampleCode: JS_ORM_EXAMPLE_3,
+                          jsonStringOutput: JSON.stringify(response.data, null, 2)
+                        }));
+                      }}>
+                        MySQL Aggregate Functions
+                      </Button>
+                      <Button color="info" round onClick={() => {
+                        this.setState({
+                            exampleCode: restTypeScriptEx1,
+                          });
+                      }}>
+                        Example #4 TypeScript Generation
+                      </Button>
+                      <Button color="success" round onClick={() => this.setState({
+                        exampleCode: '',
+                        jsonStringOutput: ''
+                      })}>
+                        Reset Examples
+                      </Button>
+                    </p>
+
+                    <div>
+                      {this.state.jsonStringOutput !== '' ? <h5><b>Part 1, the response.</b></h5> : ''}
+                      <pre>
+                        {this.state.jsonStringOutput !== '' ? this.state.jsonStringOutput : ''}
+                      </pre>
+                      {this.state.jsonStringOutput !== '' ? <h5><b>Part 2, frontend request.</b></h5> : ''}
+                      {this.state.exampleCode !== '' ? codeBlock(this.state.exampleCode, '', 'javascript') : ''}
+                    </div>
+                    <br/>
+                    <h2>Requirements</h2>
+                    <p>
+                      By default the rest program uses <b>mysqldump</b> which should be in your environments $PATH. This will be the
+                      case should mysql be installed on your system. You may use the <b>-mysqldump</b> flag to specify the executable location.
+                      For some systems this is not possible, so the flag <b>-dump</b> exists to specify the location of the dump generated.
+                      This dump should be created using the <b>--no-data</b> flag for the mysqldump program. Not doing such may cause unexpected
+                      results. Should a dump file be provided, no database access or credentials are required. The following code example
+                      is our minimal rest example, which would give full rest access to any generated tables.
+                    </p>
+                    {codeBlock(minimalRestExample)}
+                    <br/><br/>
+                    The above code would execute the following method.
+                    <br/><br/>
+                    {codeBlock(restExplanationEx0)}
+                    <br/>
+                    <h2>Restful API</h2>
+                    <p>
+                        There are two possible contracts ('Interfaces') that the auto generated php class may follow.
+                      <br/><br/>
+                      <Button color="info" round onClick={() => this.setState({
+                        exampleInterface: iRest,
+                      })}>
+                        Table with primary key
+                      </Button>
+                      <Button color="info" round onClick={() => this.setState({
+                        exampleInterface: iRestfulReferences,
+                      })}>
+                        Table without primary key
+                      </Button>
+                      <Button color="success" round onClick={() => this.setState({
+                        exampleInterface: '',
+                      })}>
+                        Table without primary key
+                      </Button>
+                      <br/>
+                      <br/>
+                      <div>
+                        {this.state.exampleInterface !== '' ? codeBlock(this.state.exampleInterface, '', 'php') : ''}
+                      </div>
+                    </p>
+                    <h2>Internal API</h2>
+                    <p>
+                      I believe the best way to display an api is through the tests which act as contracts of existence.
+                      <br/><br/>
+                      <Button color="info" round onClick={() => this.setState({
+                        exampleCodeAPI: restTest,
+                      })}>
+                        Rest Test
+                      </Button>
+                      <Button color="info" round onClick={() => this.setState({
+                        exampleCodeAPI: restUserTest,
+                      })}>
+                        User Test
+                      </Button>
+                      <Button color="success" round onClick={() => this.setState({
+                        exampleCodeAPI: '',
+                      })}>
+                        Reset Examples
+                      </Button>
+                      <br/>
+                      <br/>
+                      <div>
+                        {this.state.exampleCodeAPI !== '' ? codeBlock(this.state.exampleCodeAPI, '', 'php') : ''}
+                      </div>
+
+                    </p>
+                    <h2>Validation Filters</h2>
+                    <p>
+
+                    </p>
+                    <h2>Data Retention with <i>-Triggers</i></h2>
+                    <p>
+
+                    </p>
+                    <h2>Entity System</h2>
+                    <p>
+
+                    </p>
                   </>
                 )
               },
@@ -680,46 +1019,46 @@ class CarbonPHP extends React.Component<iCarbonPHP, any> {
                     <h3 className={classes.textCenter}>
                       https://sweetalert.js.org/guides/
                     </h3>
-                    <a onClick={()=>swal({
-                    text: 'Search for a movie. e.g. "La La Land".',
-                    content: "input",
-                    button: {
-                    text: "Search!",
-                    closeModal: false,
-                  },
-                  })
-                    .then(name => {
-                    if (!name) throw null;
+                    <a onClick={() => swal({
+                      text: 'Search for a movie. e.g. "La La Land".',
+                      content: "input",
+                      button: {
+                        text: "Search!",
+                        closeModal: false,
+                      },
+                    })
+                      .then(name => {
+                        if (!name) throw null;
 
-                    return fetch(`https://itunes.apple.com/search?term=${name}&entity=movie`);
-                  })
-                    .then(results => {
-                    return results.json();
-                  })
-                    .then(json => {
-                    const movie = json.results[0];
+                        return fetch(`https://itunes.apple.com/search?term=${name}&entity=movie`);
+                      })
+                      .then(results => {
+                        return results.json();
+                      })
+                      .then(json => {
+                        const movie = json.results[0];
 
-                    if (!movie) {
-                    return swal("No movie was found!");
-                  }
+                        if (!movie) {
+                          return swal("No movie was found!");
+                        }
 
-                    const name = movie.trackName;
-                    const imageURL = movie.artworkUrl100;
+                        const name = movie.trackName;
+                        const imageURL = movie.artworkUrl100;
 
-                    swal({
-                    title: "Top result:",
-                    text: name,
-                    icon: imageURL,
-                  });
-                  })
-                    .catch(err => {
-                    if (err) {
-                    swal("Oh noes!", "The AJAX request failed!", "error");
-                  } else {
-                    swal.stopLoading();
-                    swal.close();
-                  }
-                  })}>
+                        swal({
+                          title: "Top result:",
+                          text: name,
+                          icon: imageURL,
+                        });
+                      })
+                      .catch(err => {
+                        if (err) {
+                          swal("Oh noes!", "The AJAX request failed!", "error");
+                        } else {
+                          swal.stopLoading();
+                          swal.close();
+                        }
+                      })}>
                       Click here for an example!
                     </a>
                   </p>

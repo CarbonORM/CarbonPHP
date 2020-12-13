@@ -838,7 +838,6 @@ export const C6 = {
     MAX: '" . \CarbonPHP\Rest::MAX . "',
     GROUP_CONCAT: '" . \CarbonPHP\Rest::GROUP_CONCAT . "',
     
-
     $references_tsx
     
 };

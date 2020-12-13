@@ -2,7 +2,7 @@ const {createProxyMiddleware} = require('http-proxy-middleware');
 
 module.exports = function (app) {
     app.use('/rest/**', createProxyMiddleware({
-        target: 'http://dev.carbonphp.com:80/',
+        target: 'http://dev.carbonphp.com:8080/',
         changeOrigin: true,
         secure: false,
         proxyTimeout: 4000,
@@ -12,7 +12,7 @@ module.exports = function (app) {
         logLevel: "debug"
     }));
     app.use('/carbon/**', createProxyMiddleware({
-        target: 'http://dev.carbonphp.com:80/',
+        target: 'http://dev.carbonphp.com:8080/',
         changeOrigin: true,
         secure: false,
         proxyTimeout: 4000,

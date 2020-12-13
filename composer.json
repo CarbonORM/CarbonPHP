@@ -47,6 +47,7 @@
   },
   "scripts": {
     "rei": "rm -rf vendor && rm composer.lock && composer i",
+    "start": "php -S dev.carbonphp.com:8080 index.php -d display_errors=1",
     "setupCI": [
       "php index.php setup --mysql_native_password",
       "php index.php setup --rebuild",

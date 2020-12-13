@@ -307,7 +307,7 @@ final class RestTest extends Config
 
         $_POST = [Users::SELECT => [
             Users::USER_USERNAME,
-            Carbon_Locations::STATE,
+            Carbon_Locations::STATE
         ],
             Users::JOIN => [
                 Users::INNER => [

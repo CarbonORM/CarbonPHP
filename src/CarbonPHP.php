@@ -298,9 +298,9 @@ class CarbonPHP
             self::$composer_root = dirname(self::CARBON_ROOT, 2) . DS;
 
             ################  Helpful Global Functions ####################
-            if (!file_exists(self::CARBON_ROOT . 'helpers' . DS . 'Application.php')
-                || !include self::CARBON_ROOT . 'helpers' . DS . 'Application.php') {
-                print '<h1>Your instance of CarbonPHP appears corrupt. Please see CarbonPHP.com for Documentation.</h1>';
+            if (!file_exists(__DIR__ . DS . 'Functions.php')
+                || !include __DIR__ . DS .  'Functions.php') {
+                print PHP_EOL . 'Your instance of CarbonPHP appears corrupt. Please see CarbonPHP.com for Documentation' . PHP_EOL;
                 die(1);
             }
 

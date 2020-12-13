@@ -32,17 +32,21 @@ class Dependencies extends React.Component {
                 patchwork/jsqueeze: ^2.0<br/>
               </b>
               <p>The above are required to get the full CarbonPHP backend functionality.</p>
-              <br/><br/>
               <h3>NPM (JS) Dependencies</h3>
               <p>
                 C6 can be used strictly as a php library with your custom frontend solution(s).
                 C6 Minifies and packages many of the AdminLTE plugin's JS and CSS files,
                 as well as the production build of this react application / documentation. Besides
-                the compiled resources dependacies are not shipped.
+                the compiled resources dependencies are not shipped.
                 NPM install will not be necessary to browse the application using the built-in php
                 web server. To edit the application and run the node development sever, you will need
                 to npm install from two different directories.
               </p>
+              <h3>System Dependencies</h3>
+              <p>The Rest ORM generator defaults to using <b>mysqldump</b> which is by default installed with mysql to
+              generate the php mysql bindings. It is recommended to have this available from your path. Other options
+              are explained in the Documentation {">"} ORM tab.</p>
+              <a href="https://getcomposer.org/doc/04-schema.md#psr-4" target="_blank">Composer is required, and recommended for namespace resolution.</a>
               <br/><br/>
               <h3>
                 <b>AdminLTE's Dependencies</b><br/><br/>
