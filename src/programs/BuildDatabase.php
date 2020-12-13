@@ -147,39 +147,6 @@ TEXT;
         }
 
 
-        $tags = <<<TAGS
-Try {
-    \$sql = <<<END
-REPLACE INTO tags (tag_id, tag_description, tag_name) VALUES (?,?,?);
-END;
-     \$tag = [
-TAGS;
-
-        foreach ($matches[1] as $key => $tableName) {
-            $tags .= "['$tableName','','$tableName'],";
-        }
-        $tags .=  <<<TAGS
-];
-    foreach (\$tag as \$key => \$value) {
-            \$sql = "SELECT count(*) FROM tags WHERE tag_id = ? AND tag_description = ? AND tag_name = ?;";
-            \$query = \$db->prepare(\$sql);
-            \$query->execute(\$value);
-        if (!\$query->fetchColumn()) {
-            \$sql = "INSERT INTO tags (tag_id, tag_description, tag_name) VALUES (?,?,?);";
-            \$db->prepare(\$sql)->execute(\$value);
-            print "<br>{\$value[0]} :: tags inserted";
-        }
-    }
-    
-
-} catch (PDOException \$e) {
-    print '<br>' . \$e->getMessage();
-}
-
-TAGS;
-
-        $build .= $tags;
-
         $build .= <<<FOOT
 
     print '<br><br><h3>Rocking! CarbonPHP setup and/or rebuild is complete.</h3>';

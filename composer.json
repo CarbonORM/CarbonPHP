@@ -64,6 +64,9 @@
       "php index.php minify",
       "cd view/assets/react && npm install && npm run build"
     ],
+    "saveDatabase:Schema": [
+      "php index.php buildDatabase -s"
+    ],
     "rest" :[
       "php index.php rest -json -logClasses"
     ],

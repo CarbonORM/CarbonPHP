@@ -168,7 +168,7 @@ END;
 CREATE TABLE `carbon_groups` (
   `group_name` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `entity_id` binary(16) NOT NULL,
-  `created_by` binary(16) DEFAULT NULL,
+  `created_by` binary(16) NOT NULL,
   `creation_date` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`entity_id`),
   KEY `carbon_feature_groups_carbons_entity_pk_fk_2` (`created_by`),
@@ -624,27 +624,7 @@ END;
         print $sql . '<br>';
         $db->exec($sql) === false and die(print_r($db->errorInfo(), true));
         print '<br><p style="color: green">Table `sessions` Created</p>';
-    }Try {
-    $sql = <<<END
-REPLACE INTO tags (tag_id, tag_description, tag_name) VALUES (?,?,?);
-END;
-     $tag = [['carbon_comments','','carbon_comments'],['carbon_feature_group_references','','carbon_feature_group_references'],['carbon_features','','carbon_features'],['carbon_group_references','','carbon_group_references'],['carbon_groups','','carbon_groups'],['carbon_location_references','','carbon_location_references'],['carbon_locations','','carbon_locations'],['carbon_photos','','carbon_photos'],['carbon_reports','','carbon_reports'],['carbon_user_followers','','carbon_user_followers'],['carbon_user_groups','','carbon_user_groups'],['carbon_user_messages','','carbon_user_messages'],['carbon_user_sessions','','carbon_user_sessions'],['carbon_user_tasks','','carbon_user_tasks'],['carbon_users','','carbon_users'],['carbons','','carbons'],['creation_logs','','creation_logs'],['history_logs','','history_logs'],['sessions','','sessions'],];
-    foreach ($tag as $key => $value) {
-            $sql = "SELECT count(*) FROM tags WHERE tag_id = ? AND tag_description = ? AND tag_name = ?;";
-            $query = $db->prepare($sql);
-            $query->execute($value);
-        if (!$query->fetchColumn()) {
-            $sql = "INSERT INTO tags (tag_id, tag_description, tag_name) VALUES (?,?,?);";
-            $db->prepare($sql)->execute($value);
-            print "<br>{$value[0]} :: tags inserted";
-        }
     }
-    
-
-} catch (PDOException $e) {
-    print '<br>' . $e->getMessage();
-}
-
     print '<br><br><h3>Rocking! CarbonPHP setup and/or rebuild is complete.</h3>';
 
 } catch (PDOException $e) {
