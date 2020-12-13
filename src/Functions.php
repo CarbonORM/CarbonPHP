@@ -222,10 +222,10 @@ namespace {                                     // This runs the following code 
 
         if (CarbonPHP::$cli) {
             print $report = $output(true);
-            ColorCode::colorCode($report . PHP_EOL);
+            ColorCode::colorCode($report . PHP_EOL, 'red');
         } else {
             print $report = $output(false);
-            ColorCode::colorCode($output(true) . PHP_EOL);
+            ColorCode::colorCode($output(true) . PHP_EOL, 'red');
         }
 
         // Output to browser

@@ -41,7 +41,8 @@ abstract class Application extends Route
     public function fullPage(): callable
     {
         return static function (string $file) {
-             self::$matched = true;
+            self::$matched = true;
+            /** @noinspection PhpIncludeInspection */
             return include CarbonPHP::$app_root . CarbonPHP::$app_view . $file;
         };
     }
@@ -54,11 +55,13 @@ abstract class Application extends Route
          * @throws Mustache_Exception_InvalidArgumentException
          */
         return static function (string $file): bool {
-             self::$matched = true;
+            self::$matched = true;
             return View::content(CarbonPHP::$app_view . $file, CarbonPHP::$app_root);
         };
     }
 
+    private static string $CONTROLLER_NAMESPACE = 'Controller\\';
+    private static string $MODEL_NAMESPACE = 'Model\\';
 
     /**Stands for Controller -> Model .
      *
@@ -78,8 +81,8 @@ abstract class Application extends Route
         $class = ucfirst(strtolower($class));   // Prevent malformed class names
         $method = strtolower($method);          // Prevent malformed method names
 
-        $controller = "Controller\\$class";     // add namespace for autoloader
-        $model = "Model\\$class";
+        $controller = self::$CONTROLLER_NAMESPACE . $class;     // add namespace for autoloader
+        $model = self::$MODEL_NAMESPACE . $class;
 
         return static function () use ($controller, $model, $method, $argv) {
 
@@ -94,7 +97,7 @@ abstract class Application extends Route
 
                 // Make sure our Model exists
                 if (!class_exists($model)) {
-                    throw new Error( "Invalid Model ({$model}) Passed to MVC. Please ensure your namespace mappings are correct!");
+                    throw new Error("Invalid Model ({$model}) Passed to MVC. Please ensure your namespace mappings are correct!");
                 }
 
                 return \call_user_func_array([new $model, $method], is_array($argv) ? $argv : [$argv]);
@@ -160,20 +163,26 @@ abstract class Application extends Route
         return View::content($file . $ext, CarbonPHP::$app_root);
     }
 
-    public function MVC(): callable
+    public static function MVC(string $controllerNamespace = null, string $modelNamespace = null): callable
     {
-        return function (string $class, string $method, array &$argv = []) {
-             self::$matched = true;
+        if ($controllerNamespace !== null) {
+            self::$CONTROLLER_NAMESPACE = $controllerNamespace;
+        }
+        if ($modelNamespace !== null) {
+            self::$MODEL_NAMESPACE = $modelNamespace;
+        }
+        return static function (string $class, string $method, array &$argv = []) {
+            self::$matched = true;
             return self::ControllerModelView($class, $method, $argv);
         };
     }
 
-    public function JSON($selector = '#pjax-content'): callable
+    public static function JSON($selector = '#pjax-content'): callable
     {
-        return function ($class, $method, $argv) use ($selector) {
+        return static function ($class, $method, $argv) use ($selector) {
             global $alert, $json;
 
-             self::$matched = true;
+            self::$matched = true;
 
             if (false === $return = ErrorCatcher::catchErrors(static::CM($class, $method, $argv))()) {
                 return null;

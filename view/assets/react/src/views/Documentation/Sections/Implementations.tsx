@@ -110,7 +110,8 @@ class Implementations extends React.Component<iCarbonPHP, {
 
         <h3>Deploy to the Cloud</h3>
         <p className="lead">
-          <p>Linux users may find this script useful for deploying to Google Compute Engine. The script is a bash shell
+          <p>Linux users may find this script useful for deploying to
+            <a href="https://cloud.google.com/sdk/docs/quickstart" target="_blank" rel="noopener noreferrer" >Google Compute Engine</a>. The script is a bash shell
             script which uses <b>#!/usr/bin/env bash</b> as the shebang.</p>
           {this.props.codeBlock('./src/programs/gcpDeployment.sh')}
           It has the following three
