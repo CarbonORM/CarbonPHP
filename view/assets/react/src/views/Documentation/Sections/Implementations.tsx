@@ -110,7 +110,10 @@ class Implementations extends React.Component<iCarbonPHP, {
 
         <h3>Deploy to the Cloud</h3>
         <p className="lead">
-          Linux users may find this script useful for deploying to Google Compute Engine. It has the following three
+          <p>Linux users may find this script useful for deploying to Google Compute Engine. The script is a bash shell
+            script which uses <b>#!/usr/bin/env bash</b> as the shebang.</p>
+          {this.props.codeBlock('./src/programs/gcpDeployment.sh')}
+          It has the following three
           command line options.
           <ul>
             <li>-deploy instance_name (optional)</li>
@@ -121,7 +124,7 @@ class Implementations extends React.Component<iCarbonPHP, {
             reason it is not listed in the programs help menu.</small>
           <br/>
           <br/>
-          <h3>Zero to One Hundred</h3>
+          <h5>Zero to One Hundred</h5>
           <p>This deployment process will completely start and setup a dedicated server for this repository.</p>
           <ol>
             <li>Updates apt</li>
@@ -134,16 +137,15 @@ class Implementations extends React.Component<iCarbonPHP, {
             <li>Installs SSL certificates (free and trusted)</li>
           </ol>
         </p>
-        <small>*this will not run out-of-the-box. It would not be a good idea for the public to be able to change my DNS records.
-        For this reason, your build will fail as the keys are invalid. I plan for
-        version 8 of C6 to modularize this process to be used with any repository.</small>
+        <small>*this will not run out-of-the-box. It would not be a good idea for the public to be able to change my DNS
+          records.
+          For this reason, your build will fail as the keys are invalid. I plan for
+          version 8 of C6 to modularize this process to be used with any repository.</small>
         <br/>
         <br/>
         <p>The following configuration must be available to successfully deploy to gcp.</p>
         {this.props.codeBlock(CONFIG)}
         <br/><br/>
-        <p>The script is a bash shell script which uses <b>#!/usr/bin/env bash</b> as the shebang.</p>
-        {this.props.codeBlock('./src/programs/gcpDeployment.sh')}
         <br/><br/>
         <Button round color={this.state.showCode ? 'success' : 'info'} onClick={() => this.setState({
           showCode: !this.state.showCode

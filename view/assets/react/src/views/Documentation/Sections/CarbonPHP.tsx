@@ -1201,7 +1201,7 @@ class CarbonPHP extends React.Component<iCarbonPHP, {
                       Forks
                     </h3>
                     <p>I plan to write a pnctl library for Windows one day. If anyone would like to help that would be
-                    much appreciated. Until then forking will only be available for linux and osx users. You can use
+                    much appreciated. Contact me at <b>Richard@Miles.Systems</b> and thank you in advance. Until then forking will only be available for linux and osx users. You can use
                       <b> Fork::safe()</b> to help avoid cross platform issues. So programs simply require the library,
                       such as websockets.</p>
                     {codeBlock(forksCode)}
