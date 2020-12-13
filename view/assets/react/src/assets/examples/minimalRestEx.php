@@ -17,6 +17,22 @@ if (false === (include __DIR__ . DS  . 'vendor' . DS . 'autoload.php')) {     //
 
 (new CarbonPHP(new class extends Application implements iConfig {
 
+    /** This method is actully copied here for refrence and is not used,
+     * its identical twin in CarbonPHP\Rest::MatchRestfulRequests is what is called in defaultRoute();
+     * @package CarbonPHP\Rest
+     * @param Route $route
+     * @param string $prefix
+     * @return Route
+     */
+    public static function MatchRestfulRequests(Route $route, string $prefix = ''): Route
+    {
+        return $route->regexMatch(/** @lang RegExp */ '#' . $prefix . 'rest/([A-Za-z\_]{1,256})/?' . Route::MATCH_C6_ENTITY_ID_REGEX . '?#',
+            static function (string $table, string $primary = null) {
+                Rest::RestfulRequests($table, $primary);
+                return true;
+            });
+    }
+
     public function startApplication(string $uri): bool
     {
         return true;    // silence is golden

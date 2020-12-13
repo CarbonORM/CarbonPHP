@@ -23,7 +23,6 @@ class CLI implements iCommand
     private array $UserPrograms = [];
     private string $userProgramsDirectory = '';
 
-
     private static ?iCommand $program;
 
     public function __construct(array $configuration)
@@ -50,6 +49,7 @@ class CLI implements iCommand
             $this->usage();
             exit(1);
         }
+        
 
         $searchAndConstruct = static function ($array, bool $C6Internal = true) use ($program, $PHP, $argv) {
             // Validation with this loop
@@ -62,6 +62,7 @@ class CLI implements iCommand
 
                 $namespace = ($C6Internal ? "CarbonPHP\\" : '') . "Programs\\$name";
 
+                
                 if (!class_exists($namespace)) {
                     self::colorCode("Failed to load the class ($namespace)");
                     die('Failed to load the class ("' . $namespace . '")');
@@ -214,17 +215,18 @@ class CLI implements iCommand
             if (!empty($this->UserPrograms)) {
                 $UserPrograms = implode("\n                        ", $this->UserPrograms);
 
-                print <<<END
+                self::colorCode( <<<END
           Available CarbonPHP CLI Commands  
             
           User Defined Commands :: 
 
                         $UserPrograms
 
-END;
+END,'green');
+
             } else {
 
-                print <<<END
+                self::colorCode(<<<END
           You can create custom commands by adding the "Programs//" namespace to 
           
                   CarbonPHP::\$app_root . composers.json
@@ -257,16 +259,15 @@ END;
                 
                 }
 
-END;
+END, 'yellow');
             }
         }
-
 
         // $c6
 
         self::colorCode("
           
-          CarbonPHP Built-in commands ::
+          CarbonPHP Built-in commands (case insensitive)::
         
                         help                          - This list of options
                         [command] -help               - display a list of options for each sub command
@@ -276,7 +277,9 @@ END;
                         Database                      - cache current database schema or rebuild cached schema
                         Minify                        - minify css and js files defined in configuration 
                         Setup                         - wip
-                        TestBuilder                   - wip (work in progress) 
+                        TestBuilder                   - creates program boilerplate code and stores to file
+                        Deployment                    - Designed around deploying to a GCP server
+                        SendToUserPipe                - send text over named pipe with session id
 
 
           While CarbonPHP displays this in the cli, it does not exit here. Custom functions may 

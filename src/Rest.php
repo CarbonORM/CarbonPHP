@@ -162,7 +162,7 @@ abstract class Rest extends Database
                             throw new PublicAlert('The request failed, please make sure arguments are correct for this method.');
                         }
                     } else {
-                        throw new PublicAlert('The first numeric key for PHP_VALIDATION["$method"][0][] should equal = arrays with [ call => method , structure followed by any additional arguments ]. Refer to Carbonphp.com for more info.');
+                        throw new PublicAlert('The first numeric key for PHP_VALIDATION["'.$method.'"][0][] should equal = arrays with [ call => method , structure followed by any additional arguments ]. Refer to Carbonphp.com for more info.');
                     }
                 }
             }

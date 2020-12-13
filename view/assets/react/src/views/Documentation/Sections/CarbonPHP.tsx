@@ -46,17 +46,30 @@ const iConfig = raw("../../../assets/examples/iConfig.php");
 const iConfigPHPDOC = raw("../../../assets/examples/iConfigPHPDOC.php");
 const InstantChat = raw("../../../assets/examples/InstantChat.php");
 const RegexMatch = raw("../../../assets/examples/RegexMatch.php");
-const CarbonPHPConfig = raw("../../../assets/examples/CarbonPHPConfig.php");
+const CarbonPHPConfig = raw("../../../../../../../config/Documentation.php");
 const StatsCoach = raw("../../../assets/examples/StatsCoach.php");
 const CacheControl = raw("../../../assets/examples/CacheControl.php");
 const Minification = raw("../../../assets/examples/Minification.php");
 const minimalRestExample = raw("../../../assets/examples/minimalRestEx.php");
-const restExplanationEx0 = raw("../../../assets/examples/restExplanationEx0.php");
 const restTypeScriptEx1 = raw("../../../variables/C6.tsx");
 const restTest = raw("../../../../../../../tests/RestTest.php");
 const restUserTest = raw("../../../../../../../tests/UserTest.php");
 const iRest = raw("../../../../../../../src/interfaces/iRest.php");
 const iRestfulReferences = raw("../../../../../../../src/interfaces/iRestfulReferences.php");
+const CarbonUsersTable = raw("../../../../../../../src/tables/Carbon_Users.php");
+const forksCode = raw("../../../../../../../src/helpers/Fork.php");
+const websocketCode = raw("../../../../../../../src/programs/Websocket.php");
+
+const AutoLoadingPSR4 = raw("../../../../../../../src/Autoload.php");
+const AutoLoadingLoop = `#####################   AUTOLOAD    #######################
+            if ($config['AUTOLOAD'] ?? false) {
+                $PSR4 = new Autoload();
+                if (is_array($config['AUTOLOAD'] ?? false)) {
+                    foreach ($config['AUTOLOAD'] as $name => $path) {
+                        $PSR4->addNamespace($name, $path);
+                    }
+                }
+            }`;
 
 
 const JS_ORM_EXAMPLE_1 = `# React Code
@@ -166,12 +179,14 @@ class CarbonPHP extends React.Component<iCarbonPHP, {
   exampleCode: string,
   jsonStringOutput: string,
   exampleCodeAPI: string,
-  exampleInterface: string
+  exampleInterface: string,
+  expandUsersRestTable: boolean
 }> {
 
   constructor(props) {
     super(props);
     this.state = {
+      expandUsersRestTable: false,
       exampleCodeAPI: '',
       exampleInterface: '',
       exampleCode: '',
@@ -237,8 +252,10 @@ class CarbonPHP extends React.Component<iCarbonPHP, {
                     resource for code in CarbonPHP's context.
                     <br/><br/>
                     Features can be modified or replaced to suit your development.
-                    The remainder of this page is dedicated to C6's internal routing, though <b>existing applications </b>
-                    may find the <b>Auto-Generated REST ORM</b> aka just the <b>"ORM" tab</b> to be a better introduction.
+                    The remainder of this page is dedicated to C6's internal routing, though <b>existing
+                    applications </b>
+                    may find the <b>Auto-Generated REST ORM</b> aka just the <b>"ORM" tab</b> to be a better
+                    introduction.
                     <br/><br/>
 
                     <br/>
@@ -712,9 +729,11 @@ class CarbonPHP extends React.Component<iCarbonPHP, {
                       When a reference no longer exists in MYSQL it will not be generated. Your editor will highlight it
                       as undefined,
                       giving you the opportunity to fix it. With code references generated for you writing your sql is
-                      easier than ever. Statement and columns will autocomplete giving you ease of mind every time. Queries
+                      easier than ever. Statement and columns will autocomplete giving you ease of mind every time.
+                      Queries
                       generated will be validated automatically using PDO based off table data from the mysql dump. The
-                      REST ORM C6 ships with allows gives you a full api with customizable endpoints and validation functions.
+                      REST ORM C6 ships with allows gives you a full api with customizable endpoints and validation
+                      functions.
                     </p>
                     <br/>
                     <p>The command line interface is used to generate and regenerate bindings.</p>
@@ -848,11 +867,10 @@ class CarbonPHP extends React.Component<iCarbonPHP, {
                       }}>
                         MySQL Aggregate Functions
                       </Button>
-                      <Button color="info" round onClick={() => {
-                        this.setState({
-                            exampleCode: restTypeScriptEx1,
-                          });
-                      }}>
+                      <Button color="info" round onClick={() => this.setState({
+                          exampleCode: restTypeScriptEx1,
+                          jsonStringOutput: ''
+                        })}>
                         Example #4 TypeScript Generation
                       </Button>
                       <Button color="success" round onClick={() => this.setState({
@@ -874,22 +892,24 @@ class CarbonPHP extends React.Component<iCarbonPHP, {
                     <br/>
                     <h2>Requirements</h2>
                     <p>
-                      By default the rest program uses <b>mysqldump</b> which should be in your environments $PATH. This will be the
-                      case should mysql be installed on your system. You may use the <b>-mysqldump</b> flag to specify the executable location.
-                      For some systems this is not possible, so the flag <b>-dump</b> exists to specify the location of the dump generated.
-                      This dump should be created using the <b>--no-data</b> flag for the mysqldump program. Not doing such may cause unexpected
-                      results. Should a dump file be provided, no database access or credentials are required. The following code example
+                      By default the rest program uses <b>mysqldump</b> which should be in your environments $PATH. This
+                      will be the
+                      case should mysql be installed on your system. You may use the <b>-mysqldump</b> flag to specify
+                      the executable location.
+                      For some systems this is not possible, so the flag <b>-dump</b> exists to specify the location of
+                      the dump generated.
+                      This dump should be created using the <b>--no-data</b> flag for the mysqldump program. Not doing
+                      such may cause unexpected
+                      results. Should a dump file be provided, no database access or credentials are required. The
+                      following code example
                       is our minimal rest example, which would give full rest access to any generated tables.
                     </p>
+                    <h5><small>Minimum working example:</small></h5>
                     {codeBlock(minimalRestExample)}
                     <br/><br/>
-                    The above code would execute the following method.
-                    <br/><br/>
-                    {codeBlock(restExplanationEx0)}
-                    <br/>
                     <h2>Restful API</h2>
                     <p>
-                        There are two possible contracts ('Interfaces') that the auto generated php class may follow.
+                      There are two possible contracts ('Interfaces') that the auto generated php class may follow.
                       <br/><br/>
                       <Button color="info" round onClick={() => this.setState({
                         exampleInterface: iRest,
@@ -940,15 +960,99 @@ class CarbonPHP extends React.Component<iCarbonPHP, {
                     </p>
                     <h2>Validation Filters</h2>
                     <p>
-
+                      When data is accessed or posted it needs to be sanitized and controlled for access privileges.
+                      The generated files C6 ORM creates are parsed between each run. The script looks for new methods
+                      and validations then attempts to preserve it to the output class. This has proven very effective
+                      in file management and pragmatic flow. Table specific validations should go into its respective
+                      orm class. Generated files should be tracked on GitHub or other version control systems.
+                      In the example below pay close attention to lines 60 through 95.
+                      <br/><br/>
+                      Validations will be run in the following order: <br/>
+                      <ol>
+                        <li>Regular Expressions</li>
+                        <li>Custom Methods
+                          <ol>
+                            <li>Global Request Method Callbacks</li>
+                            <li>REST Specific Callbacks</li>
+                            <li>Column Specific Global Request Method Callbacks</li>
+                            <li>REST & Column Specific Callbacks</li>
+                          </ol>
+                        </li>
+                      </ol>
+                      <br/>
+                      <Button color={this.state.expandUsersRestTable ? "success" : "info"} round
+                              onClick={() => this.setState({
+                                expandUsersRestTable: !this.state.expandUsersRestTable
+                              })}>
+                        {this.state.expandUsersRestTable ? "Collapse Example Code" : "Expand Fully Generated Restful ORM"}
+                      </Button>
+                      <br/><br/>
+                      {this.state.expandUsersRestTable === true ? codeBlock(CarbonUsersTable) : ''}
+                      <br/><br/>
                     </p>
                     <h2>Data Retention with <i>-Triggers</i></h2>
                     <p>
-
+                      C6 uses triggers to help keep data for official reporting from tax records to state documents.
+                      When
+                      rest is run with the <b>-triggers</b> flag each table will have a custom generated script attached
+                      which tracks all changes in a singular history table in a json format. This is important because
+                      of
+                      our heavy use of cascade delete.
                     </p>
                     <h2>Entity System</h2>
                     <p>
-
+                      Popular in game development the entity system is C6's bread and butter. In short: it allows us to
+                      relate any table to any other table in a meaningful way where cascade delete will still work. To
+                      clarify, if you have a locations table, you might want to use that for user images uploaded, and
+                      shipping address for your customer. When that photo, or user, gets deleted you would want wall
+                      relations
+                      to that entity (the user or picture) to be delete. Another example would be a 'like button'. This
+                      could be stuck to any entity. I like the person, location, organization, photo, ect...
+                    </p>
+                    <p>
+                      The way C6 achieves this system in mysql is simple. We have a master table called 'carbons' which
+                      contains every primary key in the whole schema. Actually every primary key will be generated with
+                      this table and then only referenced through foreign key relations. Tables will still have primary
+                      keys, and indexes will not change, but every relation will stem from a singular table. The
+                      'carbons'
+                      table contains three columns: entity_pk, entity_fk, entity_tag. The entries to this table are
+                      entirely managed by the ORM generated code. The keys are binary(16) fields for maximum speed in
+                      searching.
+                      All tables with primary keys Must have cascade delete enabled for those relations.
+                      Keys are generated in mysql using the <b>uuid()</b> function then automatically hexed and unhexed
+                      for you through the api. To clarify there is no need to use the hex and unhex aggregate function
+                      on
+                      binary content as it it done for you in the API.
+                    </p>
+                    <p>
+                      In our written example above we discussed the idea of user, photos, and likes. Lets look at what
+                      those would look like in the database. Users are almost always the top level entity in our system.
+                      I would argue that while many companies hold a reasonable technical flow that users belonging to
+                      an
+                      organization, their is always at least one user who should manage it. For this reason when the
+                      user
+                      gets created the reference in the 'carbons' table has entity_pk filled and entity_fk set to null.
+                      The entity_tag will always be the table's name that created the reference. From here out our user
+                      who creates the entity would have their own users entity_pk equal the entity_fk of entities they
+                      created.
+                      Exceptions to this rule exist such as when a users content they posted would not there after
+                      belong to them.
+                    </p>
+                    <p>
+                      It is a good idea to create reference tables. When two tables need to be related together and
+                      because of the entity system are referenced, it is a good idea to export this. By this I mean have
+                      a table contain two columns, both of which point to 'carbons.entity_pk' with the cascade delete
+                      foreign keys. This helps reduce the searches in carbons, and shrinks the volume of your searches.
+                      When a reference be made, say for example: a known popular location is tagged to a photo, this
+                      type
+                      of relation could be used. It would be fair to assume in some systems that photo's become open
+                      source and locations are other entities which do not belong to users. These could, in theory, be
+                      related together in the entity system. I Typically would recommend giving each table a primary
+                      key,
+                      with it pointing to carbons.entity_pk. Over time you will notice when pk will not be use due to
+                      your
+                      own systems needs and relations. It doesn't hurt to have it in development, however overtime it's
+                      best to optimise where possible.
                     </p>
                   </>
                 )
@@ -1007,7 +1111,19 @@ class CarbonPHP extends React.Component<iCarbonPHP, {
                 tabContent: (
                   <p>
                     <h3 className={classes.textCenter}>
+                      Autoloading
                     </h3>
+                    <p>It is recommended to use composers built in PSR-4 autoloader. It is required to load C6 and works
+                      well. The autoloader shipped with C6 is for extremely rare use cases where you would not know the
+                      file structure before invocation. Moreover, you should only use C6's built-in autoloader for
+                      dynamic namespace references. The first code snippet is an excerpt from C6's main
+                      bootstrap <b>CarbonPHP.php </b>
+                      while the second is from <a href={"https://www.php-fig.org/psr/psr-4/"}>php-fig</a> modified
+                      slightly for our use.</p>
+                    <br/>
+                    {codeBlock(AutoLoadingLoop)}
+                    <br/>
+                    {codeBlock(AutoLoadingPSR4)}
                   </p>
                 )
               },
@@ -1015,11 +1131,11 @@ class CarbonPHP extends React.Component<iCarbonPHP, {
                 tabIcon: Announcement,
                 tabButton: "Alerts",
                 tabContent: (
-                  <p>
-                    <h3 className={classes.textCenter}>
+                  <p className={classes.textCenter}>
+                    <h3>
                       https://sweetalert.js.org/guides/
                     </h3>
-                    <a onClick={() => swal({
+                    <Button color={'info'} round onClick={() => swal({
                       text: 'Search for a movie. e.g. "La La Land".',
                       content: "input",
                       button: {
@@ -1060,7 +1176,7 @@ class CarbonPHP extends React.Component<iCarbonPHP, {
                         }
                       })}>
                       Click here for an example!
-                    </a>
+                    </Button>
                   </p>
                 )
               },
@@ -1082,7 +1198,13 @@ class CarbonPHP extends React.Component<iCarbonPHP, {
                 tabContent: (
                   <p>
                     <h3 className={classes.textCenter}>
+                      Forks
                     </h3>
+                    <p>I plan to write a pnctl library for Windows one day. If anyone would like to help that would be
+                    much appreciated. Until then forking will only be available for linux and osx users. You can use
+                      <b> Fork::safe()</b> to help avoid cross platform issues. So programs simply require the library,
+                      such as websockets.</p>
+                    {codeBlock(forksCode)}
                   </p>
                 )
               },
@@ -1099,7 +1221,7 @@ class CarbonPHP extends React.Component<iCarbonPHP, {
                     {codeBlock("php index.php websocket", "", "php", true)}
                     <br/><br/>
                     <p></p>
-
+                    {codeBlock(websocketCode)}
                   </p>
                 )
               }

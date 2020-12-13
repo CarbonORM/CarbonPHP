@@ -15,3 +15,6 @@
 /.htaccess
 /junit.xml
 /PhpMetrics
+
+#wp
+wp-config.php

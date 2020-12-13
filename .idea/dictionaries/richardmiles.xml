@@ -5,13 +5,18 @@
       <w>axios</w>
       <w>bcrypt</w>
       <w>carbonphp</w>
+      <w>certbot</w>
       <w>falsey</w>
+      <w>fileinfo</w>
       <w>googlecode</w>
       <w>grantability</w>
       <w>grantabillity</w>
+      <w>jsqueeze</w>
       <w>lte</w>
+      <w>matthiasmullie</w>
       <w>mysqldump</w>
       <w>pcntl</w>
+      <w>phpmetrics</w>
       <w>phpsessid</w>
       <w>pjax</w>
       <w>restfull</w>
@@ -22,8 +27,10 @@
       <w>testdox</w>
       <w>ucfirst</w>
       <w>unhex</w>
+      <w>unhexed</w>
       <w>websocketd</w>
       <w>websockets</w>
+      <w>wget</w>
     </words>
   </dictionary>
 </component>

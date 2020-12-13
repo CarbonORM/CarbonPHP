@@ -19,7 +19,9 @@
     "ext-pdo": "*",
     "ext-curl": "*",
     "ext-openssl": "*",
-    "ext-fileinfo": "*"
+    "ext-fileinfo": "*",
+    "ext-posix": "*",
+    "ext-readline": "*"
   },
   "require-dev": {
     "phpunit/phpunit-selenium": "4.1.0",
@@ -29,7 +31,7 @@
     {
       "name": "Richard Miles",
       "email": "Richard@Miles.systems",
-      "homepage": "https://www.CarbonPHP.com",
+      "homepage": "https://www.carbonPHP.com",
       "role": "Developer"
     }
   ],
@@ -47,12 +49,14 @@
   },
   "scripts": {
     "rei": "rm -rf vendor && rm composer.lock && composer i",
+    "force": "@composer install --ignore-platform-reqs",
+    "forceUp": "@composer update --ignore-platform-reqs",
     "start": "php -S dev.carbonphp.com:8080 index.php -d display_errors=1",
+    "post-install-cmd": "@composer run setup",
     "setupCI": [
       "php index.php setup --mysql_native_password",
       "php index.php setup --rebuild",
-      "php index.php rest -json -logClasses",
-      "composer setup"
+      "@composer run rest"
     ],
     "setup": [
       "php index.php ApacheConfig",
@@ -67,7 +71,7 @@
       "./vendor/bin/phpunit --log-junit junit.xml  --testdox || ./vendor/bin/phpunit  --log-junit junit.xml"
     ],
     "metrics": [
-      "php ./vendor/bin/phpmetrics --config=php-metrics.json /Users/richardmiles/GitHub/CarbonPHP"
+      "php ./vendor/bin/phpmetrics --config=php-metrics.json ."
     ]
   }
 }

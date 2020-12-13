@@ -10,11 +10,8 @@ class SendToUserPipe implements iCommand
 {
     use ColorCode;
 
-    private array $CONFIG;
-
     public function __construct($CONFIG)
     {
-        $this->CONFIG = $CONFIG;
     }
 
     public function usage(): void
