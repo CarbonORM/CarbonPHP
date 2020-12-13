@@ -62,7 +62,7 @@
       "php index.php ApacheConfig",
       "npm install",
       "php index.php minify",
-      "cd view/react/material-dashboard-react-c6 && npm install && npm run build"
+      "cd view/assets/react && npm install && npm run build"
     ],
     "rest" :[
       "php index.php rest -json -logClasses"
