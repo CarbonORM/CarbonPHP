@@ -142,7 +142,7 @@ class Database
                         print '<h1>Failed to insert database. See CarbonPHP.com for documentation.</h1>' and die;
                     } else {
                         $db->exec("use $db_name");
-                        static::setUp(true);   // this will exit
+                        static::setUp(!CarbonPHP::$cli, CarbonPHP::$cli);
                     }
                     break;
                 case '42S02':
@@ -151,7 +151,7 @@ class Database
 
                     print $e->getMessage() . PHP_EOL . '<br />';
 
-                    static::setUp(true);
+                    static::setUp(!CarbonPHP::$cli, CarbonPHP::$cli);
 
                     break;
                 default:
