@@ -12,6 +12,7 @@
 namespace CarbonPHP\Programs;
 
 
+use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
 use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Interfaces\iCommand;
@@ -19,7 +20,7 @@ use Throwable;
 
 class Setup implements iCommand
 {
-    use MySQL {
+    use ColorCode, MySQL {
         cleanUp as removeFiles;
     }
 
@@ -61,6 +62,7 @@ usage;
                     exit(1);
                 case '-r':
                 case '--rebuild':
+                    self::colorCode('Rebuilding Database');
                     Database::setUp(false, true);   // Redirect = false
                     // this is going to the CLI so no need to run/attach redirect scripts
                     exit(0);

@@ -38,7 +38,7 @@ class CLI implements iCommand
 
         $fullCommand = 'php ' . implode(' ', $argv);
         self::colorCode("\nCLI Command Parsed >>", 'blue');
-        self::colorCode($fullCommand. "\n\n", 'black');
+        self::colorCode($fullCommand. "\n\n");
 
         array_shift($argv);
 

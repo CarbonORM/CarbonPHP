@@ -60,8 +60,8 @@ class Minify implements iCommand
 
                 The output path(s) will be :: 
                 
-                    CarbonPHP::$app_root . 'view/carbon.css'
-                    CarbonPHP::$app_root . 'view/carbon.js'
+                    CarbonPHP::\$app_root . 'view/carbon.css'
+                    CarbonPHP::\$app_root . 'view/carbon.js'
 
                 
                 

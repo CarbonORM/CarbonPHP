@@ -240,14 +240,13 @@ class Database
                 : '<h1>Connecting on </h1>' . self::$dsn . '<br>');
             include CarbonPHP::$app_root . 'config' . DS . 'buildDatabase.php';
         } else {
-            $php_errormsg = 'Could not find database setup. Please see Carbonphp.com for more documentation.';
-            print ($cli ? $php_errormsg :
-                "<h1>$php_errormsg</h1>");
+            $php_error_msg = 'Could not find database setup. Please see Carbonphp.com for more documentation.';
+            print ($cli ? $php_error_msg : "<h1>$php_error_msg</h1>");
             die(1);
         }
         if ($refresh) {
             $cli ?: print '<br><br><h2>Refreshing in 6 seconds</h2><script>let t1 = window.setTimeout(function(){ window.location.href = \'' . CarbonPHP::$site . '\'; },6000);</script>';
-            exit(1);
+            exit('Database had unexpected refresh.');
         }
         CarbonPHP::$cli and print PHP_EOL . PHP_EOL . PHP_EOL;
 
