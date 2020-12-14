@@ -1,5 +1,4 @@
-![CarbonPHP Feature Test Suit](https://github.com/RichardTMiles/CarbonPHP/workflows/CarbonPHP%20Feature%20Test%20Suit/badge.svg?event=release)
-
+![CarbonPHP Feature Test Suit](https://github.com/RichardTMiles/CarbonPHP/workflows/CarbonPHP%20Feature%20Test%20Suit/badge.svg)
 
 # Carbon PHP  7.2+ Tool Kit and Performance Library
 
