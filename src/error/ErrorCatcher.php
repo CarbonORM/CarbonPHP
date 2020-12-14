@@ -461,7 +461,6 @@ DESCRIPTION;
 
             }
 
-            /** @noinspection PhpUnusedLocalVariableInspection */
             if ($codePreview !== '') {
                 $cleanErrorReport = "<p>> <span>THROWN NEAR</span>: <pre><code>$codePreview</code></pre></p>$cleanErrorReport";
             }
@@ -478,6 +477,14 @@ PRODUCTION;
         }
 
         $message = self::statusText($code);
+
+        if (CarbonPHP::$app_root === CarbonPHP::CARBON_ROOT) {
+            $public_root = '';
+        } elseif (strpos(dirname(CarbonPHP::CARBON_ROOT), CarbonPHP::$app_root) === 0) {
+            $public_root = rtrim(substr_replace(dirname(CarbonPHP::CARBON_ROOT), '', 0, strlen(CarbonPHP::$app_root)), DS);
+        } else {
+            $public_root = '//carbonphp.com';
+        }
 
         print /** @lang HTML */
             <<<DEVOPS
@@ -497,7 +504,7 @@ PRODUCTION;
 }
 
 html { 
-  background: url("/view/assets/img/Carbon-red.png") no-repeat center center fixed; 
+  background: url("$public_root/view/assets/img/Carbon-red.png") no-repeat center center fixed; 
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
@@ -670,7 +677,7 @@ $cleanErrorReport
 
 </div>
 
-<a class="avatar" href="/" title="Go Home"><img src="/view/mustache/img/Carbon-white.png"/></a>
+<a class="avatar" href="/" title="Go Home"><img src="$public_root/view/assets/img/Carbon-white.png"/></a>
 </body>
 </html>
 DEVOPS;

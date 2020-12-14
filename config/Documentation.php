@@ -63,7 +63,7 @@ class Documentation extends Application implements iConfig
 
         if (CarbonPHP::$app_local) {
             throw new PublicAlert('You should run the live version on <a href="http://dev.carbonphp.com:3000/" style="color:blue">port 3000</a> with the command<br/><b>>> npm start </b> 
-    <br/>To bypass this message <a href="/6.0/" style="color:blue">click here</a>');
+    <br/>To bypass this message <a href="http://dev.carbonphp.com:8080/6.0/" style="color:blue">click here</a>');
         }
 
         $this->fullPage()(self::REACT);
@@ -398,7 +398,6 @@ SOCKET;
         })()) {
             return true;
         }
-
 
         if (Rest::MatchRestfulRequests($this)()) {
             return true;
