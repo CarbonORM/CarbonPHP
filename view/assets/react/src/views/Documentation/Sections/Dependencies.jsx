@@ -46,7 +46,7 @@ class Dependencies extends React.Component {
               <p>The Rest ORM generator defaults to using <b>mysqldump</b> which is by default installed with mysql to
               generate the php mysql bindings. It is recommended to have this available from your path. Other options
               are explained in the Documentation {">"} ORM tab.</p>
-              <a href="https://getcomposer.org/doc/04-schema.md#psr-4" target="_blank">Composer is required, and recommended for namespace resolution.</a>
+              <a href="https://getcomposer.org/doc/04-schema.md#psr-4" target="_blank" rel="noopener noreferrer">Composer is required, and recommended for namespace resolution.</a>
               <br/><br/>
               <h3>
                 <b>AdminLTE's Dependencies</b><br/><br/>

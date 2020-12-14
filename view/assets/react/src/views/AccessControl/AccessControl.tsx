@@ -46,7 +46,6 @@ import {
 import CustomInput from "../../components/CustomInput/CustomInput";
 import swal from '@sweetalert/with-react';
 import withStyles from "@material-ui/core/styles/withStyles";
-import state from "sweetalert/typings/modules/state";
 
 
 

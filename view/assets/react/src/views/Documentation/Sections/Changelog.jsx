@@ -7,7 +7,6 @@ import withStyles from "@material-ui/core/styles/withStyles";
 
 // core components
 import GridContainer from "components/Grid/GridContainer.jsx";
-import GridItem from "components/Grid/GridItem.jsx";
 import Small from "components/Typography/Small.jsx";
 import Danger from "components/Typography/Danger.jsx";
 import Warning from "components/Typography/Warning.jsx";
@@ -17,7 +16,6 @@ import Primary from "components/Typography/Primary.jsx";
 import Muted from "components/Typography/Muted.jsx";
 import Quote from "components/Typography/Quote.jsx";
 import typographyStyle from "assets/jss/material-kit-react/views/componentsSections/typographyStyle.jsx";
-import image from "assets/img/faces/avatar.jpg";
 
 
 class Changelog extends React.Component {
