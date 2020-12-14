@@ -59,6 +59,7 @@
       "@composer run rest"
     ],
     "setup": [
+      "php index.php setup --rebuild",
       "php index.php ApacheConfig",
       "npm install",
       "php index.php minify",
