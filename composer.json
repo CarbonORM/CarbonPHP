@@ -65,7 +65,7 @@
       "php index.php buildDatabase -s"
     ],
     "rest" :[
-      "php index.php rest -json -logClasses"
+      "php index.php rest -json"
     ],
     "test": [
       "./vendor/bin/phpunit --log-junit junit.xml  --testdox || ./vendor/bin/phpunit  --log-junit junit.xml"

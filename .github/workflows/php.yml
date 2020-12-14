@@ -56,14 +56,6 @@ jobs:
     - name: Install Dependencies & Generate Sources
       run: composer install --prefer-dist --no-progress --no-suggest
 
-    # Generate Files
-    - name: C6 Composer Database Setup
-      run: composer setupCI
-
-    # Double check php version
-    - name: PHP version
-      run: php --version
-
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
     # Docs: https://getcomposer.org/doc/articles/scripts.md
     - name: Run test suite
