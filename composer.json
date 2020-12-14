@@ -53,17 +53,13 @@
     "forceUp": "@composer update --ignore-platform-reqs",
     "start": "php -S dev.carbonphp.com:8080 index.php -d display_errors=1",
     "post-install-cmd": "@composer run setup",
-    "setupCI": [
-      "php index.php setup --mysql_native_password",
-      "php index.php setup --rebuild",
-      "@composer run rest"
-    ],
     "setup": [
       "php index.php setup --rebuild",
-      "php index.php ApacheConfig",
+      "@composer run rest",
       "npm install",
       "php index.php minify",
-      "cd view/assets/react && npm install && npm run build"
+      "cd view/assets/react && npm install && npm run build",
+      "php index.php ApacheConfig"
     ],
     "saveDatabase:Schema": [
       "php index.php buildDatabase -s"

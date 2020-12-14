@@ -18,8 +18,8 @@ trait MySQL
 {
 
     private array $config;
-    private string $mysql;
-    private string $mysqldump;
+    private string $mysql = '';
+    private string $mysqldump = '';
 
 
     public function __construct($CONFIG)
@@ -98,7 +98,7 @@ IDENTIFIED;
 
     private function MySQLDump(String $mysqldump = null) : string
     {
-        $cmd = ($mysqldump ?: 'mysqldump') . ' --defaults-extra-file="' . $this->buildCNF() . '" --no-data ' . $this->config['DATABASE']['DB_NAME'] . ' > ./mysqldump.sql';
+        $cmd = ($mysqldump !== '' ? $mysqldump : 'mysqldump') . ' --defaults-extra-file="' . $this->buildCNF() . '" --no-data ' . $this->config['DATABASE']['DB_NAME'] . ' > ./mysqldump.sql';
         shell_exec($cmd);
         return $this->mysqldump = './mysqldump.sql';
     }
@@ -112,13 +112,10 @@ IDENTIFIED;
         return shell_exec($cmd);
     }
 
-    /**
-     * @noinspection PhpUnusedParameterInspection
-     */
     public function cleanUp() : void
     {
-        $this->mysql and unlink('./mysql.cnf');
-        $this->mysqldump and unlink('./mysqldump.sql');
+        unlink('./mysql.cnf');
+        #unlink('./mysqldump.sql');  todo - argument
     }
 
 }
