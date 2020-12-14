@@ -57,8 +57,8 @@ const restUserTest = raw("../../../../../../../tests/UserTest.php");
 const iRest = raw("../../../../../../../src/interfaces/iRest.php");
 const iRestfulReferences = raw("../../../../../../../src/interfaces/iRestfulReferences.php");
 const CarbonUsersTable = raw("../../../../../../../src/tables/Carbon_Users.php");
-const forksCode = raw("../../../../../../../src/helpers/Fork.php");
-const websocketCode = raw("../../../../../../../src/programs/Websocket.php");
+const forksCode     = raw("../../../../../../../src/helpers/Fork.php");
+const websocketCode = raw("../../../../../../../src/programs/WebSocket.php");
 
 const AutoLoadingPSR4 = raw("../../../../../../../src/Autoload.php");
 const AutoLoadingLoop = `#####################   AUTOLOAD    #######################

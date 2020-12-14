@@ -20,11 +20,12 @@ class BuildDatabase implements iCommand
     }
 
 
-    public function cleanUp() : void {
+    public function cleanUp(): void
+    {
         $this->removeFiles();
     }
 
-    public function usage() : void
+    public function usage(): void
     {
         print <<<usage
 
@@ -39,7 +40,7 @@ usage;
         exit(1);
     }
 
-    public function run($argv) : void
+    public function run($argv): void
     {
         $argc = count($argv);
 
@@ -56,15 +57,20 @@ usage;
                     exit(1);
                 case '-r':
                 case '--rebuild':
+                    self::colorCode('Starting Database Build');
                     DB::setUp(false, true);   // Redirect = false
+                    self::colorCode('Finished Database Build');
                     // this is going to the CLI so no need to run/attach redirect scripts
                     exit(0);
                 case '-m':
                 case '--mysql_native_password':
+                    self::colorCode('Adjusting Mysql For PHP Compatibility');
                     $this->mysql_native_password();
+                    self::colorCode('Done with mysql password compatibility');
                     exit(0);
                 case '-s':
                 case'--save':
+                    self::colorCode('Saving current schema');
                     break;
             }
         }
