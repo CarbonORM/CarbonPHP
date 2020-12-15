@@ -173,7 +173,7 @@ class WebSocket extends Request implements iCommand
 
         self::colorCode("\nStream Context Created\n");
 
-        $socket = stream_socket_server("$protocol://" . ($config['SOCKET']['HOST'] ?? '127.0.0.1') . ':' . $config['SOCKET']['PORT'], $errorNumber, $errorString, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, $context);
+        $socket = stream_socket_server("$protocol://" . ($config['SOCKET']['HOST'] ?? self::$host) . ':' . ($config['SOCKET']['PORT'] ?? self::$port), $errorNumber, $errorString, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, $context);
 
         if (!$socket) {
             self::colorCode("\n$errorString ($errorNumber)\n", 'red');
@@ -187,7 +187,7 @@ class WebSocket extends Request implements iCommand
 
         $this->socket = $socket;
 
-        self::colorCode("\nStream Socket Server Created\n");
+        self::colorCode("\nStream Socket Server Created on " . self::$host . '::' .self::$port. "\n\nws" . (self::$ssl ? 's' : '') . '://'.self::$host.':'.self::$port.'/ ');
 
         if (!self::$minimiseResources) {
             $this->ServerAcceptNewConnections();      // parent thread will always be in this loop
