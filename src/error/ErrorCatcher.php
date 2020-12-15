@@ -478,13 +478,7 @@ PRODUCTION;
 
         $message = self::statusText($code);
 
-        if (CarbonPHP::$app_root === CarbonPHP::CARBON_ROOT) {
-            $public_root = '';
-        } elseif (strpos(dirname(CarbonPHP::CARBON_ROOT), CarbonPHP::$app_root) === 0) {
-            $public_root = rtrim(substr_replace(dirname(CarbonPHP::CARBON_ROOT), '', 0, strlen(CarbonPHP::$app_root)), DS);
-        } else {
-            $public_root = '//carbonphp.com';
-        }
+        $public_root = trim(CarbonPHP::$public_carbon_root, '/');
 
         print /** @lang HTML */
             <<<DEVOPS

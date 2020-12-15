@@ -36,9 +36,10 @@ class CarbonPHP
 
     // folder locations
     public const CARBON_ROOT = __DIR__ . DIRECTORY_SEPARATOR;
+    public static string $public_carbon_root = '/';         // uri
     public static string $app_root;
-    public static string $app_view = 'view/';
-    public static string $reports = '/';
+    public static string $app_view = 'view/';               // uri
+    public static string $reports = DIRECTORY_SEPARATOR;
     private static string $composer_root;
 
 
@@ -277,6 +278,15 @@ class CarbonPHP
 
             if ($app_root !== null) {
                 self::$app_root = rtrim($app_root, DS) . DS;    // an extra check
+            }
+
+            // todo - we're using this as a uri and it could have directory separator in the wrong direction
+            if (self::$app_root === self::CARBON_ROOT) {
+                self::$public_carbon_root = '';
+            } elseif (strpos(dirname(self::CARBON_ROOT), self::$app_root) === 0) {
+                self::$public_carbon_root = rtrim(substr_replace(dirname(self::CARBON_ROOT), '', 0, strlen(self::$app_root)), DS);
+            } else {
+                self::$public_carbon_root = '//carbonphp.com';
             }
 
             ####################  CLI is not the CLI server

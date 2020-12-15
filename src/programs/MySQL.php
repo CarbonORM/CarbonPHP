@@ -114,8 +114,8 @@ IDENTIFIED;
 
     public function cleanUp() : void
     {
-        unlink('./mysql.cnf');
-        #unlink('./mysqldump.sql');  todo - argument
+        #unlink('./mysql.cnf');
+        #unlink('./mysqldump.sql');  todo - argument, uncommenting will break git actions
     }
 
 }
