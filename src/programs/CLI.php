@@ -44,6 +44,12 @@ class CLI implements iCommand
 
         $program = array_shift($argv);
 
+        // todo - document this // done for git actions // order matters
+        if ($program === '--stdOut') {
+            ColorCode::$colorCodeBool = false;
+            $program = array_shift($argv);
+        }
+
         if (empty($program)) {
             self::colorCode('No command provided. Printing help.');
             $this->usage();

@@ -43,6 +43,7 @@ class WebSocket extends Request implements iCommand
 
     public static bool $isWebsocketD = false;
     public static bool $minimiseResources = false;
+    public static bool $verifyIP = true;
 
     private const TEXT = 0x1;
     private const BINARY = 0x2;
@@ -134,6 +135,9 @@ class WebSocket extends Request implements iCommand
                     exit(1);
                 case '-minimiseResources':
                     self::$minimiseResources = true;
+                    break;
+                case '-dontVerifyIP':
+                    self::$verifyIP = false;
                     break;
                 case '-go':
                     self::$isWebsocketD = true;
@@ -481,7 +485,7 @@ class WebSocket extends Request implements iCommand
 
                     self::colorCode("\nConnected $ip:$port\n", 'blue');
 
-                    if (!Session::verifySocket($ip)) {
+                    if (self::$verifyIP && !Session::verifySocket($ip)) {
                         self::colorCode("\nFailed to verify socket ip for session.\n", 'red');
                         continue;
                     }
