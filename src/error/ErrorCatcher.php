@@ -180,7 +180,7 @@ END;
 
     }
 
-        /**
+    /**
      * ErrorCatcher constructor.
      */
     public static function start(): void     // TODO - not this.
@@ -646,8 +646,8 @@ pre .cl {
 
 
 </style>
-<script src="/node_modules/jquery/dist/jquery.slim.min.js"></script>
-<script src="/node_modules/jquery-backstretch/jquery.backstretch.min.js"></script>
+<script src="$public_root/node_modules/jquery/dist/jquery.slim.min.js"></script>
+<script src="$public_root/node_modules/jquery-backstretch/jquery.backstretch.min.js"></script>
 <script>
 (function() {
     var pre = document.getElementsByTagName('pre'),
