@@ -90,6 +90,8 @@ class WebSocket extends Request implements iCommand
     {
         [$config, $argv] = $config;
 
+        $config['SOCKET'] ??= [];
+
         self::colorCode("\nConstructing Socket Class");
 
         CarbonPHP::$socket = true;
