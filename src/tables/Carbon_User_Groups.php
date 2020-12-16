@@ -49,7 +49,7 @@ class Carbon_User_Groups extends Rest implements iRestfulReferences
      *  All methods MUST be declaired as static.
      */
  
-    public const PHP_VALIDATION = [];
+    public const PHP_VALIDATION = []; 
  
     public const REGEX_VALIDATION = []; 
     

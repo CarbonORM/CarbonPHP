@@ -54,7 +54,7 @@ abstract class Rest extends Database
     /**
      * @throws PublicAlert
      */
-    public function disallowPublicAccess() : void {
+    public static function disallowPublicAccess() : void {
         throw new PublicAlert('Rest request denied by PHP_VALIDATION\'s in the tables ORM. Remove DISALLOW_PUBLIC_ACCESS to gain privileges.');
     }
 

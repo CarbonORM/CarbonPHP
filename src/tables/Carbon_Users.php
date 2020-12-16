@@ -75,7 +75,7 @@ class Carbon_Users extends Rest implements iRest
      *  All methods MUST be declaired as static.
      */
  
-    public const PHP_VALIDATION = [];
+    public const PHP_VALIDATION = []; 
  
     public const REGEX_VALIDATION = [
         // 1 to 1 regular expressions to match on every post request.
