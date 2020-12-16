@@ -8,16 +8,15 @@ trait ColorCode
 {
     protected static bool $colorCodeBool = true;
 
-    public static function colorCode(string $message, string $color = 'green'): void
+    public static function colorCode(string $message, string $color = 'green', bool $exit = false): void
     {
         if (!self::$colorCodeBool) {
             print $message;
+            if ($exit) {
+                exit($message);
+            }
             return;
         }
-
-        #$message = addslashes($message);
-
-        $failed = false;
 
         $colors = array(
             // styles
@@ -52,8 +51,8 @@ trait ColorCode
         /** @noinspection ForgottenDebugOutputInspection */
         error_log(sprintf($colors[$color], $message));    // do not double quote args passed here!
 
-        if ($failed) {
-            exit(1);
+        if ($exit) {
+            exit($message);
         }
     }
 }

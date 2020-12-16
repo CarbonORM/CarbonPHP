@@ -280,12 +280,25 @@ class CarbonPHP
                 self::$app_root = rtrim($app_root, DS) . DS;    // an extra check
             }
 
+            /*
+             * Caution - FFI
+             * If the PHP interpreter has been built with ZTS (Zend Thread Safety) enabled, any changes to the current
+             * directory made through chdir() will be invisible to the operating system. All built-in PHP functions will
+             * still respect the change in current directory; but external library functions called using FFI will not.
+             * You can tell whether your copy of PHP was built with ZTS enabled using php -i or the built-in constant PHP_ZTS.
+             * @link https://www.php.net/manual/en/function.chdir.php
+             */
+            if (getcwd() !== self::$app_root && !chdir(self::$app_root)) {
+                self::colorCode("\nCould not change current working directory from " . getcwd() . " to " . self::$app_root . ".\n\n", 'red', true);
+            }
+
             // todo - we're using this as a uri and it could have directory separator in the wrong direction
             if (self::$app_root === self::CARBON_ROOT) {
                 self::$public_carbon_root = '';
             } elseif (strpos(dirname(self::CARBON_ROOT), self::$app_root) === 0) {
                 self::$public_carbon_root = rtrim(substr_replace(dirname(self::CARBON_ROOT), '', 0, strlen(self::$app_root)), DS);
             } else {
+                self::colorCode('The composer directory ie C6 should be in a child directory of the application root. Currntly set to :: ' . self::$app_root . "\n\n", 'yellow');
                 self::$public_carbon_root = '//carbonphp.com';
             }
 
@@ -309,7 +322,7 @@ class CarbonPHP
 
             ################  Helpful Global Functions ####################
             if (!file_exists(__DIR__ . DS . 'Functions.php')
-                || !include __DIR__ . DS .  'Functions.php') {
+                || !include __DIR__ . DS . 'Functions.php') {
                 print PHP_EOL . 'Your instance of CarbonPHP appears corrupt. Please see CarbonPHP.com for Documentation' . PHP_EOL;
                 die(1);
             }
@@ -447,7 +460,7 @@ class CarbonPHP
                 new Session(self::$user_ip, $config['SESSION']['REMOTE'] ?? false);
 
                 $config['ERROR'] and
-                    ErrorCatcher::$defaultLocation = self::$reports . 'Log_' . ($_SESSION['id'] ?? 'WebSocket') . '_' . time() . '.log';
+                ErrorCatcher::$defaultLocation = self::$reports . 'Log_' . ($_SESSION['id'] ?? 'WebSocket') . '_' . time() . '.log';
 
                 if (is_callable($config['SESSION']['CALLBACK'] ?? null)) {
                     Session::updateCallback($config['SESSION']['CALLBACK']); // Pull From Database, manage socket ip

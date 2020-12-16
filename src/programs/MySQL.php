@@ -11,6 +11,7 @@
 namespace CarbonPHP\Programs;
 
 
+use CarbonPHP\CarbonPHP;
 use CarbonPHP\Error\ErrorCatcher;
 use Throwable;
 
@@ -92,8 +93,11 @@ IDENTIFIED;
         // We're going to use this function to execute mysql from the command line
         // Mysql needs this to access the server
         $cnf = ['[client]', "user = {$this->config['DATABASE']['DB_USER']}", "password = {$this->config['DATABASE']['DB_PASS']}", "host = {$this->config['DATABASE']['DB_HOST']}", "port = {$this->config['DATABASE']['DB_PORT']}"];
-        file_put_contents('mysql.cnf', implode(PHP_EOL, $cnf));
-        return $this->mysql = './mysql.cnf';
+        if (false === file_put_contents(CarbonPHP::$app_root . 'mysql.cnf', implode(PHP_EOL, $cnf))) {
+            print 'Failed to store file contents of mysql.cnf in ' . CarbonPHP::$app_root;
+            exit('Failed to store file contents mysql.cnf in ' . CarbonPHP::$app_root);
+        }
+        return $this->mysql = CarbonPHP::$app_root . 'mysql.cnf';
     }
 
     private function MySQLDump(String $mysqldump = null) : string
