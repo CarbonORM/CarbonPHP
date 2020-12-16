@@ -169,7 +169,7 @@ namespace {                                     // This runs the following code 
      *
      * @param bool $fullReport this outputs a backtrace and zvalues
      * @param bool $die -
-     * @link http://php.net/manual/en/internals2.php                 -- the hackers guide
+     * @throws PublicAlert
      * @link http://php.net/manual/en/function.debug-zval-dump.php
      *
      * @link http://php.net/manual/en/function.debug-backtrace.php
@@ -179,6 +179,7 @@ namespace {                                     // This runs the following code 
      * should read this full manual page
      * @noinspection ForgottenDebugOutputInspection
      * @noinspection PhpExpressionResultUnusedInspection
+     * @link http://php.net/manual/en/internals2.php                 -- the hackers guide
      */
     function sortDump($mixed, bool $fullReport = false, bool $die = true)
     {

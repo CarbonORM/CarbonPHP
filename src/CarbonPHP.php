@@ -83,6 +83,7 @@ class CarbonPHP
      * CarbonPHP constructor.
      * @param iConfig|string|null $config
      * @param string|null $app_root
+     * @throws Error\PublicAlert
      */
     public function __construct($config = null, string $app_root = null)
     {
@@ -268,6 +269,7 @@ class CarbonPHP
     /**
      * @param iConfig|string|null $configuration
      * @param string|null $app_root
+     * @throws Error\PublicAlert
      * @todo - php 8 add strict types
      */
     public static function make($configuration = null, string $app_root = null): void
