@@ -76,7 +76,7 @@ class Carbons extends Rest implements iRest
     * @throws PublicAlert
     * @return bool
     */
-    public static function Get(array &$return, string $primary = null, array $argv): bool
+    public static function Get(array &$return, string $primary = null, array $argv = []): bool
     {
         $pdo = self::database();
 
@@ -247,7 +247,7 @@ class Carbons extends Rest implements iRest
     * @noinspection SqlResolve
     * @return bool
     */
-    public static function Delete(array &$remove, string $primary = null, array $argv) : bool
+    public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
     {
         /** @noinspection SqlResolve */
         /** @noinspection SqlWithoutWhere */

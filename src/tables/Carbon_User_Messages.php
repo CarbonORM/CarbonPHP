@@ -38,7 +38,7 @@ class Carbon_User_Messages extends Rest implements iRest
         'carbon_user_messages.message_id' => ['binary', '2', '16'],'carbon_user_messages.from_user_id' => ['binary', '2', '16'],'carbon_user_messages.to_user_id' => ['binary', '2', '16'],'carbon_user_messages.message' => ['text', '2', ''],'carbon_user_messages.message_read' => ['tinyint', '0', '1'],'carbon_user_messages.creation_date' => ['datetime', '2', ''],
     ];
  
-    public const PHP_VALIDATION = [self::DISALLOW_PUBLIC_ACCESS]; 
+    public const PHP_VALIDATION = [ self::DISALLOW_PUBLIC_ACCESS ]; 
  
     public const REGEX_VALIDATION = []; 
     
@@ -79,7 +79,7 @@ class Carbon_User_Messages extends Rest implements iRest
     * @throws PublicAlert
     * @return bool
     */
-    public static function Get(array &$return, string $primary = null, array $argv): bool
+    public static function Get(array &$return, string $primary = null, array $argv = []): bool
     {
         $pdo = self::database();
 
@@ -278,7 +278,7 @@ class Carbon_User_Messages extends Rest implements iRest
     * @noinspection SqlResolve
     * @return bool
     */
-    public static function Delete(array &$remove, string $primary = null, array $argv) : bool
+    public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
     {
         if (null !== $primary) {
             return Carbons::Delete($remove, $primary, $argv);

@@ -37,7 +37,7 @@ class History_Logs extends Rest implements iRestfulReferences
         'history_logs.uuid' => ['binary', '2', '16'],'history_logs.resource_type' => ['varchar', '2', '40'],'history_logs.resource_uuid' => ['binary', '2', '16'],'history_logs.operation_type' => ['varchar', '2', '20'],'history_logs.data' => ['json', '2', ''],
     ];
  
-    public const PHP_VALIDATION = [self::DISALLOW_PUBLIC_ACCESS]; 
+    public const PHP_VALIDATION = [ self::DISALLOW_PUBLIC_ACCESS ]; 
  
     public const REGEX_VALIDATION = []; 
     
@@ -78,7 +78,7 @@ class History_Logs extends Rest implements iRestfulReferences
     * @throws PublicAlert
     * @return bool
     */
-    public static function Get(array &$return, array $argv): bool
+    public static function Get(array &$return, array $argv = []): bool
     {
         $pdo = self::database();
 
@@ -266,7 +266,7 @@ class History_Logs extends Rest implements iRestfulReferences
     * @noinspection SqlResolve
     * @return bool
     */
-    public static function Delete(array &$remove, array $argv) : bool
+    public static function Delete(array &$remove, array $argv = []) : bool
     {
         /** @noinspection SqlResolve */
         /** @noinspection SqlWithoutWhere */

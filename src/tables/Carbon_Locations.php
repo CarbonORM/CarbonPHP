@@ -40,7 +40,7 @@ class Carbon_Locations extends Rest implements iRest
         'carbon_locations.entity_id' => ['binary', '2', '16'],'carbon_locations.latitude' => ['varchar', '2', '225'],'carbon_locations.longitude' => ['varchar', '2', '225'],'carbon_locations.street' => ['varchar', '2', '225'],'carbon_locations.city' => ['varchar', '2', '40'],'carbon_locations.state' => ['varchar', '2', '10'],'carbon_locations.elevation' => ['varchar', '2', '40'],'carbon_locations.zip' => ['int', '2', ''],
     ];
  
-    public const PHP_VALIDATION = [self::DISALLOW_PUBLIC_ACCESS]; 
+    public const PHP_VALIDATION = [ self::DISALLOW_PUBLIC_ACCESS ]; 
  
     public const REGEX_VALIDATION = []; 
     
@@ -81,7 +81,7 @@ class Carbon_Locations extends Rest implements iRest
     * @throws PublicAlert
     * @return bool
     */
-    public static function Get(array &$return, string $primary = null, array $argv): bool
+    public static function Get(array &$return, string $primary = null, array $argv = []): bool
     {
         $pdo = self::database();
 
@@ -301,7 +301,7 @@ class Carbon_Locations extends Rest implements iRest
     * @noinspection SqlResolve
     * @return bool
     */
-    public static function Delete(array &$remove, string $primary = null, array $argv) : bool
+    public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
     {
         if (null !== $primary) {
             return Carbons::Delete($remove, $primary, $argv);

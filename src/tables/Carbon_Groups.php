@@ -13,7 +13,7 @@ use function func_get_args;
 use function is_array;
 
 // Custom User Imports
-use CarbonPHP\Helpers\RestfulValidation;
+
 
 class Carbon_Groups extends Rest implements iRest
 {
@@ -36,7 +36,7 @@ class Carbon_Groups extends Rest implements iRest
         'carbon_groups.group_name' => ['varchar', '2', '20'],'carbon_groups.entity_id' => ['binary', '2', '16'],'carbon_groups.created_by' => ['binary', '2', '16'],'carbon_groups.creation_date' => ['datetime', '2', ''],
     ];
  
-    public const PHP_VALIDATION = []; 
+    public const PHP_VALIDATION = [ self::DISALLOW_PUBLIC_ACCESS ]; 
  
     public const REGEX_VALIDATION = []; 
     
@@ -77,7 +77,7 @@ class Carbon_Groups extends Rest implements iRest
     * @throws PublicAlert
     * @return bool
     */
-    public static function Get(array &$return, string $primary = null, array $argv): bool
+    public static function Get(array &$return, string $primary = null, array $argv = []): bool
     {
         $pdo = self::database();
 
@@ -257,7 +257,7 @@ class Carbon_Groups extends Rest implements iRest
     * @noinspection SqlResolve
     * @return bool
     */
-    public static function Delete(array &$remove, string $primary = null, array $argv) : bool
+    public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
     {
         if (null !== $primary) {
             return Carbons::Delete($remove, $primary, $argv);

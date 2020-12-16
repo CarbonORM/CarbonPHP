@@ -30,7 +30,7 @@ interface iRest
      * @param array $argv
      * @return bool
      */
-    public static function Delete(array &$return, string $primary = null, array $argv): bool;      // Delete all data from a tables given its primary key
+    public static function Delete(array &$return, string $primary = null, array $argv = []): bool;      // Delete all data from a tables given its primary key
 
     /**
      * @param array $return
@@ -38,7 +38,7 @@ interface iRest
      * @param array $argv - column names desired to be in our array
      * @return bool
      */
-    public static function Get(array &$return, string $primary = null, array $argv): bool;   // Get tables columns given in argv (usually an array) and place them into our array
+    public static function Get(array &$return, string $primary = null, array $argv = []): bool;   // Get tables columns given in argv (usually an array) and place them into our array
 
     /**
      * @param array \$argv

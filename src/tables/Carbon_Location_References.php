@@ -35,7 +35,7 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
         'carbon_location_references.entity_reference' => ['binary', '2', '16'],'carbon_location_references.location_reference' => ['binary', '2', '16'],'carbon_location_references.location_time' => ['datetime', '2', ''],
     ];
  
-    public const PHP_VALIDATION = []; 
+    public const PHP_VALIDATION = [ self::DISALLOW_PUBLIC_ACCESS ]; 
  
     public const REGEX_VALIDATION = []; 
     
@@ -76,7 +76,7 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
     * @throws PublicAlert
     * @return bool
     */
-    public static function Get(array &$return, array $argv): bool
+    public static function Get(array &$return, array $argv = []): bool
     {
         $pdo = self::database();
 
@@ -243,7 +243,7 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
     * @noinspection SqlResolve
     * @return bool
     */
-    public static function Delete(array &$remove, array $argv) : bool
+    public static function Delete(array &$remove, array $argv = []) : bool
     {
         /** @noinspection SqlResolve */
         /** @noinspection SqlWithoutWhere */

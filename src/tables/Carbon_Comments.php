@@ -36,7 +36,7 @@ class Carbon_Comments extends Rest implements iRest
         'carbon_comments.parent_id' => ['binary', '2', '16'],'carbon_comments.comment_id' => ['binary', '2', '16'],'carbon_comments.user_id' => ['binary', '2', '16'],'carbon_comments.comment' => ['blob', '2', ''],
     ];
  
-    public const PHP_VALIDATION = []; 
+    public const PHP_VALIDATION = [ self::DISALLOW_PUBLIC_ACCESS ]; 
  
     public const REGEX_VALIDATION = []; 
     
@@ -77,7 +77,7 @@ class Carbon_Comments extends Rest implements iRest
     * @throws PublicAlert
     * @return bool
     */
-    public static function Get(array &$return, string $primary = null, array $argv): bool
+    public static function Get(array &$return, string $primary = null, array $argv = []): bool
     {
         $pdo = self::database();
 
@@ -259,7 +259,7 @@ class Carbon_Comments extends Rest implements iRest
     * @noinspection SqlResolve
     * @return bool
     */
-    public static function Delete(array &$remove, string $primary = null, array $argv) : bool
+    public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
     {
         if (null !== $primary) {
             return Carbons::Delete($remove, $primary, $argv);

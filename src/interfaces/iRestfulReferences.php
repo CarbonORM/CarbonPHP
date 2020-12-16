@@ -36,7 +36,7 @@ interface iRestfulReferences
      * @param array $argv - column names desired to be in our array
      * @return bool
      */
-    public static function Get(array &$return, array $argv): bool;   // Get tables columns given in argv (usually an array) and place them into our array
+    public static function Get(array &$return, array $argv = []): bool;   // Get tables columns given in argv (usually an array) and place them into our array
 
     /**
      * @param array \$argv

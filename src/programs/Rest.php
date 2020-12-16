@@ -416,7 +416,7 @@ END;
                             $rest[$tableName]['CustomImports'] = implode(PHP_EOL, $userCustomImports);
 
                             // methods
-                            $fullTableClassName = $rest[$tableName]['namespace'] . '\\\\' . $rest[$tableName]['ucEachTableName'];
+                            $fullTableClassName = $rest[$tableName]['namespace'] . '\\' . $rest[$tableName]['ucEachTableName'];
 
 
                             if (!class_exists($fullTableClassName)) {
@@ -1149,7 +1149,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
     * @throws PublicAlert
     * @return bool
     */
-    public static function Get(array &\$return, {{#primaryExists}}string \$primary = null, {{/primaryExists}}array \$argv): bool
+    public static function Get(array &\$return, {{#primaryExists}}string \$primary = null, {{/primaryExists}}array \$argv = []): bool
     {
         \$pdo = self::database();
 
@@ -1332,7 +1332,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
     * @noinspection SqlResolve
     * @return bool
     */
-    public static function Delete(array &\$remove, {{#primaryExists}}string \$primary = null, {{/primaryExists}}array \$argv) : bool
+    public static function Delete(array &\$remove, {{#primaryExists}}string \$primary = null, {{/primaryExists}}array \$argv = []) : bool
     {
     {{#carbon_table}}
         if (null !== \$primary) {

@@ -34,7 +34,7 @@ class Carbon_User_Groups extends Rest implements iRestfulReferences
         'carbon_user_groups.group_id' => ['binary', '2', '16'],'carbon_user_groups.user_id' => ['binary', '2', '16'],
     ];
  
-    public const PHP_VALIDATION = []; 
+    public const PHP_VALIDATION = [ self::DISALLOW_PUBLIC_ACCESS ]; 
  
     public const REGEX_VALIDATION = []; 
     
@@ -75,7 +75,7 @@ class Carbon_User_Groups extends Rest implements iRestfulReferences
     * @throws PublicAlert
     * @return bool
     */
-    public static function Get(array &$return, array $argv): bool
+    public static function Get(array &$return, array $argv = []): bool
     {
         $pdo = self::database();
 
@@ -230,7 +230,7 @@ class Carbon_User_Groups extends Rest implements iRestfulReferences
     * @noinspection SqlResolve
     * @return bool
     */
-    public static function Delete(array &$remove, array $argv) : bool
+    public static function Delete(array &$remove, array $argv = []) : bool
     {
         /** @noinspection SqlResolve */
         /** @noinspection SqlWithoutWhere */
