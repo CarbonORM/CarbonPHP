@@ -36,20 +36,9 @@ class Carbon_Groups extends Rest implements iRest
         'carbon_groups.group_name' => ['varchar', '2', '20'],'carbon_groups.entity_id' => ['binary', '2', '16'],'carbon_groups.created_by' => ['binary', '2', '16'],'carbon_groups.creation_date' => ['datetime', '2', ''],
     ];
  
-    public const PHP_VALIDATION = [
-        self::POST => [
-            0 => [
-                [ RestfulValidation::class => 'addIDToPostRequest', self::CREATED_BY ]
-            ]
-        ],
-        self::GROUP_NAME => [
-            [ RestfulValidation::class => 'validateUnique', self::class, self::GROUP_NAME]
-        ]
-    ]; 
+    public const PHP_VALIDATION = []; 
  
-    public const REGEX_VALIDATION = [
-        self::GROUP_NAME => '#^[A-Za-z_]{4,28}$#'
-    ]; 
+    public const REGEX_VALIDATION = []; 
     
     /**
     *

@@ -35,14 +35,9 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
         'carbon_location_references.entity_reference' => ['binary', '2', '16'],'carbon_location_references.location_reference' => ['binary', '2', '16'],'carbon_location_references.location_time' => ['datetime', '2', ''],
     ];
  
-    public const PHP_VALIDATION = [
-
-    ]; 
+    public const PHP_VALIDATION = []; 
  
-    public const REGEX_VALIDATION = [
-        self::ENTITY_REFERENCE => self::VALIDATE_C6_ENTITY_ID_REGEX,
-        self::LOCATION_REFERENCE => self::VALIDATE_C6_ENTITY_ID_REGEX
-    ]; 
+    public const REGEX_VALIDATION = []; 
     
     /**
     *

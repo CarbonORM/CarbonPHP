@@ -292,12 +292,12 @@ class CarbonPHP
             }
 
             // todo - we're using this as a uri and it could have directory separator in the wrong direction
-            if (self::$app_root === self::CARBON_ROOT) {
+            if (self::$app_root . 'src' . DS === self::CARBON_ROOT) {
                 self::$public_carbon_root = '';
             } elseif (strpos(dirname(self::CARBON_ROOT), self::$app_root) === 0) {
                 self::$public_carbon_root = rtrim(substr_replace(dirname(self::CARBON_ROOT), '', 0, strlen(self::$app_root)), DS);
             } else {
-                self::colorCode('The composer directory ie C6 should be in a child directory of the application root ('.self::$app_root.'). Currently set to :: ' . self::$app_root . "\n\n", 'green');
+                self::$test or self::colorCode('The composer directory ie C6 should be in a child directory of the application root ('.self::$app_root.'). Currently set to :: ' . self::$app_root . "\n\n", 'green');
                 self::$public_carbon_root = '//carbonphp.com';
             }
 

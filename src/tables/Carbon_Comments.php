@@ -38,11 +38,7 @@ class Carbon_Comments extends Rest implements iRest
  
     public const PHP_VALIDATION = []; 
  
-    public const REGEX_VALIDATION = [
-        self::COMMENT_ID => self::VALIDATE_C6_ENTITY_ID_REGEX,
-        self::USER_ID => self::VALIDATE_C6_ENTITY_ID_REGEX,
-        self::PARENT_ID => self::VALIDATE_C6_ENTITY_ID_REGEX,
-    ]; 
+    public const REGEX_VALIDATION = []; 
     
     /**
     *

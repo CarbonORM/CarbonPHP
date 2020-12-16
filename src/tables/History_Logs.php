@@ -37,7 +37,7 @@ class History_Logs extends Rest implements iRestfulReferences
         'history_logs.uuid' => ['binary', '2', '16'],'history_logs.resource_type' => ['varchar', '2', '40'],'history_logs.resource_uuid' => ['binary', '2', '16'],'history_logs.operation_type' => ['varchar', '2', '20'],'history_logs.data' => ['json', '2', ''],
     ];
  
-    public const PHP_VALIDATION = []; 
+    public const PHP_VALIDATION = [self::DISALLOW_PUBLIC_ACCESS];
  
     public const REGEX_VALIDATION = []; 
     

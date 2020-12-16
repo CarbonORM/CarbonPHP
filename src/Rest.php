@@ -47,7 +47,16 @@ abstract class Rest extends Database
     #regex validation method
     public const VALIDATE_C6_ENTITY_ID_REGEX = '#^' . Route::MATCH_C6_ENTITY_ID_REGEX . '$#';
 
+    public const DISALLOW_PUBLIC_ACCESS = [self::class => 'disallowPublicAccess'];
+
     public static array $injection = [];
+
+    /**
+     * @throws PublicAlert
+     */
+    public function disallowPublicAccess() : void {
+        throw new PublicAlert('Rest request denied by PHP_VALIDATION\'s in the tables ORM. Remove DISALLOW_PUBLIC_ACCESS to gain privileges.');
+    }
 
     /**
      * @param $column

@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection ForgottenDebugOutputInspection */
 
 namespace CarbonPHP\Programs;
 
@@ -381,13 +381,13 @@ END;
                         if (file_exists($validation = $targetDir . $tableName . '.php')) {
                             $validation = file_get_contents($validation);
 
-                            preg_match_all('#public const REGEX_VALIDATION\s?=\s? \[[^;]+;#', $validation, $matches);
+                            preg_match_all('#public const REGEX_VALIDATION\s?=\s? \[(.|\n)*?];(?=(\s|\n)+(public|protected|private|/\*))#', $validation, $matches);
 
                             if (isset($matches[0][0])) {
                                 $rest[$tableName]['regex_validation'] = $matches[0][0];
                             }
 
-                            preg_match_all('#public const PHP_VALIDATION\s?=\s? \[[^;]+;#', $validation, $matches);
+                            preg_match_all('#public const PHP_VALIDATION\s?=\s? \[(.|\n)*?];(?=(\s|\n)+(public|protected|private|/\*))#', $validation, $matches);
 
                             if (isset($matches[0][0])) {
                                 $rest[$tableName]['php_validation'] = $matches[0][0];
@@ -1101,7 +1101,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
     ];
     {{^php_validation}}
     
-    public const PHP_VALIDATION = [];{{/php_validation}} 
+    public const PHP_VALIDATION = [ self::DISALLOW_PUBLIC_ACCESS ];{{/php_validation}} 
     {{#php_validation}} 
     {{{php_validation}}} 
     {{/php_validation}}

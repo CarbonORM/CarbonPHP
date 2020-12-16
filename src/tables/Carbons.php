@@ -35,9 +35,7 @@ class Carbons extends Rest implements iRest
         'carbons.entity_pk' => ['binary', '2', '16'],'carbons.entity_fk' => ['binary', '2', '16'],'carbons.entity_tag' => ['varchar', '2', '100'],
     ];
  
-    public const PHP_VALIDATION = [
-        [Config::class => 'testAlertAndValidation']
-    ]; 
+    public const PHP_VALIDATION = [self::DISALLOW_PUBLIC_ACCESS]; 
  
     public const REGEX_VALIDATION = []; 
     

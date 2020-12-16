@@ -40,9 +40,6 @@ export const C6 = {
 'carbon_comments.comment':'comment',
     },
     REGEX_VALIDATION: {
-        'carbon_comments.comment_id': /^([a-fA-F0-9]{20,35})$/,
-        'carbon_comments.user_id': /^([a-fA-F0-9]{20,35})$/,
-        'carbon_comments.parent_id': /^([a-fA-F0-9]{20,35})$/,
     }
 
   },
@@ -132,7 +129,6 @@ export const C6 = {
 'carbon_groups.creation_date':'creation_date',
     },
     REGEX_VALIDATION: {
-        'carbon_groups.group_name': /^[A-Za-z_]{4,28}$/,
     }
 
   },
@@ -150,8 +146,6 @@ export const C6 = {
 'carbon_location_references.location_time':'location_time',
     },
     REGEX_VALIDATION: {
-        'carbon_location_references.entity_reference': /^([a-fA-F0-9]{20,35})$/,
-        'carbon_location_references.location_reference': /^([a-fA-F0-9]{20,35})$/,
     }
 
   },

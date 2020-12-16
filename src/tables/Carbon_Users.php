@@ -64,9 +64,23 @@ class Carbon_Users extends Rest implements iRest
             [self::class => 'addToEveryUserRequest']
         ],
         Rest::POST => [
-            0 => [  // all Post request run the following RestfulValidation::addToPostRequest(&$request, self::USER_IP, 'IP'); 
+            0 => [  // all Post request run the following RestfulValidation::addToPostRequest(&$request, self::USER_IP, 'IP');
+                [RestfulValidation::class => 'addToPostRequest', self::USER_IP, 'IP'],
+            ],
+        ],
+        Rest::GET => [
+            0 => [  // all GET requests run the following two methods
+                [self::class => 'addToRequestExample', 'this will', 'show up in sql reporting'],
+                [self::class => 'addToRequestExample', 'check out', 'the validations example in Documents > ORM'],
+            ],
+            self::USER_PASSWORD => [self::class => 'failRequest'],  // for get requests with
+        ],
+        // if self::USER_SPORT exists in the where block it will be
+        self::USER_SPORT => [self::class => 'addToEveryUserRequest', self::USER_SPORT],
+    ]; 
  
     public const REGEX_VALIDATION = [
+        // 1 to 1 regular expressions to match on every post request.
         self::USER_ID => self::VALIDATE_C6_ENTITY_ID_REGEX,
         self::USER_USERNAME => "#^[A-Za-z0-9_-]{4,16}#",
     ]; 

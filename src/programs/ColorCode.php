@@ -64,12 +64,11 @@ trait ColorCode
 
         $colorCodex = sprintf($colors[$color], $message);
 
+        /** @noinspection ForgottenDebugOutputInspection */
+        error_log($colorCodex);    // do not double quote args passed here
+
         if ($exit) {
-            /** @noinspection ForgottenDebugOutputInspection */
-            error_log($colorCodex);    // do not double quote args passed here
             exit($message);
         }
-
-        syslog($priority, $colorCodex);
     }
 }

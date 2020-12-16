@@ -13,6 +13,7 @@ namespace CarbonPHP\Programs;
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Error\PublicAlert;
 use Throwable;
 
 trait MySQL
@@ -100,20 +101,30 @@ IDENTIFIED;
         return $this->mysql = CarbonPHP::$app_root . 'mysql.cnf';
     }
 
+    /**
+     * @param String|null $mysqldump
+     * @return string
+     * @throws PublicAlert
+     */
     private function MySQLDump(String $mysqldump = null) : string
     {
         $cmd = ($mysqldump ?? 'mysqldump') . ' --defaults-extra-file="' . $this->buildCNF() . '" --no-data ' . $this->config['DATABASE']['DB_NAME'] . ' > '. CarbonPHP::$app_local .'mysqldump.sql';
-        print "\n\nRunning Command >> $cmd\n\n";
+        ColorCode::colorCode("\n\nRunning Command >> $cmd\n\n");
         shell_exec($cmd);
-        return $this->mysqldump = './mysqldump.sql';
+        return $this->mysqldump = CarbonPHP::$app_root . 'mysqldump.sql';
     }
 
+    /**
+     * @param bool $verbose
+     * @param String $query
+     * @param bool $mysql
+     * @return string|null
+     * @throws PublicAlert
+     */
     private function MySQLSource(bool $verbose, String $query, $mysql = false) : ?string
     {
         $cmd = ($mysql ?: 'mysql') . ' --defaults-extra-file="' . $this->buildCNF() . '" ' . $this->config['DATABASE']['DB_NAME'] . ' < "' . $query . '"';
-
-        print "\n\nRunning Command >> $cmd\n\n";
-
+        ColorCode::colorCode("\n\nRunning Command >> $cmd\n\n");
         return shell_exec($cmd);
     }
 

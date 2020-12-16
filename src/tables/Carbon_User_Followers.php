@@ -35,7 +35,7 @@ class Carbon_User_Followers extends Rest implements iRest
         'carbon_user_followers.follower_table_id' => ['binary', '2', '16'],'carbon_user_followers.follows_user_id' => ['binary', '2', '16'],'carbon_user_followers.user_id' => ['binary', '2', '16'],
     ];
  
-    public const PHP_VALIDATION = []; 
+    public const PHP_VALIDATION = [self::DISALLOW_PUBLIC_ACCESS];
  
     public const REGEX_VALIDATION = []; 
     
