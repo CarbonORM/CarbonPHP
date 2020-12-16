@@ -55,7 +55,8 @@ class CLI implements iCommand
             $this->usage();
             exit(1);
         }
-        
+
+        self::colorCode("Searching for program :: '$program'\n\n");
 
         $searchAndConstruct = static function ($array, bool $C6Internal = true) use ($program, $PHP, $argv) {
             // Validation with this loop
@@ -68,7 +69,7 @@ class CLI implements iCommand
 
                 $namespace = ($C6Internal ? "CarbonPHP\\" : '') . "Programs\\$name";
 
-                
+
                 if (!class_exists($namespace)) {
                     self::colorCode("Failed to load the class ($namespace)");
                     die('Failed to load the class ("' . $namespace . '")');
