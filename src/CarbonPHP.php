@@ -297,7 +297,7 @@ class CarbonPHP
             } elseif (strpos(dirname(self::CARBON_ROOT), self::$app_root) === 0) {
                 self::$public_carbon_root = rtrim(substr_replace(dirname(self::CARBON_ROOT), '', 0, strlen(self::$app_root)), DS);
             } else {
-                self::colorCode('The composer directory ie C6 should be in a child directory of the application root ('.self::$app_root.'). Currently set to :: ' . self::$app_root . "\n\n", 'success');
+                self::colorCode('The composer directory ie C6 should be in a child directory of the application root ('.self::$app_root.'). Currently set to :: ' . self::$app_root . "\n\n", 'green');
                 self::$public_carbon_root = '//carbonphp.com';
             }
 

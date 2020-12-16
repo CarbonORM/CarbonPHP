@@ -4,11 +4,21 @@ namespace CarbonPHP\Programs;
 
 
 // TODO - probably should be named better but were preserving backwards compatibility (BC)
+use CarbonPHP\Error\PublicAlert;
+
 trait ColorCode
 {
     protected static bool $colorCodeBool = true;
 
-    public static function colorCode(string $message, string $color = 'green', bool $exit = false): void
+    /**
+     * @param string $message
+     * @param string $color
+     * @param bool $exit
+     * @param int $priority
+     * @throws PublicAlert
+     * @link https://www.php.net/manual/en/function.syslog.php
+     */
+    public static function colorCode(string $message, string $color = 'green', bool $exit = false, int $priority = LOG_INFO): void
     {
         if (!self::$colorCodeBool) {
             print $message;
@@ -48,11 +58,18 @@ trait ColorCode
             'background_white' => "\033[47m%s\033[0m",
         );
 
-        /** @noinspection ForgottenDebugOutputInspection */
-        error_log(sprintf($colors[$color], $message));    // do not double quote args passed here!
+        if (!array_key_exists($color, $colors)) {
+            throw new PublicAlert("Color provided to color code ($color) is invalid, message caught '$message'");
+        }
+
+        $colorCodex = sprintf($colors[$color], $message);
 
         if ($exit) {
+            /** @noinspection ForgottenDebugOutputInspection */
+            error_log($colorCodex);    // do not double quote args passed here
             exit($message);
         }
+
+        syslog($priority, $colorCodex);
     }
 }

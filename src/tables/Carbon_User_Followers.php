@@ -62,7 +62,7 @@ class Carbon_User_Followers extends Rest implements iRest
     *                       singular result. SETTING THE LIMIT TO NULL WILL ALLOW INFINITE RESULTS (NO LIMIT).
     *                       The limit defaults to 100 by design.
     *
-    *              'order' => '*column name* [ASC|DESC]',  // i.e.  'username ASC' or 'username, email DESC'
+    *              'order' => ['*column name*'=> '(ASC|DESC)'],  // i.e.  'username' => 'ASC'
     *
     *
     *         ],

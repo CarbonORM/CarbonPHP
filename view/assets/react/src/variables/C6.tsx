@@ -21,7 +21,6 @@ export const C6 = {
     MAX: 'max',
     GROUP_CONCAT: 'GROUP_CONCAT',
     
-
     
 
   carbon_comments: {
@@ -405,6 +404,7 @@ export const C6 = {
     },
     REGEX_VALIDATION: {
         'carbon_users.user_id': /^([a-fA-F0-9]{20,35})$/,
+        'carbon_users.user_username': /^[A-Za-z0-9_-]{4,16}/,
     }
 
   },
