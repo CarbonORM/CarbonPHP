@@ -40,7 +40,7 @@ class Carbon_User_Tasks extends Rest implements iRest
         'carbon_user_tasks.task_id' => ['binary', '2', '16'],'carbon_user_tasks.user_id' => ['binary', '2', '16'],'carbon_user_tasks.from_id' => ['binary', '2', '16'],'carbon_user_tasks.task_name' => ['varchar', '2', '40'],'carbon_user_tasks.task_description' => ['varchar', '2', '225'],'carbon_user_tasks.percent_complete' => ['int', '2', ''],'carbon_user_tasks.start_date' => ['datetime', '2', ''],'carbon_user_tasks.end_date' => ['datetime', '2', ''],
     ];
  
-    public const PHP_VALIDATION = [self::DISALLOW_PUBLIC_ACCESS];
+    public const PHP_VALIDATION = [self::DISALLOW_PUBLIC_ACCESS]; 
  
     public const REGEX_VALIDATION = []; 
     

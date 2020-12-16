@@ -36,7 +36,7 @@ class Carbon_Reports extends Rest implements iRestfulReferences
         'carbon_reports.log_level' => ['varchar', '2', '20'],'carbon_reports.report' => ['text,', '2', ''],'carbon_reports.date' => ['datetime', '2', ''],'carbon_reports.call_trace' => ['text', '2', ''],
     ];
  
-    public const PHP_VALIDATION = [self::DISALLOW_PUBLIC_ACCESS];
+    public const PHP_VALIDATION = [self::DISALLOW_PUBLIC_ACCESS]; 
  
     public const REGEX_VALIDATION = []; 
     

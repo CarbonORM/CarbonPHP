@@ -37,7 +37,7 @@ class Carbon_Photos extends Rest implements iRest
         'carbon_photos.parent_id' => ['binary', '2', '16'],'carbon_photos.photo_id' => ['binary', '2', '16'],'carbon_photos.user_id' => ['binary', '2', '16'],'carbon_photos.photo_path' => ['varchar', '2', '225'],'carbon_photos.photo_description' => ['text,', '2', ''],
     ];
  
-    public const PHP_VALIDATION = [self::DISALLOW_PUBLIC_ACCESS];
+    public const PHP_VALIDATION = [self::DISALLOW_PUBLIC_ACCESS]; 
  
     public const REGEX_VALIDATION = []; 
     

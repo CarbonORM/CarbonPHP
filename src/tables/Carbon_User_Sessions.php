@@ -38,7 +38,7 @@ class Carbon_User_Sessions extends Rest implements iRest
         'carbon_user_sessions.user_id' => ['binary', '2', '16'],'carbon_user_sessions.user_ip' => ['binary', '2', '16'],'carbon_user_sessions.session_id' => ['varchar', '2', '255'],'carbon_user_sessions.session_expires' => ['datetime', '2', ''],'carbon_user_sessions.session_data' => ['text,', '2', ''],'carbon_user_sessions.user_online_status' => ['tinyint', '0', '1'],
     ];
  
-    public const PHP_VALIDATION = [self::DISALLOW_PUBLIC_ACCESS];
+    public const PHP_VALIDATION = [self::DISALLOW_PUBLIC_ACCESS]; 
  
     public const REGEX_VALIDATION = []; 
     

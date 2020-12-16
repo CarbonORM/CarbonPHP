@@ -108,9 +108,10 @@ IDENTIFIED;
      */
     private function MySQLDump(String $mysqldump = null) : string
     {
-        $cmd = ($mysqldump ?? 'mysqldump') . ' --defaults-extra-file="' . $this->buildCNF() . '" --no-data ' . $this->config['DATABASE']['DB_NAME'] . ' > '. CarbonPHP::$app_local .'mysqldump.sql';
+        $cmd = ($mysqldump ?? 'mysqldump') . ' --defaults-extra-file="' . $this->buildCNF() . '" --no-data ' . $this->config['DATABASE']['DB_NAME'] . ' > '. CarbonPHP::$app_root.'mysqldump.sql';
         ColorCode::colorCode("\n\nRunning Command >> $cmd\n\n");
         shell_exec($cmd);
+
         return $this->mysqldump = CarbonPHP::$app_root . 'mysqldump.sql';
     }
 
