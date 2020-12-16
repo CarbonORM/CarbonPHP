@@ -8,7 +8,6 @@ use CarbonPHP\Interfaces\iConfig;
 use CarbonPHP\Programs\CLI;
 use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Programs\WebSocket;
-use CarbonPHP\Programs\WebSocketPHP;
 use Tests\RestTest;
 use Throwable;
 use function define;
@@ -298,7 +297,7 @@ class CarbonPHP
             } elseif (strpos(dirname(self::CARBON_ROOT), self::$app_root) === 0) {
                 self::$public_carbon_root = rtrim(substr_replace(dirname(self::CARBON_ROOT), '', 0, strlen(self::$app_root)), DS);
             } else {
-                self::colorCode('The composer directory ie C6 should be in a child directory of the application root. Currntly set to :: ' . self::$app_root . "\n\n", 'yellow');
+                self::colorCode('The composer directory ie C6 should be in a child directory of the application root ('.self::$app_root.'). Currently set to :: ' . self::$app_root . "\n\n", 'success');
                 self::$public_carbon_root = '//carbonphp.com';
             }
 
