@@ -416,7 +416,7 @@ END;
                             $rest[$tableName]['CustomImports'] = implode(PHP_EOL, $userCustomImports);
 
                             // methods
-                            $fullTableClassName = $rest[$tableName]['namespace'] . '\\' . $rest[$tableName]['ucEachTableName'];
+                            $fullTableClassName = $rest[$tableName]['namespace'] . '\\\\' . $rest[$tableName]['ucEachTableName'];
 
 
                             if (!class_exists($fullTableClassName)) {
