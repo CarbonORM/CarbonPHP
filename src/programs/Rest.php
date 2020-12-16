@@ -1099,14 +1099,41 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
     public const PDO_VALIDATION = [
         {{#explode}}'{{TableName}}.{{name}}' => ['{{mysql_type}}', '{{type}}', '{{length}}'],{{/explode}}
     ];
-    {{^php_validation}}
     
-    public const PHP_VALIDATION = [ self::DISALLOW_PUBLIC_ACCESS ];{{/php_validation}} 
+    /**
+     * PHP validations works as follows:
+     *  The first index '0' of PHP_VALIDATIONS will run after REGEX_VALIDATION's but
+     *  before every other validation method described here below.
+     *  The other index positions are respective to the request method calling the ORM
+     *  or column which maybe present in the request.
+     *  Column names using the 1 to 1 constants in the class maybe used for global
+     *  specific methods when under PHP_VALIDATION, or method specific operations when under
+     *  its respective request method, which only run when the column is requested or acted on.
+     *  Global functions and method specific functions will receive the full request which
+     *  maybe acted on by reference. All column specific validation methods will only receive
+     *  the associated value given in the request which may also be received by reference.
+     *  All methods MUST be declaired as static.
+     */
+    {{^php_validation}}
+    public const PHP_VALIDATION = [ 
+        [self::DISALLOW_PUBLIC_ACCESS],
+        self::GET => [ self::DISALLOW_PUBLIC_ACCESS ],    
+        self::POST => [ self::DISALLOW_PUBLIC_ACCESS ],    
+        self::PUT => [ self::DISALLOW_PUBLIC_ACCESS ],    
+        self::DELETE => [ self::DISALLOW_PUBLIC_ACCESS ],    
+    ];{{/php_validation}} 
     {{#php_validation}} 
     {{{php_validation}}} 
     {{/php_validation}}
     {{^regex_validation}}
     
+    /**
+     * REGEX_VALIDATION
+     * Regular Expression validations are run before and recommended over PHP_VALIDATION.
+     * It is a 1 to 1 column regex relation with fully regex for preg_match_all().
+     * Table generated column constants must be used.
+     * @link https://php.net/manual/en/function.preg-match-all.php
+     */
     public const REGEX_VALIDATION = [];{{/regex_validation}} 
     {{#regex_validation}}
     {{{regex_validation}}} 
@@ -1192,7 +1219,6 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
      * @param string|null \$dependantEntityId - a C6 Hex entity key 
      * @return bool|string
      * @throws PublicAlert
-     * @noinspection SqlResolve
      */
     public static function Post(array \$argv, string \$dependantEntityId = null){{^primaryExists}}: bool{{/primaryExists}}
     {   
@@ -1202,7 +1228,6 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
             }
         } 
         
-        /** @noinspection SqlResolve */
         \$sql = 'INSERT INTO {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}{{TableName}} ({{listed}}) VALUES ({{{implode}}})';
 
         {{#json}}self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
@@ -1329,7 +1354,6 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
     * @param string|null \$primary
     * @param array \$argv
     * @throws PublicAlert
-    * @noinspection SqlResolve
     * @return bool
     */
     public static function Delete(array &\$remove, {{#primaryExists}}string \$primary = null, {{/primaryExists}}array \$argv = []) : bool
@@ -1348,8 +1372,6 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
             throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.', 'danger');
         }
         
-        /** @noinspection SqlResolve */
-        /** @noinspection SqlWithoutWhere */
         \$sql = 'DELETE c FROM {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}carbons c 
                 JOIN {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}{{TableName}} on c.entity_pk = {{#primary}}{{#name}}{{TableName}}.{{name}}{{/name}}{{/primary}}';
 
@@ -1371,8 +1393,6 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
         return \$r;
     {{/carbon_table}}
     {{^carbon_table}}
-        /** @noinspection SqlResolve */
-        /** @noinspection SqlWithoutWhere */
         \$sql = 'DELETE FROM {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}{{TableName}} ';
 
         \$pdo = self::database();
@@ -1397,7 +1417,6 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
         } {{/name}}{{#sql}}else {
             {{{sql}}}
         }{{/sql}}{{/primary}}
-     
         {{^primary}}
         if (empty(\$argv)) {
             throw new PublicAlert('When deleting from restful tables with out a primary key additional arguments must be provided.', 'danger');

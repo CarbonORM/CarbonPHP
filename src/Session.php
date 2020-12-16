@@ -206,6 +206,7 @@ class Session implements \SessionHandlerInterface
      *
      * @param $ip - the ip address to look up from our database.
      * @return bool
+     * @throws Error\PublicAlert
      */
     public static function verifySocket($ip): bool
     {

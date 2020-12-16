@@ -34,8 +34,23 @@ class Creation_Logs extends Rest implements iRestfulReferences
     public const PDO_VALIDATION = [
         'creation_logs.uuid' => ['binary', '2', '16'],'creation_logs.resource_type' => ['varchar', '2', '40'],'creation_logs.resource_uuid' => ['binary', '2', '16'],
     ];
+    
+    /**
+     * PHP validations works as follows:
+     *  The first index '0' of PHP_VALIDATIONS will run after REGEX_VALIDATION's but
+     *  before every other validation method described here below.
+     *  The other index positions are respective to the request method calling the ORM
+     *  or column which maybe present in the request.
+     *  Column names using the 1 to 1 constants in the class maybe used for global
+     *  specific methods when under PHP_VALIDATION, or method specific operations when under
+     *  its respective request method, which only run when the column is requested or acted on.
+     *  Global functions and method specific functions will receive the full request which
+     *  maybe acted on by reference. All column specific validation methods will only receive
+     *  the associated value given in the request which may also be received by reference.
+     *  All methods MUST be declaired as static.
+     */
  
-    public const PHP_VALIDATION = [ self::DISALLOW_PUBLIC_ACCESS ]; 
+    public const PHP_VALIDATION = [ [self::DISALLOW_PUBLIC_ACCESS] ]; 
  
     public const REGEX_VALIDATION = []; 
     
@@ -111,7 +126,6 @@ class Creation_Logs extends Rest implements iRestfulReferences
      * @param string|null $dependantEntityId - a C6 Hex entity key 
      * @return bool|string
      * @throws PublicAlert
-     * @noinspection SqlResolve
      */
     public static function Post(array $argv, string $dependantEntityId = null): bool
     {   
@@ -121,7 +135,6 @@ class Creation_Logs extends Rest implements iRestfulReferences
             }
         } 
         
-        /** @noinspection SqlResolve */
         $sql = 'INSERT INTO creation_logs (uuid, resource_type, resource_uuid) VALUES ( UNHEX(:uuid), :resource_type, UNHEX(:resource_uuid))';
 
         self::jsonSQLReporting(func_get_args(), $sql);
@@ -239,18 +252,14 @@ class Creation_Logs extends Rest implements iRestfulReferences
     * @param string|null $primary
     * @param array $argv
     * @throws PublicAlert
-    * @noinspection SqlResolve
     * @return bool
     */
     public static function Delete(array &$remove, array $argv = []) : bool
     {
-        /** @noinspection SqlResolve */
-        /** @noinspection SqlWithoutWhere */
         $sql = 'DELETE FROM creation_logs ';
 
         $pdo = self::database();
         
-     
         if (empty($argv)) {
             throw new PublicAlert('When deleting from restful tables with out a primary key additional arguments must be provided.', 'danger');
         } 

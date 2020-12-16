@@ -36,8 +36,29 @@ class Carbon_Photos extends Rest implements iRest
     public const PDO_VALIDATION = [
         'carbon_photos.parent_id' => ['binary', '2', '16'],'carbon_photos.photo_id' => ['binary', '2', '16'],'carbon_photos.user_id' => ['binary', '2', '16'],'carbon_photos.photo_path' => ['varchar', '2', '225'],'carbon_photos.photo_description' => ['text,', '2', ''],
     ];
+    
+    /**
+     * PHP validations works as follows:
+     *  The first index '0' of PHP_VALIDATIONS will run after REGEX_VALIDATION's but
+     *  before every other validation method described here below.
+     *  The other index positions are respective to the request method calling the ORM
+     *  or column which maybe present in the request.
+     *  Column names using the 1 to 1 constants in the class maybe used for global
+     *  specific methods when under PHP_VALIDATION, or method specific operations when under
+     *  its respective request method, which only run when the column is requested or acted on.
+     *  Global functions and method specific functions will receive the full request which
+     *  maybe acted on by reference. All column specific validation methods will only receive
+     *  the associated value given in the request which may also be received by reference.
+     *  All methods MUST be declaired as static.
+     */
  
-    public const PHP_VALIDATION = [ self::DISALLOW_PUBLIC_ACCESS ]; 
+    public const PHP_VALIDATION = [ 
+        [self::DISALLOW_PUBLIC_ACCESS],
+        self::GET => [ self::DISALLOW_PUBLIC_ACCESS ],    
+        self::POST => [ self::DISALLOW_PUBLIC_ACCESS ],    
+        self::PUT => [ self::DISALLOW_PUBLIC_ACCESS ],    
+        self::DELETE => [ self::DISALLOW_PUBLIC_ACCESS ],    
+    ]; 
  
     public const REGEX_VALIDATION = []; 
     
@@ -118,7 +139,6 @@ class Carbon_Photos extends Rest implements iRest
      * @param string|null $dependantEntityId - a C6 Hex entity key 
      * @return bool|string
      * @throws PublicAlert
-     * @noinspection SqlResolve
      */
     public static function Post(array $argv, string $dependantEntityId = null)
     {   
@@ -128,7 +148,6 @@ class Carbon_Photos extends Rest implements iRest
             }
         } 
         
-        /** @noinspection SqlResolve */
         $sql = 'INSERT INTO carbon_photos (parent_id, photo_id, user_id, photo_path, photo_description) VALUES ( UNHEX(:parent_id), UNHEX(:photo_id), UNHEX(:user_id), :photo_path, :photo_description)';
 
         self::jsonSQLReporting(func_get_args(), $sql);
@@ -271,7 +290,6 @@ class Carbon_Photos extends Rest implements iRest
     * @param string|null $primary
     * @param array $argv
     * @throws PublicAlert
-    * @noinspection SqlResolve
     * @return bool
     */
     public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
@@ -289,8 +307,6 @@ class Carbon_Photos extends Rest implements iRest
             throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.', 'danger');
         }
         
-        /** @noinspection SqlResolve */
-        /** @noinspection SqlWithoutWhere */
         $sql = 'DELETE c FROM carbons c 
                 JOIN carbon_photos on c.entity_pk = carbon_photos.parent_id';
 

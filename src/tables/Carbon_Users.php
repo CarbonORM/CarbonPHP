@@ -13,6 +13,7 @@ use function func_get_args;
 use function is_array;
 
 // Custom User Imports
+use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Helpers\RestfulValidation;
 
 class Carbon_Users extends Rest implements iRest
@@ -58,26 +59,23 @@ class Carbon_Users extends Rest implements iRest
     public const PDO_VALIDATION = [
         'carbon_users.user_username' => ['varchar', '2', '100'],'carbon_users.user_password' => ['varchar', '2', '225'],'carbon_users.user_id' => ['binary', '2', '16'],'carbon_users.user_type' => ['varchar', '2', '20'],'carbon_users.user_sport' => ['varchar', '2', '20'],'carbon_users.user_session_id' => ['varchar', '2', '225'],'carbon_users.user_facebook_id' => ['varchar', '2', '225'],'carbon_users.user_first_name' => ['varchar', '2', '25'],'carbon_users.user_last_name' => ['varchar', '2', '25'],'carbon_users.user_profile_pic' => ['varchar', '2', '225'],'carbon_users.user_profile_uri' => ['varchar', '2', '225'],'carbon_users.user_cover_photo' => ['varchar', '2', '225'],'carbon_users.user_birthday' => ['varchar', '2', '9'],'carbon_users.user_gender' => ['varchar', '2', '25'],'carbon_users.user_about_me' => ['varchar', '2', '225'],'carbon_users.user_rank' => ['int', '2', ''],'carbon_users.user_email' => ['varchar', '2', '50'],'carbon_users.user_email_code' => ['varchar', '2', '225'],'carbon_users.user_email_confirmed' => ['tinyint', '0', '1'],'carbon_users.user_generated_string' => ['varchar', '2', '200'],'carbon_users.user_membership' => ['int', '2', ''],'carbon_users.user_deactivated' => ['tinyint', '0', '1'],'carbon_users.user_last_login' => ['datetime', '2', ''],'carbon_users.user_ip' => ['varchar', '2', '20'],'carbon_users.user_education_history' => ['varchar', '2', '200'],'carbon_users.user_location' => ['varchar', '2', '20'],'carbon_users.user_creation_date' => ['datetime', '2', ''],
     ];
+    
+    /**
+     * PHP validations works as follows:
+     *  The first index '0' of PHP_VALIDATIONS will run after REGEX_VALIDATION's but
+     *  before every other validation method described here below.
+     *  The other index positions are respective to the request method calling the ORM
+     *  or column which maybe present in the request.
+     *  Column names using the 1 to 1 constants in the class maybe used for global
+     *  specific methods when under PHP_VALIDATION, or method specific operations when under
+     *  its respective request method, which only run when the column is requested or acted on.
+     *  Global functions and method specific functions will receive the full request which
+     *  maybe acted on by reference. All column specific validation methods will only receive
+     *  the associated value given in the request which may also be received by reference.
+     *  All methods MUST be declaired as static.
+     */
  
-    public const PHP_VALIDATION = [
-        0 => [       // for every method (post, put, get, delete)
-            [self::class => 'addToEveryUserRequest']
-        ],
-        Rest::POST => [
-            0 => [  // all Post request run the following RestfulValidation::addToPostRequest(&$request, self::USER_IP, 'IP');
-                [RestfulValidation::class => 'addToPostRequest', self::USER_IP, 'IP'],
-            ],
-        ],
-        Rest::GET => [
-            0 => [  // all GET requests run the following two methods
-                [self::class => 'addToRequestExample', 'this will', 'show up in sql reporting'],
-                [self::class => 'addToRequestExample', 'check out', 'the validations example in Documents > ORM'],
-            ],
-            self::USER_PASSWORD => [self::class => 'failRequest'],  // for get requests with
-        ],
-        // if self::USER_SPORT exists in the where block it will be
-        self::USER_SPORT => [self::class => 'addToEveryUserRequest', self::USER_SPORT],
-    ]; 
+    public const PHP_VALIDATION = [];
  
     public const REGEX_VALIDATION = [
         // 1 to 1 regular expressions to match on every post request.
@@ -162,7 +160,6 @@ class Carbon_Users extends Rest implements iRest
      * @param string|null $dependantEntityId - a C6 Hex entity key 
      * @return bool|string
      * @throws PublicAlert
-     * @noinspection SqlResolve
      */
     public static function Post(array $argv, string $dependantEntityId = null)
     {   
@@ -172,7 +169,6 @@ class Carbon_Users extends Rest implements iRest
             }
         } 
         
-        /** @noinspection SqlResolve */
         $sql = 'INSERT INTO carbon_users (user_username, user_password, user_id, user_type, user_sport, user_session_id, user_facebook_id, user_first_name, user_last_name, user_profile_pic, user_profile_uri, user_cover_photo, user_birthday, user_gender, user_about_me, user_rank, user_email, user_email_code, user_email_confirmed, user_generated_string, user_membership, user_deactivated, user_ip, user_education_history, user_location) VALUES ( :user_username, :user_password, UNHEX(:user_id), :user_type, :user_sport, :user_session_id, :user_facebook_id, :user_first_name, :user_last_name, :user_profile_pic, :user_profile_uri, :user_cover_photo, :user_birthday, :user_gender, :user_about_me, :user_rank, :user_email, :user_email_code, :user_email_confirmed, :user_generated_string, :user_membership, :user_deactivated, :user_ip, :user_education_history, :user_location)';
 
         self::jsonSQLReporting(func_get_args(), $sql);
@@ -553,7 +549,6 @@ class Carbon_Users extends Rest implements iRest
     * @param string|null $primary
     * @param array $argv
     * @throws PublicAlert
-    * @noinspection SqlResolve
     * @return bool
     */
     public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
@@ -571,8 +566,6 @@ class Carbon_Users extends Rest implements iRest
             throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.', 'danger');
         }
         
-        /** @noinspection SqlResolve */
-        /** @noinspection SqlWithoutWhere */
         $sql = 'DELETE c FROM carbons c 
                 JOIN carbon_users on c.entity_pk = carbon_users.user_id';
 
@@ -594,10 +587,15 @@ class Carbon_Users extends Rest implements iRest
         return $r;
     }
      
+    /**
+     * @param array $request
+     * @param string|null $column
+     * @param string $value
+     * @throws PublicAlert
+     */
     public static function addToEveryUserRequest(array &$request, string $column = null, string $value = 'World')
     {
-        /** @noinspection ForgottenDebugOutputInspection */
-        error_log('A request to the users database was made. ' . $column ? "Column $column was requested." : 'Hello ' . $value);
+        ColorCode::colorCode(PHP_EOL . 'A request to the users database was made. ' . ($column ? "Column $column was requested." : 'Hello ' . $value));
     }
 
     public static function addToRequestExample(array &$request, string $column, string $value = 'world'): void

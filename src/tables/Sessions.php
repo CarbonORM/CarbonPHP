@@ -37,8 +37,29 @@ class Sessions extends Rest implements iRest
     public const PDO_VALIDATION = [
         'sessions.user_id' => ['binary', '2', '16'],'sessions.user_ip' => ['varchar', '2', '20'],'sessions.session_id' => ['varchar', '2', '255'],'sessions.session_expires' => ['datetime', '2', ''],'sessions.session_data' => ['text,', '2', ''],'sessions.user_online_status' => ['tinyint', '0', '1'],
     ];
+    
+    /**
+     * PHP validations works as follows:
+     *  The first index '0' of PHP_VALIDATIONS will run after REGEX_VALIDATION's but
+     *  before every other validation method described here below.
+     *  The other index positions are respective to the request method calling the ORM
+     *  or column which maybe present in the request.
+     *  Column names using the 1 to 1 constants in the class maybe used for global
+     *  specific methods when under PHP_VALIDATION, or method specific operations when under
+     *  its respective request method, which only run when the column is requested or acted on.
+     *  Global functions and method specific functions will receive the full request which
+     *  maybe acted on by reference. All column specific validation methods will only receive
+     *  the associated value given in the request which may also be received by reference.
+     *  All methods MUST be declaired as static.
+     */
  
-    public const PHP_VALIDATION = [self::DISALLOW_PUBLIC_ACCESS]; 
+    public const PHP_VALIDATION = [
+        [self::DISALLOW_PUBLIC_ACCESS],
+        self::GET => [ self::DISALLOW_PUBLIC_ACCESS ],
+        self::POST => [ self::DISALLOW_PUBLIC_ACCESS ],
+        self::PUT => [ self::DISALLOW_PUBLIC_ACCESS ],
+        self::DELETE => [ self::DISALLOW_PUBLIC_ACCESS ],
+    ]; 
  
     public const REGEX_VALIDATION = []; 
     
@@ -119,7 +140,6 @@ class Sessions extends Rest implements iRest
      * @param string|null $dependantEntityId - a C6 Hex entity key 
      * @return bool|string
      * @throws PublicAlert
-     * @noinspection SqlResolve
      */
     public static function Post(array $argv, string $dependantEntityId = null)
     {   
@@ -129,7 +149,6 @@ class Sessions extends Rest implements iRest
             }
         } 
         
-        /** @noinspection SqlResolve */
         $sql = 'INSERT INTO sessions (user_id, user_ip, session_id, session_expires, session_data, user_online_status) VALUES ( UNHEX(:user_id), :user_ip, :session_id, :session_expires, :session_data, :user_online_status)';
 
         self::jsonSQLReporting(func_get_args(), $sql);
@@ -280,13 +299,10 @@ class Sessions extends Rest implements iRest
     * @param string|null $primary
     * @param array $argv
     * @throws PublicAlert
-    * @noinspection SqlResolve
     * @return bool
     */
     public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
     {
-        /** @noinspection SqlResolve */
-        /** @noinspection SqlWithoutWhere */
         $sql = 'DELETE FROM sessions ';
 
         $pdo = self::database();
@@ -311,7 +327,6 @@ class Sessions extends Rest implements iRest
         } else {
             $sql .= ' WHERE  session_id='.self::addInjection($primary, $pdo).'';
         }
-     
 
 
         self::jsonSQLReporting(func_get_args(), $sql);
