@@ -179,23 +179,21 @@ namespace {                                     // This runs the following code 
      * should read this full manual page
      * @noinspection ForgottenDebugOutputInspection
      * @noinspection PhpExpressionResultUnusedInspection
-     * @link http://php.net/manual/en/internals2.php                 -- the hackers guide
      */
-    function sortDump($mixed, bool $fullReport = false, bool $die = true)
+    function sortDump($mixed, bool $fullReport = false, bool $die = true) : void
     {
         // Notify that sort dump was executed
         CarbonPHP::$cli or alert(__FUNCTION__);
 
         $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
 
-
         // Generate Report -- keep in mind were in a buffer here
         $output = static function (bool $cli) use ($mixed, $fullReport, $backtrace) : string {
             ob_start();
             print $cli ? PHP_EOL . PHP_EOL : '<br>';
-            print $cli ? 'SortDump Called From' : '################### SortDump Called From ################';
+            print $cli ? 'SortDump Called With (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)) From' : '################### SortDump Called With (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)) From ################';
             print $cli ? PHP_EOL . PHP_EOL : '<br><pre>';
-            var_dump($backtrace[1] ?? $backtrace[0]);
+            var_dump($backtrace ?? $backtrace[0]);
             print $cli ? PHP_EOL . PHP_EOL : '<br></pre>';
             print '####################### VAR DUMP ########################';
             print $cli ? PHP_EOL . PHP_EOL : '<br><pre>';
@@ -216,25 +214,21 @@ namespace {                                     // This runs the following code 
             return ob_get_clean();
         };
 
-
         // TODO - re-create a store to file configuration option
         #$file = REPORTS . 'Dumped/Sort_' . time() . '.log';
         #Files::storeContent($file, $report);
 
         if (CarbonPHP::$cli) {
-            print $report = $output(true);
+            $report = $output(true);
             ColorCode::colorCode($report . PHP_EOL, 'red');
+        } else if (!$die && CarbonPHP::$ajax) {
+            View::$bufferedContent = base64_encode($report);
+            exit($report);
         } else {
             print $report = $output(false);
             ColorCode::colorCode($output(true) . PHP_EOL, 'red');
         }
 
-        // Output to browser
-        if (defined('AJAX') && CarbonPHP::$ajax) {  //
-            print $report;
-        } else {
-            View::$bufferedContent = base64_encode($report);
-        }
         if ($die) {
             exit(1);
         }
