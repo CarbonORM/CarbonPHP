@@ -434,6 +434,7 @@ END;
      * @param array $message
      * @param int $code
      * @return string
+     * @throws PublicAlert
      */
     private static function errorTemplate(array $message, int $code = 200): string
     {

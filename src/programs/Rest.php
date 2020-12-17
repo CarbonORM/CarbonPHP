@@ -99,6 +99,10 @@ END;
         exit(1);
     }
 
+    /**
+     * Rest constructor.
+     * @param $CONFIG
+     */
     public function __construct($CONFIG)
     {
         ini_set('memory_limit', '2048M');  // TODO - make this a config variable
@@ -158,6 +162,24 @@ END;
                     break;
                 case '-namespace':
                     $target_namespace = $argv[++$i];
+
+                    $target_namespace_array = explode('\\', $target_namespace);
+
+                    $target_namespace_array = array_filter($target_namespace_array);
+
+                    $target_namespace = implode('\\', $target_namespace_array);
+
+                    if (count($target_namespace_array) === 1) {
+                        switch (strtolower(readline("Does the namespace ($target_namespace) look correct? [Y,n]"))) {
+                            default:
+                                break;
+                            case 'no':
+                            case 'n':
+                                /** @noinspection PhpUnhandledExceptionInspection */
+                            self::colorCode('You may need to add more escaping "\\" depending on how may contexts the string goes through. We will try to fix over escaped namespaces.', 'red', true);
+                        }
+                    }
+
                     break;
                 case '-json':
                     $json = true;
