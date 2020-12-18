@@ -38,7 +38,7 @@ class WebSocket extends Request implements iCommand
     /**
      * @var $socket resource
      */
-    private $socket;
+    public $socket;
 
 
     public static bool $isWebsocketD = false;
