@@ -45,14 +45,14 @@ class WebSocket extends Request implements iCommand
     public static bool $minimiseResources = false;
     public static bool $verifyIP = true;
 
-    private const TEXT = 0x1;
-    private const BINARY = 0x2;
-    private const CLOSE = 0x8;
-    private const PING = 0x9;
-    private const PONG = 0xa;
+    public const TEXT = 0x1;
+    public const BINARY = 0x2;
+    public const CLOSE = 0x8;
+    public const PING = 0x9;
+    public const PONG = 0xa;
 
     # https://stackoverflow.com/questions/4812686/closing-websocket-correctly-html5-javascript
-    private const CLOSE_DATA_FRAME = 0x88; // todo - maybe, it ends up being equivalent to close.?
+    public const CLOSE_DATA_FRAME = 0x88; // todo - maybe, it ends up being equivalent to close.?
 
     public static int $port = 8888;
     public static bool $ssl = false;
@@ -87,7 +87,7 @@ class WebSocket extends Request implements iCommand
      */
     public static string $user_id = '';
 
-    private static array $applicationConfiguration = [];
+    protected static array $applicationConfiguration = [];
 
     public function __construct($config)
     {
