@@ -18,6 +18,7 @@ namespace CarbonPHP;
 use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Helpers\Serialized;
 use CarbonPHP\Programs\Background;
+use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Programs\WebSocket;
 use CarbonPHP\Tables\Sessions;
 use PDOException;
@@ -31,7 +32,7 @@ use function is_callable;
 // most important line - session_set_save_handler($this, false)
 class Session implements \SessionHandlerInterface
 {
-    use Background;
+    use Background, ColorCode;
 
 
     protected static ?Session $singleton = null;

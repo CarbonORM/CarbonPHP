@@ -15,7 +15,6 @@ trait ColorCode
      * @param string $color
      * @param bool $exit
      * @param int $priority
-     * @throws PublicAlert
      * @link https://www.php.net/manual/en/function.syslog.php
      */
     public static function colorCode(string $message, string $color = 'green', bool $exit = false, int $priority = LOG_INFO): void
@@ -59,7 +58,8 @@ trait ColorCode
         );
 
         if (!array_key_exists($color, $colors)) {
-            throw new PublicAlert("Color provided to color code ($color) is invalid, message caught '$message'");
+            $color = 'red';
+            self::colorCode("Color provided to color code ($color) is invalid, message caught '$message'", 'red');
         }
 
         $colorCodex = sprintf($colors[$color], $message);

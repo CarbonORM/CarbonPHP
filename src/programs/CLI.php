@@ -14,7 +14,7 @@ use CarbonPHP\Interfaces\iCommand;
 
 class CLI implements iCommand
 {
-    use Background;
+    use Background, ColorCode;
 
     private array $CONFIG;
     private array $ARGV;
@@ -71,8 +71,8 @@ class CLI implements iCommand
 
 
                 if (!class_exists($namespace)) {
-                    self::colorCode("Failed to load the class ($namespace)");
-                    die('Failed to load the class ("' . $namespace . '")');
+                    self::colorCode("Failed to load the class ($namespace). Your namespace is probably incorrect.\n");
+                    die("Failed to load the class ($namespace). Your namespace is probably incorrect.\n");
                 }
 
                 $imp = class_implements($namespace);

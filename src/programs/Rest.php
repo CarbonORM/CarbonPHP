@@ -19,7 +19,6 @@ use function random_int;
 class Rest implements iCommand
 {
     use ColorCode, Composer, Background, MySQL {
-        ColorCode::colorCode insteadof Background;
         ColorCode::colorCode insteadof Composer;
         __construct as setup;
         cleanUp as removeFiles;

@@ -15,7 +15,7 @@ use CarbonPHP\Interfaces\iCommand;
  */
 class TestBuilder implements iCommand
 {
-    use Background;
+    use Background, ColorCode;
 
     private array $CONFIG;
 

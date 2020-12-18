@@ -7,6 +7,7 @@ namespace CarbonPHP\Error;
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
 use CarbonPHP\Programs\Background;
+use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Tables\Carbon_Reports;
 use CarbonPHP\View;
 use ReflectionException;
@@ -25,7 +26,7 @@ use Throwable;
  */
 class ErrorCatcher
 {
-    use Background;
+    use Background, ColorCode;
 
     /**
      * @var string TODO - re-setup logs saving to files
@@ -375,7 +376,11 @@ END;
             }
         }
 
-        self::colorCode(implode(PHP_EOL, $browserOutput), 'red');
+        self::colorCode($message = implode(PHP_EOL, $browserOutput), 'red');
+
+        if (CarbonPHP::$socket) {
+            print $message;
+        }
 
         return $browserOutput; // as array
     }

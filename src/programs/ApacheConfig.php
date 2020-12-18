@@ -7,7 +7,7 @@ use CarbonPHP\Interfaces\iCommand;
 
 class ApacheConfig implements iCommand
 {
-    use Background;
+    use Background, ColorCode;
 
     private array $CONFIG;
 

@@ -33,7 +33,7 @@ use function ord;
  */
 class WebSocket extends Request implements iCommand
 {
-    use Background;
+    use Background, ColorCode;
 
     /**
      * @var $socket resource
@@ -87,9 +87,13 @@ class WebSocket extends Request implements iCommand
      */
     public static string $user_id = '';
 
+    private static array $applicationConfiguration = [];
+
     public function __construct($config)
     {
         [$config, $argv] = $config;
+
+        self::$applicationConfiguration = $config;
 
         $config['SOCKET'] ??= [];
 

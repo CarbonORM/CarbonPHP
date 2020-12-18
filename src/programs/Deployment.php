@@ -15,7 +15,7 @@ use CarbonPHP\Interfaces\iCommand;
  */
 class Deployment implements iCommand
 {
-    use Background;
+    use Background, ColorCode;
 
     private string $ipAddress;
 
