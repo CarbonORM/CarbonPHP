@@ -250,6 +250,9 @@ END;
             !CarbonPHP::$cli && self::generateBrowserReport($browserOutput);
 
             /* Don't execute PHP internal error handler */
+            if (CarbonPHP::$socket) {
+                return false; // todo - double todo bc this is cray.
+            }
             exit(1);
             # return false;  // todo this will continue execution
         };
@@ -377,10 +380,6 @@ END;
         }
 
         self::colorCode($message = implode(PHP_EOL, $browserOutput), 'red');
-
-        if (CarbonPHP::$socket) {
-            print $message;
-        }
 
         return $browserOutput; // as array
     }

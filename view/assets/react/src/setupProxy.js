@@ -21,4 +21,15 @@ module.exports = function (app) {
         },
         logLevel: "debug"
     }));
+    app.use('/carbon/**', createProxyMiddleware({
+        target: 'ws://dev.carbonphp.com:8888/ws',
+        changeOrigin: true,
+        secure: false,
+        ws: true,
+        proxyTimeout: 4000,
+        pathRewrite(path, req) {
+            return path.replace(/^\/carbons/, 'carbons')
+        },
+        logLevel: "debug"
+    }));
 };

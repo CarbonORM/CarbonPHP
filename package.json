@@ -16,7 +16,9 @@
     "jquery-pjax": "^2.0.1",
     "mustache": "^2.3.2",
     "qs": "^6.9.4",
-    "react-code-blocks": "0.0.8"
+    "react-code-blocks": "0.0.8",
+    "raw.macro": "^0.4.2",
+    "eslint-plugin-prettier": "^3.3.0"
   },
   "repository": {
     "type": "git",
