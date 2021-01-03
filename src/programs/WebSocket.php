@@ -1,5 +1,4 @@
 <?php
-
 namespace CarbonPHP\Programs;
 
 use CarbonPHP\CarbonPHP;

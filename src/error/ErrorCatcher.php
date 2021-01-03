@@ -205,7 +205,10 @@ END;
 
 
         /**
-         * if you return true from here it will continue script execution
+         * php.net/manual/en/function.set-error-handler.php
+         *      return true from here it will continue script execution
+         *      return false and PHP will use it's built in error handler
+         *
          * @param int $errorLevel
          * @param string $errorString
          * @param string $errorFile
@@ -214,7 +217,9 @@ END;
          * @link https://www.php.net/manual/en/function.set-error-handler.php
          */
         $error_handler = static function (int $errorLevel, string $errorString, string $errorFile, int $errorLine) {
-
+            static $errorsHandled = 0;
+            static $fatalError = false;
+            $errorsHandled++;
             $browserOutput = [];
 
             // refer to link on this one
@@ -226,6 +231,8 @@ END;
 
             switch ($errorLevel) {
                 case E_USER_ERROR:
+                    $fatalError = true;
+                    self::colorCode('E_USER_ERROR caught', 'true');
                     $browserOutput["USER ERROR [$errorLevel]"] = $errorString;
                     $browserOutput['FATAL ERROR'] = "Fatal error on line $errorLine in file $errorFile";
                     $browserOutput['PHP'] = PHP_VERSION . ' (' . PHP_OS . ')';
@@ -251,7 +258,13 @@ END;
 
             /* Don't execute PHP internal error handler */
             if (CarbonPHP::$socket) {
-                return false; // todo - double todo bc this is cray.
+                if ($fatalError) {
+                    exit(1);
+                }
+
+                if ($errorsHandled < 3) {
+                    return true;            // let php do there thing... todo test this
+                }
             }
             exit(1);
             # return false;  // todo this will continue execution
@@ -267,13 +280,13 @@ END;
 
             $browserOutput['Exception Handler'] = 'CarbonPHP Generated This Report.';
 
-            $browserOutput = self::generateLog($exception);
+            self::generateLog($exception, null, $browserOutput, 'yellow');
 
-            !CarbonPHP::$cli && self::generateBrowserReport($browserOutput);    // this will die
-
+            if (!CarbonPHP::$cli) {
+                self::generateBrowserReport($browserOutput); // this will die(1)
+            }
             return false;
         };
-
         set_error_handler($error_handler);
         set_exception_handler($exception_handler);   // takes one argument
     }
@@ -292,12 +305,21 @@ END;
      * @param Throwable|array|null $e
      * @param string $level
      * @param array $browserOutput
+     * @param string $color
      * @return array
      * @internal param $argv
      * @noinspection ForgottenDebugOutputInspection
      */
-    public static function generateLog(Throwable $e = null, string $level = 'log', array &$browserOutput = []): array
+    public static function generateLog(Throwable $e = null, string $level = null, array &$browserOutput = [], string $color = null): array
     {
+        if (null === $level) {
+            $level = 'log';
+        }
+
+        if (null === $color) {
+            $color = 'red';
+        }
+
         if (ob_get_status()) {
             // Attempt to remove any previous in-progress output buffers
             ob_end_clean();
@@ -379,7 +401,7 @@ END;
             }
         }
 
-        self::colorCode($message = implode(PHP_EOL, $browserOutput), 'red');
+        self::colorCode($message = implode(PHP_EOL, $browserOutput), $color);
 
         return $browserOutput; // as array
     }
@@ -485,6 +507,7 @@ PRODUCTION;
 
         $public_root = trim(CarbonPHP::$public_carbon_root, '/');
 
+        /** @noinspection CssUnknownTarget */
         print /** @lang HTML */
             <<<DEVOPS
 <html lang="en">

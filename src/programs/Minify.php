@@ -9,12 +9,14 @@
 namespace CarbonPHP\Programs;
 
 use CarbonPHP\CarbonPHP;
-use MatthiasMullie\Minify as Run;
 use CarbonPHP\Interfaces\iCommand;
+use MatthiasMullie\Minify as Run;
 use Patchwork\JSqueeze;
 
 class Minify implements iCommand
 {
+    use Composer;
+
     private array $PHP;
 
     public function __construct(array $PHP)
@@ -22,7 +24,7 @@ class Minify implements iCommand
         [$this->PHP] = $PHP;
     }
 
-    public function usage() : void
+    public function usage(): void
     {
         //TODO - adjust for app view
         print <<<USE
@@ -69,94 +71,161 @@ USE;
         exit(1);
     }
 
-    private function CSS(array $files): void
+    private function CSS(): callable
     {
-        if (empty($files)) {
-            $this->usage();
-        }
-        $minifiedPath = $files['OUT'] ?? CarbonPHP::$app_root . CarbonPHP::$app_view . 'CSS' . DS . 'style.css';
-
-        unset($files['OUT']);
-
-        $files = array_values($files);
-
-        foreach ($files as $file) {
-            if (!file_exists($file)){
-                print "\tFailed to find\n\t\t$file\n\n\n";
-                exit(1);
+        return function (array $files) {
+            if (empty($files)) {
+                $this->usage();
             }
-        }
+            $minifiedPath = $files['OUT'] ?? CarbonPHP::$app_root . CarbonPHP::$app_view . 'CSS' . DS . 'style.css';
 
-        if (file_exists($minifiedPath)) {
-            unlink($minifiedPath);
-        }
+            unset($files['OUT']);
 
-        $min = new Run\CSS(... $files);
-        $min->minify($minifiedPath);
-        print "\tThe minified cascading style sheet (css) was stored to ::\n\n\t\t\t $minifiedPath\n\n";
+            $files = array_values($files);
+
+            foreach ($files as $file) {
+                if (!file_exists($file)) {
+                    ColorCode::colorCode("\tFailed to find\n\t\t$file\n\n\n", 'red');
+                    exit(1);
+                }
+            }
+
+            if (file_exists($minifiedPath)) {
+                unlink($minifiedPath);
+            }
+
+            $min = new Run\CSS(... $files);
+            $min->minify($minifiedPath);
+            ColorCode::colorCode("\tThe minified cascading style sheet (css) was stored to ::\n\n\t\t\t $minifiedPath\n\n", 'cyan');
+        };
     }
 
-    private function JS(array $files): void
+    private function JS(): callable
     {
-        if (empty($files)) {
-            $this->usage();
-        }
-        $minifiedPath = $files['OUT'] ?? CarbonPHP::$app_root . CarbonPHP::$app_view  . 'js/javascript.js';
-
-        unset($files['OUT']);
-
-        foreach ($files as $file) {
-            if (!file_exists($file)){
-                print "\tFailed to find\n\t\t$file\n\n\n";
-                exit(1);
+        return function (array $files) {
+            if (empty($files)) {
+                $this->usage();
             }
-        }
+            $minifiedPath = $files['OUT'] ?? CarbonPHP::$app_root . CarbonPHP::$app_view . 'js/javascript.js';
 
-        if (file_exists($minifiedPath)) {
-            unlink($minifiedPath);
-        }
+            unset($files['OUT']);
 
-        $buffer = '';
+            foreach ($files as $file) {
+                if (!file_exists($file)) {
+                    ColorCode::colorCode("\tFailed to find\n\t\t$file\n\n\n", 'red');
+                    exit(1);
+                }
+            }
 
-        $jz = new JSqueeze;
+            if (file_exists($minifiedPath)) {
+                unlink($minifiedPath);
+            }
 
-        foreach ($files as $file) {
-            $buffer .= PHP_EOL . $jz->squeeze(
-                    file_get_contents($file),
-                true,   // $singleLine
-                true,   // $keepImportantComments
-                false   // $specialVarRx
-            );
-        }
+            $buffer = '';
 
-        if (!file_put_contents($minifiedPath, $buffer)) {
-            print "Failed to save the minified javascript!!\n\n\n";
-        }
+            $jz = new JSqueeze;
 
-        print "\tThe minified javascript (js) was stored to ::\n\n\t\t\t $minifiedPath\n\n";
+            foreach ($files as $file) {
+                $buffer .= PHP_EOL . $jz->squeeze(
+                        file_get_contents($file),
+                        true,   // $singleLine
+                        true,   // $keepImportantComments
+                        false   // $specialVarRx
+                    );
+            }
+
+            if (!file_put_contents($minifiedPath, $buffer)) {
+                ColorCode::colorCode("Failed to save the minified javascript!!\n\n\n", 'red');
+            }
+
+            ColorCode::colorCode("\tThe minified javascript (js) was stored to ::\n\n\t\t\t $minifiedPath\n\n", 'cyan');
+        };
     }
 
 
     /**
      * @param $argv
      */
-    public function run($argv) : void
+    public function run($argv): void
     {
-        switch ($argv) {
+        switch (array_shift($argv)) {
+            case 'watch':
+
+                function endsWith($haystack, $needle)
+                {
+                    $length = strlen($needle);
+                    if (!$length) {
+                        return true;
+                    }
+                    return substr($haystack, -$length) === $needle;
+                }
+
+                $this->JS()($this->PHP['MINIFY']['JS']);
+                $this->CSS()($this->PHP['MINIFY']['CSS']);
+                ColorCode::colorCode('Starting Watch');
+                $tracking = [];
+
+                $whichFilesToTrack = function (bool $refresh = false) {
+                    if ($refresh) {
+                        $this->PHP = self::getComposerConfig();
+                    }
+                    $php = [$this->PHP['SITE']['CONFIG']];
+                    $css = $this->PHP['MINIFY']['CSS'];
+                    $js = $this->PHP['MINIFY']['JS'];
+                    unset($js['MINIFY']['CSS']['OUT'], $css['MINIFY']['JS']['OUT']);
+                    return array_merge($php, $css, $js);
+                };
+
+                $files = $whichFilesToTrack();
+
+                while (true) {
+                    foreach ($files as $file) {
+                        if (!($tracking[$file] ?? false)) {
+                            $tracking[$file]['time'] = filemtime($file);
+                            $tracking[$file]['md5'] = md5_file($file);
+                            ColorCode::colorCode($tracking[$file]['time'] . ' ' . $tracking[$file]['md5'] . ' ' . $file);
+                            continue;
+                        }
+
+
+
+
+                        if ($tracking[$file]['md5'] !== md5_file($file)) {
+
+                            ColorCode::colorCode("Detected Change (MD5) in $file", 'red');
+
+                            if (endsWith($file, 'Bootstrap.php')) {
+                                $files = $whichFilesToTrack();
+                                break;
+                            }
+
+                            ColorCode::colorCode('Starting Watch');
+                            $tracking[$file]['time'] = filemtime($file);
+                            $tracking[$file]['md5'] = md5_file($file);
+                            ColorCode::colorCode('File Updated :: ' . $tracking[$file]['time'] . ' ' . $tracking[$file]['md5'] . ' ' . $file, 'blue');
+                            $this->JS()($this->PHP['MINIFY']['JS']);
+                            $this->CSS()($this->PHP['MINIFY']['CSS']);
+                            sleep(3);
+                            continue;
+                        }
+                    }
+                    sleep(3);
+                }
+                break;
             case 'css':
-                $this->CSS($this->PHP['MINIFY']['CSS']);
+                $this->CSS()($this->PHP['MINIFY']['CSS']);
                 break;
             case 'js':
-                $this->JS($this->PHP['MINIFY']['JS']);
+                $this->JS()($this->PHP['MINIFY']['JS']);
                 break;
             default:
-                $this->JS($this->PHP['MINIFY']['JS']);
-                $this->CSS($this->PHP['MINIFY']['CSS']);
+                $this->JS()($this->PHP['MINIFY']['JS']);
+                $this->CSS()($this->PHP['MINIFY']['CSS']);
         }
     }
 
-    public function cleanUp() : void
+    public function cleanUp(): void
     {
-        
+
     }
 }

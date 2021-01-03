@@ -91,7 +91,6 @@
       <extension name="oauth" enabled="false" />
       <extension name="oci8" enabled="false" />
       <extension name="odbc" enabled="false" />
-      <extension name="pcntl" enabled="false" />
       <extension name="pdo_ibm" enabled="false" />
       <extension name="pspell" enabled="false" />
       <extension name="pthreads" enabled="false" />

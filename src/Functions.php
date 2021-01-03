@@ -222,8 +222,8 @@ namespace {                                     // This runs the following code 
             $report = $output(true);
             ColorCode::colorCode($report . PHP_EOL, 'red');
         } else if (!$die && CarbonPHP::$ajax) {
+            $report = $output(true);
             View::$bufferedContent = base64_encode($report);
-            exit($report);
         } else {
             print $report = $output(false);
             ColorCode::colorCode($output(true) . PHP_EOL, 'red');
