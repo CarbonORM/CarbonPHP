@@ -384,7 +384,7 @@ abstract class Rest extends Database
                 case self::PUT:
                 case self::DELETE:
                 case self::GET:
-                    empty($args) or self::validateRestfulArguments($method, $args, $regex_validations, $php_validations);
+                    self::validateRestfulArguments($method, $args ??= [], $regex_validations, $php_validations);
 
                     $methodCase = ucfirst(strtolower($_SERVER['REQUEST_METHOD']));  // this is to match actual method spelling
 
@@ -404,8 +404,7 @@ abstract class Rest extends Database
                     break;
 
                 case self::POST:
-
-                    empty($_POST) or self::validateRestfulArguments($method, $_POST, $regex_validations, $php_validations);
+                    self::validateRestfulArguments($method, $_POST ??= [], $regex_validations, $php_validations);
 
                     $methodCase = ucfirst(strtolower($_SERVER['REQUEST_METHOD']));  // this is to match actual method spelling
 
