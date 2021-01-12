@@ -74,6 +74,10 @@
     ],
     "metrics": [
       "php ./vendor/bin/phpmetrics --config=php-metrics.json ."
-    ]
+    ],
+    "apache:linkApplication": "rm -f /usr/local/var/www && ln -s $(pwd) /usr/local/var/www",
+    "apache:start:mac": "sudo /usr/local/bin/httpd -k start",
+    "apache:restart:mac": "sudo /usr/local/bin/httpd -k restart",
+    "apache:stop:mac": "sudo /usr/local/bin/httpd -k restart"
   }
 }
