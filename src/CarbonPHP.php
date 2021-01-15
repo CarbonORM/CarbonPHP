@@ -279,6 +279,8 @@ class CarbonPHP
 
             if ($app_root !== null) {
                 self::$app_root = rtrim($app_root, DS) . DS;    // an extra check
+            } else {
+                self::$app_root = dirname(self::CARBON_ROOT) . DS;
             }
 
             /*

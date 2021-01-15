@@ -127,7 +127,7 @@ USE;
 
             foreach ($files as $file) {
                 $buffer .= PHP_EOL . $jz->squeeze(
-                        file_get_contents($file),
+                        file_get_contents($file) . ';',
                         true,   // $singleLine
                         true,   // $keepImportantComments
                         false   // $specialVarRx
@@ -178,7 +178,9 @@ USE;
 
                 $files = $whichFilesToTrack();
 
+                ColorCode::colorCode('Starting Watch');
                 while (true) {
+                    ColorCode::colorCode('.', 'blue');
                     foreach ($files as $file) {
                         if (!($tracking[$file] ?? false)) {
                             $tracking[$file]['time'] = filemtime($file);
@@ -187,21 +189,17 @@ USE;
                             continue;
                         }
 
-
-
-
                         if ($tracking[$file]['md5'] !== md5_file($file)) {
-
+                            $tracking[$file]['time'] = filemtime($file);
+                            $tracking[$file]['md5'] = md5_file($file);
                             ColorCode::colorCode("Detected Change (MD5) in $file", 'red');
 
                             if (endsWith($file, 'Bootstrap.php')) {
                                 $files = $whichFilesToTrack();
+                                ColorCode::colorCode(print_r($files, true));
                                 break;
                             }
 
-                            ColorCode::colorCode('Starting Watch');
-                            $tracking[$file]['time'] = filemtime($file);
-                            $tracking[$file]['md5'] = md5_file($file);
                             ColorCode::colorCode('File Updated :: ' . $tracking[$file]['time'] . ' ' . $tracking[$file]['md5'] . ' ' . $file, 'blue');
                             $this->JS()($this->PHP['MINIFY']['JS']);
                             $this->CSS()($this->PHP['MINIFY']['CSS']);
