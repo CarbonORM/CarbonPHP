@@ -1167,7 +1167,7 @@ $staticNamespaces
 class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/primaryExists}}{{^primaryExists}}iRestfulReferences{{/primaryExists}}
 {
     
-    public const TABLE_NAME = '{{TableName}}';
+    public const TABLE_NAME = '{{ucEachTableName}}';
     {{#explode}}
     public const {{caps}} = '{{TableName}}.{{name}}'; 
     {{/explode}}

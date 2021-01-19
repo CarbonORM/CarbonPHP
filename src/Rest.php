@@ -51,6 +51,8 @@ abstract class Rest extends Database
 
     public static array $injection = [];
 
+    public static ?string $tableNamespace = null;
+
     /**
      * @throws PublicAlert
      */
@@ -336,7 +338,9 @@ abstract class Rest extends Database
 
         try {
             if (CarbonPHP::$app_root . 'src' . DS === CarbonPHP::CARBON_ROOT) {
-                $namespace = 'CarbonPHP\\Tables\\';
+                self::$tableNamespace = 'CarbonPHP\\Tables\\';
+            } elseif ($namespace !== 'Tables\\') {
+                self::$tableNamespace = $namespace;
             }
 
             $mainTable = explode('_', $mainTable);      // table name semantics vs class name
@@ -346,7 +350,7 @@ abstract class Rest extends Database
             $mainTable = implode('_', $mainTable);
 
             $requestTableHasPrimary = in_array(strtolower(iRest::class),
-                array_map('strtolower', array_keys(class_implements($namespace . $mainTable))), true);
+                array_map('strtolower', array_keys(class_implements(self::$tableNamespace . $mainTable))), true);
 
             $method = strtoupper($_SERVER['REQUEST_METHOD']);
 
@@ -377,7 +381,7 @@ abstract class Rest extends Database
                     throw new PublicAlert('The REQUEST_METHOD is not RESTFUL. Method must be either \'POST\', \'PUT\', \'GET\', or \'DELETE\'.');
             }
 
-            [$regex_validations, $php_validations] = self::gatherValidationsForRequest($mainTable, $namespace, $args);
+            [$regex_validations, $php_validations] = self::gatherValidationsForRequest($mainTable, self::$tableNamespace, $args);
 
 
             switch ($method) {
@@ -466,7 +470,7 @@ abstract class Rest extends Database
 
 
         // CARBON_ROOT === CarbonPHP::$app_root is also $database = '' in this context, but cheers to clarity!
-        $tablePrefix = CarbonPHP::CARBON_ROOT === CarbonPHP::$app_root . 'src' . DS ? 'CarbonPHP\\Tables\\' : 'Tables\\';
+        $tablePrefix = self::$tableNamespace ?? (CarbonPHP::CARBON_ROOT === CarbonPHP::$app_root . 'src' . DS ? 'CarbonPHP\\Tables\\' : 'Tables\\');
 
         // build join
         if (array_key_exists(self::JOIN, $argv) && !empty($argv[self::JOIN])) {
