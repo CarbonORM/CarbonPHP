@@ -988,6 +988,7 @@ const convertForRequestBody = function(restfulObject, tableName) {
         $debug and var_dump($rest['clients']);
 
         self::colorCode("\tSuccess!\n\n");
+        print "\n\nSuccess\n";
 
     }
 

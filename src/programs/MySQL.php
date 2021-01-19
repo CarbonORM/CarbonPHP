@@ -86,14 +86,22 @@ IDENTIFIED;
             exit(1);
         }
 
-        if (empty($this->config['DATABASE']['DB_PORT'])) {
+        $cnf = [
+            '[client]',
+            "user = {$this->config['DATABASE']['DB_USER']}",
+            "password = {$this->config['DATABASE']['DB_PASS']}",
+            "host = {$this->config['DATABASE']['DB_HOST']}"
+        ];
+
+
+        if (($this->config['DATABASE']['DB_PORT'] ?? false) && $this->config['DATABASE']['DB_PORT'] !== '') {
             print 'No [\'DATABASE\'][\'DB_PORT\'] configuration active. Using default port 3306. ' . PHP_EOL;
             $this->config['DATABASE']['DB_PORT'] = 3306;
+            $cnf[] = "port = {$this->config['DATABASE']['DB_PORT']}";
         }
 
         // We're going to use this function to execute mysql from the command line
         // Mysql needs this to access the server
-        $cnf = ['[client]', "user = {$this->config['DATABASE']['DB_USER']}", "password = {$this->config['DATABASE']['DB_PASS']}", "host = {$this->config['DATABASE']['DB_HOST']}", "port = {$this->config['DATABASE']['DB_PORT']}"];
         if (false === file_put_contents(CarbonPHP::$app_root . 'mysql.cnf', implode(PHP_EOL, $cnf))) {
             print 'Failed to store file contents of mysql.cnf in ' . CarbonPHP::$app_root;
             exit('Failed to store file contents mysql.cnf in ' . CarbonPHP::$app_root);
@@ -104,7 +112,6 @@ IDENTIFIED;
     /**
      * @param String|null $mysqldump
      * @return string
-     * @throws PublicAlert
      */
     private function MySQLDump(String $mysqldump = null) : string
     {
