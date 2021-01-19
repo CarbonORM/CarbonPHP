@@ -468,7 +468,7 @@ END;
 
         $cleanErrorReport = '';
 
-        if (CarbonPHP::$app_local) {
+        if (CarbonPHP::$app_local || self::$printToScreen) {
             $codePreview = self::grabCodeSnippet();
 
             foreach ($message as $left => $right) {

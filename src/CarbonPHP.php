@@ -334,7 +334,7 @@ class CarbonPHP
 
             #################  DATABASE  ########################
             if ($config['DATABASE'] ?? false) {
-                Database::$dsn = 'mysql:host=' . ($config['DATABASE']['DB_HOST'] ?? '') . ';dbname=' . ($config['DATABASE']['DB_NAME'] ?? '') . ';port=' . ($config['DATABASE']['DB_PORT'] ?? '3306');
+                Database::$dsn = 'mysql:host=' . ($config['DATABASE']['DB_HOST'] ?? '') . ';dbname=' . ($config['DATABASE']['DB_NAME'] ?? '') . (($config['DATABASE']['DB_PORT'] ?? false) && $config['DATABASE']['DB_PORT'] !== ''? ';port=' . $config['DATABASE']['DB_PORT'] : '');
                 Database::$username = $config['DATABASE']['DB_USER'] ?? '';
                 Database::$password = $config['DATABASE']['DB_PASS'] ?? '';
                 Database::$setup = $config['DATABASE']['DB_BUILD'] ?? '';
@@ -516,7 +516,7 @@ class CarbonPHP
             header("Refresh:0; url=$URL");
             print '<html lang="en"><head><!--suppress InjectedReferences -->
     <meta http-equiv="refresh" content="5; url=' . $URL . '"></head><body>' .
-                self::$server_ip . '<h1>You appear to be lost.</h1><h2>Moving to <a href="' . $URL . '"> ' . $URL . '</a></h2>' .
+                self::$server_ip . '<h1>You appear to be lost.</h1><h2>Moving to <a href="//' . $URL . '"> ' . $URL . '</a></h2>' .
                 "<script>window.location.type = $URL</script></body></html>";
             exit(1);
         }
