@@ -1153,6 +1153,30 @@ export interface  i{{ucEachTableName}}{
 
         $staticNamespaces = implode(PHP_EOL, $staticNamespaces);
 
+        /*
+         *            $rest[$tableName] = [
+                            'subQuery' => $subQuery,
+                            'subQueryLength' => strlen($subQuery),
+                            'json' => $json,
+                            'binary_primary' => false,
+                            'carbon_namespace' => $carbon_namespace,
+                            'namespace' => $carbon_namespace ? 'CarbonPHP\Tables' : $target_namespace,
+                            'carbon_table' => false,
+                            'database' => $this->schema,
+                            // We need to catch circular dependencies
+                            'dependencies' => $rest[$tableName]['dependencies'] ?? [],
+                            'TableName' => $tableName,
+                            'ucEachTableName' => $etn = implode('_', array_map('ucfirst', explode('_', preg_replace("/^$prefix/", '', $tableName)))),
+                            'strtolowerNoPrefixTableName' => strtolower($etn),
+                            'primarySort' => '',
+                            'custom_methods' => '',
+                            'primary' => [],
+                        ];
+         *
+         *
+         * */
+
+
         return /** @lang Handlebars */ <<<STRING
 <?php 
 
@@ -1167,7 +1191,10 @@ $staticNamespaces
 class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/primaryExists}}{{^primaryExists}}iRestfulReferences{{/primaryExists}}
 {
     
-    public const TABLE_NAME = '{{ucEachTableName}}';
+    public const CLASS_NAME = '{{ucEachTableName}}';
+    public const TABLE_NAME = '{{TableName}}';
+    public const TABLE_NAMESPACE = '{{namespace}}';
+    
     {{#explode}}
     public const {{caps}} = '{{TableName}}.{{name}}'; 
     {{/explode}}
@@ -1262,6 +1289,8 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
     */
     public static function Get(array &\$return, {{#primaryExists}}string \$primary = null, {{/primaryExists}}array \$argv = []): bool
     {
+        self::\$tableNamespace = self::TABLE_NAMESPACE;
+   
         \$pdo = self::database();
 
         \$sql = self::buildSelectQuery({{#primaryExists}}\$primary{{/primaryExists}}{{^primaryExists}}null{{/primaryExists}}, \$argv, {{^carbon_namespace}}'{{database}}'{{/carbon_namespace}}{{#carbon_namespace}}''{{/carbon_namespace}}, \$pdo);{{#json}}
@@ -1306,6 +1335,8 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
      */
     public static function Post(array \$argv, string \$dependantEntityId = null){{^primaryExists}}: bool{{/primaryExists}}
     {   
+        self::\$tableNamespace = self::TABLE_NAMESPACE;
+    
         foreach (\$argv as \$columnName => \$postValue) {
             if (!array_key_exists(\$columnName, self::PDO_VALIDATION)){
                 throw new PublicAlert("Restful table could not post column \$columnName, because it does not appear to exist.", 'danger');
@@ -1351,6 +1382,8 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
     */
     public static function Put(array &\$return, {{#primaryExists}}string \$primary,{{/primaryExists}} array \$argv) : bool
     {
+        self::\$tableNamespace = self::TABLE_NAMESPACE;
+        
         {{#primaryExists}}
         if (empty(\$primary)) {
             throw new PublicAlert('Restful tables which have a primary key must be updated by its primary key.', 'danger');
@@ -1442,6 +1475,8 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
     */
     public static function Delete(array &\$remove, {{#primaryExists}}string \$primary = null, {{/primaryExists}}array \$argv = []) : bool
     {
+        self::\$tableNamespace = self::TABLE_NAMESPACE;
+        
     {{#carbon_table}}
         if (null !== \$primary) {
             return Carbons::Delete(\$remove, \$primary, \$argv);

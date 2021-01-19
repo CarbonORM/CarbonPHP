@@ -526,7 +526,7 @@ PRODUCTION;
 }
 
 html { 
-  background: url("$public_root/view/assets/img/Carbon-red.png") no-repeat center center fixed; 
+  background: url("/$public_root/view/assets/img/Carbon-red.png") no-repeat center center fixed; 
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
@@ -668,8 +668,8 @@ pre .cl {
 
 
 </style>
-<script src="$public_root/node_modules/jquery/dist/jquery.slim.min.js"></script>
-<script src="$public_root/node_modules/jquery-backstretch/jquery.backstretch.min.js"></script>
+<script src="/$public_root/node_modules/jquery/dist/jquery.slim.min.js"></script>
+<script src="/$public_root/node_modules/jquery-backstretch/jquery.backstretch.min.js"></script>
 <script>
 (function() {
     var pre = document.getElementsByTagName('pre'),
@@ -699,7 +699,7 @@ $cleanErrorReport
 
 </div>
 
-<a class="avatar" href="/" title="Go Home"><img src="$public_root/view/assets/img/Carbon-white.png"/></a>
+<a class="avatar" href="/" title="Go Home"><img src="/$public_root/view/assets/img/Carbon-white.png"/></a>
 </body>
 </html>
 DEVOPS;

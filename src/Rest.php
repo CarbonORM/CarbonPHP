@@ -51,7 +51,7 @@ abstract class Rest extends Database
 
     public static array $injection = [];
 
-    public static ?string $tableNamespace = null;
+    public static string $tableNamespace;
 
     /**
      * @throws PublicAlert
@@ -470,7 +470,7 @@ abstract class Rest extends Database
 
 
         // CARBON_ROOT === CarbonPHP::$app_root is also $database = '' in this context, but cheers to clarity!
-        $tablePrefix = self::$tableNamespace ?? (CarbonPHP::CARBON_ROOT === CarbonPHP::$app_root . 'src' . DS ? 'CarbonPHP\\Tables\\' : 'Tables\\');
+        $tablePrefix = self::$tableNamespace;
 
         // build join
         if (array_key_exists(self::JOIN, $argv) && !empty($argv[self::JOIN])) {
@@ -478,12 +478,14 @@ abstract class Rest extends Database
                 throw new PublicAlert('The restful join field must be an array.');
             }
             foreach ($argv[self::JOIN] as $by => $tables) {
-                $buildJoin = static function ($method) use ($tablePrefix, $tables, &$join, &$tableClassList, &$joinColumns) {
-                    foreach ($tables as $table => $stmt) {
-                        $tableClassList[] = $JoiningClass = $tablePrefix . ucwords($table, '_');
+
+                $buildJoin = static function ($method) use ($tables, &$join, &$tableClassList, &$joinColumns) {
+                    foreach ($tables as $class => $stmt) {
+
+                        $tableClassList[] = $JoiningClass = self::$tableNamespace . '\\' . ucwords($class, '_');
 
                         if (!class_exists($JoiningClass)) {
-                            throw new PublicAlert('A table provided in the Restful join request was not found in the system. This may mean you need to auto generate your restful tables in the CLI.');
+                            throw new PublicAlert('A table '.$JoiningClass.' provided in the Restful join request was not found in the system. This may mean you need to auto generate your restful tables in the CLI.');
                         }
 
                         $imp = array_map('strtolower', array_keys(class_implements($JoiningClass)));
@@ -493,6 +495,8 @@ abstract class Rest extends Database
                             !in_array(strtolower(iRestfulReferences::class), $imp, true)) {
                             throw new PublicAlert('Rest error, class/table exists in the restful generation folder which does not implement the correct interfaces. Please re-run rest generation.');
                         }
+
+                        $table = $JoiningClass::TABLE_NAME;
 
                         switch (count($stmt)) {
                             case 2:
@@ -527,6 +531,7 @@ abstract class Rest extends Database
                     }
                     return true;
                 };
+
                 switch ($by) {
                     case self::INNER:
                         if (!$buildJoin(' INNER JOIN ')) {
