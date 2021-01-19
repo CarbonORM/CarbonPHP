@@ -558,11 +558,12 @@ abstract class Rest extends Database
             }
 
             $order = '';
-            if (!empty($limit)) {
+
+            if (!empty($limit) || array_key_exists(self::ORDER, $argv[self::PAGINATION])) {
 
                 $order = ' ORDER BY ';
 
-                if (array_key_exists(self::ORDER, $argv[self::PAGINATION]) && is_string($argv[self::PAGINATION][self::ORDER])) {
+                if (array_key_exists(self::ORDER, $argv[self::PAGINATION])) {
                     if (is_array($argv[self::PAGINATION][self::ORDER])) {
                         $orderArray = [];
                         foreach ($argv[self::PAGINATION][self::ORDER] as $item => $sort) {
@@ -574,10 +575,8 @@ abstract class Rest extends Database
                             }
                             $orderArray[] = "$item $sort";                                            // todo - validation
                         }
-                        $order = implode(', ', $orderArray);
+                        $order .= implode(', ', $orderArray);
                         unset($orderArray);
-                    } else {
-                        $order .= $argv[self::PAGINATION][self::ORDER];
                     }
                 } else if (array_key_exists(0, static::PRIMARY)) {
                     if ('binary' === (static::PDO_VALIDATION[static::PRIMARY[0]][0] ?? '')) {

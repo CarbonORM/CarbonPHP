@@ -130,7 +130,7 @@ END;
         $json = $carbon_namespace = CarbonPHP::$app_root . 'src' . DS === CarbonPHP::CARBON_ROOT;
         $targetDir = CarbonPHP::$app_root . ($carbon_namespace ? 'src/tables/' : 'tables/');
         $only_these_tables = $history_table_query = $mysql = null;
-        $verbose = $debug = $primary_required = $delete_dump = $skipTable = $logClasses = false;
+        $verbose = $debug = $primary_required = $delete_dump = $skipTable = $logClasses = $javascriptBindings = false;
         $target_namespace = 'Tables\\';
         $prefix = '';
         $exclude_these_tables = [];
@@ -149,6 +149,12 @@ END;
         /** @noinspection ForeachInvariantsInspection - as we need $i++ */
         for ($i = 0; $i < $argc; $i++) {
             switch ($argv[$i]) {
+                case '-javascript':
+                    $javascriptBindings = $argv[++$i];
+                    if ($react === false) {
+                        $react = $javascriptBindings;
+                    }
+                    break;
                 case '-react':
                     if ($carbon_namespace) {
                         self::colorCode("\tReact directory hardcoded for C6, unnecessary flag.\n", 'blue');
@@ -156,6 +162,7 @@ END;
                     }
                     $react = $argv[++$i];
                     break;
+
                 case '-prefix':
                     $prefix = $argv[++$i];
                     break;
@@ -175,7 +182,7 @@ END;
                             case 'no':
                             case 'n':
                                 /** @noinspection PhpUnhandledExceptionInspection */
-                            self::colorCode('You may need to add more escaping "\\" depending on how may contexts the string goes through. We will try to fix over escaped namespaces.', 'red', true);
+                                self::colorCode('You may need to add more escaping "\\" depending on how may contexts the string goes through. We will try to fix over escaped namespaces.', 'red', true);
                         }
                     }
 
@@ -393,7 +400,8 @@ END;
                             // We need to catch circular dependencies
                             'dependencies' => $rest[$tableName]['dependencies'] ?? [],
                             'TableName' => $tableName,
-                            'ucEachTableName' => implode('_', array_map('ucfirst', explode('_', preg_replace("/^$prefix/", '', $tableName)))),
+                            'ucEachTableName' => $etn = implode('_', array_map('ucfirst', explode('_', preg_replace("/^$prefix/", '', $tableName)))),
+                            'strtolowerNoPrefixTableName' => strtolower($etn),
                             'primarySort' => '',
                             'custom_methods' => '',
                             'primary' => [],
@@ -633,7 +641,7 @@ END;
                                 } else if (substr($words_in_insert_stmt[$key], -2) === '\',') {
                                     $default = trim($words_in_insert_stmt[$key], ',');
                                     // if it doesnt start with '  as CURRENT_TIMESTAMP
-                                } else if (substr($words_in_insert_stmt[$key], 0, 1) !== '\''){
+                                } else if (substr($words_in_insert_stmt[$key], 0, 1) !== '\'') {
                                     $default = rtrim($words_in_insert_stmt[$key], ',');
                                 } else { // the first index does start in ' and doesnt end in '
                                     do {
@@ -766,12 +774,13 @@ END;
             $references_tsx = $interfaces_tsx = $global_column_tsx = '';
             $all_interface_types = [];
             foreach ($rest as $tableName => $parsed) {
+
                 if (empty($rest[$tableName]['explode'])) {
                     continue;
                 }
 
-                if (!class_exists($table = ($carbon_namespace ? 'CarbonPHP\Tables\\' : $target_namespace) . $tableName)) {
-                    $verbose and self::colorCode("\n\nCouldn't locate class '$table' for react validations. This may indicate a new table.\n", 'yellow');
+                if (!class_exists($table = $rest[$tableName]['namespace'] . '\\' . $rest[$tableName]['ucEachTableName'])) {
+                    self::colorCode("\n\nCouldn't locate class '$table' for react validations. This may indicate a new or unused table.\n", 'yellow');
                     continue;
                 }
 
@@ -825,6 +834,7 @@ END;
                 $all_interface_types[] = 'i' . $rest[$tableName]['ucEachTableName'];
                 $all_table_names_types[] = $rest[$tableName]['TableName'];
             }
+
 
             if (empty($all_interface_types) || empty($all_table_names_types)) {
                 self::colorCode('The value of $all_interface_types must not be empty. Rest Failed.', 'red');
@@ -887,6 +897,59 @@ export const convertForRequestBody = function(restfulObject: RestTableInterfaces
 
 ";
             file_put_contents($react . 'C6.tsx', $export);
+
+
+            if ($javascriptBindings) {
+                $export = /** @lang TypeScript JSX */
+                    "
+
+const C6 = {
+
+    SELECT: '" . \CarbonPHP\Rest::SELECT . "',
+    UPDATE: '" . \CarbonPHP\Rest::UPDATE . "',
+    WHERE: '" . \CarbonPHP\Rest::WHERE . "',
+    LIMIT: '" . \CarbonPHP\Rest::LIMIT . "',
+    PAGINATION: '" . \CarbonPHP\Rest::PAGINATION . "',
+    ORDER: '" . \CarbonPHP\Rest::ORDER . "',
+    DESC: '" . \CarbonPHP\Rest::DESC . "',
+    ASC: '" . \CarbonPHP\Rest::ASC . "',
+    JOIN: '" . \CarbonPHP\Rest::JOIN . "',
+    INNER: '" . \CarbonPHP\Rest::INNER . "',
+    LEFT: '" . \CarbonPHP\Rest::LEFT . "',
+    RIGHT: '" . \CarbonPHP\Rest::RIGHT . "',
+    DISTINCT: '" . \CarbonPHP\Rest::DISTINCT . "',
+    COUNT: '" . \CarbonPHP\Rest::COUNT . "',
+    SUM: '" . \CarbonPHP\Rest::SUM . "',
+    MIN: '" . \CarbonPHP\Rest::MIN . "',
+    MAX: '" . \CarbonPHP\Rest::MAX . "',
+    GROUP_CONCAT: '" . \CarbonPHP\Rest::GROUP_CONCAT . "',
+    
+    $references_tsx
+    
+};
+
+const COLUMNS = {
+      $global_column_tsx
+};
+
+const convertForRequestBody = function(restfulObject, tableName) {
+  let payload = {};
+  Object.keys(restfulObject).map(value => {
+    let exactReference = value.toUpperCase();
+    if (exactReference in C6[tableName]) {
+      payload[C6[tableName][exactReference]] = restfulObject[value]
+    }
+    return true;
+  });
+  return payload;
+};
+
+";
+                file_put_contents($javascriptBindings . 'C6.js', $export);
+
+            }
+
+
         }
 
         // todo - log classes
@@ -1039,8 +1102,8 @@ TRIGGER;
     private function reactTemplate(): array
     {
         return [/** @lang Handlebars */ "
-  {{TableName}}: {
-    TABLE_NAME:'{{TableName}}',
+  {{strtolowerNoPrefixTableName}}: {
+    TABLE_NAME:'{{strtolowerNoPrefixTableName}}',
     {{#explode}}
     {{caps}}: '{{TableName}}.{{name}}',
     {{/explode}}
