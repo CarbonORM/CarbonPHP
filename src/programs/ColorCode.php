@@ -57,8 +57,7 @@ trait ColorCode
             'background_white' => "\033[47m%s\033[0m",
         );
 
-        if (!array_key_exists($color, $colors)) {
-            $color = 'red';
+        if (is_string($color) && !array_key_exists($color, $colors)) {
             self::colorCode("Color provided to color code ($color) is invalid, message caught '$message'", 'red');
         }
 

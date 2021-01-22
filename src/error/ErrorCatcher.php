@@ -51,6 +51,9 @@ class ErrorCatcher
     public static string $className = '';
     public static string $methodName = '';
 
+
+    public static bool $attemptRestartAfterError = false;
+
     /**
      * @var int to be used with error_reporting()
      * @link http://php.net/manual/en/function.error-reporting.php
@@ -173,9 +176,10 @@ END;
         // this causes this ::  View::$forceWrapper = true;
         // which breaks the recursive check ?? or does it,
         // we would still need to make it to the view
-        // so it only break when we reach the view? todo - test?
-
-        CarbonPHP::resetApplication();  // we're in prod and we want to recover gracefully...
+        // so it only break when we reach the view? todo - test? -- found error in wp finally, we need a default route check here.. or at least a .... startapplication check application === null? __destruct check
+        if (self::$attemptRestartAfterError) {
+            CarbonPHP::resetApplication();  // we're in prod and we want to recover gracefully...
+        }
 
         exit(1);
 
@@ -751,10 +755,7 @@ DEVOPS;
             505 => 'HTTP Version Not Supported'
         ];
 
-        if (array_key_exists($code, $statusList)) {
-            return $statusList[$code];
-        }
-        return null;
+        return $statusList[$code] ?? null;
     }
 
 

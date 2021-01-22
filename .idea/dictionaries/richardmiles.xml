@@ -6,6 +6,7 @@
       <w>bcrypt</w>
       <w>carbonphp</w>
       <w>certbot</w>
+      <w>devconsole</w>
       <w>falsey</w>
       <w>fileinfo</w>
       <w>googlecode</w>
@@ -23,6 +24,8 @@
       <w>restfull</w>
       <w>richardtmiles</w>
       <w>signatured</w>
+      <w>sslcert</w>
+      <w>sslkey</w>
       <w>strtolower</w>
       <w>swal</w>
       <w>testdox</w>
