@@ -41,13 +41,12 @@ class CarbonPHP
     public static string $reports = DIRECTORY_SEPARATOR;
     private static string $composer_root;
 
-
     // C6 options
     public static array $configuration = [];
     public static string $not_invoked_application = '';     // string namespace
     public static string $not_invoked_configuration = '';   // string namespace
     public static ?CLI $commandLineInterface = null;
-    public static ?Application $application;
+    public static ?Application $application = null;
     public static bool $setupComplete = false;
 
     // Application invocation method
@@ -117,7 +116,7 @@ class CarbonPHP
      * @param Application|string|null $application
      * @return bool
      */
-    public static function run($application): bool
+    public static function run($application = null): bool
     {
         if (!self::$safelyExit) {
             self::$socket = false;

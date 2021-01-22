@@ -168,18 +168,17 @@ END;
             die(1);
         }
 
-        if ($count > 1) {
-            $errorForTemplate['DANGER'] = 'A possible recursive error has occurred in (or at least affecting) your $app->defaultRoute();';
-            self::errorTemplate($errorForTemplate, 500);
-        }
-
         // this causes this ::  View::$forceWrapper = true;
         // which breaks the recursive check ?? or does it,
         // we would still need to make it to the view
         // so it only break when we reach the view? todo - test? -- found error in wp finally, we need a default route check here.. or at least a .... startapplication check application === null? __destruct check
-        if (self::$attemptRestartAfterError) {
+        if (CarbonPHP::$application !== null && self::$attemptRestartAfterError && $count === 1) {
             CarbonPHP::resetApplication();  // we're in prod and we want to recover gracefully...
+            exit(1);
         }
+
+        $errorForTemplate['DANGER'] = 'A possible recursive error has occurred in (or at least affecting) your $app->defaultRoute();';
+        self::errorTemplate($errorForTemplate, 500);
 
         exit(1);
 
