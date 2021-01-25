@@ -177,7 +177,10 @@ END;
             exit(1);
         }
 
-        $errorForTemplate['DANGER'] = 'A possible recursive error has occurred in (or at least affecting) your $app->defaultRoute();';
+        if ($count > 1) {
+            $errorForTemplate['DANGER'] = 'A possible recursive error has occurred in (or at least affecting) your $app->defaultRoute();';
+        }
+
         self::errorTemplate($errorForTemplate, 500);
 
         exit(1);
@@ -473,6 +476,20 @@ END;
 
         if (CarbonPHP::$app_local || self::$printToScreen) {
             $codePreview = self::grabCodeSnippet();
+
+            // todo - log invalid files?
+            if ($codePreview === '' && ($message['FILE'] ?? false) && file_exists($message['FILE'])
+                && ($message['LINE'] ??  false) && is_numeric($message['LINE'])) {
+
+                $start_line = $message['LINE'] - 10;
+
+                $source = file_get_contents($message['FILE']);
+
+                $source = preg_split('/' . PHP_EOL . '/', $source);
+
+                $codePreview = highlight($comment . PHP_EOL . implode(PHP_EOL, array_slice($source, $start_line, 20)), true);
+
+            }
 
             foreach ($message as $left => $right) {
                 if (!(is_string($left) && is_string($right))) {

@@ -59,6 +59,7 @@ trait ColorCode
 
         if (is_string($color) && !array_key_exists($color, $colors)) {
             self::colorCode("Color provided to color code ($color) is invalid, message caught '$message'", 'red');
+            return;
         }
 
         $colorCodex = sprintf($colors[$color], $message);
