@@ -56,7 +56,7 @@ class CLI implements iCommand
             exit(1);
         }
 
-        self::colorCode("Searching for program :: '$program'\n\n");
+        self::colorCode("Searching for program :: '$program");
 
         $searchAndConstruct = static function ($array, bool $C6Internal = true) use ($program, $PHP, $argv) {
             // Validation with this loop
@@ -98,8 +98,12 @@ class CLI implements iCommand
         // while way more likely to run a C6 program and not user defined, precedence says a user program should
         // overwrite a C6
         // If a user makes a program with a name C6 will later take, for example, backwards compatibility
-        $searchAndConstruct($this->UserPrograms, false) or
-            $searchAndConstruct($this->C6Programs);
+        if ($searchAndConstruct($this->UserPrograms, false) ||
+            $searchAndConstruct($this->C6Programs)) {
+            return;
+        }
+
+        self::colorCode("Program not found in C6 (safely moving on) :: '$program'", 'yellow');
     }
 
     public function programList(): void
