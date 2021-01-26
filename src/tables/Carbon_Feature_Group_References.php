@@ -18,7 +18,10 @@ use function is_array;
 class Carbon_Feature_Group_References extends Rest implements iRestfulReferences
 {
     
+    public const CLASS_NAME = 'Carbon_Feature_Group_References';
     public const TABLE_NAME = 'carbon_feature_group_references';
+    public const TABLE_NAMESPACE = 'CarbonPHP\Tables';
+    
     public const FEATURE_ENTITY_ID = 'carbon_feature_group_references.feature_entity_id'; 
     public const GROUP_ENTITY_ID = 'carbon_feature_group_references.group_entity_id'; 
 
@@ -92,6 +95,8 @@ class Carbon_Feature_Group_References extends Rest implements iRestfulReferences
     */
     public static function Get(array &$return, array $argv = []): bool
     {
+        self::$tableNamespace = self::TABLE_NAMESPACE;
+   
         $pdo = self::database();
 
         $sql = self::buildSelectQuery(null, $argv, '', $pdo);
@@ -128,6 +133,8 @@ class Carbon_Feature_Group_References extends Rest implements iRestfulReferences
      */
     public static function Post(array $argv, string $dependantEntityId = null): bool
     {   
+        self::$tableNamespace = self::TABLE_NAMESPACE;
+    
         foreach ($argv as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)){
                 throw new PublicAlert("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
@@ -166,6 +173,8 @@ class Carbon_Feature_Group_References extends Rest implements iRestfulReferences
     */
     public static function Put(array &$return,  array $argv) : bool
     {
+        self::$tableNamespace = self::TABLE_NAMESPACE;
+        
         $where = $argv[self::WHERE];
 
         $argv = $argv[self::UPDATE];
@@ -244,6 +253,8 @@ class Carbon_Feature_Group_References extends Rest implements iRestfulReferences
     */
     public static function Delete(array &$remove, array $argv = []) : bool
     {
+        self::$tableNamespace = self::TABLE_NAMESPACE;
+        
         $sql = 'DELETE FROM carbon_feature_group_references ';
 
         $pdo = self::database();

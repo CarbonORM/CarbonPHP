@@ -18,7 +18,10 @@ use function is_array;
 class Carbon_Locations extends Rest implements iRest
 {
     
+    public const CLASS_NAME = 'Carbon_Locations';
     public const TABLE_NAME = 'carbon_locations';
+    public const TABLE_NAMESPACE = 'CarbonPHP\Tables';
+    
     public const ENTITY_ID = 'carbon_locations.entity_id'; 
     public const LATITUDE = 'carbon_locations.latitude'; 
     public const LONGITUDE = 'carbon_locations.longitude'; 
@@ -104,6 +107,8 @@ class Carbon_Locations extends Rest implements iRest
     */
     public static function Get(array &$return, string $primary = null, array $argv = []): bool
     {
+        self::$tableNamespace = self::TABLE_NAMESPACE;
+   
         $pdo = self::database();
 
         $sql = self::buildSelectQuery($primary, $argv, '', $pdo);
@@ -145,6 +150,8 @@ class Carbon_Locations extends Rest implements iRest
      */
     public static function Post(array $argv, string $dependantEntityId = null)
     {   
+        self::$tableNamespace = self::TABLE_NAMESPACE;
+    
         foreach ($argv as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)){
                 throw new PublicAlert("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
@@ -202,6 +209,8 @@ class Carbon_Locations extends Rest implements iRest
     */
     public static function Put(array &$return, string $primary, array $argv) : bool
     {
+        self::$tableNamespace = self::TABLE_NAMESPACE;
+        
         if (empty($primary)) {
             throw new PublicAlert('Restful tables which have a primary key must be updated by its primary key.', 'danger');
         }
@@ -321,6 +330,8 @@ class Carbon_Locations extends Rest implements iRest
     */
     public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
     {
+        self::$tableNamespace = self::TABLE_NAMESPACE;
+        
         if (null !== $primary) {
             return Carbons::Delete($remove, $primary, $argv);
         }

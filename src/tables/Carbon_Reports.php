@@ -18,7 +18,10 @@ use function is_array;
 class Carbon_Reports extends Rest implements iRestfulReferences
 {
     
+    public const CLASS_NAME = 'Carbon_Reports';
     public const TABLE_NAME = 'carbon_reports';
+    public const TABLE_NAMESPACE = 'CarbonPHP\Tables';
+    
     public const LOG_LEVEL = 'carbon_reports.log_level'; 
     public const REPORT = 'carbon_reports.report'; 
     public const DATE = 'carbon_reports.date'; 
@@ -100,6 +103,8 @@ class Carbon_Reports extends Rest implements iRestfulReferences
     */
     public static function Get(array &$return, array $argv = []): bool
     {
+        self::$tableNamespace = self::TABLE_NAMESPACE;
+   
         $pdo = self::database();
 
         $sql = self::buildSelectQuery(null, $argv, '', $pdo);
@@ -136,6 +141,8 @@ class Carbon_Reports extends Rest implements iRestfulReferences
      */
     public static function Post(array $argv, string $dependantEntityId = null): bool
     {   
+        self::$tableNamespace = self::TABLE_NAMESPACE;
+    
         foreach ($argv as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)){
                 throw new PublicAlert("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
@@ -174,6 +181,8 @@ class Carbon_Reports extends Rest implements iRestfulReferences
     */
     public static function Put(array &$return,  array $argv) : bool
     {
+        self::$tableNamespace = self::TABLE_NAMESPACE;
+        
         $where = $argv[self::WHERE];
 
         $argv = $argv[self::UPDATE];
@@ -263,6 +272,8 @@ class Carbon_Reports extends Rest implements iRestfulReferences
     */
     public static function Delete(array &$remove, array $argv = []) : bool
     {
+        self::$tableNamespace = self::TABLE_NAMESPACE;
+        
         $sql = 'DELETE FROM carbon_reports ';
 
         $pdo = self::database();

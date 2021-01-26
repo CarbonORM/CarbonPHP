@@ -18,7 +18,10 @@ use function is_array;
 class History_Logs extends Rest implements iRestfulReferences
 {
     
+    public const CLASS_NAME = 'History_Logs';
     public const TABLE_NAME = 'history_logs';
+    public const TABLE_NAMESPACE = 'CarbonPHP\Tables';
+    
     public const UUID = 'history_logs.uuid'; 
     public const RESOURCE_TYPE = 'history_logs.resource_type'; 
     public const RESOURCE_UUID = 'history_logs.resource_uuid'; 
@@ -101,6 +104,8 @@ class History_Logs extends Rest implements iRestfulReferences
     */
     public static function Get(array &$return, array $argv = []): bool
     {
+        self::$tableNamespace = self::TABLE_NAMESPACE;
+   
         $pdo = self::database();
 
         $sql = self::buildSelectQuery(null, $argv, '', $pdo);
@@ -137,6 +142,8 @@ class History_Logs extends Rest implements iRestfulReferences
      */
     public static function Post(array $argv, string $dependantEntityId = null): bool
     {   
+        self::$tableNamespace = self::TABLE_NAMESPACE;
+    
         foreach ($argv as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)){
                 throw new PublicAlert("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
@@ -188,6 +195,8 @@ class History_Logs extends Rest implements iRestfulReferences
     */
     public static function Put(array &$return,  array $argv) : bool
     {
+        self::$tableNamespace = self::TABLE_NAMESPACE;
+        
         $where = $argv[self::WHERE];
 
         $argv = $argv[self::UPDATE];
@@ -286,6 +295,8 @@ class History_Logs extends Rest implements iRestfulReferences
     */
     public static function Delete(array &$remove, array $argv = []) : bool
     {
+        self::$tableNamespace = self::TABLE_NAMESPACE;
+        
         $sql = 'DELETE FROM history_logs ';
 
         $pdo = self::database();

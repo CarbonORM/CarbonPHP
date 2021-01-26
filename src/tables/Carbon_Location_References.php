@@ -18,7 +18,10 @@ use function is_array;
 class Carbon_Location_References extends Rest implements iRestfulReferences
 {
     
+    public const CLASS_NAME = 'Carbon_Location_References';
     public const TABLE_NAME = 'carbon_location_references';
+    public const TABLE_NAMESPACE = 'CarbonPHP\Tables';
+    
     public const ENTITY_REFERENCE = 'carbon_location_references.entity_reference'; 
     public const LOCATION_REFERENCE = 'carbon_location_references.location_reference'; 
     public const LOCATION_TIME = 'carbon_location_references.location_time'; 
@@ -99,6 +102,8 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
     */
     public static function Get(array &$return, array $argv = []): bool
     {
+        self::$tableNamespace = self::TABLE_NAMESPACE;
+   
         $pdo = self::database();
 
         $sql = self::buildSelectQuery(null, $argv, '', $pdo);
@@ -135,6 +140,8 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
      */
     public static function Post(array $argv, string $dependantEntityId = null): bool
     {   
+        self::$tableNamespace = self::TABLE_NAMESPACE;
+    
         foreach ($argv as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)){
                 throw new PublicAlert("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
@@ -179,6 +186,8 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
     */
     public static function Put(array &$return,  array $argv) : bool
     {
+        self::$tableNamespace = self::TABLE_NAMESPACE;
+        
         $where = $argv[self::WHERE];
 
         $argv = $argv[self::UPDATE];
@@ -263,6 +272,8 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
     */
     public static function Delete(array &$remove, array $argv = []) : bool
     {
+        self::$tableNamespace = self::TABLE_NAMESPACE;
+        
         $sql = 'DELETE FROM carbon_location_references ';
 
         $pdo = self::database();

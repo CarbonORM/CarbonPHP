@@ -509,7 +509,7 @@ class CarbonPHP
      * @param array|null $cacheControl
      * @return bool
      */
-    private static function URI_FILTER(string $URL = '', array $cacheControl = null): bool
+    private static function URI_FILTER(string $URL = '', array $cacheControl = []): bool
     {
         if (!empty($URL = strtolower($URL)) && $_SERVER['SERVER_NAME'] !== $URL && !self::$app_local) {
             header("Refresh:0; url=$URL");
@@ -520,11 +520,15 @@ class CarbonPHP
             exit(1);
         }
 
+        if (empty($cacheControl)) {
+            return true;
+        }
 
         // It does not matter if this matches, we will take care of that in the next if.
 
         $allowedEXT = implode('|', array_keys($cacheControl));
 
+        // todo this can be bypassed?
         preg_match("#^(.*\.)($allowedEXT)\?*.*#", self::$uri, $matches, PREG_OFFSET_CAPTURE);
 
         // So if the request has an extension that's not allowed we ignore it and keep processing as a valid route
