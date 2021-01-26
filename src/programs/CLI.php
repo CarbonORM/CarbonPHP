@@ -56,7 +56,7 @@ class CLI implements iCommand
             exit(1);
         }
 
-        self::colorCode("Searching for program :: '$program");
+        self::colorCode("Searching for program :: '$program'");
 
         $searchAndConstruct = static function ($array, bool $C6Internal = true) use ($program, $PHP, $argv) {
             // Validation with this loop
