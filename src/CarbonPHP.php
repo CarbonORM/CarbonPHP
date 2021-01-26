@@ -528,7 +528,6 @@ class CarbonPHP
 
         $allowedEXT = implode('|', array_keys($cacheControl));
 
-        // todo this can be bypassed?
         preg_match("#^(.*\.)($allowedEXT)\?*.*#", self::$uri, $matches, PREG_OFFSET_CAPTURE);
 
         // So if the request has an extension that's not allowed we ignore it and keep processing as a valid route
@@ -537,8 +536,6 @@ class CarbonPHP
         if (empty($ext)) {              // We're requesting a file
             return true;
         }
-
-        // todo validate were pulling from view dir
 
         // we need to ensure valid access
         $allowedAccess = false;

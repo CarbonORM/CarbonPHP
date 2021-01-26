@@ -407,6 +407,19 @@ END;
                             'primary' => [],
                         ];
 
+                        // 'only these tables' is specified in the command line arguments (via file or comma list)
+                        if ((!empty($exclude_these_tables) && in_array($tableName, $exclude_these_tables, true))
+                            || (!empty($only_these_tables) && !in_array($tableName, $only_these_tables, true))) {
+                            // Break from this loop (every line in the create) and the parent loop (the tables)
+                            $verbose and print 'Skipping ' . $tableName . PHP_EOL;
+                            // this is our condition to check right after this tables is executed
+                            $skipTable = true;
+                            // We may need to analyse for foreign keys, we will still break after this foreach loop
+                            if (!$history_table_query) {
+                                break;
+                            }
+                        }
+
                         if (file_exists($validation = $targetDir . $tableName . '.php')) {
                             $validation = file_get_contents($validation);
 
@@ -492,20 +505,6 @@ END;
                                 $body = implode(PHP_EOL, array_slice($source, $start_line, $length));
 
                                 $rest[$tableName]['custom_methods'] .= ($comment ? "    $comment\n" : '') . $body . PHP_EOL . PHP_EOL;
-                            }
-                        }
-
-
-                        // 'only these tables' is specified in the command line arguments (via file or comma list)
-                        if ((!empty($exclude_these_tables) && in_array($tableName, $exclude_these_tables, true))
-                            || (!empty($only_these_tables) && !in_array($tableName, $only_these_tables, true))) {
-                            // Break from this loop (every line in the create) and the parent loop (the tables)
-                            $verbose and print 'Skipping ' . $tableName . PHP_EOL;
-                            // this is our condition to check right after this tables is executed
-                            $skipTable = true;
-                            // We may need to analyse for foreign keys, we will still break after this foreach loop
-                            if (!$history_table_query) {
-                                break;
                             }
                         }
 
@@ -778,6 +777,21 @@ END;
                 if (empty($rest[$tableName]['explode'])) {
                     continue;
                 }
+
+
+                // 'only these tables' is specified in the command line arguments (via file or comma list)
+                if ((!empty($exclude_these_tables) && in_array($tableName, $exclude_these_tables, true))
+                    || (!empty($only_these_tables) && !in_array($tableName, $only_these_tables, true))) {
+                    // Break from this loop (every line in the create) and the parent loop (the tables)
+                    $verbose and print 'Skipping ' . $tableName . PHP_EOL;
+                    // this is our condition to check right after this tables is executed
+                    $skipTable = true;
+                    // We may need to analyse for foreign keys, we will still break after this foreach loop
+                    if (!$history_table_query) {
+                        break;
+                    }
+                }
+
 
                 if (!class_exists($table = $rest[$tableName]['namespace'] . '\\' . $rest[$tableName]['ucEachTableName'])) {
                     self::colorCode("\n\nCouldn't locate class '$table' for react validations. This may indicate a new or unused table.\n", 'yellow');
