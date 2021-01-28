@@ -70,6 +70,15 @@ class RestBuilder implements iCommand
 
 \t       -prefix                       - prefix to remove from class names. Defaults to none ''.
 
+\t       -excludeTablesRegex           - pass a valid php regex with delimiters. If a table name matches the regular expression     
+                                                the table will be skipped and thus not generated. 
+                                                ex.   
+                                                 -excludeTablesRegex   #_migration_.*#i   
+
+\t       -dontQueryWithDatabaseName    - This will remove the explicit resolution of the database name in queries. This 
+                                                if useful when your environments use different database names with the same structure. 
+                                                Avoid using this option if possible. 
+
 \t       -json                         - enable global json reporting (recommended)
 
 \t       -r                            - specify that a primary key is required for generation
@@ -126,7 +135,7 @@ END;
         // set default values
         $rest = [];
         /** @noinspection PhpUnusedLocalVariableInspection */
-        $clean = true;
+        $QueryWithDatabaseName = $clean = true;
         $json = $carbon_namespace = CarbonPHP::$app_root . 'src' . DS === CarbonPHP::CARBON_ROOT;
         $targetDir = CarbonPHP::$app_root . ($carbon_namespace ? 'src/tables/' : 'tables/');
         $only_these_tables = $history_table_query = $mysql = null;
@@ -134,7 +143,7 @@ END;
         $target_namespace = 'Tables\\';
         $prefix = '';
         $exclude_these_tables = [];
-
+        $excludeTablesRegex = null;
 
         $react = $carbon_namespace ? CarbonPHP::$app_root . 'view/assets/react/src/variables/' : false;
 
@@ -154,6 +163,12 @@ END;
                     if ($react === false) {
                         $react = $javascriptBindings;
                     }
+                    break;
+                case '-excludeTablesRegex':
+                    $excludeTablesRegex = $argv[++$i];
+                    break;
+                case '-dontQueryWithDatabaseName':
+                    $QueryWithDatabaseName = false;
                     break;
                 case '-react':
                     if ($carbon_namespace) {
@@ -318,6 +333,27 @@ END;
             }
         }
 
+
+        $determineIfTableShouldBeSkipped = static function ($tableName) use ($exclude_these_tables, $only_these_tables, $history_table_query, $excludeTablesRegex, $verbose) : ?bool {
+            // 'only these tables' is specified in the command line arguments (via file or comma list)
+            if ((!empty($exclude_these_tables) && in_array($tableName, $exclude_these_tables, true))
+                || (!empty($only_these_tables) && !in_array($tableName, $only_these_tables, true))
+                || ($excludeTablesRegex !== null && preg_match($excludeTablesRegex, $tableName))) {
+                // Break from this loop (every line in the create) and the parent loop (the tables)
+                if ($verbose)  {
+                    ColorCode::colorCode( 'Skipping ' . $tableName . PHP_EOL);
+                }
+                // this is our condition to check right after this tables is executed
+                $skipTable = true;
+                // We may need to analyse for foreign keys, we will still break after this foreach loop
+                if (!$history_table_query) {
+                    return true;
+                }
+                return null;            // the table will be skipped, but parsed to generate the necessary relational mappings
+            }
+            return false;
+        };
+
         if (empty($targetDir)) {
             print 'You must provide a target directory.' . PHP_EOL;
             $this->usage();
@@ -391,6 +427,7 @@ END;
                         $rest[$tableName] = [
                             'subQuery' => $subQuery,
                             'subQueryLength' => strlen($subQuery),
+                            'QueryWithDatabaseName' => $QueryWithDatabaseName,
                             'json' => $json,
                             'binary_primary' => false,
                             'carbon_namespace' => $carbon_namespace,
@@ -408,16 +445,8 @@ END;
                         ];
 
                         // 'only these tables' is specified in the command line arguments (via file or comma list)
-                        if ((!empty($exclude_these_tables) && in_array($tableName, $exclude_these_tables, true))
-                            || (!empty($only_these_tables) && !in_array($tableName, $only_these_tables, true))) {
-                            // Break from this loop (every line in the create) and the parent loop (the tables)
-                            $verbose and print 'Skipping ' . $tableName . PHP_EOL;
-                            // this is our condition to check right after this tables is executed
-                            $skipTable = true;
-                            // We may need to analyse for foreign keys, we will still break after this foreach loop
-                            if (!$history_table_query) {
-                                break;
-                            }
+                        if ($determineIfTableShouldBeSkipped($tableName) === true){
+                            break;
                         }
 
                         if (file_exists($validation = $targetDir . $tableName . '.php')) {
@@ -780,17 +809,10 @@ END;
 
 
                 // 'only these tables' is specified in the command line arguments (via file or comma list)
-                if ((!empty($exclude_these_tables) && in_array($tableName, $exclude_these_tables, true))
-                    || (!empty($only_these_tables) && !in_array($tableName, $only_these_tables, true))) {
-                    // Break from this loop (every line in the create) and the parent loop (the tables)
-                    $verbose and print 'Skipping ' . $tableName . PHP_EOL;
-                    // this is our condition to check right after this tables is executed
-                    $skipTable = true;
-                    // We may need to analyse for foreign keys, we will still break after this foreach loop
-                    if (!$history_table_query) {
-                        break;
-                    }
+                if ($determineIfTableShouldBeSkipped($tableName) !== false){
+                    continue;
                 }
+
 
 
                 if (!class_exists($table = $rest[$tableName]['namespace'] . '\\' . $rest[$tableName]['ucEachTableName'])) {
@@ -1308,7 +1330,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
    
         \$pdo = self::database();
 
-        \$sql = self::buildSelectQuery({{#primaryExists}}\$primary{{/primaryExists}}{{^primaryExists}}null{{/primaryExists}}, \$argv, {{^carbon_namespace}}'{{database}}'{{/carbon_namespace}}{{#carbon_namespace}}''{{/carbon_namespace}}, \$pdo);{{#json}}
+        \$sql = self::buildSelectQuery({{#primaryExists}}\$primary{{/primaryExists}}{{^primaryExists}}null{{/primaryExists}}, \$argv, {{^carbon_namespace}}{{#QueryWithDatabaseName}}'{{database}}'{{/QueryWithDatabaseName}}{{/carbon_namespace}}{{#carbon_namespace}}''{{/carbon_namespace}}, \$pdo);{{#json}}
         
         self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
         
@@ -1358,7 +1380,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
             }
         } 
         
-        \$sql = 'INSERT INTO {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}{{TableName}} ({{listed}}) VALUES ({{{implode}}})';
+        \$sql = 'INSERT INTO {{^carbon_namespace}}{{#QueryWithDatabaseName}}{{database}}.{{/QueryWithDatabaseName}}{{/carbon_namespace}}{{TableName}} ({{listed}}) VALUES ({{{implode}}})';
 
         {{#json}}self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
 
@@ -1424,7 +1446,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
             }
         }
 
-        \$sql = 'UPDATE {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}{{TableName}} ' . ' SET '; // intellij cant handle this otherwise
+        \$sql = 'UPDATE {{^carbon_namespace}}{{#QueryWithDatabaseName}}{{database}}.{{/QueryWithDatabaseName}}{{/carbon_namespace}}{{TableName}} ' . ' SET '; // intellij cant handle this otherwise
 
         \$set = '';
 
@@ -1506,8 +1528,8 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
             throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.', 'danger');
         }
         
-        \$sql = 'DELETE c FROM {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}carbons c 
-                JOIN {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}{{TableName}} on c.entity_pk = {{#primary}}{{#name}}{{TableName}}.{{name}}{{/name}}{{/primary}}';
+        \$sql = 'DELETE c FROM {{^carbon_namespace}}{{#QueryWithDatabaseName}}{{database}}.{{/QueryWithDatabaseName}}{{/carbon_namespace}}carbons c 
+                JOIN {{^carbon_namespace}}{{#QueryWithDatabaseName}}{{database}}.{{/QueryWithDatabaseName}}{{/carbon_namespace}}{{TableName}} on c.entity_pk = {{#primary}}{{#name}}{{TableName}}.{{name}}{{/name}}{{/primary}}';
 
         \$pdo = self::database();
 
@@ -1527,7 +1549,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
         return \$r;
     {{/carbon_table}}
     {{^carbon_table}}
-        \$sql = 'DELETE FROM {{^carbon_namespace}}{{database}}.{{/carbon_namespace}}{{TableName}} ';
+        \$sql = 'DELETE FROM {{^carbon_namespace}}{{#QueryWithDatabaseName}}{{database}}.{{/QueryWithDatabaseName}}{{/carbon_namespace}}{{TableName}} ';
 
         \$pdo = self::database();
         {{#primary}}{{#name}}

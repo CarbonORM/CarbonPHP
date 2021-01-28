@@ -95,7 +95,7 @@ IDENTIFIED;
 
 
         if (($this->config['DATABASE']['DB_PORT'] ?? false) && $this->config['DATABASE']['DB_PORT'] !== '') {
-            print 'No [\'DATABASE\'][\'DB_PORT\'] configuration active. Using default port 3306. ' . PHP_EOL;
+            ColorCode::colorCode( 'No [\'DATABASE\'][\'DB_PORT\'] configuration active. Using default port 3306. ' . PHP_EOL . 'Set to an empty string "" for mysql to auto-resolve.', 'yellow');
             $this->config['DATABASE']['DB_PORT'] = 3306;
             $cnf[] = "port = {$this->config['DATABASE']['DB_PORT']}";
         }
