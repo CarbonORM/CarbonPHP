@@ -73,7 +73,7 @@ class RestBuilder implements iCommand
 \t       -excludeTablesRegex           - pass a valid php regex with delimiters. If a table name matches the regular expression     
                                                 the table will be skipped and thus not generated. 
                                                 ex.   
-                                                 -excludeTablesRegex   #_migration_.*#i   
+                                                 -excludeTablesRegex '#_migration_.*#i'   
 
 \t       -dontQueryWithDatabaseName    - This will remove the explicit resolution of the database name in queries. This 
                                                 if useful when your environments use different database names with the same structure. 
@@ -1330,7 +1330,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
    
         \$pdo = self::database();
 
-        \$sql = self::buildSelectQuery({{#primaryExists}}\$primary{{/primaryExists}}{{^primaryExists}}null{{/primaryExists}}, \$argv, {{^carbon_namespace}}{{#QueryWithDatabaseName}}'{{database}}'{{/QueryWithDatabaseName}}{{/carbon_namespace}}{{#carbon_namespace}}''{{/carbon_namespace}}, \$pdo);{{#json}}
+        \$sql = self::buildSelectQuery({{#primaryExists}}\$primary{{/primaryExists}}{{^primaryExists}}null{{/primaryExists}}, \$argv, {{^carbon_namespace}}{{#QueryWithDatabaseName}}'{{database}}'{{/QueryWithDatabaseName}}{{/carbon_namespace}}{{^QueryWithDatabaseName}}''{{/QueryWithDatabaseName}}{{#carbon_namespace}}''{{/carbon_namespace}}, \$pdo);{{#json}}
         
         self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
         

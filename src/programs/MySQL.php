@@ -35,6 +35,7 @@ trait MySQL
                     ALTER USER '{$this->config['DATABASE']['DB_USER']}'@'localhost' IDENTIFIED WITH mysql_native_password BY '{$this->config['DATABASE']['DB_PASS']}';
                     ALTER USER '{$this->config['DATABASE']['DB_USER']}'@'%' IDENTIFIED WITH mysql_native_password BY '{$this->config['DATABASE']['DB_PASS']}';
 IDENTIFIED;
+
         print PHP_EOL . $query . PHP_EOL;
 
         try {
