@@ -10,6 +10,7 @@ use CarbonPHP\Programs\Background;
 use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Tables\Carbon_Reports;
 use CarbonPHP\View;
+use Closure;
 use ReflectionException;
 use ReflectionMethod;
 use Throwable;
@@ -189,15 +190,16 @@ END;
 
     /**
      * ErrorCatcher constructor.
+     * @return int
      */
-    public static function start(): void     // TODO - not this.
+    public static function start(): int     // TODO - stop
     {
         ini_set('display_errors', 1);
 
-        error_reporting(self::$level);
+        self::$old_error_level = error_reporting(self::$level);
 
         if (CarbonPHP::$test) {
-            return;
+            return self::$old_error_level;
         }
 
         /**
@@ -293,9 +295,31 @@ END;
             }
             return false;
         };
+
+        self::$old_error_handler = set_error_handler($error_handler);
+        self::$old_exception_handler =set_exception_handler($exception_handler);   // takes one argument
+
+        return self::$old_error_level;
+    }
+
+    public static ?Closure $old_error_handler = null;
+    public static ?Closure $old_exception_handler = null;
+    public static ?int $old_error_level = null;
+
+
+    public static function stop(): void
+    {
+        if (self::$old_error_level === null) {
+            throw new PublicAlert('Looks like you are trying to run ErrorCatcher::stop() before running start. This is not supported.');
+        }
+
+        error_reporting(self::$old_error_level);
+        $error_handler = self::$old_error_handler;
+        $exception_handler = self::$old_exception_handler;
         set_error_handler($error_handler);
         set_exception_handler($exception_handler);   // takes one argument
     }
+
 
 
     /** Generate a full error log consisting of a stack trace and arguments to each function call

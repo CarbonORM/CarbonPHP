@@ -53,7 +53,7 @@ class Carbon_User_Sessions extends Rest implements iRest
      *  Global functions and method specific functions will receive the full request which
      *  maybe acted on by reference. All column specific validation methods will only receive
      *  the associated value given in the request which may also be received by reference.
-     *  All methods MUST be declaired as static.
+     *  All methods MUST be declared as static.
      */
  
     public const PHP_VALIDATION = [ 
@@ -84,29 +84,50 @@ MYSQL;
     /**
     *
     *   $argv = [
-    *       'select' => [
-    *                          '*column name array*', 'etc..'
+    *       Rest::SELECT => [
+    *              ]'*column name array*', 'etc..'
     *        ],
     *
-    *       'where' => [
+    *       Rest::WHERE => [
     *              'Column Name' => 'Value To Constrain',
     *              'Defaults to AND' => 'Nesting array switches to OR',
     *              [
     *                  'Column Name' => 'Value To Constrain',
-    *                  'This array is OR'ed togeather' => 'Another sud array would `AND`'
+    *                  'This array is OR'ed together' => 'Another sud array would `AND`'
     *                  [ etc... ]
     *              ]
     *        ],
-    *
-    *        'pagination' => [
-    *              'limit' => (int) 90, // The maximum number of rows to return,
+    *        Rest::JOIN => [
+    *            Rest::INNER => [
+    *                Carbon_Users::CLASS_NAME => [
+    *                    'Column Name' => 'Value To Constrain',
+    *                    'Defaults to AND' => 'Nesting array switches to OR',
+    *                    [
+    *                       'Column Name' => 'Value To Constrain',
+    *                       'This array is OR'ed together' => 'value'
+    *                       [ 'Another sud array would `AND`ed... ]
+    *                    ],
+    *                    [ 'Column Name', Rest::LESS_THAN, 'Another Column Name']
+    *                ]
+    *            ],
+    *            Rest::LEFT_OUTER => [
+    *                Example_Table::CLASS_NAME => [
+    *                    Location::USER_ID => Users::ID,
+    *                    Location_References::ENTITY_KEY => $custom_var,
+    *                   
+    *                ],
+    *                Example_Table_Two::CLASS_NAME => [
+    *                    ect... 
+    *                ]
+    *            ]
+    *        ],
+    *        Rest::PAGINATION => [
+    *              Rest::LIMIT => (int) 90, // The maximum number of rows to return,
     *                       setting the limit explicitly to 1 will return a key pair array of only the
     *                       singular result. SETTING THE LIMIT TO NULL WILL ALLOW INFINITE RESULTS (NO LIMIT).
     *                       The limit defaults to 100 by design.
     *
-    *              'order' => ['*column name*'=> '(ASC|DESC)'],  // i.e.  'username' => 'ASC'
-    *
-    *
+    *               Rest::ORDER => ['*column name*' => Rest::ASC ],  // i.e.  'username' => Rest::DESC
     *         ],
     *
     *   ];
