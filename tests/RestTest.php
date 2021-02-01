@@ -231,21 +231,20 @@ final class RestTest extends Config
             Users::JOIN => [
                 Users::INNER => [
                     Carbon_Location_References::TABLE_NAME => [
-                        Users::USER_ID,
-                        Carbon_Location_References::ENTITY_REFERENCE
+                        Users::USER_ID => Carbon_Location_References::ENTITY_REFERENCE
                     ],
                     Carbon_Locations::TABLE_NAME => [
-                        Carbon_Locations::ENTITY_ID,
-                        Carbon_Location_References::LOCATION_REFERENCE
+                        Carbon_Locations::ENTITY_ID => Carbon_Location_References::LOCATION_REFERENCE
                     ]
                 ]
             ],
             Users::PAGINATION => [
                 Users::LIMIT => 1,
-                Users::ORDER => Users::USER_USERNAME . Users::ASC
+                Users::ORDER => [Users::USER_USERNAME => Users::ASC]
             ]
         ]));
 
+        
         self::assertArrayHasKey(Users::COLUMNS[Users::USER_USERNAME], $user);
 
         self::assertEquals(Config::ADMIN_USERNAME, $user[Users::COLUMNS[Users::USER_USERNAME]]);

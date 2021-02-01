@@ -286,7 +286,7 @@ class Carbons extends Rest implements iRest
                 throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.', 'danger');
             }
             
-            $where = self::buildWhere($argv, $pdo, 'carbons', self::PDO_VALIDATION);
+            $where = self::buildWhere($argv, $pdo, 'carbons', [self::class]);
             
             if (empty($where)) {
                 throw new PublicAlert('The where condition provided appears invalid.', 'danger');

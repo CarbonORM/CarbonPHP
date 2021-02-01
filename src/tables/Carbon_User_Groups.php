@@ -205,7 +205,7 @@ class Carbon_User_Groups extends Rest implements iRestfulReferences
         $pdo = self::database();
 
         
-        $sql .= ' WHERE ' . self::buildWhere($where, $pdo, 'carbon_user_groups', self::PDO_VALIDATION);
+        $sql .= ' WHERE ' . self::buildWhere($where, $pdo, 'carbon_user_groups', [self::class]);
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -263,7 +263,7 @@ class Carbon_User_Groups extends Rest implements iRestfulReferences
             throw new PublicAlert('When deleting from restful tables with out a primary key additional arguments must be provided.', 'danger');
         } 
          
-        $sql .= ' WHERE ' . self::buildWhere($argv, $pdo, 'carbon_user_groups', self::PDO_VALIDATION);
+        $sql .= ' WHERE ' . self::buildWhere($argv, $pdo, 'carbon_user_groups', [self::class]);
 
         self::jsonSQLReporting(func_get_args(), $sql);
 

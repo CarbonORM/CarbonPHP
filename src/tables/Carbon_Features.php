@@ -285,7 +285,7 @@ class Carbon_Features extends Rest implements iRest
 
         $pdo = self::database();
 
-        $sql .= ' WHERE ' . self::buildWhere($argv, $pdo, 'carbon_features', self::PDO_VALIDATION);
+        $sql .= ' WHERE ' . self::buildWhere($argv, $pdo, 'carbon_features', [self::class]);
         
         self::jsonSQLReporting(func_get_args(), $sql);
 

@@ -446,7 +446,8 @@ END;
 
                         // 'only these tables' is specified in the command line arguments (via file or comma list)
                         if ($determineIfTableShouldBeSkipped($tableName) === true){
-                            break;
+                            $skipTable = true;
+                            continue 2;
                         }
 
                         if (file_exists($validation = $targetDir . $tableName . '.php')) {
@@ -1461,7 +1462,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
         \$pdo = self::database();
 
         {{#primary}}{{{sql}}}{{/primary}}
-        {{^primary}}\$sql .= ' WHERE ' . self::buildWhere(\$where, \$pdo, '{{TableName}}', self::PDO_VALIDATION);{{/primary}}
+        {{^primary}}\$sql .= ' WHERE ' . self::buildWhere(\$where, \$pdo, '{{TableName}}', [self::class]);{{/primary}}
 
         {{#json}}self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
 
@@ -1533,7 +1534,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
 
         \$pdo = self::database();
 
-        \$sql .= ' WHERE ' . self::buildWhere(\$argv, \$pdo, '{{TableName}}', self::PDO_VALIDATION);{{#json}}
+        \$sql .= ' WHERE ' . self::buildWhere(\$argv, \$pdo, '{{TableName}}', [self::class]);{{#json}}
         
         self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
 
@@ -1563,7 +1564,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
                 throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.', 'danger');
             }
             
-            \$where = self::buildWhere(\$argv, \$pdo, '{{TableName}}', self::PDO_VALIDATION);
+            \$where = self::buildWhere(\$argv, \$pdo, '{{TableName}}', [self::class]);
             
             if (empty(\$where)) {
                 throw new PublicAlert('The where condition provided appears invalid.', 'danger');
@@ -1578,7 +1579,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
             throw new PublicAlert('When deleting from restful tables with out a primary key additional arguments must be provided.', 'danger');
         } 
          
-        \$sql .= ' WHERE ' . self::buildWhere(\$argv, \$pdo, '{{TableName}}', self::PDO_VALIDATION);{{/primary}}
+        \$sql .= ' WHERE ' . self::buildWhere(\$argv, \$pdo, '{{TableName}}', [self::class]);{{/primary}}
 
         {{#json}}self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
 

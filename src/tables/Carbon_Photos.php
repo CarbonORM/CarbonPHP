@@ -323,7 +323,7 @@ class Carbon_Photos extends Rest implements iRest
 
         $pdo = self::database();
 
-        $sql .= ' WHERE ' . self::buildWhere($argv, $pdo, 'carbon_photos', self::PDO_VALIDATION);
+        $sql .= ' WHERE ' . self::buildWhere($argv, $pdo, 'carbon_photos', [self::class]);
         
         self::jsonSQLReporting(func_get_args(), $sql);
 

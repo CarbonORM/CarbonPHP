@@ -350,7 +350,7 @@ class Carbon_User_Tasks extends Rest implements iRest
 
         $pdo = self::database();
 
-        $sql .= ' WHERE ' . self::buildWhere($argv, $pdo, 'carbon_user_tasks', self::PDO_VALIDATION);
+        $sql .= ' WHERE ' . self::buildWhere($argv, $pdo, 'carbon_user_tasks', [self::class]);
         
         self::jsonSQLReporting(func_get_args(), $sql);
 

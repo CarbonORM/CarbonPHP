@@ -2,6 +2,7 @@
   <dictionary name="richardmiles">
     <words>
       <w>autoloading</w>
+      <w>automagically</w>
       <w>axios</w>
       <w>bcrypt</w>
       <w>carbonphp</w>
@@ -17,6 +18,7 @@
       <w>lte</w>
       <w>matthiasmullie</w>
       <w>mysqldump</w>
+      <w>outter</w>
       <w>pcntl</w>
       <w>phpmetrics</w>
       <w>phpsessid</w>

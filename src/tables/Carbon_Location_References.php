@@ -221,7 +221,7 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
         $pdo = self::database();
 
         
-        $sql .= ' WHERE ' . self::buildWhere($where, $pdo, 'carbon_location_references', self::PDO_VALIDATION);
+        $sql .= ' WHERE ' . self::buildWhere($where, $pdo, 'carbon_location_references', [self::class]);
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -282,7 +282,7 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
             throw new PublicAlert('When deleting from restful tables with out a primary key additional arguments must be provided.', 'danger');
         } 
          
-        $sql .= ' WHERE ' . self::buildWhere($argv, $pdo, 'carbon_location_references', self::PDO_VALIDATION);
+        $sql .= ' WHERE ' . self::buildWhere($argv, $pdo, 'carbon_location_references', [self::class]);
 
         self::jsonSQLReporting(func_get_args(), $sql);
 

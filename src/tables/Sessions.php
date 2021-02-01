@@ -328,7 +328,7 @@ class Sessions extends Rest implements iRest
                 throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.', 'danger');
             }
             
-            $where = self::buildWhere($argv, $pdo, 'sessions', self::PDO_VALIDATION);
+            $where = self::buildWhere($argv, $pdo, 'sessions', [self::class]);
             
             if (empty($where)) {
                 throw new PublicAlert('The where condition provided appears invalid.', 'danger');

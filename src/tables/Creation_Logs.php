@@ -213,7 +213,7 @@ class Creation_Logs extends Rest implements iRestfulReferences
         $pdo = self::database();
 
         
-        $sql .= ' WHERE ' . self::buildWhere($where, $pdo, 'creation_logs', self::PDO_VALIDATION);
+        $sql .= ' WHERE ' . self::buildWhere($where, $pdo, 'creation_logs', [self::class]);
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -275,7 +275,7 @@ class Creation_Logs extends Rest implements iRestfulReferences
             throw new PublicAlert('When deleting from restful tables with out a primary key additional arguments must be provided.', 'danger');
         } 
          
-        $sql .= ' WHERE ' . self::buildWhere($argv, $pdo, 'creation_logs', self::PDO_VALIDATION);
+        $sql .= ' WHERE ' . self::buildWhere($argv, $pdo, 'creation_logs', [self::class]);
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
