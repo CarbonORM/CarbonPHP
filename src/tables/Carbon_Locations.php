@@ -68,6 +68,25 @@ class Carbon_Locations extends Rest implements iRest
  
     public const REGEX_VALIDATION = []; 
     
+    public static function createTableSQL() : string {
+    return <<<MYSQL
+    CREATE TABLE `carbon_locations` (
+  `entity_id` binary(16) NOT NULL,
+  `latitude` varchar(225) DEFAULT NULL,
+  `longitude` varchar(225) DEFAULT NULL,
+  `street` varchar(225) DEFAULT NULL,
+  `city` varchar(40) DEFAULT NULL,
+  `state` varchar(10) DEFAULT NULL,
+  `elevation` varchar(40) DEFAULT NULL,
+  `zip` int DEFAULT NULL,
+  PRIMARY KEY (`entity_id`),
+  UNIQUE KEY `entity_location_entity_id_uindex` (`entity_id`),
+  CONSTRAINT `entity_location_entity_entity_pk_fk` FOREIGN KEY (`entity_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+MYSQL;
+    }
+    
+    
     /**
     *
     *   $argv = [

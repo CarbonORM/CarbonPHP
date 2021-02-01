@@ -57,6 +57,17 @@ class Creation_Logs extends Rest implements iRestfulReferences
  
     public const REGEX_VALIDATION = []; 
     
+    public static function createTableSQL() : string {
+    return <<<MYSQL
+    CREATE TABLE `creation_logs` (
+  `uuid` binary(16) DEFAULT NULL COMMENT 'not a relation to carbons',
+  `resource_type` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `resource_uuid` binary(16) DEFAULT NULL COMMENT 'Was a carbons ref, but no longer'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+MYSQL;
+    }
+    
+    
     /**
     *
     *   $argv = [

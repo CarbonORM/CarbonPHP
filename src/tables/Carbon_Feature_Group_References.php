@@ -56,6 +56,20 @@ class Carbon_Feature_Group_References extends Rest implements iRestfulReferences
  
     public const REGEX_VALIDATION = []; 
     
+    public static function createTableSQL() : string {
+    return <<<MYSQL
+    CREATE TABLE `carbon_feature_group_references` (
+  `feature_entity_id` binary(16) DEFAULT NULL,
+  `group_entity_id` binary(16) DEFAULT NULL,
+  KEY `carbon_feature_references_carbons_entity_pk_fk_2` (`feature_entity_id`),
+  KEY `carbon_feature_group_references_carbons_entity_pk_fk` (`group_entity_id`),
+  CONSTRAINT `carbon_feature_group_references_carbons_entity_pk_fk` FOREIGN KEY (`group_entity_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `carbon_feature_references_carbons_entity_pk_fk` FOREIGN KEY (`feature_entity_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+MYSQL;
+    }
+    
+    
     /**
     *
     *   $argv = [

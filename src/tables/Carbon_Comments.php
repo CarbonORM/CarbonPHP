@@ -64,6 +64,24 @@ class Carbon_Comments extends Rest implements iRest
  
     public const REGEX_VALIDATION = []; 
     
+    public static function createTableSQL() : string {
+    return <<<MYSQL
+    CREATE TABLE `carbon_comments` (
+  `parent_id` binary(16) NOT NULL,
+  `comment_id` binary(16) NOT NULL,
+  `user_id` binary(16) NOT NULL,
+  `comment` blob NOT NULL,
+  PRIMARY KEY (`comment_id`),
+  KEY `entity_comments_entity_parent_pk_fk` (`parent_id`),
+  KEY `entity_comments_entity_user_pk_fk` (`user_id`),
+  CONSTRAINT `entity_comments_entity_entity_pk_fk` FOREIGN KEY (`comment_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `entity_comments_entity_parent_pk_fk` FOREIGN KEY (`parent_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `entity_comments_entity_user_pk_fk` FOREIGN KEY (`user_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+MYSQL;
+    }
+    
+    
     /**
     *
     *   $argv = [

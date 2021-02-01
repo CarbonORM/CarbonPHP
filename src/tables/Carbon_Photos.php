@@ -65,6 +65,25 @@ class Carbon_Photos extends Rest implements iRest
  
     public const REGEX_VALIDATION = []; 
     
+    public static function createTableSQL() : string {
+    return <<<MYSQL
+    CREATE TABLE `carbon_photos` (
+  `parent_id` binary(16) NOT NULL,
+  `photo_id` binary(16) NOT NULL,
+  `user_id` binary(16) NOT NULL,
+  `photo_path` varchar(225) NOT NULL,
+  `photo_description` text,
+  PRIMARY KEY (`parent_id`),
+  UNIQUE KEY `entity_photos_photo_id_uindex` (`photo_id`),
+  KEY `photos_entity_user_pk_fk` (`user_id`),
+  CONSTRAINT `entity_photos_entity_entity_pk_fk` FOREIGN KEY (`photo_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `photos_entity_entity_pk_fk` FOREIGN KEY (`parent_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `photos_entity_user_pk_fk` FOREIGN KEY (`user_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+MYSQL;
+    }
+    
+    
     /**
     *
     *   $argv = [

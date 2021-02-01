@@ -64,6 +64,19 @@ class Carbon_Reports extends Rest implements iRestfulReferences
  
     public const REGEX_VALIDATION = []; 
     
+    public static function createTableSQL() : string {
+    return <<<MYSQL
+    CREATE TABLE `carbon_reports` (
+  `log_level` varchar(20) DEFAULT NULL,
+  `report` text,
+  `date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `call_trace` text NOT NULL,
+  UNIQUE KEY `carbon_reports_date_uindex` (`date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+MYSQL;
+    }
+    
+    
     /**
     *
     *   $argv = [

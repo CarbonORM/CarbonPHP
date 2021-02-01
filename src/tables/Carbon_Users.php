@@ -86,6 +86,46 @@ class Carbon_Users extends Rest implements iRest
         self::USER_USERNAME => "#^[A-Za-z0-9_-]{4,16}#",
     ]; 
     
+    public static function createTableSQL() : string {
+    return <<<MYSQL
+    CREATE TABLE `carbon_users` (
+  `user_username` varchar(100) NOT NULL,
+  `user_password` varchar(225) NOT NULL,
+  `user_id` binary(16) NOT NULL,
+  `user_type` varchar(20) NOT NULL DEFAULT 'Athlete',
+  `user_sport` varchar(20) DEFAULT 'GOLF',
+  `user_session_id` varchar(225) DEFAULT NULL,
+  `user_facebook_id` varchar(225) DEFAULT NULL,
+  `user_first_name` varchar(25) NOT NULL,
+  `user_last_name` varchar(25) NOT NULL,
+  `user_profile_pic` varchar(225) DEFAULT NULL,
+  `user_profile_uri` varchar(225) DEFAULT NULL,
+  `user_cover_photo` varchar(225) DEFAULT NULL,
+  `user_birthday` varchar(9) DEFAULT NULL,
+  `user_gender` varchar(25) DEFAULT NULL,
+  `user_about_me` varchar(225) DEFAULT NULL,
+  `user_rank` int DEFAULT '0',
+  `user_email` varchar(50) NOT NULL,
+  `user_email_code` varchar(225) DEFAULT NULL,
+  `user_email_confirmed` tinyint(1) DEFAULT '0' COMMENT 'need to change to enums, but no support in rest yet\n',
+  `user_generated_string` varchar(200) DEFAULT NULL,
+  `user_membership` int DEFAULT '0',
+  `user_deactivated` tinyint(1) DEFAULT '0',
+  `user_last_login` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `user_ip` varchar(20) NOT NULL,
+  `user_education_history` varchar(200) DEFAULT NULL,
+  `user_location` varchar(20) DEFAULT NULL,
+  `user_creation_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`),
+  UNIQUE KEY `carbon_users_user_username_uindex` (`user_username`),
+  UNIQUE KEY `user_user_profile_uri_uindex` (`user_profile_uri`),
+  UNIQUE KEY `carbon_users_user_facebook_id_uindex` (`user_facebook_id`),
+  CONSTRAINT `user_entity_entity_pk_fk` FOREIGN KEY (`user_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+MYSQL;
+    }
+    
+    
     /**
     *
     *   $argv = [

@@ -66,6 +66,21 @@ class Sessions extends Rest implements iRest
  
     public const REGEX_VALIDATION = []; 
     
+    public static function createTableSQL() : string {
+    return <<<MYSQL
+    CREATE TABLE `sessions` (
+  `user_id` binary(16) NOT NULL,
+  `user_ip` varchar(20) DEFAULT NULL,
+  `session_id` varchar(255) NOT NULL,
+  `session_expires` datetime NOT NULL,
+  `session_data` text,
+  `user_online_status` tinyint(1) DEFAULT '1',
+  PRIMARY KEY (`session_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+MYSQL;
+    }
+    
+    
     /**
     *
     *   $argv = [

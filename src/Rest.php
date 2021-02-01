@@ -572,22 +572,19 @@ abstract class Rest extends Database
                             };
 
                             foreach ($set as $column => $value) {
+                                if ($addJoinNext) {
+                                    $sql .= " $booleanOperator ";
+                                }
                                 if (is_array($value)) {                         /// do we intemperate as a boolean switch or custom operation (w/ optional operation)
                                     switch (count($value)) {
                                         case 1:
                                             // join extra logic for expressions, if count
-                                            if ($addJoinNext) {
-                                                $sql .= " $booleanOperator ";
-                                            }
                                             $addJoinNext = true;
                                             $sql .= $buildBooleanJOIN($value, $pdo, $booleanOperator === 'AND' ? 'OR' : 'AND');
                                             break;
                                         case 2:
                                             if (!array_key_exists(0, $value) ||
                                                 !array_key_exists(1, $value)) {
-                                                if ($addJoinNext) {
-                                                    $sql .= " $booleanOperator ";
-                                                }
                                                 $addJoinNext = true;
                                                 $sql .= $buildBooleanJOIN($value, $pdo, $booleanOperator === 'AND' ? 'OR' : 'AND');
                                                 break;

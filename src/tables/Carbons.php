@@ -57,6 +57,21 @@ class Carbons extends Rest implements iRest
  
     public const REGEX_VALIDATION = []; 
     
+    public static function createTableSQL() : string {
+    return <<<MYSQL
+    CREATE TABLE `carbons` (
+  `entity_pk` binary(16) NOT NULL,
+  `entity_fk` binary(16) DEFAULT NULL,
+  `entity_tag` varchar(100) NOT NULL,
+  PRIMARY KEY (`entity_pk`),
+  UNIQUE KEY `entity_entity_pk_uindex` (`entity_pk`),
+  KEY `entity_entity_entity_pk_fk` (`entity_fk`),
+  CONSTRAINT `entity_entity_entity_pk_fk` FOREIGN KEY (`entity_fk`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+MYSQL;
+    }
+    
+    
     /**
     *
     *   $argv = [

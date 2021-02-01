@@ -390,7 +390,10 @@ END;
         $verbose and var_dump($this->mysqldump);
 
         // match all tables from a mysql dump
-        preg_match_all('#CREATE\s+TABLE(.|\s)+?(?=ENGINE=)#', $this->mysqldump, $matches);
+        preg_match_all('#CREATE\s+TABLE(.|\s)+?(?=ENGINE=)ENGINE=.+;#', $this->mysqldump, $matches);
+
+
+        //file_put_contents('testing.txt', $matches[0][4]);die;
 
         // I just want the list of matches, nothing more.
         $matches = $matches[0];
@@ -401,6 +404,7 @@ END;
                 unset($foreign_key);
             }
 
+            $createTableSQL = $table;
             // Separate each insert line by new line feed \n
             $table = explode(PHP_EOL, $table);
             $binary = $skipping_col = $primary = [];
@@ -425,6 +429,7 @@ END;
                         // TRY to load previous validation functions
 
                         $rest[$tableName] = [
+                            'createTableSQL' => $createTableSQL,
                             'subQuery' => $subQuery,
                             'subQueryLength' => strlen($subQuery),
                             'QueryWithDatabaseName' => $QueryWithDatabaseName,
@@ -1287,6 +1292,13 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
     {{#regex_validation}}
     {{{regex_validation}}} 
     {{/regex_validation}}
+    
+    public static function createTableSQL() : string {
+    return <<<MYSQL
+    {{createTableSQL}}
+MYSQL;
+    }
+    
     
     /**
     *

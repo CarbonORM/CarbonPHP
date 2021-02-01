@@ -63,6 +63,23 @@ class Carbon_User_Followers extends Rest implements iRest
  
     public const REGEX_VALIDATION = []; 
     
+    public static function createTableSQL() : string {
+    return <<<MYSQL
+    CREATE TABLE `carbon_user_followers` (
+  `follower_table_id` binary(16) NOT NULL,
+  `follows_user_id` binary(16) NOT NULL,
+  `user_id` binary(16) NOT NULL,
+  PRIMARY KEY (`follower_table_id`),
+  KEY `followers_entity_entity_pk_fk` (`follows_user_id`),
+  KEY `followers_entity_entity_followers_pk_fk` (`user_id`),
+  CONSTRAINT `carbon_user_followers_carbons_entity_pk_fk` FOREIGN KEY (`follower_table_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `followers_entity_entity_follows_pk_fk` FOREIGN KEY (`follows_user_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `followers_entity_followers_pk_fk` FOREIGN KEY (`user_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+MYSQL;
+    }
+    
+    
     /**
     *
     *   $argv = [
