@@ -688,6 +688,7 @@ END;
                                 } else { // the first index does start in ' and doesnt end in '
                                     do {
                                         if ($key > 10) {
+                                            ColorCode::colorCode('Failed to understand MySQLDump File. Printing line ::');
                                             sortDump($words_in_insert_stmt);
                                         }
                                         $default .= ' ' . $words_in_insert_stmt[$key];

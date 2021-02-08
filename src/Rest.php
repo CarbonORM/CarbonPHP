@@ -191,11 +191,6 @@ abstract class Rest extends Database
             return true;
         }
 
-        if ($column === 'carbon_users.user_type') {
-            sortDump(self::$compiled_PDO_validations);
-        }
-
-
         return false;
     }
 

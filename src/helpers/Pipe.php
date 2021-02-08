@@ -79,7 +79,7 @@ class Pipe
 
         try {
             if (!file_exists($fifoPath)) {
-                return false; //sortDump('Fuck me!'); // if it does
+                return false;
             }
 
             umask(0000);
