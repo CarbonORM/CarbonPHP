@@ -66,6 +66,7 @@ class Carbon_Photos extends Rest implements iRest
  
     public const REGEX_VALIDATION = []; 
    
+
     
     public static function createTableSQL() : string {
     return /** @lang MySQL */ <<<MYSQL
@@ -205,59 +206,70 @@ MYSQL;
 
         $stmt = self::database()->prepare($sql);
 
-            $parent_id = $id = $argv['carbon_photos.parent_id'] ?? false;
-            if ($id === false) {
-                 $parent_id = $id = self::beginTransaction(self::class, $dependantEntityId);
-            } else {
-               $ref='carbon_photos.parent_id';
-               if (!self::validateInternalColumn(self::POST, $ref, $parent_id)) {
-                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_photos.parent_id\'.');
-               }            
-            }
-            $stmt->bindParam(':parent_id',$parent_id, 2, 16);
-              if (!array_key_exists('carbon_photos.photo_id', $argv)) {
-                throw new PublicAlert('Required argument "carbon_photos.photo_id" is missing from the request.', 'danger');
-              }
-              $photo_id = $argv['carbon_photos.photo_id'];
-              
-              $ref='carbon_photos.photo_id';
-              if (!self::validateInternalColumn(self::POST, $ref, $photo_id)) {
-                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_photos.photo_id\'.');
-              }        
-              $stmt->bindParam(':photo_id',$photo_id, 2, 16);
-            
-                      if (!array_key_exists('carbon_photos.user_id', $argv)) {
-                throw new PublicAlert('Required argument "carbon_photos.user_id" is missing from the request.', 'danger');
-              }
-              $user_id = $argv['carbon_photos.user_id'];
-              
-              $ref='carbon_photos.user_id';
-              if (!self::validateInternalColumn(self::POST, $ref, $user_id)) {
-                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_photos.user_id\'.');
-              }        
-              $stmt->bindParam(':user_id',$user_id, 2, 16);
-            
-                      if (!array_key_exists('carbon_photos.photo_path', $argv)) {
-                throw new PublicAlert('Required argument "carbon_photos.photo_path" is missing from the request.', 'danger');
-              }
-              $photo_path = $argv['carbon_photos.photo_path'];
-              
-              $ref='carbon_photos.photo_path';
-              if (!self::validateInternalColumn(self::POST, $ref, $photo_path)) {
-                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_photos.photo_path\'.');
-              }        
-              $stmt->bindParam(':photo_path',$photo_path, 2, 225);
-            
-                          if (!array_key_exists('carbon_photos.photo_description', $argv)) {
-                    throw new PublicAlert('The column \'carbon_photos.photo_description\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
-                  } 
-                   $ref='carbon_photos.photo_description';
-                  if (!self::validateInternalColumn(self::POST, $ref, $photo_description)) {
-                    throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_photos.photo_description\'.');
-                  }
-                  $stmt->bindValue(':photo_description', $argv['carbon_photos.photo_description'], 2);
+                
+        $parent_id = $id = $argv['carbon_photos.parent_id'] ?? false;
+        if ($id === false) {
+             $parent_id = $id = self::beginTransaction(self::class, $dependantEntityId);
+        } else {
+           $ref='carbon_photos.parent_id';
+           if (!self::validateInternalColumn(self::POST, $ref, $parent_id)) {
+             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_photos.parent_id\'.');
+           }            
+        }
+        $stmt->bindParam(':parent_id',$parent_id, 2, 16);
+        
+        
+        
+        
+        
+        if (!array_key_exists('carbon_photos.photo_id', $argv)) {
+            throw new PublicAlert('Required argument "carbon_photos.photo_id" is missing from the request.', 'danger');
+        }
+        $photo_id = $argv['carbon_photos.photo_id'];
+        $ref='carbon_photos.photo_id';
+        if (!self::validateInternalColumn(self::POST, $ref, $photo_id)) {
+            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_photos.photo_id\'.');
+        }        
+        $stmt->bindParam(':photo_id',$photo_id, 2, 16);
+        
+        
+        
+        
+        if (!array_key_exists('carbon_photos.user_id', $argv)) {
+            throw new PublicAlert('Required argument "carbon_photos.user_id" is missing from the request.', 'danger');
+        }
+        $user_id = $argv['carbon_photos.user_id'];
+        $ref='carbon_photos.user_id';
+        if (!self::validateInternalColumn(self::POST, $ref, $user_id)) {
+            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_photos.user_id\'.');
+        }        
+        $stmt->bindParam(':user_id',$user_id, 2, 16);
+        
+        
+        
+        
+        if (!array_key_exists('carbon_photos.photo_path', $argv)) {
+            throw new PublicAlert('Required argument "carbon_photos.photo_path" is missing from the request.', 'danger');
+        }
+        $photo_path = $argv['carbon_photos.photo_path'];
+        $ref='carbon_photos.photo_path';
+        if (!self::validateInternalColumn(self::POST, $ref, $photo_path)) {
+            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_photos.photo_path\'.');
+        }        
+        $stmt->bindParam(':photo_path',$photo_path, 2, 225);
+        
+                
+        
+        if (!array_key_exists('carbon_photos.photo_description', $argv)) {
+            throw new PublicAlert('The column \'carbon_photos.photo_description\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
+        } 
+        $ref='carbon_photos.photo_description';
+        if (!self::validateInternalColumn(self::POST, $ref, $photo_description)) {
+            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_photos.photo_description\'.');
+        }
+        $stmt->bindValue(':photo_description', $argv['carbon_photos.photo_description'], 2);
 
-
+        
 
         if ($stmt->execute()) {
             self::postprocessRestRequest($id);
@@ -265,8 +277,9 @@ MYSQL;
             return $id; 
         } 
        
+        self::completeRest();
         return false;
-    
+        
     }
     
     /**
@@ -330,18 +343,34 @@ MYSQL;
 
         if (array_key_exists('carbon_photos.parent_id', $argv)) {
             $parent_id = $argv['carbon_photos.parent_id'];
+            $ref = 'carbon_photos.parent_id';
+            if (!self::validateInternalColumn(self::PUT, $ref, $parent_id)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
+            }
             $stmt->bindParam(':parent_id',$parent_id, 2, 16);
         }
         if (array_key_exists('carbon_photos.photo_id', $argv)) {
             $photo_id = $argv['carbon_photos.photo_id'];
+            $ref = 'carbon_photos.photo_id';
+            if (!self::validateInternalColumn(self::PUT, $ref, $photo_id)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
+            }
             $stmt->bindParam(':photo_id',$photo_id, 2, 16);
         }
         if (array_key_exists('carbon_photos.user_id', $argv)) {
             $user_id = $argv['carbon_photos.user_id'];
+            $ref = 'carbon_photos.user_id';
+            if (!self::validateInternalColumn(self::PUT, $ref, $user_id)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
+            }
             $stmt->bindParam(':user_id',$user_id, 2, 16);
         }
         if (array_key_exists('carbon_photos.photo_path', $argv)) {
             $photo_path = $argv['carbon_photos.photo_path'];
+            $ref = 'carbon_photos.photo_path';
+            if (!self::validateInternalColumn(self::PUT, $ref, $photo_path)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
+            }
             $stmt->bindParam(':photo_path',$photo_path, 2, 225);
         }
         if (array_key_exists('carbon_photos.photo_description', $argv)) {

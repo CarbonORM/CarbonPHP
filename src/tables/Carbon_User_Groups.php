@@ -57,6 +57,7 @@ class Carbon_User_Groups extends Rest implements iRestfulReferences
  
     public const REGEX_VALIDATION = []; 
    
+
     
     public static function createTableSQL() : string {
     return /** @lang MySQL */ <<<MYSQL
@@ -186,27 +187,28 @@ MYSQL;
 
         $stmt = self::database()->prepare($sql);
 
-              $group_id = $argv['carbon_user_groups.group_id'] ?? null;
-              
-              $ref='carbon_user_groups.group_id';
-              if (!self::validateInternalColumn(self::POST, $ref, $group_id, $group_id === null)) {
-                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_groups.group_id\'.');
-              }        
-              $stmt->bindParam(':group_id',$group_id, 2, 16);
-            
-                      $user_id = $argv['carbon_user_groups.user_id'] ?? null;
-              
-              $ref='carbon_user_groups.user_id';
-              if (!self::validateInternalColumn(self::POST, $ref, $user_id, $user_id === null)) {
-                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_groups.user_id\'.');
-              }        
-              $stmt->bindParam(':user_id',$user_id, 2, 16);
-            
+        
+        
+        
+        $group_id = $argv['carbon_user_groups.group_id'] ?? null;
+        $ref='carbon_user_groups.group_id';
+        if (!self::validateInternalColumn(self::POST, $ref, $group_id, $group_id === null)) {
+            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_groups.group_id\'.');
+        }        
+        $stmt->bindParam(':group_id',$group_id, 2, 16);
+        
+        
+        
+        $user_id = $argv['carbon_user_groups.user_id'] ?? null;
+        $ref='carbon_user_groups.user_id';
+        if (!self::validateInternalColumn(self::POST, $ref, $user_id, $user_id === null)) {
+            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_groups.user_id\'.');
+        }        
+        $stmt->bindParam(':user_id',$user_id, 2, 16);
         
 
 
-
-    
+        
         if ($stmt->execute()) {
             self::postprocessRestRequest();
             self::completeRest();
@@ -270,10 +272,18 @@ MYSQL;
 
         if (array_key_exists('carbon_user_groups.group_id', $argv)) {
             $group_id = $argv['carbon_user_groups.group_id'];
+            $ref = 'carbon_user_groups.group_id';
+            if (!self::validateInternalColumn(self::PUT, $ref, $group_id)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
+            }
             $stmt->bindParam(':group_id',$group_id, 2, 16);
         }
         if (array_key_exists('carbon_user_groups.user_id', $argv)) {
             $user_id = $argv['carbon_user_groups.user_id'];
+            $ref = 'carbon_user_groups.user_id';
+            if (!self::validateInternalColumn(self::PUT, $ref, $user_id)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
+            }
             $stmt->bindParam(':user_id',$user_id, 2, 16);
         }
 

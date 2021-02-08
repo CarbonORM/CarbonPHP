@@ -65,6 +65,7 @@ class Carbon_Reports extends Rest implements iRestfulReferences
  
     public const REGEX_VALIDATION = []; 
    
+
     
     public static function createTableSQL() : string {
     return /** @lang MySQL */ <<<MYSQL
@@ -193,35 +194,44 @@ MYSQL;
 
         $stmt = self::database()->prepare($sql);
 
-              $log_level = $argv['carbon_reports.log_level'] ?? null;
-              
-              $ref='carbon_reports.log_level';
-              if (!self::validateInternalColumn(self::POST, $ref, $log_level, $log_level === null)) {
-                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_reports.log_level\'.');
-              }        
-              $stmt->bindParam(':log_level',$log_level, 2, 20);
-            
-                          if (!array_key_exists('carbon_reports.report', $argv)) {
-                    throw new PublicAlert('The column \'carbon_reports.report\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
-                  } 
-                   $ref='carbon_reports.report';
-                  if (!self::validateInternalColumn(self::POST, $ref, $report)) {
-                    throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_reports.report\'.');
-                  }
-                  $stmt->bindValue(':report', $argv['carbon_reports.report'], 2);
-                  if (!array_key_exists('carbon_reports.call_trace', $argv)) {
-                    throw new PublicAlert('The column \'carbon_reports.call_trace\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
-                  } 
-                   $ref='carbon_reports.call_trace';
-                  if (!self::validateInternalColumn(self::POST, $ref, $call_trace)) {
-                    throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_reports.call_trace\'.');
-                  }
-                  $stmt->bindValue(':call_trace', $argv['carbon_reports.call_trace'], 2);
+        
+        
+        
+        $log_level = $argv['carbon_reports.log_level'] ?? null;
+        $ref='carbon_reports.log_level';
+        if (!self::validateInternalColumn(self::POST, $ref, $log_level, $log_level === null)) {
+            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_reports.log_level\'.');
+        }        
+        $stmt->bindParam(':log_level',$log_level, 2, 20);
+        
+                
+        
+        if (!array_key_exists('carbon_reports.report', $argv)) {
+            throw new PublicAlert('The column \'carbon_reports.report\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
+        } 
+        $ref='carbon_reports.report';
+        if (!self::validateInternalColumn(self::POST, $ref, $report)) {
+            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_reports.report\'.');
+        }
+        $stmt->bindValue(':report', $argv['carbon_reports.report'], 2);
+
+        
+        
+                
+        
+        if (!array_key_exists('carbon_reports.call_trace', $argv)) {
+            throw new PublicAlert('The column \'carbon_reports.call_trace\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
+        } 
+        $ref='carbon_reports.call_trace';
+        if (!self::validateInternalColumn(self::POST, $ref, $call_trace)) {
+            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_reports.call_trace\'.');
+        }
+        $stmt->bindValue(':call_trace', $argv['carbon_reports.call_trace'], 2);
+
+        
 
 
-
-
-    
+        
         if ($stmt->execute()) {
             self::postprocessRestRequest();
             self::completeRest();
@@ -291,6 +301,10 @@ MYSQL;
 
         if (array_key_exists('carbon_reports.log_level', $argv)) {
             $log_level = $argv['carbon_reports.log_level'];
+            $ref = 'carbon_reports.log_level';
+            if (!self::validateInternalColumn(self::PUT, $ref, $log_level)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
+            }
             $stmt->bindParam(':log_level',$log_level, 2, 20);
         }
         if (array_key_exists('carbon_reports.report', $argv)) {

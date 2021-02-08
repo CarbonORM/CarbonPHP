@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUndefinedClassInspection */
 /**
  * Created by IntelliJ IDEA.
  * User: rmiles
@@ -14,6 +14,7 @@ use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Rest;
 use CarbonPHP\Tables\Carbon_Location_References;
 use CarbonPHP\Tables\Carbon_Locations;
+use CarbonPHP\Tables\Carbon_User_Tasks;
 use CarbonPHP\Tables\Carbon_Users as Users;
 use CarbonPHP\Tables\Carbons;
 
@@ -23,6 +24,9 @@ use CarbonPHP\Tables\Carbons;
  */
 final class RestTest extends Config
 {
+
+    public static array $restChallenge = [];
+
 
     /**
      * @param string $key
@@ -99,7 +103,8 @@ final class RestTest extends Config
      * @depends testRestApiCanPost
      * @throws PublicAlert
      */
-    public function testRestAdiCanAggregate(): void {
+    public function testRestAdiCanAggregate(): void
+    {
         $temp = [];
 
         self::assertTrue(Carbons::Get($temp, '8544e3d581ba11e8942cd89ef3fc55fa', []));
@@ -149,7 +154,6 @@ final class RestTest extends Config
     }
 
 
-
     /**
      * @depends testRestApiCanPost
      * @throws PublicAlert
@@ -193,9 +197,9 @@ final class RestTest extends Config
                     Users::LIMIT => 1
                 ]
             ]) && !empty($user)) {
-            self::assertTrue(Users::Delete($user, $user[Users::COLUMNS[Users::USER_ID]], []));
+            self::assertTrue(Users::Delete($user, $user[Users::COLUMNS[Users::USER_ID]], []),
+                'Failed to delete user for join test.');
         }
-
 
 
         self::assertInternalType('string', $uid = Users::Post([
@@ -210,7 +214,6 @@ final class RestTest extends Config
             Users::USER_LAST_NAME => 'Miles',
             Users::USER_GENDER => 'Male'
         ]), 'No string ID was returned');
-
 
 
         self::assertInternalType('string', $lid = Carbon_Locations::Post([
@@ -247,14 +250,67 @@ final class RestTest extends Config
                 Users::LIMIT => 1,
                 Users::ORDER => [Users::USER_USERNAME => Users::ASC]
             ]
-        ]));
+        ]), 'Failed to run inner join.');
 
-        
+
         self::assertArrayHasKey(Users::COLUMNS[Users::USER_USERNAME], $user);
 
         self::assertEquals(Config::ADMIN_USERNAME, $user[Users::COLUMNS[Users::USER_USERNAME]]);
 
         self::assertEquals('Texas', $user[Carbon_Locations::COLUMNS[Carbon_Locations::STATE]]);
+    }
+
+
+    /**
+     * This test undoubtedly does a half ass job at verifying order of operations,
+     * expected return values for custom functions, custom method and validation preservation.
+     * This will end up breaking and causing me to add another 40 lines.
+     * @throws PublicAlert
+     * @depends testRestApiCanJoin
+     */
+    public function testRestApiCanUseUserDefinedCallbacks(): void
+    {
+        $user = [];
+
+        self::assertTrue(Users::Get($user, null, [
+                Rest::WHERE => [
+                    Users::USER_USERNAME => Config::ADMIN_USERNAME,
+                    Users::USER_PASSWORD => Config::ADMIN_PASSWORD
+                ],
+                Rest::PAGINATION => [
+                    Rest::LIMIT  => 1
+                ]
+            ]
+        ), 'The user could not be retrieved.');
+
+        $uid = $user[Users::COLUMNS[Users::USER_ID]];
+
+        self::assertNotEmpty($uid, 'The user id was empty.');
+
+        self::assertEmpty(self::$restChallenge, 'Rest Challenges Should Start as Empty.');
+
+        $id = Carbon_User_Tasks::Post([
+            Carbon_User_Tasks::USER_ID => $uid,
+            Carbon_User_Tasks::TASK_NAME => 'Hello World',
+            Carbon_User_Tasks::TASK_DESCRIPTION => 'Test',
+            Carbon_User_Tasks::PERCENT_COMPLETE => 70
+        ]);
+
+        self::assertCount(8, self::$restChallenge, 'Not all rest challenges have run');
+
+        self::assertArrayHasKey(0, self::$restChallenge);
+        self::assertArrayHasKey(1, self::$restChallenge);
+        self::assertArrayHasKey(2, self::$restChallenge);
+        self::assertArrayHasKey(3, self::$restChallenge);
+        self::assertArrayHasKey(4, self::$restChallenge);
+        self::assertArrayHasKey(5, self::$restChallenge);
+        self::assertArrayHasKey(Carbon_User_Tasks::USER_ID, self::$restChallenge[0][0]);
+        self::assertArrayHasKey(Carbon_User_Tasks::TASK_NAME, self::$restChallenge[0][0]);
+        self::assertArrayHasKey(Carbon_User_Tasks::TASK_DESCRIPTION, self::$restChallenge[0][0]);
+        self::assertArrayHasKey(Carbon_User_Tasks::PERCENT_COMPLETE, self::$restChallenge[0][0]);
+        self::assertArrayHasKey(1, self::$restChallenge[1]);
+        self::assertEquals('This Should Be Second', self::$restChallenge[1][1]); // start at 0 ;)
+        self::assertEquals(Carbon_User_Tasks::TASK_DESCRIPTION, self::$restChallenge[3][1]);
     }
 
 
@@ -277,12 +333,9 @@ final class RestTest extends Config
             ]
         ]);
 
-
-        self::assertTrue(Users::$allowSubSelectQueries);
+        self::assertTrue(Users::$allowSubSelectQueries, 'The allowSubSelectQueries variable was incorrectly set to false.');
 
         self::assertSame(strpos($subSelect, '(SELECT '), 0);
-
-        define('WOOKIEE', true);
 
         self::assertTrue(Carbons::Get($user, null, [
             Carbons::SELECT => [
@@ -311,10 +364,11 @@ final class RestTest extends Config
     public function testExternalRequestValidationRoutines(): void
     {
 
-        $_POST = [Users::SELECT => [
-            Users::USER_USERNAME,
-            Carbon_Locations::STATE,
-        ],
+        $_POST = [
+            Users::SELECT => [
+                Users::USER_USERNAME,
+                Carbon_Locations::STATE,
+            ],
             Users::JOIN => [
                 Users::INNER => [
                     Carbon_Location_References::TABLE_NAME => [
@@ -329,8 +383,9 @@ final class RestTest extends Config
             ],
             Users::PAGINATION => [
                 Users::LIMIT => 10,
-                Users::ORDER => Users::USER_USERNAME . Users::ASC
-            ]];
+                Users::ORDER => [Users::USER_USERNAME, Users::ASC] // todo - I think Users::USER_USERNAME . Users::ASC worked, or didnt throw an error..
+            ]
+        ];
 
 
         $_SERVER['REQUEST_METHOD'] = 'GET';

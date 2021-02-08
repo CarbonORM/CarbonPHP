@@ -316,7 +316,7 @@ export const C6 = {
     START_DATE: 'carbon_user_tasks.start_date',
     END_DATE: 'carbon_user_tasks.end_date',
     PRIMARY: [
-        'carbon_user_tasks.user_id',
+        'carbon_user_tasks.task_id',
 
     ],
     COLUMNS: {

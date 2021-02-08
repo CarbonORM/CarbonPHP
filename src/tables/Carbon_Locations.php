@@ -69,6 +69,7 @@ class Carbon_Locations extends Rest implements iRest
  
     public const REGEX_VALIDATION = []; 
    
+
     
     public static function createTableSQL() : string {
     return /** @lang MySQL */ <<<MYSQL
@@ -208,74 +209,83 @@ MYSQL;
 
         $stmt = self::database()->prepare($sql);
 
-            $entity_id = $id = $argv['carbon_locations.entity_id'] ?? false;
-            if ($id === false) {
-                 $entity_id = $id = self::beginTransaction(self::class, $dependantEntityId);
-            } else {
-               $ref='carbon_locations.entity_id';
-               if (!self::validateInternalColumn(self::POST, $ref, $entity_id)) {
-                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_locations.entity_id\'.');
-               }            
-            }
-            $stmt->bindParam(':entity_id',$entity_id, 2, 16);
-              $latitude = $argv['carbon_locations.latitude'] ?? null;
-              
-              $ref='carbon_locations.latitude';
-              if (!self::validateInternalColumn(self::POST, $ref, $latitude, $latitude === null)) {
-                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_locations.latitude\'.');
-              }        
-              $stmt->bindParam(':latitude',$latitude, 2, 225);
-            
-                      $longitude = $argv['carbon_locations.longitude'] ?? null;
-              
-              $ref='carbon_locations.longitude';
-              if (!self::validateInternalColumn(self::POST, $ref, $longitude, $longitude === null)) {
-                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_locations.longitude\'.');
-              }        
-              $stmt->bindParam(':longitude',$longitude, 2, 225);
-            
-                      $street = $argv['carbon_locations.street'] ?? null;
-              
-              $ref='carbon_locations.street';
-              if (!self::validateInternalColumn(self::POST, $ref, $street, $street === null)) {
-                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_locations.street\'.');
-              }        
-              $stmt->bindParam(':street',$street, 2, 225);
-            
-                      $city = $argv['carbon_locations.city'] ?? null;
-              
-              $ref='carbon_locations.city';
-              if (!self::validateInternalColumn(self::POST, $ref, $city, $city === null)) {
-                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_locations.city\'.');
-              }        
-              $stmt->bindParam(':city',$city, 2, 40);
-            
-                      $state = $argv['carbon_locations.state'] ?? null;
-              
-              $ref='carbon_locations.state';
-              if (!self::validateInternalColumn(self::POST, $ref, $state, $state === null)) {
-                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_locations.state\'.');
-              }        
-              $stmt->bindParam(':state',$state, 2, 10);
-            
-                      $elevation = $argv['carbon_locations.elevation'] ?? null;
-              
-              $ref='carbon_locations.elevation';
-              if (!self::validateInternalColumn(self::POST, $ref, $elevation, $elevation === null)) {
-                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_locations.elevation\'.');
-              }        
-              $stmt->bindParam(':elevation',$elevation, 2, 40);
-            
-                          if (!array_key_exists('carbon_locations.zip',$argv)) {
-                     $zip = null;
-                  }
-                  $ref='carbon_locations.zip';
-                  if (!self::validateInternalColumn(self::POST, $ref, $zip, $zip === null)) {
-                    throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_locations.zip\'.');
-                  }
-                  $stmt->bindValue(':zip', $zip, 2);
-
-
+                
+        $entity_id = $id = $argv['carbon_locations.entity_id'] ?? false;
+        if ($id === false) {
+             $entity_id = $id = self::beginTransaction(self::class, $dependantEntityId);
+        } else {
+           $ref='carbon_locations.entity_id';
+           if (!self::validateInternalColumn(self::POST, $ref, $entity_id)) {
+             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_locations.entity_id\'.');
+           }            
+        }
+        $stmt->bindParam(':entity_id',$entity_id, 2, 16);
+        
+        
+        
+        
+        $latitude = $argv['carbon_locations.latitude'] ?? null;
+        $ref='carbon_locations.latitude';
+        if (!self::validateInternalColumn(self::POST, $ref, $latitude, $latitude === null)) {
+            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_locations.latitude\'.');
+        }        
+        $stmt->bindParam(':latitude',$latitude, 2, 225);
+        
+        
+        
+        $longitude = $argv['carbon_locations.longitude'] ?? null;
+        $ref='carbon_locations.longitude';
+        if (!self::validateInternalColumn(self::POST, $ref, $longitude, $longitude === null)) {
+            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_locations.longitude\'.');
+        }        
+        $stmt->bindParam(':longitude',$longitude, 2, 225);
+        
+        
+        
+        $street = $argv['carbon_locations.street'] ?? null;
+        $ref='carbon_locations.street';
+        if (!self::validateInternalColumn(self::POST, $ref, $street, $street === null)) {
+            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_locations.street\'.');
+        }        
+        $stmt->bindParam(':street',$street, 2, 225);
+        
+        
+        
+        $city = $argv['carbon_locations.city'] ?? null;
+        $ref='carbon_locations.city';
+        if (!self::validateInternalColumn(self::POST, $ref, $city, $city === null)) {
+            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_locations.city\'.');
+        }        
+        $stmt->bindParam(':city',$city, 2, 40);
+        
+        
+        
+        $state = $argv['carbon_locations.state'] ?? null;
+        $ref='carbon_locations.state';
+        if (!self::validateInternalColumn(self::POST, $ref, $state, $state === null)) {
+            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_locations.state\'.');
+        }        
+        $stmt->bindParam(':state',$state, 2, 10);
+        
+        
+        
+        $elevation = $argv['carbon_locations.elevation'] ?? null;
+        $ref='carbon_locations.elevation';
+        if (!self::validateInternalColumn(self::POST, $ref, $elevation, $elevation === null)) {
+            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_locations.elevation\'.');
+        }        
+        $stmt->bindParam(':elevation',$elevation, 2, 40);
+        
+                        
+        
+        $zip = $argv['carbon_locations.zip'] ?? null;
+        $ref='carbon_locations.zip';
+        if (!self::validateInternalColumn(self::POST, $ref, $zip, $zip === null)) {
+            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_locations.zip\'.');
+        }
+        $stmt->bindValue(':zip', $zip, 2);
+        
+        
 
         if ($stmt->execute()) {
             self::postprocessRestRequest($id);
@@ -283,8 +293,9 @@ MYSQL;
             return $id; 
         } 
        
+        self::completeRest();
         return false;
-    
+        
     }
     
     /**
@@ -357,30 +368,58 @@ MYSQL;
 
         if (array_key_exists('carbon_locations.entity_id', $argv)) {
             $entity_id = $argv['carbon_locations.entity_id'];
+            $ref = 'carbon_locations.entity_id';
+            if (!self::validateInternalColumn(self::PUT, $ref, $entity_id)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
+            }
             $stmt->bindParam(':entity_id',$entity_id, 2, 16);
         }
         if (array_key_exists('carbon_locations.latitude', $argv)) {
             $latitude = $argv['carbon_locations.latitude'];
+            $ref = 'carbon_locations.latitude';
+            if (!self::validateInternalColumn(self::PUT, $ref, $latitude)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
+            }
             $stmt->bindParam(':latitude',$latitude, 2, 225);
         }
         if (array_key_exists('carbon_locations.longitude', $argv)) {
             $longitude = $argv['carbon_locations.longitude'];
+            $ref = 'carbon_locations.longitude';
+            if (!self::validateInternalColumn(self::PUT, $ref, $longitude)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
+            }
             $stmt->bindParam(':longitude',$longitude, 2, 225);
         }
         if (array_key_exists('carbon_locations.street', $argv)) {
             $street = $argv['carbon_locations.street'];
+            $ref = 'carbon_locations.street';
+            if (!self::validateInternalColumn(self::PUT, $ref, $street)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
+            }
             $stmt->bindParam(':street',$street, 2, 225);
         }
         if (array_key_exists('carbon_locations.city', $argv)) {
             $city = $argv['carbon_locations.city'];
+            $ref = 'carbon_locations.city';
+            if (!self::validateInternalColumn(self::PUT, $ref, $city)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
+            }
             $stmt->bindParam(':city',$city, 2, 40);
         }
         if (array_key_exists('carbon_locations.state', $argv)) {
             $state = $argv['carbon_locations.state'];
+            $ref = 'carbon_locations.state';
+            if (!self::validateInternalColumn(self::PUT, $ref, $state)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
+            }
             $stmt->bindParam(':state',$state, 2, 10);
         }
         if (array_key_exists('carbon_locations.elevation', $argv)) {
             $elevation = $argv['carbon_locations.elevation'];
+            $ref = 'carbon_locations.elevation';
+            if (!self::validateInternalColumn(self::PUT, $ref, $elevation)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
+            }
             $stmt->bindParam(':elevation',$elevation, 2, 40);
         }
         if (array_key_exists('carbon_locations.zip', $argv)) {

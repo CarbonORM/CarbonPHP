@@ -52,9 +52,9 @@ abstract class Rest extends Database
     public const POST = 'POST';
     public const PUT = 'PUT';
     public const DELETE = 'DELETE';
-    public const REST_REQUEST_PREPROCESS_CALLBACKS = 'REST_REQUEST_PREPROCESS_CALLBACKS';  // had to change from 0 so we could array merge recursively.
+    public const REST_REQUEST_PREPROCESS_CALLBACKS = 'PREPROCESS';  // had to change from 0 so we could array merge recursively.
     public const PREPROCESS = self::REST_REQUEST_PREPROCESS_CALLBACKS;
-    public const REST_REQUEST_FINNISH_CALLBACKS = 'REST_REQUEST_FINNISH_CALLBACKS';
+    public const REST_REQUEST_FINNISH_CALLBACKS = 'FINISH';
     public const FINISH = self::REST_REQUEST_FINNISH_CALLBACKS;
     public const VALIDATE_C6_ENTITY_ID_REGEX = '#^' . Route::MATCH_C6_ENTITY_ID_REGEX . '$#';
     public const DISALLOW_PUBLIC_ACCESS = [self::class => 'disallowPublicAccess'];
@@ -76,57 +76,6 @@ abstract class Rest extends Database
     public static bool $externalRestfulRequestsAPI = false;
 
 
-    protected static function startRest(string $method, array $args): void
-    {
-        if (self::$REST_REQUEST_METHOD !== null) {
-            self::$activeQueryStates[] = [
-                self::$REST_REQUEST_METHOD,
-                self::$REST_REQUEST_PARAMETERS,
-                self::$VALIDATED_REST_COLUMNS,
-                self::$compiled_valid_columns,
-                self::$compiled_PDO_validations,
-                self::$compiled_PHP_validations,
-                self::$compiled_regex_validations,
-                self::$join_tables
-            ];
-        }
-        self::$REST_REQUEST_METHOD = $method;
-        self::$REST_REQUEST_PARAMETERS = $args;
-        self::$VALIDATED_REST_COLUMNS = [];
-        self::$compiled_valid_columns = [];
-        self::$compiled_PDO_validations = [];
-        self::$compiled_PHP_validations = [];
-        self::$compiled_regex_validations = [];
-        self::$join_tables = [];
-        self::gatherValidationsForRequest();
-        self::preprocessRestRequest();
-    }
-
-    protected static function completeRest(): void
-    {
-        if (empty(self::$activeQueryStates)) {
-            self::$REST_REQUEST_METHOD = null;
-            self::$REST_REQUEST_PARAMETERS = [];
-            self::$VALIDATED_REST_COLUMNS = [];
-            self::$compiled_valid_columns = [];
-            self::$compiled_PDO_validations = [];
-            self::$compiled_PHP_validations = [];
-            self::$compiled_regex_validations = [];
-            self::$join_tables = [];
-        } else {
-            [
-                self::$REST_REQUEST_METHOD,
-                self::$REST_REQUEST_PARAMETERS,
-                self::$VALIDATED_REST_COLUMNS,
-                self::$compiled_valid_columns,
-                self::$compiled_PDO_validations,
-                self::$compiled_PHP_validations,
-                self::$compiled_regex_validations,
-                self::$join_tables
-            ] = array_pop(self::$activeQueryStates);
-        }
-    }
-
     /**
      * @param $request
      * @param string|null $calledFrom
@@ -139,7 +88,7 @@ abstract class Rest extends Database
         }
     }
 
-    public static function preprocessRestRequest(): void
+    public static function preprocessRestRequest(string $method): void
     {
         if ((self::$compiled_PHP_validations[self::PREPROCESS][self::PREPROCESS] ?? false) &&
             is_array(self::$compiled_PHP_validations[self::PREPROCESS][self::PREPROCESS])) {
@@ -148,6 +97,11 @@ abstract class Rest extends Database
 
         if (self::$compiled_PHP_validations[self::PREPROCESS][self::FINISH] ?? false) {
             throw new PublicAlert('The self::FINISH directive in the self::PREPROCESS array is not supported and must be removed.');
+        }
+
+        if ((self::$compiled_PHP_validations[$method][self::PREPROCESS] ?? false) &&
+            is_array(self::$compiled_PHP_validations[$method][self::PREPROCESS])) {
+            self::runValidations(self::$compiled_PHP_validations[$method][self::PREPROCESS]);
         }
     }
 
@@ -192,17 +146,16 @@ abstract class Rest extends Database
 
             if (null !== $equals && $default === false) {
                 $equalsValidColumn = self::validateInternalColumn($method, $equals, $column);
-
                 if (!$equalsValidColumn && array_key_exists($column, self::$compiled_regex_validations) &&
                     1 > @preg_match_all(self::$compiled_regex_validations[$column], $equals, $matches, PREG_SET_ORDER)) {  // can return 0 or false
                     throw new PublicAlert("The column $column was set to be compared with a value who did not pass the regex test. Please check this value and try again.");
                 }
-
                 // todo - add injection logic here
             }
 
-            // run validation on the whole request give column now exists
 
+
+            // run validation on the whole request give column now exists
             /** @noinspection NotOptimalIfConditionsInspection */
             if (!in_array($column, self::$VALIDATED_REST_COLUMNS, true) &&
                 (self::$compiled_PHP_validations[self::PREPROCESS][$column] ?? false)) {
@@ -212,9 +165,9 @@ abstract class Rest extends Database
                 self::runValidations(self::$compiled_PHP_validations[self::PREPROCESS][$column]);
             }
 
-            // run validation on
+            // run validation on each condition
             if ((self::$compiled_PHP_validations[$method][$column] ?? false) && is_array(self::$compiled_PHP_validations[$method][$column])) {
-                self::runValidations(self::$compiled_PHP_validations[self::PREPROCESS][$method][$column], $equals);
+                self::runValidations(self::$compiled_PHP_validations[$method][$column], $equals);
             }
         };
 
@@ -238,7 +191,7 @@ abstract class Rest extends Database
     }
 
 
-    protected static function runValidations(array $php_validation, &$withColumnValueOrFinalResponse = null, string &$operator = self::EQUAL): void
+    protected static function runValidations(array $php_validation, &...$rest): void
     {
         foreach ($php_validation as $validation) {
             if (is_array($validation)) {
@@ -248,11 +201,11 @@ abstract class Rest extends Database
                 if (!class_exists($class)) {
                     throw new PublicAlert("A class reference in PHP_VALIDATION failed. Class ($class) not found.");
                 }
-                if (null === $withColumnValueOrFinalResponse) {
+                if (empty($rest)) {
                     if (false === call_user_func_array([$class, $validationMethod], [&self::$REST_REQUEST_PARAMETERS, ...$validation])) {
                         throw new PublicAlert('The global request validation failed, please make sure the arguments are correct.');
                     }
-                } else if (false === call_user_func_array([$class, $validationMethod], [&$withColumnValueOrFinalResponse, $operator, ...$validation])) {
+                } else if (false === call_user_func_array([$class, $validationMethod], [&$rest, ...$validation])) {
                     throw new PublicAlert('A column request validation failed, please make sure arguments are correct.');
                 }
             } else {
@@ -720,7 +673,7 @@ abstract class Rest extends Database
                 }
 
                 if (!self::validateInternalColumn(self::GET, $column)) {
-                    throw new PublicAlert('Could not validate a column "' . $column . '" in the request.'); // todo html entities
+                    throw new PublicAlert('Could not validate the column "' . $column . '" in the request.'); // todo html entities
                 }
 
                 switch ($aggregate) {
@@ -813,8 +766,11 @@ abstract class Rest extends Database
      */
     public static function subSelect(string $primary = null, array $argv, PDO $pdo = null, string $database = ''): string
     {
+        self::startRest(self::GET, $argv);
         self::$allowSubSelectQueries = true;
-        return self::buildSelectQuery($primary, $argv, $database, $pdo, true);
+        $sql = self::buildSelectQuery($primary, $argv, $database, $pdo, true);
+        self::completeRest(true);
+        return $sql;
     }
 
     /**
@@ -885,7 +841,6 @@ abstract class Rest extends Database
         ];
     }
 
-
     /**
      * @param Route $route
      * @param string $prefix
@@ -893,7 +848,6 @@ abstract class Rest extends Database
      * @return Route
      * @throws PublicAlert
      */
-
     public static function MatchRestfulRequests(Route $route, string $prefix = '', string $namespace = null): Route
     {
         return $route->regexMatch(/** @lang RegExp */ '#' . $prefix . 'rest/([A-Za-z\_]{1,256})/?' . Route::MATCH_C6_ENTITY_ID_REGEX . '?#',
@@ -904,6 +858,71 @@ abstract class Rest extends Database
                 }
                 Rest::ExternalRestfulRequestsAPI($table, $primary, $namespace);
             });
+    }
+
+    /**
+     * It is most common for a user validation to use a rest request
+     * @param string $method
+     * @param array $args
+     * @throws PublicAlert
+     */
+    protected static function startRest(string $method, array $args): void
+    {
+        if (self::$REST_REQUEST_METHOD !== null) {
+            self::$activeQueryStates[] = [
+                self::$REST_REQUEST_METHOD,
+                self::$REST_REQUEST_PARAMETERS,
+                self::$VALIDATED_REST_COLUMNS,
+                self::$compiled_valid_columns,
+                self::$compiled_PDO_validations,
+                self::$compiled_PHP_validations,
+                self::$compiled_regex_validations,
+                self::$join_tables,
+                self::$allowSubSelectQueries,
+                self::$externalRestfulRequestsAPI
+            ];
+        }
+        self::$REST_REQUEST_METHOD = $method;
+        self::$REST_REQUEST_PARAMETERS = $args;
+        self::$VALIDATED_REST_COLUMNS = [];
+        self::$compiled_valid_columns = [];
+        self::$compiled_PDO_validations = [];
+        self::$compiled_PHP_validations = [];
+        self::$compiled_regex_validations = [];
+        self::$join_tables = [];
+        self::gatherValidationsForRequest();
+        self::preprocessRestRequest($method);
+    }
+
+    protected static function completeRest(bool $subQuery = false): void
+    {
+        if (empty(self::$activeQueryStates)) {
+            self::$REST_REQUEST_METHOD = null;
+            self::$REST_REQUEST_PARAMETERS = [];
+            self::$VALIDATED_REST_COLUMNS = [];
+            self::$compiled_valid_columns = [];
+            self::$compiled_PDO_validations = [];
+            self::$compiled_PHP_validations = [];
+            self::$compiled_regex_validations = [];
+            self::$join_tables = [];
+            if (!$subQuery) {
+                self::$allowSubSelectQueries = false;          // this should only be done on completion
+                self::$externalRestfulRequestsAPI = false;     // this should only be done on completion
+            }
+        } else {
+            [
+                self::$REST_REQUEST_METHOD,
+                self::$REST_REQUEST_PARAMETERS,
+                self::$VALIDATED_REST_COLUMNS,
+                self::$compiled_valid_columns,
+                self::$compiled_PDO_validations,
+                self::$compiled_PHP_validations,
+                self::$compiled_regex_validations,
+                self::$join_tables,
+                self::$allowSubSelectQueries,
+                self::$externalRestfulRequestsAPI
+            ] = array_pop(self::$activeQueryStates);
+        }
     }
 
     public static function addInjection($value, PDO $pdo, $quote = false): string

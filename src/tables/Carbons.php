@@ -54,10 +54,22 @@ class Carbons extends Rest implements iRest
      *  All methods MUST be declared as static.
      */
  
-    public const PHP_VALIDATION = [[self::DISALLOW_PUBLIC_ACCESS]]; 
+    public const PHP_VALIDATION = [ 
+        self::PREPROCESS => [ 
+            self::PREPROCESS => [ 
+                [self::class => 'disallowPublicAccess', self::class] 
+            ]
+        ],
+        self::GET => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],    
+        self::POST => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],    
+        self::PUT => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],    
+        self::DELETE => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],
+        self::FINISH => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]]    
+    ]; 
  
     public const REGEX_VALIDATION = []; 
    
+
     
     public static function createTableSQL() : string {
     return /** @lang MySQL */ <<<MYSQL
@@ -193,37 +205,42 @@ MYSQL;
 
         $stmt = self::database()->prepare($sql);
 
-            $entity_pk = $id = $argv['carbons.entity_pk'] ?? false;
-            if ($id === false) {
-                 $entity_pk = $id = self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
-            } else {
-                $ref='carbons.entity_pk';
-               if (!self::validateInternalColumn(self::POST, $ref, $entity_pk)) {
-                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbons.entity_pk\'.');
-               }            
-            }
-            $stmt->bindParam(':entity_pk',$entity_pk, 2, 16);
-              $entity_fk = $argv['carbons.entity_fk'] ?? null;
-              
-              $ref='carbons.entity_fk';
-              if (!self::validateInternalColumn(self::POST, $ref, $entity_fk, $entity_fk === null)) {
-                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbons.entity_fk\'.');
-              }        
-              $stmt->bindParam(':entity_fk',$entity_fk, 2, 16);
-            
-                      if (!array_key_exists('carbons.entity_tag', $argv)) {
-                throw new PublicAlert('Required argument "carbons.entity_tag" is missing from the request.', 'danger');
-              }
-              $entity_tag = $argv['carbons.entity_tag'];
-              
-              $ref='carbons.entity_tag';
-              if (!self::validateInternalColumn(self::POST, $ref, $entity_tag)) {
-                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbons.entity_tag\'.');
-              }        
-              $stmt->bindParam(':entity_tag',$entity_tag, 2, 100);
-            
         
+        
+        $entity_pk = $id = $argv['carbons.entity_pk'] ?? false;
+        if ($id === false) {
+             $entity_pk = $id = self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
+        } else {
+            $ref='carbons.entity_pk';
+           if (!self::validateInternalColumn(self::POST, $ref, $entity_pk)) {
+             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbons.entity_pk\'.');
+           }            
+        }
+        $stmt->bindParam(':entity_pk',$entity_pk, 2, 16);
 
+        
+        
+        
+        $entity_fk = $argv['carbons.entity_fk'] ?? null;
+        $ref='carbons.entity_fk';
+        if (!self::validateInternalColumn(self::POST, $ref, $entity_fk, $entity_fk === null)) {
+            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbons.entity_fk\'.');
+        }        
+        $stmt->bindParam(':entity_fk',$entity_fk, 2, 16);
+        
+        
+        
+        
+        if (!array_key_exists('carbons.entity_tag', $argv)) {
+            throw new PublicAlert('Required argument "carbons.entity_tag" is missing from the request.', 'danger');
+        }
+        $entity_tag = $argv['carbons.entity_tag'];
+        $ref='carbons.entity_tag';
+        if (!self::validateInternalColumn(self::POST, $ref, $entity_tag)) {
+            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbons.entity_tag\'.');
+        }        
+        $stmt->bindParam(':entity_tag',$entity_tag, 2, 100);
+        
 
         if ($stmt->execute()) {
             self::postprocessRestRequest($id);
@@ -231,8 +248,9 @@ MYSQL;
             return $id; 
         } 
        
+        self::completeRest();
         return false;
-    
+        
     }
     
     /**
@@ -290,14 +308,26 @@ MYSQL;
 
         if (array_key_exists('carbons.entity_pk', $argv)) {
             $entity_pk = $argv['carbons.entity_pk'];
+            $ref = 'carbons.entity_pk';
+            if (!self::validateInternalColumn(self::PUT, $ref, $entity_pk)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
+            }
             $stmt->bindParam(':entity_pk',$entity_pk, 2, 16);
         }
         if (array_key_exists('carbons.entity_fk', $argv)) {
             $entity_fk = $argv['carbons.entity_fk'];
+            $ref = 'carbons.entity_fk';
+            if (!self::validateInternalColumn(self::PUT, $ref, $entity_fk)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
+            }
             $stmt->bindParam(':entity_fk',$entity_fk, 2, 16);
         }
         if (array_key_exists('carbons.entity_tag', $argv)) {
             $entity_tag = $argv['carbons.entity_tag'];
+            $ref = 'carbons.entity_tag';
+            if (!self::validateInternalColumn(self::PUT, $ref, $entity_tag)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
+            }
             $stmt->bindParam(':entity_tag',$entity_tag, 2, 100);
         }
 

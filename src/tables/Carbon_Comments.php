@@ -65,6 +65,7 @@ class Carbon_Comments extends Rest implements iRest
  
     public const REGEX_VALIDATION = []; 
    
+
     
     public static function createTableSQL() : string {
     return /** @lang MySQL */ <<<MYSQL
@@ -203,48 +204,57 @@ MYSQL;
 
         $stmt = self::database()->prepare($sql);
 
-              if (!array_key_exists('carbon_comments.parent_id', $argv)) {
-                throw new PublicAlert('Required argument "carbon_comments.parent_id" is missing from the request.', 'danger');
-              }
-              $parent_id = $argv['carbon_comments.parent_id'];
-              
-              $ref='carbon_comments.parent_id';
-              if (!self::validateInternalColumn(self::POST, $ref, $parent_id)) {
-                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_comments.parent_id\'.');
-              }        
-              $stmt->bindParam(':parent_id',$parent_id, 2, 16);
-            
-                    $comment_id = $id = $argv['carbon_comments.comment_id'] ?? false;
-            if ($id === false) {
-                 $comment_id = $id = self::beginTransaction(self::class, $dependantEntityId);
-            } else {
-               $ref='carbon_comments.comment_id';
-               if (!self::validateInternalColumn(self::POST, $ref, $comment_id)) {
-                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_comments.comment_id\'.');
-               }            
-            }
-            $stmt->bindParam(':comment_id',$comment_id, 2, 16);
-              if (!array_key_exists('carbon_comments.user_id', $argv)) {
-                throw new PublicAlert('Required argument "carbon_comments.user_id" is missing from the request.', 'danger');
-              }
-              $user_id = $argv['carbon_comments.user_id'];
-              
-              $ref='carbon_comments.user_id';
-              if (!self::validateInternalColumn(self::POST, $ref, $user_id)) {
-                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_comments.user_id\'.');
-              }        
-              $stmt->bindParam(':user_id',$user_id, 2, 16);
-            
-                          if (!array_key_exists('carbon_comments.comment', $argv)) {
-                    throw new PublicAlert('The column \'carbon_comments.comment\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
-                  } 
-                   $ref='carbon_comments.comment';
-                  if (!self::validateInternalColumn(self::POST, $ref, $comment)) {
-                    throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_comments.comment\'.');
-                  }
-                  $stmt->bindValue(':comment', $argv['carbon_comments.comment'], 2);
+        
+        
+        
+        
+        if (!array_key_exists('carbon_comments.parent_id', $argv)) {
+            throw new PublicAlert('Required argument "carbon_comments.parent_id" is missing from the request.', 'danger');
+        }
+        $parent_id = $argv['carbon_comments.parent_id'];
+        $ref='carbon_comments.parent_id';
+        if (!self::validateInternalColumn(self::POST, $ref, $parent_id)) {
+            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_comments.parent_id\'.');
+        }        
+        $stmt->bindParam(':parent_id',$parent_id, 2, 16);
+                
+        $comment_id = $id = $argv['carbon_comments.comment_id'] ?? false;
+        if ($id === false) {
+             $comment_id = $id = self::beginTransaction(self::class, $dependantEntityId);
+        } else {
+           $ref='carbon_comments.comment_id';
+           if (!self::validateInternalColumn(self::POST, $ref, $comment_id)) {
+             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_comments.comment_id\'.');
+           }            
+        }
+        $stmt->bindParam(':comment_id',$comment_id, 2, 16);
+        
+        
+        
+        
+        
+        if (!array_key_exists('carbon_comments.user_id', $argv)) {
+            throw new PublicAlert('Required argument "carbon_comments.user_id" is missing from the request.', 'danger');
+        }
+        $user_id = $argv['carbon_comments.user_id'];
+        $ref='carbon_comments.user_id';
+        if (!self::validateInternalColumn(self::POST, $ref, $user_id)) {
+            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_comments.user_id\'.');
+        }        
+        $stmt->bindParam(':user_id',$user_id, 2, 16);
+        
+                
+        
+        if (!array_key_exists('carbon_comments.comment', $argv)) {
+            throw new PublicAlert('The column \'carbon_comments.comment\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
+        } 
+        $ref='carbon_comments.comment';
+        if (!self::validateInternalColumn(self::POST, $ref, $comment)) {
+            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_comments.comment\'.');
+        }
+        $stmt->bindValue(':comment', $argv['carbon_comments.comment'], 2);
 
-
+        
 
         if ($stmt->execute()) {
             self::postprocessRestRequest($id);
@@ -252,8 +262,9 @@ MYSQL;
             return $id; 
         } 
        
+        self::completeRest();
         return false;
-    
+        
     }
     
     /**
@@ -314,14 +325,26 @@ MYSQL;
 
         if (array_key_exists('carbon_comments.parent_id', $argv)) {
             $parent_id = $argv['carbon_comments.parent_id'];
+            $ref = 'carbon_comments.parent_id';
+            if (!self::validateInternalColumn(self::PUT, $ref, $parent_id)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
+            }
             $stmt->bindParam(':parent_id',$parent_id, 2, 16);
         }
         if (array_key_exists('carbon_comments.comment_id', $argv)) {
             $comment_id = $argv['carbon_comments.comment_id'];
+            $ref = 'carbon_comments.comment_id';
+            if (!self::validateInternalColumn(self::PUT, $ref, $comment_id)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
+            }
             $stmt->bindParam(':comment_id',$comment_id, 2, 16);
         }
         if (array_key_exists('carbon_comments.user_id', $argv)) {
             $user_id = $argv['carbon_comments.user_id'];
+            $ref = 'carbon_comments.user_id';
+            if (!self::validateInternalColumn(self::PUT, $ref, $user_id)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
+            }
             $stmt->bindParam(':user_id',$user_id, 2, 16);
         }
         if (array_key_exists('carbon_comments.comment', $argv)) {

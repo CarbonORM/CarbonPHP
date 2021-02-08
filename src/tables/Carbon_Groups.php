@@ -59,6 +59,7 @@ class Carbon_Groups extends Rest implements iRest
  
     public const REGEX_VALIDATION = []; 
    
+
     
     public static function createTableSQL() : string {
     return /** @lang MySQL */ <<<MYSQL
@@ -195,40 +196,46 @@ MYSQL;
 
         $stmt = self::database()->prepare($sql);
 
-              if (!array_key_exists('carbon_groups.group_name', $argv)) {
-                throw new PublicAlert('Required argument "carbon_groups.group_name" is missing from the request.', 'danger');
-              }
-              $group_name = $argv['carbon_groups.group_name'];
-              
-              $ref='carbon_groups.group_name';
-              if (!self::validateInternalColumn(self::POST, $ref, $group_name)) {
-                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_groups.group_name\'.');
-              }        
-              $stmt->bindParam(':group_name',$group_name, 2, 20);
-            
-                    $entity_id = $id = $argv['carbon_groups.entity_id'] ?? false;
-            if ($id === false) {
-                 $entity_id = $id = self::beginTransaction(self::class, $dependantEntityId);
-            } else {
-               $ref='carbon_groups.entity_id';
-               if (!self::validateInternalColumn(self::POST, $ref, $entity_id)) {
-                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_groups.entity_id\'.');
-               }            
-            }
-            $stmt->bindParam(':entity_id',$entity_id, 2, 16);
-              if (!array_key_exists('carbon_groups.created_by', $argv)) {
-                throw new PublicAlert('Required argument "carbon_groups.created_by" is missing from the request.', 'danger');
-              }
-              $created_by = $argv['carbon_groups.created_by'];
-              
-              $ref='carbon_groups.created_by';
-              if (!self::validateInternalColumn(self::POST, $ref, $created_by)) {
-                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_groups.created_by\'.');
-              }        
-              $stmt->bindParam(':created_by',$created_by, 2, 16);
-            
         
-
+        
+        
+        
+        if (!array_key_exists('carbon_groups.group_name', $argv)) {
+            throw new PublicAlert('Required argument "carbon_groups.group_name" is missing from the request.', 'danger');
+        }
+        $group_name = $argv['carbon_groups.group_name'];
+        $ref='carbon_groups.group_name';
+        if (!self::validateInternalColumn(self::POST, $ref, $group_name)) {
+            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_groups.group_name\'.');
+        }        
+        $stmt->bindParam(':group_name',$group_name, 2, 20);
+                
+        $entity_id = $id = $argv['carbon_groups.entity_id'] ?? false;
+        if ($id === false) {
+             $entity_id = $id = self::beginTransaction(self::class, $dependantEntityId);
+        } else {
+           $ref='carbon_groups.entity_id';
+           if (!self::validateInternalColumn(self::POST, $ref, $entity_id)) {
+             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_groups.entity_id\'.');
+           }            
+        }
+        $stmt->bindParam(':entity_id',$entity_id, 2, 16);
+        
+        
+        
+        
+        
+        if (!array_key_exists('carbon_groups.created_by', $argv)) {
+            throw new PublicAlert('Required argument "carbon_groups.created_by" is missing from the request.', 'danger');
+        }
+        $created_by = $argv['carbon_groups.created_by'];
+        $ref='carbon_groups.created_by';
+        if (!self::validateInternalColumn(self::POST, $ref, $created_by)) {
+            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_groups.created_by\'.');
+        }        
+        $stmt->bindParam(':created_by',$created_by, 2, 16);
+        
+        
 
         if ($stmt->execute()) {
             self::postprocessRestRequest($id);
@@ -236,8 +243,9 @@ MYSQL;
             return $id; 
         } 
        
+        self::completeRest();
         return false;
-    
+        
     }
     
     /**
@@ -298,14 +306,26 @@ MYSQL;
 
         if (array_key_exists('carbon_groups.group_name', $argv)) {
             $group_name = $argv['carbon_groups.group_name'];
+            $ref = 'carbon_groups.group_name';
+            if (!self::validateInternalColumn(self::PUT, $ref, $group_name)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
+            }
             $stmt->bindParam(':group_name',$group_name, 2, 20);
         }
         if (array_key_exists('carbon_groups.entity_id', $argv)) {
             $entity_id = $argv['carbon_groups.entity_id'];
+            $ref = 'carbon_groups.entity_id';
+            if (!self::validateInternalColumn(self::PUT, $ref, $entity_id)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
+            }
             $stmt->bindParam(':entity_id',$entity_id, 2, 16);
         }
         if (array_key_exists('carbon_groups.created_by', $argv)) {
             $created_by = $argv['carbon_groups.created_by'];
+            $ref = 'carbon_groups.created_by';
+            if (!self::validateInternalColumn(self::PUT, $ref, $created_by)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
+            }
             $stmt->bindParam(':created_by',$created_by, 2, 16);
         }
         if (array_key_exists('carbon_groups.creation_date', $argv)) {

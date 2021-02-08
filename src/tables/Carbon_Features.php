@@ -58,6 +58,7 @@ class Carbon_Features extends Rest implements iRest
  
     public const REGEX_VALIDATION = []; 
    
+
     
     public static function createTableSQL() : string {
     return /** @lang MySQL */ <<<MYSQL
@@ -193,29 +194,33 @@ MYSQL;
 
         $stmt = self::database()->prepare($sql);
 
-            $feature_entity_id = $id = $argv['carbon_features.feature_entity_id'] ?? false;
-            if ($id === false) {
-                 $feature_entity_id = $id = self::beginTransaction(self::class, $dependantEntityId);
-            } else {
-               $ref='carbon_features.feature_entity_id';
-               if (!self::validateInternalColumn(self::POST, $ref, $feature_entity_id)) {
-                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_features.feature_entity_id\'.');
-               }            
-            }
-            $stmt->bindParam(':feature_entity_id',$feature_entity_id, 2, 16);
-              if (!array_key_exists('carbon_features.feature_code', $argv)) {
-                throw new PublicAlert('Required argument "carbon_features.feature_code" is missing from the request.', 'danger');
-              }
-              $feature_code = $argv['carbon_features.feature_code'];
-              
-              $ref='carbon_features.feature_code';
-              if (!self::validateInternalColumn(self::POST, $ref, $feature_code)) {
-                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_features.feature_code\'.');
-              }        
-              $stmt->bindParam(':feature_code',$feature_code, 2, 30);
-            
+                
+        $feature_entity_id = $id = $argv['carbon_features.feature_entity_id'] ?? false;
+        if ($id === false) {
+             $feature_entity_id = $id = self::beginTransaction(self::class, $dependantEntityId);
+        } else {
+           $ref='carbon_features.feature_entity_id';
+           if (!self::validateInternalColumn(self::POST, $ref, $feature_entity_id)) {
+             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_features.feature_entity_id\'.');
+           }            
+        }
+        $stmt->bindParam(':feature_entity_id',$feature_entity_id, 2, 16);
         
-
+        
+        
+        
+        
+        if (!array_key_exists('carbon_features.feature_code', $argv)) {
+            throw new PublicAlert('Required argument "carbon_features.feature_code" is missing from the request.', 'danger');
+        }
+        $feature_code = $argv['carbon_features.feature_code'];
+        $ref='carbon_features.feature_code';
+        if (!self::validateInternalColumn(self::POST, $ref, $feature_code)) {
+            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_features.feature_code\'.');
+        }        
+        $stmt->bindParam(':feature_code',$feature_code, 2, 30);
+        
+        
 
         if ($stmt->execute()) {
             self::postprocessRestRequest($id);
@@ -223,8 +228,9 @@ MYSQL;
             return $id; 
         } 
        
+        self::completeRest();
         return false;
-    
+        
     }
     
     /**
@@ -282,10 +288,18 @@ MYSQL;
 
         if (array_key_exists('carbon_features.feature_entity_id', $argv)) {
             $feature_entity_id = $argv['carbon_features.feature_entity_id'];
+            $ref = 'carbon_features.feature_entity_id';
+            if (!self::validateInternalColumn(self::PUT, $ref, $feature_entity_id)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
+            }
             $stmt->bindParam(':feature_entity_id',$feature_entity_id, 2, 16);
         }
         if (array_key_exists('carbon_features.feature_code', $argv)) {
             $feature_code = $argv['carbon_features.feature_code'];
+            $ref = 'carbon_features.feature_code';
+            if (!self::validateInternalColumn(self::PUT, $ref, $feature_code)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
+            }
             $stmt->bindParam(':feature_code',$feature_code, 2, 30);
         }
         if (array_key_exists('carbon_features.feature_creation_date', $argv)) {
