@@ -96,13 +96,14 @@ abstract class Rest extends Database
             self::runValidations(self::$compiled_PHP_validations[self::PREPROCESS][self::PREPROCESS]);
         }
 
-        if (self::$compiled_PHP_validations[self::PREPROCESS][self::FINISH] ?? false) {
-            throw new PublicAlert('The self::FINISH directive in the self::PREPROCESS array is not supported and must be removed.');
-        }
 
         if ((self::$compiled_PHP_validations[self::$REST_REQUEST_METHOD][self::PREPROCESS] ?? false) &&
             is_array(self::$compiled_PHP_validations[self::$REST_REQUEST_METHOD][self::PREPROCESS])) {
             self::runValidations(self::$compiled_PHP_validations[self::$REST_REQUEST_METHOD][self::PREPROCESS]);
+        }
+
+        if (self::$compiled_PHP_validations[self::PREPROCESS][self::FINISH] ?? false) {
+            throw new PublicAlert('The self::FINISH directive in the self::PREPROCESS array is not supported and must be removed.');
         }
     }
 
@@ -119,7 +120,7 @@ abstract class Rest extends Database
     {
         if ((self::$compiled_PHP_validations[self::$REST_REQUEST_METHOD][self::FINISH] ?? false) &&
             is_array(self::$compiled_PHP_validations[self::$REST_REQUEST_METHOD][self::FINISH])) {
-            self::runValidations(self::$compiled_PHP_validations[self::$REST_REQUEST_METHOD][self::PREPROCESS], $return);
+            self::runValidations(self::$compiled_PHP_validations[self::$REST_REQUEST_METHOD][self::FINISH], $return);
         }
 
         foreach (self::$VALIDATED_REST_COLUMNS as $column) {
