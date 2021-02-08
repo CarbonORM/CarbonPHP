@@ -457,7 +457,7 @@ END;
                             continue 2;
                         }
 
-                        if (file_exists($validation = $targetDir . $tableName . '.php')) {
+                        if (file_exists($validation = $targetDir . $etn . '.php')) {
                             $validation = file_get_contents($validation);
 
                             preg_match_all('#public const REGEX_VALIDATION\s?=\s? \[(.|\n)*?];(?=(\s|\n)+(public|protected|private|/\*))#', $validation, $matches);
