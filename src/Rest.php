@@ -72,6 +72,7 @@ abstract class Rest extends Database
     public static array $injection = [];                    // this increments well regardless of state, amount of rest calls ect.
 
     // validating across joins for rest is hard enough. I'm not going to allow user/FED provided sub queries
+    public static bool $commit = true;
     public static bool $allowSubSelectQueries = false; // todo - maybe C6v8.0.0 ?? ,, probably not as
     public static bool $externalRestfulRequestsAPI = false;
 
@@ -88,7 +89,7 @@ abstract class Rest extends Database
         }
     }
 
-    public static function preprocessRestRequest(string $method): void
+    public static function preprocessRestRequest(): void
     {
         if ((self::$compiled_PHP_validations[self::PREPROCESS][self::PREPROCESS] ?? false) &&
             is_array(self::$compiled_PHP_validations[self::PREPROCESS][self::PREPROCESS])) {
@@ -99,16 +100,25 @@ abstract class Rest extends Database
             throw new PublicAlert('The self::FINISH directive in the self::PREPROCESS array is not supported and must be removed.');
         }
 
-        if ((self::$compiled_PHP_validations[$method][self::PREPROCESS] ?? false) &&
-            is_array(self::$compiled_PHP_validations[$method][self::PREPROCESS])) {
-            self::runValidations(self::$compiled_PHP_validations[$method][self::PREPROCESS]);
+        if ((self::$compiled_PHP_validations[self::$REST_REQUEST_METHOD][self::PREPROCESS] ?? false) &&
+            is_array(self::$compiled_PHP_validations[self::$REST_REQUEST_METHOD][self::PREPROCESS])) {
+            self::runValidations(self::$compiled_PHP_validations[self::$REST_REQUEST_METHOD][self::PREPROCESS]);
         }
     }
 
-    public static function postprocessRestRequest(&$return = null): void
+    public static function prepostprocessRestRequest(&$return = null): void
     {
         if ((self::$compiled_PHP_validations[self::FINISH][self::PREPROCESS] ?? false) &&
             is_array(self::$compiled_PHP_validations[self::FINISH][self::PREPROCESS])) {
+            self::runValidations(self::$compiled_PHP_validations[self::FINISH][self::PREPROCESS], $return);
+        }
+    }
+
+
+    public static function postprocessRestRequest(&$return = null): void
+    {
+        if ((self::$compiled_PHP_validations[self::$REST_REQUEST_METHOD][self::FINISH] ?? false) &&
+            is_array(self::$compiled_PHP_validations[self::$REST_REQUEST_METHOD][self::FINISH])) {
             self::runValidations(self::$compiled_PHP_validations[self::FINISH][self::PREPROCESS], $return);
         }
 
@@ -152,7 +162,6 @@ abstract class Rest extends Database
                 }
                 // todo - add injection logic here
             }
-
 
 
             // run validation on the whole request give column now exists
@@ -866,7 +875,7 @@ abstract class Rest extends Database
      * @param array $args
      * @throws PublicAlert
      */
-    protected static function startRest(string $method, array $args): void
+    protected static function startRest(string $method, array &$args): void
     {
         if (self::$REST_REQUEST_METHOD !== null) {
             self::$activeQueryStates[] = [
@@ -883,7 +892,7 @@ abstract class Rest extends Database
             ];
         }
         self::$REST_REQUEST_METHOD = $method;
-        self::$REST_REQUEST_PARAMETERS = $args;
+        self::$REST_REQUEST_PARAMETERS = &$args;
         self::$VALIDATED_REST_COLUMNS = [];
         self::$compiled_valid_columns = [];
         self::$compiled_PDO_validations = [];
@@ -891,7 +900,7 @@ abstract class Rest extends Database
         self::$compiled_regex_validations = [];
         self::$join_tables = [];
         self::gatherValidationsForRequest();
-        self::preprocessRestRequest($method);
+        self::preprocessRestRequest();
     }
 
     protected static function completeRest(bool $subQuery = false): void

@@ -201,6 +201,7 @@ final class RestTest extends Config
                 'Failed to delete user for join test.');
         }
 
+        Rest::$commit = false;
 
         self::assertInternalType('string', $uid = Users::Post([
             Users::USER_TYPE => 'Athlete',
@@ -315,14 +316,12 @@ final class RestTest extends Config
 
 
     /**
-     * @depends testRestApiCanPost
+     * @depends testRestApiCanJoin
      * @throws PublicAlert
      */
     public function testRestApiCanSubQuery(): void
     {
         $user = [];
-
-        define('testlazy', true);
 
         $subSelect = Users::subSelect(null, [
             Users::SELECT => [

@@ -66,8 +66,6 @@ final class UserTest extends Config
             Users::USER_GENDER => 'Male'
         ]), 'No string ID was returned');
 
-        $this->commit();
-
         return $id;
     }
 
@@ -120,8 +118,6 @@ final class UserTest extends Config
                 [
                     Users::USER_FIRST_NAME => 'lil\'Rich'
                 ]));
-
-        $this->commit();
 
         $this->user = [];
 

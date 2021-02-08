@@ -1184,9 +1184,10 @@ export interface  i{{ucEachTableName}}{
     private function restTemplateStaticNameSpace(): array
     {
         return [
-            'use PDO;',
-            'use CarbonPHP\Rest;',
+            'use CarbonPHP\Database;',
             'use CarbonPHP\Error\PublicAlert;',
+            'use CarbonPHP\Rest;',
+            'use PDO;',
             'use function array_key_exists;',
             'use function count;',
             'use function func_get_args;',
@@ -1514,8 +1515,16 @@ MYSQL;
 
         {{#binary_primary}}
         if (\$stmt->execute()) {
-            self::postprocessRestRequest(\$id);
+            self::prepostprocessRestRequest(\$id);
+             
+            if (self::\$commit && !Database::commit()) {
+               throw new PublicAlert('Failed to store commit transaction on table {{TableName}}');
+            } 
+             
+            self::postprocessRestRequest(\$id); 
+             
             self::completeRest(); 
+            
             return \$id; 
         } 
        
@@ -1523,12 +1532,17 @@ MYSQL;
         return false;{{/binary_primary}}
         {{^binary_primary}}{{^carbon_table}}
         if (\$stmt->execute()) {
+            self::prepostprocessRestRequest();
+            
             self::postprocessRestRequest();
+            
             self::completeRest();
+            
             return true;  
         }
         
         self::completeRest();
+         
         return false;
     {{/carbon_table}}{{/binary_primary}}
     }
@@ -1571,6 +1585,7 @@ MYSQL;
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
             }
         }
+        unset(\$value);
 
         \$sql = /** @lang MySQLFragment */ 'UPDATE {{^carbon_namespace}}{{#QueryWithDatabaseName}}{{database}}.{{/QueryWithDatabaseName}}{{/carbon_namespace}}{{TableName}} SET '; // intellij cant handle this otherwise
 
@@ -1629,10 +1644,13 @@ MYSQL;
 
         \$return = array_merge(\$return, \$argv);
 
+        self::prepostprocessRestRequest(\$return);
+        
         self::postprocessRestRequest(\$return);
+        
         self::completeRest();
+        
         return true;
-
     }
 
     /**
@@ -1681,6 +1699,9 @@ MYSQL;
         return \$r;
     {{/carbon_table}}
     {{^carbon_table}}
+        /** @noinspection SqlWithoutWhere
+         * @noinspection UnknownInspectionInspection - intellij is funny sometimes.
+         */
         \$sql = 'DELETE FROM {{^carbon_namespace}}{{#QueryWithDatabaseName}}{{database}}.{{/QueryWithDatabaseName}}{{/carbon_namespace}}{{TableName}} ';
 
         \$pdo = self::database();
@@ -1722,8 +1743,12 @@ MYSQL;
 
         \$r and \$remove = [];
         
+        self::prepostprocessRestRequest(\$return);
+        
         self::postprocessRestRequest(\$return);
+        
         self::completeRest();
+        
         return \$r;
     {{/carbon_table}}
     }

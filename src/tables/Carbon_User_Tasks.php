@@ -3,10 +3,11 @@
 namespace CarbonPHP\Tables;
 
 // Restful defaults
-use PDO;
-use CarbonPHP\Rest;
-use CarbonPHP\Interfaces\iRest;
+use CarbonPHP\Database;
 use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Interfaces\iRest;
+use CarbonPHP\Rest;
+use PDO;
 use function array_key_exists;
 use function count;
 use function func_get_args;
@@ -65,7 +66,6 @@ class Carbon_User_Tasks extends Rest implements iRest
             self::PREPROCESS => [
                 [self::class => 'disallowPublicAccess', self::class],
                 [self::class => 'restTesting', self::PREPROCESS, self::class],
-                [self::class => 'restTesting', 'This Should Be Second'],
             ]
         ],
         self::GET => [
@@ -79,13 +79,13 @@ class Carbon_User_Tasks extends Rest implements iRest
         self::POST => [
             self::PREPROCESS => [
                 self::DISALLOW_PUBLIC_ACCESS,
-                [self::class => 'restTesting', self::POST, self::POST, self::PREPROCESS],
+                [self::class => 'restTesting', self::POST, self::PREPROCESS],
             ],
             self::PERCENT_COMPLETE => [
                 [self::class => 'restTesting', self::POST, 'CustomArgument', []],
             ],
             self::TASK_DESCRIPTION => [
-                [self::class => 'restTesting', self::TASK_DESCRIPTION]
+                [self::class => 'restTesting']
             ]
         ],
         self::PUT => [
@@ -95,9 +95,6 @@ class Carbon_User_Tasks extends Rest implements iRest
             ],
             self::TASK_NAME => [
                 [self::class => 'restTesting', self::PUT]
-            ],
-            self::TASK_DESCRIPTION => [
-                [self::class => 'restTesting', self::TASK_DESCRIPTION]
             ]
         ],
         self::DELETE => [
@@ -275,7 +272,7 @@ MYSQL;
                 
         $task_id = $id = $argv['carbon_user_tasks.task_id'] ?? false;
         if ($id === false) {
-             $task_id = $id = self::beginTransaction(self::class, $dependantEntityId);
+            $task_id = $id = self::beginTransaction(self::class, $dependantEntityId);
         } else {
            $ref='carbon_user_tasks.task_id';
            if (!self::validateInternalColumn(self::POST, $ref, $task_id)) {
@@ -361,8 +358,16 @@ MYSQL;
         
 
         if ($stmt->execute()) {
-            self::postprocessRestRequest($id);
+            self::prepostprocessRestRequest($id);
+
+            if (self::$commit && !Database::commit()) {
+               throw new PublicAlert('Failed to store commit transaction on table carbon_user_tasks');
+            } 
+             
+            self::postprocessRestRequest($id); 
+             
             self::completeRest(); 
+            
             return $id; 
         } 
        
@@ -398,6 +403,7 @@ MYSQL;
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.\'.');
             }
         }
+        unset($value);
 
         $sql = /** @lang MySQLFragment */ 'UPDATE carbon_user_tasks SET '; // intellij cant handle this otherwise
 
@@ -509,10 +515,13 @@ MYSQL;
 
         $return = array_merge($return, $argv);
 
+        self::prepostprocessRestRequest($return);
+        
         self::postprocessRestRequest($return);
+        
         self::completeRest();
+        
         return true;
-
     }
 
     /**

@@ -3,10 +3,11 @@
 namespace CarbonPHP\Tables;
 
 // Restful defaults
-use PDO;
-use CarbonPHP\Rest;
-use CarbonPHP\Interfaces\iRest;
+use CarbonPHP\Database;
 use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Interfaces\iRest;
+use CarbonPHP\Rest;
+use PDO;
 use function array_key_exists;
 use function count;
 use function func_get_args;
@@ -238,8 +239,16 @@ MYSQL;
         
 
         if ($stmt->execute()) {
-            self::postprocessRestRequest($id);
+            self::prepostprocessRestRequest($id);
+             
+            if (self::$commit && !Database::commit()) {
+               throw new PublicAlert('Failed to store commit transaction on table carbon_groups');
+            } 
+             
+            self::postprocessRestRequest($id); 
+             
             self::completeRest(); 
+            
             return $id; 
         } 
        
@@ -275,6 +284,7 @@ MYSQL;
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_groups.\'.');
             }
         }
+        unset($value);
 
         $sql = /** @lang MySQLFragment */ 'UPDATE carbon_groups SET '; // intellij cant handle this otherwise
 
@@ -352,10 +362,13 @@ MYSQL;
 
         $return = array_merge($return, $argv);
 
+        self::prepostprocessRestRequest($return);
+        
         self::postprocessRestRequest($return);
+        
         self::completeRest();
+        
         return true;
-
     }
 
     /**

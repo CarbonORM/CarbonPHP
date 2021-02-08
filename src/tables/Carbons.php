@@ -3,10 +3,11 @@
 namespace CarbonPHP\Tables;
 
 // Restful defaults
-use PDO;
-use CarbonPHP\Rest;
-use CarbonPHP\Interfaces\iRest;
+use CarbonPHP\Database;
 use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Interfaces\iRest;
+use CarbonPHP\Rest;
+use PDO;
 use function array_key_exists;
 use function count;
 use function func_get_args;
@@ -54,17 +55,17 @@ class Carbons extends Rest implements iRest
      *  All methods MUST be declared as static.
      */
  
-    public const PHP_VALIDATION = [ 
-        self::PREPROCESS => [ 
-            self::PREPROCESS => [ 
-                [self::class => 'disallowPublicAccess', self::class] 
+    public const PHP_VALIDATION = [
+        self::PREPROCESS => [
+            self::PREPROCESS => [
+                [self::class => 'disallowPublicAccess', self::class]
             ]
         ],
-        self::GET => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],    
-        self::POST => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],    
-        self::PUT => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],    
-        self::DELETE => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],
-        self::FINISH => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]]    
+        self::GET => [self::PREPROCESS => [self::DISALLOW_PUBLIC_ACCESS]],
+        self::POST => [self::PREPROCESS => [self::DISALLOW_PUBLIC_ACCESS]],
+        self::PUT => [self::PREPROCESS => [self::DISALLOW_PUBLIC_ACCESS]],
+        self::DELETE => [self::PREPROCESS => [self::DISALLOW_PUBLIC_ACCESS]],
+        self::FINISH => [self::PREPROCESS => [self::DISALLOW_PUBLIC_ACCESS]]
     ]; 
  
     public const REGEX_VALIDATION = []; 
@@ -243,8 +244,16 @@ MYSQL;
         
 
         if ($stmt->execute()) {
-            self::postprocessRestRequest($id);
+            self::prepostprocessRestRequest($id);
+             
+            if (self::$commit && !Database::commit()) {
+               throw new PublicAlert('Failed to store commit transaction on table carbons');
+            } 
+             
+            self::postprocessRestRequest($id); 
+             
             self::completeRest(); 
+            
             return $id; 
         } 
        
@@ -280,6 +289,7 @@ MYSQL;
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbons.\'.');
             }
         }
+        unset($value);
 
         $sql = /** @lang MySQLFragment */ 'UPDATE carbons SET '; // intellij cant handle this otherwise
 
@@ -351,10 +361,13 @@ MYSQL;
 
         $return = array_merge($return, $argv);
 
+        self::prepostprocessRestRequest($return);
+        
         self::postprocessRestRequest($return);
+        
         self::completeRest();
+        
         return true;
-
     }
 
     /**
@@ -368,6 +381,9 @@ MYSQL;
     {
         self::startRest(self::DELETE, $argv);
         
+        /** @noinspection SqlWithoutWhere
+         * @noinspection UnknownInspectionInspection - intellij is funny sometimes.
+         */
         $sql = 'DELETE FROM carbons ';
 
         $pdo = self::database();
@@ -404,8 +420,12 @@ MYSQL;
 
         $r and $remove = [];
         
+        self::prepostprocessRestRequest($return);
+        
         self::postprocessRestRequest($return);
+        
         self::completeRest();
+        
         return $r;
     }
      

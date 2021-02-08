@@ -340,9 +340,9 @@ class Database
      */
     protected static function beginTransaction(string $tag_id, string $dependant = null)
     {
-        self::$inTransaction = true;
         $key = self::new_entity($tag_id, $dependant);
         self::database()->inTransaction() or self::database()->beginTransaction();
+        self::$inTransaction = true;    // this has to happen after the key is generated with new_entity
         return $key;
     }
 

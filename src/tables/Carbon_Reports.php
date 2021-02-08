@@ -3,10 +3,11 @@
 namespace CarbonPHP\Tables;
 
 // Restful defaults
-use PDO;
-use CarbonPHP\Rest;
-use CarbonPHP\Interfaces\iRestfulReferences;
+use CarbonPHP\Database;
 use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Interfaces\iRestfulReferences;
+use CarbonPHP\Rest;
+use PDO;
 use function array_key_exists;
 use function count;
 use function func_get_args;
@@ -233,12 +234,17 @@ MYSQL;
 
         
         if ($stmt->execute()) {
+            self::prepostprocessRestRequest();
+            
             self::postprocessRestRequest();
+            
             self::completeRest();
+            
             return true;  
         }
         
         self::completeRest();
+         
         return false;
     
     }
@@ -270,6 +276,7 @@ MYSQL;
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_reports.\'.');
             }
         }
+        unset($value);
 
         $sql = /** @lang MySQLFragment */ 'UPDATE carbon_reports SET '; // intellij cant handle this otherwise
 
@@ -337,10 +344,13 @@ MYSQL;
 
         $return = array_merge($return, $argv);
 
+        self::prepostprocessRestRequest($return);
+        
         self::postprocessRestRequest($return);
+        
         self::completeRest();
+        
         return true;
-
     }
 
     /**
@@ -354,6 +364,9 @@ MYSQL;
     {
         self::startRest(self::DELETE, $argv);
         
+        /** @noinspection SqlWithoutWhere
+         * @noinspection UnknownInspectionInspection - intellij is funny sometimes.
+         */
         $sql = 'DELETE FROM carbon_reports ';
 
         $pdo = self::database();
@@ -374,8 +387,12 @@ MYSQL;
 
         $r and $remove = [];
         
+        self::prepostprocessRestRequest($return);
+        
         self::postprocessRestRequest($return);
+        
         self::completeRest();
+        
         return $r;
     }
      
