@@ -19,8 +19,9 @@ class Creation_Logs extends Rest implements iRestfulReferences
 {
     
     public const CLASS_NAME = 'Creation_Logs';
+    public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
     public const TABLE_NAME = 'creation_logs';
-    public const TABLE_NAMESPACE = 'CarbonPHP\Tables';
+    public const TABLE_PREFIX = '';
     
     public const UUID = 'creation_logs.uuid'; 
     public const RESOURCE_TYPE = 'creation_logs.resource_type'; 
@@ -37,7 +38,7 @@ class Creation_Logs extends Rest implements iRestfulReferences
     public const PDO_VALIDATION = [
         'creation_logs.uuid' => ['binary', '2', '16'],'creation_logs.resource_type' => ['varchar', '2', '40'],'creation_logs.resource_uuid' => ['binary', '2', '16'],
     ];
-    
+     
     /**
      * PHP validations works as follows:
      *  The first index '0' of PHP_VALIDATIONS will run after REGEX_VALIDATION's but
@@ -56,6 +57,7 @@ class Creation_Logs extends Rest implements iRestfulReferences
     public const PHP_VALIDATION = [ [self::DISALLOW_PUBLIC_ACCESS] ]; 
  
     public const REGEX_VALIDATION = []; 
+   
     
     public static function createTableSQL() : string {
     return <<<MYSQL
@@ -128,8 +130,6 @@ MYSQL;
     */
     public static function Get(array &$return, array $argv = []): bool
     {
-        self::$tableNamespace = self::TABLE_NAMESPACE;
-   
         $pdo = self::database();
 
         $sql = self::buildSelectQuery(null, $argv, '', $pdo);
@@ -155,6 +155,8 @@ MYSQL;
 
         
 
+        self::postprocessRestRequest($return);
+
         return true;
     }
 
@@ -166,7 +168,7 @@ MYSQL;
      */
     public static function Post(array $argv, string $dependantEntityId = null): bool
     {   
-        self::$tableNamespace = self::TABLE_NAMESPACE;
+        self::startRest(self::POST, $argv);
     
         foreach ($argv as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)){
@@ -197,7 +199,11 @@ MYSQL;
 
 
     
-        return $stmt->execute();
+        if ($stmt->execute()) {
+            self::postprocessRestRequest();
+            return true;
+        }
+        return false;
     
     }
     
@@ -210,7 +216,7 @@ MYSQL;
     */
     public static function Put(array &$return,  array $argv) : bool
     {
-        self::$tableNamespace = self::TABLE_NAMESPACE;
+        self::startRest(self::PUT, $argv);
         
         $where = $argv[self::WHERE];
 
@@ -245,7 +251,7 @@ MYSQL;
         $pdo = self::database();
 
         
-        $sql .= ' WHERE ' . self::buildWhere($where, $pdo, 'creation_logs', [self::class]);
+        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -284,6 +290,8 @@ MYSQL;
 
         $return = array_merge($return, $argv);
 
+        self::postprocessRestRequest($return);
+
         return true;
 
     }
@@ -297,7 +305,7 @@ MYSQL;
     */
     public static function Delete(array &$remove, array $argv = []) : bool
     {
-        self::$tableNamespace = self::TABLE_NAMESPACE;
+        self::startRest(self::DELETE, $argv);
         
         $sql = 'DELETE FROM creation_logs ';
 
@@ -307,7 +315,7 @@ MYSQL;
             throw new PublicAlert('When deleting from restful tables with out a primary key additional arguments must be provided.', 'danger');
         } 
          
-        $sql .= ' WHERE ' . self::buildWhere($argv, $pdo, 'creation_logs', [self::class]);
+        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -318,6 +326,8 @@ MYSQL;
         $r = $stmt->execute();
 
         $r and $remove = [];
+        
+        self::postprocessRestRequest($return);
 
         return $r;
     }

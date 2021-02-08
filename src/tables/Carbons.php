@@ -19,8 +19,9 @@ class Carbons extends Rest implements iRest
 {
     
     public const CLASS_NAME = 'Carbons';
+    public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
     public const TABLE_NAME = 'carbons';
-    public const TABLE_NAMESPACE = 'CarbonPHP\Tables';
+    public const TABLE_PREFIX = '';
     
     public const ENTITY_PK = 'carbons.entity_pk'; 
     public const ENTITY_FK = 'carbons.entity_fk'; 
@@ -37,7 +38,7 @@ class Carbons extends Rest implements iRest
     public const PDO_VALIDATION = [
         'carbons.entity_pk' => ['binary', '2', '16'],'carbons.entity_fk' => ['binary', '2', '16'],'carbons.entity_tag' => ['varchar', '2', '100'],
     ];
-    
+     
     /**
      * PHP validations works as follows:
      *  The first index '0' of PHP_VALIDATIONS will run after REGEX_VALIDATION's but
@@ -53,9 +54,21 @@ class Carbons extends Rest implements iRest
      *  All methods MUST be declared as static.
      */
  
-    public const PHP_VALIDATION = [[self::DISALLOW_PUBLIC_ACCESS]]; 
+    public const PHP_VALIDATION = [ 
+        self::PREPROCESS => [ 
+            self::PREPROCESS => [ 
+                [self::class => 'disallowPublicAccess', self::class] 
+            ]
+        ],
+        self::GET => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],    
+        self::POST => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],    
+        self::PUT => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],    
+        self::DELETE => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],
+        self::FINISH => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]]    
+    ]; 
  
     public const REGEX_VALIDATION = []; 
+   
     
     public static function createTableSQL() : string {
     return <<<MYSQL
@@ -132,8 +145,6 @@ MYSQL;
     */
     public static function Get(array &$return, string $primary = null, array $argv = []): bool
     {
-        self::$tableNamespace = self::TABLE_NAMESPACE;
-   
         $pdo = self::database();
 
         $sql = self::buildSelectQuery($primary, $argv, '', $pdo);
@@ -164,6 +175,8 @@ MYSQL;
         
         }
 
+        self::postprocessRestRequest($return);
+
         return true;
     }
 
@@ -175,7 +188,7 @@ MYSQL;
      */
     public static function Post(array $argv, string $dependantEntityId = null)
     {   
-        self::$tableNamespace = self::TABLE_NAMESPACE;
+        self::startRest(self::POST, $argv);
     
         foreach ($argv as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)){
@@ -206,7 +219,12 @@ MYSQL;
     
 
 
-        return $stmt->execute() ? $id : false;
+        if ($stmt->execute()) {
+            self::postprocessRestRequest($id);
+            return $id;
+        } 
+       
+        return false;
     
     }
     
@@ -219,7 +237,7 @@ MYSQL;
     */
     public static function Put(array &$return, string $primary, array $argv) : bool
     {
-        self::$tableNamespace = self::TABLE_NAMESPACE;
+        self::startRest(self::PUT, $argv);
         
         if (empty($primary)) {
             throw new PublicAlert('Restful tables which have a primary key must be updated by its primary key.', 'danger');
@@ -293,6 +311,8 @@ MYSQL;
 
         $return = array_merge($return, $argv);
 
+        self::postprocessRestRequest($return);
+
         return true;
 
     }
@@ -306,7 +326,7 @@ MYSQL;
     */
     public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
     {
-        self::$tableNamespace = self::TABLE_NAMESPACE;
+        self::startRest(self::DELETE, $argv);
         
         $sql = 'DELETE FROM carbons ';
 
@@ -322,7 +342,7 @@ MYSQL;
                 throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.', 'danger');
             }
             
-            $where = self::buildWhere($argv, $pdo, 'carbons', [self::class]);
+            $where = self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
             
             if (empty($where)) {
                 throw new PublicAlert('The where condition provided appears invalid.', 'danger');
@@ -343,6 +363,8 @@ MYSQL;
         $r = $stmt->execute();
 
         $r and $remove = [];
+        
+        self::postprocessRestRequest($return);
 
         return $r;
     }

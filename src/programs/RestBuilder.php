@@ -429,6 +429,7 @@ END;
                         // TRY to load previous validation functions
 
                         $rest[$tableName] = [
+                            'prefix' => $prefix,
                             'createTableSQL' => $createTableSQL,
                             'subQuery' => $subQuery,
                             'subQueryLength' => strlen($subQuery),
@@ -442,8 +443,9 @@ END;
                             // We need to catch circular dependencies
                             'dependencies' => $rest[$tableName]['dependencies'] ?? [],
                             'TableName' => $tableName,
-                            'ucEachTableName' => $etn = implode('_', array_map('ucfirst', explode('_', preg_replace("/^$prefix/", '', $tableName)))),
-                            'strtolowerNoPrefixTableName' => strtolower($etn),
+                            'prefixReplaced' => $noPrefix = preg_replace("/^$prefix/", '', $tableName),
+                            'ucEachTableName' => $etn = implode('_', array_map('ucfirst', explode('_', $noPrefix))),
+                            'strtolowerNoPrefixTableName' => strtolower($etn),  // its best to leave this like this as opposed to = $noPrefix
                             'primarySort' => '',
                             'custom_methods' => '',
                             'primary' => [],
@@ -468,6 +470,12 @@ END;
 
                             if (isset($matches[0][0])) {
                                 $rest[$tableName]['php_validation'] = $matches[0][0];
+                            }
+
+                            preg_match_all('#public const REST_REQUEST_FINNISH_CALLBACKS\s?=\s? \[(.|\n)*?];(?=(\s|\n)+(public|protected|private|/\*))#', $validation, $matches);
+
+                            if (isset($matches[0][0])) {
+                                $rest[$tableName]['rest_request_finish_callbacks'] = $matches[0][0];
                             }
 
                             $restStaticNameSpaces = $this->restTemplateStaticNameSpace();
@@ -1235,8 +1243,9 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
 {
     
     public const CLASS_NAME = '{{ucEachTableName}}';
+    public const CLASS_NAMESPACE = '{{namespace}}\\\\';
     public const TABLE_NAME = '{{TableName}}';
-    public const TABLE_NAMESPACE = '{{namespace}}';
+    public const TABLE_PREFIX = {{#prefixReplaced}}'{{prefix}}'{{/prefixReplaced}}{{^prefixReplaced}}''{{/prefixReplaced}};
     
     {{#explode}}
     public const {{caps}} = '{{TableName}}.{{name}}'; 
@@ -1253,7 +1262,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
     public const PDO_VALIDATION = [
         {{#explode}}'{{TableName}}.{{name}}' => ['{{mysql_type}}', '{{type}}', '{{length}}'],{{/explode}}
     ];
-    
+     
     /**
      * PHP validations works as follows:
      *  The first index '0' of PHP_VALIDATIONS will run after REGEX_VALIDATION's but
@@ -1270,11 +1279,16 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
      */
     {{^php_validation}}
     public const PHP_VALIDATION = [ 
-        [self::DISALLOW_PUBLIC_ACCESS],
-        self::GET => [ self::DISALLOW_PUBLIC_ACCESS ],    
-        self::POST => [ self::DISALLOW_PUBLIC_ACCESS ],    
-        self::PUT => [ self::DISALLOW_PUBLIC_ACCESS ],    
-        self::DELETE => [ self::DISALLOW_PUBLIC_ACCESS ],    
+        self::PREPROCESS => [ 
+            self::PREPROCESS => [ 
+                [self::class => 'disallowPublicAccess', self::class] 
+            ]
+        ],
+        self::GET => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],    
+        self::POST => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],    
+        self::PUT => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],    
+        self::DELETE => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],
+        self::FINISH => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]]    
     ];{{/php_validation}} 
     {{#php_validation}} 
     {{{php_validation}}} 
@@ -1292,6 +1306,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
     {{#regex_validation}}
     {{{regex_validation}}} 
     {{/regex_validation}}
+   
     
     public static function createTableSQL() : string {
     return <<<MYSQL
@@ -1360,8 +1375,6 @@ MYSQL;
     */
     public static function Get(array &\$return, {{#primaryExists}}string \$primary = null, {{/primaryExists}}array \$argv = []): bool
     {
-        self::\$tableNamespace = self::TABLE_NAMESPACE;
-   
         \$pdo = self::database();
 
         \$sql = self::buildSelectQuery({{#primaryExists}}\$primary{{/primaryExists}}{{^primaryExists}}null{{/primaryExists}}, \$argv, {{^carbon_namespace}}{{#QueryWithDatabaseName}}'{{database}}'{{/QueryWithDatabaseName}}{{/carbon_namespace}}{{^QueryWithDatabaseName}}''{{/QueryWithDatabaseName}}{{#carbon_namespace}}''{{/carbon_namespace}}, \$pdo);{{#json}}
@@ -1395,6 +1408,8 @@ MYSQL;
         {{/json}}{{/explode}}
         }{{/sql}}{{/primary}}
 
+        self::postprocessRestRequest(\$return);
+
         return true;
     }
 
@@ -1406,7 +1421,7 @@ MYSQL;
      */
     public static function Post(array \$argv, string \$dependantEntityId = null){{^primaryExists}}: bool{{/primaryExists}}
     {   
-        self::\$tableNamespace = self::TABLE_NAMESPACE;
+        self::startRest(self::POST, \$argv);
     
         foreach (\$argv as \$columnName => \$postValue) {
             if (!array_key_exists(\$columnName, self::PDO_VALIDATION)){
@@ -1420,27 +1435,80 @@ MYSQL;
 
         \$stmt = self::database()->prepare(\$sql);
 
-    {{#explode}}{{#primary_binary}}{{^carbon_table}}
-        \${{name}} = \$id = \$argv['{{TableName}}.{{name}}'] ?? self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
-        \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
-    {{/carbon_table}}{{#carbon_table}}
-        \${{name}} = \$id = \$argv['{{TableName}}.{{name}}'] ?? self::beginTransaction(self::class, \$dependantEntityId);
-        \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
-    {{/carbon_table}}{{/primary_binary}}{{^primary_binary}}{{^skip}}{{^length}}
-        \$stmt->bindValue(':{{name}}',{{#json}}json_encode(\$argv['{{TableName}}.{{name}}']){{/json}}{{^json}}{{^default}}\$argv['{{TableName}}.{{name}}']{{/default}}{{#default}}array_key_exists('{{TableName}}.{{name}}',\$argv) ? \$argv['{{TableName}}.{{name}}'] : {{default}}{{/default}}{{/json}}, {{type}});{{/length}}
-    {{#length}}{{^default}}
-        if (!array_key_exists('{{TableName}}.{{name}}', \$argv)) {
-            throw new PublicAlert('Required argument "{{TableName}}.{{name}}" is missing from the request.', 'danger');
-        }{{/default}}
-        \${{name}} = {{^default}}\$argv['{{TableName}}.{{name}}']{{/default}}{{#default}} \$argv['{{TableName}}.{{name}}'] ?? {{{default}}}{{/default}};
-        \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
-    {{/length}}{{/skip}}{{/primary_binary}}{{/explode}}
+    {{#explode}}
+      {{#primary_binary}}
+        {{^carbon_table}}
+            \${{name}} = \$id = \$argv['{{TableName}}.{{name}}'] ?? false;
+            if (\$id === false) {
+                 \${{name}} = \$id = self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
+            } else if (!self::validateInternalColumn(self::POST, '{{TableName}}.{{name}}', \${{name}})) {
+                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
+            }
+            \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
+        {{/carbon_table}}
+        {{#carbon_table}}
+            \${{name}} = \$id = \$argv['{{TableName}}.{{name}}'] ?? false;
+            if (\$id === false) {
+                 \${{name}} = \$id = self::beginTransaction(self::class, \$dependantEntityId);
+            } else if (!self::validateInternalColumn(self::POST, '{{TableName}}.{{name}}', \${{name}})) {
+                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
+            }
+            \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
+        {{/carbon_table}}
+      {{/primary_binary}}
+      {{^primary_binary}}
+        {{^skip}}
+          {{^length}}
+              {{#json}}
+                if (!array_key_exists('{{TableName}}.{{name}}', \$argv))) {
+                    throw new PublicAlert('The column \'{{TableName}}.{{name}}\' is set to not null and has no default value. It must exist in the request and was not found in the one sent by the user.');
+                } 
+                
+                if (!is_string(\${{name}} = \$argv['{{TableName}}.{{name}}']) && false === \${{name}} = json_encode(\${{name}})) {
+                    throw new PublicAlert('The column \'{{TableName}}.{{name}}\' failed to be json encoded.');
+                }
+                
+              
+                \$stmt->bindValue(':{{name}}', \${{name}}, {{type}});
+              {{/json}} 
+              {{^json}} 
+                {{^default}}
+                  \$stmt->bindValue(':{{name}}', \$argv['{{TableName}}.{{name}}'], {{type}});
+                {{/default}}
+                {{#default}} 
+                  \$stmt->bindValue(':{{name}}', array_key_exists('{{TableName}}.{{name}}',\$argv) ? \$argv['{{TableName}}.{{name}}'] : {{default}}, {{type}});
+                {{/default}}
+              {{/json}}
+          {{/length}}
+          {{#length}}
+            {{^default}}
+              if (!array_key_exists('{{TableName}}.{{name}}', \$argv)) {
+                throw new PublicAlert('Required argument "{{TableName}}.{{name}}" is missing from the request.', 'danger');
+              }
+            {{/default}}
+              \${{name}} = {{^default}}\$argv['{{TableName}}.{{name}}']
+                           {{/default}}
+                           {{#default}}\$argv['{{TableName}}.{{name}}'] ?? {{{default}}}
+                           {{/default}};
+                           
+            \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
+            
+        {{/length}}{{/skip}}{{/primary_binary}}{{/explode}}
 
 
     {{#binary_primary}}
-        return \$stmt->execute() ? \$id : false;{{/binary_primary}}
+        if (\$stmt->execute()) {
+            self::postprocessRestRequest(\$id);
+            return \$id;
+        } 
+       
+        return false;{{/binary_primary}}
     {{^binary_primary}}{{^carbon_table}}
-        return \$stmt->execute();
+        if (\$stmt->execute()) {
+            self::postprocessRestRequest();
+            return true;
+        }
+        return false;
     {{/carbon_table}}{{/binary_primary}}
     }
     
@@ -1453,7 +1521,7 @@ MYSQL;
     */
     public static function Put(array &\$return, {{#primaryExists}}string \$primary,{{/primaryExists}} array \$argv) : bool
     {
-        self::\$tableNamespace = self::TABLE_NAMESPACE;
+        self::startRest(self::PUT, \$argv);
         
         {{#primaryExists}}
         if (empty(\$primary)) {
@@ -1495,7 +1563,7 @@ MYSQL;
         \$pdo = self::database();
 
         {{#primary}}{{{sql}}}{{/primary}}
-        {{^primary}}\$sql .= ' WHERE ' . self::buildWhere(\$where, \$pdo, '{{TableName}}', [self::class]);{{/primary}}
+        {{^primary}}\$sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, \$where, \$pdo);{{/primary}}
 
         {{#json}}self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
 
@@ -1533,6 +1601,8 @@ MYSQL;
 
         \$return = array_merge(\$return, \$argv);
 
+        self::postprocessRestRequest(\$return);
+
         return true;
 
     }
@@ -1546,7 +1616,7 @@ MYSQL;
     */
     public static function Delete(array &\$remove, {{#primaryExists}}string \$primary = null, {{/primaryExists}}array \$argv = []) : bool
     {
-        self::\$tableNamespace = self::TABLE_NAMESPACE;
+        self::startRest(self::DELETE, \$argv);
         
     {{#carbon_table}}
         if (null !== \$primary) {
@@ -1567,7 +1637,7 @@ MYSQL;
 
         \$pdo = self::database();
 
-        \$sql .= ' WHERE ' . self::buildWhere(\$argv, \$pdo, '{{TableName}}', [self::class]);{{#json}}
+        \$sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, \$argv, \$pdo);{{#json}}
         
         self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
 
@@ -1597,7 +1667,7 @@ MYSQL;
                 throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.', 'danger');
             }
             
-            \$where = self::buildWhere(\$argv, \$pdo, '{{TableName}}', [self::class]);
+            \$where = self::buildBooleanJoinConditions(self::DELETE, \$argv, \$pdo);
             
             if (empty(\$where)) {
                 throw new PublicAlert('The where condition provided appears invalid.', 'danger');
@@ -1612,7 +1682,7 @@ MYSQL;
             throw new PublicAlert('When deleting from restful tables with out a primary key additional arguments must be provided.', 'danger');
         } 
          
-        \$sql .= ' WHERE ' . self::buildWhere(\$argv, \$pdo, '{{TableName}}', [self::class]);{{/primary}}
+        \$sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, \$argv, \$pdo);{{/primary}}
 
         {{#json}}self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
 
@@ -1623,6 +1693,8 @@ MYSQL;
         \$r = \$stmt->execute();
 
         \$r and \$remove = [];
+        
+        self::postprocessRestRequest(\$return);
 
         return \$r;
     {{/carbon_table}}

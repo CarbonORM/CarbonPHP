@@ -277,6 +277,8 @@ final class RestTest extends Config
 
         self::assertSame(strpos($subSelect, '(SELECT '), 0);
 
+        define('WOOKIEE', true);
+
         self::assertTrue(Carbons::Get($user, null, [
             Carbons::SELECT => [
                 Carbons::ENTITY_PK
@@ -330,13 +332,13 @@ final class RestTest extends Config
 
         ob_start(null, 0, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
 
-        Rest::RestfulRequests(Users::TABLE_NAME, null);
+        Rest::ExternalRestfulRequestsAPI(Users::TABLE_NAME, null, Users::CLASS_NAMESPACE);
 
         $out = trim(ob_get_clean());
 
         self::assertNotEmpty($GLOBALS['json']['rest']);
 
-        self::assertStringEndsWith('}', $out, 'Did not detect json output.');
+        self::assertStringEndsWith('}', $out, 'Did not detect json output. OUTPUT :: ' . $out);
 
     }
 

@@ -20,8 +20,9 @@ class Carbon_Users extends Rest implements iRest
 {
     
     public const CLASS_NAME = 'Carbon_Users';
+    public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
     public const TABLE_NAME = 'carbon_users';
-    public const TABLE_NAMESPACE = 'CarbonPHP\Tables';
+    public const TABLE_PREFIX = '';
     
     public const USER_USERNAME = 'carbon_users.user_username'; 
     public const USER_PASSWORD = 'carbon_users.user_password'; 
@@ -62,7 +63,7 @@ class Carbon_Users extends Rest implements iRest
     public const PDO_VALIDATION = [
         'carbon_users.user_username' => ['varchar', '2', '100'],'carbon_users.user_password' => ['varchar', '2', '225'],'carbon_users.user_id' => ['binary', '2', '16'],'carbon_users.user_type' => ['varchar', '2', '20'],'carbon_users.user_sport' => ['varchar', '2', '20'],'carbon_users.user_session_id' => ['varchar', '2', '225'],'carbon_users.user_facebook_id' => ['varchar', '2', '225'],'carbon_users.user_first_name' => ['varchar', '2', '25'],'carbon_users.user_last_name' => ['varchar', '2', '25'],'carbon_users.user_profile_pic' => ['varchar', '2', '225'],'carbon_users.user_profile_uri' => ['varchar', '2', '225'],'carbon_users.user_cover_photo' => ['varchar', '2', '225'],'carbon_users.user_birthday' => ['varchar', '2', '9'],'carbon_users.user_gender' => ['varchar', '2', '25'],'carbon_users.user_about_me' => ['varchar', '2', '225'],'carbon_users.user_rank' => ['int', '2', ''],'carbon_users.user_email' => ['varchar', '2', '50'],'carbon_users.user_email_code' => ['varchar', '2', '225'],'carbon_users.user_email_confirmed' => ['tinyint', '0', '1'],'carbon_users.user_generated_string' => ['varchar', '2', '200'],'carbon_users.user_membership' => ['int', '2', ''],'carbon_users.user_deactivated' => ['tinyint', '0', '1'],'carbon_users.user_last_login' => ['datetime', '2', ''],'carbon_users.user_ip' => ['varchar', '2', '20'],'carbon_users.user_education_history' => ['varchar', '2', '200'],'carbon_users.user_location' => ['varchar', '2', '20'],'carbon_users.user_creation_date' => ['datetime', '2', ''],
     ];
-    
+     
     /**
      * PHP validations works as follows:
      *  The first index '0' of PHP_VALIDATIONS will run after REGEX_VALIDATION's but
@@ -85,6 +86,7 @@ class Carbon_Users extends Rest implements iRest
         self::USER_ID => self::VALIDATE_C6_ENTITY_ID_REGEX,
         self::USER_USERNAME => "#^[A-Za-z0-9_-]{4,16}#",
     ]; 
+   
     
     public static function createTableSQL() : string {
     return <<<MYSQL
@@ -186,8 +188,6 @@ MYSQL;
     */
     public static function Get(array &$return, string $primary = null, array $argv = []): bool
     {
-        self::$tableNamespace = self::TABLE_NAMESPACE;
-   
         $pdo = self::database();
 
         $sql = self::buildSelectQuery($primary, $argv, '', $pdo);
@@ -218,6 +218,8 @@ MYSQL;
         
         }
 
+        self::postprocessRestRequest($return);
+
         return true;
     }
 
@@ -229,7 +231,7 @@ MYSQL;
      */
     public static function Post(array $argv, string $dependantEntityId = null)
     {   
-        self::$tableNamespace = self::TABLE_NAMESPACE;
+        self::startRest(self::POST, $argv);
     
         foreach ($argv as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)){
@@ -359,7 +361,12 @@ MYSQL;
     
 
 
-        return $stmt->execute() ? $id : false;
+        if ($stmt->execute()) {
+            self::postprocessRestRequest($id);
+            return $id;
+        } 
+       
+        return false;
     
     }
     
@@ -372,7 +379,7 @@ MYSQL;
     */
     public static function Put(array &$return, string $primary, array $argv) : bool
     {
-        self::$tableNamespace = self::TABLE_NAMESPACE;
+        self::startRest(self::PUT, $argv);
         
         if (empty($primary)) {
             throw new PublicAlert('Restful tables which have a primary key must be updated by its primary key.', 'danger');
@@ -610,6 +617,8 @@ MYSQL;
 
         $return = array_merge($return, $argv);
 
+        self::postprocessRestRequest($return);
+
         return true;
 
     }
@@ -623,7 +632,7 @@ MYSQL;
     */
     public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
     {
-        self::$tableNamespace = self::TABLE_NAMESPACE;
+        self::startRest(self::DELETE, $argv);
         
         if (null !== $primary) {
             return Carbons::Delete($remove, $primary, $argv);
@@ -643,7 +652,7 @@ MYSQL;
 
         $pdo = self::database();
 
-        $sql .= ' WHERE ' . self::buildWhere($argv, $pdo, 'carbon_users', [self::class]);
+        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
         
         self::jsonSQLReporting(func_get_args(), $sql);
 

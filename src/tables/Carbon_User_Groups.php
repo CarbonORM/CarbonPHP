@@ -19,8 +19,9 @@ class Carbon_User_Groups extends Rest implements iRestfulReferences
 {
     
     public const CLASS_NAME = 'Carbon_User_Groups';
+    public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
     public const TABLE_NAME = 'carbon_user_groups';
-    public const TABLE_NAMESPACE = 'CarbonPHP\Tables';
+    public const TABLE_PREFIX = '';
     
     public const GROUP_ID = 'carbon_user_groups.group_id'; 
     public const USER_ID = 'carbon_user_groups.user_id'; 
@@ -36,7 +37,7 @@ class Carbon_User_Groups extends Rest implements iRestfulReferences
     public const PDO_VALIDATION = [
         'carbon_user_groups.group_id' => ['binary', '2', '16'],'carbon_user_groups.user_id' => ['binary', '2', '16'],
     ];
-    
+     
     /**
      * PHP validations works as follows:
      *  The first index '0' of PHP_VALIDATIONS will run after REGEX_VALIDATION's but
@@ -55,6 +56,7 @@ class Carbon_User_Groups extends Rest implements iRestfulReferences
     public const PHP_VALIDATION = []; 
  
     public const REGEX_VALIDATION = []; 
+   
     
     public static function createTableSQL() : string {
     return <<<MYSQL
@@ -130,8 +132,6 @@ MYSQL;
     */
     public static function Get(array &$return, array $argv = []): bool
     {
-        self::$tableNamespace = self::TABLE_NAMESPACE;
-   
         $pdo = self::database();
 
         $sql = self::buildSelectQuery(null, $argv, '', $pdo);
@@ -157,6 +157,8 @@ MYSQL;
 
         
 
+        self::postprocessRestRequest($return);
+
         return true;
     }
 
@@ -168,7 +170,7 @@ MYSQL;
      */
     public static function Post(array $argv, string $dependantEntityId = null): bool
     {   
-        self::$tableNamespace = self::TABLE_NAMESPACE;
+        self::startRest(self::POST, $argv);
     
         foreach ($argv as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)){
@@ -195,7 +197,11 @@ MYSQL;
 
 
     
-        return $stmt->execute();
+        if ($stmt->execute()) {
+            self::postprocessRestRequest();
+            return true;
+        }
+        return false;
     
     }
     
@@ -208,7 +214,7 @@ MYSQL;
     */
     public static function Put(array &$return,  array $argv) : bool
     {
-        self::$tableNamespace = self::TABLE_NAMESPACE;
+        self::startRest(self::PUT, $argv);
         
         $where = $argv[self::WHERE];
 
@@ -240,7 +246,7 @@ MYSQL;
         $pdo = self::database();
 
         
-        $sql .= ' WHERE ' . self::buildWhere($where, $pdo, 'carbon_user_groups', [self::class]);
+        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -275,6 +281,8 @@ MYSQL;
 
         $return = array_merge($return, $argv);
 
+        self::postprocessRestRequest($return);
+
         return true;
 
     }
@@ -288,7 +296,7 @@ MYSQL;
     */
     public static function Delete(array &$remove, array $argv = []) : bool
     {
-        self::$tableNamespace = self::TABLE_NAMESPACE;
+        self::startRest(self::DELETE, $argv);
         
         $sql = 'DELETE FROM carbon_user_groups ';
 
@@ -298,7 +306,7 @@ MYSQL;
             throw new PublicAlert('When deleting from restful tables with out a primary key additional arguments must be provided.', 'danger');
         } 
          
-        $sql .= ' WHERE ' . self::buildWhere($argv, $pdo, 'carbon_user_groups', [self::class]);
+        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -309,6 +317,8 @@ MYSQL;
         $r = $stmt->execute();
 
         $r and $remove = [];
+        
+        self::postprocessRestRequest($return);
 
         return $r;
     }

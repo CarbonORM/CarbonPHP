@@ -19,8 +19,9 @@ class Carbon_User_Tasks extends Rest implements iRest
 {
     
     public const CLASS_NAME = 'Carbon_User_Tasks';
+    public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
     public const TABLE_NAME = 'carbon_user_tasks';
-    public const TABLE_NAMESPACE = 'CarbonPHP\Tables';
+    public const TABLE_PREFIX = '';
     
     public const TASK_ID = 'carbon_user_tasks.task_id'; 
     public const USER_ID = 'carbon_user_tasks.user_id'; 
@@ -42,7 +43,7 @@ class Carbon_User_Tasks extends Rest implements iRest
     public const PDO_VALIDATION = [
         'carbon_user_tasks.task_id' => ['binary', '2', '16'],'carbon_user_tasks.user_id' => ['binary', '2', '16'],'carbon_user_tasks.from_id' => ['binary', '2', '16'],'carbon_user_tasks.task_name' => ['varchar', '2', '40'],'carbon_user_tasks.task_description' => ['varchar', '2', '225'],'carbon_user_tasks.percent_complete' => ['int', '2', ''],'carbon_user_tasks.start_date' => ['datetime', '2', ''],'carbon_user_tasks.end_date' => ['datetime', '2', ''],
     ];
-    
+     
     /**
      * PHP validations works as follows:
      *  The first index '0' of PHP_VALIDATIONS will run after REGEX_VALIDATION's but
@@ -67,6 +68,7 @@ class Carbon_User_Tasks extends Rest implements iRest
     ]; 
  
     public const REGEX_VALIDATION = []; 
+   
     
     public static function createTableSQL() : string {
     return <<<MYSQL
@@ -150,8 +152,6 @@ MYSQL;
     */
     public static function Get(array &$return, string $primary = null, array $argv = []): bool
     {
-        self::$tableNamespace = self::TABLE_NAMESPACE;
-   
         $pdo = self::database();
 
         $sql = self::buildSelectQuery($primary, $argv, '', $pdo);
@@ -182,6 +182,8 @@ MYSQL;
         
         }
 
+        self::postprocessRestRequest($return);
+
         return true;
     }
 
@@ -193,7 +195,7 @@ MYSQL;
      */
     public static function Post(array $argv, string $dependantEntityId = null)
     {   
-        self::$tableNamespace = self::TABLE_NAMESPACE;
+        self::startRest(self::POST, $argv);
     
         foreach ($argv as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)){
@@ -241,7 +243,12 @@ MYSQL;
     
 
 
-        return $stmt->execute() ? $id : false;
+        if ($stmt->execute()) {
+            self::postprocessRestRequest($id);
+            return $id;
+        } 
+       
+        return false;
     
     }
     
@@ -254,7 +261,7 @@ MYSQL;
     */
     public static function Put(array &$return, string $primary, array $argv) : bool
     {
-        self::$tableNamespace = self::TABLE_NAMESPACE;
+        self::startRest(self::PUT, $argv);
         
         if (empty($primary)) {
             throw new PublicAlert('Restful tables which have a primary key must be updated by its primary key.', 'danger');
@@ -360,6 +367,8 @@ MYSQL;
 
         $return = array_merge($return, $argv);
 
+        self::postprocessRestRequest($return);
+
         return true;
 
     }
@@ -373,7 +382,7 @@ MYSQL;
     */
     public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
     {
-        self::$tableNamespace = self::TABLE_NAMESPACE;
+        self::startRest(self::DELETE, $argv);
         
         if (null !== $primary) {
             return Carbons::Delete($remove, $primary, $argv);
@@ -393,7 +402,7 @@ MYSQL;
 
         $pdo = self::database();
 
-        $sql .= ' WHERE ' . self::buildWhere($argv, $pdo, 'carbon_user_tasks', [self::class]);
+        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
         
         self::jsonSQLReporting(func_get_args(), $sql);
 

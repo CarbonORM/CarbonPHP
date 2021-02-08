@@ -19,8 +19,9 @@ class Sessions extends Rest implements iRest
 {
     
     public const CLASS_NAME = 'Sessions';
+    public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
     public const TABLE_NAME = 'sessions';
-    public const TABLE_NAMESPACE = 'CarbonPHP\Tables';
+    public const TABLE_PREFIX = '';
     
     public const USER_ID = 'sessions.user_id'; 
     public const USER_IP = 'sessions.user_ip'; 
@@ -40,7 +41,7 @@ class Sessions extends Rest implements iRest
     public const PDO_VALIDATION = [
         'sessions.user_id' => ['binary', '2', '16'],'sessions.user_ip' => ['varchar', '2', '20'],'sessions.session_id' => ['varchar', '2', '255'],'sessions.session_expires' => ['datetime', '2', ''],'sessions.session_data' => ['text,', '2', ''],'sessions.user_online_status' => ['tinyint', '0', '1'],
     ];
-    
+     
     /**
      * PHP validations works as follows:
      *  The first index '0' of PHP_VALIDATIONS will run after REGEX_VALIDATION's but
@@ -65,6 +66,7 @@ class Sessions extends Rest implements iRest
     ]; 
  
     public const REGEX_VALIDATION = []; 
+   
     
     public static function createTableSQL() : string {
     return <<<MYSQL
@@ -141,8 +143,6 @@ MYSQL;
     */
     public static function Get(array &$return, string $primary = null, array $argv = []): bool
     {
-        self::$tableNamespace = self::TABLE_NAMESPACE;
-   
         $pdo = self::database();
 
         $sql = self::buildSelectQuery($primary, $argv, '', $pdo);
@@ -173,6 +173,8 @@ MYSQL;
         
         }
 
+        self::postprocessRestRequest($return);
+
         return true;
     }
 
@@ -184,7 +186,7 @@ MYSQL;
      */
     public static function Post(array $argv, string $dependantEntityId = null)
     {   
-        self::$tableNamespace = self::TABLE_NAMESPACE;
+        self::startRest(self::POST, $argv);
     
         foreach ($argv as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)){
@@ -229,7 +231,11 @@ MYSQL;
 
 
     
-        return $stmt->execute();
+        if ($stmt->execute()) {
+            self::postprocessRestRequest();
+            return true;
+        }
+        return false;
     
     }
     
@@ -242,7 +248,7 @@ MYSQL;
     */
     public static function Put(array &$return, string $primary, array $argv) : bool
     {
-        self::$tableNamespace = self::TABLE_NAMESPACE;
+        self::startRest(self::PUT, $argv);
         
         if (empty($primary)) {
             throw new PublicAlert('Restful tables which have a primary key must be updated by its primary key.', 'danger');
@@ -335,6 +341,8 @@ MYSQL;
 
         $return = array_merge($return, $argv);
 
+        self::postprocessRestRequest($return);
+
         return true;
 
     }
@@ -348,7 +356,7 @@ MYSQL;
     */
     public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
     {
-        self::$tableNamespace = self::TABLE_NAMESPACE;
+        self::startRest(self::DELETE, $argv);
         
         $sql = 'DELETE FROM sessions ';
 
@@ -364,7 +372,7 @@ MYSQL;
                 throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.', 'danger');
             }
             
-            $where = self::buildWhere($argv, $pdo, 'sessions', [self::class]);
+            $where = self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
             
             if (empty($where)) {
                 throw new PublicAlert('The where condition provided appears invalid.', 'danger');
@@ -385,6 +393,8 @@ MYSQL;
         $r = $stmt->execute();
 
         $r and $remove = [];
+        
+        self::postprocessRestRequest($return);
 
         return $r;
     }

@@ -160,7 +160,8 @@ abstract class Route
         } catch (Throwable $exception) {
             throw new PublicAlert('The following regex failed :: ' . $regexToMatch);
         }
-         self::$matched = true;
+
+        self::$matched = true;
         $matches = array_shift($matches);
         array_shift($matches);  // could care less about the full match
         // Variables captured in the path to match will passed to the closure

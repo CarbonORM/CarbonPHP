@@ -3,7 +3,6 @@
 
 namespace CarbonPHP;
 
-
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestfulReferences;
@@ -53,237 +52,182 @@ abstract class Rest extends Database
     public const POST = 'POST';
     public const PUT = 'PUT';
     public const DELETE = 'DELETE';
-
-    #regex validation method
+    public const REST_REQUEST_PREPROCESS_CALLBACKS = 'REST_REQUEST_PREPROCESS_CALLBACKS';  // had to change from 0 so we could array merge recursively.
+    public const PREPROCESS = self::REST_REQUEST_PREPROCESS_CALLBACKS;
+    public const REST_REQUEST_FINNISH_CALLBACKS = 'REST_REQUEST_FINNISH_CALLBACKS';
+    public const FINISH = self::REST_REQUEST_FINNISH_CALLBACKS;
     public const VALIDATE_C6_ENTITY_ID_REGEX = '#^' . Route::MATCH_C6_ENTITY_ID_REGEX . '$#';
-
     public const DISALLOW_PUBLIC_ACCESS = [self::class => 'disallowPublicAccess'];
 
-    public static array $injection = [];
 
-    public static string $tableNamespace;
+    public static string $REST_REQUEST_METHOD;
+    public static array $REST_REQUEST_PARAMETERS;           // this is set with the request payload
+    public static array $VALIDATED_REST_COLUMNS = [];
+    public static array $compiled_valid_columns = [];
+    public static array $compiled_PDO_validations = [];
+    public static array $compiled_PHP_validations = [];
+    public static array $compiled_regex_validations = [];
+    public static array $join_tables = [];
+    public static array $injection = [];                    // this increments well regardless of state, amount of rest calls ect.
+                                                            // todo - clear after bind?
 
-    /**
-     * @throws PublicAlert
-     */
-    public static function disallowPublicAccess(): void
+    // validating across joins for rest is hard enough. I'm not going to allow user/FED provided sub queries
+    public static bool $allowSubSelectQueries = false; // todo - maybe C6v8.0.0 ?? ,, probably not as
+    public static bool $externalRestfulRequestsAPI = false;
+
+
+    protected static function startRest($method, $args): void
     {
-        throw new PublicAlert('Rest request denied by PHP_VALIDATION\'s in the tables ORM. Remove DISALLOW_PUBLIC_ACCESS to gain privileges.');
+        self::$REST_REQUEST_METHOD = $method;
+        self::$REST_REQUEST_PARAMETERS = $args;
+        self::$VALIDATED_REST_COLUMNS = [];
+        self::$compiled_valid_columns = [];
+        self::$compiled_PDO_validations = [];
+        self::$compiled_PHP_validations = [];
+        self::$compiled_regex_validations = [];
+        self::$join_tables = [];
+        self::gatherValidationsForRequest();
+        self::preprocessRestRequest();
     }
 
+
     /**
-     * @param $column
-     * @param $tableList
+     * @param $request
+     * @param string|null $calledFrom
+     * @throws PublicAlert
+     */
+    public static function disallowPublicAccess($request, string $calledFrom = null): void
+    {
+        if (self::$externalRestfulRequestsAPI) {
+            throw new PublicAlert('Rest request denied by the PHP_VALIDATION\'s in the tables ORM. Remove DISALLOW_PUBLIC_ACCESS ' . (null !== $calledFrom ?  ' from \''. $calledFrom .'\'' :'' ) . ' to gain privileges.');
+        }
+    }
+
+    public static function preprocessRestRequest(): void
+    {
+        if ((self::$compiled_PHP_validations[self::PREPROCESS][self::PREPROCESS] ?? false) &&
+            is_array(self::$compiled_PHP_validations[self::PREPROCESS][self::PREPROCESS])) {
+            self::runValidations(self::$compiled_PHP_validations[self::PREPROCESS][self::PREPROCESS]);
+        }
+
+        if (self::$compiled_PHP_validations[self::PREPROCESS][self::FINISH] ?? false) {
+            throw new PublicAlert('The self::FINISH directive in the self::PREPROCESS array is not supported and must be removed.');
+        }
+    }
+
+    public static function postprocessRestRequest(&$return = null): void
+    {
+        if ((self::$compiled_PHP_validations[self::FINISH][self::PREPROCESS] ?? false) &&
+            is_array(self::$compiled_PHP_validations[self::FINISH][self::PREPROCESS])) {
+            self::runValidations(self::$compiled_PHP_validations[self::FINISH][self::PREPROCESS], $return);
+        }
+
+        foreach (self::$VALIDATED_REST_COLUMNS as $column) {
+            if (self::$compiled_PHP_validations[self::FINISH][$column] ?? false) {
+                self::runValidations(self::$compiled_PHP_validations[self::FINISH][$column], $return);
+            }
+        }
+
+        if ((self::$compiled_PHP_validations[self::FINISH][self::FINISH] ?? false) &&
+            is_array(self::$compiled_PHP_validations[self::FINISH][self::FINISH])) {
+            self::runValidations(self::$compiled_PHP_validations[self::FINISH][self::FINISH], $return);
+        }
+    }
+
+
+    /**
+     * refturns true if it is a column name that exists and all user validations pass.
+     * return is false otherwise.
+     * @param string $column
+     * @param string $method
      * @return string|null
      */
-    public static function validateColumnName($column, $tableList): ?string
+    public static function validateInternalColumn(string $method, string &$column, string &$equals = null): bool
     {
-        if (array_key_exists($column, static::PDO_VALIDATION)) {
-            return static::class;
+        if (in_array($column, self::$VALIDATED_REST_COLUMNS, true)) {
+            return true;
         }
 
-        // I like the while loop bc it shrinks the array with every iteration
-        while (!empty($tableList)) {             // todo - this should work on all the columns with each new table reff
-            $table = array_pop($tableList);
+        $runCustomCallables = static function () use (&$column, &$equals, $method) : void {
 
-            if (array_key_exists($column, $table::PDO_VALIDATION) ||
-                in_array($column, $table::COLUMNS, true)) {      // allow short tags, todo -  is this legacy creep,
-                return $table;
-            }
-        }
-        return null;
-    }
+            self::$VALIDATED_REST_COLUMNS[] = $column;  // to prevent recursion.
 
+            if (null !== $equals) {
+                $equalsValidColumn = self::validateInternalColumn($method, $equals, $column);
 
-    /**
-     * @param $argv
-     * @param $sql
-     */
-    public static function jsonSQLReporting($argv, $sql): void
-    {
-        global $json;
-        if (!is_array($json)) {
-            $json = [];
-        }
-        if (!isset($json['sql'])) {
-            $json['sql'] = [];
-        }
-        $json['sql'][] = [
-            $argv,
-            $sql
-        ];
-    }
-
-
-    /**
-     * @param Route $route
-     * @param string $prefix
-     * @return Route
-     * @throws PublicAlert
-     */
-
-    public static function MatchRestfulRequests(Route $route, string $prefix = ''): Route
-    {
-        return $route->regexMatch(/** @lang RegExp */ '#' . $prefix . 'rest/([A-Za-z\_]{1,256})/?' . Route::MATCH_C6_ENTITY_ID_REGEX . '?#',
-            static function (string $table, string $primary = null) {
-                Rest::RestfulRequests($table, $primary);
-                return true;
-            });
-    }
-
-    /**
-     * @param string $method
-     * @param array $args
-     * @param array $where
-     * @param array $table_php_validation
-     * @throws PublicAlert
-     */
-    public static function validateRestfulRequestWithCustomMethods(string $method, array &$args, array $where, array $table_php_validation): void
-    {
-        foreach ($table_php_validation as $php_validation) {
-            if (empty($php_validation)) {
-                continue;
-            }
-
-            // these function maps are designed to run on every request
-            if (array_key_exists(0, $php_validation)) {
-                if (is_array($php_validation[0])) {
-                    foreach ($php_validation[0] as $validation) {
-                        if (is_array($validation)) {
-                            $class = array_key_first($validation);
-                            $validationMethod = $validation[$class];
-                            unset($validation[$class]);
-                            if (!class_exists($class)) {
-                                throw new PublicAlert("A class reference in PHP_VALIDATION failed. Class ($class) not found.");
-                            }
-                            if (false === call_user_func_array([$class, $validationMethod], [&$args, ...$validation])) {
-                                throw new PublicAlert('The global request validation failed, please make sure arguments are correct.');
-                            }
-                        } else {
-                            throw new PublicAlert('PHP_VALIDATION[0][] should equal = arrays with [ call => method , structure followed by any additional arguments ]. Refer to Carbonphp.com for more info.');
-                        }
-                    }
-                } else {
-                    throw new PublicAlert('The first numeric key 0 in PHP_VALIDATION must be an array. Refer to Carbonphp.com for more info.');
+                if (!$equalsValidColumn && array_key_exists($column, self::$compiled_regex_validations) &&
+                    1 > @preg_match_all(self::$compiled_regex_validations[$column], $equals, $matches, PREG_SET_ORDER)) {  // can return 0 or false
+                    throw new PublicAlert("The column $column was set to be compaired with a value who did not pass the regex test. Please check this value and try again.");
                 }
+
+                // todo - add injection logic here
             }
 
-            // these function maps are designed to run on specific $method request
-            if (array_key_exists($method, $php_validation) && is_array($php_validation[$method]) && array_key_exists(0, $php_validation[$method])) {
-                foreach ($php_validation[$method][0] as $validation) {
-                    if (is_array($validation)) {
-
-                        $class = array_key_first($validation);
-                        $validationMethod = $validation[$class];
-                        unset($validation[$class]);
-
-                        if (!class_exists($class)) {
-                            throw new PublicAlert('A class reference in PHP_VALIDATION failed. Make sure arrow \'=>\' is use and not a comma \',\'.');
-                        }
-                        if (false === call_user_func_array([$class, $validationMethod], [&$args, ...$validation])) {
-                            throw new PublicAlert('The request failed, please make sure arguments are correct for this method.');
-                        }
-                    } else {
-                        throw new PublicAlert('The first numeric key for PHP_VALIDATION["' . $method . '"][0][] should equal = arrays with [ call => method , structure followed by any additional arguments ]. Refer to Carbonphp.com for more info.');
-                    }
-                }
+            if ((self::$compiled_PHP_validations[self::PREPROCESS][$column] ?? false) && is_array(self::$compiled_PHP_validations[self::PREPROCESS][$column])) {
+                self::runValidations(self::$compiled_PHP_validations[self::PREPROCESS][$column]);
             }
 
-            // these function maps are designed column values
-            if (is_array($where) && !empty($where)) {
-                foreach ($where as $column => &$value) {
-
-                    // this maybe for every method (GET,PUT,POST,DELETE)
-                    if (array_key_exists($column, $php_validation)) {
-                        foreach ($php_validation[$column] as $validation) {
-                            $class = array_key_first($validation);
-                            $validationMethod = $validation[$class];
-                            unset($validation[$class]);
-                            if (!class_exists($class)) {
-                                throw new PublicAlert('A class reference in PHP_VALIDATION[$column] failed. Make sure an arrow \'=>\' is use and not a comma \',\' for class method pair.');
-                            }
-                            if (false === call_user_func_array([$class, $validationMethod], [&$value, ...$validation])) {
-                                throw new PublicAlert('Restful PHP validation returned false for column (' . $column . '). The request failed, please make sure arguments are correct.');
-                            }
-                        }
-                    }
-
-                    // Or specific methods
-                    if (array_key_exists($column, $php_validation[$method] ?? [])) {
-                        foreach ($php_validation[$method][$column] as $validation) {
-                            $class = array_key_first($validation);
-                            $validationMethod = $validation[$class];
-                            unset($validation[$class]);
-                            if (!class_exists($class)) {
-                                throw new PublicAlert('A class reference in PHP_VALIDATION[$method][$column] failed. Make sure arrow \'=>\' is use and not a comma \',\' for class method  pair..');
-                            }
-                            if (false === call_user_func([$class, $validationMethod], [&$value, ...$validation])) {
-                                throw new PublicAlert('The request failed, please make sure arguments are correct.');
-                            }
-                        }
-                    }
-                }
+            if (null !== $equals && (self::$compiled_PHP_validations[$method][$column] ?? false) && is_array(self::$compiled_PHP_validations[$method][$column])) {
+                self::runValidations(self::$compiled_PHP_validations[self::PREPROCESS][$method][$column], $equals);
             }
+        };
+
+        if (array_key_exists($column, self::$compiled_PDO_validations)) {      // allow short tags
+            $runCustomCallables();
+            return true;
         }
+
+        if ($key = array_search($column, self::$compiled_valid_columns, true)) {
+            $column = $key; // adds table name.
+            $runCustomCallables();
+            return true;
+        }
+
+        return false;
     }
 
-    /**
-     * @param array $where
-     * @param array $regex
-     * @throws PublicAlert
-     */
-    public static function validateRestfulRequestWithCustomRegexps(array $where, array $regex): void
+
+    protected static function runValidations(array $php_validation, &$withColumnValueOrFinalResponse = null): void
     {
-        if (is_array($where) && !empty($where)) {
-            foreach ($where as $column => &$value) {
-                if (array_key_exists($column, $regex) &&
-                    preg_match_all($regex[$column], $value, $matches, PREG_SET_ORDER) < 1) {  // can return 0 or false
-                    throw new PublicAlert('The request failed the column (' . $column . ') regex (' . $regex[$column] . ') test, please make sure arguments are correct.');
+        foreach ($php_validation as $validation) {
+            if (is_array($validation)) {
+                $class = array_key_first($validation);
+                $validationMethod = $validation[$class];
+                unset($validation[$class]);
+                if (!class_exists($class)) {
+                    throw new PublicAlert("A class reference in PHP_VALIDATION failed. Class ($class) not found.");
                 }
+                if (null === $withColumnValueOrFinalResponse) {
+                    if (false === call_user_func_array([$class, $validationMethod], [&self::$REST_REQUEST_PARAMETERS, ...$validation])) {
+                        throw new PublicAlert('The global request validation failed, please make sure arguments are correct.');
+                    }
+                } else if (false === call_user_func_array([$class, $validationMethod], [&$withColumnValueOrFinalResponse, ...$validation])) {
+                    throw new PublicAlert('A column request validation failed, please make sure arguments are correct.');
+                }
+            } else {
+                throw new PublicAlert('Each PHP_VALIDATION should equal an array of arrays with [ call => method , structure followed by any additional arguments ]. Refer to Carbonphp.com for more information.');
             }
         }
     }
 
 
     /**
-     * @param string $method
-     * @param array $args
-     * @param array $regex_validation
-     * @param array $php_validation
      * @return void
      * @throws PublicAlert
      */
-    public static function validateRestfulArguments(string $method, array &$args, array $regex_validation, array $php_validation): void
+    protected static function gatherValidationsForRequest(): void
     {
-        if ($method === self::POST) {
-            $where = &$args;
-        } else {
-            $args[self::WHERE] ??= [];
-            $where = &$args[self::WHERE];
-        }
+        $tables = [static::CLASS_NAME];
 
-        empty($where) or self::validateRestfulRequestWithCustomRegexps($where, $regex_validation);
+        if (array_key_exists(self::JOIN, self::$REST_REQUEST_PARAMETERS)) {
+            foreach (self::$REST_REQUEST_PARAMETERS[self::JOIN] as $key => $value) {
 
-        self::validateRestfulRequestWithCustomMethods($method, $args, $where, $php_validation);
+                if (!in_array($key, [self::INNER, self::LEFT_OUTER, self::RIGHT_OUTER, self::RIGHT, self::LEFT], true)) {
+                    throw new PublicAlert('Invalid join condition ' . $key . ' passed. Supported options are (inner, left outter, right outter, right, and left).');
+                }
 
-    }
-
-
-    /**
-     * @param string $mainTable
-     * @param string $namespace
-     * @param array $requestBody
-     * @return array
-     * @throws PublicAlert
-     */
-    public static function gatherValidationsForRequest(string &$mainTable, string $namespace, array $requestBody): array
-    {
-        $tables = [&$mainTable];
-
-        if (array_key_exists(self::JOIN, $requestBody)) {
-            foreach ($requestBody[self::JOIN] as $key => $value) {
-                if (!empty($requestBody[self::JOIN][$key])) {
-                    $tables = [...$tables, ...array_keys($requestBody[self::JOIN][$key])];
+                if (!empty(self::$REST_REQUEST_PARAMETERS[self::JOIN][$key])) {
+                    $tables = [...$tables, ...array_keys(self::$REST_REQUEST_PARAMETERS[self::JOIN][$key])];
                 }
             }
         }
@@ -298,8 +242,12 @@ abstract class Rest extends Database
 
             $table = implode('_', $table);
 
-            if (!class_exists($table = $namespace . $table)) {
-                throw new PublicAlert("Failed to find the table ($table) requested");
+            if (!defined(static::class . '::CLASS_NAMESPACE')) {
+                throw new PublicAlert('The rest table did not appear to have constant CLASS_NAMESPACE. Please try regenerating rest tables.');
+            }
+
+            if (!class_exists($table = static::CLASS_NAMESPACE . $table)) {
+                throw new PublicAlert("Failed to find the table ($table) requested.");
             }
 
             if (!is_subclass_of($table, self::class)) {
@@ -310,68 +258,85 @@ abstract class Rest extends Database
 
             if (!in_array(strtolower(iRest::class), $imp, true) &&
                 !in_array(strtolower(iRestfulReferences::class), $imp, true)) {
-                throw new PublicAlert('The table does not implement the correct interface. Requires (' . iRest::class . ' or ' . iRestfulReferences::class . ').');
+                throw new PublicAlert('The table does not implement the correct interface. Requires (' . iRest::class . ' or ' . iRestfulReferences::class . ').  Try re-running the RestBuilder.');
             }
 
             if (defined("$table::REGEX_VALIDATION")) {
                 $regex_validations[] = constant("$table::REGEX_VALIDATION");
             } else {
-                throw new PublicAlert('The table does not implement REGEX_VALIDATION. This can be an empty static array.');
+                throw new PublicAlert('The table does not implement REGEX_VALIDATION. This should be an empty static array. Try re-running the RestBuilder.');
+            }
+
+            if (defined("$table::PDO_VALIDATION")) {
+                $pdo_validations[] = constant("$table::PDO_VALIDATION");
+            } else {
+                throw new PublicAlert('The table does not implement PHP_VALIDATION. This should be an empty static array. Try re-running the RestBuilder.');
             }
 
             if (defined("$table::PHP_VALIDATION")) {
                 $php_validations[] = constant("$table::PHP_VALIDATION");
             } else {
-                throw new PublicAlert('The table does not implement PHP_VALIDATION. This can be an empty static array.');
+                throw new PublicAlert('The table does not implement PHP_VALIDATION. This should be an empty static array. Try re-running the RestBuilder.');
+            }
+
+            if (defined("$table::COLUMNS")) {
+                $compiled_columns[] = constant("$table::COLUMNS");
+            } else {
+                throw new PublicAlert('The table does not implement PHP_VALIDATION. This should be an empty static array. Try re-running the RestBuilder.');
             }
         }
 
         unset($table);
 
-        return [
-            array_merge([], ...$regex_validations),
-            $php_validations
-        ];
+        self::$join_tables = $tables;
+        self::$compiled_valid_columns = array_merge([], ... $compiled_columns);
+        self::$compiled_PDO_validations = array_merge([], ... $pdo_validations);
+        self::$compiled_PHP_validations = array_merge_recursive([], ... $php_validations);
+        self::$compiled_regex_validations = array_merge([], ...$regex_validations); // a nice way to avoid running a merge in a loop.
     }
 
-
     /**
+     * This should only be used for api requests.
      * @param string $mainTable
      * @param string|null $primary
      * @param string $namespace
      * @return bool
      */
-    public static function RestfulRequests(string $mainTable, string $primary = null, string $namespace = 'Tables\\'): bool
+    public static function ExternalRestfulRequestsAPI(string $mainTable, string $primary = null, string $namespace = 'Tables\\'): bool
     {
         global $json;
-
         $json = [];
 
-        try {
-            if (CarbonPHP::$app_root . 'src' . DS === CarbonPHP::CARBON_ROOT) {
-                self::$tableNamespace = 'CarbonPHP\\Tables\\';
-            } elseif ($namespace !== 'Tables\\') {
-                self::$tableNamespace = $namespace;
-            }
+        self::$externalRestfulRequestsAPI = true;   // This is to help you determine the request type in
 
+        try {
             $mainTable = explode('_', $mainTable);      // table name semantics vs class name
 
             $mainTable = array_map('ucfirst', $mainTable);
 
             $mainTable = implode('_', $mainTable);
 
+            if (!class_exists($namespace . $mainTable)) {
+                throw new PublicAlert("The table $mainTable was not found in our generated api. Please try rerunning the rest builder and contact us if problems presist.");
+            }
+
             $requestTableHasPrimary = in_array(strtolower(iRest::class),
-                array_map('strtolower', array_keys(class_implements(self::$tableNamespace . $mainTable))), true);
+                array_map('strtolower', array_keys(class_implements($namespace . $mainTable))), true);
 
             $method = strtoupper($_SERVER['REQUEST_METHOD']);
 
             switch ($method) {
                 case self::GET:
+
+
                     if (array_key_exists(0, $_GET)) {
-                        $_GET = json_decode($_GET[0], true);    // which is why this is here
+                        $_GET = json_decode(stripcslashes($_GET[0]), true, JSON_THROW_ON_ERROR);    // which is why this is here
+
                         if (null === $_GET) {
-                            $_GET = [];
+                            throw new PublicAlert('Json decoding of $_GET[0] returned null. Please attempt searializing another way.');
                         }
+
+
                     } else {
                         array_key_exists(self::SELECT, $_GET) and $_GET[self::SELECT] = json_decode($_GET[self::SELECT], true);
                         array_key_exists(self::JOIN, $_GET) and $_GET[self::JOIN] = json_decode($_GET[self::JOIN], true);
@@ -392,21 +357,15 @@ abstract class Rest extends Database
                     throw new PublicAlert('The REQUEST_METHOD is not RESTFUL. Method must be either \'POST\', \'PUT\', \'GET\', or \'DELETE\'.');
             }
 
-            [$regex_validations, $php_validations] = self::gatherValidationsForRequest($mainTable, self::$tableNamespace, $args);
-
+            $methodCase = ucfirst(strtolower($_SERVER['REQUEST_METHOD']));  // this is to match actual method spelling
 
             switch ($method) {
                 case self::PUT:
                 case self::DELETE:
                 case self::GET:
-                    $args ??= [];
-
-                    self::validateRestfulArguments($method, $args, $regex_validations, $php_validations);
-
-                    $methodCase = ucfirst(strtolower($_SERVER['REQUEST_METHOD']));  // this is to match actual method spelling
 
                     $return = [];
-                    if (!call_user_func_array([$mainTable, $methodCase], $requestTableHasPrimary ? [&$return, $primary, $args] : [&$return, $args])) {
+                    if (!call_user_func_array([$namespace . $mainTable, $methodCase], $requestTableHasPrimary ? [&$return, $primary, $args] : [&$return, $args])) {
                         throw new PublicAlert('The request failed, please make sure arguments are correct.');
                     }
 
@@ -419,15 +378,8 @@ abstract class Rest extends Database
                     }
 
                     break;
-
                 case self::POST:
-                    $_POST ??= [];
-
-                    self::validateRestfulArguments($method, $_POST, $regex_validations, $php_validations);
-
-                    $methodCase = ucfirst(strtolower($_SERVER['REQUEST_METHOD']));  // this is to match actual method spelling
-
-                    if (!$id = call_user_func([$mainTable, $methodCase], $_POST, $primary)) {
+                    if (!$id = call_user_func([$namespace . $mainTable, $methodCase], $_POST, $primary)) {
                         throw new PublicAlert('The request failed, please make sure arguments are correct.');
                     }
 
@@ -448,10 +400,6 @@ abstract class Rest extends Database
         return true;
     }
 
-    // validating across joins for rest is hard enough. I'm not going to allow user/FED provided sub queries
-    public static bool $allowSubSelectQueries = false; // todo - maybe C6v8.0.0 maybe?
-
-
     /**
      * @param string|null $primary
      * @param array $argv
@@ -462,8 +410,10 @@ abstract class Rest extends Database
      * @throws PublicAlert
      * @noinspection PhpUndefinedFieldInspection
      */
-    public static function buildSelectQuery(string $primary = null, array $argv, string $database = '', PDO $pdo = null, bool $noHEX = false): string
+    protected static function buildSelectQuery(string $primary = null, array $argv, string $database = '', PDO $pdo = null, bool $noHEX = false): string
     {
+        self::startRest(self::GET, $argv);
+
         if ($pdo === null) {
             $pdo = self::database();
         }
@@ -503,8 +453,10 @@ abstract class Rest extends Database
                 }
 
                 $buildJoin = static function ($method) use ($pdo, $tables, &$join, &$tableClassList) : void {
+
                     foreach ($tables as $class => $stmt) {
-                        $tableClassList[] = $JoiningClass = self::$tableNamespace . '\\' . ucwords($class, '_');
+
+                        $tableClassList[] = $JoiningClass = static::CLASS_NAMESPACE . ucwords($class, '_');
 
                         if (!class_exists($JoiningClass)) {
                             throw new PublicAlert('A table ' . $JoiningClass . ' provided in the Restful join request was not found in the system. This may mean you need to auto generate your restful tables in the CLI.');
@@ -524,7 +476,7 @@ abstract class Rest extends Database
 
                     foreach ($tables as $class => $stmt) {
 
-                        $JoiningClass = self::$tableNamespace . '\\' . ucwords($class, '_');
+                        $JoiningClass = static::CLASS_NAMESPACE . ucwords($class, '_');
 
                         $table = $JoiningClass::TABLE_NAME;
 
@@ -537,9 +489,8 @@ abstract class Rest extends Database
 
                             $addSingleConditionToJoin = static function (string $valueOne, string $valueTwo) use ($booleanOperator, $tableClassList, &$joinColumns, $table, $pdo, &$operator, &$sql, &$addJoinNext) : void {
                                 $addJoinNext = false;
-                                $key_is_custom = null === $key_table = self::validateColumnName($valueOne, $tableClassList);
-                                $value_is_custom = null === $value_table = self::validateColumnName($valueTwo, $tableClassList);
-
+                                $key_is_custom = false === self::validateInternalColumn(self::GET, $valueOne, $valueTwo);
+                                $value_is_custom = false === self::validateInternalColumn(self::GET, $valueTwo, $valueOne);
 
                                 if ($key_is_custom && $value_is_custom) {
                                     throw new PublicAlert("Rest failed in the join section of $table as you have two custom columns. This may mean you need to regenerate your rest tables. ");
@@ -551,23 +502,26 @@ abstract class Rest extends Database
                                     $sql .= '(' . $valueOne . $operator . $valueTwo . ") $booleanOperator ";
                                     return;
                                 }
+
                                 if ($value_is_custom) {
                                     $joinColumns[] = $valueOne;
-                                    $columnProperties = $key_table::PDO_VALIDATION;
-                                    if ($columnProperties[$valueOne][0] === 'binary') {
+
+                                    if (self::$compiled_PDO_validations[$valueOne][0] === 'binary') {
                                         $sql .= "($valueOne $operator UNHEX(" . self::addInjection($valueTwo, $pdo) . ")) $booleanOperator ";
                                         return;
                                     }
+
                                     $sql .= '(' . $valueOne . $operator . self::addInjection($valueTwo, $pdo) . ") $booleanOperator ";
                                     return;
                                 }
+
                                 // column is custom
                                 $joinColumns[] = $valueTwo;
-                                $columnProperties = $value_table::PDO_VALIDATION;
-                                if ($columnProperties[$valueTwo][0] === 'binary') {
+                                if (self::$compiled_PDO_validations[$valueTwo][0] === 'binary') {
                                     $sql .= "($valueTwo $operator UNHEX(" . self::addInjection($valueOne, $pdo) . ")) $booleanOperator ";
                                     return;
                                 }
+
                                 $sql .= '(' . self::addInjection($valueOne, $pdo) . $operator . $valueTwo . ") $booleanOperator ";
                             };
 
@@ -602,13 +556,13 @@ abstract class Rest extends Database
                                                 throw new PublicAlert('One or more of the array values provided in the restful JOIN condition are not strings.');
                                             }
                                             $supportedOperators = implode('|', [
-                                                self::GREATER_THAN,
-                                                self::LESS_THAN,
                                                 self::GREATER_THAN_OR_EQUAL_TO,
+                                                self::GREATER_THAN,
                                                 self::LESS_THAN_OR_EQUAL_TO,
-                                                self::NOT_EQUAL,
+                                                self::LESS_THAN,
                                                 self::EQUAL,
-                                                self::EQUAL_NULL_SAFE
+                                                self::EQUAL_NULL_SAFE,
+                                                self::NOT_EQUAL
                                             ]);
                                             if (!((bool)preg_match('#^' . $supportedOperators . '$#', $value[1]))) { // ie #^=|>=|<=$#
                                                 throw new PublicAlert('Restful column joins may only use one (=,>=, or <=).');
@@ -636,6 +590,8 @@ abstract class Rest extends Database
             }
         }
 
+
+
         // pagination [self::PAGINATION][self::LIMIT]
         if (array_key_exists(self::PAGINATION, $argv) && !empty($argv[self::PAGINATION])) {    // !empty should not be in this block - I look all the time
             if (array_key_exists(self::LIMIT, $argv[self::PAGINATION]) && is_numeric($argv[self::PAGINATION][self::LIMIT])) {
@@ -661,7 +617,7 @@ abstract class Rest extends Database
                             if (!in_array($sort, [self::ASC, self::DESC], true)) {
                                 throw new PublicAlert('Restful order by failed to validate sorting method.');
                             }
-                            if (null === $inTable = self::validateColumnName($item, $tableClassList)) {
+                            if (!self::validateInternalColumn(self::GET, $item)) {
                                 throw new PublicAlert('Failed to validate order by column.');
                             }
                             $orderArray[] = "$item $sort";
@@ -714,23 +670,23 @@ abstract class Rest extends Database
                     throw new PublicAlert('The aggregate method in the GET request must be one of the following: ' . implode(', ', [self::MAX, self::MIN, self::SUM, self::DISTINCT]));
                 }
 
-                if (null === $table = self::validateColumnName($column, $tableClassList)) {
-                    throw new PublicAlert('Could not validate a column ' . $column . ' in the request.'); // todo html entities
+                if (!self::validateInternalColumn(self::GET, $column)) {
+                    throw new PublicAlert('Could not validate a column "' . $column . '" in the request.'); // todo html entities
                 }
 
                 switch ($aggregate) {
                     case self::GROUP_CONCAT:
-                        if (!$noHEX && $table::PDO_VALIDATION[$column][0] === 'binary') {
-                            $sql = "GROUP_CONCAT(DISTINCT HEX($column) ORDER BY $column ASC SEPARATOR ',') as " . $table::COLUMNS[$column] . ', ' . $sql;
+                        if (!$noHEX && self::$compiled_PDO_validations[$column][0] === 'binary') {
+                            $sql = "GROUP_CONCAT(DISTINCT HEX($column) ORDER BY $column ASC SEPARATOR ',') as " . self::$compiled_valid_columns[$column] . ', ' . $sql;
                         } else {
-                            $sql = "GROUP_CONCAT(DISTINCT($column) ORDER BY $column ASC SEPARATOR ',') as " . $table::COLUMNS[$column] . ', ' . $sql;
+                            $sql = "GROUP_CONCAT(DISTINCT($column) ORDER BY $column ASC SEPARATOR ',') as " . self::$compiled_valid_columns[$column] . ', ' . $sql;
                         }
                         $sql = rtrim($sql, ', ');
                         break;
                     case self::DISTINCT:
-                        if (!$noHEX && $table::PDO_VALIDATION[$column][0] === 'binary') {
-                            $sql = "$aggregate HEX($column) as " . $table::COLUMNS[$column] . ', ' . $sql;
-                            $group[] = $table::COLUMNS[$column];
+                        if (!$noHEX && self::$compiled_PDO_validations[$column][0] === 'binary') {
+                            $sql = "$aggregate HEX($column) as " . self::$compiled_valid_columns[$column] . ', ' . $sql;
+                            $group[] = self::$compiled_valid_columns[$column];
                         } else {
                             $sql = "$aggregate($column), $sql";
                             $group[] = $column;
@@ -753,9 +709,9 @@ abstract class Rest extends Database
                 continue;
             }
 
-            if ($inTable = self::validateColumnName($column, $tableClassList)) {
-                if (!$noHEX && $inTable::PDO_VALIDATION[$column][0] === 'binary') {
-                    $sql .= "HEX($column) as " . $inTable::COLUMNS[$column];        // get short tag
+            if (self::validateInternalColumn(self::GET, $column)) {
+                if (!$noHEX && self::$compiled_PDO_validations[$column][0] === 'binary') {
+                    $sql .= "HEX($column) as " . self::$compiled_valid_columns[$column];        // get short tag
                     $group[] = $column;
                 } else {
                     $sql .= $column;
@@ -772,7 +728,7 @@ abstract class Rest extends Database
 
         if (null === $primary) {
             if (!empty($where)) {
-                $sql .= ' WHERE ' . self::buildWhere($where, $pdo, 'carbon_users', $tableClassList);
+                $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::GET, $where, $pdo);
             }
         } else if (empty(static::PRIMARY)) {
             throw new PublicAlert('Primary keys given in GET request to a table without a primary key.');
@@ -812,7 +768,17 @@ abstract class Rest extends Database
         return self::buildSelectQuery($primary, $argv, $database, $pdo, true);
     }
 
-    public static function buildWhere(array $set, PDO $pdo, string $tableName, array $tableClassList, $join = 'AND'): string
+    /**
+     * It was easier for me to think of this in a recursive manner.
+     * In reality we should limit our use of recursion php <= 8.^
+     * @param string $method
+     * @param array $set
+     * @param PDO $pdo
+     * @param string $booleanJoin
+     * @return string
+     * @throws PublicAlert
+     */
+    protected static function buildBooleanJoinConditions(string $method, array $set, PDO $pdo, $booleanJoin = 'AND'): string
     {
         $sql = '(';
         $addJoinNext = false;
@@ -820,35 +786,76 @@ abstract class Rest extends Database
         foreach ($set as $column => $value) {
             if (is_array($value)) {
                 if ($addJoinNext) {
-                    $sql .= " $join ";
+                    $sql .= " $booleanJoin ";
                 }
                 $addJoinNext = true;
                 // recurse and change join method
-                $sql .= self::buildWhere($value, $pdo, $tableName, $tableClassList, $join === 'AND' ? 'OR' : 'AND');
+                $sql .= self::buildBooleanJoinConditions($method, $value, $pdo, $booleanJoin === 'AND' ? 'OR' : 'AND');
                 continue;
             }
 
-            if (null === $tableName = self::validateColumnName($column, $tableClassList)) {
+            if (!self::validateInternalColumn($method, $column)) {
                 throw new PublicAlert('A column ' . $column . ' you provided in the where clause could not be validated. This should be a one to one relation with your table column name.');
             }
 
             $addJoinNext = false;
-            $validation = $tableName::PDO_VALIDATION;
-            /** @noinspection SubStrUsedAsStrPosInspection */
-            if (self::$allowSubSelectQueries && substr($value, 0, '8') === '(SELECT ') {
-                $sql .= "($column = $value ) $join ";
+
+            if (self::$allowSubSelectQueries && strpos($value, '(SELECT ') === 0) {
+                $sql .= "($column = $value ) $booleanJoin ";
                 continue;
             }
-            if ($validation[$column][0] === 'binary') {
-                $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $join ";
+
+            if (self::$compiled_PDO_validations[$column][0] === 'binary') {
+                $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $booleanJoin ";
                 continue;
             }
-            $sql .= "($column = " . self::addInjection($value, $pdo) . ") $join ";
+
+            $sql .= "($column = " . self::addInjection($value, $pdo) . ") $booleanJoin ";
         }
 
-        return preg_replace("/\s$join\s?$/", '', $sql) . ')';
+        return preg_replace("/\s$booleanJoin\s?$/", '', $sql) . ')';
     }
 
+
+    /**
+     * @param $argv
+     * @param $sql
+     */
+    public static function jsonSQLReporting($argv, $sql): void
+    {
+        global $json;
+        if (!is_array($json)) {
+            $json = [];
+        }
+        if (!isset($json['sql'])) {
+            $json['sql'] = [];
+        }
+        $json['sql'][] = [
+            $argv,
+            $sql
+        ];
+    }
+
+
+    /**
+     * @param Route $route
+     * @param string $prefix
+     * @param string|null $namespace
+     * @return Route
+     * @throws PublicAlert
+     */
+
+    public static function MatchRestfulRequests(Route $route, string $prefix = '', string $namespace = null): Route
+    {
+        return $route->regexMatch(/** @lang RegExp */ '#' . $prefix . 'rest/([A-Za-z\_]{1,256})/?' . Route::MATCH_C6_ENTITY_ID_REGEX . '?#',
+            static function (string $table, string $primary = null) use ($namespace) : void {
+                if ($namespace === null) {
+                    Rest::ExternalRestfulRequestsAPI($table, $primary);
+                    return;
+                }
+                Rest::ExternalRestfulRequestsAPI($table, $primary, $namespace);
+            });
+    }
 
     public static function addInjection($value, PDO $pdo, $quote = false): string
     {

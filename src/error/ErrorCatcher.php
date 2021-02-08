@@ -511,8 +511,7 @@ END;
 
                 $source = preg_split('/' . PHP_EOL . '/', $source);
 
-                $codePreview = highlight($comment . PHP_EOL . implode(PHP_EOL, array_slice($source, $start_line, 20)), true);
-
+                $codePreview = highlight(implode(PHP_EOL, array_slice($source, $start_line, 20)), true);
             }
 
             foreach ($message as $left => $right) {

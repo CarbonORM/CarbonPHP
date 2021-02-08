@@ -19,8 +19,9 @@ class Carbon_Comments extends Rest implements iRest
 {
     
     public const CLASS_NAME = 'Carbon_Comments';
+    public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
     public const TABLE_NAME = 'carbon_comments';
-    public const TABLE_NAMESPACE = 'CarbonPHP\Tables';
+    public const TABLE_PREFIX = '';
     
     public const PARENT_ID = 'carbon_comments.parent_id'; 
     public const COMMENT_ID = 'carbon_comments.comment_id'; 
@@ -38,7 +39,7 @@ class Carbon_Comments extends Rest implements iRest
     public const PDO_VALIDATION = [
         'carbon_comments.parent_id' => ['binary', '2', '16'],'carbon_comments.comment_id' => ['binary', '2', '16'],'carbon_comments.user_id' => ['binary', '2', '16'],'carbon_comments.comment' => ['blob', '2', ''],
     ];
-    
+     
     /**
      * PHP validations works as follows:
      *  The first index '0' of PHP_VALIDATIONS will run after REGEX_VALIDATION's but
@@ -63,6 +64,7 @@ class Carbon_Comments extends Rest implements iRest
     ]; 
  
     public const REGEX_VALIDATION = []; 
+   
     
     public static function createTableSQL() : string {
     return <<<MYSQL
@@ -142,8 +144,6 @@ MYSQL;
     */
     public static function Get(array &$return, string $primary = null, array $argv = []): bool
     {
-        self::$tableNamespace = self::TABLE_NAMESPACE;
-   
         $pdo = self::database();
 
         $sql = self::buildSelectQuery($primary, $argv, '', $pdo);
@@ -174,6 +174,8 @@ MYSQL;
         
         }
 
+        self::postprocessRestRequest($return);
+
         return true;
     }
 
@@ -185,7 +187,7 @@ MYSQL;
      */
     public static function Post(array $argv, string $dependantEntityId = null)
     {   
-        self::$tableNamespace = self::TABLE_NAMESPACE;
+        self::startRest(self::POST, $argv);
     
         foreach ($argv as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)){
@@ -221,7 +223,12 @@ MYSQL;
     
 
 
-        return $stmt->execute() ? $id : false;
+        if ($stmt->execute()) {
+            self::postprocessRestRequest($id);
+            return $id;
+        } 
+       
+        return false;
     
     }
     
@@ -234,7 +241,7 @@ MYSQL;
     */
     public static function Put(array &$return, string $primary, array $argv) : bool
     {
-        self::$tableNamespace = self::TABLE_NAMESPACE;
+        self::startRest(self::PUT, $argv);
         
         if (empty($primary)) {
             throw new PublicAlert('Restful tables which have a primary key must be updated by its primary key.', 'danger');
@@ -314,6 +321,8 @@ MYSQL;
 
         $return = array_merge($return, $argv);
 
+        self::postprocessRestRequest($return);
+
         return true;
 
     }
@@ -327,7 +336,7 @@ MYSQL;
     */
     public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
     {
-        self::$tableNamespace = self::TABLE_NAMESPACE;
+        self::startRest(self::DELETE, $argv);
         
         if (null !== $primary) {
             return Carbons::Delete($remove, $primary, $argv);
@@ -347,7 +356,7 @@ MYSQL;
 
         $pdo = self::database();
 
-        $sql .= ' WHERE ' . self::buildWhere($argv, $pdo, 'carbon_comments', [self::class]);
+        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
         
         self::jsonSQLReporting(func_get_args(), $sql);
 
