@@ -82,7 +82,7 @@ class Carbon_User_Tasks extends Rest implements iRest
                 [self::class => 'restTesting', self::POST, self::PREPROCESS],
             ],
             self::PERCENT_COMPLETE => [
-                [self::class => 'restTesting', self::POST, 'CustomArgument', []],
+                [self::class => 'restTesting', self::PERCENT_COMPLETE, 'CustomArgument', self::POST],
             ],
             self::TASK_DESCRIPTION => [
                 [self::class => 'restTesting']
@@ -272,7 +272,7 @@ MYSQL;
                 
         $task_id = $id = $argv['carbon_user_tasks.task_id'] ?? false;
         if ($id === false) {
-            $task_id = $id = self::beginTransaction(self::class, $dependantEntityId);
+             $task_id = $id = self::beginTransaction(self::class, $dependantEntityId);
         } else {
            $ref='carbon_user_tasks.task_id';
            if (!self::validateInternalColumn(self::POST, $ref, $task_id)) {
@@ -359,7 +359,7 @@ MYSQL;
 
         if ($stmt->execute()) {
             self::prepostprocessRestRequest($id);
-
+             
             if (self::$commit && !Database::commit()) {
                throw new PublicAlert('Failed to store commit transaction on table carbon_user_tasks');
             } 
@@ -563,9 +563,16 @@ MYSQL;
 
         $r = $stmt->execute();
 
-        /** @noinspection CallableParameterUseCaseInTypeContextInspection */
-        $r and $remove = [];
-
+        if ($r) {
+            $remove = [];
+        }
+        
+        self::prepostprocessRestRequest($return);
+        
+        self::postprocessRestRequest($return);
+        
+        self::completeRest();
+        
         return $r;
     }
      

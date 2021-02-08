@@ -504,9 +504,16 @@ MYSQL;
 
         $r = $stmt->execute();
 
-        /** @noinspection CallableParameterUseCaseInTypeContextInspection */
-        $r and $remove = [];
-
+        if ($r) {
+            $remove = [];
+        }
+        
+        self::prepostprocessRestRequest($return);
+        
+        self::postprocessRestRequest($return);
+        
+        self::completeRest();
+        
         return $r;
     }
      

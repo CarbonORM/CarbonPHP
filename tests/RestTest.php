@@ -297,7 +297,7 @@ final class RestTest extends Config
             Carbon_User_Tasks::PERCENT_COMPLETE => 70
         ]);
 
-        self::assertCount(8, self::$restChallenge, 'Not all rest challenges have run');
+        self::assertCount(7, self::$restChallenge, 'Not all rest challenges have run');
 
         self::assertArrayHasKey(0, self::$restChallenge);
         self::assertArrayHasKey(1, self::$restChallenge);
@@ -310,8 +310,9 @@ final class RestTest extends Config
         self::assertArrayHasKey(Carbon_User_Tasks::TASK_DESCRIPTION, self::$restChallenge[0][0]);
         self::assertArrayHasKey(Carbon_User_Tasks::PERCENT_COMPLETE, self::$restChallenge[0][0]);
         self::assertArrayHasKey(1, self::$restChallenge[1]);
-        self::assertEquals('This Should Be Second', self::$restChallenge[1][1]); // start at 0 ;)
-        self::assertEquals(Carbon_User_Tasks::TASK_DESCRIPTION, self::$restChallenge[3][1]);
+        self::assertEquals(Rest::POST, self::$restChallenge[1][1]); // start at 0 ;)
+        self::assertEquals(Rest::PREPROCESS, self::$restChallenge[1][2]); // start at 0 ;)
+        self::assertEquals(Carbon_User_Tasks::PERCENT_COMPLETE, self::$restChallenge[3][1]);
     }
 
 

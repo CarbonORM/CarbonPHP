@@ -1693,9 +1693,16 @@ MYSQL;
 
         \$r = \$stmt->execute();
 
-        /** @noinspection CallableParameterUseCaseInTypeContextInspection */
-        \$r and \$remove = [];
-
+        if (\$r) {
+            \$remove = [];
+        }
+        
+        self::prepostprocessRestRequest(\$return);
+        
+        self::postprocessRestRequest(\$return);
+        
+        self::completeRest();
+        
         return \$r;
     {{/carbon_table}}
     {{^carbon_table}}
@@ -1741,7 +1748,9 @@ MYSQL;
 
         \$r = \$stmt->execute();
 
-        \$r and \$remove = [];
+        if (\$r) {
+            \$remove = [];
+        }
         
         self::prepostprocessRestRequest(\$return);
         

@@ -373,7 +373,9 @@ MYSQL;
 
         $r = $stmt->execute();
 
-        $r and $remove = [];
+        if ($r) {
+            $remove = [];
+        }
         
         self::prepostprocessRestRequest($return);
         
