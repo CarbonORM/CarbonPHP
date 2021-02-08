@@ -119,7 +119,7 @@ abstract class Rest extends Database
     {
         if ((self::$compiled_PHP_validations[self::$REST_REQUEST_METHOD][self::FINISH] ?? false) &&
             is_array(self::$compiled_PHP_validations[self::$REST_REQUEST_METHOD][self::FINISH])) {
-            self::runValidations(self::$compiled_PHP_validations[self::FINISH][self::PREPROCESS], $return);
+            self::runValidations(self::$compiled_PHP_validations[self::$REST_REQUEST_METHOD][self::PREPROCESS], $return);
         }
 
         foreach (self::$VALIDATED_REST_COLUMNS as $column) {
