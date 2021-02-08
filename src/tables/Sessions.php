@@ -69,7 +69,7 @@ class Sessions extends Rest implements iRest
    
     
     public static function createTableSQL() : string {
-    return <<<MYSQL
+    return /** @lang MySQL */ <<<MYSQL
     CREATE TABLE `sessions` (
   `user_id` binary(16) NOT NULL,
   `user_ip` varchar(20) DEFAULT NULL,
@@ -143,6 +143,8 @@ MYSQL;
     */
     public static function Get(array &$return, string $primary = null, array $argv = []): bool
     {
+        self::startRest(self::GET, $argv);
+
         $pdo = self::database();
 
         $sql = self::buildSelectQuery($primary, $argv, '', $pdo);
@@ -174,7 +176,7 @@ MYSQL;
         }
 
         self::postprocessRestRequest($return);
-
+        self::completeRest();
         return true;
     }
 
@@ -189,7 +191,7 @@ MYSQL;
         self::startRest(self::POST, $argv);
     
         foreach ($argv as $columnName => $postValue) {
-            if (!array_key_exists($columnName, self::PDO_VALIDATION)){
+            if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
                 throw new PublicAlert("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
             }
         } 
@@ -200,41 +202,72 @@ MYSQL;
 
         $stmt = self::database()->prepare($sql);
 
-    
-    
-        if (!array_key_exists('sessions.user_id', $argv)) {
-            throw new PublicAlert('Required argument "sessions.user_id" is missing from the request.', 'danger');
-        }
-        $user_id = $argv['sessions.user_id'];
-        $stmt->bindParam(':user_id',$user_id, 2, 16);
-    
-    
-        $user_ip =  $argv['sessions.user_ip'] ?? null;
-        $stmt->bindParam(':user_ip',$user_ip, 2, 20);
-    
-    
-        if (!array_key_exists('sessions.session_id', $argv)) {
-            throw new PublicAlert('Required argument "sessions.session_id" is missing from the request.', 'danger');
-        }
-        $session_id = $argv['sessions.session_id'];
-        $stmt->bindParam(':session_id',$session_id, 2, 255);
-    
-        $stmt->bindValue(':session_expires',$argv['sessions.session_expires'], 2);
-    
-        $stmt->bindValue(':session_data',$argv['sessions.session_data'], 2);
-    
-    
-        $user_online_status =  $argv['sessions.user_online_status'] ?? '1';
-        $stmt->bindParam(':user_online_status',$user_online_status, 0, 1);
-    
+              if (!array_key_exists('sessions.user_id', $argv)) {
+                throw new PublicAlert('Required argument "sessions.user_id" is missing from the request.', 'danger');
+              }
+              $user_id = $argv['sessions.user_id'];
+              
+              $ref='sessions.user_id';
+              if (!self::validateInternalColumn(self::POST, $ref, $user_id)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'sessions.user_id\'.');
+              }        
+              $stmt->bindParam(':user_id',$user_id, 2, 16);
+            
+                      $user_ip = $argv['sessions.user_ip'] ?? null;
+              
+              $ref='sessions.user_ip';
+              if (!self::validateInternalColumn(self::POST, $ref, $user_ip, $user_ip === null)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'sessions.user_ip\'.');
+              }        
+              $stmt->bindParam(':user_ip',$user_ip, 2, 20);
+            
+                      if (!array_key_exists('sessions.session_id', $argv)) {
+                throw new PublicAlert('Required argument "sessions.session_id" is missing from the request.', 'danger');
+              }
+              $session_id = $argv['sessions.session_id'];
+              
+              $ref='sessions.session_id';
+              if (!self::validateInternalColumn(self::POST, $ref, $session_id)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'sessions.session_id\'.');
+              }        
+              $stmt->bindParam(':session_id',$session_id, 2, 255);
+            
+                          if (!array_key_exists('sessions.session_expires', $argv)) {
+                    throw new PublicAlert('The column \'sessions.session_expires\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
+                  } 
+                   $ref='sessions.session_expires';
+                  if (!self::validateInternalColumn(self::POST, $ref, $session_expires)) {
+                    throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'sessions.session_expires\'.');
+                  }
+                  $stmt->bindValue(':session_expires', $argv['sessions.session_expires'], 2);
+                  if (!array_key_exists('sessions.session_data', $argv)) {
+                    throw new PublicAlert('The column \'sessions.session_data\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
+                  } 
+                   $ref='sessions.session_data';
+                  if (!self::validateInternalColumn(self::POST, $ref, $session_data)) {
+                    throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'sessions.session_data\'.');
+                  }
+                  $stmt->bindValue(':session_data', $argv['sessions.session_data'], 2);
+              $user_online_status = $argv['sessions.user_online_status'] ?? '1';
+              
+              $ref='sessions.user_online_status';
+              if (!self::validateInternalColumn(self::POST, $ref, $user_online_status, $user_online_status === '1')) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'sessions.user_online_status\'.');
+              }        
+              $stmt->bindParam(':user_online_status',$user_online_status, 0, 1);
+            
+        
 
 
 
     
         if ($stmt->execute()) {
             self::postprocessRestRequest();
-            return true;
+            self::completeRest();
+            return true;  
         }
+        
+        self::completeRest();
         return false;
     
     }
@@ -258,13 +291,16 @@ MYSQL;
             $argv = $argv[self::UPDATE];
         }
         
-        foreach ($argv as $key => $value) {
+        foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
                 throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.', 'danger');
             }
+            if (!self::validateInternalColumn(self::PUT, $key, $value)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'sessions.\'.');
+            }
         }
 
-        $sql = 'UPDATE sessions ' . ' SET '; // intellij cant handle this otherwise
+        $sql = /** @lang MySQLFragment */ 'UPDATE sessions SET '; // intellij cant handle this otherwise
 
         $set = '';
 
@@ -342,7 +378,7 @@ MYSQL;
         $return = array_merge($return, $argv);
 
         self::postprocessRestRequest($return);
-
+        self::completeRest();
         return true;
 
     }
@@ -395,7 +431,7 @@ MYSQL;
         $r and $remove = [];
         
         self::postprocessRestRequest($return);
-
+        self::completeRest();
         return $r;
     }
      

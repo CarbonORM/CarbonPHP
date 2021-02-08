@@ -67,7 +67,7 @@ class Carbon_Reports extends Rest implements iRestfulReferences
    
     
     public static function createTableSQL() : string {
-    return <<<MYSQL
+    return /** @lang MySQL */ <<<MYSQL
     CREATE TABLE `carbon_reports` (
   `log_level` varchar(20) DEFAULT NULL,
   `report` text,
@@ -139,6 +139,8 @@ MYSQL;
     */
     public static function Get(array &$return, array $argv = []): bool
     {
+        self::startRest(self::GET, $argv);
+
         $pdo = self::database();
 
         $sql = self::buildSelectQuery(null, $argv, '', $pdo);
@@ -165,7 +167,7 @@ MYSQL;
         
 
         self::postprocessRestRequest($return);
-
+        self::completeRest();
         return true;
     }
 
@@ -180,7 +182,7 @@ MYSQL;
         self::startRest(self::POST, $argv);
     
         foreach ($argv as $columnName => $postValue) {
-            if (!array_key_exists($columnName, self::PDO_VALIDATION)){
+            if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
                 throw new PublicAlert("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
             }
         } 
@@ -191,23 +193,42 @@ MYSQL;
 
         $stmt = self::database()->prepare($sql);
 
-    
-    
-        $log_level =  $argv['carbon_reports.log_level'] ?? null;
-        $stmt->bindParam(':log_level',$log_level, 2, 20);
-    
-        $stmt->bindValue(':report',$argv['carbon_reports.report'], 2);
-    
-        $stmt->bindValue(':call_trace',$argv['carbon_reports.call_trace'], 2);
-    
+              $log_level = $argv['carbon_reports.log_level'] ?? null;
+              
+              $ref='carbon_reports.log_level';
+              if (!self::validateInternalColumn(self::POST, $ref, $log_level, $log_level === null)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_reports.log_level\'.');
+              }        
+              $stmt->bindParam(':log_level',$log_level, 2, 20);
+            
+                          if (!array_key_exists('carbon_reports.report', $argv)) {
+                    throw new PublicAlert('The column \'carbon_reports.report\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
+                  } 
+                   $ref='carbon_reports.report';
+                  if (!self::validateInternalColumn(self::POST, $ref, $report)) {
+                    throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_reports.report\'.');
+                  }
+                  $stmt->bindValue(':report', $argv['carbon_reports.report'], 2);
+                  if (!array_key_exists('carbon_reports.call_trace', $argv)) {
+                    throw new PublicAlert('The column \'carbon_reports.call_trace\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
+                  } 
+                   $ref='carbon_reports.call_trace';
+                  if (!self::validateInternalColumn(self::POST, $ref, $call_trace)) {
+                    throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_reports.call_trace\'.');
+                  }
+                  $stmt->bindValue(':call_trace', $argv['carbon_reports.call_trace'], 2);
+
 
 
 
     
         if ($stmt->execute()) {
             self::postprocessRestRequest();
-            return true;
+            self::completeRest();
+            return true;  
         }
+        
+        self::completeRest();
         return false;
     
     }
@@ -228,16 +249,19 @@ MYSQL;
         $argv = $argv[self::UPDATE];
 
         if (empty($where) || empty($argv)) {
-            throw new PublicAlert('Restful tables which have no primary key must be updated specific where conditions.', 'danger');
+            throw new PublicAlert('Restful tables which have no primary key must be updated with specific where and update attributes.', 'danger');
         }
         
-        foreach ($argv as $key => $value) {
+        foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
                 throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.', 'danger');
             }
+            if (!self::validateInternalColumn(self::PUT, $key, $value)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_reports.\'.');
+            }
         }
 
-        $sql = 'UPDATE carbon_reports ' . ' SET '; // intellij cant handle this otherwise
+        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_reports SET '; // intellij cant handle this otherwise
 
         $set = '';
 
@@ -300,7 +324,7 @@ MYSQL;
         $return = array_merge($return, $argv);
 
         self::postprocessRestRequest($return);
-
+        self::completeRest();
         return true;
 
     }
@@ -337,7 +361,7 @@ MYSQL;
         $r and $remove = [];
         
         self::postprocessRestRequest($return);
-
+        self::completeRest();
         return $r;
     }
      

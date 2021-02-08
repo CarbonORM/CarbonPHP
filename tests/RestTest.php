@@ -181,6 +181,7 @@ final class RestTest extends Config
     {
         $user = [];
 
+
         if (Users::Get($user, null, [
                 Users::SELECT => [
                     Users::USER_ID
@@ -195,6 +196,8 @@ final class RestTest extends Config
             self::assertTrue(Users::Delete($user, $user[Users::COLUMNS[Users::USER_ID]], []));
         }
 
+
+
         self::assertInternalType('string', $uid = Users::Post([
             Users::USER_TYPE => 'Athlete',
             Users::USER_IP => '127.0.0.1',
@@ -207,6 +210,8 @@ final class RestTest extends Config
             Users::USER_LAST_NAME => 'Miles',
             Users::USER_GENDER => 'Male'
         ]), 'No string ID was returned');
+
+
 
         self::assertInternalType('string', $lid = Carbon_Locations::Post([
             Carbon_Locations::CITY => 'Grapevine',

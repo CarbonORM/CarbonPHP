@@ -59,7 +59,7 @@ class Carbon_Feature_Group_References extends Rest implements iRestfulReferences
    
     
     public static function createTableSQL() : string {
-    return <<<MYSQL
+    return /** @lang MySQL */ <<<MYSQL
     CREATE TABLE `carbon_feature_group_references` (
   `feature_entity_id` binary(16) DEFAULT NULL,
   `group_entity_id` binary(16) DEFAULT NULL,
@@ -132,6 +132,8 @@ MYSQL;
     */
     public static function Get(array &$return, array $argv = []): bool
     {
+        self::startRest(self::GET, $argv);
+
         $pdo = self::database();
 
         $sql = self::buildSelectQuery(null, $argv, '', $pdo);
@@ -158,7 +160,7 @@ MYSQL;
         
 
         self::postprocessRestRequest($return);
-
+        self::completeRest();
         return true;
     }
 
@@ -173,7 +175,7 @@ MYSQL;
         self::startRest(self::POST, $argv);
     
         foreach ($argv as $columnName => $postValue) {
-            if (!array_key_exists($columnName, self::PDO_VALIDATION)){
+            if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
                 throw new PublicAlert("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
             }
         } 
@@ -184,23 +186,34 @@ MYSQL;
 
         $stmt = self::database()->prepare($sql);
 
-    
-    
-        $feature_entity_id =  $argv['carbon_feature_group_references.feature_entity_id'] ?? null;
-        $stmt->bindParam(':feature_entity_id',$feature_entity_id, 2, 16);
-    
-    
-        $group_entity_id =  $argv['carbon_feature_group_references.group_entity_id'] ?? null;
-        $stmt->bindParam(':group_entity_id',$group_entity_id, 2, 16);
-    
+              $feature_entity_id = $argv['carbon_feature_group_references.feature_entity_id'] ?? null;
+              
+              $ref='carbon_feature_group_references.feature_entity_id';
+              if (!self::validateInternalColumn(self::POST, $ref, $feature_entity_id, $feature_entity_id === null)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_feature_group_references.feature_entity_id\'.');
+              }        
+              $stmt->bindParam(':feature_entity_id',$feature_entity_id, 2, 16);
+            
+                      $group_entity_id = $argv['carbon_feature_group_references.group_entity_id'] ?? null;
+              
+              $ref='carbon_feature_group_references.group_entity_id';
+              if (!self::validateInternalColumn(self::POST, $ref, $group_entity_id, $group_entity_id === null)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_feature_group_references.group_entity_id\'.');
+              }        
+              $stmt->bindParam(':group_entity_id',$group_entity_id, 2, 16);
+            
+        
 
 
 
     
         if ($stmt->execute()) {
             self::postprocessRestRequest();
-            return true;
+            self::completeRest();
+            return true;  
         }
+        
+        self::completeRest();
         return false;
     
     }
@@ -221,16 +234,19 @@ MYSQL;
         $argv = $argv[self::UPDATE];
 
         if (empty($where) || empty($argv)) {
-            throw new PublicAlert('Restful tables which have no primary key must be updated specific where conditions.', 'danger');
+            throw new PublicAlert('Restful tables which have no primary key must be updated with specific where and update attributes.', 'danger');
         }
         
-        foreach ($argv as $key => $value) {
+        foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
                 throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.', 'danger');
             }
+            if (!self::validateInternalColumn(self::PUT, $key, $value)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_feature_group_references.\'.');
+            }
         }
 
-        $sql = 'UPDATE carbon_feature_group_references ' . ' SET '; // intellij cant handle this otherwise
+        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_feature_group_references SET '; // intellij cant handle this otherwise
 
         $set = '';
 
@@ -282,7 +298,7 @@ MYSQL;
         $return = array_merge($return, $argv);
 
         self::postprocessRestRequest($return);
-
+        self::completeRest();
         return true;
 
     }
@@ -319,7 +335,7 @@ MYSQL;
         $r and $remove = [];
         
         self::postprocessRestRequest($return);
-
+        self::completeRest();
         return $r;
     }
      

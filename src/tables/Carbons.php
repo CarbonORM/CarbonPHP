@@ -54,24 +54,13 @@ class Carbons extends Rest implements iRest
      *  All methods MUST be declared as static.
      */
  
-    public const PHP_VALIDATION = [ 
-        self::PREPROCESS => [ 
-            self::PREPROCESS => [ 
-                [self::class => 'disallowPublicAccess', self::class] 
-            ]
-        ],
-        self::GET => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],    
-        self::POST => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],    
-        self::PUT => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],    
-        self::DELETE => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],
-        self::FINISH => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]]    
-    ]; 
+    public const PHP_VALIDATION = [[self::DISALLOW_PUBLIC_ACCESS]]; 
  
     public const REGEX_VALIDATION = []; 
    
     
     public static function createTableSQL() : string {
-    return <<<MYSQL
+    return /** @lang MySQL */ <<<MYSQL
     CREATE TABLE `carbons` (
   `entity_pk` binary(16) NOT NULL,
   `entity_fk` binary(16) DEFAULT NULL,
@@ -145,6 +134,8 @@ MYSQL;
     */
     public static function Get(array &$return, string $primary = null, array $argv = []): bool
     {
+        self::startRest(self::GET, $argv);
+
         $pdo = self::database();
 
         $sql = self::buildSelectQuery($primary, $argv, '', $pdo);
@@ -176,7 +167,7 @@ MYSQL;
         }
 
         self::postprocessRestRequest($return);
-
+        self::completeRest();
         return true;
     }
 
@@ -191,7 +182,7 @@ MYSQL;
         self::startRest(self::POST, $argv);
     
         foreach ($argv as $columnName => $postValue) {
-            if (!array_key_exists($columnName, self::PDO_VALIDATION)){
+            if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
                 throw new PublicAlert("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
             }
         } 
@@ -202,26 +193,42 @@ MYSQL;
 
         $stmt = self::database()->prepare($sql);
 
-    
-        $entity_pk = $id = $argv['carbons.entity_pk'] ?? self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
-        $stmt->bindParam(':entity_pk',$entity_pk, 2, 16);
-    
-    
-        $entity_fk =  $argv['carbons.entity_fk'] ?? null;
-        $stmt->bindParam(':entity_fk',$entity_fk, 2, 16);
-    
-    
-        if (!array_key_exists('carbons.entity_tag', $argv)) {
-            throw new PublicAlert('Required argument "carbons.entity_tag" is missing from the request.', 'danger');
-        }
-        $entity_tag = $argv['carbons.entity_tag'];
-        $stmt->bindParam(':entity_tag',$entity_tag, 2, 100);
-    
+            $entity_pk = $id = $argv['carbons.entity_pk'] ?? false;
+            if ($id === false) {
+                 $entity_pk = $id = self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
+            } else {
+                $ref='carbons.entity_pk';
+               if (!self::validateInternalColumn(self::POST, $ref, $entity_pk)) {
+                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbons.entity_pk\'.');
+               }            
+            }
+            $stmt->bindParam(':entity_pk',$entity_pk, 2, 16);
+              $entity_fk = $argv['carbons.entity_fk'] ?? null;
+              
+              $ref='carbons.entity_fk';
+              if (!self::validateInternalColumn(self::POST, $ref, $entity_fk, $entity_fk === null)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbons.entity_fk\'.');
+              }        
+              $stmt->bindParam(':entity_fk',$entity_fk, 2, 16);
+            
+                      if (!array_key_exists('carbons.entity_tag', $argv)) {
+                throw new PublicAlert('Required argument "carbons.entity_tag" is missing from the request.', 'danger');
+              }
+              $entity_tag = $argv['carbons.entity_tag'];
+              
+              $ref='carbons.entity_tag';
+              if (!self::validateInternalColumn(self::POST, $ref, $entity_tag)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbons.entity_tag\'.');
+              }        
+              $stmt->bindParam(':entity_tag',$entity_tag, 2, 100);
+            
+        
 
 
         if ($stmt->execute()) {
             self::postprocessRestRequest($id);
-            return $id;
+            self::completeRest(); 
+            return $id; 
         } 
        
         return false;
@@ -247,13 +254,16 @@ MYSQL;
             $argv = $argv[self::UPDATE];
         }
         
-        foreach ($argv as $key => $value) {
+        foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
                 throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.', 'danger');
             }
+            if (!self::validateInternalColumn(self::PUT, $key, $value)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbons.\'.');
+            }
         }
 
-        $sql = 'UPDATE carbons ' . ' SET '; // intellij cant handle this otherwise
+        $sql = /** @lang MySQLFragment */ 'UPDATE carbons SET '; // intellij cant handle this otherwise
 
         $set = '';
 
@@ -312,7 +322,7 @@ MYSQL;
         $return = array_merge($return, $argv);
 
         self::postprocessRestRequest($return);
-
+        self::completeRest();
         return true;
 
     }
@@ -365,7 +375,7 @@ MYSQL;
         $r and $remove = [];
         
         self::postprocessRestRequest($return);
-
+        self::completeRest();
         return $r;
     }
      

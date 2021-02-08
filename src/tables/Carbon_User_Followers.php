@@ -66,7 +66,7 @@ class Carbon_User_Followers extends Rest implements iRest
    
     
     public static function createTableSQL() : string {
-    return <<<MYSQL
+    return /** @lang MySQL */ <<<MYSQL
     CREATE TABLE `carbon_user_followers` (
   `follower_table_id` binary(16) NOT NULL,
   `follows_user_id` binary(16) NOT NULL,
@@ -142,6 +142,8 @@ MYSQL;
     */
     public static function Get(array &$return, string $primary = null, array $argv = []): bool
     {
+        self::startRest(self::GET, $argv);
+
         $pdo = self::database();
 
         $sql = self::buildSelectQuery($primary, $argv, '', $pdo);
@@ -173,7 +175,7 @@ MYSQL;
         }
 
         self::postprocessRestRequest($return);
-
+        self::completeRest();
         return true;
     }
 
@@ -188,7 +190,7 @@ MYSQL;
         self::startRest(self::POST, $argv);
     
         foreach ($argv as $columnName => $postValue) {
-            if (!array_key_exists($columnName, self::PDO_VALIDATION)){
+            if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
                 throw new PublicAlert("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
             }
         } 
@@ -199,29 +201,45 @@ MYSQL;
 
         $stmt = self::database()->prepare($sql);
 
-    
-        $follower_table_id = $id = $argv['carbon_user_followers.follower_table_id'] ?? self::beginTransaction(self::class, $dependantEntityId);
-        $stmt->bindParam(':follower_table_id',$follower_table_id, 2, 16);
-    
-    
-        if (!array_key_exists('carbon_user_followers.follows_user_id', $argv)) {
-            throw new PublicAlert('Required argument "carbon_user_followers.follows_user_id" is missing from the request.', 'danger');
-        }
-        $follows_user_id = $argv['carbon_user_followers.follows_user_id'];
-        $stmt->bindParam(':follows_user_id',$follows_user_id, 2, 16);
-    
-    
-        if (!array_key_exists('carbon_user_followers.user_id', $argv)) {
-            throw new PublicAlert('Required argument "carbon_user_followers.user_id" is missing from the request.', 'danger');
-        }
-        $user_id = $argv['carbon_user_followers.user_id'];
-        $stmt->bindParam(':user_id',$user_id, 2, 16);
-    
+            $follower_table_id = $id = $argv['carbon_user_followers.follower_table_id'] ?? false;
+            if ($id === false) {
+                 $follower_table_id = $id = self::beginTransaction(self::class, $dependantEntityId);
+            } else {
+               $ref='carbon_user_followers.follower_table_id';
+               if (!self::validateInternalColumn(self::POST, $ref, $follower_table_id)) {
+                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_followers.follower_table_id\'.');
+               }            
+            }
+            $stmt->bindParam(':follower_table_id',$follower_table_id, 2, 16);
+              if (!array_key_exists('carbon_user_followers.follows_user_id', $argv)) {
+                throw new PublicAlert('Required argument "carbon_user_followers.follows_user_id" is missing from the request.', 'danger');
+              }
+              $follows_user_id = $argv['carbon_user_followers.follows_user_id'];
+              
+              $ref='carbon_user_followers.follows_user_id';
+              if (!self::validateInternalColumn(self::POST, $ref, $follows_user_id)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_followers.follows_user_id\'.');
+              }        
+              $stmt->bindParam(':follows_user_id',$follows_user_id, 2, 16);
+            
+                      if (!array_key_exists('carbon_user_followers.user_id', $argv)) {
+                throw new PublicAlert('Required argument "carbon_user_followers.user_id" is missing from the request.', 'danger');
+              }
+              $user_id = $argv['carbon_user_followers.user_id'];
+              
+              $ref='carbon_user_followers.user_id';
+              if (!self::validateInternalColumn(self::POST, $ref, $user_id)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_followers.user_id\'.');
+              }        
+              $stmt->bindParam(':user_id',$user_id, 2, 16);
+            
+        
 
 
         if ($stmt->execute()) {
             self::postprocessRestRequest($id);
-            return $id;
+            self::completeRest(); 
+            return $id; 
         } 
        
         return false;
@@ -247,13 +265,16 @@ MYSQL;
             $argv = $argv[self::UPDATE];
         }
         
-        foreach ($argv as $key => $value) {
+        foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
                 throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.', 'danger');
             }
+            if (!self::validateInternalColumn(self::PUT, $key, $value)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_followers.\'.');
+            }
         }
 
-        $sql = 'UPDATE carbon_user_followers ' . ' SET '; // intellij cant handle this otherwise
+        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_user_followers SET '; // intellij cant handle this otherwise
 
         $set = '';
 
@@ -312,7 +333,7 @@ MYSQL;
         $return = array_merge($return, $argv);
 
         self::postprocessRestRequest($return);
-
+        self::completeRest();
         return true;
 
     }

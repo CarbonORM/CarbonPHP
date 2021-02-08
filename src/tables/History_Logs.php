@@ -68,7 +68,7 @@ class History_Logs extends Rest implements iRestfulReferences
    
     
     public static function createTableSQL() : string {
-    return <<<MYSQL
+    return /** @lang MySQL */ <<<MYSQL
     CREATE TABLE `history_logs` (
   `uuid` binary(16) NOT NULL,
   `resource_type` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
@@ -140,6 +140,8 @@ MYSQL;
     */
     public static function Get(array &$return, array $argv = []): bool
     {
+        self::startRest(self::GET, $argv);
+
         $pdo = self::database();
 
         $sql = self::buildSelectQuery(null, $argv, '', $pdo);
@@ -166,7 +168,7 @@ MYSQL;
         
 
         self::postprocessRestRequest($return);
-
+        self::completeRest();
         return true;
     }
 
@@ -181,7 +183,7 @@ MYSQL;
         self::startRest(self::POST, $argv);
     
         foreach ($argv as $columnName => $postValue) {
-            if (!array_key_exists($columnName, self::PDO_VALIDATION)){
+            if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
                 throw new PublicAlert("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
             }
         } 
@@ -192,36 +194,64 @@ MYSQL;
 
         $stmt = self::database()->prepare($sql);
 
-    
-    
-        if (!array_key_exists('history_logs.uuid', $argv)) {
-            throw new PublicAlert('Required argument "history_logs.uuid" is missing from the request.', 'danger');
-        }
-        $uuid = $argv['history_logs.uuid'];
-        $stmt->bindParam(':uuid',$uuid, 2, 16);
-    
-    
-        $resource_type =  $argv['history_logs.resource_type'] ?? null;
-        $stmt->bindParam(':resource_type',$resource_type, 2, 40);
-    
-    
-        $resource_uuid =  $argv['history_logs.resource_uuid'] ?? null;
-        $stmt->bindParam(':resource_uuid',$resource_uuid, 2, 16);
-    
-    
-        $operation_type =  $argv['history_logs.operation_type'] ?? null;
-        $stmt->bindParam(':operation_type',$operation_type, 2, 20);
-    
-        $stmt->bindValue(':data',json_encode($argv['history_logs.data']), 2);
-    
+              if (!array_key_exists('history_logs.uuid', $argv)) {
+                throw new PublicAlert('Required argument "history_logs.uuid" is missing from the request.', 'danger');
+              }
+              $uuid = $argv['history_logs.uuid'];
+              
+              $ref='history_logs.uuid';
+              if (!self::validateInternalColumn(self::POST, $ref, $uuid)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'history_logs.uuid\'.');
+              }        
+              $stmt->bindParam(':uuid',$uuid, 2, 16);
+            
+                      $resource_type = $argv['history_logs.resource_type'] ?? null;
+              
+              $ref='history_logs.resource_type';
+              if (!self::validateInternalColumn(self::POST, $ref, $resource_type, $resource_type === null)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'history_logs.resource_type\'.');
+              }        
+              $stmt->bindParam(':resource_type',$resource_type, 2, 40);
+            
+                      $resource_uuid = $argv['history_logs.resource_uuid'] ?? null;
+              
+              $ref='history_logs.resource_uuid';
+              if (!self::validateInternalColumn(self::POST, $ref, $resource_uuid, $resource_uuid === null)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'history_logs.resource_uuid\'.');
+              }        
+              $stmt->bindParam(':resource_uuid',$resource_uuid, 2, 16);
+            
+                      $operation_type = $argv['history_logs.operation_type'] ?? null;
+              
+              $ref='history_logs.operation_type';
+              if (!self::validateInternalColumn(self::POST, $ref, $operation_type, $operation_type === null)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'history_logs.operation_type\'.');
+              }        
+              $stmt->bindParam(':operation_type',$operation_type, 2, 20);
+            
+                        if (!array_key_exists('history_logs.data', $argv)) {
+                    throw new PublicAlert('The column \'history_logs.data\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
+                }
+                $ref='history_logs.data';
+                if (!self::validateInternalColumn(self::POST, $ref, $data)) {
+                    throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'history_logs.data\'.');
+                }
+                if (!is_string($data = $argv['history_logs.data']) && false === $data = json_encode($data)) {
+                    throw new PublicAlert('The column \'history_logs.data\' failed to be json encoded.');
+                }
+                $stmt->bindValue(':data', $data, 2);
+
 
 
 
     
         if ($stmt->execute()) {
             self::postprocessRestRequest();
-            return true;
+            self::completeRest();
+            return true;  
         }
+        
+        self::completeRest();
         return false;
     
     }
@@ -242,16 +272,19 @@ MYSQL;
         $argv = $argv[self::UPDATE];
 
         if (empty($where) || empty($argv)) {
-            throw new PublicAlert('Restful tables which have no primary key must be updated specific where conditions.', 'danger');
+            throw new PublicAlert('Restful tables which have no primary key must be updated with specific where and update attributes.', 'danger');
         }
         
-        foreach ($argv as $key => $value) {
+        foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
                 throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.', 'danger');
             }
+            if (!self::validateInternalColumn(self::PUT, $key, $value)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'history_logs.\'.');
+            }
         }
 
-        $sql = 'UPDATE history_logs ' . ' SET '; // intellij cant handle this otherwise
+        $sql = /** @lang MySQLFragment */ 'UPDATE history_logs SET '; // intellij cant handle this otherwise
 
         $set = '';
 
@@ -323,7 +356,7 @@ MYSQL;
         $return = array_merge($return, $argv);
 
         self::postprocessRestRequest($return);
-
+        self::completeRest();
         return true;
 
     }
@@ -360,7 +393,7 @@ MYSQL;
         $r and $remove = [];
         
         self::postprocessRestRequest($return);
-
+        self::completeRest();
         return $r;
     }
      

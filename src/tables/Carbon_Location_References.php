@@ -66,7 +66,7 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
    
     
     public static function createTableSQL() : string {
-    return <<<MYSQL
+    return /** @lang MySQL */ <<<MYSQL
     CREATE TABLE `carbon_location_references` (
   `entity_reference` binary(16) NOT NULL,
   `location_reference` binary(16) NOT NULL,
@@ -140,6 +140,8 @@ MYSQL;
     */
     public static function Get(array &$return, array $argv = []): bool
     {
+        self::startRest(self::GET, $argv);
+
         $pdo = self::database();
 
         $sql = self::buildSelectQuery(null, $argv, '', $pdo);
@@ -166,7 +168,7 @@ MYSQL;
         
 
         self::postprocessRestRequest($return);
-
+        self::completeRest();
         return true;
     }
 
@@ -181,7 +183,7 @@ MYSQL;
         self::startRest(self::POST, $argv);
     
         foreach ($argv as $columnName => $postValue) {
-            if (!array_key_exists($columnName, self::PDO_VALIDATION)){
+            if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
                 throw new PublicAlert("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
             }
         } 
@@ -192,29 +194,40 @@ MYSQL;
 
         $stmt = self::database()->prepare($sql);
 
-    
-    
-        if (!array_key_exists('carbon_location_references.entity_reference', $argv)) {
-            throw new PublicAlert('Required argument "carbon_location_references.entity_reference" is missing from the request.', 'danger');
-        }
-        $entity_reference = $argv['carbon_location_references.entity_reference'];
-        $stmt->bindParam(':entity_reference',$entity_reference, 2, 16);
-    
-    
-        if (!array_key_exists('carbon_location_references.location_reference', $argv)) {
-            throw new PublicAlert('Required argument "carbon_location_references.location_reference" is missing from the request.', 'danger');
-        }
-        $location_reference = $argv['carbon_location_references.location_reference'];
-        $stmt->bindParam(':location_reference',$location_reference, 2, 16);
-    
+              if (!array_key_exists('carbon_location_references.entity_reference', $argv)) {
+                throw new PublicAlert('Required argument "carbon_location_references.entity_reference" is missing from the request.', 'danger');
+              }
+              $entity_reference = $argv['carbon_location_references.entity_reference'];
+              
+              $ref='carbon_location_references.entity_reference';
+              if (!self::validateInternalColumn(self::POST, $ref, $entity_reference)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_location_references.entity_reference\'.');
+              }        
+              $stmt->bindParam(':entity_reference',$entity_reference, 2, 16);
+            
+                      if (!array_key_exists('carbon_location_references.location_reference', $argv)) {
+                throw new PublicAlert('Required argument "carbon_location_references.location_reference" is missing from the request.', 'danger');
+              }
+              $location_reference = $argv['carbon_location_references.location_reference'];
+              
+              $ref='carbon_location_references.location_reference';
+              if (!self::validateInternalColumn(self::POST, $ref, $location_reference)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_location_references.location_reference\'.');
+              }        
+              $stmt->bindParam(':location_reference',$location_reference, 2, 16);
+            
+        
 
 
 
     
         if ($stmt->execute()) {
             self::postprocessRestRequest();
-            return true;
+            self::completeRest();
+            return true;  
         }
+        
+        self::completeRest();
         return false;
     
     }
@@ -235,16 +248,19 @@ MYSQL;
         $argv = $argv[self::UPDATE];
 
         if (empty($where) || empty($argv)) {
-            throw new PublicAlert('Restful tables which have no primary key must be updated specific where conditions.', 'danger');
+            throw new PublicAlert('Restful tables which have no primary key must be updated with specific where and update attributes.', 'danger');
         }
-
-        foreach ($argv as $key => $value) {
+        
+        foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
                 throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.', 'danger');
             }
+            if (!self::validateInternalColumn(self::PUT, $key, $value)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_location_references.\'.');
+            }
         }
 
-        $sql = 'UPDATE carbon_location_references ' . ' SET '; // intellij cant handle this otherwise
+        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_location_references SET '; // intellij cant handle this otherwise
 
         $set = '';
 
@@ -302,7 +318,7 @@ MYSQL;
         $return = array_merge($return, $argv);
 
         self::postprocessRestRequest($return);
-
+        self::completeRest();
         return true;
 
     }
@@ -339,7 +355,7 @@ MYSQL;
         $r and $remove = [];
         
         self::postprocessRestRequest($return);
-
+        self::completeRest();
         return $r;
     }
      

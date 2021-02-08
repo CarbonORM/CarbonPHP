@@ -1309,7 +1309,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
    
     
     public static function createTableSQL() : string {
-    return <<<MYSQL
+    return /** @lang MySQL */ <<<MYSQL
     {{createTableSQL}}
 MYSQL;
     }
@@ -1375,6 +1375,8 @@ MYSQL;
     */
     public static function Get(array &\$return, {{#primaryExists}}string \$primary = null, {{/primaryExists}}array \$argv = []): bool
     {
+        self::startRest(self::GET, \$argv);
+
         \$pdo = self::database();
 
         \$sql = self::buildSelectQuery({{#primaryExists}}\$primary{{/primaryExists}}{{^primaryExists}}null{{/primaryExists}}, \$argv, {{^carbon_namespace}}{{#QueryWithDatabaseName}}'{{database}}'{{/QueryWithDatabaseName}}{{/carbon_namespace}}{{^QueryWithDatabaseName}}''{{/QueryWithDatabaseName}}{{#carbon_namespace}}''{{/carbon_namespace}}, \$pdo);{{#json}}
@@ -1409,7 +1411,7 @@ MYSQL;
         }{{/sql}}{{/primary}}
 
         self::postprocessRestRequest(\$return);
-
+        self::completeRest();
         return true;
     }
 
@@ -1424,7 +1426,7 @@ MYSQL;
         self::startRest(self::POST, \$argv);
     
         foreach (\$argv as \$columnName => \$postValue) {
-            if (!array_key_exists(\$columnName, self::PDO_VALIDATION)){
+            if (!array_key_exists(\$columnName, self::PDO_VALIDATION)) {
                 throw new PublicAlert("Restful table could not post column \$columnName, because it does not appear to exist.", 'danger');
             }
         } 
@@ -1441,8 +1443,11 @@ MYSQL;
             \${{name}} = \$id = \$argv['{{TableName}}.{{name}}'] ?? false;
             if (\$id === false) {
                  \${{name}} = \$id = self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
-            } else if (!self::validateInternalColumn(self::POST, '{{TableName}}.{{name}}', \${{name}})) {
+            } else {
+                \$ref='{{TableName}}.{{name}}';
+               if (!self::validateInternalColumn(self::POST, \$ref, \${{name}})) {
                  throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
+               }            
             }
             \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
         {{/carbon_table}}
@@ -1450,8 +1455,11 @@ MYSQL;
             \${{name}} = \$id = \$argv['{{TableName}}.{{name}}'] ?? false;
             if (\$id === false) {
                  \${{name}} = \$id = self::beginTransaction(self::class, \$dependantEntityId);
-            } else if (!self::validateInternalColumn(self::POST, '{{TableName}}.{{name}}', \${{name}})) {
+            } else {
+               \$ref='{{TableName}}.{{name}}';
+               if (!self::validateInternalColumn(self::POST, \$ref, \${{name}})) {
                  throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
+               }            
             }
             \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
         {{/carbon_table}}
@@ -1460,23 +1468,38 @@ MYSQL;
         {{^skip}}
           {{^length}}
               {{#json}}
-                if (!array_key_exists('{{TableName}}.{{name}}', \$argv))) {
-                    throw new PublicAlert('The column \'{{TableName}}.{{name}}\' is set to not null and has no default value. It must exist in the request and was not found in the one sent by the user.');
-                } 
-                
+                if (!array_key_exists('{{TableName}}.{{name}}', \$argv)) {
+                    throw new PublicAlert('The column \'{{TableName}}.{{name}}\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
+                }
+                \$ref='{{TableName}}.{{name}}';
+                if (!self::validateInternalColumn(self::POST, \$ref, \${{name}})) {
+                    throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
+                }
                 if (!is_string(\${{name}} = \$argv['{{TableName}}.{{name}}']) && false === \${{name}} = json_encode(\${{name}})) {
                     throw new PublicAlert('The column \'{{TableName}}.{{name}}\' failed to be json encoded.');
                 }
-                
-              
                 \$stmt->bindValue(':{{name}}', \${{name}}, {{type}});
               {{/json}} 
               {{^json}} 
                 {{^default}}
+                  if (!array_key_exists('{{TableName}}.{{name}}', \$argv)) {
+                    throw new PublicAlert('The column \'{{TableName}}.{{name}}\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
+                  } 
+                   \$ref='{{TableName}}.{{name}}';
+                  if (!self::validateInternalColumn(self::POST, \$ref, \${{name}})) {
+                    throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
+                  }
                   \$stmt->bindValue(':{{name}}', \$argv['{{TableName}}.{{name}}'], {{type}});
                 {{/default}}
                 {{#default}} 
-                  \$stmt->bindValue(':{{name}}', array_key_exists('{{TableName}}.{{name}}',\$argv) ? \$argv['{{TableName}}.{{name}}'] : {{default}}, {{type}});
+                  if (!array_key_exists('{{TableName}}.{{name}}',\$argv)) {
+                     \${{name}} = {{default}};
+                  }
+                  \$ref='{{TableName}}.{{name}}';
+                  if (!self::validateInternalColumn(self::POST, \$ref, \${{name}}, \${{name}} === {{{default}}})) {
+                    throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
+                  }
+                  \$stmt->bindValue(':{{name}}', \${{name}}, {{type}});
                 {{/default}}
               {{/json}}
           {{/length}}
@@ -1486,12 +1509,13 @@ MYSQL;
                 throw new PublicAlert('Required argument "{{TableName}}.{{name}}" is missing from the request.', 'danger');
               }
             {{/default}}
-              \${{name}} = {{^default}}\$argv['{{TableName}}.{{name}}']
-                           {{/default}}
-                           {{#default}}\$argv['{{TableName}}.{{name}}'] ?? {{{default}}}
-                           {{/default}};
-                           
-            \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
+              \${{name}} = {{^default}}\$argv['{{TableName}}.{{name}}'];{{/default}}{{#default}}\$argv['{{TableName}}.{{name}}'] ?? {{{default}}};{{/default}}
+              
+              \$ref='{{TableName}}.{{name}}';
+              if (!self::validateInternalColumn(self::POST, \$ref, \${{name}}{{#default}}, \${{name}} === {{{default}}}{{/default}})) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
+              }        
+              \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
             
         {{/length}}{{/skip}}{{/primary_binary}}{{/explode}}
 
@@ -1499,15 +1523,19 @@ MYSQL;
     {{#binary_primary}}
         if (\$stmt->execute()) {
             self::postprocessRestRequest(\$id);
-            return \$id;
+            self::completeRest(); 
+            return \$id; 
         } 
        
         return false;{{/binary_primary}}
     {{^binary_primary}}{{^carbon_table}}
         if (\$stmt->execute()) {
             self::postprocessRestRequest();
-            return true;
+            self::completeRest();
+            return true;  
         }
+        
+        self::completeRest();
         return false;
     {{/carbon_table}}{{/binary_primary}}
     }
@@ -1538,17 +1566,20 @@ MYSQL;
         \$argv = \$argv[self::UPDATE];
 
         if (empty(\$where) || empty(\$argv)) {
-            throw new PublicAlert('Restful tables which have no primary key must be updated specific where conditions.', 'danger');
+            throw new PublicAlert('Restful tables which have no primary key must be updated with specific where and update attributes.', 'danger');
         }
         {{/primaryExists}}
         
-        foreach (\$argv as \$key => \$value) {
+        foreach (\$argv as \$key => &\$value) {
             if (!array_key_exists(\$key, self::PDO_VALIDATION)){
                 throw new PublicAlert('Restful table could not update column \$key, because it does not appear to exist.', 'danger');
             }
+            if (!self::validateInternalColumn(self::PUT, \$key, \$value)) {
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
+            }
         }
 
-        \$sql = 'UPDATE {{^carbon_namespace}}{{#QueryWithDatabaseName}}{{database}}.{{/QueryWithDatabaseName}}{{/carbon_namespace}}{{TableName}} ' . ' SET '; // intellij cant handle this otherwise
+        \$sql = /** @lang MySQLFragment */ 'UPDATE {{^carbon_namespace}}{{#QueryWithDatabaseName}}{{database}}.{{/QueryWithDatabaseName}}{{/carbon_namespace}}{{TableName}} SET '; // intellij cant handle this otherwise
 
         \$set = '';
 
@@ -1602,7 +1633,7 @@ MYSQL;
         \$return = array_merge(\$return, \$argv);
 
         self::postprocessRestRequest(\$return);
-
+        self::completeRest();
         return true;
 
     }
@@ -1695,7 +1726,7 @@ MYSQL;
         \$r and \$remove = [];
         
         self::postprocessRestRequest(\$return);
-
+        self::completeRest();
         return \$r;
     {{/carbon_table}}
     }
