@@ -77,7 +77,7 @@ trait Singleton
     {   // Start a new instance of the class and pass any arguments
         self::clearInstance();
         $reflect = new ReflectionClass($class = static::class);
-        $GLOBALS['Singleton'][$class] = $reflect->newInstanceArgs($args);
+        $GLOBALS['w'][$class] = $reflect->newInstanceArgs($args);
 
         return $GLOBALS['Singleton'][$class];
     }

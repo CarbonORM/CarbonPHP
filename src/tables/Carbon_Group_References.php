@@ -193,18 +193,20 @@ MYSQL;
         
         $group_id = $argv['carbon_group_references.group_id'] ?? null;
         $ref='carbon_group_references.group_id';
-        if (!self::validateInternalColumn(self::POST, $ref, $group_id, $group_id === null)) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $group_id, $group_id === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_group_references.group_id\'.');
-        }        
+        }
         $stmt->bindParam(':group_id',$group_id, 2, 16);
         
         
         
         $allowed_to_grant_group_id = $argv['carbon_group_references.allowed_to_grant_group_id'] ?? null;
         $ref='carbon_group_references.allowed_to_grant_group_id';
-        if (!self::validateInternalColumn(self::POST, $ref, $allowed_to_grant_group_id, $allowed_to_grant_group_id === null)) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $allowed_to_grant_group_id, $allowed_to_grant_group_id === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_group_references.allowed_to_grant_group_id\'.');
-        }        
+        }
         $stmt->bindParam(':allowed_to_grant_group_id',$allowed_to_grant_group_id, 2, 16);
         
 
@@ -249,7 +251,8 @@ MYSQL;
             if (!array_key_exists($key, self::PDO_VALIDATION)){
                 throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.', 'danger');
             }
-            if (!self::validateInternalColumn(self::PUT, $key, $value)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_group_references.\'.');
             }
         }
@@ -280,7 +283,8 @@ MYSQL;
         if (array_key_exists('carbon_group_references.group_id', $argv)) {
             $group_id = $argv['carbon_group_references.group_id'];
             $ref = 'carbon_group_references.group_id';
-            if (!self::validateInternalColumn(self::PUT, $ref, $group_id)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $group_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':group_id',$group_id, 2, 16);
@@ -288,7 +292,8 @@ MYSQL;
         if (array_key_exists('carbon_group_references.allowed_to_grant_group_id', $argv)) {
             $allowed_to_grant_group_id = $argv['carbon_group_references.allowed_to_grant_group_id'];
             $ref = 'carbon_group_references.allowed_to_grant_group_id';
-            if (!self::validateInternalColumn(self::PUT, $ref, $allowed_to_grant_group_id)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $allowed_to_grant_group_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':allowed_to_grant_group_id',$allowed_to_grant_group_id, 2, 16);

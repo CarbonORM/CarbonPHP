@@ -209,7 +209,8 @@ MYSQL;
              $follower_table_id = $id = self::beginTransaction(self::class, $dependantEntityId);
         } else {
            $ref='carbon_user_followers.follower_table_id';
-           if (!self::validateInternalColumn(self::POST, $ref, $follower_table_id)) {
+           $op = self::EQUAL;
+           if (!self::validateInternalColumn(self::POST, $ref, $op, $follower_table_id)) {
              throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_followers.follower_table_id\'.');
            }            
         }
@@ -224,9 +225,10 @@ MYSQL;
         }
         $follows_user_id = $argv['carbon_user_followers.follows_user_id'];
         $ref='carbon_user_followers.follows_user_id';
-        if (!self::validateInternalColumn(self::POST, $ref, $follows_user_id)) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $follows_user_id)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_followers.follows_user_id\'.');
-        }        
+        }
         $stmt->bindParam(':follows_user_id',$follows_user_id, 2, 16);
         
         
@@ -237,9 +239,10 @@ MYSQL;
         }
         $user_id = $argv['carbon_user_followers.user_id'];
         $ref='carbon_user_followers.user_id';
-        if (!self::validateInternalColumn(self::POST, $ref, $user_id)) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $user_id)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_followers.user_id\'.');
-        }        
+        }
         $stmt->bindParam(':user_id',$user_id, 2, 16);
         
 
@@ -285,7 +288,8 @@ MYSQL;
             if (!array_key_exists($key, self::PDO_VALIDATION)){
                 throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.', 'danger');
             }
-            if (!self::validateInternalColumn(self::PUT, $key, $value)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_followers.\'.');
             }
         }
@@ -319,7 +323,8 @@ MYSQL;
         if (array_key_exists('carbon_user_followers.follower_table_id', $argv)) {
             $follower_table_id = $argv['carbon_user_followers.follower_table_id'];
             $ref = 'carbon_user_followers.follower_table_id';
-            if (!self::validateInternalColumn(self::PUT, $ref, $follower_table_id)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $follower_table_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':follower_table_id',$follower_table_id, 2, 16);
@@ -327,7 +332,8 @@ MYSQL;
         if (array_key_exists('carbon_user_followers.follows_user_id', $argv)) {
             $follows_user_id = $argv['carbon_user_followers.follows_user_id'];
             $ref = 'carbon_user_followers.follows_user_id';
-            if (!self::validateInternalColumn(self::PUT, $ref, $follows_user_id)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $follows_user_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':follows_user_id',$follows_user_id, 2, 16);
@@ -335,7 +341,8 @@ MYSQL;
         if (array_key_exists('carbon_user_followers.user_id', $argv)) {
             $user_id = $argv['carbon_user_followers.user_id'];
             $ref = 'carbon_user_followers.user_id';
-            if (!self::validateInternalColumn(self::PUT, $ref, $user_id)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':user_id',$user_id, 2, 16);

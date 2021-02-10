@@ -12,7 +12,7 @@ use PDOStatement;
 abstract class Rest extends Database
 {
 
-    #restful identifiers
+    # restful identifiers
     public const SELECT = 'select';
     public const UPDATE = 'update';
     public const WHERE = 'where';
@@ -36,18 +36,19 @@ abstract class Rest extends Database
     public const NOT_EQUAL = '<>';
     public const EQUAL = '=';
     public const EQUAL_NULL_SAFE = '<=>';
+    public const LIKE = ' LIKE ';
 
-    #SQL helpful constants
+    # SQL helpful constants
     public const DESC = ' DESC'; // not case sensitive but helpful for reporting to remain uppercase
     public const ASC = ' ASC';
 
-    #PAGINATION properties
+    # PAGINATION properties
     public const PAGINATION = 'pagination';
     public const ORDER = 'order';
     public const LIMIT = 'limit';
     public const PAGE = 'page';
 
-    #php validation methods
+    # PHP validation methods
     public const GET = 'GET';   // this is case sensitive dont touch
     public const POST = 'POST';
     public const PUT = 'PUT';
@@ -59,7 +60,7 @@ abstract class Rest extends Database
     public const VALIDATE_C6_ENTITY_ID_REGEX = '#^' . Route::MATCH_C6_ENTITY_ID_REGEX . '$#';
     public const DISALLOW_PUBLIC_ACCESS = [self::class => 'disallowPublicAccess'];
 
-
+    #
     public static array $activeQueryStates = [];
     public static ?string $REST_REQUEST_METHOD = null;
     public static array $REST_REQUEST_PARAMETERS;           // this is set with the request payload
@@ -141,27 +142,28 @@ abstract class Rest extends Database
      * return is false otherwise.
      * @param string $method
      * @param string $column
-     * @param string|null $equals
+     * @param string $operator
+     * @param string|null $value
      * @param bool $default
      * @return bool
      */
-    public static function validateInternalColumn(string $method, string &$column, string &$equals = null, bool $default = false): bool
+    public static function validateInternalColumn(string $method, &$column, string &$operator = null, &$value = null, bool $default = false): bool
     {
         if (in_array($column, self::$VALIDATED_REST_COLUMNS, true)) {
             return true;
         }
 
-        $runCustomCallables = static function () use (&$column, &$equals, $method, $default) : void {
+        $runCustomCallables = static function () use (&$column, &$operator, &$value, $method, $default) : void {
 
             self::$VALIDATED_REST_COLUMNS[] = $column;  // to prevent recursion.
 
-            if (null !== $equals && $default === false) {
-                $equalsValidColumn = self::validateInternalColumn($method, $equals, $column);
+            if (null !== $value && $default === false) {
+                $equalsValidColumn = self::validateInternalColumn($method, $value, $column);
                 if (!$equalsValidColumn && array_key_exists($column, self::$compiled_regex_validations) &&
-                    1 > @preg_match_all(self::$compiled_regex_validations[$column], $equals, $matches, PREG_SET_ORDER)) {  // can return 0 or false
+                    1 > @preg_match_all(self::$compiled_regex_validations[$column], $value, $matches, PREG_SET_ORDER)) {  // can return 0 or false
                     throw new PublicAlert("The column $column was set to be compared with a value who did not pass the regex test. Please check this value and try again.");
                 }
-                // todo - add injection logic here
+                // todo - add injection logic here // double down on aggregate placement
             }
 
 
@@ -177,7 +179,13 @@ abstract class Rest extends Database
 
             // run validation on each condition
             if ((self::$compiled_PHP_validations[$method][$column] ?? false) && is_array(self::$compiled_PHP_validations[$method][$column])) {
-                self::runValidations(self::$compiled_PHP_validations[$method][$column], $equals);
+                if ($operator === null) {
+                    self::runValidations(self::$compiled_PHP_validations[$method][$column]);
+                } elseif ($operator === self::ASC || $operator === self::DESC) {
+                    self::runValidations(self::$compiled_PHP_validations[$method][$column], $operator);
+                } else {
+                    self::runValidations(self::$compiled_PHP_validations[$method][$column], $operator, $value);
+                }
             }
         };
 
@@ -410,6 +418,60 @@ abstract class Rest extends Database
     }
 
     /**
+     * @param $stmt
+     * @param $sql
+     * @param array $group
+     * @param bool $noHEX
+     * @throws PublicAlert
+     */
+    private static function buildAggregate($stmt, &$sql, &$group = [], $noHEX = false): void
+    {
+        if (count($stmt) !== 2) {
+            throw new PublicAlert('An array in the GET Restful Request must be two values: [aggregate, column]');
+        }
+        [$aggregate, $column] = $stmt;    // todo - nested aggregates :: [$aggregate, string | array ]
+
+        if (!in_array($aggregate, [
+            self::MAX,
+            self::MIN,
+            self::SUM,
+            self::DISTINCT,
+            self::GROUP_CONCAT
+        ], true)) {
+            throw new PublicAlert('The aggregate method in the GET request must be one of the following: ' . implode(', ', [self::MAX, self::MIN, self::SUM, self::DISTINCT]));
+        }
+
+        if (!self::validateInternalColumn(self::GET, $column, $aggregate)) {
+            throw new PublicAlert('Could not validate the column "' . $column . '" in the request.'); // todo html entities
+        }
+
+        switch ($aggregate) {
+            case self::GROUP_CONCAT:
+                if (!$noHEX && self::$compiled_PDO_validations[$column][0] === 'binary') {
+                    $sql = "GROUP_CONCAT(DISTINCT HEX($column) ORDER BY $column ASC SEPARATOR ',') as " . self::$compiled_valid_columns[$column] . ', ' . $sql;
+                } else {
+                    $sql = "GROUP_CONCAT(DISTINCT($column) ORDER BY $column ASC SEPARATOR ',') as " . self::$compiled_valid_columns[$column] . ', ' . $sql;
+                }
+                $sql = rtrim($sql, ', ');
+                break;
+            case self::DISTINCT:
+                if (!$noHEX && self::$compiled_PDO_validations[$column][0] === 'binary') {
+                    $sql = "$aggregate HEX($column) as " . self::$compiled_valid_columns[$column] . ', ' . $sql;
+                    $group[] = self::$compiled_valid_columns[$column];
+                } else {
+                    $sql = "$aggregate($column), $sql";
+                    $group[] = $column;
+                }
+                $sql = rtrim($sql, ', ');
+                break;
+            default:
+                $sql .= "$aggregate($column)";
+                $group[] = $column;
+        }
+    }
+
+
+    /**
      * @param string|null $primary
      * @param array $argv
      * @param string $database
@@ -427,7 +489,6 @@ abstract class Rest extends Database
         }
 
         $aggregate = false;
-        $tableClassList = [static::class];
         $joinColumns = [];          // this speeds up the query, by skipping duplicate validations
         $group = [];
         $join = '';
@@ -460,141 +521,37 @@ abstract class Rest extends Database
                     throw new PublicAlert('The restful inner join had an unknown error.');
                 }
 
-                $buildJoin = static function ($method) use ($pdo, $tables, &$join, &$tableClassList) : void {
+                // todo - is this done already?
+                foreach ($tables as $class => $stmt) {
 
-                    foreach ($tables as $class => $stmt) {
+                    $JoiningClass = static::CLASS_NAMESPACE . ucwords($class, '_');
 
-                        $tableClassList[] = $JoiningClass = static::CLASS_NAMESPACE . ucwords($class, '_');
-
-                        if (!class_exists($JoiningClass)) {
-                            throw new PublicAlert('A table ' . $JoiningClass . ' provided in the Restful join request was not found in the system. This may mean you need to auto generate your restful tables in the CLI.');
-                        }
-
-                        $imp = array_map('strtolower', array_keys(class_implements($JoiningClass)));
-
-                        /** @noinspection ClassConstantUsageCorrectnessInspection */
-                        if (!in_array(strtolower(iRest::class), $imp, true) &&
-                            !in_array(strtolower(iRestfulReferences::class), $imp, true)) {
-                            throw new PublicAlert('Rest error, class/table exists in the restful generation folder which does not implement the correct interfaces. Please re-run rest generation.');
-                        }
-                        if (!is_array($stmt)) {
-                            throw new PublicAlert("Rest error in the join stmt, the value of $JoiningClass is not an array.");
-                        }
+                    if (!class_exists($JoiningClass)) {
+                        throw new PublicAlert('A table ' . $JoiningClass . ' provided in the Restful join request was not found in the system. This may mean you need to auto generate your restful tables in the CLI.');
                     }
 
-                    foreach ($tables as $class => $stmt) {
+                    $imp = array_map('strtolower', array_keys(class_implements($JoiningClass)));
 
-                        $JoiningClass = static::CLASS_NAMESPACE . ucwords($class, '_');
-
-                        $table = $JoiningClass::TABLE_NAME;
-
-                        // todo - review sub-query logic and add to join logic
-                        $buildBooleanJOIN = static function ($set, PDO $pdo, $booleanOperator = 'AND') use ($table, $tableClassList, &$joinColumns, &$buildBooleanJOIN) : string {
-
-                            $sql = '(';
-                            $addJoinNext = false;
-                            $operator = self::EQUAL;
-
-                            $addSingleConditionToJoin = static function (string $valueOne, string $valueTwo) use ($booleanOperator, $tableClassList, &$joinColumns, $table, $pdo, &$operator, &$sql, &$addJoinNext) : void {
-                                $addJoinNext = false;
-                                $key_is_custom = false === self::validateInternalColumn(self::GET, $valueOne, $valueTwo);
-                                $value_is_custom = false === self::validateInternalColumn(self::GET, $valueTwo, $valueOne);
-
-                                if ($key_is_custom && $value_is_custom) {
-                                    throw new PublicAlert("Rest failed in the join section of $table as you have two custom columns. This may mean you need to regenerate your rest tables. ");
-                                }
-
-                                if (!$key_is_custom && !$value_is_custom) {
-                                    $joinColumns[] = $valueOne;
-                                    $joinColumns[] = $valueTwo;
-                                    $sql .= '(' . $valueOne . $operator . $valueTwo . ") $booleanOperator ";
-                                    return;
-                                }
-
-                                if ($value_is_custom) {
-                                    $joinColumns[] = $valueOne;
-
-                                    if (self::$compiled_PDO_validations[$valueOne][0] === 'binary') {
-                                        $sql .= "($valueOne $operator UNHEX(" . self::addInjection($valueTwo, $pdo) . ")) $booleanOperator ";
-                                        return;
-                                    }
-
-                                    $sql .= '(' . $valueOne . $operator . self::addInjection($valueTwo, $pdo) . ") $booleanOperator ";
-                                    return;
-                                }
-
-                                // column is custom
-                                $joinColumns[] = $valueTwo;
-                                if (self::$compiled_PDO_validations[$valueTwo][0] === 'binary') {
-                                    $sql .= "($valueTwo $operator UNHEX(" . self::addInjection($valueOne, $pdo) . ")) $booleanOperator ";
-                                    return;
-                                }
-
-                                $sql .= '(' . self::addInjection($valueOne, $pdo) . $operator . $valueTwo . ") $booleanOperator ";
-                            };
-
-                            foreach ($set as $column => $value) {
-                                if ($addJoinNext) {
-                                    $sql .= " $booleanOperator ";
-                                }
-                                if (is_array($value)) {                         /// do we intemperate as a boolean switch or custom operation (w/ optional operation)
-                                    switch (count($value)) {
-                                        case 1:
-                                            // join extra logic for expressions, if count
-                                            $addJoinNext = true;
-                                            $sql .= $buildBooleanJOIN($value, $pdo, $booleanOperator === 'AND' ? 'OR' : 'AND');
-                                            break;
-                                        case 2:
-                                            if (!array_key_exists(0, $value) ||
-                                                !array_key_exists(1, $value)) {
-                                                $addJoinNext = true;
-                                                $sql .= $buildBooleanJOIN($value, $pdo, $booleanOperator === 'AND' ? 'OR' : 'AND');
-                                                break;
-                                            }
-                                            $addSingleConditionToJoin($value[0], $value[1]);
-                                            break;
-                                        case 3:
-                                            if (!array_key_exists(0, $value) ||
-                                                !array_key_exists(1, $value) ||
-                                                !array_key_exists(2, $value)) {
-                                                $sql .= $buildBooleanJOIN($value, $pdo, $booleanOperator === 'AND' ? 'OR' : 'AND');
-                                                break;
-                                            }
-                                            if (!is_string($value[0]) || !is_string($value[1]) || !is_string($value[2])) {
-                                                throw new PublicAlert('One or more of the array values provided in the restful JOIN condition are not strings.');
-                                            }
-                                            $supportedOperators = implode('|', [
-                                                self::GREATER_THAN_OR_EQUAL_TO,
-                                                self::GREATER_THAN,
-                                                self::LESS_THAN_OR_EQUAL_TO,
-                                                self::LESS_THAN,
-                                                self::EQUAL,
-                                                self::EQUAL_NULL_SAFE,
-                                                self::NOT_EQUAL
-                                            ]);
-                                            if (!((bool)preg_match('#^' . $supportedOperators . '$#', $value[1]))) { // ie #^=|>=|<=$#
-                                                throw new PublicAlert('Restful column joins may only use one (=,>=, or <=).');
-                                            }
-                                            $operator = $value[1];
-                                            $addSingleConditionToJoin($value[0], $value[2]);
-                                            break;
-                                        default:
-                                            throw new PublicAlert('Restful joins across two tables must be populated with two or three array values with column names, or an appropriate joining operator and column names.');
-                                    }
-                                    // end switch
-                                    continue;
-                                } // end is_array
-                                $addJoinNext = false;
-                                $addSingleConditionToJoin($column, $value);
-                            } // end foreach
-
-                            return preg_replace("/\s$booleanOperator\s?$/", '', $sql) . ')';
-                        }; // end closure
-                        $join .= $method . $table . ' ON ' . $buildBooleanJOIN($stmt, $pdo);
+                    /** @noinspection ClassConstantUsageCorrectnessInspection */
+                    if (!in_array(strtolower(iRest::class), $imp, true) &&
+                        !in_array(strtolower(iRestfulReferences::class), $imp, true)) {
+                        throw new PublicAlert('Rest error, class/table exists in the restful generation folder which does not implement the correct interfaces. Please re-run rest generation.');
                     }
-                };
+                    if (!is_array($stmt)) {
+                        throw new PublicAlert("Rest error in the join stmt, the value of $JoiningClass is not an array.");
+                    }
+                }
 
-                $buildJoin(' ' . strtoupper($by) . ' JOIN ');
+                foreach ($tables as $class => $stmt) {
+
+                    $JoiningClass = static::CLASS_NAMESPACE . ucwords($class, '_');
+
+                    $table = $JoiningClass::TABLE_NAME;
+
+                    $join .= ' ' . strtoupper($by) . ' JOIN ' . $table . ' ON ' . self::buildBooleanJoinConditions(self::GET, $stmt, $pdo);
+
+                }
+
             }
         }
 
@@ -624,7 +581,7 @@ abstract class Rest extends Database
                             if (!in_array($sort, [self::ASC, self::DESC], true)) {
                                 throw new PublicAlert('Restful order by failed to validate sorting method.');
                             }
-                            if (!self::validateInternalColumn(self::GET, $item)) {
+                            if (!self::validateInternalColumn(self::GET, $item, $sort)) {
                                 throw new PublicAlert('Failed to validate order by column.');
                             }
                             $orderArray[] = "$item $sort";
@@ -662,51 +619,9 @@ abstract class Rest extends Database
             }
 
             if (is_array($column)) {
-                if (count($column) !== 2) {
-                    throw new PublicAlert('An array in the GET Restful Request must be two values: [aggregate, column]');
-                }
-                [$aggregate, $column] = $column;    // todo - nested aggregates :: [$aggregate, string | array ]
-
-                if (!in_array($aggregate, [
-                    self::MAX,
-                    self::MIN,
-                    self::SUM,
-                    self::DISTINCT,
-                    self::GROUP_CONCAT
-                ], true)) {
-                    throw new PublicAlert('The aggregate method in the GET request must be one of the following: ' . implode(', ', [self::MAX, self::MIN, self::SUM, self::DISTINCT]));
-                }
-
-                if (!self::validateInternalColumn(self::GET, $column)) {
-                    throw new PublicAlert('Could not validate the column "' . $column . '" in the request.'); // todo html entities
-                }
-
-                switch ($aggregate) {
-                    case self::GROUP_CONCAT:
-                        if (!$noHEX && self::$compiled_PDO_validations[$column][0] === 'binary') {
-                            $sql = "GROUP_CONCAT(DISTINCT HEX($column) ORDER BY $column ASC SEPARATOR ',') as " . self::$compiled_valid_columns[$column] . ', ' . $sql;
-                        } else {
-                            $sql = "GROUP_CONCAT(DISTINCT($column) ORDER BY $column ASC SEPARATOR ',') as " . self::$compiled_valid_columns[$column] . ', ' . $sql;
-                        }
-                        $sql = rtrim($sql, ', ');
-                        break;
-                    case self::DISTINCT:
-                        if (!$noHEX && self::$compiled_PDO_validations[$column][0] === 'binary') {
-                            $sql = "$aggregate HEX($column) as " . self::$compiled_valid_columns[$column] . ', ' . $sql;
-                            $group[] = self::$compiled_valid_columns[$column];
-                        } else {
-                            $sql = "$aggregate($column), $sql";
-                            $group[] = $column;
-                        }
-                        $sql = rtrim($sql, ', ');
-                        break;
-                    default:
-                        $sql .= "$aggregate($column)";
-                        $group[] = $column;
-                }
+                self::buildAggregate($column, $sql, $group,$noHEX);
                 continue;               // next foreach iteration
             }
-
 
             if (!is_string($column)) {         // is this even possible at this point?
                 throw new PublicAlert('C6 Rest client could not validate a column in the GET:[] request.');
@@ -784,46 +699,114 @@ abstract class Rest extends Database
      * @param string $method
      * @param array $set
      * @param PDO $pdo
-     * @param string $booleanJoin
+     * @param string $booleanOperator
      * @return string
      * @throws PublicAlert
      */
-    protected static function buildBooleanJoinConditions(string $method, array $set, PDO $pdo, $booleanJoin = 'AND'): string
+    protected static function buildBooleanJoinConditions(string $method, array $set, PDO $pdo, $booleanOperator = 'AND'): string
     {
         $sql = '(';
         $addJoinNext = false;
 
-        foreach ($set as $column => $value) {
-            if (is_array($value)) {
-                if ($addJoinNext) {
-                    $sql .= " $booleanJoin ";
+        $addSingleConditionToJoin = static function (string $valueOne, string $operator, string $valueTwo) use ($method, $pdo, &$booleanOperator, &$sql) : void {
+
+            $key_is_custom = false === self::validateInternalColumn($method, $valueOne, $valueTwo);
+            $value_is_custom = false === self::validateInternalColumn($method, $valueTwo, $valueOne);
+
+            if ($key_is_custom && $value_is_custom) {
+                throw new PublicAlert("Rest failed in as you have two custom columns. This may mean you need to regenerate your rest tables or have misspellings in your request. Please uses dedicated constants.");
+            }
+
+            if (!$key_is_custom && !$value_is_custom) {
+                $joinColumns[] = $valueOne;
+                $joinColumns[] = $valueTwo;
+                $sql .= '(' . $valueOne . $operator . $valueTwo . ") $booleanOperator ";
+                return;
+            }
+
+            if ($value_is_custom) {
+                $joinColumns[] = $valueOne;
+
+                if (self::$allowSubSelectQueries && strpos($valueTwo, '(SELECT ') === 0) {
+                    $sql .= "($valueOne $operator $valueTwo ) $booleanOperator ";
+                    return;
                 }
-                $addJoinNext = true;
-                // recurse and change join method
-                $sql .= self::buildBooleanJoinConditions($method, $value, $pdo, $booleanJoin === 'AND' ? 'OR' : 'AND');
+
+                if (self::$compiled_PDO_validations[$valueOne][0] === 'binary') {
+                    $sql .= "($valueOne $operator UNHEX(" . self::addInjection($valueTwo, $pdo) . ")) $booleanOperator ";
+                    return;
+                }
+
+                $sql .= '(' . $valueOne . $operator . self::addInjection($valueTwo, $pdo) . ") $booleanOperator ";
+                return;
+            }
+
+            // column is custom
+            $joinColumns[] = $valueTwo;
+            if (self::$compiled_PDO_validations[$valueTwo][0] === 'binary') {
+                $sql .= "($valueTwo $operator UNHEX(" . self::addInjection($valueOne, $pdo) . ")) $booleanOperator ";
+                return;
+            }
+
+            $sql .= '(' . self::addInjection($valueOne, $pdo) . $operator . $valueTwo . ") $booleanOperator ";
+        };
+
+
+        foreach ($set as $column => $value) {
+            if ($addJoinNext) {
+                $sql .= " $booleanOperator ";
+            }
+            if (is_array($value)) {                         /// do we intemperate as a boolean switch or custom operation (w/ optional operation)
+                switch (count($value)) {
+                    case 1:
+                        // join extra logic for expressions, if count
+                        $addJoinNext = true;
+                        $sql .= self::buildBooleanJoinConditions($method, $value, $pdo, $booleanOperator === 'AND' ? 'OR' : 'AND');
+                        break;
+                    case 2:
+                        if (!array_key_exists(0, $value) ||
+                            !array_key_exists(1, $value)) {
+                            $addJoinNext = true;
+                            $sql .= self::buildBooleanJoinConditions($method, $value, $pdo, $booleanOperator === 'AND' ? 'OR' : 'AND');
+                            break;
+                        }
+                        $addSingleConditionToJoin($value[0], self::EQUAL,$value[1]);
+                        break;
+                    case 3:
+                        if (!array_key_exists(0, $value) ||
+                            !array_key_exists(1, $value) ||
+                            !array_key_exists(2, $value)) {
+                            $sql .= self::buildBooleanJoinConditions($method, $value, $pdo, $booleanOperator === 'AND' ? 'OR' : 'AND');
+                            break;
+                        }
+                        if (!is_string($value[0]) || !is_string($value[1]) || !is_string($value[2])) {
+                            throw new PublicAlert('One or more of the array values provided in the restful JOIN condition are not strings.');
+                        }
+                        $supportedOperators = implode('|', [
+                            self::GREATER_THAN_OR_EQUAL_TO,
+                            self::GREATER_THAN,
+                            self::LESS_THAN_OR_EQUAL_TO,
+                            self::LESS_THAN,
+                            self::EQUAL,
+                            self::EQUAL_NULL_SAFE,
+                            self::NOT_EQUAL
+                        ]);
+                        if (!((bool)preg_match('#^' . $supportedOperators . '$#', $value[1]))) { // ie #^=|>=|<=$#
+                            throw new PublicAlert('Restful column joins may only use one (=,>=, or <=).');
+                        }
+                        $addSingleConditionToJoin($value[0], $value[1],$value[2]);
+                        break;
+                    default:
+                        throw new PublicAlert('Restful joins across two tables must be populated with two or three array values with column names, or an appropriate joining operator and column names.');
+                }
+                // end switch
                 continue;
-            }
-
-            if (!self::validateInternalColumn($method, $column)) {
-                throw new PublicAlert('A column ' . $column . ' you provided in the where clause could not be validated. This should be a one to one relation with your table column name.');
-            }
-
+            } // end is_array
             $addJoinNext = false;
+            $addSingleConditionToJoin($column, self::EQUAL, $value);
+        } // end foreach
 
-            if (self::$allowSubSelectQueries && strpos($value, '(SELECT ') === 0) {
-                $sql .= "($column = $value ) $booleanJoin ";
-                continue;
-            }
-
-            if (self::$compiled_PDO_validations[$column][0] === 'binary') {
-                $sql .= "($column = UNHEX(" . self::addInjection($value, $pdo) . ")) $booleanJoin ";
-                continue;
-            }
-
-            $sql .= "($column = " . self::addInjection($value, $pdo) . ") $booleanJoin ";
-        }
-
-        return preg_replace("/\s$booleanJoin\s?$/", '', $sql) . ')';
+        return preg_replace("/\s$booleanOperator\s?$/", '', $sql) . ')';
     }
 
 
@@ -884,7 +867,8 @@ abstract class Rest extends Database
                 self::$compiled_regex_validations,
                 self::$join_tables,
                 self::$allowSubSelectQueries,
-                self::$externalRestfulRequestsAPI
+                self::$externalRestfulRequestsAPI,
+                self::$injection
             ];
         }
         self::$REST_REQUEST_METHOD = $method;
@@ -913,6 +897,7 @@ abstract class Rest extends Database
             if (!$subQuery) {
                 self::$allowSubSelectQueries = false;          // this should only be done on completion
                 self::$externalRestfulRequestsAPI = false;     // this should only be done on completion
+                self::$injection = [];
             }
         } else {
             [
@@ -925,7 +910,8 @@ abstract class Rest extends Database
                 self::$compiled_regex_validations,
                 self::$join_tables,
                 self::$allowSubSelectQueries,
-                self::$externalRestfulRequestsAPI
+                self::$externalRestfulRequestsAPI,
+                self::$injection
             ] = array_pop(self::$activeQueryStates);
         }
     }

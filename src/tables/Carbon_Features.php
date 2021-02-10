@@ -201,7 +201,8 @@ MYSQL;
              $feature_entity_id = $id = self::beginTransaction(self::class, $dependantEntityId);
         } else {
            $ref='carbon_features.feature_entity_id';
-           if (!self::validateInternalColumn(self::POST, $ref, $feature_entity_id)) {
+           $op = self::EQUAL;
+           if (!self::validateInternalColumn(self::POST, $ref, $op, $feature_entity_id)) {
              throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_features.feature_entity_id\'.');
            }            
         }
@@ -216,9 +217,10 @@ MYSQL;
         }
         $feature_code = $argv['carbon_features.feature_code'];
         $ref='carbon_features.feature_code';
-        if (!self::validateInternalColumn(self::POST, $ref, $feature_code)) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $feature_code)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_features.feature_code\'.');
-        }        
+        }
         $stmt->bindParam(':feature_code',$feature_code, 2, 30);
         
         
@@ -265,7 +267,8 @@ MYSQL;
             if (!array_key_exists($key, self::PDO_VALIDATION)){
                 throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.', 'danger');
             }
-            if (!self::validateInternalColumn(self::PUT, $key, $value)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_features.\'.');
             }
         }
@@ -299,7 +302,8 @@ MYSQL;
         if (array_key_exists('carbon_features.feature_entity_id', $argv)) {
             $feature_entity_id = $argv['carbon_features.feature_entity_id'];
             $ref = 'carbon_features.feature_entity_id';
-            if (!self::validateInternalColumn(self::PUT, $ref, $feature_entity_id)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $feature_entity_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':feature_entity_id',$feature_entity_id, 2, 16);
@@ -307,7 +311,8 @@ MYSQL;
         if (array_key_exists('carbon_features.feature_code', $argv)) {
             $feature_code = $argv['carbon_features.feature_code'];
             $ref = 'carbon_features.feature_code';
-            if (!self::validateInternalColumn(self::PUT, $ref, $feature_code)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $feature_code)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':feature_code',$feature_code, 2, 30);

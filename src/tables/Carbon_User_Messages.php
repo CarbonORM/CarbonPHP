@@ -216,7 +216,8 @@ MYSQL;
              $message_id = $id = self::beginTransaction(self::class, $dependantEntityId);
         } else {
            $ref='carbon_user_messages.message_id';
-           if (!self::validateInternalColumn(self::POST, $ref, $message_id)) {
+           $op = self::EQUAL;
+           if (!self::validateInternalColumn(self::POST, $ref, $op, $message_id)) {
              throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_messages.message_id\'.');
            }            
         }
@@ -231,9 +232,10 @@ MYSQL;
         }
         $from_user_id = $argv['carbon_user_messages.from_user_id'];
         $ref='carbon_user_messages.from_user_id';
-        if (!self::validateInternalColumn(self::POST, $ref, $from_user_id)) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $from_user_id)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_messages.from_user_id\'.');
-        }        
+        }
         $stmt->bindParam(':from_user_id',$from_user_id, 2, 16);
         
         
@@ -244,9 +246,10 @@ MYSQL;
         }
         $to_user_id = $argv['carbon_user_messages.to_user_id'];
         $ref='carbon_user_messages.to_user_id';
-        if (!self::validateInternalColumn(self::POST, $ref, $to_user_id)) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $to_user_id)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_messages.to_user_id\'.');
-        }        
+        }
         $stmt->bindParam(':to_user_id',$to_user_id, 2, 16);
         
                 
@@ -255,7 +258,8 @@ MYSQL;
             throw new PublicAlert('The column \'carbon_user_messages.message\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
         } 
         $ref='carbon_user_messages.message';
-        if (!self::validateInternalColumn(self::POST, $ref, $message)) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $message)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_messages.message\'.');
         }
         $stmt->bindValue(':message', $argv['carbon_user_messages.message'], 2);
@@ -265,9 +269,10 @@ MYSQL;
         
         $message_read = $argv['carbon_user_messages.message_read'] ?? '0';
         $ref='carbon_user_messages.message_read';
-        if (!self::validateInternalColumn(self::POST, $ref, $message_read, $message_read === '0')) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $message_read, $message_read === '0')) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_messages.message_read\'.');
-        }        
+        }
         $stmt->bindParam(':message_read',$message_read, 0, 1);
         
         
@@ -314,7 +319,8 @@ MYSQL;
             if (!array_key_exists($key, self::PDO_VALIDATION)){
                 throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.', 'danger');
             }
-            if (!self::validateInternalColumn(self::PUT, $key, $value)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_messages.\'.');
             }
         }
@@ -357,7 +363,8 @@ MYSQL;
         if (array_key_exists('carbon_user_messages.message_id', $argv)) {
             $message_id = $argv['carbon_user_messages.message_id'];
             $ref = 'carbon_user_messages.message_id';
-            if (!self::validateInternalColumn(self::PUT, $ref, $message_id)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $message_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':message_id',$message_id, 2, 16);
@@ -365,7 +372,8 @@ MYSQL;
         if (array_key_exists('carbon_user_messages.from_user_id', $argv)) {
             $from_user_id = $argv['carbon_user_messages.from_user_id'];
             $ref = 'carbon_user_messages.from_user_id';
-            if (!self::validateInternalColumn(self::PUT, $ref, $from_user_id)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $from_user_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':from_user_id',$from_user_id, 2, 16);
@@ -373,7 +381,8 @@ MYSQL;
         if (array_key_exists('carbon_user_messages.to_user_id', $argv)) {
             $to_user_id = $argv['carbon_user_messages.to_user_id'];
             $ref = 'carbon_user_messages.to_user_id';
-            if (!self::validateInternalColumn(self::PUT, $ref, $to_user_id)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $to_user_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':to_user_id',$to_user_id, 2, 16);
@@ -384,7 +393,8 @@ MYSQL;
         if (array_key_exists('carbon_user_messages.message_read', $argv)) {
             $message_read = $argv['carbon_user_messages.message_read'];
             $ref = 'carbon_user_messages.message_read';
-            if (!self::validateInternalColumn(self::PUT, $ref, $message_read)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $message_read)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':message_read',$message_read, 0, 1);

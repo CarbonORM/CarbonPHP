@@ -206,9 +206,10 @@ MYSQL;
         }
         $group_name = $argv['carbon_groups.group_name'];
         $ref='carbon_groups.group_name';
-        if (!self::validateInternalColumn(self::POST, $ref, $group_name)) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $group_name)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_groups.group_name\'.');
-        }        
+        }
         $stmt->bindParam(':group_name',$group_name, 2, 20);
                 
         $entity_id = $id = $argv['carbon_groups.entity_id'] ?? false;
@@ -216,7 +217,8 @@ MYSQL;
              $entity_id = $id = self::beginTransaction(self::class, $dependantEntityId);
         } else {
            $ref='carbon_groups.entity_id';
-           if (!self::validateInternalColumn(self::POST, $ref, $entity_id)) {
+           $op = self::EQUAL;
+           if (!self::validateInternalColumn(self::POST, $ref, $op, $entity_id)) {
              throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_groups.entity_id\'.');
            }            
         }
@@ -231,9 +233,10 @@ MYSQL;
         }
         $created_by = $argv['carbon_groups.created_by'];
         $ref='carbon_groups.created_by';
-        if (!self::validateInternalColumn(self::POST, $ref, $created_by)) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $created_by)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_groups.created_by\'.');
-        }        
+        }
         $stmt->bindParam(':created_by',$created_by, 2, 16);
         
         
@@ -280,7 +283,8 @@ MYSQL;
             if (!array_key_exists($key, self::PDO_VALIDATION)){
                 throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.', 'danger');
             }
-            if (!self::validateInternalColumn(self::PUT, $key, $value)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_groups.\'.');
             }
         }
@@ -317,7 +321,8 @@ MYSQL;
         if (array_key_exists('carbon_groups.group_name', $argv)) {
             $group_name = $argv['carbon_groups.group_name'];
             $ref = 'carbon_groups.group_name';
-            if (!self::validateInternalColumn(self::PUT, $ref, $group_name)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $group_name)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':group_name',$group_name, 2, 20);
@@ -325,7 +330,8 @@ MYSQL;
         if (array_key_exists('carbon_groups.entity_id', $argv)) {
             $entity_id = $argv['carbon_groups.entity_id'];
             $ref = 'carbon_groups.entity_id';
-            if (!self::validateInternalColumn(self::PUT, $ref, $entity_id)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $entity_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':entity_id',$entity_id, 2, 16);
@@ -333,7 +339,8 @@ MYSQL;
         if (array_key_exists('carbon_groups.created_by', $argv)) {
             $created_by = $argv['carbon_groups.created_by'];
             $ref = 'carbon_groups.created_by';
-            if (!self::validateInternalColumn(self::PUT, $ref, $created_by)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $created_by)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':created_by',$created_by, 2, 16);

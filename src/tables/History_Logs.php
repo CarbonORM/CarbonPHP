@@ -205,36 +205,40 @@ MYSQL;
         }
         $uuid = $argv['history_logs.uuid'];
         $ref='history_logs.uuid';
-        if (!self::validateInternalColumn(self::POST, $ref, $uuid)) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $uuid)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'history_logs.uuid\'.');
-        }        
+        }
         $stmt->bindParam(':uuid',$uuid, 2, 16);
         
         
         
         $resource_type = $argv['history_logs.resource_type'] ?? null;
         $ref='history_logs.resource_type';
-        if (!self::validateInternalColumn(self::POST, $ref, $resource_type, $resource_type === null)) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $resource_type, $resource_type === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'history_logs.resource_type\'.');
-        }        
+        }
         $stmt->bindParam(':resource_type',$resource_type, 2, 40);
         
         
         
         $resource_uuid = $argv['history_logs.resource_uuid'] ?? null;
         $ref='history_logs.resource_uuid';
-        if (!self::validateInternalColumn(self::POST, $ref, $resource_uuid, $resource_uuid === null)) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $resource_uuid, $resource_uuid === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'history_logs.resource_uuid\'.');
-        }        
+        }
         $stmt->bindParam(':resource_uuid',$resource_uuid, 2, 16);
         
         
         
         $operation_type = $argv['history_logs.operation_type'] ?? null;
         $ref='history_logs.operation_type';
-        if (!self::validateInternalColumn(self::POST, $ref, $operation_type, $operation_type === null)) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $operation_type, $operation_type === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'history_logs.operation_type\'.');
-        }        
+        }
         $stmt->bindParam(':operation_type',$operation_type, 2, 20);
         
         
@@ -243,7 +247,8 @@ MYSQL;
             throw new PublicAlert('The column \'history_logs.data\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
         }
         $ref='history_logs.data';
-        if (!self::validateInternalColumn(self::POST, $ref, $data)) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $data)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'history_logs.data\'.');
         }
         if (!is_string($data = $argv['history_logs.data']) && false === $data = json_encode($data)) {
@@ -294,7 +299,8 @@ MYSQL;
             if (!array_key_exists($key, self::PDO_VALIDATION)){
                 throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.', 'danger');
             }
-            if (!self::validateInternalColumn(self::PUT, $key, $value)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'history_logs.\'.');
             }
         }
@@ -334,7 +340,8 @@ MYSQL;
         if (array_key_exists('history_logs.uuid', $argv)) {
             $uuid = $argv['history_logs.uuid'];
             $ref = 'history_logs.uuid';
-            if (!self::validateInternalColumn(self::PUT, $ref, $uuid)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $uuid)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':uuid',$uuid, 2, 16);
@@ -342,7 +349,8 @@ MYSQL;
         if (array_key_exists('history_logs.resource_type', $argv)) {
             $resource_type = $argv['history_logs.resource_type'];
             $ref = 'history_logs.resource_type';
-            if (!self::validateInternalColumn(self::PUT, $ref, $resource_type)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $resource_type)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':resource_type',$resource_type, 2, 40);
@@ -350,7 +358,8 @@ MYSQL;
         if (array_key_exists('history_logs.resource_uuid', $argv)) {
             $resource_uuid = $argv['history_logs.resource_uuid'];
             $ref = 'history_logs.resource_uuid';
-            if (!self::validateInternalColumn(self::PUT, $ref, $resource_uuid)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $resource_uuid)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':resource_uuid',$resource_uuid, 2, 16);
@@ -358,7 +367,8 @@ MYSQL;
         if (array_key_exists('history_logs.operation_type', $argv)) {
             $operation_type = $argv['history_logs.operation_type'];
             $ref = 'history_logs.operation_type';
-            if (!self::validateInternalColumn(self::PUT, $ref, $operation_type)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $operation_type)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':operation_type',$operation_type, 2, 20);

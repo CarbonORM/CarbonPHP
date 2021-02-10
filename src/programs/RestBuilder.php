@@ -1447,7 +1447,8 @@ MYSQL;
              \${{name}} = \$id = self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
         } else {
             \$ref='{{TableName}}.{{name}}';
-           if (!self::validateInternalColumn(self::POST, \$ref, \${{name}})) {
+            \$op = self::EQUAL;
+           if (!self::validateInternalColumn(self::POST, \$ref, \$op, \${{name}})) {
              throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
            }            
         }
@@ -1460,7 +1461,8 @@ MYSQL;
              \${{name}} = \$id = self::beginTransaction(self::class, \$dependantEntityId);
         } else {
            \$ref='{{TableName}}.{{name}}';
-           if (!self::validateInternalColumn(self::POST, \$ref, \${{name}})) {
+           \$op = self::EQUAL;
+           if (!self::validateInternalColumn(self::POST, \$ref, \$op, \${{name}})) {
              throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
            }            
         }
@@ -1472,7 +1474,8 @@ MYSQL;
             throw new PublicAlert('The column \'{{TableName}}.{{name}}\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
         }
         \$ref='{{TableName}}.{{name}}';
-        if (!self::validateInternalColumn(self::POST, \$ref, \${{name}})) {
+        \$op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, \$ref, \$op, \${{name}})) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
         }
         if (!is_string(\${{name}} = \$argv['{{TableName}}.{{name}}']) && false === \${{name}} = json_encode(\${{name}})) {
@@ -1486,7 +1489,8 @@ MYSQL;
             throw new PublicAlert('The column \'{{TableName}}.{{name}}\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
         } 
         \$ref='{{TableName}}.{{name}}';
-        if (!self::validateInternalColumn(self::POST, \$ref, \${{name}})) {
+        \$op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, \$ref, \$op, \${{name}})) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
         }
         \$stmt->bindValue(':{{name}}', \$argv['{{TableName}}.{{name}}'], {{type}});
@@ -1496,7 +1500,8 @@ MYSQL;
         
         \${{name}} = \$argv['{{TableName}}.{{name}}'] ?? {{default}};
         \$ref='{{TableName}}.{{name}}';
-        if (!self::validateInternalColumn(self::POST, \$ref, \${{name}}, \${{name}} === {{{default}}})) {
+        \$op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, \$ref, \$op, \${{name}}, \${{name}} === {{{default}}})) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
         }
         \$stmt->bindValue(':{{name}}', \${{name}}, {{type}});
@@ -1508,9 +1513,10 @@ MYSQL;
         }{{/default}}
         \${{name}} = {{^default}}\$argv['{{TableName}}.{{name}}'];{{/default}}{{#default}}\$argv['{{TableName}}.{{name}}'] ?? {{{default}}};{{/default}}
         \$ref='{{TableName}}.{{name}}';
-        if (!self::validateInternalColumn(self::POST, \$ref, \${{name}}{{#default}}, \${{name}} === {{{default}}}{{/default}})) {
+        \$op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, \$ref, \$op, \${{name}}{{#default}}, \${{name}} === {{{default}}}{{/default}})) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
-        }        
+        }
         \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
         {{/length}}{{/skip}}{{/primary_binary}}{{/explode}}
 
@@ -1582,7 +1588,8 @@ MYSQL;
             if (!array_key_exists(\$key, self::PDO_VALIDATION)){
                 throw new PublicAlert('Restful table could not update column \$key, because it does not appear to exist.', 'danger');
             }
-            if (!self::validateInternalColumn(self::PUT, \$key, \$value)) {
+            \$op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, \$key, \$op, \$value)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
             }
         }
@@ -1617,7 +1624,8 @@ MYSQL;
         {{#length}}
             \${{name}} = \$argv['{{TableName}}.{{name}}'];
             \$ref = '{{TableName}}.{{name}}';
-            if (!self::validateInternalColumn(self::PUT, \$ref, \${{name}})) {
+            \$op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, \$ref, \$op, \${{name}})) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});

@@ -213,18 +213,20 @@ MYSQL;
         }
         $user_id = $argv['carbon_user_sessions.user_id'];
         $ref='carbon_user_sessions.user_id';
-        if (!self::validateInternalColumn(self::POST, $ref, $user_id)) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $user_id)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.user_id\'.');
-        }        
+        }
         $stmt->bindParam(':user_id',$user_id, 2, 16);
         
         
         
         $user_ip = $argv['carbon_user_sessions.user_ip'] ?? null;
         $ref='carbon_user_sessions.user_ip';
-        if (!self::validateInternalColumn(self::POST, $ref, $user_ip, $user_ip === null)) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $user_ip, $user_ip === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.user_ip\'.');
-        }        
+        }
         $stmt->bindParam(':user_ip',$user_ip, 2, 16);
         
         
@@ -235,9 +237,10 @@ MYSQL;
         }
         $session_id = $argv['carbon_user_sessions.session_id'];
         $ref='carbon_user_sessions.session_id';
-        if (!self::validateInternalColumn(self::POST, $ref, $session_id)) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $session_id)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.session_id\'.');
-        }        
+        }
         $stmt->bindParam(':session_id',$session_id, 2, 255);
         
                 
@@ -246,7 +249,8 @@ MYSQL;
             throw new PublicAlert('The column \'carbon_user_sessions.session_expires\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
         } 
         $ref='carbon_user_sessions.session_expires';
-        if (!self::validateInternalColumn(self::POST, $ref, $session_expires)) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $session_expires)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.session_expires\'.');
         }
         $stmt->bindValue(':session_expires', $argv['carbon_user_sessions.session_expires'], 2);
@@ -258,7 +262,8 @@ MYSQL;
             throw new PublicAlert('The column \'carbon_user_sessions.session_data\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
         } 
         $ref='carbon_user_sessions.session_data';
-        if (!self::validateInternalColumn(self::POST, $ref, $session_data)) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $session_data)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.session_data\'.');
         }
         $stmt->bindValue(':session_data', $argv['carbon_user_sessions.session_data'], 2);
@@ -268,9 +273,10 @@ MYSQL;
         
         $user_online_status = $argv['carbon_user_sessions.user_online_status'] ?? '1';
         $ref='carbon_user_sessions.user_online_status';
-        if (!self::validateInternalColumn(self::POST, $ref, $user_online_status, $user_online_status === '1')) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $user_online_status, $user_online_status === '1')) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.user_online_status\'.');
-        }        
+        }
         $stmt->bindParam(':user_online_status',$user_online_status, 0, 1);
         
 
@@ -315,7 +321,8 @@ MYSQL;
             if (!array_key_exists($key, self::PDO_VALIDATION)){
                 throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.', 'danger');
             }
-            if (!self::validateInternalColumn(self::PUT, $key, $value)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.\'.');
             }
         }
@@ -358,7 +365,8 @@ MYSQL;
         if (array_key_exists('carbon_user_sessions.user_id', $argv)) {
             $user_id = $argv['carbon_user_sessions.user_id'];
             $ref = 'carbon_user_sessions.user_id';
-            if (!self::validateInternalColumn(self::PUT, $ref, $user_id)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':user_id',$user_id, 2, 16);
@@ -366,7 +374,8 @@ MYSQL;
         if (array_key_exists('carbon_user_sessions.user_ip', $argv)) {
             $user_ip = $argv['carbon_user_sessions.user_ip'];
             $ref = 'carbon_user_sessions.user_ip';
-            if (!self::validateInternalColumn(self::PUT, $ref, $user_ip)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_ip)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':user_ip',$user_ip, 2, 16);
@@ -374,7 +383,8 @@ MYSQL;
         if (array_key_exists('carbon_user_sessions.session_id', $argv)) {
             $session_id = $argv['carbon_user_sessions.session_id'];
             $ref = 'carbon_user_sessions.session_id';
-            if (!self::validateInternalColumn(self::PUT, $ref, $session_id)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $session_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':session_id',$session_id, 2, 255);
@@ -388,7 +398,8 @@ MYSQL;
         if (array_key_exists('carbon_user_sessions.user_online_status', $argv)) {
             $user_online_status = $argv['carbon_user_sessions.user_online_status'];
             $ref = 'carbon_user_sessions.user_online_status';
-            if (!self::validateInternalColumn(self::PUT, $ref, $user_online_status)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_online_status)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':user_online_status',$user_online_status, 0, 1);

@@ -213,7 +213,8 @@ MYSQL;
              $entity_pk = $id = self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
         } else {
             $ref='carbons.entity_pk';
-           if (!self::validateInternalColumn(self::POST, $ref, $entity_pk)) {
+            $op = self::EQUAL;
+           if (!self::validateInternalColumn(self::POST, $ref, $op, $entity_pk)) {
              throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbons.entity_pk\'.');
            }            
         }
@@ -224,9 +225,10 @@ MYSQL;
         
         $entity_fk = $argv['carbons.entity_fk'] ?? null;
         $ref='carbons.entity_fk';
-        if (!self::validateInternalColumn(self::POST, $ref, $entity_fk, $entity_fk === null)) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $entity_fk, $entity_fk === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbons.entity_fk\'.');
-        }        
+        }
         $stmt->bindParam(':entity_fk',$entity_fk, 2, 16);
         
         
@@ -237,9 +239,10 @@ MYSQL;
         }
         $entity_tag = $argv['carbons.entity_tag'];
         $ref='carbons.entity_tag';
-        if (!self::validateInternalColumn(self::POST, $ref, $entity_tag)) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $entity_tag)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbons.entity_tag\'.');
-        }        
+        }
         $stmt->bindParam(':entity_tag',$entity_tag, 2, 100);
         
 
@@ -285,7 +288,8 @@ MYSQL;
             if (!array_key_exists($key, self::PDO_VALIDATION)){
                 throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.', 'danger');
             }
-            if (!self::validateInternalColumn(self::PUT, $key, $value)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbons.\'.');
             }
         }
@@ -319,7 +323,8 @@ MYSQL;
         if (array_key_exists('carbons.entity_pk', $argv)) {
             $entity_pk = $argv['carbons.entity_pk'];
             $ref = 'carbons.entity_pk';
-            if (!self::validateInternalColumn(self::PUT, $ref, $entity_pk)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $entity_pk)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':entity_pk',$entity_pk, 2, 16);
@@ -327,7 +332,8 @@ MYSQL;
         if (array_key_exists('carbons.entity_fk', $argv)) {
             $entity_fk = $argv['carbons.entity_fk'];
             $ref = 'carbons.entity_fk';
-            if (!self::validateInternalColumn(self::PUT, $ref, $entity_fk)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $entity_fk)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':entity_fk',$entity_fk, 2, 16);
@@ -335,7 +341,8 @@ MYSQL;
         if (array_key_exists('carbons.entity_tag', $argv)) {
             $entity_tag = $argv['carbons.entity_tag'];
             $ref = 'carbons.entity_tag';
-            if (!self::validateInternalColumn(self::PUT, $ref, $entity_tag)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $entity_tag)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':entity_tag',$entity_tag, 2, 100);

@@ -191,27 +191,30 @@ MYSQL;
         
         $uuid = $argv['creation_logs.uuid'] ?? null;
         $ref='creation_logs.uuid';
-        if (!self::validateInternalColumn(self::POST, $ref, $uuid, $uuid === null)) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $uuid, $uuid === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'creation_logs.uuid\'.');
-        }        
+        }
         $stmt->bindParam(':uuid',$uuid, 2, 16);
         
         
         
         $resource_type = $argv['creation_logs.resource_type'] ?? null;
         $ref='creation_logs.resource_type';
-        if (!self::validateInternalColumn(self::POST, $ref, $resource_type, $resource_type === null)) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $resource_type, $resource_type === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'creation_logs.resource_type\'.');
-        }        
+        }
         $stmt->bindParam(':resource_type',$resource_type, 2, 40);
         
         
         
         $resource_uuid = $argv['creation_logs.resource_uuid'] ?? null;
         $ref='creation_logs.resource_uuid';
-        if (!self::validateInternalColumn(self::POST, $ref, $resource_uuid, $resource_uuid === null)) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $resource_uuid, $resource_uuid === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'creation_logs.resource_uuid\'.');
-        }        
+        }
         $stmt->bindParam(':resource_uuid',$resource_uuid, 2, 16);
         
 
@@ -256,7 +259,8 @@ MYSQL;
             if (!array_key_exists($key, self::PDO_VALIDATION)){
                 throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.', 'danger');
             }
-            if (!self::validateInternalColumn(self::PUT, $key, $value)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'creation_logs.\'.');
             }
         }
@@ -290,7 +294,8 @@ MYSQL;
         if (array_key_exists('creation_logs.uuid', $argv)) {
             $uuid = $argv['creation_logs.uuid'];
             $ref = 'creation_logs.uuid';
-            if (!self::validateInternalColumn(self::PUT, $ref, $uuid)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $uuid)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':uuid',$uuid, 2, 16);
@@ -298,7 +303,8 @@ MYSQL;
         if (array_key_exists('creation_logs.resource_type', $argv)) {
             $resource_type = $argv['creation_logs.resource_type'];
             $ref = 'creation_logs.resource_type';
-            if (!self::validateInternalColumn(self::PUT, $ref, $resource_type)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $resource_type)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':resource_type',$resource_type, 2, 40);
@@ -306,7 +312,8 @@ MYSQL;
         if (array_key_exists('creation_logs.resource_uuid', $argv)) {
             $resource_uuid = $argv['creation_logs.resource_uuid'];
             $ref = 'creation_logs.resource_uuid';
-            if (!self::validateInternalColumn(self::PUT, $ref, $resource_uuid)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $resource_uuid)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':resource_uuid',$resource_uuid, 2, 16);

@@ -205,9 +205,10 @@ MYSQL;
         }
         $entity_reference = $argv['carbon_location_references.entity_reference'];
         $ref='carbon_location_references.entity_reference';
-        if (!self::validateInternalColumn(self::POST, $ref, $entity_reference)) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $entity_reference)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_location_references.entity_reference\'.');
-        }        
+        }
         $stmt->bindParam(':entity_reference',$entity_reference, 2, 16);
         
         
@@ -218,9 +219,10 @@ MYSQL;
         }
         $location_reference = $argv['carbon_location_references.location_reference'];
         $ref='carbon_location_references.location_reference';
-        if (!self::validateInternalColumn(self::POST, $ref, $location_reference)) {
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $location_reference)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_location_references.location_reference\'.');
-        }        
+        }
         $stmt->bindParam(':location_reference',$location_reference, 2, 16);
         
         
@@ -266,7 +268,8 @@ MYSQL;
             if (!array_key_exists($key, self::PDO_VALIDATION)){
                 throw new PublicAlert('Restful table could not update column $key, because it does not appear to exist.', 'danger');
             }
-            if (!self::validateInternalColumn(self::PUT, $key, $value)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_location_references.\'.');
             }
         }
@@ -300,7 +303,8 @@ MYSQL;
         if (array_key_exists('carbon_location_references.entity_reference', $argv)) {
             $entity_reference = $argv['carbon_location_references.entity_reference'];
             $ref = 'carbon_location_references.entity_reference';
-            if (!self::validateInternalColumn(self::PUT, $ref, $entity_reference)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $entity_reference)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':entity_reference',$entity_reference, 2, 16);
@@ -308,7 +312,8 @@ MYSQL;
         if (array_key_exists('carbon_location_references.location_reference', $argv)) {
             $location_reference = $argv['carbon_location_references.location_reference'];
             $ref = 'carbon_location_references.location_reference';
-            if (!self::validateInternalColumn(self::PUT, $ref, $location_reference)) {
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $location_reference)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             $stmt->bindParam(':location_reference',$location_reference, 2, 16);
