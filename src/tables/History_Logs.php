@@ -248,7 +248,7 @@ MYSQL;
         }
         $ref='history_logs.data';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $data)) {
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $argv[data])) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'history_logs.data\'.');
         }
         if (!is_string($data = $argv['history_logs.data']) && false === $data = json_encode($data)) {

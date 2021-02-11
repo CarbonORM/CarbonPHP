@@ -213,7 +213,7 @@ MYSQL;
         } 
         $ref='carbon_reports.report';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $report)) {
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $argv[report])) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_reports.report\'.');
         }
         $stmt->bindValue(':report', $argv['carbon_reports.report'], 2);
@@ -227,7 +227,7 @@ MYSQL;
         } 
         $ref='carbon_reports.call_trace';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $call_trace)) {
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $argv[call_trace])) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_reports.call_trace\'.');
         }
         $stmt->bindValue(':call_trace', $argv['carbon_reports.call_trace'], 2);
