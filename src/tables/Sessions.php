@@ -259,7 +259,7 @@ MYSQL;
         } 
         $ref='sessions.session_expires';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $argv[session_expires])) {
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $argv['session_expires'])) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'sessions.session_expires\'.');
         }
         $stmt->bindValue(':session_expires', $argv['sessions.session_expires'], 2);
@@ -272,7 +272,7 @@ MYSQL;
         } 
         $ref='sessions.session_data';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $argv[session_data])) {
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $argv['session_data'])) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'sessions.session_data\'.');
         }
         $stmt->bindValue(':session_data', $argv['sessions.session_data'], 2);

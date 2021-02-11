@@ -259,7 +259,7 @@ MYSQL;
         } 
         $ref='carbon_user_messages.message';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $argv[message])) {
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $argv['message'])) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_messages.message\'.');
         }
         $stmt->bindValue(':message', $argv['carbon_user_messages.message'], 2);

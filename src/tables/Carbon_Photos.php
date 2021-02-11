@@ -270,7 +270,7 @@ MYSQL;
         } 
         $ref='carbon_photos.photo_description';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $argv[photo_description])) {
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $argv['photo_description'])) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_photos.photo_description\'.');
         }
         $stmt->bindValue(':photo_description', $argv['carbon_photos.photo_description'], 2);

@@ -1475,7 +1475,7 @@ MYSQL;
         }
         \$ref='{{TableName}}.{{name}}';
         \$op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, \$ref, \$op, \$argv[{{name}}])) {
+        if (!self::validateInternalColumn(self::POST, \$ref, \$op, \$argv['{{name}}'])) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
         }
         if (!is_string(\${{name}} = \$argv['{{TableName}}.{{name}}']) && false === \${{name}} = json_encode(\${{name}})) {
@@ -1490,7 +1490,7 @@ MYSQL;
         } 
         \$ref='{{TableName}}.{{name}}';
         \$op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, \$ref, \$op, \$argv[{{name}}])) {
+        if (!self::validateInternalColumn(self::POST, \$ref, \$op, \$argv['{{name}}'])) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
         }
         \$stmt->bindValue(':{{name}}', \$argv['{{TableName}}.{{name}}'], {{type}});
