@@ -156,6 +156,8 @@ MYSQL;
         
         self::jsonSQLReporting(func_get_args(), $sql);
         
+        self::postpreprocessRestRequest($sql);
+        
         $stmt = $pdo->prepare($sql);
 
         self::bind($stmt);
@@ -204,6 +206,8 @@ MYSQL;
         $sql = 'INSERT INTO carbon_photos (parent_id, photo_id, user_id, photo_path, photo_description) VALUES ( UNHEX(:parent_id), UNHEX(:photo_id), UNHEX(:user_id), :photo_path, :photo_description)';
 
         self::jsonSQLReporting(func_get_args(), $sql);
+
+        self::postpreprocessRestRequest($sql);
 
         $stmt = self::database()->prepare($sql);
 
@@ -355,6 +359,8 @@ MYSQL;
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
+        self::postpreprocessRestRequest($sql);
+
         $stmt = $pdo->prepare($sql);
 
         if (array_key_exists('carbon_photos.parent_id', $argv)) {
@@ -458,6 +464,8 @@ MYSQL;
         $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
         
         self::jsonSQLReporting(func_get_args(), $sql);
+
+        self::postpreprocessRestRequest($sql);
 
         $stmt = $pdo->prepare($sql);
 

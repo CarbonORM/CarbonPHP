@@ -159,6 +159,8 @@ MYSQL;
         
         self::jsonSQLReporting(func_get_args(), $sql);
         
+        self::postpreprocessRestRequest($sql);
+        
         $stmt = $pdo->prepare($sql);
 
         self::bind($stmt);
@@ -207,6 +209,8 @@ MYSQL;
         $sql = 'INSERT INTO carbon_locations (entity_id, latitude, longitude, street, city, state, elevation, zip) VALUES ( UNHEX(:entity_id), :latitude, :longitude, :street, :city, :state, :elevation, :zip)';
 
         self::jsonSQLReporting(func_get_args(), $sql);
+
+        self::postpreprocessRestRequest($sql);
 
         $stmt = self::database()->prepare($sql);
 
@@ -383,6 +387,8 @@ MYSQL;
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
+        self::postpreprocessRestRequest($sql);
+
         $stmt = $pdo->prepare($sql);
 
         if (array_key_exists('carbon_locations.entity_id', $argv)) {
@@ -513,6 +519,8 @@ MYSQL;
         $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
         
         self::jsonSQLReporting(func_get_args(), $sql);
+
+        self::postpreprocessRestRequest($sql);
 
         $stmt = $pdo->prepare($sql);
 

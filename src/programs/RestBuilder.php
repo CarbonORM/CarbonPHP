@@ -1386,6 +1386,8 @@ MYSQL;
         
         self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
         
+        self::postpreprocessRestRequest(\$sql);
+        
         \$stmt = \$pdo->prepare(\$sql);
 
         self::bind(\$stmt);
@@ -1437,6 +1439,8 @@ MYSQL;
         \$sql = 'INSERT INTO {{^carbon_namespace}}{{#QueryWithDatabaseName}}{{database}}.{{/QueryWithDatabaseName}}{{/carbon_namespace}}{{TableName}} ({{listed}}) VALUES ({{{implode}}})';
 
         {{#json}}self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
+
+        self::postpreprocessRestRequest(\$sql);
 
         \$stmt = self::database()->prepare(\$sql);
 
@@ -1614,6 +1618,8 @@ MYSQL;
 
         {{#json}}self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
 
+        self::postpreprocessRestRequest(\$sql);
+
         \$stmt = \$pdo->prepare(\$sql);
 
         {{#explode}}
@@ -1696,6 +1702,8 @@ MYSQL;
         
         self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
 
+        self::postpreprocessRestRequest(\$sql);
+
         \$stmt = \$pdo->prepare(\$sql);
 
         self::bind(\$stmt);
@@ -1750,6 +1758,8 @@ MYSQL;
         \$sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, \$argv, \$pdo);{{/primary}}
 
         {{#json}}self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
+
+        self::postpreprocessRestRequest(\$sql);
 
         \$stmt = \$pdo->prepare(\$sql);
 

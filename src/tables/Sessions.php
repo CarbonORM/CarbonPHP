@@ -162,6 +162,8 @@ MYSQL;
         
         self::jsonSQLReporting(func_get_args(), $sql);
         
+        self::postpreprocessRestRequest($sql);
+        
         $stmt = $pdo->prepare($sql);
 
         self::bind($stmt);
@@ -210,6 +212,8 @@ MYSQL;
         $sql = 'INSERT INTO sessions (user_id, user_ip, session_id, session_expires, session_data, user_online_status) VALUES ( UNHEX(:user_id), :user_ip, :session_id, :session_expires, :session_data, :user_online_status)';
 
         self::jsonSQLReporting(func_get_args(), $sql);
+
+        self::postpreprocessRestRequest($sql);
 
         $stmt = self::database()->prepare($sql);
 
@@ -369,6 +373,8 @@ MYSQL;
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
+        self::postpreprocessRestRequest($sql);
+
         $stmt = $pdo->prepare($sql);
 
         if (array_key_exists('sessions.user_id', $argv)) {
@@ -484,6 +490,8 @@ MYSQL;
 
 
         self::jsonSQLReporting(func_get_args(), $sql);
+
+        self::postpreprocessRestRequest($sql);
 
         $stmt = $pdo->prepare($sql);
 

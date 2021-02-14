@@ -218,6 +218,8 @@ MYSQL;
         
         self::jsonSQLReporting(func_get_args(), $sql);
         
+        self::postpreprocessRestRequest($sql);
+        
         $stmt = $pdo->prepare($sql);
 
         self::bind($stmt);
@@ -266,6 +268,8 @@ MYSQL;
         $sql = 'INSERT INTO carbon_user_tasks (task_id, user_id, from_id, task_name, task_description, percent_complete, start_date, end_date) VALUES ( UNHEX(:task_id), UNHEX(:user_id), UNHEX(:from_id), :task_name, :task_description, :percent_complete, :start_date, :end_date)';
 
         self::jsonSQLReporting(func_get_args(), $sql);
+
+        self::postpreprocessRestRequest($sql);
 
         $stmt = self::database()->prepare($sql);
 
@@ -452,6 +456,8 @@ MYSQL;
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
+        self::postpreprocessRestRequest($sql);
+
         $stmt = $pdo->prepare($sql);
 
         if (array_key_exists('carbon_user_tasks.task_id', $argv)) {
@@ -570,6 +576,8 @@ MYSQL;
         $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
         
         self::jsonSQLReporting(func_get_args(), $sql);
+
+        self::postpreprocessRestRequest($sql);
 
         $stmt = $pdo->prepare($sql);
 

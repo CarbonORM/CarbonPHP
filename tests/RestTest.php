@@ -338,7 +338,6 @@ final class RestTest extends Config
 
         self::assertSame(strpos($subSelect, '(SELECT '), 0);
 
-        define('jkl', true);
         self::assertTrue(Carbons::Get($user, null, [
             Carbons::SELECT => [
                 Carbons::ENTITY_PK

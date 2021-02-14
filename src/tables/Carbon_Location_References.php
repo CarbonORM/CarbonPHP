@@ -150,6 +150,8 @@ MYSQL;
         
         self::jsonSQLReporting(func_get_args(), $sql);
         
+        self::postpreprocessRestRequest($sql);
+        
         $stmt = $pdo->prepare($sql);
 
         self::bind($stmt);
@@ -193,6 +195,8 @@ MYSQL;
         $sql = 'INSERT INTO carbon_location_references (entity_reference, location_reference) VALUES ( UNHEX(:entity_reference), UNHEX(:location_reference))';
 
         self::jsonSQLReporting(func_get_args(), $sql);
+
+        self::postpreprocessRestRequest($sql);
 
         $stmt = self::database()->prepare($sql);
 
@@ -298,6 +302,8 @@ MYSQL;
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
+        self::postpreprocessRestRequest($sql);
+
         $stmt = $pdo->prepare($sql);
 
         if (array_key_exists('carbon_location_references.entity_reference', $argv)) {
@@ -376,6 +382,8 @@ MYSQL;
         $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
 
         self::jsonSQLReporting(func_get_args(), $sql);
+
+        self::postpreprocessRestRequest($sql);
 
         $stmt = $pdo->prepare($sql);
 

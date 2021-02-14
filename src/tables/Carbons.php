@@ -155,6 +155,8 @@ MYSQL;
         
         self::jsonSQLReporting(func_get_args(), $sql);
         
+        self::postpreprocessRestRequest($sql);
+        
         $stmt = $pdo->prepare($sql);
 
         self::bind($stmt);
@@ -203,6 +205,8 @@ MYSQL;
         $sql = 'INSERT INTO carbons (entity_pk, entity_fk, entity_tag) VALUES ( UNHEX(:entity_pk), UNHEX(:entity_fk), :entity_tag)';
 
         self::jsonSQLReporting(func_get_args(), $sql);
+
+        self::postpreprocessRestRequest($sql);
 
         $stmt = self::database()->prepare($sql);
 
@@ -318,6 +322,8 @@ MYSQL;
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
+        self::postpreprocessRestRequest($sql);
+
         $stmt = $pdo->prepare($sql);
 
         if (array_key_exists('carbons.entity_pk', $argv)) {
@@ -418,6 +424,8 @@ MYSQL;
 
 
         self::jsonSQLReporting(func_get_args(), $sql);
+
+        self::postpreprocessRestRequest($sql);
 
         $stmt = $pdo->prepare($sql);
 
