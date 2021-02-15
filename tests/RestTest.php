@@ -319,24 +319,33 @@ final class RestTest extends Config
     /**
      * @depends testRestApiCanJoin
      * @throws PublicAlert
+     * @noinspection PhpUnitTestsInspection
      */
     public function testRestApiCanSubQuery(): void
     {
 
         $user = [];
 
-        $subSelect = Users::subSelect(null, [
+        /*$subSelect = Users::subSelect(null, [
             Users::SELECT => [
                 Users::USER_ID
             ],
             Users::WHERE => [
                 Users::USER_USERNAME => Config::ADMIN_USERNAME
             ]
-        ]);
+        ]);*/
 
-        self::assertTrue(Users::$allowSubSelectQueries, 'The allowSubSelectQueries variable was incorrectly set to false.');
+        #self::assertTrue(is_callable($subSelect), 'Failed asserting subSelect returns a calable.');
 
-        self::assertSame(strpos($subSelect, '(SELECT '), 0);
+        #$subSelect = $subSelect();
+
+        #self::assertTrue(is_string($subSelect));
+
+        #self::assertTrue(Users::$allowSubSelectQueries, 'The allowSubSelectQueries variable was incorrectly set to false.');
+
+        #self::assertSame(strpos($subSelect, '(SELECT '), 0);
+
+        define('$name', true);
 
         self::assertTrue(Carbons::Get($user, null, [
             Carbons::SELECT => [
@@ -344,7 +353,14 @@ final class RestTest extends Config
             ],
             Carbons::WHERE => [
                 Carbons::ENTITY_PK =>
-                    $subSelect
+                    Users::subSelect(null, [
+                        Users::SELECT => [
+                            Users::USER_ID
+                        ],
+                        Users::WHERE => [
+                            Users::USER_USERNAME => Config::ADMIN_USERNAME
+                        ]
+                    ])
             ],
             Carbons::PAGINATION => [
                 Carbons::LIMIT =>
