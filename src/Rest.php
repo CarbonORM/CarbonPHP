@@ -25,6 +25,7 @@ abstract class Rest extends Database
     public const LEFT_OUTER = 'left outer';
     public const RIGHT_OUTER = 'right outer';
     public const COUNT = 'count';
+    public const AS = 'as';
     public const SUM = 'sum';
     public const MIN = 'min';
     public const MAX = 'max';
@@ -555,12 +556,21 @@ abstract class Rest extends Database
      */
     private static function buildAggregate($stmt, &$sql, &$group = [], $noHEX = false): void
     {
-        if (count($stmt) !== 2) {
-            throw new PublicAlert('An array in the GET Restful Request must be two values: [aggregate, column]');
+        $name = '';
+        if (count($stmt) === 3){
+            [$column, $aggregate, $name] = $stmt;
+            if ($aggregate !== self::AS){
+                throw new PublicAlert('When three parameters are passed in an array as an aggregate condition the middle must be self::AS.');
+            }
+        } else {
+            if (count($stmt) !== 2) {
+                throw new PublicAlert('An array in the GET Restful Request must be two values: [aggregate, column]');
+            }
+            [$aggregate, $column] = $stmt;    // todo - nested aggregates :: [$aggregate, string | array ]
         }
-        [$aggregate, $column] = $stmt;    // todo - nested aggregates :: [$aggregate, string | array ]
 
         if (!in_array($aggregate, [
+            self::AS,
             self::MAX,
             self::MIN,
             self::SUM,
@@ -575,11 +585,22 @@ abstract class Rest extends Database
         }
 
         switch ($aggregate) {
+            case self::AS:
+                if (empty($name) && is_string($name)) {
+                    throw new PublicAlert('The third argument provided to the AS select aggregate must not be empty and equal a string.');
+                }
+                if (!$noHEX && self::$compiled_PDO_validations[$column][0] === 'binary') {
+                    $sql = "HEX($column) AS $name," . $sql;
+                } else {
+                    $sql = "$column AS $name, " . $sql;
+                }
+                $sql = rtrim($sql, ', ');
+                break;
             case self::GROUP_CONCAT:
                 if (!$noHEX && self::$compiled_PDO_validations[$column][0] === 'binary') {
-                    $sql = "GROUP_CONCAT(DISTINCT HEX($column) ORDER BY $column ASC SEPARATOR ',') as " . self::$compiled_valid_columns[$column] . ', ' . $sql;
+                    $sql = "GROUP_CONCAT(DISTINCT HEX($column) ORDER BY $column ASC SEPARATOR ',') AS " . self::$compiled_valid_columns[$column] . ', ' . $sql;
                 } else {
-                    $sql = "GROUP_CONCAT(DISTINCT($column) ORDER BY $column ASC SEPARATOR ',') as " . self::$compiled_valid_columns[$column] . ', ' . $sql;
+                    $sql = "GROUP_CONCAT(DISTINCT($column) ORDER BY $column ASC SEPARATOR ',') AS " . self::$compiled_valid_columns[$column] . ', ' . $sql;
                 }
                 $sql = rtrim($sql, ', ');
                 break;
