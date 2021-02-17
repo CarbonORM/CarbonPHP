@@ -1189,6 +1189,7 @@ export interface  i{{ucEachTableName}}{
             'use CarbonPHP\Error\PublicAlert;',
             'use CarbonPHP\Rest;',
             'use PDO;',
+            'use PDOException;',
             'use function array_key_exists;',
             'use function count;',
             'use function func_get_args;',
@@ -1205,30 +1206,6 @@ export interface  i{{ucEachTableName}}{
         ]);
 
         $staticNamespaces = implode(PHP_EOL, $staticNamespaces);
-
-        /*
-         *            $rest[$tableName] = [
-                            'subQuery' => $subQuery,
-                            'subQueryLength' => strlen($subQuery),
-                            'json' => $json,
-                            'binary_primary' => false,
-                            'carbon_namespace' => $carbon_namespace,
-                            'namespace' => $carbon_namespace ? 'CarbonPHP\Tables' : $target_namespace,
-                            'carbon_table' => false,
-                            'database' => $this->schema,
-                            // We need to catch circular dependencies
-                            'dependencies' => $rest[$tableName]['dependencies'] ?? [],
-                            'TableName' => $tableName,
-                            'ucEachTableName' => $etn = implode('_', array_map('ucfirst', explode('_', preg_replace("/^$prefix/", '', $tableName)))),
-                            'strtolowerNoPrefixTableName' => strtolower($etn),
-                            'primarySort' => '',
-                            'custom_methods' => '',
-                            'primary' => [],
-                        ];
-         *
-         *
-         * */
-
 
         return /** @lang Handlebars */ <<<STRING
 <?php 
@@ -1374,6 +1351,7 @@ MYSQL;
     * @param string|null \$primary
     * @param array \$argv
     * @throws PublicAlert
+    * @throws PDOException
     * @return bool
     */
     public static function Get(array &\$return, {{#primaryExists}}string \$primary = null, {{/primaryExists}}array \$argv = []): bool
@@ -1425,6 +1403,7 @@ MYSQL;
      * @param string|null \$dependantEntityId - a C6 Hex entity key 
      * @return bool|string
      * @throws PublicAlert
+     * @throws PDOException
      */
     public static function Post(array \$argv, string \$dependantEntityId = null){{^primaryExists}}: bool{{/primaryExists}}
     {   
@@ -1563,6 +1542,7 @@ MYSQL;
     {{#primaryExists}}* @param string \$primary{{/primaryExists}}
     * @param array \$argv
     * @throws PublicAlert
+    * @throws PDOException
     * @return bool
     */
     public static function Put(array &\$return, {{#primaryExists}}string \$primary,{{/primaryExists}} array \$argv) : bool
@@ -1673,6 +1653,7 @@ MYSQL;
     * @param string|null \$primary
     * @param array \$argv
     * @throws PublicAlert
+    * @throws PDOException
     * @return bool
     */
     public static function Delete(array &\$remove, {{#primaryExists}}string \$primary = null, {{/primaryExists}}array \$argv = []) : bool

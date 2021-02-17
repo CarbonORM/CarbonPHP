@@ -4,11 +4,11 @@ namespace CarbonPHP\Programs;
 
 
 // TODO - probably should be named better but were preserving backwards compatibility (BC)
-use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\CarbonPHP;
 
 trait ColorCode
 {
-    protected static bool $colorCodeBool = true;
+    public static bool $colorCodeBool = true;
 
     /**
      * @param string $message
@@ -64,8 +64,18 @@ trait ColorCode
 
         $colorCodex = sprintf($colors[$color], $message);
 
-        /** @noinspection ForgottenDebugOutputInspection */
-        error_log($colorCodex);    // do not double quote args passed here
+        if (CarbonPHP::$test) {
+            $current = ini_set('error_log', '/dev/stdout');
+            /**
+             * @link https://stackoverflow.com/questions/21784240/is-there-any-way-to-expect-output-to-error-log-in-phpunit-tests
+             * @noinspection ForgottenDebugOutputInspection
+             */
+            error_log($colorCodex);
+            ini_set('error_log', $current);
+        } else {
+            /** @noinspection ForgottenDebugOutputInspection */
+            error_log($colorCodex);    // do not double quote args passed here
+        }
 
         if ($exit) {
             exit($message);

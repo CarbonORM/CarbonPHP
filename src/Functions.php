@@ -220,8 +220,13 @@ namespace {                                     // This runs the following code 
 
         if (CarbonPHP::$cli) {
             $report = $output(true);
+            if ($die) {
+                CarbonPHP::$test = false;   // this will ensure default out of this fn goes to std_error
+                ColorCode::colorCode($output(true) . PHP_EOL, 'blue');
+                die(1);
+            }
             ColorCode::colorCode($report . PHP_EOL, 'red');
-        } else if (!$die && CarbonPHP::$ajax) {
+        } else if (!$die && CarbonPHP::$ajax) {                                     // TODO - This was for json compatibility, no idea if it is ever used
             $report = $output(true);
             View::$bufferedContent = base64_encode($report);
         } else {

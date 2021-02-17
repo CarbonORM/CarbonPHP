@@ -8,6 +8,7 @@ use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Rest;
 use PDO;
+use PDOException;
 use function array_key_exists;
 use function count;
 use function func_get_args;
@@ -142,6 +143,7 @@ MYSQL;
     * @param string|null $primary
     * @param array $argv
     * @throws PublicAlert
+    * @throws PDOException
     * @return bool
     */
     public static function Get(array &$return, string $primary = null, array $argv = []): bool
@@ -190,6 +192,7 @@ MYSQL;
      * @param string|null $dependantEntityId - a C6 Hex entity key 
      * @return bool|string
      * @throws PublicAlert
+     * @throws PDOException
      */
     public static function Post(array $argv, string $dependantEntityId = null)
     {   
@@ -289,6 +292,7 @@ MYSQL;
     * @param string $primary
     * @param array $argv
     * @throws PublicAlert
+    * @throws PDOException
     * @return bool
     */
     public static function Put(array &$return, string $primary, array $argv) : bool
@@ -409,6 +413,7 @@ MYSQL;
     * @param string|null $primary
     * @param array $argv
     * @throws PublicAlert
+    * @throws PDOException
     * @return bool
     */
     public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
