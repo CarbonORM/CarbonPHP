@@ -205,8 +205,7 @@ MYSQL;
     * @param array $return
     * @param string|null $primary
     * @param array $argv
-    * @throws PublicAlert
-    * @throws PDOException
+    * @throws PublicAlert|PDOException
     * @return bool
     */
     public static function Get(array &$return, string $primary = null, array $argv = []): bool
@@ -269,12 +268,12 @@ MYSQL;
         
         $sql = 'INSERT INTO carbon_users (user_username, user_password, user_id, user_type, user_sport, user_session_id, user_facebook_id, user_first_name, user_last_name, user_profile_pic, user_profile_uri, user_cover_photo, user_birthday, user_gender, user_about_me, user_rank, user_email, user_email_code, user_email_confirmed, user_generated_string, user_membership, user_deactivated, user_ip, user_education_history, user_location) VALUES ( :user_username, :user_password, UNHEX(:user_id), :user_type, :user_sport, :user_session_id, :user_facebook_id, :user_first_name, :user_last_name, :user_profile_pic, :user_profile_uri, :user_cover_photo, :user_birthday, :user_gender, :user_about_me, :user_rank, :user_email, :user_email_code, :user_email_confirmed, :user_generated_string, :user_membership, :user_deactivated, :user_ip, :user_education_history, :user_location)';
 
+
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
         $stmt = self::database()->prepare($sql);
-
         
         
         
@@ -289,6 +288,7 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_users.user_username\'.');
         }
         $stmt->bindParam(':user_username',$user_username, 2, 100);
+        
         
         
         
@@ -319,6 +319,8 @@ MYSQL;
         
         
         
+        
+        
         $user_type = $argv['carbon_users.user_type'] ?? 'Athlete';
         $ref='carbon_users.user_type';
         $op = self::EQUAL;
@@ -326,6 +328,7 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_users.user_type\'.');
         }
         $stmt->bindParam(':user_type',$user_type, 2, 20);
+        
         
         
         
@@ -339,6 +342,7 @@ MYSQL;
         
         
         
+        
         $user_session_id = $argv['carbon_users.user_session_id'] ?? null;
         $ref='carbon_users.user_session_id';
         $op = self::EQUAL;
@@ -349,6 +353,7 @@ MYSQL;
         
         
         
+        
         $user_facebook_id = $argv['carbon_users.user_facebook_id'] ?? null;
         $ref='carbon_users.user_facebook_id';
         $op = self::EQUAL;
@@ -356,6 +361,7 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_users.user_facebook_id\'.');
         }
         $stmt->bindParam(':user_facebook_id',$user_facebook_id, 2, 225);
+        
         
         
         
@@ -374,6 +380,7 @@ MYSQL;
         
         
         
+        
         if (!array_key_exists('carbon_users.user_last_name', $argv)) {
             throw new PublicAlert('Required argument "carbon_users.user_last_name" is missing from the request.', 'danger');
         }
@@ -387,6 +394,7 @@ MYSQL;
         
         
         
+        
         $user_profile_pic = $argv['carbon_users.user_profile_pic'] ?? null;
         $ref='carbon_users.user_profile_pic';
         $op = self::EQUAL;
@@ -394,6 +402,7 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_users.user_profile_pic\'.');
         }
         $stmt->bindParam(':user_profile_pic',$user_profile_pic, 2, 225);
+        
         
         
         
@@ -407,6 +416,7 @@ MYSQL;
         
         
         
+        
         $user_cover_photo = $argv['carbon_users.user_cover_photo'] ?? null;
         $ref='carbon_users.user_cover_photo';
         $op = self::EQUAL;
@@ -414,6 +424,7 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_users.user_cover_photo\'.');
         }
         $stmt->bindParam(':user_cover_photo',$user_cover_photo, 2, 225);
+        
         
         
         
@@ -427,6 +438,7 @@ MYSQL;
         
         
         
+        
         $user_gender = $argv['carbon_users.user_gender'] ?? null;
         $ref='carbon_users.user_gender';
         $op = self::EQUAL;
@@ -434,6 +446,7 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_users.user_gender\'.');
         }
         $stmt->bindParam(':user_gender',$user_gender, 2, 25);
+        
         
         
         
@@ -445,8 +458,8 @@ MYSQL;
         }
         $stmt->bindParam(':user_about_me',$user_about_me, 2, 225);
         
-                        
         
+                        
         $user_rank = $argv['carbon_users.user_rank'] ?? '0';
         $ref='carbon_users.user_rank';
         $op = self::EQUAL;
@@ -454,6 +467,7 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_users.user_rank\'.');
         }
         $stmt->bindValue(':user_rank', $user_rank, 2);
+        
         
         
         
@@ -472,6 +486,7 @@ MYSQL;
         
         
         
+        
         $user_email_code = $argv['carbon_users.user_email_code'] ?? null;
         $ref='carbon_users.user_email_code';
         $op = self::EQUAL;
@@ -479,6 +494,7 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_users.user_email_code\'.');
         }
         $stmt->bindParam(':user_email_code',$user_email_code, 2, 225);
+        
         
         
         
@@ -492,6 +508,7 @@ MYSQL;
         
         
         
+        
         $user_generated_string = $argv['carbon_users.user_generated_string'] ?? null;
         $ref='carbon_users.user_generated_string';
         $op = self::EQUAL;
@@ -500,8 +517,8 @@ MYSQL;
         }
         $stmt->bindParam(':user_generated_string',$user_generated_string, 2, 200);
         
-                        
         
+                        
         $user_membership = $argv['carbon_users.user_membership'] ?? '0';
         $ref='carbon_users.user_membership';
         $op = self::EQUAL;
@@ -513,6 +530,7 @@ MYSQL;
         
         
         
+        
         $user_deactivated = $argv['carbon_users.user_deactivated'] ?? '0';
         $ref='carbon_users.user_deactivated';
         $op = self::EQUAL;
@@ -520,6 +538,8 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_users.user_deactivated\'.');
         }
         $stmt->bindParam(':user_deactivated',$user_deactivated, 0, 1);
+        
+        
         
         
         
@@ -538,6 +558,7 @@ MYSQL;
         
         
         
+        
         $user_education_history = $argv['carbon_users.user_education_history'] ?? null;
         $ref='carbon_users.user_education_history';
         $op = self::EQUAL;
@@ -548,6 +569,7 @@ MYSQL;
         
         
         
+        
         $user_location = $argv['carbon_users.user_location'] ?? null;
         $ref='carbon_users.user_location';
         $op = self::EQUAL;
@@ -555,6 +577,7 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_users.user_location\'.');
         }
         $stmt->bindParam(':user_location',$user_location, 2, 20);
+        
         
         
 
@@ -574,7 +597,6 @@ MYSQL;
        
         self::completeRest();
         return false;
-        
     }
     
     /**

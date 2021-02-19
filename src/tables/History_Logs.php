@@ -138,8 +138,7 @@ MYSQL;
     * @param array $return
     * @param string|null $primary
     * @param array $argv
-    * @throws PublicAlert
-    * @throws PDOException
+    * @throws PublicAlert|PDOException
     * @return bool
     */
     public static function Get(array &$return, array $argv = []): bool
@@ -197,12 +196,17 @@ MYSQL;
         
         $sql = 'INSERT INTO history_logs (uuid, resource_type, resource_uuid, operation_type, data) VALUES ( UNHEX(:uuid), :resource_type, UNHEX(:resource_uuid), :operation_type, :data)';
 
+        $pdo = self::database();
+        
+        if (!$pdo->inTransaction()) {
+            $pdo->beginTransaction();
+        }
+
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
         $stmt = self::database()->prepare($sql);
-
         
         
         
@@ -220,6 +224,7 @@ MYSQL;
         
         
         
+        
         $resource_type = $argv['history_logs.resource_type'] ?? null;
         $ref='history_logs.resource_type';
         $op = self::EQUAL;
@@ -227,6 +232,7 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'history_logs.resource_type\'.');
         }
         $stmt->bindParam(':resource_type',$resource_type, 2, 40);
+        
         
         
         
@@ -240,6 +246,7 @@ MYSQL;
         
         
         
+        
         $operation_type = $argv['history_logs.operation_type'] ?? null;
         $ref='history_logs.operation_type';
         $op = self::EQUAL;
@@ -247,6 +254,7 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'history_logs.operation_type\'.');
         }
         $stmt->bindParam(':operation_type',$operation_type, 2, 20);
+        
         
         
         
@@ -266,9 +274,12 @@ MYSQL;
         
 
 
-        
         if ($stmt->execute()) {
-            self::prepostprocessRestRequest();
+self::prepostprocessRestRequest();
+            
+            if (self::$commit && !Database::commit()) {
+               throw new PublicAlert('Failed to store commit transaction on table history_logs');
+            }
             
             self::postprocessRestRequest();
             
@@ -280,7 +291,6 @@ MYSQL;
         self::completeRest();
          
         return false;
-    
     }
     
     /**

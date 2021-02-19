@@ -143,8 +143,7 @@ MYSQL;
     * @param array $return
     * @param string|null $primary
     * @param array $argv
-    * @throws PublicAlert
-    * @throws PDOException
+    * @throws PublicAlert|PDOException
     * @return bool
     */
     public static function Get(array &$return, string $primary = null, array $argv = []): bool
@@ -207,13 +206,12 @@ MYSQL;
         
         $sql = 'INSERT INTO carbons (entity_pk, entity_fk, entity_tag) VALUES ( UNHEX(:entity_pk), UNHEX(:entity_fk), :entity_tag)';
 
+
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
         $stmt = self::database()->prepare($sql);
-
-        
         
         $entity_pk = $id = $argv['carbons.entity_pk'] ?? false;
         if ($id === false) {
@@ -230,6 +228,8 @@ MYSQL;
         
         
         
+        
+        
         $entity_fk = $argv['carbons.entity_fk'] ?? null;
         $ref='carbons.entity_fk';
         $op = self::EQUAL;
@@ -237,6 +237,7 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbons.entity_fk\'.');
         }
         $stmt->bindParam(':entity_fk',$entity_fk, 2, 16);
+        
         
         
         
@@ -269,7 +270,6 @@ MYSQL;
        
         self::completeRest();
         return false;
-        
     }
     
     /**

@@ -142,8 +142,7 @@ MYSQL;
     * @param array $return
     * @param string|null $primary
     * @param array $argv
-    * @throws PublicAlert
-    * @throws PDOException
+    * @throws PublicAlert|PDOException
     * @return bool
     */
     public static function Get(array &$return, string $primary = null, array $argv = []): bool
@@ -206,12 +205,12 @@ MYSQL;
         
         $sql = 'INSERT INTO carbon_comments (parent_id, comment_id, user_id, comment) VALUES ( UNHEX(:parent_id), UNHEX(:comment_id), UNHEX(:user_id), :comment)';
 
+
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
         $stmt = self::database()->prepare($sql);
-
         
         
         
@@ -243,6 +242,8 @@ MYSQL;
         
         
         
+        
+        
         if (!array_key_exists('carbon_comments.user_id', $argv)) {
             throw new PublicAlert('Required argument "carbon_comments.user_id" is missing from the request.', 'danger');
         }
@@ -253,6 +254,7 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_comments.user_id\'.');
         }
         $stmt->bindParam(':user_id',$user_id, 2, 16);
+        
         
                 
         
@@ -265,6 +267,7 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_comments.comment\'.');
         }
         $stmt->bindValue(':comment', $argv['carbon_comments.comment'], 2);
+        
 
         
 
@@ -284,7 +287,6 @@ MYSQL;
        
         self::completeRest();
         return false;
-        
     }
     
     /**

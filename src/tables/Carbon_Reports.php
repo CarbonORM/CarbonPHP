@@ -137,8 +137,7 @@ MYSQL;
     * @param array $return
     * @param string|null $primary
     * @param array $argv
-    * @throws PublicAlert
-    * @throws PDOException
+    * @throws PublicAlert|PDOException
     * @return bool
     */
     public static function Get(array &$return, array $argv = []): bool
@@ -196,12 +195,17 @@ MYSQL;
         
         $sql = 'INSERT INTO carbon_reports (log_level, report, call_trace) VALUES ( :log_level, :report, :call_trace)';
 
+        $pdo = self::database();
+        
+        if (!$pdo->inTransaction()) {
+            $pdo->beginTransaction();
+        }
+
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
         $stmt = self::database()->prepare($sql);
-
         
         
         
@@ -212,6 +216,7 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_reports.log_level\'.');
         }
         $stmt->bindParam(':log_level',$log_level, 2, 20);
+        
         
                 
         
@@ -224,7 +229,10 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_reports.report\'.');
         }
         $stmt->bindValue(':report', $argv['carbon_reports.report'], 2);
+        
 
+        
+        
         
         
                 
@@ -238,13 +246,17 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_reports.call_trace\'.');
         }
         $stmt->bindValue(':call_trace', $argv['carbon_reports.call_trace'], 2);
+        
 
         
 
 
-        
         if ($stmt->execute()) {
-            self::prepostprocessRestRequest();
+self::prepostprocessRestRequest();
+            
+            if (self::$commit && !Database::commit()) {
+               throw new PublicAlert('Failed to store commit transaction on table carbon_reports');
+            }
             
             self::postprocessRestRequest();
             
@@ -256,7 +268,6 @@ MYSQL;
         self::completeRest();
          
         return false;
-    
     }
     
     /**

@@ -134,8 +134,7 @@ MYSQL;
     * @param array $return
     * @param string|null $primary
     * @param array $argv
-    * @throws PublicAlert
-    * @throws PDOException
+    * @throws PublicAlert|PDOException
     * @return bool
     */
     public static function Get(array &$return, string $primary = null, array $argv = []): bool
@@ -198,12 +197,12 @@ MYSQL;
         
         $sql = 'INSERT INTO carbon_groups (group_name, entity_id, created_by) VALUES ( :group_name, UNHEX(:entity_id), UNHEX(:created_by))';
 
+
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
         $stmt = self::database()->prepare($sql);
-
         
         
         
@@ -235,6 +234,8 @@ MYSQL;
         
         
         
+        
+        
         if (!array_key_exists('carbon_groups.created_by', $argv)) {
             throw new PublicAlert('Required argument "carbon_groups.created_by" is missing from the request.', 'danger');
         }
@@ -245,6 +246,7 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_groups.created_by\'.');
         }
         $stmt->bindParam(':created_by',$created_by, 2, 16);
+        
         
         
 
@@ -264,7 +266,6 @@ MYSQL;
        
         self::completeRest();
         return false;
-        
     }
     
     /**

@@ -138,8 +138,7 @@ MYSQL;
     * @param array $return
     * @param string|null $primary
     * @param array $argv
-    * @throws PublicAlert
-    * @throws PDOException
+    * @throws PublicAlert|PDOException
     * @return bool
     */
     public static function Get(array &$return, array $argv = []): bool
@@ -197,12 +196,17 @@ MYSQL;
         
         $sql = 'INSERT INTO carbon_location_references (entity_reference, location_reference) VALUES ( UNHEX(:entity_reference), UNHEX(:location_reference))';
 
+        $pdo = self::database();
+        
+        if (!$pdo->inTransaction()) {
+            $pdo->beginTransaction();
+        }
+
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
         $stmt = self::database()->prepare($sql);
-
         
         
         
@@ -221,6 +225,7 @@ MYSQL;
         
         
         
+        
         if (!array_key_exists('carbon_location_references.location_reference', $argv)) {
             throw new PublicAlert('Required argument "carbon_location_references.location_reference" is missing from the request.', 'danger');
         }
@@ -233,11 +238,15 @@ MYSQL;
         $stmt->bindParam(':location_reference',$location_reference, 2, 16);
         
         
-
-
         
+
+
         if ($stmt->execute()) {
-            self::prepostprocessRestRequest();
+self::prepostprocessRestRequest();
+            
+            if (self::$commit && !Database::commit()) {
+               throw new PublicAlert('Failed to store commit transaction on table carbon_location_references');
+            }
             
             self::postprocessRestRequest();
             
@@ -249,7 +258,6 @@ MYSQL;
         self::completeRest();
          
         return false;
-    
     }
     
     /**

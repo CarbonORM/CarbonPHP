@@ -130,8 +130,7 @@ MYSQL;
     * @param array $return
     * @param string|null $primary
     * @param array $argv
-    * @throws PublicAlert
-    * @throws PDOException
+    * @throws PublicAlert|PDOException
     * @return bool
     */
     public static function Get(array &$return, array $argv = []): bool
@@ -189,12 +188,17 @@ MYSQL;
         
         $sql = 'INSERT INTO carbon_group_references (group_id, allowed_to_grant_group_id) VALUES ( UNHEX(:group_id), UNHEX(:allowed_to_grant_group_id))';
 
+        $pdo = self::database();
+        
+        if (!$pdo->inTransaction()) {
+            $pdo->beginTransaction();
+        }
+
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
         $stmt = self::database()->prepare($sql);
-
         
         
         
@@ -208,6 +212,7 @@ MYSQL;
         
         
         
+        
         $allowed_to_grant_group_id = $argv['carbon_group_references.allowed_to_grant_group_id'] ?? null;
         $ref='carbon_group_references.allowed_to_grant_group_id';
         $op = self::EQUAL;
@@ -218,9 +223,12 @@ MYSQL;
         
 
 
-        
         if ($stmt->execute()) {
-            self::prepostprocessRestRequest();
+self::prepostprocessRestRequest();
+            
+            if (self::$commit && !Database::commit()) {
+               throw new PublicAlert('Failed to store commit transaction on table carbon_group_references');
+            }
             
             self::postprocessRestRequest();
             
@@ -232,7 +240,6 @@ MYSQL;
         self::completeRest();
          
         return false;
-    
     }
     
     /**

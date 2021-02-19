@@ -147,8 +147,7 @@ MYSQL;
     * @param array $return
     * @param string|null $primary
     * @param array $argv
-    * @throws PublicAlert
-    * @throws PDOException
+    * @throws PublicAlert|PDOException
     * @return bool
     */
     public static function Get(array &$return, string $primary = null, array $argv = []): bool
@@ -211,13 +210,12 @@ MYSQL;
         
         $sql = 'INSERT INTO carbon_user_messages (message_id, from_user_id, to_user_id, message, message_read) VALUES ( UNHEX(:message_id), UNHEX(:from_user_id), UNHEX(:to_user_id), :message, :message_read)';
 
+
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
-        $stmt = self::database()->prepare($sql);
-
-                
+        $stmt = self::database()->prepare($sql);        
         $message_id = $id = $argv['carbon_user_messages.message_id'] ?? false;
         if ($id === false) {
              $message_id = $id = self::beginTransaction(self::class, $dependantEntityId);
@@ -229,6 +227,8 @@ MYSQL;
            }            
         }
         $stmt->bindParam(':message_id',$message_id, 2, 16);
+        
+        
         
         
         
@@ -248,6 +248,7 @@ MYSQL;
         
         
         
+        
         if (!array_key_exists('carbon_user_messages.to_user_id', $argv)) {
             throw new PublicAlert('Required argument "carbon_user_messages.to_user_id" is missing from the request.', 'danger');
         }
@@ -258,6 +259,7 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_messages.to_user_id\'.');
         }
         $stmt->bindParam(':to_user_id',$to_user_id, 2, 16);
+        
         
                 
         
@@ -270,7 +272,9 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_messages.message\'.');
         }
         $stmt->bindValue(':message', $argv['carbon_user_messages.message'], 2);
+        
 
+        
         
         
         
@@ -281,6 +285,7 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_messages.message_read\'.');
         }
         $stmt->bindParam(':message_read',$message_read, 0, 1);
+        
         
         
 
@@ -300,7 +305,6 @@ MYSQL;
        
         self::completeRest();
         return false;
-        
     }
     
     /**

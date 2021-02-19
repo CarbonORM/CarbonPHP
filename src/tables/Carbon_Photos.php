@@ -144,8 +144,7 @@ MYSQL;
     * @param array $return
     * @param string|null $primary
     * @param array $argv
-    * @throws PublicAlert
-    * @throws PDOException
+    * @throws PublicAlert|PDOException
     * @return bool
     */
     public static function Get(array &$return, string $primary = null, array $argv = []): bool
@@ -208,13 +207,12 @@ MYSQL;
         
         $sql = 'INSERT INTO carbon_photos (parent_id, photo_id, user_id, photo_path, photo_description) VALUES ( UNHEX(:parent_id), UNHEX(:photo_id), UNHEX(:user_id), :photo_path, :photo_description)';
 
+
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
-        $stmt = self::database()->prepare($sql);
-
-                
+        $stmt = self::database()->prepare($sql);        
         $parent_id = $id = $argv['carbon_photos.parent_id'] ?? false;
         if ($id === false) {
              $parent_id = $id = self::beginTransaction(self::class, $dependantEntityId);
@@ -226,6 +224,8 @@ MYSQL;
            }            
         }
         $stmt->bindParam(':parent_id',$parent_id, 2, 16);
+        
+        
         
         
         
@@ -245,6 +245,7 @@ MYSQL;
         
         
         
+        
         if (!array_key_exists('carbon_photos.user_id', $argv)) {
             throw new PublicAlert('Required argument "carbon_photos.user_id" is missing from the request.', 'danger');
         }
@@ -255,6 +256,7 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_photos.user_id\'.');
         }
         $stmt->bindParam(':user_id',$user_id, 2, 16);
+        
         
         
         
@@ -270,6 +272,7 @@ MYSQL;
         }
         $stmt->bindParam(':photo_path',$photo_path, 2, 225);
         
+        
                 
         
         if (!array_key_exists('carbon_photos.photo_description', $argv)) {
@@ -281,6 +284,7 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_photos.photo_description\'.');
         }
         $stmt->bindValue(':photo_description', $argv['carbon_photos.photo_description'], 2);
+        
 
         
 
@@ -300,7 +304,6 @@ MYSQL;
        
         self::completeRest();
         return false;
-        
     }
     
     /**

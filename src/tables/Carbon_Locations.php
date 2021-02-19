@@ -147,8 +147,7 @@ MYSQL;
     * @param array $return
     * @param string|null $primary
     * @param array $argv
-    * @throws PublicAlert
-    * @throws PDOException
+    * @throws PublicAlert|PDOException
     * @return bool
     */
     public static function Get(array &$return, string $primary = null, array $argv = []): bool
@@ -211,13 +210,12 @@ MYSQL;
         
         $sql = 'INSERT INTO carbon_locations (entity_id, latitude, longitude, street, city, state, elevation, zip) VALUES ( UNHEX(:entity_id), :latitude, :longitude, :street, :city, :state, :elevation, :zip)';
 
+
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
-        $stmt = self::database()->prepare($sql);
-
-                
+        $stmt = self::database()->prepare($sql);        
         $entity_id = $id = $argv['carbon_locations.entity_id'] ?? false;
         if ($id === false) {
              $entity_id = $id = self::beginTransaction(self::class, $dependantEntityId);
@@ -233,6 +231,8 @@ MYSQL;
         
         
         
+        
+        
         $latitude = $argv['carbon_locations.latitude'] ?? null;
         $ref='carbon_locations.latitude';
         $op = self::EQUAL;
@@ -240,6 +240,7 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_locations.latitude\'.');
         }
         $stmt->bindParam(':latitude',$latitude, 2, 225);
+        
         
         
         
@@ -253,6 +254,7 @@ MYSQL;
         
         
         
+        
         $street = $argv['carbon_locations.street'] ?? null;
         $ref='carbon_locations.street';
         $op = self::EQUAL;
@@ -260,6 +262,7 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_locations.street\'.');
         }
         $stmt->bindParam(':street',$street, 2, 225);
+        
         
         
         
@@ -273,6 +276,7 @@ MYSQL;
         
         
         
+        
         $state = $argv['carbon_locations.state'] ?? null;
         $ref='carbon_locations.state';
         $op = self::EQUAL;
@@ -280,6 +284,7 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_locations.state\'.');
         }
         $stmt->bindParam(':state',$state, 2, 10);
+        
         
         
         
@@ -291,8 +296,8 @@ MYSQL;
         }
         $stmt->bindParam(':elevation',$elevation, 2, 40);
         
-                        
         
+                        
         $zip = $argv['carbon_locations.zip'] ?? null;
         $ref='carbon_locations.zip';
         $op = self::EQUAL;
@@ -319,7 +324,6 @@ MYSQL;
        
         self::completeRest();
         return false;
-        
     }
     
     /**

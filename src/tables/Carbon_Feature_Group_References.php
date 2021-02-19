@@ -130,8 +130,7 @@ MYSQL;
     * @param array $return
     * @param string|null $primary
     * @param array $argv
-    * @throws PublicAlert
-    * @throws PDOException
+    * @throws PublicAlert|PDOException
     * @return bool
     */
     public static function Get(array &$return, array $argv = []): bool
@@ -189,12 +188,17 @@ MYSQL;
         
         $sql = 'INSERT INTO carbon_feature_group_references (feature_entity_id, group_entity_id) VALUES ( UNHEX(:feature_entity_id), UNHEX(:group_entity_id))';
 
+        $pdo = self::database();
+        
+        if (!$pdo->inTransaction()) {
+            $pdo->beginTransaction();
+        }
+
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
         $stmt = self::database()->prepare($sql);
-
         
         
         
@@ -208,6 +212,7 @@ MYSQL;
         
         
         
+        
         $group_entity_id = $argv['carbon_feature_group_references.group_entity_id'] ?? null;
         $ref='carbon_feature_group_references.group_entity_id';
         $op = self::EQUAL;
@@ -218,9 +223,12 @@ MYSQL;
         
 
 
-        
         if ($stmt->execute()) {
-            self::prepostprocessRestRequest();
+self::prepostprocessRestRequest();
+            
+            if (self::$commit && !Database::commit()) {
+               throw new PublicAlert('Failed to store commit transaction on table carbon_feature_group_references');
+            }
             
             self::postprocessRestRequest();
             
@@ -232,7 +240,6 @@ MYSQL;
         self::completeRest();
          
         return false;
-    
     }
     
     /**

@@ -141,8 +141,7 @@ MYSQL;
     * @param array $return
     * @param string|null $primary
     * @param array $argv
-    * @throws PublicAlert
-    * @throws PDOException
+    * @throws PublicAlert|PDOException
     * @return bool
     */
     public static function Get(array &$return, string $primary = null, array $argv = []): bool
@@ -205,12 +204,17 @@ MYSQL;
         
         $sql = 'INSERT INTO carbon_user_sessions (user_id, user_ip, session_id, session_expires, session_data, user_online_status) VALUES ( UNHEX(:user_id), UNHEX(:user_ip), :session_id, :session_expires, :session_data, :user_online_status)';
 
+        $pdo = self::database();
+        
+        if (!$pdo->inTransaction()) {
+            $pdo->beginTransaction();
+        }
+
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
         $stmt = self::database()->prepare($sql);
-
         
         
         
@@ -228,6 +232,7 @@ MYSQL;
         
         
         
+        
         $user_ip = $argv['carbon_user_sessions.user_ip'] ?? null;
         $ref='carbon_user_sessions.user_ip';
         $op = self::EQUAL;
@@ -235,6 +240,7 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.user_ip\'.');
         }
         $stmt->bindParam(':user_ip',$user_ip, 2, 16);
+        
         
         
         
@@ -250,6 +256,7 @@ MYSQL;
         }
         $stmt->bindParam(':session_id',$session_id, 2, 255);
         
+        
                 
         
         if (!array_key_exists('carbon_user_sessions.session_expires', $argv)) {
@@ -261,7 +268,9 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.session_expires\'.');
         }
         $stmt->bindValue(':session_expires', $argv['carbon_user_sessions.session_expires'], 2);
+        
 
+        
         
                 
         
@@ -274,7 +283,9 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.session_data\'.');
         }
         $stmt->bindValue(':session_data', $argv['carbon_user_sessions.session_data'], 2);
+        
 
+        
         
         
         
@@ -288,9 +299,12 @@ MYSQL;
         
 
 
-        
         if ($stmt->execute()) {
-            self::prepostprocessRestRequest();
+self::prepostprocessRestRequest();
+            
+            if (self::$commit && !Database::commit()) {
+               throw new PublicAlert('Failed to store commit transaction on table carbon_user_sessions');
+            }
             
             self::postprocessRestRequest();
             
@@ -302,7 +316,6 @@ MYSQL;
         self::completeRest();
          
         return false;
-    
     }
     
     /**

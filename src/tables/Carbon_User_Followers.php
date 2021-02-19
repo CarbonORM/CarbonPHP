@@ -140,8 +140,7 @@ MYSQL;
     * @param array $return
     * @param string|null $primary
     * @param array $argv
-    * @throws PublicAlert
-    * @throws PDOException
+    * @throws PublicAlert|PDOException
     * @return bool
     */
     public static function Get(array &$return, string $primary = null, array $argv = []): bool
@@ -204,13 +203,12 @@ MYSQL;
         
         $sql = 'INSERT INTO carbon_user_followers (follower_table_id, follows_user_id, user_id) VALUES ( UNHEX(:follower_table_id), UNHEX(:follows_user_id), UNHEX(:user_id))';
 
+
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
-        $stmt = self::database()->prepare($sql);
-
-                
+        $stmt = self::database()->prepare($sql);        
         $follower_table_id = $id = $argv['carbon_user_followers.follower_table_id'] ?? false;
         if ($id === false) {
              $follower_table_id = $id = self::beginTransaction(self::class, $dependantEntityId);
@@ -227,6 +225,8 @@ MYSQL;
         
         
         
+        
+        
         if (!array_key_exists('carbon_user_followers.follows_user_id', $argv)) {
             throw new PublicAlert('Required argument "carbon_user_followers.follows_user_id" is missing from the request.', 'danger');
         }
@@ -237,6 +237,7 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_followers.follows_user_id\'.');
         }
         $stmt->bindParam(':follows_user_id',$follows_user_id, 2, 16);
+        
         
         
         
@@ -269,7 +270,6 @@ MYSQL;
        
         self::completeRest();
         return false;
-        
     }
     
     /**

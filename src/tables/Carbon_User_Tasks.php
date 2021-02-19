@@ -206,8 +206,7 @@ MYSQL;
     * @param array $return
     * @param string|null $primary
     * @param array $argv
-    * @throws PublicAlert
-    * @throws PDOException
+    * @throws PublicAlert|PDOException
     * @return bool
     */
     public static function Get(array &$return, string $primary = null, array $argv = []): bool
@@ -270,13 +269,12 @@ MYSQL;
         
         $sql = 'INSERT INTO carbon_user_tasks (task_id, user_id, from_id, task_name, task_description, percent_complete, start_date, end_date) VALUES ( UNHEX(:task_id), UNHEX(:user_id), UNHEX(:from_id), :task_name, :task_description, :percent_complete, :start_date, :end_date)';
 
+
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
-        $stmt = self::database()->prepare($sql);
-
-                
+        $stmt = self::database()->prepare($sql);        
         $task_id = $id = $argv['carbon_user_tasks.task_id'] ?? false;
         if ($id === false) {
              $task_id = $id = self::beginTransaction(self::class, $dependantEntityId);
@@ -288,6 +286,8 @@ MYSQL;
            }            
         }
         $stmt->bindParam(':task_id',$task_id, 2, 16);
+        
+        
         
         
         
@@ -306,6 +306,7 @@ MYSQL;
         
         
         
+        
         $from_id = $argv['carbon_user_tasks.from_id'] ?? null;
         $ref='carbon_user_tasks.from_id';
         $op = self::EQUAL;
@@ -313,6 +314,7 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.from_id\'.');
         }
         $stmt->bindParam(':from_id',$from_id, 2, 16);
+        
         
         
         
@@ -330,6 +332,7 @@ MYSQL;
         
         
         
+        
         $task_description = $argv['carbon_user_tasks.task_description'] ?? null;
         $ref='carbon_user_tasks.task_description';
         $op = self::EQUAL;
@@ -338,8 +341,8 @@ MYSQL;
         }
         $stmt->bindParam(':task_description',$task_description, 2, 225);
         
-                        
         
+                        
         $percent_complete = $argv['carbon_user_tasks.percent_complete'] ?? '0';
         $ref='carbon_user_tasks.percent_complete';
         $op = self::EQUAL;
@@ -349,8 +352,8 @@ MYSQL;
         $stmt->bindValue(':percent_complete', $percent_complete, 2);
         
         
-                        
         
+                        
         $start_date = $argv['carbon_user_tasks.start_date'] ?? null;
         $ref='carbon_user_tasks.start_date';
         $op = self::EQUAL;
@@ -360,8 +363,8 @@ MYSQL;
         $stmt->bindValue(':start_date', $start_date, 2);
         
         
-                        
         
+                        
         $end_date = $argv['carbon_user_tasks.end_date'] ?? null;
         $ref='carbon_user_tasks.end_date';
         $op = self::EQUAL;
@@ -388,7 +391,6 @@ MYSQL;
        
         self::completeRest();
         return false;
-        
     }
     
     /**
