@@ -561,7 +561,22 @@ END;
                         // Composite Primary Keys are a thing,  TODO - optimise the template for none vs single vs double key
                         $primary = explode('`,`', trim($words_in_insert_stmt[2], '(`),'));
 
+                        // todo return composite primary key correctly
+                        foreach ($primary as $key) {
+                            foreach ($rest[$tableName]['explode'] as &$value) {
+                                if ($value['name'] !== $key) {
+                                    continue;
+                                }
+                                if (true === ($value['auto_increment'] ?? false)) {
+                                    $rest[$tableName]['auto_increment_return_key'] = true;
+                                }
+                            }
+                            unset($value);
+                        }
+
+
                         $rest[$tableName]['primarySort'] = implode(',', $primary);
+
 
                         // Build the insert stmt - used in put rn / exported in abstract rest
                         $sql = [];
@@ -718,6 +733,7 @@ END;
                             if (isset($words_in_insert_stmt[$auto_inc]) && $words_in_insert_stmt[$auto_inc] === 'AUTO_INCREMENT,') {
                                 $skipping_col[] = $name;
                                 $rest[$tableName]['explode'][$column]['skip'] = true;
+                                $rest[$tableName]['explode'][$column]['auto_increment'] = true;
                                 $verbose and self::colorCode("\tThe Table '$tableName' contains an AUTO_INCREMENT column. This is bad for scaling.
                                                                         \tConsider switching to binary(16) and letting this rest API manage column uniqueness.\n", 'red');
                             }
@@ -1350,8 +1366,7 @@ MYSQL;
     * @param array \$return
     * @param string|null \$primary
     * @param array \$argv
-    * @throws PublicAlert
-    * @throws PDOException
+    * @throws PublicAlert|PDOException
     * @return bool
     */
     public static function Get(array &\$return, {{#primaryExists}}string \$primary = null, {{/primaryExists}}array \$argv = []): bool
@@ -1417,13 +1432,19 @@ MYSQL;
         
         \$sql = 'INSERT INTO {{^carbon_namespace}}{{#QueryWithDatabaseName}}{{database}}.{{/QueryWithDatabaseName}}{{/carbon_namespace}}{{TableName}} ({{listed}}) VALUES ({{{implode}}})';
 
+        {{^binary_primary}}
+        \$pdo = self::database();
+        
+        if (!\$pdo->inTransaction()) {
+            \$pdo->beginTransaction();
+        }
+        {{/binary_primary}}
+
         {{#json}}self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
 
         self::postpreprocessRestRequest(\$sql);
 
-        \$stmt = self::database()->prepare(\$sql);
-
-        {{#explode}}{{#primary_binary}}{{^carbon_table}}
+        \$stmt = self::database()->prepare(\$sql);{{#explode}}{{#primary_binary}}{{^carbon_table}}
         
         \${{name}} = \$id = \$argv['{{TableName}}.{{name}}'] ?? false;
         if (\$id === false) {
@@ -1451,6 +1472,7 @@ MYSQL;
         }
         \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
         {{/carbon_table}}{{/primary_binary}}
+        
         {{^primary_binary}}{{^skip}}{{^length}}{{#json}}
         
         if (!array_key_exists('{{TableName}}.{{name}}', \$argv)) {
@@ -1478,9 +1500,8 @@ MYSQL;
         }
         \$stmt->bindValue(':{{name}}', \$argv['{{TableName}}.{{name}}'], {{type}});
         {{/default}}
-        {{#default}} 
         
-        
+        {{#default}}         
         \${{name}} = \$argv['{{TableName}}.{{name}}'] ?? {{default}};
         \$ref='{{TableName}}.{{name}}';
         \$op = self::EQUAL;
@@ -1520,21 +1541,28 @@ MYSQL;
        
         self::completeRest();
         return false;{{/binary_primary}}
-        {{^binary_primary}}{{^carbon_table}}
+        {{^binary_primary}}
         if (\$stmt->execute()) {
-            self::prepostprocessRestRequest();
+            {{#auto_increment_return_key}}
+            \$id = \$pdo->lastInsertId();
             
-            self::postprocessRestRequest();
+            {{/auto_increment_return_key}}self::prepostprocessRestRequest({{#auto_increment_return_key}}\$id{{/auto_increment_return_key}});
+            
+            if (self::\$commit && !Database::commit()) {
+               throw new PublicAlert('Failed to store commit transaction on table {{TableName}}');
+            }
+            
+            self::postprocessRestRequest({{#auto_increment_return_key}}\$id{{/auto_increment_return_key}});
             
             self::completeRest();
             
-            return true;  
+            return {{^auto_increment_return_key}}true{{/auto_increment_return_key}}{{#auto_increment_return_key}}\$id{{/auto_increment_return_key}};  
         }
         
         self::completeRest();
          
         return false;
-    {{/carbon_table}}{{/binary_primary}}
+        {{/binary_primary}}
     }
     
     /**

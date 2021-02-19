@@ -300,7 +300,14 @@ class Database
             return true;
         }
 
-        if (!self::database()->commit()) {
+        $db = self::database();
+
+        if (!$db->inTransaction()) {
+            self::$inTransaction = false;
+            return true;
+        }
+
+        if (!$db->commit()) {
             return static::verify();
         }
 
@@ -340,8 +347,11 @@ class Database
      */
     protected static function beginTransaction(string $tag_id, string $dependant = null)
     {
+        $db = self::database();
         $key = self::new_entity($tag_id, $dependant);
-        self::database()->inTransaction() or self::database()->beginTransaction();
+        if (!$db->inTransaction()) {
+            self::database()->beginTransaction();
+        }
         self::$inTransaction = true;    // this has to happen after the key is generated with new_entity
         return $key;
     }

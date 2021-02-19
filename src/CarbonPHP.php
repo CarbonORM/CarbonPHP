@@ -370,7 +370,7 @@ class CarbonPHP
                 ErrorCatcher::$fullReports ??= $config['ERROR']['FULL'] ?? true;
                 ErrorCatcher::$printToScreen ??= $config['ERROR']['SHOW'] ?? true;
                 ErrorCatcher::$storeReport ??= $config['ERROR']['STORE'] ?? false;
-                ErrorCatcher::$level ??= $config['ERROR']['LEVEL'] ?? ' E_ALL | E_STRICT';
+                ErrorCatcher::$level ??= $config['ERROR']['LEVEL'] ??  E_ALL | E_STRICT;
                 ErrorCatcher::start();
             }
 
