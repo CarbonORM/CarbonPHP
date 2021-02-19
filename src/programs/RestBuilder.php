@@ -1417,8 +1417,7 @@ MYSQL;
      * @param array \$argv
      * @param string|null \$dependantEntityId - a C6 Hex entity key 
      * @return bool|string
-     * @throws PublicAlert
-     * @throws PDOException
+     * @throws PublicAlert|PDOException
      */
     public static function Post(array \$argv, string \$dependantEntityId = null){{^primaryExists}}: bool{{/primaryExists}}
     {   
@@ -1569,8 +1568,7 @@ MYSQL;
     * @param array \$return
     {{#primaryExists}}* @param string \$primary{{/primaryExists}}
     * @param array \$argv
-    * @throws PublicAlert
-    * @throws PDOException
+    * @throws PublicAlert|PDOException
     * @return bool
     */
     public static function Put(array &\$return, {{#primaryExists}}string \$primary,{{/primaryExists}} array \$argv) : bool
@@ -1680,8 +1678,7 @@ MYSQL;
     * @param array \$remove
     * @param string|null \$primary
     * @param array \$argv
-    * @throws PublicAlert
-    * @throws PDOException
+    * @throws PublicAlert|PDOException
     * @return bool
     */
     public static function Delete(array &\$remove, {{#primaryExists}}string \$primary = null, {{/primaryExists}}array \$argv = []) : bool

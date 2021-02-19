@@ -198,8 +198,7 @@ MYSQL;
      * @param array $argv
      * @param string|null $dependantEntityId - a C6 Hex entity key 
      * @return bool|string
-     * @throws PublicAlert
-     * @throws PDOException
+     * @throws PublicAlert|PDOException
      */
     public static function Post(array $argv, string $dependantEntityId = null)
     {   
@@ -331,8 +330,7 @@ self::prepostprocessRestRequest();
     * @param array $return
     * @param string $primary
     * @param array $argv
-    * @throws PublicAlert
-    * @throws PDOException
+    * @throws PublicAlert|PDOException
     * @return bool
     */
     public static function Put(array &$return, string $primary, array $argv) : bool
@@ -470,8 +468,7 @@ self::prepostprocessRestRequest();
     * @param array $remove
     * @param string|null $primary
     * @param array $argv
-    * @throws PublicAlert
-    * @throws PDOException
+    * @throws PublicAlert|PDOException
     * @return bool
     */
     public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
