@@ -1,0 +1,75 @@
+FFmpeg – the swiss army knife of Internet Streaming
+https://sonnati.wordpress.com/2012/07/02/ffmpeg-the-swiss-army-knife-of-internet-streaming-part-v/
+
+
+Start Here:: https://trac.ffmpeg.org/wiki/StreamingGuide
+After skimming the overview.
+
+
+The idea. Use OBS to capture computer input video ->
+
+    Send to server which will listen using ffmpeg.
+
+        ffmpeg will save input stream like the following
+        https://www.bogotobogo.com/VideoStreaming/ffmpeg_http_live_streaming_hls.php
+            ffmpeg -i source.mp4 -map 0
+            -codec:v libx264 -codec:a libfaac
+            -f ssegment -segment_list playlist.m3u8
+            -segment_list_flags +live -segment_time 10
+            out%03d.ts
+
+        ffmpegg will forward streams to facebook and twitch
+        https://superuser.com/questions/1224788/streaming-to-multiple-rtmp-servers-with-ffmpeg-with-minimal-resources?newreg=556e772c066d432eae1c4a2a4d4deb23
+            ffmpeg -listen 1
+                -i rtmp://127.0.0.1:5555
+                -c copy
+                -f flv rtmp://twitch -c:v libx264 -preset medium -maxrate 3500k -bufsize 6000k -r 30 -pix_fmt yuv420p -g 60
+                -c:a aac -b:a 160k -ac 2 -ar 44100
+                -f flv rtmp//:facebook
+
+
+    H.264 High Definition Video Streaming on Apache
+        will stream video back to the users
+
+        apt-get update
+        apt-get install apache2-threaded-dev    (can this be enabled rather than replaced?)
+        http://headstation.com/archives/configure-h-264-high-definition-video-streaming-apache/
+        LoadModule h264_streaming_module /usr/lib/apache2/modules/mod_h264_streaming.so
+        AddHandler h264-streaming.extensions .mp4
+
+
+
+TEST - Streaming a simple RTP audio stream from FFmpeg
+ffmpeg -re -f lavfi -i aevalsrc="sin(400*2*PI*t)" -ar 8000 -f mulaw -f rtp rtp://127.0.0.1:1234
+fplay rtp://127.0.0.1:1234
+
+
+H.264 is protocol for fast
+https://developers.google.com/youtube/v3/live/guides/ingestion-protocol-comparison
+
+
+5. Record a stream endlessly rotating target file
+https://sonnati.wordpress.com/2012/07/02/ffmpeg-the-swiss-army-knife-of-internet-streaming-part-v/
+Segmenting feature of FFmpeg can also be useful to create an endless recorder with rotating buffer. It can be done using the segment_wrap parameter that wraps around segment index once it reached a limit.
+
+ffmpeg -i rtmp://INPUT -codec copy -f segment -segment_list out.list -segment_time 3600 -segment_wrap 24 out%03d.mp4
+
+
+
+
+_________________________________________________________
+https://github.com/PHP-FFMpeg/PHP-FFMpeg
+_________________________________________________________ no dice
+
+
+https://www.gnutoolbox.com/h264-streaming-module-apache/
+
+
+https://ffmpeg.org/ffmpeg.html
+
+
+https://stackoverflow.com/questions/1332066/how-to-listen-udp-and-make-use-of-php
+- specifically inetd
+
+
+

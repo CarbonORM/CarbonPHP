@@ -390,7 +390,7 @@ class CarbonPHP
             }
 
             ##################  VALIDATE URL / URI ##################
-            if (!self::$cli || !isset(self::$server_ip)) {
+            if (!self::$cli || !isset(self::$server_ip) || (false === ($config['SITE']['IP_TEST'] ?? true))) {
                 self::IP_FILTER();
             }
 
