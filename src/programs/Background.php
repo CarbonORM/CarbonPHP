@@ -32,7 +32,7 @@ trait Background
         $return_var = null;
         ColorCode::colorCode('Running CMD >> ' . $command . PHP_EOL . PHP_EOL . ' ');
         exec($command, $output, $return_var);
-        if ($return_var !== 0) {
+        if ($return_var !== 0 || $return_var !== '0') {
             ColorCode::colorCode("The command >>  $command \n\t returned with a status code (" . $return_var . '). ', 'red');
             $output = implode(PHP_EOL, $output);
             ColorCode::colorCode("\n\n\tCommand output::\n\n $output \n\n", 'red');
