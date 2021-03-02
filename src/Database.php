@@ -82,14 +82,14 @@ class Database
         if (null === self::$database) {
             return static::reset();
         }
+        $oldLevel = error_reporting(0);
         try {
-            error_reporting(0);
             self::$database->prepare('SELECT 1')->execute();     // This has had a history of causing spotty error.. if this is the location of your error, you should keep looking...
-            error_reporting(ErrorCatcher::$level);
+            error_reporting($oldLevel);
             return static::$database;                       // Why should this work again?
         } catch (Error | Exception | PDOException $e) {// added for socket support
             ColorCode::colorCode('Attempting to reset the database. Possible disconnect.', 'red');
-            error_reporting(ErrorCatcher::$level);
+            error_reporting($oldLevel);
             return static::reset();
         }
     }

@@ -9,7 +9,6 @@ use CarbonPHP\Database;
 use CarbonPHP\Programs\Background;
 use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Tables\Carbon_Reports;
-use CarbonPHP\View;
 use Closure;
 use ReflectionException;
 use ReflectionMethod;
@@ -32,20 +31,20 @@ class ErrorCatcher
     /**
      * @var string TODO - re-setup logs saving to files
      */
-    public static string $defaultLocation;
+    public static string $defaultLocation = 'error_lot.txt';
     /**
      * @var bool $printToScreen determine if a generated error log should be shown on the browser.
      * This value can be set using the ["ERROR"]["SHOW"] configuration option
      */
-    public static bool $printToScreen;
+    public static bool $printToScreen = true;
     /**
      * @var bool
      */
-    public static bool $fullReports;
+    public static bool $fullReports = true;
     /**
      * @var bool
      */
-    public static bool $storeReport;
+    public static bool $storeReport = true;
 
 
     public static string $fileName = '';
@@ -59,7 +58,7 @@ class ErrorCatcher
      * @var int to be used with error_reporting()
      * @link http://php.net/manual/en/function.error-reporting.php
      */
-    public static int $level;
+    public static int $level = E_ALL | E_STRICT;
 
     /** Attempt to safely catch errors, output, and public alerts in a closure.
      *
