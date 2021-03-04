@@ -415,9 +415,9 @@ self::prepostprocessRestRequest();
             $remove = [];
         }
         
-        self::prepostprocessRestRequest($return);
+        self::prepostprocessRestRequest($r, $remove);
         
-        self::postprocessRestRequest($return);
+        self::postprocessRestRequest($r, $remove);
         
         self::completeRest();
         

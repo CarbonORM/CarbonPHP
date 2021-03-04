@@ -30,7 +30,7 @@ trait ColorCode
         $colors = iColorCode::PRINTF_ANSI_COLOR;
 
         if (is_string($color) && !array_key_exists($color, $colors)) {
-            self::colorCode("Color provided to color code ($color) is invalid, message caught '$message'", 'red');
+            self::colorCode("Color provided to color code ($color) is invalid, message caught '$message'", iColorCode::RED);
             return;
         }
 

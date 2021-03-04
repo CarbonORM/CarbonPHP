@@ -1416,7 +1416,7 @@ MYSQL;
     /**
      * @param array \$argv
      * @param string|null \$dependantEntityId - a C6 Hex entity key 
-     * @return bool|string
+     * @return bool|string{{#primaryExists}}|mixed{{/primaryExists}}
      * @throws PublicAlert|PDOException
      */
     public static function Post(array \$argv, string \$dependantEntityId = null){{^primaryExists}}: bool{{/primaryExists}}
@@ -1720,9 +1720,9 @@ MYSQL;
             \$remove = [];
         }
         
-        self::prepostprocessRestRequest(\$return);
+        self::prepostprocessRestRequest(\$r, \$remove);
         
-        self::postprocessRestRequest(\$return);
+        self::postprocessRestRequest(\$r, \$remove);
         
         self::completeRest();
         
@@ -1777,9 +1777,9 @@ MYSQL;
             \$remove = [];
         }
         
-        self::prepostprocessRestRequest(\$return);
+        self::prepostprocessRestRequest(\$r, \$remove);
         
-        self::postprocessRestRequest(\$return);
+        self::postprocessRestRequest(\$r, \$remove);
         
         self::completeRest();
         
