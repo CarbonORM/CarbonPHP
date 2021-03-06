@@ -190,6 +190,7 @@ MYSQL;
         $pdo = self::database();
         
         if (!$pdo->inTransaction()) {
+            self::$inTransaction = true;
             $pdo->beginTransaction();
         }
 

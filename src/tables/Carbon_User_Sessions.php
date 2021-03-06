@@ -177,7 +177,6 @@ MYSQL;
         if ($primary !== null || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
             $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
             // promise this is needed and will still return the desired array except for a single record will not be an array
-        
         }
 
         self::postprocessRestRequest($return);
@@ -206,6 +205,7 @@ MYSQL;
         $pdo = self::database();
         
         if (!$pdo->inTransaction()) {
+            self::$inTransaction = true;
             $pdo->beginTransaction();
         }
 

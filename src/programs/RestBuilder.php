@@ -1404,11 +1404,12 @@ MYSQL;
         if (\$primary !== null || (isset(\$argv[self::PAGINATION][self::LIMIT]) && \$argv[self::PAGINATION][self::LIMIT] === 1 && count(\$return) === 1)) {
             \$return = isset(\$return[0]) && is_array(\$return[0]) ? \$return[0] : \$return;
             // promise this is needed and will still return the desired array except for a single record will not be an array
-        {{#explode}}{{#json}}if (array_key_exists('{{TableName}}.{{name}}', \$return)) {
+        }{{/sql}}{{/primary}}{{#explode}}{{#json}}
+        
+        if (array_key_exists('{{name}}', \$return)) {
                 \$return['{{name}}'] = json_decode(\$return['{{name}}'], true);
-            }
+        }
         {{/json}}{{/explode}}
-        }{{/sql}}{{/primary}}
 
         self::postprocessRestRequest(\$return);
         self::completeRest();
@@ -1437,6 +1438,7 @@ MYSQL;
         \$pdo = self::database();
         
         if (!\$pdo->inTransaction()) {
+            self::\$inTransaction = true;
             \$pdo->beginTransaction();
         }
         {{/binary_primary}}

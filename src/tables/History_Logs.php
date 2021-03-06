@@ -171,6 +171,11 @@ MYSQL;
         */
 
         
+        
+        if (array_key_exists('data', $return)) {
+                $return['data'] = json_decode($return['data'], true);
+        }
+        
 
         self::postprocessRestRequest($return);
         self::completeRest();
@@ -198,6 +203,7 @@ MYSQL;
         $pdo = self::database();
         
         if (!$pdo->inTransaction()) {
+            self::$inTransaction = true;
             $pdo->beginTransaction();
         }
 
