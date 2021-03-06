@@ -37,7 +37,7 @@ class Carbon_User_Groups extends Rest implements iRestfulReferences
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_user_groups.group_id' => ['binary', '2', '16'],'carbon_user_groups.user_id' => ['binary', '2', '16'],
+        'carbon_user_groups.group_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_groups.user_id' => ['binary', 'PDO::PARAM_STR', '16'],
     ];
      
     /**
@@ -207,7 +207,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $group_id, $group_id === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_groups.group_id\'.');
         }
-        $stmt->bindParam(':group_id',$group_id, 2, 16);
+        $stmt->bindParam(':group_id',$group_id, PDO::PARAM_STR, 16);
         
         
         
@@ -218,7 +218,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $user_id, $user_id === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_groups.user_id\'.');
         }
-        $stmt->bindParam(':user_id',$user_id, 2, 16);
+        $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
         
 
 
@@ -302,7 +302,7 @@ self::prepostprocessRestRequest();
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $group_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':group_id',$group_id, 2, 16);
+            $stmt->bindParam(':group_id',$group_id, PDO::PARAM_STR, 16);
         }
         if (array_key_exists('carbon_user_groups.user_id', $argv)) {
             $user_id = $argv['carbon_user_groups.user_id'];
@@ -311,7 +311,7 @@ self::prepostprocessRestRequest();
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':user_id',$user_id, 2, 16);
+            $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
         }
 
         self::bind($stmt);
@@ -381,9 +381,9 @@ self::prepostprocessRestRequest();
             $remove = [];
         }
         
-        self::prepostprocessRestRequest($r, $remove);
+        self::prepostprocessRestRequest($remove);
         
-        self::postprocessRestRequest($r, $remove);
+        self::postprocessRestRequest($remove);
         
         self::completeRest();
         

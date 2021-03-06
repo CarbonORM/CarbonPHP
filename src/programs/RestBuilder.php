@@ -130,8 +130,6 @@ END;
         // C syntax
         $argc = count($argv);
 
-        // These are PDO const types, so we'll eliminate one complexity by evaluating them before inserting into the template
-        $PDO = [0 => PDO::PARAM_NULL, 1 => PDO::PARAM_BOOL, 2 => PDO::PARAM_INT, 3 => PDO::PARAM_STR];
         // set default values
         $rest = [];
         /** @noinspection PhpUnusedLocalVariableInspection */
@@ -651,15 +649,19 @@ END;
 
                             $rest[$tableName]['explode'][$column]['json'] = $type === 'json';
 
+                            // These are PDO const types, so we'll eliminate one complexity by evaluating them before inserting into the template
+                            # $PDO = [0 => PDO::PARAM_NULL, 1 => PDO::PARAM_BOOL, 2 => PDO::PARAM_INT, 3 => PDO::PARAM_STR];
+
                             switch ($type) {                // Use pdo for what it can actually do
-                                case 'tinyint':
-                                    $type = $PDO[0];
-                                    break;
+                                case 'tinyint': // @link https://stackoverflow.com/questions/12839927/mysql-tinyint-2-vs-tinyint1-what-is-the-difference
+                                case 'int':
                                 case 'smallint':
                                 case 'mediumint':
-                                    $type = $PDO[2];
+                                    $type = 'PDO::PARAM_INT'; // $PDO[2];
                                     break;
-                                /** @noinspection PhpMissingBreakStatementInspection */
+                                case 'boolean':
+                                    $type = 'PDO::PARAM_BOOL';
+                                    break;
                                 case 'binary':
                                     /**
                                      * looks like this wasn't needed
@@ -676,7 +678,7 @@ END;
                                     $cast_binary_default = true;
                                 default:
                                 case 'varchar':
-                                    $type = $PDO[3];
+                                    $type = 'PDO::PARAM_STR';
                             }
                             // Explode hold all information about column
                             $rest[$tableName]['explode'][$column]['type'] = $type;
@@ -1720,9 +1722,9 @@ MYSQL;
             \$remove = [];
         }
         
-        self::prepostprocessRestRequest(\$r, \$remove);
+        self::prepostprocessRestRequest(\$remove);
         
-        self::postprocessRestRequest(\$r, \$remove);
+        self::postprocessRestRequest(\$remove);
         
         self::completeRest();
         
@@ -1777,9 +1779,9 @@ MYSQL;
             \$remove = [];
         }
         
-        self::prepostprocessRestRequest(\$r, \$remove);
+        self::prepostprocessRestRequest(\$remove);
         
-        self::postprocessRestRequest(\$r, \$remove);
+        self::postprocessRestRequest(\$remove);
         
         self::completeRest();
         

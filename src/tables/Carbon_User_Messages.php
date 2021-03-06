@@ -41,7 +41,7 @@ class Carbon_User_Messages extends Rest implements iRest
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_user_messages.message_id' => ['binary', '2', '16'],'carbon_user_messages.from_user_id' => ['binary', '2', '16'],'carbon_user_messages.to_user_id' => ['binary', '2', '16'],'carbon_user_messages.message' => ['text', '2', ''],'carbon_user_messages.message_read' => ['tinyint', '0', '1'],'carbon_user_messages.creation_date' => ['datetime', '2', ''],
+        'carbon_user_messages.message_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_messages.from_user_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_messages.to_user_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_messages.message' => ['text', 'PDO::PARAM_STR', ''],'carbon_user_messages.message_read' => ['tinyint', 'PDO::PARAM_INT', '1'],'carbon_user_messages.creation_date' => ['datetime', 'PDO::PARAM_STR', ''],
     ];
      
     /**
@@ -194,7 +194,7 @@ MYSQL;
     /**
      * @param array $argv
      * @param string|null $dependantEntityId - a C6 Hex entity key 
-     * @return bool|string
+     * @return bool|string|mixed
      * @throws PublicAlert|PDOException
      */
     public static function Post(array $argv, string $dependantEntityId = null)
@@ -225,7 +225,7 @@ MYSQL;
              throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_messages.message_id\'.');
            }            
         }
-        $stmt->bindParam(':message_id',$message_id, 2, 16);
+        $stmt->bindParam(':message_id',$message_id, PDO::PARAM_STR, 16);
         
         
         
@@ -242,7 +242,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $from_user_id)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_messages.from_user_id\'.');
         }
-        $stmt->bindParam(':from_user_id',$from_user_id, 2, 16);
+        $stmt->bindParam(':from_user_id',$from_user_id, PDO::PARAM_STR, 16);
         
         
         
@@ -257,7 +257,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $to_user_id)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_messages.to_user_id\'.');
         }
-        $stmt->bindParam(':to_user_id',$to_user_id, 2, 16);
+        $stmt->bindParam(':to_user_id',$to_user_id, PDO::PARAM_STR, 16);
         
         
                 
@@ -270,7 +270,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $argv['message'])) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_messages.message\'.');
         }
-        $stmt->bindValue(':message', $argv['carbon_user_messages.message'], 2);
+        $stmt->bindValue(':message', $argv['carbon_user_messages.message'], PDO::PARAM_STR);
         
 
         
@@ -283,7 +283,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $message_read, $message_read === '0')) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_messages.message_read\'.');
         }
-        $stmt->bindParam(':message_read',$message_read, 0, 1);
+        $stmt->bindParam(':message_read',$message_read, PDO::PARAM_INT, 1);
         
         
         
@@ -379,7 +379,7 @@ MYSQL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $message_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':message_id',$message_id, 2, 16);
+            $stmt->bindParam(':message_id',$message_id, PDO::PARAM_STR, 16);
         }
         if (array_key_exists('carbon_user_messages.from_user_id', $argv)) {
             $from_user_id = $argv['carbon_user_messages.from_user_id'];
@@ -388,7 +388,7 @@ MYSQL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $from_user_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':from_user_id',$from_user_id, 2, 16);
+            $stmt->bindParam(':from_user_id',$from_user_id, PDO::PARAM_STR, 16);
         }
         if (array_key_exists('carbon_user_messages.to_user_id', $argv)) {
             $to_user_id = $argv['carbon_user_messages.to_user_id'];
@@ -397,10 +397,10 @@ MYSQL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $to_user_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':to_user_id',$to_user_id, 2, 16);
+            $stmt->bindParam(':to_user_id',$to_user_id, PDO::PARAM_STR, 16);
         }
         if (array_key_exists('carbon_user_messages.message', $argv)) {
-            $stmt->bindValue(':message',$argv['carbon_user_messages.message'], 2);
+            $stmt->bindValue(':message',$argv['carbon_user_messages.message'], PDO::PARAM_STR);
         }
         if (array_key_exists('carbon_user_messages.message_read', $argv)) {
             $message_read = $argv['carbon_user_messages.message_read'];
@@ -409,10 +409,10 @@ MYSQL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $message_read)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':message_read',$message_read, 0, 1);
+            $stmt->bindParam(':message_read',$message_read, PDO::PARAM_INT, 1);
         }
         if (array_key_exists('carbon_user_messages.creation_date', $argv)) {
-            $stmt->bindValue(':creation_date',$argv['carbon_user_messages.creation_date'], 2);
+            $stmt->bindValue(':creation_date',$argv['carbon_user_messages.creation_date'], PDO::PARAM_STR);
         }
 
         self::bind($stmt);
@@ -489,9 +489,9 @@ MYSQL;
             $remove = [];
         }
         
-        self::prepostprocessRestRequest($r, $remove);
+        self::prepostprocessRestRequest($remove);
         
-        self::postprocessRestRequest($r, $remove);
+        self::postprocessRestRequest($remove);
         
         self::completeRest();
         

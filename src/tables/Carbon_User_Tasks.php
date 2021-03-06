@@ -44,7 +44,7 @@ class Carbon_User_Tasks extends Rest implements iRest
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_user_tasks.task_id' => ['binary', '2', '16'],'carbon_user_tasks.user_id' => ['binary', '2', '16'],'carbon_user_tasks.from_id' => ['binary', '2', '16'],'carbon_user_tasks.task_name' => ['varchar', '2', '40'],'carbon_user_tasks.task_description' => ['varchar', '2', '225'],'carbon_user_tasks.percent_complete' => ['int', '2', ''],'carbon_user_tasks.start_date' => ['datetime', '2', ''],'carbon_user_tasks.end_date' => ['datetime', '2', ''],
+        'carbon_user_tasks.task_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_tasks.user_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_tasks.from_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_tasks.task_name' => ['varchar', 'PDO::PARAM_STR', '40'],'carbon_user_tasks.task_description' => ['varchar', 'PDO::PARAM_STR', '225'],'carbon_user_tasks.percent_complete' => ['int', 'PDO::PARAM_INT', ''],'carbon_user_tasks.start_date' => ['datetime', 'PDO::PARAM_STR', ''],'carbon_user_tasks.end_date' => ['datetime', 'PDO::PARAM_STR', ''],
     ];
      
     /**
@@ -253,7 +253,7 @@ MYSQL;
     /**
      * @param array $argv
      * @param string|null $dependantEntityId - a C6 Hex entity key 
-     * @return bool|string
+     * @return bool|string|mixed
      * @throws PublicAlert|PDOException
      */
     public static function Post(array $argv, string $dependantEntityId = null)
@@ -284,7 +284,7 @@ MYSQL;
              throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.task_id\'.');
            }            
         }
-        $stmt->bindParam(':task_id',$task_id, 2, 16);
+        $stmt->bindParam(':task_id',$task_id, PDO::PARAM_STR, 16);
         
         
         
@@ -301,7 +301,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $user_id)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.user_id\'.');
         }
-        $stmt->bindParam(':user_id',$user_id, 2, 16);
+        $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
         
         
         
@@ -312,7 +312,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $from_id, $from_id === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.from_id\'.');
         }
-        $stmt->bindParam(':from_id',$from_id, 2, 16);
+        $stmt->bindParam(':from_id',$from_id, PDO::PARAM_STR, 16);
         
         
         
@@ -327,7 +327,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $task_name)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.task_name\'.');
         }
-        $stmt->bindParam(':task_name',$task_name, 2, 40);
+        $stmt->bindParam(':task_name',$task_name, PDO::PARAM_STR, 40);
         
         
         
@@ -338,7 +338,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $task_description, $task_description === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.task_description\'.');
         }
-        $stmt->bindParam(':task_description',$task_description, 2, 225);
+        $stmt->bindParam(':task_description',$task_description, PDO::PARAM_STR, 225);
         
         
                         
@@ -348,7 +348,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $percent_complete, $percent_complete === '0')) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.percent_complete\'.');
         }
-        $stmt->bindValue(':percent_complete', $percent_complete, 2);
+        $stmt->bindValue(':percent_complete', $percent_complete, PDO::PARAM_INT);
         
         
         
@@ -359,7 +359,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $start_date, $start_date === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.start_date\'.');
         }
-        $stmt->bindValue(':start_date', $start_date, 2);
+        $stmt->bindValue(':start_date', $start_date, PDO::PARAM_STR);
         
         
         
@@ -370,7 +370,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $end_date, $end_date === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
         }
-        $stmt->bindValue(':end_date', $end_date, 2);
+        $stmt->bindValue(':end_date', $end_date, PDO::PARAM_STR);
         
         
 
@@ -471,7 +471,7 @@ MYSQL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $task_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':task_id',$task_id, 2, 16);
+            $stmt->bindParam(':task_id',$task_id, PDO::PARAM_STR, 16);
         }
         if (array_key_exists('carbon_user_tasks.user_id', $argv)) {
             $user_id = $argv['carbon_user_tasks.user_id'];
@@ -480,7 +480,7 @@ MYSQL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':user_id',$user_id, 2, 16);
+            $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
         }
         if (array_key_exists('carbon_user_tasks.from_id', $argv)) {
             $from_id = $argv['carbon_user_tasks.from_id'];
@@ -489,7 +489,7 @@ MYSQL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $from_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':from_id',$from_id, 2, 16);
+            $stmt->bindParam(':from_id',$from_id, PDO::PARAM_STR, 16);
         }
         if (array_key_exists('carbon_user_tasks.task_name', $argv)) {
             $task_name = $argv['carbon_user_tasks.task_name'];
@@ -498,7 +498,7 @@ MYSQL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $task_name)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':task_name',$task_name, 2, 40);
+            $stmt->bindParam(':task_name',$task_name, PDO::PARAM_STR, 40);
         }
         if (array_key_exists('carbon_user_tasks.task_description', $argv)) {
             $task_description = $argv['carbon_user_tasks.task_description'];
@@ -507,16 +507,16 @@ MYSQL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $task_description)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':task_description',$task_description, 2, 225);
+            $stmt->bindParam(':task_description',$task_description, PDO::PARAM_STR, 225);
         }
         if (array_key_exists('carbon_user_tasks.percent_complete', $argv)) {
-            $stmt->bindValue(':percent_complete',$argv['carbon_user_tasks.percent_complete'], 2);
+            $stmt->bindValue(':percent_complete',$argv['carbon_user_tasks.percent_complete'], PDO::PARAM_INT);
         }
         if (array_key_exists('carbon_user_tasks.start_date', $argv)) {
-            $stmt->bindValue(':start_date',$argv['carbon_user_tasks.start_date'], 2);
+            $stmt->bindValue(':start_date',$argv['carbon_user_tasks.start_date'], PDO::PARAM_STR);
         }
         if (array_key_exists('carbon_user_tasks.end_date', $argv)) {
-            $stmt->bindValue(':end_date',$argv['carbon_user_tasks.end_date'], 2);
+            $stmt->bindValue(':end_date',$argv['carbon_user_tasks.end_date'], PDO::PARAM_STR);
         }
 
         self::bind($stmt);
@@ -593,9 +593,9 @@ MYSQL;
             $remove = [];
         }
         
-        self::prepostprocessRestRequest($r, $remove);
+        self::prepostprocessRestRequest($remove);
         
-        self::postprocessRestRequest($r, $remove);
+        self::postprocessRestRequest($remove);
         
         self::completeRest();
         

@@ -39,7 +39,7 @@ class Carbon_Groups extends Rest implements iRest
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_groups.group_name' => ['varchar', '2', '20'],'carbon_groups.entity_id' => ['binary', '2', '16'],'carbon_groups.created_by' => ['binary', '2', '16'],'carbon_groups.creation_date' => ['datetime', '2', ''],
+        'carbon_groups.group_name' => ['varchar', 'PDO::PARAM_STR', '20'],'carbon_groups.entity_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_groups.created_by' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_groups.creation_date' => ['datetime', 'PDO::PARAM_STR', ''],
     ];
      
     /**
@@ -181,7 +181,7 @@ MYSQL;
     /**
      * @param array $argv
      * @param string|null $dependantEntityId - a C6 Hex entity key 
-     * @return bool|string
+     * @return bool|string|mixed
      * @throws PublicAlert|PDOException
      */
     public static function Post(array $argv, string $dependantEntityId = null)
@@ -215,7 +215,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $group_name)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_groups.group_name\'.');
         }
-        $stmt->bindParam(':group_name',$group_name, 2, 20);
+        $stmt->bindParam(':group_name',$group_name, PDO::PARAM_STR, 20);
                 
         $entity_id = $id = $argv['carbon_groups.entity_id'] ?? false;
         if ($id === false) {
@@ -227,7 +227,7 @@ MYSQL;
              throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_groups.entity_id\'.');
            }            
         }
-        $stmt->bindParam(':entity_id',$entity_id, 2, 16);
+        $stmt->bindParam(':entity_id',$entity_id, PDO::PARAM_STR, 16);
         
         
         
@@ -244,7 +244,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $created_by)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_groups.created_by\'.');
         }
-        $stmt->bindParam(':created_by',$created_by, 2, 16);
+        $stmt->bindParam(':created_by',$created_by, PDO::PARAM_STR, 16);
         
         
         
@@ -334,7 +334,7 @@ MYSQL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $group_name)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':group_name',$group_name, 2, 20);
+            $stmt->bindParam(':group_name',$group_name, PDO::PARAM_STR, 20);
         }
         if (array_key_exists('carbon_groups.entity_id', $argv)) {
             $entity_id = $argv['carbon_groups.entity_id'];
@@ -343,7 +343,7 @@ MYSQL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $entity_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':entity_id',$entity_id, 2, 16);
+            $stmt->bindParam(':entity_id',$entity_id, PDO::PARAM_STR, 16);
         }
         if (array_key_exists('carbon_groups.created_by', $argv)) {
             $created_by = $argv['carbon_groups.created_by'];
@@ -352,10 +352,10 @@ MYSQL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $created_by)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':created_by',$created_by, 2, 16);
+            $stmt->bindParam(':created_by',$created_by, PDO::PARAM_STR, 16);
         }
         if (array_key_exists('carbon_groups.creation_date', $argv)) {
-            $stmt->bindValue(':creation_date',$argv['carbon_groups.creation_date'], 2);
+            $stmt->bindValue(':creation_date',$argv['carbon_groups.creation_date'], PDO::PARAM_STR);
         }
 
         self::bind($stmt);
@@ -432,9 +432,9 @@ MYSQL;
             $remove = [];
         }
         
-        self::prepostprocessRestRequest($r, $remove);
+        self::prepostprocessRestRequest($remove);
         
-        self::postprocessRestRequest($r, $remove);
+        self::postprocessRestRequest($remove);
         
         self::completeRest();
         

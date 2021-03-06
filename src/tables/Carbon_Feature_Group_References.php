@@ -37,7 +37,7 @@ class Carbon_Feature_Group_References extends Rest implements iRestfulReferences
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_feature_group_references.feature_entity_id' => ['binary', '2', '16'],'carbon_feature_group_references.group_entity_id' => ['binary', '2', '16'],
+        'carbon_feature_group_references.feature_entity_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_feature_group_references.group_entity_id' => ['binary', 'PDO::PARAM_STR', '16'],
     ];
      
     /**
@@ -207,7 +207,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $feature_entity_id, $feature_entity_id === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_feature_group_references.feature_entity_id\'.');
         }
-        $stmt->bindParam(':feature_entity_id',$feature_entity_id, 2, 16);
+        $stmt->bindParam(':feature_entity_id',$feature_entity_id, PDO::PARAM_STR, 16);
         
         
         
@@ -218,7 +218,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $group_entity_id, $group_entity_id === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_feature_group_references.group_entity_id\'.');
         }
-        $stmt->bindParam(':group_entity_id',$group_entity_id, 2, 16);
+        $stmt->bindParam(':group_entity_id',$group_entity_id, PDO::PARAM_STR, 16);
         
 
 
@@ -302,7 +302,7 @@ self::prepostprocessRestRequest();
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $feature_entity_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':feature_entity_id',$feature_entity_id, 2, 16);
+            $stmt->bindParam(':feature_entity_id',$feature_entity_id, PDO::PARAM_STR, 16);
         }
         if (array_key_exists('carbon_feature_group_references.group_entity_id', $argv)) {
             $group_entity_id = $argv['carbon_feature_group_references.group_entity_id'];
@@ -311,7 +311,7 @@ self::prepostprocessRestRequest();
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $group_entity_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':group_entity_id',$group_entity_id, 2, 16);
+            $stmt->bindParam(':group_entity_id',$group_entity_id, PDO::PARAM_STR, 16);
         }
 
         self::bind($stmt);
@@ -381,9 +381,9 @@ self::prepostprocessRestRequest();
             $remove = [];
         }
         
-        self::prepostprocessRestRequest($r, $remove);
+        self::prepostprocessRestRequest($remove);
         
-        self::postprocessRestRequest($r, $remove);
+        self::postprocessRestRequest($remove);
         
         self::completeRest();
         

@@ -41,7 +41,7 @@ class Carbon_User_Sessions extends Rest implements iRest
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_user_sessions.user_id' => ['binary', '2', '16'],'carbon_user_sessions.user_ip' => ['binary', '2', '16'],'carbon_user_sessions.session_id' => ['varchar', '2', '255'],'carbon_user_sessions.session_expires' => ['datetime', '2', ''],'carbon_user_sessions.session_data' => ['text,', '2', ''],'carbon_user_sessions.user_online_status' => ['tinyint', '0', '1'],
+        'carbon_user_sessions.user_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_sessions.user_ip' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_sessions.session_id' => ['varchar', 'PDO::PARAM_STR', '255'],'carbon_user_sessions.session_expires' => ['datetime', 'PDO::PARAM_STR', ''],'carbon_user_sessions.session_data' => ['text,', 'PDO::PARAM_STR', ''],'carbon_user_sessions.user_online_status' => ['tinyint', 'PDO::PARAM_INT', '1'],
     ];
      
     /**
@@ -188,7 +188,7 @@ MYSQL;
     /**
      * @param array $argv
      * @param string|null $dependantEntityId - a C6 Hex entity key 
-     * @return bool|string
+     * @return bool|string|mixed
      * @throws PublicAlert|PDOException
      */
     public static function Post(array $argv, string $dependantEntityId = null)
@@ -227,7 +227,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $user_id)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.user_id\'.');
         }
-        $stmt->bindParam(':user_id',$user_id, 2, 16);
+        $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
         
         
         
@@ -238,7 +238,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $user_ip, $user_ip === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.user_ip\'.');
         }
-        $stmt->bindParam(':user_ip',$user_ip, 2, 16);
+        $stmt->bindParam(':user_ip',$user_ip, PDO::PARAM_STR, 16);
         
         
         
@@ -253,7 +253,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $session_id)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.session_id\'.');
         }
-        $stmt->bindParam(':session_id',$session_id, 2, 255);
+        $stmt->bindParam(':session_id',$session_id, PDO::PARAM_STR, 255);
         
         
                 
@@ -266,7 +266,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $argv['session_expires'])) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.session_expires\'.');
         }
-        $stmt->bindValue(':session_expires', $argv['carbon_user_sessions.session_expires'], 2);
+        $stmt->bindValue(':session_expires', $argv['carbon_user_sessions.session_expires'], PDO::PARAM_STR);
         
 
         
@@ -281,7 +281,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $argv['session_data'])) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.session_data\'.');
         }
-        $stmt->bindValue(':session_data', $argv['carbon_user_sessions.session_data'], 2);
+        $stmt->bindValue(':session_data', $argv['carbon_user_sessions.session_data'], PDO::PARAM_STR);
         
 
         
@@ -294,7 +294,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $user_online_status, $user_online_status === '1')) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.user_online_status\'.');
         }
-        $stmt->bindParam(':user_online_status',$user_online_status, 0, 1);
+        $stmt->bindParam(':user_online_status',$user_online_status, PDO::PARAM_INT, 1);
         
 
 
@@ -390,7 +390,7 @@ self::prepostprocessRestRequest();
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':user_id',$user_id, 2, 16);
+            $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
         }
         if (array_key_exists('carbon_user_sessions.user_ip', $argv)) {
             $user_ip = $argv['carbon_user_sessions.user_ip'];
@@ -399,7 +399,7 @@ self::prepostprocessRestRequest();
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_ip)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':user_ip',$user_ip, 2, 16);
+            $stmt->bindParam(':user_ip',$user_ip, PDO::PARAM_STR, 16);
         }
         if (array_key_exists('carbon_user_sessions.session_id', $argv)) {
             $session_id = $argv['carbon_user_sessions.session_id'];
@@ -408,13 +408,13 @@ self::prepostprocessRestRequest();
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $session_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':session_id',$session_id, 2, 255);
+            $stmt->bindParam(':session_id',$session_id, PDO::PARAM_STR, 255);
         }
         if (array_key_exists('carbon_user_sessions.session_expires', $argv)) {
-            $stmt->bindValue(':session_expires',$argv['carbon_user_sessions.session_expires'], 2);
+            $stmt->bindValue(':session_expires',$argv['carbon_user_sessions.session_expires'], PDO::PARAM_STR);
         }
         if (array_key_exists('carbon_user_sessions.session_data', $argv)) {
-            $stmt->bindValue(':session_data',$argv['carbon_user_sessions.session_data'], 2);
+            $stmt->bindValue(':session_data',$argv['carbon_user_sessions.session_data'], PDO::PARAM_STR);
         }
         if (array_key_exists('carbon_user_sessions.user_online_status', $argv)) {
             $user_online_status = $argv['carbon_user_sessions.user_online_status'];
@@ -423,7 +423,7 @@ self::prepostprocessRestRequest();
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_online_status)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':user_online_status',$user_online_status, 0, 1);
+            $stmt->bindParam(':user_online_status',$user_online_status, PDO::PARAM_INT, 1);
         }
 
         self::bind($stmt);
@@ -509,9 +509,9 @@ self::prepostprocessRestRequest();
             $remove = [];
         }
         
-        self::prepostprocessRestRequest($r, $remove);
+        self::prepostprocessRestRequest($remove);
         
-        self::postprocessRestRequest($r, $remove);
+        self::postprocessRestRequest($remove);
         
         self::completeRest();
         

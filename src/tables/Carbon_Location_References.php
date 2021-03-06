@@ -38,7 +38,7 @@ class Carbon_Location_References extends Rest implements iRestfulReferences
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_location_references.entity_reference' => ['binary', '2', '16'],'carbon_location_references.location_reference' => ['binary', '2', '16'],'carbon_location_references.location_time' => ['datetime', '2', ''],
+        'carbon_location_references.entity_reference' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_location_references.location_reference' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_location_references.location_time' => ['datetime', 'PDO::PARAM_STR', ''],
     ];
      
     /**
@@ -219,7 +219,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $entity_reference)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_location_references.entity_reference\'.');
         }
-        $stmt->bindParam(':entity_reference',$entity_reference, 2, 16);
+        $stmt->bindParam(':entity_reference',$entity_reference, PDO::PARAM_STR, 16);
         
         
         
@@ -234,7 +234,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $location_reference)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_location_references.location_reference\'.');
         }
-        $stmt->bindParam(':location_reference',$location_reference, 2, 16);
+        $stmt->bindParam(':location_reference',$location_reference, PDO::PARAM_STR, 16);
         
         
         
@@ -323,7 +323,7 @@ self::prepostprocessRestRequest();
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $entity_reference)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':entity_reference',$entity_reference, 2, 16);
+            $stmt->bindParam(':entity_reference',$entity_reference, PDO::PARAM_STR, 16);
         }
         if (array_key_exists('carbon_location_references.location_reference', $argv)) {
             $location_reference = $argv['carbon_location_references.location_reference'];
@@ -332,10 +332,10 @@ self::prepostprocessRestRequest();
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $location_reference)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':location_reference',$location_reference, 2, 16);
+            $stmt->bindParam(':location_reference',$location_reference, PDO::PARAM_STR, 16);
         }
         if (array_key_exists('carbon_location_references.location_time', $argv)) {
-            $stmt->bindValue(':location_time',$argv['carbon_location_references.location_time'], 2);
+            $stmt->bindValue(':location_time',$argv['carbon_location_references.location_time'], PDO::PARAM_STR);
         }
 
         self::bind($stmt);
@@ -405,9 +405,9 @@ self::prepostprocessRestRequest();
             $remove = [];
         }
         
-        self::prepostprocessRestRequest($r, $remove);
+        self::prepostprocessRestRequest($remove);
         
-        self::postprocessRestRequest($r, $remove);
+        self::postprocessRestRequest($remove);
         
         self::completeRest();
         

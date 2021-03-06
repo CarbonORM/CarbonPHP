@@ -43,7 +43,7 @@ class Carbon_Locations extends Rest implements iRest
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_locations.entity_id' => ['binary', '2', '16'],'carbon_locations.latitude' => ['varchar', '2', '225'],'carbon_locations.longitude' => ['varchar', '2', '225'],'carbon_locations.street' => ['varchar', '2', '225'],'carbon_locations.city' => ['varchar', '2', '40'],'carbon_locations.state' => ['varchar', '2', '10'],'carbon_locations.elevation' => ['varchar', '2', '40'],'carbon_locations.zip' => ['int', '2', ''],
+        'carbon_locations.entity_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_locations.latitude' => ['varchar', 'PDO::PARAM_STR', '225'],'carbon_locations.longitude' => ['varchar', 'PDO::PARAM_STR', '225'],'carbon_locations.street' => ['varchar', 'PDO::PARAM_STR', '225'],'carbon_locations.city' => ['varchar', 'PDO::PARAM_STR', '40'],'carbon_locations.state' => ['varchar', 'PDO::PARAM_STR', '10'],'carbon_locations.elevation' => ['varchar', 'PDO::PARAM_STR', '40'],'carbon_locations.zip' => ['int', 'PDO::PARAM_INT', ''],
     ];
      
     /**
@@ -194,7 +194,7 @@ MYSQL;
     /**
      * @param array $argv
      * @param string|null $dependantEntityId - a C6 Hex entity key 
-     * @return bool|string
+     * @return bool|string|mixed
      * @throws PublicAlert|PDOException
      */
     public static function Post(array $argv, string $dependantEntityId = null)
@@ -225,7 +225,7 @@ MYSQL;
              throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_locations.entity_id\'.');
            }            
         }
-        $stmt->bindParam(':entity_id',$entity_id, 2, 16);
+        $stmt->bindParam(':entity_id',$entity_id, PDO::PARAM_STR, 16);
         
         
         
@@ -238,7 +238,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $latitude, $latitude === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_locations.latitude\'.');
         }
-        $stmt->bindParam(':latitude',$latitude, 2, 225);
+        $stmt->bindParam(':latitude',$latitude, PDO::PARAM_STR, 225);
         
         
         
@@ -249,7 +249,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $longitude, $longitude === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_locations.longitude\'.');
         }
-        $stmt->bindParam(':longitude',$longitude, 2, 225);
+        $stmt->bindParam(':longitude',$longitude, PDO::PARAM_STR, 225);
         
         
         
@@ -260,7 +260,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $street, $street === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_locations.street\'.');
         }
-        $stmt->bindParam(':street',$street, 2, 225);
+        $stmt->bindParam(':street',$street, PDO::PARAM_STR, 225);
         
         
         
@@ -271,7 +271,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $city, $city === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_locations.city\'.');
         }
-        $stmt->bindParam(':city',$city, 2, 40);
+        $stmt->bindParam(':city',$city, PDO::PARAM_STR, 40);
         
         
         
@@ -282,7 +282,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $state, $state === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_locations.state\'.');
         }
-        $stmt->bindParam(':state',$state, 2, 10);
+        $stmt->bindParam(':state',$state, PDO::PARAM_STR, 10);
         
         
         
@@ -293,7 +293,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $elevation, $elevation === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_locations.elevation\'.');
         }
-        $stmt->bindParam(':elevation',$elevation, 2, 40);
+        $stmt->bindParam(':elevation',$elevation, PDO::PARAM_STR, 40);
         
         
                         
@@ -303,7 +303,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $zip, $zip === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_locations.zip\'.');
         }
-        $stmt->bindValue(':zip', $zip, 2);
+        $stmt->bindValue(':zip', $zip, PDO::PARAM_INT);
         
         
 
@@ -404,7 +404,7 @@ MYSQL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $entity_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':entity_id',$entity_id, 2, 16);
+            $stmt->bindParam(':entity_id',$entity_id, PDO::PARAM_STR, 16);
         }
         if (array_key_exists('carbon_locations.latitude', $argv)) {
             $latitude = $argv['carbon_locations.latitude'];
@@ -413,7 +413,7 @@ MYSQL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $latitude)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':latitude',$latitude, 2, 225);
+            $stmt->bindParam(':latitude',$latitude, PDO::PARAM_STR, 225);
         }
         if (array_key_exists('carbon_locations.longitude', $argv)) {
             $longitude = $argv['carbon_locations.longitude'];
@@ -422,7 +422,7 @@ MYSQL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $longitude)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':longitude',$longitude, 2, 225);
+            $stmt->bindParam(':longitude',$longitude, PDO::PARAM_STR, 225);
         }
         if (array_key_exists('carbon_locations.street', $argv)) {
             $street = $argv['carbon_locations.street'];
@@ -431,7 +431,7 @@ MYSQL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $street)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':street',$street, 2, 225);
+            $stmt->bindParam(':street',$street, PDO::PARAM_STR, 225);
         }
         if (array_key_exists('carbon_locations.city', $argv)) {
             $city = $argv['carbon_locations.city'];
@@ -440,7 +440,7 @@ MYSQL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $city)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':city',$city, 2, 40);
+            $stmt->bindParam(':city',$city, PDO::PARAM_STR, 40);
         }
         if (array_key_exists('carbon_locations.state', $argv)) {
             $state = $argv['carbon_locations.state'];
@@ -449,7 +449,7 @@ MYSQL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $state)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':state',$state, 2, 10);
+            $stmt->bindParam(':state',$state, PDO::PARAM_STR, 10);
         }
         if (array_key_exists('carbon_locations.elevation', $argv)) {
             $elevation = $argv['carbon_locations.elevation'];
@@ -458,10 +458,10 @@ MYSQL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $elevation)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':elevation',$elevation, 2, 40);
+            $stmt->bindParam(':elevation',$elevation, PDO::PARAM_STR, 40);
         }
         if (array_key_exists('carbon_locations.zip', $argv)) {
-            $stmt->bindValue(':zip',$argv['carbon_locations.zip'], 2);
+            $stmt->bindValue(':zip',$argv['carbon_locations.zip'], PDO::PARAM_INT);
         }
 
         self::bind($stmt);
@@ -538,9 +538,9 @@ MYSQL;
             $remove = [];
         }
         
-        self::prepostprocessRestRequest($r, $remove);
+        self::prepostprocessRestRequest($remove);
         
-        self::postprocessRestRequest($r, $remove);
+        self::postprocessRestRequest($remove);
         
         self::completeRest();
         

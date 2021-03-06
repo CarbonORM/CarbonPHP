@@ -40,7 +40,7 @@ class History_Logs extends Rest implements iRestfulReferences
     ];
 
     public const PDO_VALIDATION = [
-        'history_logs.uuid' => ['binary', '2', '16'],'history_logs.resource_type' => ['varchar', '2', '40'],'history_logs.resource_uuid' => ['binary', '2', '16'],'history_logs.operation_type' => ['varchar', '2', '20'],'history_logs.data' => ['json', '2', ''],
+        'history_logs.uuid' => ['binary', 'PDO::PARAM_STR', '16'],'history_logs.resource_type' => ['varchar', 'PDO::PARAM_STR', '40'],'history_logs.resource_uuid' => ['binary', 'PDO::PARAM_STR', '16'],'history_logs.operation_type' => ['varchar', 'PDO::PARAM_STR', '20'],'history_logs.data' => ['json', 'PDO::PARAM_STR', ''],
     ];
      
     /**
@@ -219,7 +219,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $uuid)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'history_logs.uuid\'.');
         }
-        $stmt->bindParam(':uuid',$uuid, 2, 16);
+        $stmt->bindParam(':uuid',$uuid, PDO::PARAM_STR, 16);
         
         
         
@@ -230,7 +230,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $resource_type, $resource_type === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'history_logs.resource_type\'.');
         }
-        $stmt->bindParam(':resource_type',$resource_type, 2, 40);
+        $stmt->bindParam(':resource_type',$resource_type, PDO::PARAM_STR, 40);
         
         
         
@@ -241,7 +241,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $resource_uuid, $resource_uuid === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'history_logs.resource_uuid\'.');
         }
-        $stmt->bindParam(':resource_uuid',$resource_uuid, 2, 16);
+        $stmt->bindParam(':resource_uuid',$resource_uuid, PDO::PARAM_STR, 16);
         
         
         
@@ -252,7 +252,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $operation_type, $operation_type === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'history_logs.operation_type\'.');
         }
-        $stmt->bindParam(':operation_type',$operation_type, 2, 20);
+        $stmt->bindParam(':operation_type',$operation_type, PDO::PARAM_STR, 20);
         
         
         
@@ -268,7 +268,7 @@ MYSQL;
         if (!is_string($data = $argv['history_logs.data']) && false === $data = json_encode($data)) {
             throw new PublicAlert('The column \'history_logs.data\' failed to be json encoded.');
         }
-        $stmt->bindValue(':data', $data, 2);
+        $stmt->bindValue(':data', $data, PDO::PARAM_STR);
         
         
 
@@ -362,7 +362,7 @@ self::prepostprocessRestRequest();
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $uuid)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':uuid',$uuid, 2, 16);
+            $stmt->bindParam(':uuid',$uuid, PDO::PARAM_STR, 16);
         }
         if (array_key_exists('history_logs.resource_type', $argv)) {
             $resource_type = $argv['history_logs.resource_type'];
@@ -371,7 +371,7 @@ self::prepostprocessRestRequest();
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $resource_type)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':resource_type',$resource_type, 2, 40);
+            $stmt->bindParam(':resource_type',$resource_type, PDO::PARAM_STR, 40);
         }
         if (array_key_exists('history_logs.resource_uuid', $argv)) {
             $resource_uuid = $argv['history_logs.resource_uuid'];
@@ -380,7 +380,7 @@ self::prepostprocessRestRequest();
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $resource_uuid)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':resource_uuid',$resource_uuid, 2, 16);
+            $stmt->bindParam(':resource_uuid',$resource_uuid, PDO::PARAM_STR, 16);
         }
         if (array_key_exists('history_logs.operation_type', $argv)) {
             $operation_type = $argv['history_logs.operation_type'];
@@ -389,10 +389,10 @@ self::prepostprocessRestRequest();
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $operation_type)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':operation_type',$operation_type, 2, 20);
+            $stmt->bindParam(':operation_type',$operation_type, PDO::PARAM_STR, 20);
         }
         if (array_key_exists('history_logs.data', $argv)) {
-            $stmt->bindValue(':data',json_encode($argv['history_logs.data']), 2);
+            $stmt->bindValue(':data',json_encode($argv['history_logs.data']), PDO::PARAM_STR);
         }
 
         self::bind($stmt);
@@ -462,9 +462,9 @@ self::prepostprocessRestRequest();
             $remove = [];
         }
         
-        self::prepostprocessRestRequest($r, $remove);
+        self::prepostprocessRestRequest($remove);
         
-        self::postprocessRestRequest($r, $remove);
+        self::postprocessRestRequest($remove);
         
         self::completeRest();
         

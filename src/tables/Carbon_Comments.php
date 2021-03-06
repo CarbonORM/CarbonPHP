@@ -39,7 +39,7 @@ class Carbon_Comments extends Rest implements iRest
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_comments.parent_id' => ['binary', '2', '16'],'carbon_comments.comment_id' => ['binary', '2', '16'],'carbon_comments.user_id' => ['binary', '2', '16'],'carbon_comments.comment' => ['blob', '2', ''],
+        'carbon_comments.parent_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_comments.comment_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_comments.user_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_comments.comment' => ['blob', 'PDO::PARAM_STR', ''],
     ];
      
     /**
@@ -189,7 +189,7 @@ MYSQL;
     /**
      * @param array $argv
      * @param string|null $dependantEntityId - a C6 Hex entity key 
-     * @return bool|string
+     * @return bool|string|mixed
      * @throws PublicAlert|PDOException
      */
     public static function Post(array $argv, string $dependantEntityId = null)
@@ -223,7 +223,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $parent_id)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_comments.parent_id\'.');
         }
-        $stmt->bindParam(':parent_id',$parent_id, 2, 16);
+        $stmt->bindParam(':parent_id',$parent_id, PDO::PARAM_STR, 16);
                 
         $comment_id = $id = $argv['carbon_comments.comment_id'] ?? false;
         if ($id === false) {
@@ -235,7 +235,7 @@ MYSQL;
              throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_comments.comment_id\'.');
            }            
         }
-        $stmt->bindParam(':comment_id',$comment_id, 2, 16);
+        $stmt->bindParam(':comment_id',$comment_id, PDO::PARAM_STR, 16);
         
         
         
@@ -252,7 +252,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $user_id)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_comments.user_id\'.');
         }
-        $stmt->bindParam(':user_id',$user_id, 2, 16);
+        $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
         
         
                 
@@ -265,7 +265,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $argv['comment'])) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_comments.comment\'.');
         }
-        $stmt->bindValue(':comment', $argv['carbon_comments.comment'], 2);
+        $stmt->bindValue(':comment', $argv['carbon_comments.comment'], PDO::PARAM_STR);
         
 
         
@@ -355,7 +355,7 @@ MYSQL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $parent_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':parent_id',$parent_id, 2, 16);
+            $stmt->bindParam(':parent_id',$parent_id, PDO::PARAM_STR, 16);
         }
         if (array_key_exists('carbon_comments.comment_id', $argv)) {
             $comment_id = $argv['carbon_comments.comment_id'];
@@ -364,7 +364,7 @@ MYSQL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $comment_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':comment_id',$comment_id, 2, 16);
+            $stmt->bindParam(':comment_id',$comment_id, PDO::PARAM_STR, 16);
         }
         if (array_key_exists('carbon_comments.user_id', $argv)) {
             $user_id = $argv['carbon_comments.user_id'];
@@ -373,10 +373,10 @@ MYSQL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':user_id',$user_id, 2, 16);
+            $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
         }
         if (array_key_exists('carbon_comments.comment', $argv)) {
-            $stmt->bindValue(':comment',$argv['carbon_comments.comment'], 2);
+            $stmt->bindValue(':comment',$argv['carbon_comments.comment'], PDO::PARAM_STR);
         }
 
         self::bind($stmt);
@@ -453,9 +453,9 @@ MYSQL;
             $remove = [];
         }
         
-        self::prepostprocessRestRequest($r, $remove);
+        self::prepostprocessRestRequest($remove);
         
-        self::postprocessRestRequest($r, $remove);
+        self::postprocessRestRequest($remove);
         
         self::completeRest();
         

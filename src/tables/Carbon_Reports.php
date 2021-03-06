@@ -39,7 +39,7 @@ class Carbon_Reports extends Rest implements iRestfulReferences
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_reports.log_level' => ['varchar', '2', '20'],'carbon_reports.report' => ['text,', '2', ''],'carbon_reports.date' => ['datetime', '2', ''],'carbon_reports.call_trace' => ['text', '2', ''],
+        'carbon_reports.log_level' => ['varchar', 'PDO::PARAM_STR', '20'],'carbon_reports.report' => ['text,', 'PDO::PARAM_STR', ''],'carbon_reports.date' => ['datetime', 'PDO::PARAM_STR', ''],'carbon_reports.call_trace' => ['text', 'PDO::PARAM_STR', ''],
     ];
      
     /**
@@ -214,7 +214,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $log_level, $log_level === null)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_reports.log_level\'.');
         }
-        $stmt->bindParam(':log_level',$log_level, 2, 20);
+        $stmt->bindParam(':log_level',$log_level, PDO::PARAM_STR, 20);
         
         
                 
@@ -227,7 +227,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $argv['report'])) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_reports.report\'.');
         }
-        $stmt->bindValue(':report', $argv['carbon_reports.report'], 2);
+        $stmt->bindValue(':report', $argv['carbon_reports.report'], PDO::PARAM_STR);
         
 
         
@@ -244,7 +244,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $argv['call_trace'])) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_reports.call_trace\'.');
         }
-        $stmt->bindValue(':call_trace', $argv['carbon_reports.call_trace'], 2);
+        $stmt->bindValue(':call_trace', $argv['carbon_reports.call_trace'], PDO::PARAM_STR);
         
 
         
@@ -336,16 +336,16 @@ self::prepostprocessRestRequest();
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $log_level)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':log_level',$log_level, 2, 20);
+            $stmt->bindParam(':log_level',$log_level, PDO::PARAM_STR, 20);
         }
         if (array_key_exists('carbon_reports.report', $argv)) {
-            $stmt->bindValue(':report',$argv['carbon_reports.report'], 2);
+            $stmt->bindValue(':report',$argv['carbon_reports.report'], PDO::PARAM_STR);
         }
         if (array_key_exists('carbon_reports.date', $argv)) {
-            $stmt->bindValue(':date',$argv['carbon_reports.date'], 2);
+            $stmt->bindValue(':date',$argv['carbon_reports.date'], PDO::PARAM_STR);
         }
         if (array_key_exists('carbon_reports.call_trace', $argv)) {
-            $stmt->bindValue(':call_trace',$argv['carbon_reports.call_trace'], 2);
+            $stmt->bindValue(':call_trace',$argv['carbon_reports.call_trace'], PDO::PARAM_STR);
         }
 
         self::bind($stmt);
@@ -415,9 +415,9 @@ self::prepostprocessRestRequest();
             $remove = [];
         }
         
-        self::prepostprocessRestRequest($r, $remove);
+        self::prepostprocessRestRequest($remove);
         
-        self::postprocessRestRequest($r, $remove);
+        self::postprocessRestRequest($remove);
         
         self::completeRest();
         

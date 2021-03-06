@@ -38,7 +38,7 @@ class Carbon_Features extends Rest implements iRest
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_features.feature_entity_id' => ['binary', '2', '16'],'carbon_features.feature_code' => ['varchar', '2', '30'],'carbon_features.feature_creation_date' => ['datetime', '2', ''],
+        'carbon_features.feature_entity_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_features.feature_code' => ['varchar', 'PDO::PARAM_STR', '30'],'carbon_features.feature_creation_date' => ['datetime', 'PDO::PARAM_STR', ''],
     ];
      
     /**
@@ -179,7 +179,7 @@ MYSQL;
     /**
      * @param array $argv
      * @param string|null $dependantEntityId - a C6 Hex entity key 
-     * @return bool|string
+     * @return bool|string|mixed
      * @throws PublicAlert|PDOException
      */
     public static function Post(array $argv, string $dependantEntityId = null)
@@ -210,7 +210,7 @@ MYSQL;
              throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_features.feature_entity_id\'.');
            }            
         }
-        $stmt->bindParam(':feature_entity_id',$feature_entity_id, 2, 16);
+        $stmt->bindParam(':feature_entity_id',$feature_entity_id, PDO::PARAM_STR, 16);
         
         
         
@@ -227,7 +227,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $feature_code)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_features.feature_code\'.');
         }
-        $stmt->bindParam(':feature_code',$feature_code, 2, 30);
+        $stmt->bindParam(':feature_code',$feature_code, PDO::PARAM_STR, 30);
         
         
         
@@ -314,7 +314,7 @@ MYSQL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $feature_entity_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':feature_entity_id',$feature_entity_id, 2, 16);
+            $stmt->bindParam(':feature_entity_id',$feature_entity_id, PDO::PARAM_STR, 16);
         }
         if (array_key_exists('carbon_features.feature_code', $argv)) {
             $feature_code = $argv['carbon_features.feature_code'];
@@ -323,10 +323,10 @@ MYSQL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $feature_code)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':feature_code',$feature_code, 2, 30);
+            $stmt->bindParam(':feature_code',$feature_code, PDO::PARAM_STR, 30);
         }
         if (array_key_exists('carbon_features.feature_creation_date', $argv)) {
-            $stmt->bindValue(':feature_creation_date',$argv['carbon_features.feature_creation_date'], 2);
+            $stmt->bindValue(':feature_creation_date',$argv['carbon_features.feature_creation_date'], PDO::PARAM_STR);
         }
 
         self::bind($stmt);
@@ -403,9 +403,9 @@ MYSQL;
             $remove = [];
         }
         
-        self::prepostprocessRestRequest($r, $remove);
+        self::prepostprocessRestRequest($remove);
         
-        self::postprocessRestRequest($r, $remove);
+        self::postprocessRestRequest($remove);
         
         self::completeRest();
         

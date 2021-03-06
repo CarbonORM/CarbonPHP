@@ -38,7 +38,7 @@ class Carbon_User_Followers extends Rest implements iRest
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_user_followers.follower_table_id' => ['binary', '2', '16'],'carbon_user_followers.follows_user_id' => ['binary', '2', '16'],'carbon_user_followers.user_id' => ['binary', '2', '16'],
+        'carbon_user_followers.follower_table_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_followers.follows_user_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_followers.user_id' => ['binary', 'PDO::PARAM_STR', '16'],
     ];
      
     /**
@@ -187,7 +187,7 @@ MYSQL;
     /**
      * @param array $argv
      * @param string|null $dependantEntityId - a C6 Hex entity key 
-     * @return bool|string
+     * @return bool|string|mixed
      * @throws PublicAlert|PDOException
      */
     public static function Post(array $argv, string $dependantEntityId = null)
@@ -218,7 +218,7 @@ MYSQL;
              throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_followers.follower_table_id\'.');
            }            
         }
-        $stmt->bindParam(':follower_table_id',$follower_table_id, 2, 16);
+        $stmt->bindParam(':follower_table_id',$follower_table_id, PDO::PARAM_STR, 16);
         
         
         
@@ -235,7 +235,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $follows_user_id)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_followers.follows_user_id\'.');
         }
-        $stmt->bindParam(':follows_user_id',$follows_user_id, 2, 16);
+        $stmt->bindParam(':follows_user_id',$follows_user_id, PDO::PARAM_STR, 16);
         
         
         
@@ -250,7 +250,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $user_id)) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_followers.user_id\'.');
         }
-        $stmt->bindParam(':user_id',$user_id, 2, 16);
+        $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
         
 
         if ($stmt->execute()) {
@@ -335,7 +335,7 @@ MYSQL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $follower_table_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':follower_table_id',$follower_table_id, 2, 16);
+            $stmt->bindParam(':follower_table_id',$follower_table_id, PDO::PARAM_STR, 16);
         }
         if (array_key_exists('carbon_user_followers.follows_user_id', $argv)) {
             $follows_user_id = $argv['carbon_user_followers.follows_user_id'];
@@ -344,7 +344,7 @@ MYSQL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $follows_user_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':follows_user_id',$follows_user_id, 2, 16);
+            $stmt->bindParam(':follows_user_id',$follows_user_id, PDO::PARAM_STR, 16);
         }
         if (array_key_exists('carbon_user_followers.user_id', $argv)) {
             $user_id = $argv['carbon_user_followers.user_id'];
@@ -353,7 +353,7 @@ MYSQL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_id)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':user_id',$user_id, 2, 16);
+            $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
         }
 
         self::bind($stmt);
@@ -430,9 +430,9 @@ MYSQL;
             $remove = [];
         }
         
-        self::prepostprocessRestRequest($r, $remove);
+        self::prepostprocessRestRequest($remove);
         
-        self::postprocessRestRequest($r, $remove);
+        self::postprocessRestRequest($remove);
         
         self::completeRest();
         
