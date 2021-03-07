@@ -17,6 +17,8 @@ use CarbonPHP\Tables\Carbon_Locations;
 use CarbonPHP\Tables\Carbon_User_Tasks;
 use CarbonPHP\Tables\Carbon_Users as Users;
 use CarbonPHP\Tables\Carbons;
+use CarbonPHP\Tables\History_Logs;
+use CarbonPHP\Tables\Sessions;
 
 
 /**
@@ -103,7 +105,7 @@ final class RestTest extends Config
      * @depends testRestApiCanPost
      * @throws PublicAlert
      */
-    public function testRestAdiCanAggregate(): void
+    public function testRestApiCanAggregate(): void
     {
         $temp = [];
 
@@ -253,7 +255,6 @@ final class RestTest extends Config
             ]
         ]), 'Failed to run inner join.');
 
-
         self::assertArrayHasKey(Users::COLUMNS[Users::USER_USERNAME], $user);
 
         self::assertEquals(Config::ADMIN_USERNAME, $user[Users::COLUMNS[Users::USER_USERNAME]]);
@@ -279,7 +280,7 @@ final class RestTest extends Config
                     Users::USER_PASSWORD => Config::ADMIN_PASSWORD
                 ],
                 Rest::PAGINATION => [
-                    Rest::LIMIT  => 1
+                    Rest::LIMIT => 1
                 ]
             ]
         ), 'The user could not be retrieved.');
@@ -319,7 +320,6 @@ final class RestTest extends Config
     /**
      * @depends testRestApiCanJoin
      * @throws PublicAlert
-     * @noinspection PhpUnitTestsInspection
      */
     public function testRestApiCanSubQuery(): void
     {
@@ -451,5 +451,123 @@ final class RestTest extends Config
         self::assertEmpty($user, 'Cascade delete failed.');
     }
 
+    public function testRestApiCanUseNonCarbonPrimaryKeys(): void
+    {
+        $return = [];
+
+        $session_primary_key = (string)random_int(0, 1234512341234);
+
+        self::assertNotFalse(Sessions::Post([
+            Sessions::USER_ID => '8544e3d581ba11e8942cd89ef3fc55fa',
+            Sessions::USER_IP => '127.0.0.1',
+            Sessions::SESSION_ID => $session_primary_key,
+            Sessions::SESSION_EXPIRES => date('Y-m-d H:i:s'), // @link https://stackoverflow.com/questions/2215354/php-date-format-when-inserting-into-datetime-in-mysql/17295570
+            Sessions::SESSION_DATA => '',
+            Sessions::USER_ONLINE_STATUS => 1
+        ]));
+
+        self::assertTrue(Sessions::Put($return, $session_primary_key, [
+            Sessions::USER_ID => '8544e3d581ba11e8942cd89ef3fc55fa',
+            Sessions::USER_IP => '127.0.0.1',
+            Sessions::SESSION_ID => $session_primary_key,
+            Sessions::SESSION_DATA => '',
+            Sessions::USER_ONLINE_STATUS => 0
+        ]));
+
+        self::assertTrue(Sessions::Get($return, $session_primary_key, []));
+
+        self::assertTrue(Sessions::Delete($return, $session_primary_key, []));
+    }
+
+
+    /**
+     * It can be noted that history logs are not Carbon tables as the reff will be deleted before it
+     * is added to this table.
+     * @throws PublicAlert
+     */
+    public function testRestApiCanUseTablesWithNoPrimaryKey(): void
+    {
+        $ignore = [];
+        $condition = 'ME';
+
+        // Should return a unique hex id
+        self::assertTrue(History_Logs::Post([
+            History_Logs::RESOURCE_TYPE => $condition,
+            History_Logs::RESOURCE_UUID => '8544e3d581ba11e8942cd89ef3fc55fa',
+            History_Logs::UUID => '8544e3d581ba11e8942cd89ef3fc55fa',
+            History_Logs::DATA => '{}'
+        ]));
+
+        // Should return a unique hex id
+        self::assertTrue(History_Logs::Put($ignore, [
+            Rest::UPDATE => [
+                History_Logs::DATA => '',
+            ],
+            Rest::WHERE => [
+                History_Logs::RESOURCE_UUID => '8544e3d581ba11e8942cd89ef3fc55fa',
+            ]
+        ]));
+
+        $return = [];
+
+        self::assertTrue(History_Logs::Get($return, [
+            Rest::WHERE => [
+                History_Logs::RESOURCE_TYPE => $condition
+            ],
+            Rest::PAGINATION => [
+                Rest::LIMIT => 1,
+                Rest::ORDER => [History_Logs::UUID => Rest::ASC]
+            ]
+        ]));
+
+        self::assertCount(5, $return);
+    }
+
+    public function testRestApiCanUseJson(): void
+    {
+        $ignore = [];
+        $condition = 'ME';
+
+        // Should return a unique hex id
+        self::assertTrue(History_Logs::Post([
+            History_Logs::RESOURCE_TYPE => $condition,
+            History_Logs::RESOURCE_UUID => '8544e3d581ba11e8942cd89ef3fc55fa',
+            History_Logs::UUID => '8544e3d581ba11e8942cd89ef3fc55fa',
+            History_Logs::DATA => [
+                'Test' => 'Value'
+            ]
+        ]));
+
+
+        // Should return a unique hex id
+        self::assertTrue(History_Logs::Put($ignore, [
+            Rest::UPDATE => [
+                History_Logs::RESOURCE_UUID => '8544e3d581ba11e8942cd89ef3fc55fb',
+                History_Logs::UUID => '8544e3d581ba11e8942cd89ef3fc55fb',
+                History_Logs::DATA => [
+                    'Test' => 'Value'
+                ]
+            ],
+            Rest::WHERE => [
+                History_Logs::RESOURCE_TYPE => $condition,
+            ]
+        ]));
+
+        $return = [];
+
+        self::assertTrue(History_Logs::Get($return, [
+            Rest::WHERE => [
+                History_Logs::RESOURCE_TYPE => $condition
+            ],
+            Rest::PAGINATION => [
+                Rest::LIMIT => 1,
+                Rest::ORDER => [History_Logs::UUID => Rest::ASC]
+            ]
+        ]));
+
+        self::assertCount(5, $return);
+
+
+    }
 
 }

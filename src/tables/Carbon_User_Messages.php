@@ -184,6 +184,8 @@ MYSQL;
             $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
             // promise this is needed and will still return the desired array except for a single record will not be an array
         }
+        
+        
 
         self::postprocessRestRequest($return);
         self::completeRest();

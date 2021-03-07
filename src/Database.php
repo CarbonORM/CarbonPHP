@@ -64,10 +64,6 @@ class Database
     public static string $setup;
 
     /**
-     * @var bool - Represents a post, aka new row inception with foreign keys, in progress.
-     */
-    private static bool $inTransaction = false;
-    /**
      * @var array - new key inserted but not verified currently
      */
     private static array $entityTransactionKeys;
@@ -268,11 +264,13 @@ class Database
      */
     public static function verify(string $errorMessage = null): bool
     {
-        if (!static::$inTransaction) {        // We're verifying that we do not have an un finished transaction
+        $pdo = self::database();
+
+        if (!$pdo->inTransaction()) {        // We're verifying that we do not have an un finished transaction
             return true;
         }
         try {
-            self::database()->rollBack();  // this transaction was started after our keys were inserted..
+            $pdo->rollBack();  // this transaction was started after our keys were inserted..
             if (!empty(self::$entityTransactionKeys)) {
                 foreach (self::$entityTransactionKeys as $key) {
                     static::remove_entity($key);
@@ -296,22 +294,15 @@ class Database
      */
     public static function commit(callable $lambda = null): bool
     {
-        if (!self::$inTransaction) {
-            return true;
-        }
-
         $db = self::database();
 
         if (!$db->inTransaction()) {
-            self::$inTransaction = false;
             return true;
         }
 
         if (!$db->commit()) {
             return static::verify();
         }
-
-        self::$inTransaction = false;
 
         self::$entityTransactionKeys = [];
 
@@ -350,9 +341,8 @@ class Database
         $db = self::database();
         $key = self::new_entity($tag_id, $dependant);
         if (!$db->inTransaction()) {
-            self::database()->beginTransaction();
+            $db->beginTransaction();
         }
-        self::$inTransaction = true;    // this has to happen after the key is generated with new_entity
         return $key;
     }
 

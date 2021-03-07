@@ -171,6 +171,11 @@ MYSQL;
         */
 
         
+        if (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1) {
+            $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
+            // promise this is needed and will still return the desired array except for a single record will not be an array
+        }
+        
         
         if (array_key_exists('data', $return)) {
                 $return['data'] = json_decode($return['data'], true);
@@ -203,7 +208,6 @@ MYSQL;
         $pdo = self::database();
         
         if (!$pdo->inTransaction()) {
-            self::$inTransaction = true;
             $pdo->beginTransaction();
         }
 
@@ -280,7 +284,7 @@ MYSQL;
 
 
         if ($stmt->execute()) {
-self::prepostprocessRestRequest();
+            self::prepostprocessRestRequest();
             
             if (self::$commit && !Database::commit()) {
                throw new PublicAlert('Failed to store commit transaction on table history_logs');
@@ -309,9 +313,17 @@ self::prepostprocessRestRequest();
     {
         self::startRest(self::PUT, $argv);
         
-        $where = $argv[self::WHERE];
+        $where = $argv[self::WHERE] ?? [];
+        
+        if (empty($where)) {
+            throw new PublicAlert('Restful tables which have no primary key must be updated using conditions given to $argv[self::WHERE] and values given to $argv[self::UPDATE]. No WHERE attribute given.', 'danger');
+        }
 
-        $argv = $argv[self::UPDATE];
+        $argv = $argv[self::UPDATE] ?? [];
+        
+        if (empty($argv)) {
+            throw new PublicAlert('Restful tables which have no primary key must be updated using conditions given to $argv[self::WHERE] and values given to $argv[self::UPDATE]. No UPDATE attribute given.', 'danger');
+        }
 
         if (empty($where) || empty($argv)) {
             throw new PublicAlert('Restful tables which have no primary key must be updated with specific where and update attributes.', 'danger');

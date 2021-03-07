@@ -403,23 +403,6 @@ export const C6 = {
 
   },
 
-  creation_logs: {
-    TABLE_NAME:'creation_logs',
-    UUID: 'creation_logs.uuid',
-    RESOURCE_TYPE: 'creation_logs.resource_type',
-    RESOURCE_UUID: 'creation_logs.resource_uuid',
-    PRIMARY: [
-            ],
-    COLUMNS: {
-      'creation_logs.uuid':'uuid',
-'creation_logs.resource_type':'resource_type',
-'creation_logs.resource_uuid':'resource_uuid',
-    },
-    REGEX_VALIDATION: {
-    }
-
-  },
-
   history_logs: {
     TABLE_NAME:'history_logs',
     UUID: 'history_logs.uuid',
@@ -624,13 +607,6 @@ export interface  iCarbon_Users{
 }
   
 
-export interface  iCreation_Logs{
-      'uuid'?: string;
-'resource_type'?: string;
-'resource_uuid'?: string;
-}
-  
-
 export interface  iHistory_Logs{
       'uuid'?: string;
 'resource_type'?: string;
@@ -758,10 +734,6 @@ export const COLUMNS = {
 'carbon_users.user_location':'user_location',
 'carbon_users.user_creation_date':'user_creation_date',
 
-'creation_logs.uuid':'uuid',
-'creation_logs.resource_type':'resource_type',
-'creation_logs.resource_uuid':'resource_uuid',
-
 'history_logs.uuid':'uuid',
 'history_logs.resource_type':'resource_type',
 'history_logs.resource_uuid':'resource_uuid',
@@ -779,7 +751,7 @@ export const COLUMNS = {
 
 //export type RestTables = "$all_table_names_types";
 
-export type RestTableInterfaces = iCarbon_Comments | iCarbons | iCarbon_Feature_Group_References | iCarbon_Features | iCarbon_Group_References | iCarbon_Groups | iCarbon_Location_References | iCarbon_Locations | iCarbon_Photos | iCarbon_Reports | iCarbon_User_Followers | iCarbon_User_Groups | iCarbon_User_Messages | iCarbon_User_Sessions | iCarbon_User_Tasks | iCarbon_Users | iCreation_Logs | iHistory_Logs | iSessions;
+export type RestTableInterfaces = iCarbon_Comments | iCarbons | iCarbon_Feature_Group_References | iCarbon_Features | iCarbon_Group_References | iCarbon_Groups | iCarbon_Location_References | iCarbon_Locations | iCarbon_Photos | iCarbon_Reports | iCarbon_User_Followers | iCarbon_User_Groups | iCarbon_User_Messages | iCarbon_User_Sessions | iCarbon_User_Tasks | iCarbon_Users | iHistory_Logs | iSessions;
 
 export const convertForRequestBody = function(restfulObject: RestTableInterfaces, tableName: string) {
   let payload = {};

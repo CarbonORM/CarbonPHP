@@ -213,6 +213,10 @@ abstract class Rest extends Database
             }
         };
 
+        if (!is_string($column) && !is_int($column)) {
+            return false; // this may indicate a json column
+        }
+
         if (array_key_exists($column, self::$compiled_PDO_validations)) {      // allow short tags
             $runCustomCallables();
             return true;

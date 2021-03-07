@@ -1404,8 +1404,15 @@ MYSQL;
         if (\$primary !== null || (isset(\$argv[self::PAGINATION][self::LIMIT]) && \$argv[self::PAGINATION][self::LIMIT] === 1 && count(\$return) === 1)) {
             \$return = isset(\$return[0]) && is_array(\$return[0]) ? \$return[0] : \$return;
             // promise this is needed and will still return the desired array except for a single record will not be an array
-        }{{/sql}}{{/primary}}{{#explode}}{{#json}}
+        }{{/sql}}{{/primary}}
+        {{^primary}}
+        if (isset(\$argv[self::PAGINATION][self::LIMIT]) && \$argv[self::PAGINATION][self::LIMIT] === 1 && count(\$return) === 1) {
+            \$return = isset(\$return[0]) && is_array(\$return[0]) ? \$return[0] : \$return;
+            // promise this is needed and will still return the desired array except for a single record will not be an array
+        }
+        {{/primary}}
         
+        {{#explode}}{{#json}}
         if (array_key_exists('{{name}}', \$return)) {
                 \$return['{{name}}'] = json_decode(\$return['{{name}}'], true);
         }
@@ -1438,7 +1445,6 @@ MYSQL;
         \$pdo = self::database();
         
         if (!\$pdo->inTransaction()) {
-            self::\$inTransaction = true;
             \$pdo->beginTransaction();
         }
         {{/binary_primary}}
@@ -1548,8 +1554,8 @@ MYSQL;
         if (\$stmt->execute()) {
             {{#auto_increment_return_key}}
             \$id = \$pdo->lastInsertId();
-            
-            {{/auto_increment_return_key}}self::prepostprocessRestRequest({{#auto_increment_return_key}}\$id{{/auto_increment_return_key}});
+            {{/auto_increment_return_key}}
+            self::prepostprocessRestRequest({{#auto_increment_return_key}}\$id{{/auto_increment_return_key}});
             
             if (self::\$commit && !Database::commit()) {
                throw new PublicAlert('Failed to store commit transaction on table {{TableName}}');
@@ -1589,9 +1595,17 @@ MYSQL;
         }
         {{/primaryExists}}
         {{^primaryExists}}
-        \$where = \$argv[self::WHERE];
+        \$where = \$argv[self::WHERE] ?? [];
+        
+        if (empty(\$where)) {
+            throw new PublicAlert('Restful tables which have no primary key must be updated using conditions given to \$argv[self::WHERE] and values given to \$argv[self::UPDATE]. No WHERE attribute given.', 'danger');
+        }
 
-        \$argv = \$argv[self::UPDATE];
+        \$argv = \$argv[self::UPDATE] ?? [];
+        
+        if (empty(\$argv)) {
+            throw new PublicAlert('Restful tables which have no primary key must be updated using conditions given to \$argv[self::WHERE] and values given to \$argv[self::UPDATE]. No UPDATE attribute given.', 'danger');
+        }
 
         if (empty(\$where) || empty(\$argv)) {
             throw new PublicAlert('Restful tables which have no primary key must be updated with specific where and update attributes.', 'danger');

@@ -187,6 +187,8 @@ MYSQL;
             $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
             // promise this is needed and will still return the desired array except for a single record will not be an array
         }
+        
+        
 
         self::postprocessRestRequest($return);
         self::completeRest();
@@ -214,7 +216,6 @@ MYSQL;
         $pdo = self::database();
         
         if (!$pdo->inTransaction()) {
-            self::$inTransaction = true;
             $pdo->beginTransaction();
         }
 
@@ -308,7 +309,7 @@ MYSQL;
 
 
         if ($stmt->execute()) {
-self::prepostprocessRestRequest();
+            self::prepostprocessRestRequest();
             
             if (self::$commit && !Database::commit()) {
                throw new PublicAlert('Failed to store commit transaction on table sessions');
