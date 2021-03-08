@@ -728,6 +728,7 @@ abstract class Rest extends Database
 
                 $order = ' ORDER BY ';
 
+                /** @noinspection NotOptimalIfConditionsInspection */
                 if (array_key_exists(self::ORDER, $argv[self::PAGINATION])) {
                     if (is_array($argv[self::PAGINATION][self::ORDER])) {
                         $orderArray = [];
@@ -828,7 +829,7 @@ abstract class Rest extends Database
                 if ('binary' === static::PDO_VALIDATION[$column][0] ?? false) {
                     $primaryEquals[] = " $column=UNHEX(" . self::addInjection($primary, $pdo) . ') ';
                 } else {
-                    $primaryEquals[] = " $column='" . self::addInjection($primary, $pdo) . '\' ';
+                    $primaryEquals[] = " $column=" . self::addInjection($primary, $pdo, static::PDO_VALIDATION[$column]) . ' ';
                 }
             }
             $sql .= ' WHERE ' . implode(' OR ', $primaryEquals);
@@ -1117,10 +1118,14 @@ abstract class Rest extends Database
         }
     }
 
-    public static function addInjection($value, PDO $pdo, $quote = false): string
+    public static function addInjection($value, PDO $pdo, array $pdo_column_validation = null): string
     {
         $inject = ':injection' . count(self::$injection);
-        self::$injection[$inject] = $quote ? $pdo->quote($value) : $value;
+        if ($pdo_column_validation === null || 'PDO::PARAM_INT' === $pdo_column_validation[1]) {
+            self::$injection[$inject] = $value;
+        } else {
+            self::$injection[$inject] = $pdo->quote($value);        // boolean I suppose... possibly more
+        }
         return $inject;
     }
 
