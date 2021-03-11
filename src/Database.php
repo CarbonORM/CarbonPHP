@@ -121,7 +121,7 @@ class Database
                             return static::$database;
                         };
 
-                        $db = $prep(@new PDO($query[0], static::$username, static::$password));
+                        $db = $prep(@new PDO($query[0], static::$username, static::$password, array(PDO::MYSQL_ATTR_FOUND_ROWS => true)));
                     } catch (PDOException $e) {
                         if ($e->getCode() === 1049) {
                             print '<h1>Auto Setup Failed!</h1><h3>Your database DSN may be slightly malformed.</h3>';
