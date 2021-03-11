@@ -154,9 +154,9 @@ namespace {                                     // This runs the following code 
      */
     function dump(...$argv)
     {
-        echo '<pre>';
+        CarbonPHP::$cli or print '<pre>';
         var_dump(\count($argv) === 1 ? array_shift($argv) : $argv);
-        echo '</pre>';
+        CarbonPHP::$cli or print '</pre>';
     }
 
     /** This is dump()'s big brother, a better dump per say.
@@ -169,23 +169,28 @@ namespace {                                     // This runs the following code 
      *
      * @param bool $fullReport this outputs a backtrace and zvalues
      * @param bool $die -
-     * @throws PublicAlert
+     * @param int $debug_backtrace_limit
      * @link http://php.net/manual/en/function.debug-zval-dump.php
-     *
      * @link http://php.net/manual/en/function.debug-backtrace.php
      *
      * From personal experience you should not worry about Z-values, as it is almost
      * never ever the issue. I'm 99.9% sure of this, but if you don't trust me you
-     * should read this full manual page
+     * should read this full manual page. Z-values typically only come to play when
+     * your using advanced referencing using & and then trying to manually (no GC)
+     * unset an allocated reference variable. It should be noted that explicitly
+     * passing by reference is slower than to not do such. It should not be your
+     * first choice in writing php code, though maybe appropriate*. Thus running
+     * in a z-value issues is extremely low.
+     *
      * @noinspection ForgottenDebugOutputInspection
      * @noinspection PhpExpressionResultUnusedInspection
      */
-    function sortDump($mixed, bool $fullReport = false, bool $die = true) : void
+    function sortDump($mixed, bool $fullReport = false, bool $die = true, int $debug_backtrace_limit = 2) : void
     {
         // Notify that sort dump was executed
         CarbonPHP::$cli or alert(__FUNCTION__);
 
-        $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+        $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, $debug_backtrace_limit);
 
         // Generate Report -- keep in mind were in a buffer here
         $output = static function (bool $cli) use ($mixed, $fullReport, $backtrace) : string {
@@ -257,7 +262,14 @@ namespace {                                     // This runs the following code 
 
 
     /**
-     * This is array_merge_recursive but add
+     * Recursively merge a variable number of arrays, using the left array as base, giving priority to the right array.
+
+    Difference with native array_merge_recursive(): array_merge_recursive converts values with duplicate keys to arrays
+     * rather than overwriting the value in the first array with the duplicate value in the second array.
+     * array_merge_recursive_distinct does not change the data types of the values in the arrays. Matching keys' values
+     * in the second array overwrite those in the first array, as is the case with array_merge. Freely based on
+     * information found on http://www.php.net/manual/en/function.array-merge-recursive.php
+     *
      * @return array Merged array
      * @link https://wordpress-seo.wp-a2z.org/oik_api/wpseo_metaarray_merge_recursive_distinct/
      */

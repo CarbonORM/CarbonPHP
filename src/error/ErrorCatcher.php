@@ -295,14 +295,18 @@ END;
             return false;
         };
 
+        // the return hint on set_error_handler is incorrect as array may also be returned.
+        // @link https://www.php.net/manual/en/function.set-error-handler.php
         self::$old_error_handler = set_error_handler($error_handler);
-        self::$old_exception_handler =set_exception_handler($exception_handler);   // takes one argument
+        self::$old_exception_handler = set_exception_handler($exception_handler);   // takes one argument
 
         return self::$old_error_level;
     }
 
-    public static ?Closure $old_error_handler = null;
-    public static ?Closure $old_exception_handler = null;
+    // The following two should be of type   ?Closure|array
+    // @link https://www.php.net/manual/en/function.set-error-handler.php
+    public static $old_error_handler = null;
+    public static $old_exception_handler = null;
     public static ?int $old_error_level = null;
 
 
