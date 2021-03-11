@@ -190,7 +190,8 @@ class Database
             try {
                 return self::TryCatch(
                     static function () use ($prep) {
-                        return $prep(@new PDO(static::$dsn, static::$username, static::$password));
+                        // @link https://stackoverflow.com/questions/10522520/pdo-were-rows-affected-during-execute-statement
+                        return $prep(@new PDO(static::$dsn, static::$username, static::$password, array(PDO::MYSQL_ATTR_FOUND_ROWS => true)));
                     });
             } catch (Throwable $e) {
                 $attempts++;

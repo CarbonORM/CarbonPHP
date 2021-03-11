@@ -144,6 +144,11 @@ final class RestTest extends Config
                 Carbons::ENTITY_PK => '8544e3d581ba11e8942cd89ef3fc55fb'
             ]), 'Failed Updating Records.');
 
+        self::assertTrue(
+            Carbons::Put($store, $store[Carbons::COLUMNS[Carbons::ENTITY_PK]], [
+                Carbons::ENTITY_PK => '8544e3d581ba11e8942cd89ef3fc55fb'
+            ]), 'Failed Updating Records With Identical Data. See https://stackoverflow.com/questions/10522520/pdo-were-rows-affected-during-execute-statement ');
+
         self::assertEquals('8544e3d581ba11e8942cd89ef3fc55fb', $store[Carbons::COLUMNS[Carbons::ENTITY_PK]]);
 
         $store = [];
