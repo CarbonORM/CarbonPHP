@@ -355,6 +355,8 @@ class CarbonPHP
             self::$reports = $config['ERROR']['LOCATION'] ?? '';
 
             #####################   AUTOLOAD    #######################
+            // it may serve pompous to dynamically load namespaces on call time
+            // this however is not recommended if avoidable by using composer.
             if ($config['AUTOLOAD'] ?? false) {
                 $PSR4 = new Autoload();
                 if (is_array($config['AUTOLOAD'] ?? false)) {
