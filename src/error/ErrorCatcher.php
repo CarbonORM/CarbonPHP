@@ -6,6 +6,7 @@ namespace CarbonPHP\Error;
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
+use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Programs\Background;
 use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Tables\Carbon_Reports;
@@ -345,14 +346,10 @@ END;
      * @internal param $argv
      * @noinspection ForgottenDebugOutputInspection
      */
-    public static function generateLog(Throwable $e = null, string $level = null, array &$browserOutput = [], string $color = null): array
+    public static function generateLog(Throwable $e = null, string $level = null, array &$browserOutput = [], string $color = iColorCode::RED): array
     {
         if (null === $level) {
             $level = 'log';
-        }
-
-        if (null === $color) {
-            $color = 'red';
         }
 
         if (!CarbonPHP::$test && ob_get_status()) {

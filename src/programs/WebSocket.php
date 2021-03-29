@@ -760,6 +760,11 @@ class WebSocket extends Request implements iCommand
             return false;
         }
 
+        // in the spirit of using actual header values
+        // @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers
+        // well use warning to store general information
+        $headers['Warning'] = $lines[0] ?? '';
+
         $_SERVER['HTTP_COOKIE'] = $headers['Cookie'] ?? [];
         $_SERVER['User_Agent'] = $headers['User-Agent'] ?? '';
         $_SERVER['Host'] = $headers['Host'] ?? '';
