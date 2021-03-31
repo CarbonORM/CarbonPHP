@@ -1586,7 +1586,7 @@ MYSQL;
         self::startRest(self::PUT, \$argv);
         
         {{#primaryExists}}
-        if (empty(\$primary)) {
+        if ('' === \$primary) {
             throw new PublicAlert('Restful tables which have a primary key must be updated by its primary key.', 'danger');
         }
         
