@@ -1022,7 +1022,7 @@ abstract class Rest extends Database
      */
     public static function MatchRestfulRequests(Route $route, string $prefix = '', string $namespace = null): Route
     {
-        return $route->regexMatch(/** @lang RegExp */ '#' . $prefix . 'rest/([A-Za-z\_]{1,256})/?' . Route::MATCH_C6_ENTITY_ID_REGEX . '?#',
+        return $route->regexMatch(/** @lang RegExp */ '#' . $prefix . 'rest/([A-Za-z\_]{1,256})/?([^/]+)?#',
             static function (string $table, string $primary = null) use ($namespace) : void {
                 if ($namespace === null) {
                     Rest::ExternalRestfulRequestsAPI($table, $primary);
