@@ -68,8 +68,13 @@ class Pipe
 
 
     /** Attempt to send a string to a named pipe. This is normally done
-     * after forking so error are ungraciously ignored. If you require
-     * further error checking you will need to Try {} Catch this..
+     * after forking so error are logged via error catcher.
+     *
+     * your http user // group shuold match that of the process or
+     * ws socket server, for example, so the files may work as intended.
+     *
+     * Sometimes this can be overwritten by the exec function
+     *
      * @param string $value
      * @param string $fifoPath
      * @return bool
@@ -84,7 +89,7 @@ class Pipe
 
             umask(0000);
 
-            posix_mkfifo($fifoPath, 0666);              // TODO - don't be a dumbass, start sockets in config
+            posix_mkfifo($fifoPath, 0666);
 
             # $user = get_current_user();                    // get current process user
 
