@@ -428,7 +428,7 @@ END;
 
                         $rest[$tableName] = [
                             'prefix' => $prefix,
-                            'createTableSQL' => $createTableSQL,
+                            'createTableSQL' => preg_replace('#AUTO_INCREMENT=[0-9]+#i', 'AUTO_INCREMENT=0', $createTableSQL),
                             'subQuery' => $subQuery,
                             'subQueryLength' => strlen($subQuery),
                             'QueryWithDatabaseName' => $QueryWithDatabaseName,
