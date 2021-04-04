@@ -100,6 +100,6 @@ Use of CarbonPHP implies agreement with its software license, available in the L
 
 ## Credits
 
-CarbonPHP was created by Richard Tyler Miles and inspired by Tom Frost.
+CarbonPHP was created by Richard Tyler Miles and inspired by [Tom Frost's](https://github.com/TomFrost) [Hydrogen](https://github.com/TomFrost/Hydrogen).
 
 Contributors can be found in the GitHub Contributor Listing.
