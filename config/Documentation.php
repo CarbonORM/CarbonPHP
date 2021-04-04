@@ -8,6 +8,7 @@ use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iConfig;
+use CarbonPHP\Programs\Deployment;
 use CarbonPHP\Programs\WebSocket;
 use CarbonPHP\Request;
 use CarbonPHP\Rest;
@@ -62,7 +63,7 @@ class Documentation extends Application implements iConfig
         View::$forceWrapper = true; // this will hard refresh the wrapper
 
         if (CarbonPHP::$app_local) {
-            throw new PublicAlert('You should run the live version on <a href="http://dev.carbonphp.com:3000/" style="color:blue">port 3000</a> with the command<br/><b>>> npm start </b> 
+            throw new PublicAlert('You should run the live version on <a href="http://dev.carbonphp.com:3000/" style="color:#ff0084">port 3000</a> with the command<br/><b>>> npm start </b> 
     <br/>To bypass this message <a href="http://dev.carbonphp.com:8080/6.0/" style="color:blue">click here</a>');
         }
 
@@ -182,16 +183,9 @@ class Documentation extends Application implements iConfig
 
         self::getUser();
 
-        /**
-         *  This is a horrible idea. Because sockets need to be allowed to analyse all routes.
-         *  (at least in this application context)
-         *
-         *   if (CarbonPHP::$socket) {
-         *      self::$matched = true;
-         *      WebSocket::sendToAllExternalResources($uri);
-         *      return true;
-         *   }
-         */
+        if (Deployment::github($this)()) {
+            return true;
+        }
 
         if (CarbonPHP::$socket && $this->regexMatch('#echo/([a-z0-9]+)#i',
                 static function ($echo) use ($uri) {

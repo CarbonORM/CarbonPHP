@@ -2,20 +2,18 @@
 <project version="4">
   <component name="WebServers">
     <option name="servers">
-      <webServer id="e2a69378-7318-4216-b3c7-840aa3c7e058" name="Google" url="http://35.225.141.114">
-        <fileTransfer host="35.225.141.114" port="22" privateKey="$USER_HOME$/.ssh/google_compute_engine" rootFolder="/var/www/carbonphp.com" accessType="SFTP" keyPair="true">
+      <webServer id="e2a69378-7318-4216-b3c7-840aa3c7e058" name="Google" url="http://carbonphp.com">
+        <fileTransfer rootFolder="/var/www/carbonphp.com" accessType="SFTP" host="35.222.121.221" port="22" sshConfigId="e8b98529-9c82-420f-988d-15850f1e50b9" sshConfig="Google" keyPair="true">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" muteSftpMessages="true" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>
-          <option name="port" value="22" />
         </fileTransfer>
       </webServer>
       <webServer id="538493a2-dcf0-4671-ad26-d9c2cb267312" name="mmmmmm" url="http://34.68.75.41">
-        <fileTransfer host="34.68.75.41" port="22" privateKey="$USER_HOME$/.ssh/google_compute_engine" accessType="SFTP" keyPair="true">
+        <fileTransfer accessType="SFTP" host="34.68.75.41" port="22" sshConfigId="2134edcb-ef5b-4a7a-8b17-078a7918949f" sshConfig="mmmmmm" keyPair="true">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" muteSftpMessages="true" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>
-          <option name="port" value="22" />
         </fileTransfer>
       </webServer>
     </option>
