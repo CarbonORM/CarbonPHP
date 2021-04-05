@@ -546,13 +546,23 @@ SOCKET;
 
     public static function configuration(): array
     {
+        if (CarbonPHP::$app_local) {
+            if (CarbonPHP::$test) {
+                $databasePassword = 'password';
+            } else {
+                $databasePassword = 'root';
+            }
+        } else {
+            $databasePassword = 'goldteamrules';
+        }
+
         return [
             'DATABASE' => [
                 'DB_HOST' => CarbonPHP::$app_local ? '127.0.0.1' : '35.224.229.250',                        // IP
                 'DB_PORT' => '3306',
                 'DB_NAME' => 'CarbonPHP',                       // Schema
                 'DB_USER' => 'root',                            // User
-                'DB_PASS' => CarbonPHP::$app_local ? 'password' : 'goldteamrules',                        // Password
+                'DB_PASS' => $databasePassword,                        // Password
                 'DB_BUILD' => '',                               // SERVER_ROOT . '/config/buildDatabase.php' TODO - auto set this when cli program is run
                 'REBUILD' => false
             ],

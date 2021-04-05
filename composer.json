@@ -52,10 +52,14 @@
     "force": "@composer install --ignore-platform-reqs",
     "forceUp": "@composer update --ignore-platform-reqs",
     "start": "php -S dev.carbonphp.com:8080 index.php -d display_errors=1",
-    "post-install-cmd": "@composer run setup",
+    "post-install-cmd": "@setup",
+    "post-update-cmd": [
+      "@rest",
+      "@test"
+    ],
     "setup": [
       "php index.php setup --rebuild",
-      "@composer run rest",
+      "@rest",
       "npm install",
       "php index.php ApacheConfig"
     ],
@@ -67,8 +71,7 @@
       "php index.php buildDatabase -s"
     ],
     "rest" :[
-      "php index.php rest -json",
-      "@test"
+      "php index.php rest -json"
     ],
     "test": [
       "./vendor/bin/phpunit --log-junit junit.xml  --testdox || ./vendor/bin/phpunit  --log-junit junit.xml"
