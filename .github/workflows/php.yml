@@ -1,6 +1,6 @@
 name: CarbonPHP Feature Test Suit
 
-on: [push]
+on: [ push ]
 
 jobs:
   Linux:
@@ -10,64 +10,64 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        operating-system: [ubuntu-latest]
-        php-versions: ['7.4']
+        operating-system: [ ubuntu-latest ]
+        php-versions: [ '7.4' ]
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-    - name: Setup PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: ${{ matrix.php-versions }}
-        extensions: mbstring, intl
-        ini-values: post_max_size=256M, short_open_tag=On
-        coverage: xdebug
-        tools: php-cs-fixer, phpunit
-      env:
-        update: true # specify true or false
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          extensions: mbstring, intl
+          ini-values: post_max_size=256M, short_open_tag=On
+          coverage: xdebug
+          tools: php-cs-fixer, phpunit
+        env:
+          update: true # specify true or false
 
-        - name: find . -type f
-          run: find . -type f
+      - name: find . -type f
+        run: find . -type f
 
-        - name: Plugins Exist
-          run: ls ./wp-content/plugins/ultimate-member
+      - name: Plugins Exist
+        run: ls ./wp-content/plugins/ultimate-member
 
-        - name: service  --status-all
-          run: service  --status-all
+      - name: service  --status-all
+        run: service  --status-all
 
-        - name: sudo systemctl start mysql.service
-          run: sudo systemctl start mysql.service
+      - name: sudo systemctl start mysql.service
+        run: sudo systemctl start mysql.service
 
-        - name: echo -e "[client]\n user=root \n password=root \n host=localhost" > `pwd`/mysql.cnf
-          run: echo -e "[client]\n user=root \n password=root \n host=localhost" > `pwd`/mysql.cnf
+      - name: echo -e "[client]\n user=root \n password=root \n host=localhost" > `pwd`/mysql.cnf
+        run: echo -e "[client]\n user=root \n password=root \n host=localhost" > `pwd`/mysql.cnf
 
-        - name: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e "create database \`dropingaming\`"
-          run: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e "create database \`dropingaming\`"
+      - name: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e "create database \`dropingaming\`"
+        run: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e "create database \`dropingaming\`"
 
-        - name: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e  "GRANT ALL PRIVILEGES ON dropingaming. * TO 'root'@'localhost';"
-          run: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e  "GRANT ALL PRIVILEGES ON dropingaming. * TO 'root'@'localhost';"
+      - name: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e  "GRANT ALL PRIVILEGES ON dropingaming. * TO 'root'@'localhost';"
+        run: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e  "GRANT ALL PRIVILEGES ON dropingaming. * TO 'root'@'localhost';"
 
-        - name: find /usr/bin -type f
-          run: find /usr/bin -type f
+      - name: find /usr/bin -type f
+        run: find /usr/bin -type f
 
-        - name: sudo update-alternatives --set php /usr/bin/php7.4
-          run: sudo update-alternatives --set php /usr/bin/php7.4
+      - name: sudo update-alternatives --set php /usr/bin/php7.4
+        run: sudo update-alternatives --set php /usr/bin/php7.4
 
-        - name: composer validate
-          run: composer validate
+      - name: composer validate
+        run: composer validate
 
-        - name: composer install --prefer-dist --no-progress --no-suggest
-          run: composer install --prefer-dist --no-progress --no-suggest
+      - name: composer install --prefer-dist --no-progress --no-suggest
+        run: composer install --prefer-dist --no-progress --no-suggest
 
-        - name: find . -type f
-          run: find . -type f
+      - name: find . -type f
+        run: find . -type f
 
-        - name: ./vendor/se/selenium-server-standalone/composer/bin/selenium-server-standalone &
-          run: ./vendor/se/selenium-server-standalone/composer/bin/selenium-server-standalone &
+      - name: ./vendor/se/selenium-server-standalone/composer/bin/selenium-server-standalone &
+        run: ./vendor/se/selenium-server-standalone/composer/bin/selenium-server-standalone &
 
-          # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
-          # Docs: https://getcomposer.org/doc/articles/scripts.md
-        - name: Run test suite
-          run: composer run test
+        # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
+        # Docs: https://getcomposer.org/doc/articles/scripts.md
+      - name: Run test suite
+        run: composer run test
