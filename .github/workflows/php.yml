@@ -31,9 +31,6 @@ jobs:
       - name: find . -type f
         run: find . -type f
 
-      - name: Plugins Exist
-        run: ls ./wp-content/plugins/ultimate-member
-
       - name: service  --status-all
         run: service  --status-all
 
@@ -43,11 +40,11 @@ jobs:
       - name: echo -e "[client]\n user=root \n password=root \n host=localhost" > `pwd`/mysql.cnf
         run: echo -e "[client]\n user=root \n password=root \n host=localhost" > `pwd`/mysql.cnf
 
-      - name: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e "create database \`dropingaming\`"
-        run: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e "create database \`dropingaming\`"
+      - name: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e "create database \`CarbonPHP\`"
+        run: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e "create database \`CarbonPHP\`"
 
-      - name: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e  "GRANT ALL PRIVILEGES ON dropingaming. * TO 'root'@'localhost';"
-        run: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e  "GRANT ALL PRIVILEGES ON dropingaming. * TO 'root'@'localhost';"
+      - name: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e  "GRANT ALL PRIVILEGES ON CarbonPHP. * TO 'root'@'localhost';"
+        run: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e  "GRANT ALL PRIVILEGES ON CarbonPHP. * TO 'root'@'localhost';"
 
       - name: find /usr/bin -type f
         run: find /usr/bin -type f
