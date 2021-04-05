@@ -548,9 +548,9 @@ SOCKET;
     {
         if (CarbonPHP::$app_local) {
             if (CarbonPHP::$test) {
-                $databasePassword = 'password';
-            } else {
                 $databasePassword = 'root';
+            } else {
+                $databasePassword = 'password';
             }
         } else {
             $databasePassword = 'goldteamrules';

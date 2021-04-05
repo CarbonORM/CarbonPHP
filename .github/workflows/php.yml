@@ -28,9 +28,6 @@ jobs:
         env:
           update: true # specify true or false
 
-      - name: find . -type f
-        run: find . -type f
-
       - name: service  --status-all
         run: service  --status-all
 
@@ -54,9 +51,6 @@ jobs:
 
       - name: composer install --prefer-dist --no-progress --no-suggest
         run: composer install --prefer-dist --no-progress --no-suggest
-
-      - name: find . -type f
-        run: find . -type f
 
       - name: ./vendor/se/selenium-server-standalone/composer/bin/selenium-server-standalone &
         run: ./vendor/se/selenium-server-standalone/composer/bin/selenium-server-standalone &
