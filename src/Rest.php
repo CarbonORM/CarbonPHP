@@ -780,7 +780,6 @@ abstract class Rest extends Database
                 }
             }
 
-
             if (is_array($column)) {
                 self::buildAggregate($column, $sql, $group, $noHEX);
                 continue;               // next foreach iteration
@@ -936,17 +935,16 @@ abstract class Rest extends Database
             }
 
             if (is_array($value)) {                         /// do we intemperate as a boolean switch or custom operation (w/ optional operation)
-                if (is_int($column)) {
-                    $addJoinNext = true;
-                    $sql .= self::buildBooleanJoinConditions($method, $value, $pdo, $booleanOperator === 'AND' ? 'OR' : 'AND');
-                    continue;
-                }
+                $supportedOperators = implode('|', [
+                    self::GREATER_THAN_OR_EQUAL_TO,
+                    self::GREATER_THAN,
+                    self::LESS_THAN_OR_EQUAL_TO,
+                    self::LESS_THAN,
+                    self::EQUAL,
+                    self::EQUAL_NULL_SAFE,
+                    self::NOT_EQUAL
+                ]);
                 switch (count($value)) {
-                    case 1:
-                        // join extra logic for expressions, if count
-                        $addJoinNext = true;
-                        $sql .= self::buildBooleanJoinConditions($method, $value, $pdo, $booleanOperator === 'AND' ? 'OR' : 'AND');
-                        break;
                     case 2:
                         if (!array_key_exists(0, $value) ||
                             !array_key_exists(1, $value)) {
@@ -954,7 +952,18 @@ abstract class Rest extends Database
                             $sql .= self::buildBooleanJoinConditions($method, $value, $pdo, $booleanOperator === 'AND' ? 'OR' : 'AND');
                             break;
                         }
-                        $addSingleConditionToJoin($value[0], self::EQUAL, $value[1]);
+
+                        if (is_string($column) && !is_numeric($column)) {
+                            if (!((bool)preg_match('#^' . $supportedOperators . '$#', $value[0]))) { // ie #^=|>=|<=$#
+                                throw new PublicAlert('Restful column joins may only use one (=,>=, or <=).');
+                            }
+                            if (!is_string($value[1])) {
+                                throw new PublicAlert('A value parsed during a boolean join condition was not correct. String expected as second value while creating aggrogation.');
+                            }
+                            $addSingleConditionToJoin($column, $value[0], $value[1]);
+                        } else {
+                            $addSingleConditionToJoin($value[0], self::EQUAL, $value[1]);
+                        }
                         break;
                     case 3:
                         if (!array_key_exists(0, $value) ||
@@ -966,21 +975,17 @@ abstract class Rest extends Database
                         if (!is_string($value[0]) || !is_string($value[1]) || !is_string($value[2])) {
                             throw new PublicAlert('One or more of the array values provided in the restful JOIN condition are not strings.');
                         }
-                        $supportedOperators = implode('|', [
-                            self::GREATER_THAN_OR_EQUAL_TO,
-                            self::GREATER_THAN,
-                            self::LESS_THAN_OR_EQUAL_TO,
-                            self::LESS_THAN,
-                            self::EQUAL,
-                            self::EQUAL_NULL_SAFE,
-                            self::NOT_EQUAL
-                        ]);
                         if (!((bool)preg_match('#^' . $supportedOperators . '$#', $value[1]))) { // ie #^=|>=|<=$#
                             throw new PublicAlert('Restful column joins may only use one (=,>=, or <=).');
                         }
                         $addSingleConditionToJoin($value[0], $value[1], $value[2]);
                         break;
                     default:
+                        if (is_int($column)) {
+                            $addJoinNext = true;
+                            $sql .= self::buildBooleanJoinConditions($method, $value, $pdo, $booleanOperator === 'AND' ? 'OR' : 'AND');
+                            break;
+                        }
                         throw new PublicAlert('Restful joins across two tables must be populated with two or three array values with column names, or an appropriate joining operator and column names.');
                 }
                 // end switch

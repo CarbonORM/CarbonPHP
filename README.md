@@ -1,38 +1,64 @@
 ![CarbonPHP Feature Test Suit](https://github.com/RichardTMiles/CarbonPHP/workflows/CarbonPHP%20Feature%20Test%20Suit/badge.svg)
 
-# Carbon PHP  7.2+ Tool Kit and Performance Library
+# CarbonPHP Tool Kit and Performance Library
 
-CarbonPHP.com 
+[CarbonPHP.com](http://carbonphp.com/)
 
 ### Alpha Notice
 
-Carbon PHP is currently in Alpha. There are three important things to remember during this period:
+CarbonPHP is currently Stable.
 
-Alpha means that CarbonPHP is in active development and should NOT be considered stable. Using this in a production environment is not recommended. Anyone who attempts this should be capable of altering the code immediately if it breaks. And if you do, please consider submitting those changes on GitHub!
-There will be NO DEPRECATION during Alpha. Changed function/class/etc names and definitions will be called out in the Changelog with every release, so please read the Changelog carefully when updating.
-Refer to the guide for documentation -- it will be updated with every new release starting in the beta.
+CarbonPHP has reached a stable level of trust in its own features through PHPUnit Tests + 
+Github Actions but is still in active development. CarbonPHP is being used in production environments. Anyone, or team, who attempts using this code
+will find support on Github through issues and forums. If any Bug's should exist we generally expect them to be minor.
+If you edit the codebase, please consider submitting those changes on GitHub! C6 uses [Semantic Versioning 2.0.0](https://semver.org). 
+Generally: MAJOR version when you make incompatible API changes, MINOR version when you add functionality in a backwards 
+compatible manner, and PATCH version when you make backwards compatible bug fixes. Changes to function/class/etc will be 
+called out in the Changelog with every minor release. Please read the changelog or code changes carefully when updating. 
+Refer to the guide at [carbonphp.com](https://carbonphp.com)
 
 
 ## Introduction
 
-CarbonPHP is a lightweight PHP 7.4+ toolkit to simplify the building of custom, dynamic web applications. Its main focus is on making webapps run ridiculously fast, with performance and high-traffic scalability being the absolute highest concern. CarbonPHP has clocked in with impressive statistics, sometimes doubling the traffic that small servers with MySQL-intensive sites can handle.
+CarbonPHP is a PHP 7.4+ library to simplify the building of custom, dynamic web applications. Its main focus is to make
+webapps run ridiculously fast, with performance and high-traffic scalability being the absolute highest concern. CarbonPHP 
+has clocked in with impressive statistics, sometimes doubling the traffic that small servers with MySQL-intensive sites can handle.
+C6 works as a standalone backbone for your dev needs or in coroperation with other popular frameworks like [Wordpress](https://developer.wordpress.org)
+or [Laravel](https://laravel.com).
+CarbonPHP's other goals include portability; allowing your webapps to be installed on servers with different operating 
+systems (Windows, Mac, and Linux Support). Full MySQL ORM REST generator, and php written database tools designed around 
+the MySQL. Windows PHP currently lacks a library capibable of forking. Should your development require Windows 
+computers look into [Websocketd.com](Websocketd.com) and the file name "./programs/Websocketd.php". I have written a few 
+wiki's in the repo above explaining how to Use sockets in this way. I hope to contribute a php library
+written in C (PHP is written in C) to support this task, however time is a factor. Should you feel compelled to help in 
+this goal please contact me at Richard@Miles.Systems. Please see the documentation at Carbonphp.com for more information.
+For the rest of us who live outside windows Hell C6 has a Websocket Library Class for Standard use and Wordpress use. 
 
-CarbonPHP's other main focus is portability, allowing your webapps to be installed on servers with different operating systems, Full MySQL ORM REST generator, and php written database tools designed around the mysql dump. CarbonPHP's features are fully supported in windows and macintosh excluding the Windows Websocket Server. Their seems to be no solution for the async input and port scan Select in Windows PHP. I hope to contribute a php library written in C to support this task, however time is a factor.
- Should your development require Windows computers look into Websocketd.com and the file name "./programs/Websocketd.php". Please see the documentation at Carbonphp.com for more information.
+## Standards 
+
+C6 should follow the [PHP Standards Recommendations](https://www.php-fig.org/psr/) listed below.
+
+[PSR-4](https://www.php-fig.org/psr/psr-4/)
+[PSR-12](https://www.php-fig.org/psr/psr-12/)
 
 ## Requirements
 
-CarbonPHP requires PHP 7.2 or later. It makes use of return type object notation, and should not be ported back to earlier PHP versions. 
-
-CarbonPHP will always try to stay upto date with the latest version of PHP. Use of an opcode cache such as XCache is highly recommended, as Carbon is able to run entirely without stat() calls when paired with an opcode cache. Also recommended (but optional) is a RAM-caching engine such as memcached.
+CarbonPHP requires PHP 7.4 or later. It makes use of return type object notation, and should not be ported back to earlier PHP versions.
+CarbonPHP will always try to stay upto date with the latest version of PHP. 
+Use of an opcode cache such as XCache is highly recommended, as Carbon is able to run entirely without stat() 
+calls when paired with an opcode cache. Also recommended (but optional) is a RAM-caching engine such as memcached.
+PHP8, if not already supported, will receive support WITH C6's FIRST Backwards Compatible Release. Plans to drop 7.4 
+are currently scheduled for the summer of 2021. 
 
 ## Documentation
 
-All function should have PHPDoc-style documentation in the code, though some are more thorough than others. The best up-to-date c6 guide available is here: carbonphp.com
+All function should have PHPDoc-style documentation in the code. [CarbonPHP.com](https://carbonphp.com/) also has full 
+explinations of the codebase. 
 
-## CarbonPHP.com
-
-While not required, CarbonPHP highly recommends a strict programmatic flow in development. We recommend that every request uses an MVC structure. The controller must validate all input data and return the variable(s) needed for the model to manipulate. This is a sample from the code library which backbones all of our dynamic (input driven) requests.
+### MVC
+We recommend that each request use the MVC structure, Pure ORM callback(s), or a combination of the two. 
+The controller must validate all input data and return the variable(s) needed for the model to manipulate. 
+This is a sample from the code library which backbones all mvc requests.
 
 
     /**Stands for Controller -> Model .
@@ -81,6 +107,91 @@ While not required, CarbonPHP highly recommends a strict programmatic flow in de
             return $argv;
         };
     }
+
+### RESTFUL ORM
+CarbonPHP's most powerful tool and my personal favorite is the MySQL ORM. By running a customizable CLI command our program 
+will analize you database schema and generate a powerful class used to minipulate your tables. The auto generated files 
+may be used in conjunction for an increadible pleasing RESTFUL symantic structure. Below are examples for using the REST 
+ORM. You can [see the generated source here](https://github.com/RichardTMiles/CarbonPHP/blob/master/src/tables/Carbon_Users.php).
+
+    $id = Users::Post([
+            Users::USER_TYPE => 'Athlete',
+            Users::USER_IP => '127.0.0.1',
+            Users::USER_SPORT => 'GOLF',
+            Users::USER_EMAIL_CONFIRMED => 1,
+            Users::USER_USERNAME => Config::ADMIN_USERNAME,
+            Users::USER_PASSWORD => Config::ADMIN_PASSWORD,
+            Users::USER_EMAIL => 'richard@miles.systems',
+            Users::USER_FIRST_NAME => 'Richard',
+            Users::USER_LAST_NAME => 'Miles',
+            Users::USER_GENDER => 'Male'
+        ]);
+
+Joining across multiple tables. 
+
+    Users::Get($user, $uid, [
+            Users::SELECT => [
+                Users::USER_USERNAME,
+                Carbon_Locations::STATE
+            ],
+            Users::JOIN => [
+                Users::INNER => [
+                    Carbon_Location_References::TABLE_NAME => [
+                        Users::USER_ID => Carbon_Location_References::ENTITY_REFERENCE
+                    ],
+                    Carbon_Locations::TABLE_NAME => [
+                        Carbon_Locations::ENTITY_ID => Carbon_Location_References::LOCATION_REFERENCE
+                    ]
+                ]
+            ],
+            Users::PAGINATION => [
+                Users::LIMIT => 1,
+                Users::ORDER => [Users::USER_USERNAME => Users::ASC]
+            ]
+        ]);
+
+
+Using the ORM from the Frontend. This example showcases multiple table joins, as well as the use of aggrogate function(s) 
+GROUP_CONCAT.
+
+    const { axios } = this.props;
+
+    axios.get('/rest/' + C6.carbon_users.TABLE_NAME, {
+      params: {
+        [C6.SELECT]: [
+          C6.carbon_users.USER_USERNAME,
+          C6.carbon_users.USER_FIRST_NAME,
+          C6.carbon_users.USER_LAST_NAME,
+          C6.carbon_users.USER_ID,
+          [C6.GROUP_CONCAT, C6.carbon_features.FEATURE_CODE],
+          [C6.GROUP_CONCAT, C6.carbon_groups.GROUP_NAME]
+        ],
+        [C6.JOIN]: {
+          [C6.LEFT]: {
+            [C6.carbon_user_groups.TABLE_NAME]: [
+              C6.carbon_users.USER_ID,
+              C6.carbon_user_groups.USER_ID
+            ],
+            [C6.carbon_groups.TABLE_NAME]: [
+              C6.carbon_user_groups.GROUP_ID,
+              C6.carbon_groups.ENTITY_ID
+            ],
+            [C6.carbon_feature_group_references.TABLE_NAME]: [
+              C6.carbon_groups.ENTITY_ID,
+              C6.carbon_feature_group_references.GROUP_ENTITY_ID
+            ],
+            [C6.carbon_features.TABLE_NAME]: [
+              C6.carbon_features.FEATURE_ENTITY_ID,
+              C6.carbon_feature_group_references.FEATURE_ENTITY_ID
+            ]
+          }
+        },
+        [C6.PAGINATION]: {
+          [C6.LIMIT]: 100
+        }
+      }
+    }).then(response => this.setState({ users: (response.data.rest || []) }));
+
 
 
 # Builtin Command Line Interface
