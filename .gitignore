@@ -3,6 +3,7 @@
 .idea/dataSources/
 .idea/inspectionProfiles/
 .idea/webServers.xml
+config/buildDatabase.php
 .DS_Store
 /vendor/
 /node_modules/

@@ -11,6 +11,8 @@ namespace CarbonPHP\Programs;
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database as DB;
+use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
 
 class BuildDatabase implements iCommand
@@ -48,6 +50,8 @@ usage;
             $this->usage();
         }
 
+        $tableDirectory = '';
+
         /** @noinspection ForeachInvariantsInspection */
         for ($i = 0; $i < $argc; $i++) {
             switch ($argv[$i]) {
@@ -55,6 +59,9 @@ usage;
                     print 'Invalid argument ' . $argv[$i] . PHP_EOL;
                     $this->usage();
                     exit(1);
+                case '-targetDirectory':
+                    $tableDirectory = $argv[$i++];
+                    break;
                 case '-r':
                 case '--rebuild':
                     self::colorCode('Starting Database Build');
@@ -75,6 +82,7 @@ usage;
             }
         }
 
+        self::colorCode('This feature is DEPRECATED and will be removed in future versions of C6', iColorCode::RED);
 
         $dump = file_get_contents($this->MySQLDump());
 

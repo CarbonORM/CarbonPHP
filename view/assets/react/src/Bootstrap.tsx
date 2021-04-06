@@ -1,18 +1,16 @@
-import React from "react";
-import {Redirect, Route, Switch} from "react-router-dom";
+import React from 'react';
+import {Redirect, Route, Switch} from 'react-router-dom';
 
 import swal from '@sweetalert/with-react';
 
-import context from "variables/carbonphp";
+import context from 'variables/carbonphp';
 
-import Public from "layouts/Public";
-import Private from "layouts/Private";
-import PageNotFound from "views/Errors/PageNotFound";
+import Public from 'layouts/Public';
+import Private from 'layouts/Private';
+import PageNotFound from 'views/Errors/PageNotFound';
 // This is our ajax class
-import {AxiosInstance} from "axios";
-import {CodeBlock, googlecode, dracula} from "react-code-blocks";
-
-
+import {AxiosInstance} from 'axios';
+import {CodeBlock, dracula, googlecode} from 'react-code-blocks';
 
 class bootstrap extends React.Component<any, {
   axios: AxiosInstance,
@@ -27,7 +25,7 @@ class bootstrap extends React.Component<any, {
     super(props);
     this.state = {
       axios: context.axios,
-      authenticate: "/carbon/authenticated",
+      authenticate: '/carbon/authenticated',
       authenticated: null,
       alert: false,
       operationActive: false,
@@ -186,8 +184,8 @@ class bootstrap extends React.Component<any, {
   testRestfulPostPutDeleteResponse = (response, success, error) => {
     if (('data' in response) && ('rest' in response.data) &&
       (('created' in response.data.rest) ||
-      ('updated' in response.data.rest) ||
-      ('deleted' in response.data.rest))
+        ('updated' in response.data.rest) ||
+        ('deleted' in response.data.rest))
     ) {
       if (typeof success === 'function') {
         return success(response);

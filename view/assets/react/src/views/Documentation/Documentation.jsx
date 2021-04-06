@@ -22,6 +22,8 @@ import Changelog from "./Sections/Changelog";
 
 import Support from "./Sections/Support";
 import License from "./Sections/License";
+import documentationVersion from "variables/carbonphp"
+
 
 // react components for routing our app without refresh
 // @material-ui/icons
@@ -39,8 +41,6 @@ class Documentation extends React.Component {
     }
   }
 
-
-
   componentDidMount() {
     this.setState({
       isLoaded: true
@@ -56,51 +56,51 @@ class Documentation extends React.Component {
 
     let publicDocumentationRoutes = [
       {
-        path: "/6.0/Documentation/CarbonPHP",     // I'm leaving this here for the time being as an example
+        path: "/" + documentationVersion + "/Documentation/CarbonPHP",     // I'm leaving this here for the time being as an example
         name: "Documentation",          // This should be loaded under a different wrapper
         component: CarbonPHP
       },
       {
-        path: "/6.0/Documentation/Dependencies",
+        path: "/" + documentationVersion + "/Documentation/Dependencies",
         name: "Dependencies",
         component: Dependencies
       },
       {
-        path: "/6.0/Documentation/BrowserOSSupport",
+        path: "/" + documentationVersion + "/Documentation/BrowserOSSupport",
         name: "Changelog",
         component: Changelog
       },
       {
-        path: "/6.0/Documentation/Implementations",
+        path: "/" + documentationVersion + "/Documentation/Implementations",
         name: "Implementations",
         component: Implementations
       },
       {
-        path: "/6.0/Documentation/Support",
+        path: "/" + documentationVersion + "/Documentation/Support",
         name: "Support",
         component: Support
       },
       {
-        path: "/6.0/Documentation/License",
+        path: "/" + documentationVersion + "/Documentation/License",
         name: "License",
         component: License
       },
       {
         redirect: true,
         path: "/5.0",
-        pathTo: "/6.0/Documentation/CarbonPHP",
+        pathTo: "/" + documentationVersion + "/Documentation/CarbonPHP",
         name: "Examples"
       },
       {
         redirect: true,
-        path: "/6.0/",
-        pathTo: "/6.0/Documentation/CarbonPHP",
+        path: "/" + documentationVersion + "/",
+        pathTo: "/" + documentationVersion + "/Documentation/CarbonPHP",
         name: "Examples"
       },
       {
         redirect: true,
         path: "/",
-        pathTo: "/6.0/Documentation/CarbonPHP",
+        pathTo: "/" + documentationVersion + "/Documentation/CarbonPHP",
         name: "Examples"
       }
     ];

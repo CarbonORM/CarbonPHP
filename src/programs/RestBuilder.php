@@ -7,6 +7,7 @@ use CarbonPHP\CarbonPHP;
 use CarbonPHP\Interfaces\iCommand;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestfulReferences;
+use CarbonPHP\Rest;
 use CarbonPHP\Tables\Carbons;
 use PDO;
 use ReflectionException;
@@ -361,7 +362,9 @@ END;
                 print 'The target directory appears invalid "' . $targetDir . '"' . PHP_EOL;
                 exit(1);
             }
-        } else if ('/' !== substr($targetDir, -1)) {
+        }
+
+        if ('/' !== substr($targetDir, -1)) {
             $targetDir .= DS;
         }
 
@@ -428,7 +431,8 @@ END;
 
                         $rest[$tableName] = [
                             'prefix' => $prefix,
-                            'createTableSQL' => preg_replace('#AUTO_INCREMENT=[0-9]+#i', 'AUTO_INCREMENT=0', $createTableSQL),
+                            'createTableSQL' => Rest::parseSchemaSQL($createTableSQL),
+
                             'subQuery' => $subQuery,
                             'subQueryLength' => strlen($subQuery),
                             'QueryWithDatabaseName' => $QueryWithDatabaseName,
@@ -470,10 +474,10 @@ END;
                                 $rest[$tableName]['php_validation'] = $matches[0][0];
                             }
 
-                            preg_match_all('#public const REST_REQUEST_FINNISH_CALLBACKS\s?=\s? \[(.|\n)*?];(?=(\s|\n)+(public|protected|private|/\*))#', $validation, $matches);
+                            preg_match_all('#public const REFRESH_SCHEMA\s?=\s? \[(.|\n)*?];(?=(\s|\n)+(public|protected|private|/\*))#', $validation, $matches);
 
                             if (isset($matches[0][0])) {
-                                $rest[$tableName]['rest_request_finish_callbacks'] = $matches[0][0];
+                                $rest[$tableName]['REFRESH_SCHEMA'] = $matches[0][0];
                             }
 
                             $restStaticNameSpaces = $this->restTemplateStaticNameSpace();
@@ -700,7 +704,7 @@ END;
                                 } else if (substr($words_in_insert_stmt[$key], -2) === '\',') {
                                     $default = trim($words_in_insert_stmt[$key], ',');
                                     // if it doesnt start with '  as CURRENT_TIMESTAMP
-                                } else if (substr($words_in_insert_stmt[$key], 0, 1) !== '\'') {
+                                } else if ($words_in_insert_stmt[$key][0] !== '\'') {
                                     $default = rtrim($words_in_insert_stmt[$key], ',');
                                 } else { // the first index does start in ' and doesnt end in '
                                     do {
@@ -1236,6 +1240,12 @@ $staticNamespaces
 // Custom User Imports
 {{#CustomImports}}{{{CustomImports}}}{{/CustomImports}}
 
+/**
+ * 
+ * Class {{ucEachTableName}}
+ * @package {{namespace}}
+ * 
+ */
 class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/primaryExists}}{{^primaryExists}}iRestfulReferences{{/primaryExists}}
 {
     
@@ -1303,31 +1313,72 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
     {{#regex_validation}}
     {{{regex_validation}}} 
     {{/regex_validation}}
+    {{^REFRESH_SCHEMA}}
+    /**
+     * REFRESH_SCHEMA
+     * @link https://stackoverflow.com/questions/298739/what-is-the-difference-between-a-schema-and-a-table-and-a-database
+     * These directives should be designed to maintain and update your team's schema &| database &| table over time. 
+     * The changes you made in your local env should be coded out in callables such as the 'tableExistsOrExecuteSQL' 
+     * method call below. If a PDO exception is thrown with `\$e->getCode()` equal to 42S02 or 1049 CarbonPHP will attempt
+     * to REFRESH the full database with with all directives in all tables. If possible keep table specific procedures in 
+     * it's respective restful-class table file. Check out the 'tableExistsOrExecuteSQL' method in the parent class to see
+     * an example using self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS. 
+     */
+    public const REFRESH_SCHEMA = [
+        [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
+                        PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS]
+    ];{{/REFRESH_SCHEMA}} 
+    {{#REFRESH_SCHEMA}}
+    {{{REFRESH_SCHEMA}}} 
+    {{/REFRESH_SCHEMA}}
+   
+    public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
+    {{createTableSQL}}
+MYSQL;
+   
    
 {{{custom_methods}}}
     
+    /**
+     * @deprecated Use the class constant CREATE_TABLE_SQL directly
+     * @return string
+     */
     public static function createTableSQL() : string {
-    return /** @lang MySQL */ <<<MYSQL
-    {{createTableSQL}}
-MYSQL;
+        return self::CREATE_TABLE_SQL;
     }
     
-    
     /**
+    * Currently nested aggregation is not supported. It is recommended to avoid using 'AS' where possible. Sub-selects are 
+    * allowed and do support 'as' aggregation. Refer to the static subSelect method parameters in the parent `Rest` class.
+    * All supported aggregation is listed in the example below. Note while the WHERE and JOIN members are syntactically 
+    * similar, and are moreover compiled through the same method, our aggregation is not. Please refer to this example 
+    * when building your queries. By design, queries using subSelect are only allowed internally. Public Sub-Selects may 
+    * be given an optional argument with future releases but will never default to on. Thus, you external API validation
+    * need only validate for possible table joins. In many cases sub-selects can be replaces using simple joins, this is
+    * highly recommended.
     *
     *   \$argv = [
     *       Rest::SELECT => [
-    *              ]'*column name array*', 'etc..'
-    *        ],
-    *
+    *              'table_name.column_name',
+    *              self::EXAMPLE_COLUMN_ONE,
+    *              [self::EXAMPLE_COLUMN_TWO, self::AS, 'customName'],
+    *              [self::GROUP_CONCAT, self::EXAMPLE_COLUMN_THREE], 
+    *              [self::MAX, self::EXAMPLE_COLUMN_FOUR], 
+    *              [self::MIN, self::EXAMPLE_COLUMN_FIVE], 
+    *              [self::SUM, self::EXAMPLE_COLUMN_SIX], 
+    *              [self::DISTINCT, self::EXAMPLE_COLUMN_SEVEN], 
+    *              ANOTHER_EXAMPLE_TABLE::subSelect(\$primary, \$argv, \$as, \$pdo, \$database)
+    *       ],
     *       Rest::WHERE => [
-    *              'Column Name' => 'Value To Constrain',
-    *              'Defaults to AND' => 'Nesting array switches to OR',
+    *              
+    *              self::EXAMPLE_COLUMN_NINE => 'Value To Constrain',                       // self::EXAMPLE_COLUMN_NINE AND           
+    *              'Defaults to boolean AND grouping' => 'Nesting array switches to OR',    // ''='' AND 
     *              [
-    *                  'Column Name' => 'Value To Constrain',
-    *                  'This array is OR'ed together' => 'Another sud array would `AND`'
+    *                  'Column Name' => 'Value To Constrain',                                  // ''='' OR
+    *                  'This array is OR'ed together' => 'Another sud array would `AND`'       // ''=''
     *                  [ etc... ]
-    *              ]
+    *              ],
+    *              'last' => 'whereExample'                                                  // AND '' = ''
     *        ],
     *        Rest::JOIN => [
     *            Rest::INNER => [
@@ -1339,7 +1390,7 @@ MYSQL;
     *                       'This array is OR'ed together' => 'value'
     *                       [ 'Another sud array would `AND`ed... ]
     *                    ],
-    *                    [ 'Column Name', Rest::LESS_THAN, 'Another Column Name']
+    *                    [ 'Column Name', Rest::LESS_THAN, 'Another Column Name']           // NOTE the Rest::LESS_THAN
     *                ]
     *            ],
     *            Rest::LEFT_OUTER => [
@@ -1349,6 +1400,7 @@ MYSQL;
     *                   
     *                ],
     *                Example_Table_Two::CLASS_NAME => [
+    *                    Example_Table_Two::ID => Example_Table_Two::subSelect(\$primary, \$argv, \$as, \$pdo, \$database)
     *                    ect... 
     *                ]
     *            ]
@@ -1359,7 +1411,7 @@ MYSQL;
     *                       singular result. SETTING THE LIMIT TO NULL WILL ALLOW INFINITE RESULTS (NO LIMIT).
     *                       The limit defaults to 100 by design.
     *
-    *               Rest::ORDER => ['*column name*' => Rest::ASC ],  // i.e.  'username' => Rest::DESC
+    *               Rest::ORDER => [self::EXAMPLE_COLUMN_TEN => Rest::ASC ],  // i.e.  'username' => Rest::DESC
     *         ],
     *
     *   ];

@@ -22,7 +22,7 @@ import logo from "assets/img/reactlogo.png";
 
 var ps;
 
-let root = '/6.0/UI/Material-Dashboard';
+let root = '/UI/Material-Dashboard';
 
 dashboardRoutes.map(o => {
     if ('path' in o) {

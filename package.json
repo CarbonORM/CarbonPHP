@@ -1,6 +1,6 @@
 {
   "name": "carbonphp",
-  "version": "6.0.0",
+  "version": "8.2.0",
   "description": "A stats website for coaches",
   "main": "index.php",
   "scripts": {
@@ -9,16 +9,11 @@
     "build": "cd ./view/assets/react/ && npm run-script build"
   },
   "dependencies": {
-    "@types/classnames": "^2.2.10",
     "admin-lte": "^3.1.0",
-    "eslint-plugin-prettier": "^3.3.0",
     "jquery-backstretch": "2.1.16",
     "jquery-form": "^4.3.0",
     "jquery-pjax": "^2.0.1",
-    "mustache": "^2.3.2",
-    "qs": "^6.9.4",
-    "raw.macro": "^0.4.2",
-    "react-code-blocks": "0.0.8"
+    "mustache": "^2.3.2"
   },
   "repository": {
     "type": "git",
@@ -32,8 +27,5 @@
   "bugs": {
     "url": "https://github.com/RichardTMiles/CarbonPHP/issues"
   },
-  "homepage": "https://CarbonPHP.com/",
-  "devDependencies": {
-    "raw.macro": "^0.4.2"
-  }
+  "homepage": "https://CarbonPHP.com/"
 }

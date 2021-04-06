@@ -4,8 +4,10 @@
 namespace CarbonPHP;
 
 use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestfulReferences;
+use CarbonPHP\Programs\ColorCode;
 use PDO;
 use PDOStatement;
 
@@ -151,14 +153,15 @@ abstract class Rest extends Database
 
 
     /**
-     * refturns true if it is a column name that exists and all user validations pass.
+     * returns true if it is a column name that exists and all user validations pass.
      * return is false otherwise.
      * @param string $method
-     * @param string $column
-     * @param string $operator
+     * @param mixed $column
+     * @param string|null $operator
      * @param string|null $value
      * @param bool $default
      * @return bool
+     * @throws PublicAlert
      */
     public static function validateInternalColumn(string $method, &$column, string &$operator = null, &$value = null, bool $default = false): bool
     {
@@ -230,37 +233,6 @@ abstract class Rest extends Database
 
         return false;
     }
-
-
-    protected static function runValidations(array $php_validation, &...$rest): void
-    {
-        foreach ($php_validation as $key => $validation) {
-
-            if (!is_int($key)) {
-                // This would indicated a column value explicitly on pre or post method.
-                continue;
-            }
-
-            if (is_array($validation)) {
-                $class = array_key_first($validation);          //  $class => $method
-                $validationMethod = $validation[$class];
-                unset($validation[$class]);
-                if (!class_exists($class)) {
-                    throw new PublicAlert("A class reference in PHP_VALIDATION failed. Class ($class) not found.");
-                }
-                if (empty($rest)) {
-                    if (false === call_user_func_array([$class, $validationMethod], [&self::$REST_REQUEST_PARAMETERS, ...$validation])) {
-                        throw new PublicAlert('The global request validation failed, please make sure the arguments are correct.');
-                    }
-                } else if (false === call_user_func_array([$class, $validationMethod], [&$rest, ...$validation])) {
-                    throw new PublicAlert('A column request validation failed, please make sure arguments are correct.');
-                }
-            } else {
-                throw new PublicAlert('Each PHP_VALIDATION should equal an array of arrays with [ call => method , structure followed by any additional arguments ]. Refer to Carbonphp.com for more information.');
-            }
-        }
-    }
-
 
     /**
      * @return void
@@ -468,7 +440,7 @@ abstract class Rest extends Database
             $mainTable = implode('_', $mainTable);
 
             if (!class_exists($namespace . $mainTable)) {
-                throw new PublicAlert("The table $mainTable was not found in our generated api. Please try rerunning the rest builder and contact us if problems presist.");
+                throw new PublicAlert("The table $mainTable was not found in our generated api. Please try rerunning the rest builder and contact us if problems persist.");
             }
 
             $requestTableHasPrimary = in_array(strtolower(iRest::class),
@@ -484,7 +456,7 @@ abstract class Rest extends Database
                         $_GET = json_decode(stripcslashes($_GET[0]), true, JSON_THROW_ON_ERROR);    // which is why this is here
 
                         if (null === $_GET) {
-                            throw new PublicAlert('Json decoding of $_GET[0] returned null. Please attempt searializing another way.');
+                            throw new PublicAlert('Json decoding of $_GET[0] returned null. Please attempt serializing another way.');
                         }
 
 
@@ -712,7 +684,11 @@ abstract class Rest extends Database
 
         // pagination [self::PAGINATION][self::LIMIT]
         if (array_key_exists(self::PAGINATION, $argv) && !empty($argv[self::PAGINATION])) {    // !empty should not be in this block - I look all the time
-            if (array_key_exists(self::LIMIT, $argv[self::PAGINATION]) && is_numeric($argv[self::PAGINATION][self::LIMIT])) {
+            // setting the limit to null will cause no limit
+            // I get tempted to allow 0 to symbolically mean the same thing, but 0 Limit is allowed in mysql
+            // @link https://stackoverflow.com/questions/30269084/why-is-limit-0-even-allowed-in-mysql-select-statements
+            if (array_key_exists(self::LIMIT, $argv[self::PAGINATION]) &&
+                is_numeric($argv[self::PAGINATION][self::LIMIT])) {
                 if (array_key_exists(self::PAGE, $argv[self::PAGINATION])) {
                     $limit = ' LIMIT ' . (($argv[self::PAGINATION][self::PAGE] - 1) * $argv[self::PAGINATION][self::LIMIT]) . ',' . $argv[self::PAGINATION][self::LIMIT];
                 } else {
@@ -781,7 +757,7 @@ abstract class Rest extends Database
             }
 
             if (is_array($column)) {
-                self::buildAggregate($column, $sql, $group, $noHEX);
+                self::buildAggregate( $column, $sql, $group, $noHEX);
                 continue;               // next foreach iteration
             }
 
@@ -958,7 +934,7 @@ abstract class Rest extends Database
                                 throw new PublicAlert('Restful column joins may only use one (=,>=, or <=).');
                             }
                             if (!is_string($value[1])) {
-                                throw new PublicAlert('A value parsed during a boolean join condition was not correct. String expected as second value while creating aggrogation.');
+                                throw new PublicAlert('A value parsed during a boolean join condition was not correct. String expected as second value while creating aggregation.');
                             }
                             $addSingleConditionToJoin($column, $value[0], $value[1]);
                         } else {
@@ -1144,11 +1120,56 @@ abstract class Rest extends Database
 
     /**
      * @param mixed ...$args
-     * @throws PublicAlert
      */
     public static function sortDump(...$args): void
     {
         sortDump($args);
     }
 
+    public static function parseSchemaSQL(string $sql = null) : ?string {
+
+        if (null === preg_replace('#AUTO_INCREMENT=[0-9]+#i', 'AUTO_INCREMENT=0', $sql)) {
+            ColorCode::colorCode('parseSchemaSQL preg_replace failed for sql ' . $sql, iColorCode::RED);
+            return null;
+        }
+
+        if (null === $sql || false === preg_match_all('#CREATE\s+TABLE(.|\s)+?(?=ENGINE=)#', $sql, $matches)) {
+            ColorCode::colorCode('parseSchemaSQL preg_match_all failed for sql ' . $sql, iColorCode::RED);
+            return null;
+        }
+        if (!($matches[0][0] ?? false)) {
+            ColorCode::colorCode('Regex failed to match a schema.', iColorCode::RED);
+            return null;
+        }
+        return $matches[0][0] . ' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4';
+    }
+
+    protected static function runValidations(array $php_validation, &...$rest): void
+    {
+        foreach ($php_validation as $key => $validation) {
+
+            if (!is_int($key)) {
+                // This would indicated a column value explicitly on pre or post method.
+                continue;
+            }
+
+            if (is_array($validation)) {
+                $class = array_key_first($validation);          //  $class => $method
+                $validationMethod = $validation[$class];
+                unset($validation[$class]);
+                if (!class_exists($class)) {
+                    throw new PublicAlert("A class reference in PHP_VALIDATION failed. Class ($class) not found.");
+                }
+                if (empty($rest)) {
+                    if (false === call_user_func_array([$class, $validationMethod], [&self::$REST_REQUEST_PARAMETERS, ...$validation])) {
+                        throw new PublicAlert('The global request validation failed, please make sure the arguments are correct.');
+                    }
+                } else if (false === call_user_func_array([$class, $validationMethod], [&$rest, ...$validation])) {
+                    throw new PublicAlert('A column request validation failed, please make sure arguments are correct.');
+                }
+            } else {
+                throw new PublicAlert('Each PHP_VALIDATION should equal an array of arrays with [ call => method , structure followed by any additional arguments ]. Refer to Carbonphp.com for more information.');
+            }
+        }
+    }
 }

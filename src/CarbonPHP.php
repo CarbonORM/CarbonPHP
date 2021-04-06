@@ -4,6 +4,7 @@ namespace CarbonPHP;
 
 use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Helpers\Serialized;
+use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iConfig;
 use CarbonPHP\Programs\CLI;
 use CarbonPHP\Programs\ColorCode;
@@ -35,6 +36,7 @@ class CarbonPHP
 
     // folder locations
     public const CARBON_ROOT = __DIR__ . DIRECTORY_SEPARATOR;
+    public static bool $carbon_is_root = false;
     public static string $public_carbon_root = '/';         // uri
     public static string $app_root;
     public static string $app_view = 'view/';               // uri
@@ -296,11 +298,15 @@ class CarbonPHP
 
             // todo - we're using this as a uri and it could have directory separator in the wrong direction
             if (self::$app_root . 'src' . DS === self::CARBON_ROOT) {
+                self::$carbon_is_root = true;
                 self::$public_carbon_root = '';
             } elseif (strpos(dirname(self::CARBON_ROOT), self::$app_root) === 0) {
                 self::$public_carbon_root = rtrim(substr_replace(dirname(self::CARBON_ROOT), '', 0, strlen(self::$app_root)), DS);
             } else {
-                self::$test or self::colorCode('The composer directory ie C6 should be in a child directory of the application root ('.self::$app_root.'). Currently set to :: ' . self::$app_root . "\n\n", 'green');
+                if (!self::$test) {
+                    self::colorCode('The composer directory ie C6 should be in a child directory of the application root (' . self::$app_root . '). Currently set to :: ' . self::$app_root . "\n
+                        Continuing gracefully, but some features may not work as expected.\n", iColorCode::RED);
+                }
                 self::$public_carbon_root = '//carbonphp.com';
             }
 
@@ -333,10 +339,14 @@ class CarbonPHP
 
             #################  DATABASE  ########################
             if ($config['DATABASE'] ?? false) {
-                Database::$dsn = 'mysql:host=' . ($config['DATABASE']['DB_HOST'] ?? '') . ';dbname=' . ($config['DATABASE']['DB_NAME'] ?? '') . (($config['DATABASE']['DB_PORT'] ?? false) && $config['DATABASE']['DB_PORT'] !== ''? ';port=' . $config['DATABASE']['DB_PORT'] : '');
                 Database::$username = $config['DATABASE']['DB_USER'] ?? '';
                 Database::$password = $config['DATABASE']['DB_PASS'] ?? '';
+                Database::$name = $config['DATABASE']['DB_NAME'] ?? '';
+                Database::$port = $config['DATABASE']['DB_PORT'] ?? '';
+                Database::$host = $config['DATABASE']['DB_HOST'] ?? '';
                 Database::$setup = $config['DATABASE']['DB_BUILD'] ?? '';
+                Database::$dsn = 'mysql:host=' . Database::$host . ';dbname=' . Database::$name .
+                    (!empty(Database::$port)? ';port=' . Database::$port : '');
                 Database::$initialized = true;
             }
 

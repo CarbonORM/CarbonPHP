@@ -547,7 +547,7 @@ SOCKET;
     public static function configuration(): array
     {
         if (CarbonPHP::$app_local) {
-            if (CarbonPHP::$test) {
+            if (CarbonPHP::$test && CarbonPHP::$app_root === '/home/runner/work/carbonphp/carbonphp') {
                 $databasePassword = 'root';
             } else {
                 $databasePassword = 'password';
@@ -563,7 +563,6 @@ SOCKET;
                 'DB_NAME' => 'CarbonPHP',                       // Schema
                 'DB_USER' => 'root',                            // User
                 'DB_PASS' => $databasePassword,                        // Password
-                'DB_BUILD' => '',                               // SERVER_ROOT . '/config/buildDatabase.php' TODO - auto set this when cli program is run
                 'REBUILD' => false
             ],
             'SITE' => [

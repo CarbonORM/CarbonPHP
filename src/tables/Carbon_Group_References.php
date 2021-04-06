@@ -17,6 +17,12 @@ use function is_array;
 // Custom User Imports
 
 
+/**
+ * 
+ * Class Carbon_Group_References
+ * @package CarbonPHP\Tables
+ * 
+ */
 class Carbon_Group_References extends Rest implements iRestfulReferences
 {
     
@@ -58,11 +64,12 @@ class Carbon_Group_References extends Rest implements iRestfulReferences
     public const PHP_VALIDATION = []; 
  
     public const REGEX_VALIDATION = []; 
+ 
+    public const REFRESH_SCHEMA = [
+        [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::CREATE_TABLE_SQL]
+    ]; 
    
-
-    
-    public static function createTableSQL() : string {
-    return /** @lang MySQL */ <<<MYSQL
+    public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
     CREATE TABLE `carbon_group_references` (
   `group_id` binary(16) DEFAULT NULL,
   `allowed_to_grant_group_id` binary(16) DEFAULT NULL,
@@ -70,26 +77,52 @@ class Carbon_Group_References extends Rest implements iRestfulReferences
   KEY `carbon_group_references_carbons_entity_pk_fk_2` (`allowed_to_grant_group_id`),
   CONSTRAINT `carbon_group_references_carbons_entity_pk_fk` FOREIGN KEY (`group_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `carbon_group_references_carbons_entity_pk_fk_2` FOREIGN KEY (`allowed_to_grant_group_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+)  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 MYSQL;
-    }
-    
+   
+   
+
     
     /**
+     * @deprecated Use the class constant CREATE_TABLE_SQL directly
+     * @return string
+     */
+    public static function createTableSQL() : string {
+        return self::CREATE_TABLE_SQL;
+    }
+    
+    /**
+    * Currently nested aggregation is not supported. It is recommended to avoid using 'AS' where possible. Sub-selects are 
+    * allowed and do support 'as' aggregation. Refer to the static subSelect method parameters in the parent `Rest` class.
+    * All supported aggregation is listed in the example below. Note while the WHERE and JOIN members are syntactically 
+    * similar, and are moreover compiled through the same method, our aggregation is not. Please refer to this example 
+    * when building your queries. By design, queries using subSelect are only allowed internally. Public Sub-Selects may 
+    * be given an optional argument with future releases but will never default to on. Thus, you external API validation
+    * need only validate for possible table joins. In many cases sub-selects can be replaces using simple joins, this is
+    * highly recommended.
     *
     *   $argv = [
     *       Rest::SELECT => [
-    *              ]'*column name array*', 'etc..'
-    *        ],
-    *
+    *              'table_name.column_name',
+    *              self::EXAMPLE_COLUMN_ONE,
+    *              [self::EXAMPLE_COLUMN_TWO, self::AS, 'customName'],
+    *              [self::GROUP_CONCAT, self::EXAMPLE_COLUMN_THREE], 
+    *              [self::MAX, self::EXAMPLE_COLUMN_FOUR], 
+    *              [self::MIN, self::EXAMPLE_COLUMN_FIVE], 
+    *              [self::SUM, self::EXAMPLE_COLUMN_SIX], 
+    *              [self::DISTINCT, self::EXAMPLE_COLUMN_SEVEN], 
+    *              ANOTHER_EXAMPLE_TABLE::subSelect($primary, $argv, $as, $pdo, $database)
+    *       ],
     *       Rest::WHERE => [
-    *              'Column Name' => 'Value To Constrain',
-    *              'Defaults to AND' => 'Nesting array switches to OR',
+    *              
+    *              self::EXAMPLE_COLUMN_NINE => 'Value To Constrain',                       // self::EXAMPLE_COLUMN_NINE AND           
+    *              'Defaults to boolean AND grouping' => 'Nesting array switches to OR',    // ''='' AND 
     *              [
-    *                  'Column Name' => 'Value To Constrain',
-    *                  'This array is OR'ed together' => 'Another sud array would `AND`'
+    *                  'Column Name' => 'Value To Constrain',                                  // ''='' OR
+    *                  'This array is OR'ed together' => 'Another sud array would `AND`'       // ''=''
     *                  [ etc... ]
-    *              ]
+    *              ],
+    *              'last' => 'whereExample'                                                  // AND '' = ''
     *        ],
     *        Rest::JOIN => [
     *            Rest::INNER => [
@@ -101,7 +134,7 @@ MYSQL;
     *                       'This array is OR'ed together' => 'value'
     *                       [ 'Another sud array would `AND`ed... ]
     *                    ],
-    *                    [ 'Column Name', Rest::LESS_THAN, 'Another Column Name']
+    *                    [ 'Column Name', Rest::LESS_THAN, 'Another Column Name']           // NOTE the Rest::LESS_THAN
     *                ]
     *            ],
     *            Rest::LEFT_OUTER => [
@@ -111,6 +144,7 @@ MYSQL;
     *                   
     *                ],
     *                Example_Table_Two::CLASS_NAME => [
+    *                    Example_Table_Two::ID => Example_Table_Two::subSelect($primary, $argv, $as, $pdo, $database)
     *                    ect... 
     *                ]
     *            ]
@@ -121,7 +155,7 @@ MYSQL;
     *                       singular result. SETTING THE LIMIT TO NULL WILL ALLOW INFINITE RESULTS (NO LIMIT).
     *                       The limit defaults to 100 by design.
     *
-    *               Rest::ORDER => ['*column name*' => Rest::ASC ],  // i.e.  'username' => Rest::DESC
+    *               Rest::ORDER => [self::EXAMPLE_COLUMN_TEN => Rest::ASC ],  // i.e.  'username' => Rest::DESC
     *         ],
     *
     *   ];

@@ -12,6 +12,7 @@ import Menu from "@material-ui/icons/Menu";
 // core components
 import HeaderLinks from "./HeaderLinks";
 import Button from "components/CustomButtons/Button.jsx";
+import documentationVersion from "variables/carbonphp"
 
 import headerStyle from "assets/jss/material-dashboard-react/components/headerStyle.jsx";
 
@@ -40,7 +41,7 @@ function Header({...props}) {
             <Toolbar className={classes.container}>
                 <div className={classes.flex}>
                     {/* Here we create navbar brand, based on route name */}
-                    <Button color="transparent" href="/6.0/#" className={classes.title}>
+                    <Button color="transparent" href={"/" + documentationVersion + "/#"} className={classes.title}>
                         {makeBrand()}
                     </Button>
                 </div>

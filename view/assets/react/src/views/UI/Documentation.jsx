@@ -139,7 +139,7 @@ class Documentation extends React.Component {
       }
     ];
 
-    let root = '/6.0/UI/Material-Kit';
+    let root = '/UI/Material-Kit';
 
     publicDocumentationRoutes = publicDocumentationRoutes.map(o => {
       if ('path' in o) {

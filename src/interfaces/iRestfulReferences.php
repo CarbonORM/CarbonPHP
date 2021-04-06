@@ -24,6 +24,8 @@ use CarbonPHP\Error\PublicAlert;
  */
 interface iRestfulReferences
 {
+    public static function createTableSQL() : string;
+
     /**
      * @param array $return
      * @param array $argv

@@ -6,6 +6,7 @@ import ProfilePage from "views/ProfilePage/ProfilePage";
 import LoginPage from "views/LoginPage/LoginPage";
 import Components from "views/UI/Documentation";
 import AccessControl from "views/AccessControl/AccessControl";
+import documentationVersion from "variables/carbonphp"
 
 
 let publicRoutes = [
@@ -32,18 +33,17 @@ let publicRoutes = [
     },
     // These are reference's to UI layouts
     {
-        path: "/6.0/UI/Material-Kit",
+        path: "/UI/Material-Kit",
         name: "Material Kit",
         component: Components
     },
     {
-        path: "/6.0/UI/Material-Dashboard",
+        path: "/UI/Material-Dashboard",
         name: "Material Dashboard",
         component: Dashboard
-    },
-    // These are possible redirects we have in place
+    }, // These are possible redirects we have in place
     {
-        path: "/6.0",
+        path: "/" + documentationVersion,
         name: "Documentation",
         component: Documentation
     },
@@ -54,8 +54,13 @@ let publicRoutes = [
     },
     {
         redirect: true,
+        path: "/6.0",
+        pathTo: "https://carbonphp.com/6.0",
+    },
+    {
+        redirect: true,
         path: "/",
-        pathTo: "/6.0",
+        pathTo: "/ "  + documentationVersion
     }
     // Past here a 404 should raise on the previous controller
 ];

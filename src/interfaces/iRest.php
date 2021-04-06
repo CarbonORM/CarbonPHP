@@ -24,6 +24,9 @@ use CarbonPHP\Error\PublicAlert;
  */
 interface iRest
 {
+
+    public static function createTableSQL() : string;
+
     /**
      * @param array $return
      * @param string|null $primary
