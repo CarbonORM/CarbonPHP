@@ -547,7 +547,7 @@ SOCKET;
     public static function configuration(): array
     {
         if (CarbonPHP::$app_root === '/home/runner/work/carbonphp/carbonphp') {
-            $databasePassword = 'root';
+            $databasePassword = 'password';
         } else if (CarbonPHP::$app_local) {
             $databasePassword = 'password';
         } else {
