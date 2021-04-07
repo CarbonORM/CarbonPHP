@@ -378,11 +378,11 @@ class CarbonPHP
 
             #####################   ERRORS + Warnings + Alerts    #######################
             if ($config['ERROR'] ??= false) {
-                ErrorCatcher::$defaultLocation ??= self::$reports . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
-                ErrorCatcher::$fullReports ??= $config['ERROR']['FULL'] ?? true;
-                ErrorCatcher::$printToScreen ??= $config['ERROR']['SHOW'] ?? true;
-                ErrorCatcher::$storeReport ??= $config['ERROR']['STORE'] ?? false;
-                ErrorCatcher::$level ??= $config['ERROR']['LEVEL'] ??  E_ALL | E_STRICT;
+                ErrorCatcher::$defaultLocation = self::$reports . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
+                ErrorCatcher::$fullReports = $config['ERROR']['FULL'] ?? true;
+                ErrorCatcher::$printToScreen = $config['ERROR']['SHOW'] ?? true;
+                ErrorCatcher::$storeReport = $config['ERROR']['STORE'] ?? false;
+                ErrorCatcher::$level = $config['ERROR']['LEVEL'] ??  E_ALL | E_STRICT;
                 ErrorCatcher::start();
             }
 
