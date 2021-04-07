@@ -4,13 +4,9 @@
 
 [CarbonPHP.com](http://carbonphp.com/)
 
-### Alpha Notice
-
-CarbonPHP is currently Stable.
-
 CarbonPHP has reached a stable level of trust in its own features through PHPUnit Tests + 
 Github Actions but is still in active development. CarbonPHP is being used in production environments. Anyone, or team, who attempts using this code
-will find support on Github through issues and forums. If any Bug's should exist we generally expect them to be minor.
+will find support on Github through issues and forums. We generally expect any issue you many encountered to be minor.
 If you edit the codebase, please consider submitting those changes on GitHub! C6 uses [Semantic Versioning 2.0.0](https://semver.org). 
 Generally: MAJOR version when you make incompatible API changes, MINOR version when you add functionality in a backwards 
 compatible manner, and PATCH version when you make backwards compatible bug fixes. Changes to function/class/etc will be 
@@ -27,7 +23,7 @@ C6 works as a standalone backbone for your dev needs or in coroperation with oth
 or [Laravel](https://laravel.com).
 CarbonPHP's other goals include portability; allowing your webapps to be installed on servers with different operating 
 systems (Windows, Mac, and Linux Support). Full MySQL ORM REST generator, and php written database tools designed around 
-the MySQL. Windows PHP currently lacks a library capibable of forking. Should your development require Windows 
+the MySQL. Windows PHP currently lacks a library capable of forking. Should your development require Windows 
 computers look into [Websocketd.com](Websocketd.com) and the file name "./programs/Websocketd.php". I have written a few 
 wiki's in the repo above explaining how to Use sockets in this way. I hope to contribute a php library
 written in C (PHP is written in C) to support this task, however time is a factor. Should you feel compelled to help in 
@@ -53,7 +49,7 @@ are currently scheduled for the summer of 2021.
 ## Documentation
 
 All function should have PHPDoc-style documentation in the code. [CarbonPHP.com](https://carbonphp.com/) also has full 
-explinations of the codebase. 
+explanations of the codebase. 
 
 ### MVC
 We recommend that each request use the MVC structure, Pure ORM callback(s), or a combination of the two. 
@@ -109,9 +105,9 @@ This is a sample from the code library which backbones all mvc requests.
     }
 
 ### RESTFUL ORM
-CarbonPHP's most powerful tool and my personal favorite is the MySQL ORM. By running a customizable CLI command our program 
-will analize you database schema and generate a powerful class used to minipulate your tables. The auto generated files 
-may be used in conjunction for an increadible pleasing RESTFUL symantic structure. Below are examples for using the REST 
+CarbonPHP's largest feature is the MySQL ORM. By running a customizable CLI command our program 
+will analyze your database schema and generate powerful classes used to manipulate your tables. The auto generated files 
+may be used in conjunction for an incredibly pleasing RESTFUL semantics structure. Below are examples for using the REST 
 ORM. You can [see the generated source here](https://github.com/RichardTMiles/CarbonPHP/blob/master/src/tables/Carbon_Users.php).
 
     $id = Users::Post([
@@ -151,7 +147,7 @@ Joining across multiple tables.
         ]);
 
 
-Using the ORM from the Frontend. This example showcases multiple table joins, as well as the use of aggrogate function(s) 
+Using the ORM from the Frontend. This example showcases multiple table joins, as well as the use of aggregate function(s) 
 GROUP_CONCAT.
 
     const { axios } = this.props;
