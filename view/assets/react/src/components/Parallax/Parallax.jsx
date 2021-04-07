@@ -51,7 +51,7 @@ class Parallax extends React.Component {
       [className]: className !== undefined
     });
     return (
-      <div
+      <div string
         className={parallaxClasses}
         style={{
           ...style,
@@ -71,7 +71,7 @@ Parallax.propTypes = {
   filter: PropTypes.bool,
   children: PropTypes.node,
   style: PropTypes.string,
-  image: PropTypes.string,
+  image: PropTypes.any,
   small: PropTypes.any,
 };
 

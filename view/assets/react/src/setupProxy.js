@@ -11,6 +11,16 @@ module.exports = function (app) {
         },
         logLevel: "debug"
     }));
+    app.use('/view/**', createProxyMiddleware({
+        target: 'http://dev.carbonphp.com:8080/',
+        changeOrigin: true,
+        secure: false,
+        proxyTimeout: 4000,
+        pathRewrite(path, req) {
+            return path.replace(/^\/view/, 'view')
+        },
+        logLevel: "debug"
+    }));
     app.use('/carbon/**', createProxyMiddleware({
         target: 'http://dev.carbonphp.com:8080/',
         changeOrigin: true,

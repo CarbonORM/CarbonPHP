@@ -43,6 +43,9 @@ jobs:
       - name: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e  "GRANT ALL PRIVILEGES ON CarbonPHP. * TO 'root'@'localhost';"
         run: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e  "GRANT ALL PRIVILEGES ON CarbonPHP. * TO 'root'@'localhost';"
 
+      - name: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e  "ALTER USER 'root'@'localhost' IDENTIFIED BY 'password';"
+        run: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e  "ALTER USER 'root'@'localhost' IDENTIFIED BY 'password';"
+
       - name: sudo update-alternatives --set php /usr/bin/php7.4
         run: sudo update-alternatives --set php /usr/bin/php7.4
 
@@ -51,6 +54,9 @@ jobs:
 
       - name: composer install --prefer-dist --no-progress --no-suggest
         run: composer install --prefer-dist --no-progress --no-suggest
+
+      - name: php index.php buildDatabase -r
+        run: php index.php buildDatabase -r
 
       - name: ./vendor/se/selenium-server-standalone/composer/bin/selenium-server-standalone &
         run: ./vendor/se/selenium-server-standalone/composer/bin/selenium-server-standalone &

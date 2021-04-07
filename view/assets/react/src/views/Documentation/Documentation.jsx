@@ -124,7 +124,7 @@ class Documentation extends React.Component {
           }}
           {...rest}
         />
-        <Parallax image={require("assets/img/Carbon-teal-180.png")}>
+        <Parallax image={"/view/assets/img/Carbon-teal-180.png"}>
           <div className={classes.container}>
             <GridContainer>
               <GridItem>

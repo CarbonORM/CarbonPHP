@@ -608,7 +608,7 @@ FOOT;
                 throw new PublicAlert("A class reference in REFRESH_SCHEMA failed. Class ($class) not found.");
             }
 
-            if (false === call_user_func_array([$class, $validationMethod], [&$rest, ...$validation])) {
+            if (false === call_user_func([$class, $validationMethod], ...$validation)) {
                 throw new PublicAlert("Any method used in REFRESH_SCHEMA must not return false. $class => $validationMethod returned with error.");
             }
         }
