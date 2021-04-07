@@ -22,7 +22,7 @@ import Changelog from "./Sections/Changelog";
 
 import Support from "./Sections/Support";
 import License from "./Sections/License";
-import documentationVersion from "variables/carbonphp"
+import carbonphp from "variables/carbonphp"
 import PropTypes from "prop-types";
 
 
@@ -49,6 +49,9 @@ class Documentation extends React.Component {
   }
 
   render() {
+
+    let documentationVersion = carbonphp.documentationVersionURI;
+
     console.log("Documentation JSX RENDER");
 
     console.log(this.props);

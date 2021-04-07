@@ -80,21 +80,21 @@ class HeaderLinks extends React.Component<any, any> {
             }}
             buttonIcon={Apps}
             dropdownList={[
-              <Link to="/8.0" className={classes.dropdownLink}>
-                Version 6.0
+              <Link to="/8.2" className={classes.dropdownLink}>
+                Version 8.^
               </Link>,
               <a
                 href={context.contextHost + "/6.0"}
                 className={classes.dropdownLink}
               >
-                Version 6.0
+                Version 6.^
               </a>,
               <a
                 href={context.contextHost + "/2.0"}
                 target="_blank"
                 className={classes.dropdownLink}
               >
-                Version 2.0
+                Version 2.^
               </a>
             ]}
           />

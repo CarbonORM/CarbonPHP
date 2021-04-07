@@ -219,5 +219,16 @@ Contributors can be found in the GitHub Contributor Listing.
 ### Common TSX types 
    
     something: PropTypes.arrayOf(PropTypes.node)
-    classes: PropTypes.object.isRequired,
+    ****classes: PropTypes.object.isRequired,
     message: PropTypes.node.isRequired,
+
+To update the version number on the FED
+
+1) update the header menu
+
+    view/assets/react/src/components/HeaderTop/HeaderLinks.tsx
+    components/HeaderTop/HeaderLinks.tsx
+
+2) version number
+
+    variables/carbonphp.jsx

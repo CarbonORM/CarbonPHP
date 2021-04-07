@@ -6,8 +6,10 @@ import ProfilePage from "views/ProfilePage/ProfilePage";
 import LoginPage from "views/LoginPage/LoginPage";
 import Components from "views/UI/Documentation";
 import AccessControl from "views/AccessControl/AccessControl";
-import documentationVersion from "variables/carbonphp"
+import carbonphp  from "variables/carbonphp"
 
+
+const documentationVersion = carbonphp.documentationVersionURI;
 
 let publicRoutes = [
     // TODO - The following arn't setup
@@ -60,7 +62,7 @@ let publicRoutes = [
     {
         redirect: true,
         path: "/",
-        pathTo: "/ "  + documentationVersion
+        pathTo: "/"  + documentationVersion
     }
     // Past here a 404 should raise on the previous controller
 ];
