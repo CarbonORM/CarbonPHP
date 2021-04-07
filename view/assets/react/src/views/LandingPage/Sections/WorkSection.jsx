@@ -11,6 +11,7 @@ import CustomInput from "components/CustomInput/CustomInput.jsx";
 import Button from "components/CustomButtons/Button.jsx";
 
 import workStyle from "assets/jss/material-kit-react/views/landingPageSections/workStyle.jsx";
+import PropTypes from "prop-types";
 
 class WorkSection extends React.Component {
   render() {
@@ -76,5 +77,10 @@ class WorkSection extends React.Component {
     );
   }
 }
+
+
+WorkSection.propTypes = {
+  classes: PropTypes.object.isRequired,
+};
 
 export default withStyles(workStyle)(WorkSection);

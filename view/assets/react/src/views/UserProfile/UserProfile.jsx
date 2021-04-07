@@ -14,6 +14,7 @@ import CardBody from "components/Card/CardBody.jsx";
 import CardFooter from "components/Card/CardFooter.jsx";
 
 import avatar from "assets/img/faces/marc.jpg";
+import PropTypes from "prop-types";
 
 const styles = {
   cardCategoryWhite: {
@@ -160,7 +161,7 @@ function UserProfile(props) {
               <h6 className={classes.cardCategory}>CEO / CO-FOUNDER</h6>
               <h4 className={classes.cardTitle}>Alec Thompson</h4>
               <p className={classes.description}>
-                Don't be scared of the truth because we need to restart the
+                Don&apos;SectionCompletedExamples.jsxt be scared of the truth because we need to restart the
                 human foundation in truth And I love you like Kanye loves Kanye
                 I love Rick Owens’ bed design but the back is...
               </p>
@@ -174,5 +175,9 @@ function UserProfile(props) {
     </div>
   );
 }
+
+UserProfile.propTypes = {
+  classes: PropTypes.object.isRequired,
+};
 
 export default withStyles(styles)(UserProfile);

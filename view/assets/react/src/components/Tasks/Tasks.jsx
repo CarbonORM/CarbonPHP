@@ -105,7 +105,8 @@ class Tasks extends React.Component {
 Tasks.propTypes = {
   classes: PropTypes.object.isRequired,
   tasksIndexes: PropTypes.arrayOf(PropTypes.number),
-  tasks: PropTypes.arrayOf(PropTypes.node)
+  tasks: PropTypes.arrayOf(PropTypes.node),
+  checkedIndexes: PropTypes.any
 };
 
 export default withStyles(tasksStyle)(Tasks);

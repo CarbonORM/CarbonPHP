@@ -28,6 +28,7 @@ function CardAvatar({ ...props }) {
 CardAvatar.propTypes = {
   children: PropTypes.node.isRequired,
   className: PropTypes.string,
+  classes: PropTypes.object.isRequired,
   profile: PropTypes.bool,
   plain: PropTypes.bool
 };

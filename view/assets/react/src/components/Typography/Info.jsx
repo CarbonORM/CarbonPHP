@@ -15,7 +15,8 @@ function Info({ ...props }) {
 }
 
 Info.propTypes = {
-  classes: PropTypes.object.isRequired
+  classes: PropTypes.object.isRequired,
+  children: PropTypes.any
 };
 
 export default withStyles(typographyStyle)(Info);

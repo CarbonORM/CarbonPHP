@@ -37,6 +37,7 @@ function Card({ ...props }) {
 Card.propTypes = {
   classes: PropTypes.object.isRequired,
   className: PropTypes.string,
+  children: PropTypes.any,
   plain: PropTypes.bool,
   profile: PropTypes.bool,
   chart: PropTypes.bool

@@ -37,6 +37,7 @@ function CardHeader({ ...props }) {
 }
 
 CardHeader.propTypes = {
+  children: PropTypes.any,
   classes: PropTypes.object.isRequired,
   className: PropTypes.string,
   color: PropTypes.oneOf([

@@ -12,6 +12,7 @@ import Danger from "components/Typography/Danger.jsx";
 import Card from "components/Card/Card.jsx";
 import CardHeader from "components/Card/CardHeader.jsx";
 import CardBody from "components/Card/CardBody.jsx";
+import PropTypes from "prop-types";
 
 const style = {
   typo: {
@@ -147,12 +148,17 @@ function TypographyPage(props) {
           <div className={classes.note}>Small Tag</div>
           <h2>
             Header with small subtitle<br />
-            <small>Use "Small" tag for the headers</small>
+            <small>Use &quot;Small&quot; tag for the headers</small>
           </h2>
         </div>
       </CardBody>
     </Card>
   );
 }
+
+
+TypographyPage.propTypes = {
+  classes: PropTypes.object.isRequired,
+};
 
 export default withStyles(style)(TypographyPage);

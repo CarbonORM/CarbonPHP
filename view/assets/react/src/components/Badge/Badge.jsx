@@ -19,6 +19,7 @@ Badge.defaultProps = {
 };
 
 Badge.propTypes = {
+  children: PropTypes.any,
   classes: PropTypes.object.isRequired,
   color: PropTypes.oneOf([
     "primary",

@@ -12,6 +12,7 @@ import GridContainer from "components/Grid/GridContainer.jsx";
 import GridItem from "components/Grid/GridItem.jsx";
 import CustomTabs from "components/CustomTabs/CustomTabs.jsx";
 import tabsStyle from "assets/jss/material-kit-react/views/componentsSections/tabsStyle.jsx";
+import PropTypes from "prop-types";
 
 class SectionTabs extends React.Component {
   render() {
@@ -143,5 +144,10 @@ class SectionTabs extends React.Component {
     );
   }
 }
+
+
+SectionTabs.propTypes = {
+  classes: PropTypes.object.isRequired,
+};
 
 export default withStyles(tabsStyle)(SectionTabs);

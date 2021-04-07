@@ -27,6 +27,7 @@ function CardIcon({ ...props }) {
 CardIcon.propTypes = {
   classes: PropTypes.object.isRequired,
   className: PropTypes.string,
+  children: PropTypes.any,
   color: PropTypes.oneOf([
     "warning",
     "success",

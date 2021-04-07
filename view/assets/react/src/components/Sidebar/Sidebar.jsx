@@ -19,7 +19,7 @@ import sidebarStyle from "assets/jss/material-dashboard-react/components/sidebar
 const Sidebar = ({ ...props }) => {
   // verifies if routeName is the one active (in browser input)
   function activeRoute(routeName) {
-    return props.location.pathname.indexOf(routeName) > -1 ? true : false;
+    return props.location.pathname.indexOf(routeName) > -1;
   }
   const { classes, color, logo, image, logoText, routes } = props;
   var links = (
@@ -129,7 +129,15 @@ const Sidebar = ({ ...props }) => {
 };
 
 Sidebar.propTypes = {
-  classes: PropTypes.object.isRequired
+  classes: PropTypes.object.isRequired,
+  routes: PropTypes.array,
+  logoText: PropTypes.string,
+  open: PropTypes.bool,
+  location: PropTypes.object.isRequired,
+  color: PropTypes.string,
+  logo: PropTypes.string,
+  image: PropTypes.string,
+  handleDrawerToggle: PropTypes.any
 };
 
 export default withStyles(sidebarStyle)(Sidebar);

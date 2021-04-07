@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "target": "esnext",
     "baseUrl": "src",
     "lib": [
@@ -7,6 +9,7 @@
       "dom.iterable",
       "esnext"
     ],
+    "types": ["node"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,

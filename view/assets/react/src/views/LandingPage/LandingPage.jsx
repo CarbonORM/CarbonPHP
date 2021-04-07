@@ -21,6 +21,7 @@ import landingPageStyle from "assets/jss/material-kit-react/views/landingPage.ts
 import ProductSection from "./Sections/ProductSection.jsx";
 import TeamSection from "./Sections/TeamSection.jsx";
 import WorkSection from "./Sections/WorkSection.jsx";
+import PropTypes from "prop-types";
 
 const dashboardRoutes = [];
 
@@ -48,7 +49,7 @@ class LandingPage extends React.Component {
                 <h1 className={classes.title}>Your Story Starts With Us.</h1>
                 <h4>
                   Every landing page needs a small description after the big
-                  bold title, that's why we added this text here. Add here all
+                  bold title, that&apos;s why we added this text here. Add here all
                   the information that can make you or your product create the
                   first impression.
                 </h4>
@@ -78,5 +79,10 @@ class LandingPage extends React.Component {
     );
   }
 }
+
+
+LandingPage.propTypes = {
+  classes: PropTypes.object.isRequired,
+};
 
 export default withStyles(landingPageStyle)(LandingPage);

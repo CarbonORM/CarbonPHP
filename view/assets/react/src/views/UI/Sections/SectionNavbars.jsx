@@ -23,6 +23,7 @@ import navbarsStyle from "assets/jss/material-kit-react/views/componentsSections
 
 import image from "assets/img/bg.jpg";
 import profileImage from "assets/img/faces/avatar.jpg";
+import PropTypes from "prop-types";
 
 class SectionNavbars extends React.Component {
   render() {
@@ -433,5 +434,10 @@ class SectionNavbars extends React.Component {
     );
   }
 }
+
+
+SectionNavbars.propTypes = {
+  classes: PropTypes.object.isRequired,
+};
 
 export default withStyles(navbarsStyle)(SectionNavbars);

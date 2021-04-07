@@ -1,7 +1,6 @@
 import React from "react";
 import cx from "classnames";
 // creates a beautiful scrollbar
-import PerfectScrollbar from "perfect-scrollbar";
 import "perfect-scrollbar/css/perfect-scrollbar.css";
 
 // @material-ui/core components
@@ -32,7 +31,8 @@ class Private extends React.Component<any, any> {
   getRoute() {
     return this.props.location.pathname !== "/maps/full-screen-maps";
   }
-  componentDidMount() {
+
+  /*componentDidMount() {
     if (navigator.platform.indexOf("Win") > -1) {
       // @ts-ignore
       ps = new PerfectScrollbar(this.refs.mainPanel, {
@@ -41,7 +41,8 @@ class Private extends React.Component<any, any> {
       });
       document.body.style.overflow = "hidden";
     }
-  }
+  }*/
+
   componentWillUnmount() {
     if (navigator.platform.indexOf("Win") > -1) {
       ps.destroy();
@@ -50,7 +51,7 @@ class Private extends React.Component<any, any> {
   componentDidUpdate(e) {
     if (e.history.location.pathname !== e.location.pathname) {
       // @ts-ignore
-      this.refs.mainPanel.scrollTop = 0;
+      //this.refs.mainPanel.scrollTop = 0;
       if(this.state.mobileOpen){
         this.setState({mobileOpen: false})
       }
@@ -83,7 +84,7 @@ class Private extends React.Component<any, any> {
           miniActive={this.state.miniActive}
           {...rest}
         />
-        <div className={mainPanel} ref="mainPanel">
+        <div className={mainPanel}>
           <Header
             sidebarMinimize={this.sidebarMinimize.bind(this)}
             miniActive={this.state.miniActive}

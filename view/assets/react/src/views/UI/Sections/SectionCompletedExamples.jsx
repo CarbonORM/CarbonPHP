@@ -8,6 +8,7 @@ import GridContainer from "components/Grid/GridContainer.jsx";
 import GridItem from "components/Grid/GridItem.jsx";
 
 import completedStyle from "assets/jss/material-kit-react/views/componentsSections/completedStyle.jsx";
+import PropTypes from "prop-types";
 
 class SectionCompletedExamples extends React.Component {
   render() {
@@ -20,7 +21,7 @@ class SectionCompletedExamples extends React.Component {
               <h2>Completed with examples</h2>
               <h4>
                 The kit comes with three pre-built pages to help you get started
-                faster. You can change the text and images and you're good to
+                faster. You can change the text and images and you&apos;re good to
                 go. More importantly, looking at them will give you a picture of
                 what you can build with this powerful kit.
               </h4>
@@ -31,5 +32,10 @@ class SectionCompletedExamples extends React.Component {
     );
   }
 }
+
+
+SectionCompletedExamples.propTypes = {
+  classes: PropTypes.object.isRequired,
+};
 
 export default withStyles(completedStyle)(SectionCompletedExamples);

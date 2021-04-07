@@ -45,6 +45,7 @@ function RegularButton({ ...props }) {
 }
 
 RegularButton.propTypes = {
+  children: PropTypes.any,
   classes: PropTypes.object.isRequired,
   color: PropTypes.oneOf([
     "primary",

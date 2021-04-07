@@ -5,10 +5,8 @@ import {
 } from "assets/jss/material-dashboard-react.jsx";
 
 import { createStyles } from '@material-ui/core';
-import { Theme } from '@material-ui/core/styles/createMuiTheme';
 
-
-const appStyle = (theme: Theme) => createStyles({
+const appStyle = (theme: import("@material-ui/core/styles/createMuiTheme").Theme) => createStyles({
   wrapper: {
     position: "relative",
     top: "0",

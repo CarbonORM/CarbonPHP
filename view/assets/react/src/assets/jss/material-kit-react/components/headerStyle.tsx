@@ -27,7 +27,6 @@ import {
   transition,
   boxShadow,
   drawerWidth,
-  conatinerFluid,
   largeContainer
 } from "../../material-kit-react";
 // import { StyleRules } from "@material-ui/styles";

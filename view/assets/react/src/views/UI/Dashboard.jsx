@@ -45,6 +45,7 @@ class Dashboard extends React.Component {
   getRoute() {
     return this.props.location.pathname !== "/maps/full-screen-maps";
   }
+  /*
   componentDidMount() {
     if (navigator.platform.indexOf("Win") > -1) {
       ps = new PerfectScrollbar(this.refs.mainPanel, {
@@ -54,6 +55,7 @@ class Dashboard extends React.Component {
       document.body.style.overflow = "hidden";
     }
   }
+  */
   componentWillUnmount() {
     if (navigator.platform.indexOf("Win") > -1) {
       ps.destroy();
@@ -61,7 +63,7 @@ class Dashboard extends React.Component {
   }
   componentDidUpdate(e) {
     if (e.history.location.pathname !== e.location.pathname) {
-      this.refs.mainPanel.scrollTop = 0;
+      // this.refs.mainPanel.scrollTop = 0;
       if(this.state.mobileOpen){
         this.setState({mobileOpen: false})
       }
@@ -98,7 +100,7 @@ class Dashboard extends React.Component {
           miniActive={this.state.miniActive}
           {...rest}
         />
-        <div className={mainPanel} ref="mainPanel">
+        <div className={mainPanel}>
           <Header
             sidebarMinimize={this.sidebarMinimize.bind(this)}
             miniActive={this.state.miniActive}
@@ -122,7 +124,10 @@ class Dashboard extends React.Component {
 }
 
 Dashboard.propTypes = {
-  classes: PropTypes.object.isRequired
+  classes: PropTypes.object.isRequired,
+  location: PropTypes.object.isRequired,
+  subRoutingSwitch: PropTypes.func,
+
 };
 
 export default withStyles(appStyle)(Dashboard);

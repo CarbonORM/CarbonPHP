@@ -9,11 +9,10 @@ import Public from 'layouts/Public';
 import Private from 'layouts/Private';
 import PageNotFound from 'views/Errors/PageNotFound';
 // This is our ajax class
-import {AxiosInstance} from 'axios';
 import {CodeBlock, dracula, googlecode} from 'react-code-blocks';
 
 class bootstrap extends React.Component<any, {
-  axios: AxiosInstance,
+  axios: import("axios").AxiosInstance,
   authenticate: string,
   authenticated?: boolean,
   alert?: boolean,

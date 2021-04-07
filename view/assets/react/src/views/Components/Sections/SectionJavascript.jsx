@@ -21,6 +21,7 @@ import GridContainer from "components/Grid/GridContainer.jsx";
 import GridItem from "components/Grid/GridItem.jsx";
 import Button from "components/CustomButtons/Button.jsx";
 import javascriptStyles from "assets/jss/material-kit-react/views/componentsSections/javascriptStyles.jsx";
+import PropTypes from "prop-types";
 
 function Transition(props) {
   return <Slide direction="down" {...props} />;
@@ -336,5 +337,9 @@ class SectionJavascript extends React.Component {
     );
   }
 }
+
+SectionJavascript.propTypes = {
+  classes: PropTypes.object.isRequired,
+};
 
 export default withStyles(javascriptStyles)(SectionJavascript);

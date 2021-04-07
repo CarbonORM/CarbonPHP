@@ -18,6 +18,7 @@ import Muted from "components/Typography/Muted.jsx";
 import Quote from "components/Typography/Quote.jsx";
 import typographyStyle from "assets/jss/material-kit-react/views/componentsSections/typographyStyle.jsx";
 import image from "assets/img/faces/avatar.jpg";
+import PropTypes from "prop-types";
 class SectionTypography extends React.Component {
   render() {
     const { classes } = this.props;
@@ -132,13 +133,13 @@ class SectionTypography extends React.Component {
                 <div className={classes.note}>Small Tag</div>
                 <h2>
                   Header with small subtitle<br />
-                  <Small>Use "Small" tag for the headers</Small>
+                  <Small>Use &quot;Small&quot; tag for the headers</Small>
                 </h2>
               </div>
             </GridContainer>
           </div>
           <div className={classes.space50} />
-          <div id="images">
+          <div id="images">UserProfile.jsx
             <div className={classes.title}>
               <h2>Images</h2>
             </div>
@@ -197,5 +198,10 @@ class SectionTypography extends React.Component {
     );
   }
 }
+
+
+SectionTypography.propTypes = {
+  classes: PropTypes.object.isRequired,
+};
 
 export default withStyles(typographyStyle)(SectionTypography);

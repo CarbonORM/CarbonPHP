@@ -23,6 +23,7 @@ import Changelog from "./Sections/Changelog";
 import Support from "./Sections/Support";
 import License from "./Sections/License";
 import documentationVersion from "variables/carbonphp"
+import PropTypes from "prop-types";
 
 
 // react components for routing our app without refresh
@@ -148,5 +149,9 @@ class Documentation extends React.Component {
     );
   }
 }
+
+Documentation.propTypes = {
+  classes: PropTypes.object.isRequired,
+};
 
 export default withStyles(componentsStyle)(Documentation);

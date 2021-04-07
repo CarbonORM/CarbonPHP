@@ -17,6 +17,7 @@ import Button from "components/CustomButtons/Button.jsx";
 import CustomInput from "components/CustomInput/CustomInput.jsx";
 
 import loginStyle from "assets/jss/material-kit-react/views/componentsSections/loginStyle.jsx";
+import PropTypes from "prop-types";
 
 class SectionLogin extends React.Component {
   render() {
@@ -132,5 +133,10 @@ class SectionLogin extends React.Component {
     );
   }
 }
+
+
+SectionLogin.propTypes = {
+  classes: PropTypes.object.isRequired,
+};
 
 export default withStyles(loginStyle)(SectionLogin);

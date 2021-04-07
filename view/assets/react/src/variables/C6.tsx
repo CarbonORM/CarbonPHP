@@ -470,7 +470,7 @@ export const C6 = {
 
 
 
-export interface  iCarbon_Comments{
+export interface iCarbon_Comments{
       'parent_id'?: string;
 'comment_id'?: string;
 'user_id'?: string;

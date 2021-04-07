@@ -43,7 +43,7 @@ import {
   iCarbon_User_Groups,
   iCarbon_Users
 } from "variables/C6";
-import CustomInput from "../../components/CustomInput/CustomInput";
+import CustomInput from "components/CustomInput/CustomInput";
 import swal from '@sweetalert/with-react';
 import withStyles from "@material-ui/core/styles/withStyles";
 
@@ -556,7 +556,7 @@ class AccessControl extends React.Component<iAccessControl, {
                                 Renaming or deleting a feature may cause users to be unable to access critical site
                                 functionality.
                                 When a feature is designated as critical, or even just used at all, it should be
-                                'restfully' validated so it may not be removed or updated.
+                                &apos;restfully&apos; validated so it may not be removed or updated.
                               </p>
                             </div>
                           </GridItem>
@@ -602,19 +602,18 @@ class AccessControl extends React.Component<iAccessControl, {
                       })}
                       key={index}>{humanize(feature.feature_code)}</p>), "Admin"]}
                     tableData={
-                      this.state.groups.map(group => {
+                      this.state.groups.map((group, key) => {
                         const name = humanize(group.group_name);
-
                         return [
-                          <p onClick={this.handleNatModalChange}>{name}</p>,
-                          ...this.state.features.map(feature => {
+                          <p key={key} onClick={this.handleNatModalChange}>{name}</p>,
+                          ...this.state.features.map((feature) => {
 
                             const enabled = group.feature_code?.includes(',' + feature.feature_code + ',')
                               || group.feature_code?.startsWith(feature.feature_code + ',')
                               || group.feature_code?.includes(',' + feature.feature_code)
                               || group.feature_code === feature.feature_code;
 
-                            return <Button color={enabled ? "success" : "default"}
+                            return <Button key={key} color={enabled ? "success" : "default"}
                                            onClick={() => enabled ?
                                              this.deleteFeatureFromGroup(group.entity_id, feature.feature_entity_id) :
                                              this.addFeatureToGroup(feature.feature_entity_id, group.entity_id)}
@@ -622,8 +621,7 @@ class AccessControl extends React.Component<iAccessControl, {
                               {enabled ? " Enabled " : "Disabled"}
                             </Button>
                           }),
-
-                          <Button onClick={() => swal({
+                          <Button key={key} onClick={() => swal({
                               dangerMode: true,
                               buttons: {
                                 delete: "Delete Group",
@@ -645,13 +643,12 @@ class AccessControl extends React.Component<iAccessControl, {
                                         this.state.groups.map((SubGroup, key) => {
 
                                           let regex = new RegExp('(^|,)' + SubGroup.entity_id + ',?', 'g');
-
                                           let enabled = regex.test(group.allowed_to_grant_group_id);
 
                                           return [
                                             key,
                                             SubGroup.group_name,
-                                            <Button color={enabled ? "success" : "default"}
+                                            <Button key={key} color={enabled ? "success" : "default"}
                                                     onClick={() => enabled ?
                                                       this.deleteGroupGrantabillity(group.entity_id, SubGroup.entity_id) :
                                                       this.newGroupGrantabillity(group.entity_id, SubGroup.entity_id)}>
@@ -819,7 +816,7 @@ class AccessControl extends React.Component<iAccessControl, {
                             || user.group_name?.includes(',' + group.group_name)
                             || user.group_name === group.group_name;
 
-                          return <Button color={enabled ? "success" : "default"}
+                          return <Button key={key} color={enabled ? "success" : "default"}
                                          onClick={() => enabled ?
                                            this.deleteGroupFromUser(user.user_id, group.entity_id) :
                                            this.addUserToGroup(user.user_id, group.entity_id)}

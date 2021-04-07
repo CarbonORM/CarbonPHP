@@ -37,6 +37,7 @@ function CardFooter({ ...props }) {
 }
 
 CardFooter.propTypes = {
+  children: PropTypes.any,
   classes: PropTypes.object.isRequired,
   className: PropTypes.string,
   plain: PropTypes.bool,

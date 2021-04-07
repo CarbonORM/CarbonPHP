@@ -13,6 +13,7 @@ import Button from "components/CustomButtons/Button.jsx";
 import Card from "components/Card/Card.jsx";
 import CardHeader from "components/Card/CardHeader.jsx";
 import CardBody from "components/Card/CardBody.jsx";
+import PropTypes from "prop-types";
 
 const styles = {
   cardCategoryWhite: {
@@ -208,5 +209,9 @@ function UpgradeToPro(props) {
     </GridContainer>
   );
 }
+
+UpgradeToPro.propTypes = {
+  classes: PropTypes.object.isRequired,
+};
 
 export default withStyles(styles)(UpgradeToPro);

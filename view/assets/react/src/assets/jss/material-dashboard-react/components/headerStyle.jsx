@@ -9,7 +9,7 @@ import {
   dangerColor
 } from "assets/jss/material-dashboard-react.jsx";
 
-const headerStyle = theme => ({
+const headerStyle = () => ({
   appBar: {
     backgroundColor: "transparent",
     boxShadow: "none",

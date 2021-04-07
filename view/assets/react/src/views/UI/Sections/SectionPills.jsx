@@ -13,6 +13,7 @@ import GridContainer from "components/Grid/GridContainer.jsx";
 import GridItem from "components/Grid/GridItem.jsx";
 import NavPills from "components/NavPills/NavPills.jsx";
 import pillsStyle from "assets/jss/material-kit-react/views/componentsSections/pillsStyle.jsx";
+import PropTypes from "prop-types";
 
 class SectionPills extends React.Component {
   render() {
@@ -188,5 +189,10 @@ class SectionPills extends React.Component {
     );
   }
 }
+
+
+SectionPills.propTypes = {
+  classes: PropTypes.object.isRequired,
+};
 
 export default withStyles(pillsStyle)(SectionPills);

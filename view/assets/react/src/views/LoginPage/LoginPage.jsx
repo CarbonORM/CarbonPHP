@@ -22,6 +22,7 @@ import CustomInput from "components/CustomInput/CustomInput.jsx";
 import loginPageStyle from "assets/jss/material-kit-react/views/loginPage.jsx";
 
 import image from "assets/img/bg7.jpg";
+import PropTypes from "prop-types";
 
 class LoginPage extends React.Component {
   constructor(props) {
@@ -162,5 +163,10 @@ class LoginPage extends React.Component {
     );
   }
 }
+
+
+LoginPage.propTypes = {
+  classes: PropTypes.object.isRequired,
+};
 
 export default withStyles(loginPageStyle)(LoginPage);

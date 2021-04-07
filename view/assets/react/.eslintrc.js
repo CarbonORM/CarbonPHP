@@ -13,25 +13,13 @@ module.exports = {
       jsx: true
     }
   },
-  plugins: ["react", "prettier"],
+  plugins: ["react", "@typescript-eslint"],
   extends: [
     "eslint:recommended",
     "plugin:react/recommended",
-    "plugin:prettier/recommended"
   ],
   rules: {
-    "prettier/prettier": [
-      "error",
-      {
-        printWidth: 140,
-        singleQuote: true,
-        "editor.formatOnSave": true,
-        arrowParens: "always",
-        jsxSingleQuote: true,
-        tabWidth: 2,
-        trailingComma: "none"
-      }
-    ],
-    "no-unused-vars": "error"
+    "no-unused-vars": 1,
+    "@typescript-eslint/no-unused-vars": 0,
   }
 };

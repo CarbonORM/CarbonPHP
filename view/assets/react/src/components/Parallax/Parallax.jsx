@@ -58,7 +58,6 @@ class Parallax extends React.Component {
           backgroundImage: "url(" + image + ")",
           ...this.state
         }}
-        ref="parallax"
       >
         {children}
       </div>
@@ -72,7 +71,8 @@ Parallax.propTypes = {
   filter: PropTypes.bool,
   children: PropTypes.node,
   style: PropTypes.string,
-  image: PropTypes.string
+  image: PropTypes.string,
+  small: PropTypes.any,
 };
 
 export default withStyles(parallaxStyle)(Parallax);

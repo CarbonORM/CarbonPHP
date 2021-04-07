@@ -8,6 +8,7 @@ import Table from "components/Table/Table.jsx";
 import Card from "components/Card/Card.jsx";
 import CardHeader from "components/Card/CardHeader.jsx";
 import CardBody from "components/Card/CardBody.jsx";
+import PropTypes from "prop-types";
 
 const styles = {
   cardCategoryWhite: {
@@ -108,5 +109,10 @@ function TableList(props) {
     </GridContainer>
   );
 }
+
+
+TableList.propTypes = {
+  classes: PropTypes.object.isRequired,
+};
 
 export default withStyles(styles)(TableList);

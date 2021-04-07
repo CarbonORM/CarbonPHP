@@ -19,6 +19,7 @@ import CustomInput from "components/CustomInput/CustomInput.jsx";
 import Button from "components/CustomButtons/Button.jsx";
 
 import headerLinksStyle from "assets/jss/material-dashboard-react/components/headerLinksStyle.jsx";
+import PropTypes from "prop-types";
 
 class HeaderLinks extends React.Component {
   state = {
@@ -129,7 +130,7 @@ class HeaderLinks extends React.Component {
                         onClick={this.handleClose}
                         className={classes.dropdownItem}
                       >
-                        You're now friend with Andrew
+                        You&apos;re now friend with Andrew
                       </MenuItem>
                       <MenuItem
                         onClick={this.handleClose}
@@ -166,5 +167,10 @@ class HeaderLinks extends React.Component {
     );
   }
 }
+
+
+HeaderLinks.propTypes = {
+  classes: PropTypes.object.isRequired,
+};
 
 export default withStyles(headerLinksStyle)(HeaderLinks);

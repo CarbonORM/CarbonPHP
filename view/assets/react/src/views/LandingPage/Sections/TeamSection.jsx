@@ -19,6 +19,7 @@ import teamStyle from "assets/jss/material-kit-react/views/landingPageSections/t
 import team1 from "assets/img/faces/avatar.jpg";
 import team2 from "assets/img/faces/christian.jpg";
 import team3 from "assets/img/faces/kendall.jpg";
+import PropTypes from "prop-types";
 
 class TeamSection extends React.Component {
   render() {
@@ -161,5 +162,10 @@ class TeamSection extends React.Component {
     );
   }
 }
+
+
+TeamSection.propTypes = {
+  classes: PropTypes.object.isRequired,
+};
 
 export default withStyles(teamStyle)(TeamSection);

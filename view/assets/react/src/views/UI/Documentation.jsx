@@ -31,6 +31,7 @@ import HeaderTop from "components/HeaderTop/HeaderTop";
 import HeaderLinks from "components/HeaderTop/HeaderLinks";
 import ProfilePage from "../ProfilePage/ProfilePage";
 import LandingPage from "../LandingPage/LandingPage";
+import PropTypes from "prop-types";
 
 // react components for routing our app without refresh
 
@@ -154,7 +155,7 @@ class Documentation extends React.Component {
     // transparent here seems to work 50% the time, replace with dark if trouble persists
     return (
       <div>
-        <div className={classes.wrapper} ref="wrapper">
+        <div className={classes.wrapper}>
           <HeaderTop
             brand="CarbonPHP.com"
             rightLinks={<HeaderLinks/>}
@@ -180,7 +181,7 @@ class Documentation extends React.Component {
               </GridContainer>
             </div>
           </Parallax>
-          <div className={mainPanel} ref="mainPanel">
+          <div className={mainPanel}>
             <div>
               <Navbar brand="Material Kit UI" color="danger" routes={publicDocumentationRoutes}/>
               <div className={classNames(classes.main, classes.mainRaised)}>
@@ -194,5 +195,11 @@ class Documentation extends React.Component {
     );
   }
 }
+
+
+Documentation.propTypes = {
+  classes: PropTypes.object.isRequired,
+  subRoutingSwitch: PropTypes.func.isRequired,
+};
 
 export default withStyles(componentsStyle)(Documentation);

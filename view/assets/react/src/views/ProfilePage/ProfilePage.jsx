@@ -29,6 +29,7 @@ import work4 from "assets/img/examples/mariya-georgieva.jpg";
 import work5 from "assets/img/examples/clem-onojegaw.jpg";
 
 import profilePageStyle from "assets/jss/material-kit-react/views/profilePage.jsx";
+import PropTypes from "prop-types";
 
 class ProfilePage extends React.Component {
   render() {
@@ -199,5 +200,10 @@ class ProfilePage extends React.Component {
     );
   }
 }
+
+
+ProfilePage.propTypes = {
+  classes: PropTypes.object.isRequired,
+};
 
 export default withStyles(profilePageStyle)(ProfilePage);
