@@ -58,7 +58,7 @@
       "@test"
     ],
     "setup": [
-      "php index.php setup --rebuild",
+      "@database:refresh:schema",
       "@rest",
       "npm install",
       "php index.php ApacheConfig"
@@ -68,7 +68,7 @@
       "cd view/assets/react && npm install && npm run build"
     ],
     "database:refresh:schema": [
-      "php index.php buildDatabase -s"
+      "php index.php buildDatabase -r"
     ],
     "rest" :[
       "php index.php rest -json"
