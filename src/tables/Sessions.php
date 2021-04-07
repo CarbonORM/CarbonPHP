@@ -97,11 +97,7 @@ class Sessions extends Rest implements iRest
 MYSQL;
    
    
-    public static function validateRestTestSuite(){
-        if (CarbonPHP::$test) {
 
-        }
-    }
     
     /**
      * @deprecated Use the class constant CREATE_TABLE_SQL directly
