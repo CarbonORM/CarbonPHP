@@ -546,13 +546,22 @@ SOCKET;
 
     public static function configuration(): array
     {
+        if (CarbonPHP::$app_root === '/home/runner/work/carbonphp/carbonphp') {
+            $databasePassword = 'root';
+        } else if (CarbonPHP::$app_local) {
+            $databasePassword = 'password';
+        } else {
+            $databasePassword = 'goldteamrules';
+        }
+
+
         return [
             'DATABASE' => [
                 'DB_HOST' => CarbonPHP::$app_local ? '127.0.0.1' : '35.224.229.250',                        // IP
                 'DB_PORT' => '3306',
                 'DB_NAME' => 'CarbonPHP',                       // Schema
                 'DB_USER' => 'root',                            // User
-                'DB_PASS' => CarbonPHP::$app_local ? 'password' : 'goldteamrules',                          // Password
+                'DB_PASS' => $databasePassword,                          // Password
                 'REBUILD' => false
             ],
             'SITE' => [

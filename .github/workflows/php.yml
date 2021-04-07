@@ -43,6 +43,9 @@ jobs:
       - name: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e  "GRANT ALL PRIVILEGES ON CarbonPHP. * TO 'root'@'localhost';"
         run: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e  "GRANT ALL PRIVILEGES ON CarbonPHP. * TO 'root'@'localhost';"
 
+      - name: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e  "CREATE SCHEMA CarbonPHP;"
+        run: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e  "CREATE SCHEMA CarbonPHP;"
+
       - name: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e  "ALTER USER 'root'@'localhost' IDENTIFIED BY 'password';"
         run: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e  "ALTER USER 'root'@'localhost' IDENTIFIED BY 'password';"
 
