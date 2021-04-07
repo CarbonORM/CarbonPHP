@@ -79,7 +79,7 @@ class Carbon_Features extends Rest implements iRest
   UNIQUE KEY `carbon_features_feature_code_uindex` (`feature_code`),
   UNIQUE KEY `carbon_features_feature_entity_id_uindex` (`feature_entity_id`),
   CONSTRAINT `carbon_features_carbons_entity_pk_fk` FOREIGN KEY (`feature_entity_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
-)  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+)  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 MYSQL;
    
    

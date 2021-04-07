@@ -431,8 +431,7 @@ END;
 
                         $rest[$tableName] = [
                             'prefix' => $prefix,
-                            'createTableSQL' => Rest::parseSchemaSQL($createTableSQL),
-
+                            'createTableSQL' => Rest::parseSchemaSQL($createTableSQL) . ';',
                             'subQuery' => $subQuery,
                             'subQueryLength' => strlen($subQuery),
                             'QueryWithDatabaseName' => $QueryWithDatabaseName,

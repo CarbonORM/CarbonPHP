@@ -93,7 +93,7 @@ class Sessions extends Rest implements iRest
   `session_data` text,
   `user_online_status` tinyint(1) DEFAULT '1',
   PRIMARY KEY (`session_id`)
-)  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+)  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 MYSQL;
    
    

@@ -5,7 +5,7 @@ namespace CarbonPHP\Tables;
 // Restful defaults
 use CarbonPHP\Database;
 use CarbonPHP\Error\PublicAlert;
-use CarbonPHP\Interfaces\iRest;
+use CarbonPHP\Interfaces\iRestfulReferences;
 use CarbonPHP\Rest;
 use PDO;
 use PDOException;
@@ -19,32 +19,32 @@ use function is_array;
 
 /**
  * 
- * Class Carbon_User_Followers
+ * Class Creation_Logs
  * @package CarbonPHP\Tables
  * 
  */
-class Carbon_User_Followers extends Rest implements iRest
+class Creation_Logs extends Rest implements iRestfulReferences
 {
     
-    public const CLASS_NAME = 'Carbon_User_Followers';
+    public const CLASS_NAME = 'Creation_Logs';
     public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
-    public const TABLE_NAME = 'carbon_user_followers';
+    public const TABLE_NAME = 'creation_logs';
     public const TABLE_PREFIX = '';
     
-    public const FOLLOWER_TABLE_ID = 'carbon_user_followers.follower_table_id'; 
-    public const FOLLOWS_USER_ID = 'carbon_user_followers.follows_user_id'; 
-    public const USER_ID = 'carbon_user_followers.user_id'; 
+    public const UUID = 'creation_logs.uuid'; 
+    public const RESOURCE_TYPE = 'creation_logs.resource_type'; 
+    public const RESOURCE_UUID = 'creation_logs.resource_uuid'; 
 
     public const PRIMARY = [
-        'carbon_user_followers.follower_table_id',
+        
     ];
 
     public const COLUMNS = [
-        'carbon_user_followers.follower_table_id' => 'follower_table_id','carbon_user_followers.follows_user_id' => 'follows_user_id','carbon_user_followers.user_id' => 'user_id',
+        'creation_logs.uuid' => 'uuid','creation_logs.resource_type' => 'resource_type','creation_logs.resource_uuid' => 'resource_uuid',
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_user_followers.follower_table_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_followers.follows_user_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_followers.user_id' => ['binary', 'PDO::PARAM_STR', '16'],
+        'creation_logs.uuid' => ['binary', 'PDO::PARAM_STR', '16'],'creation_logs.resource_type' => ['varchar', 'PDO::PARAM_STR', '40'],'creation_logs.resource_uuid' => ['binary', 'PDO::PARAM_STR', '16'],
     ];
      
     /**
@@ -63,11 +63,16 @@ class Carbon_User_Followers extends Rest implements iRest
      */
  
     public const PHP_VALIDATION = [ 
-        [self::DISALLOW_PUBLIC_ACCESS],
-        self::GET => [ self::DISALLOW_PUBLIC_ACCESS ],    
-        self::POST => [ self::DISALLOW_PUBLIC_ACCESS ],    
-        self::PUT => [ self::DISALLOW_PUBLIC_ACCESS ],    
-        self::DELETE => [ self::DISALLOW_PUBLIC_ACCESS ],    
+        self::PREPROCESS => [ 
+            self::PREPROCESS => [ 
+                [self::class => 'disallowPublicAccess', self::class] 
+            ]
+        ],
+        self::GET => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],    
+        self::POST => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],    
+        self::PUT => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],    
+        self::DELETE => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],
+        self::FINISH => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]]    
     ]; 
  
     public const REGEX_VALIDATION = []; 
@@ -78,16 +83,10 @@ class Carbon_User_Followers extends Rest implements iRest
     ]; 
    
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
-    CREATE TABLE `carbon_user_followers` (
-  `follower_table_id` binary(16) NOT NULL,
-  `follows_user_id` binary(16) NOT NULL,
-  `user_id` binary(16) NOT NULL,
-  PRIMARY KEY (`follower_table_id`),
-  KEY `followers_entity_entity_pk_fk` (`follows_user_id`),
-  KEY `followers_entity_entity_followers_pk_fk` (`user_id`),
-  CONSTRAINT `carbon_user_followers_carbons_entity_pk_fk` FOREIGN KEY (`follower_table_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `followers_entity_entity_follows_pk_fk` FOREIGN KEY (`follows_user_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `followers_entity_followers_pk_fk` FOREIGN KEY (`user_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+    CREATE TABLE `creation_logs` (
+  `uuid` binary(16) DEFAULT NULL COMMENT 'not a relation to carbons',
+  `resource_type` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `resource_uuid` binary(16) DEFAULT NULL COMMENT 'Was a carbons ref, but no longer'
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 MYSQL;
    
@@ -178,13 +177,13 @@ MYSQL;
     * @throws PublicAlert|PDOException
     * @return bool
     */
-    public static function Get(array &$return, string $primary = null, array $argv = []): bool
+    public static function Get(array &$return, array $argv = []): bool
     {
         self::startRest(self::GET, $argv);
 
         $pdo = self::database();
 
-        $sql = self::buildSelectQuery($primary, $argv, '', $pdo);
+        $sql = self::buildSelectQuery(null, $argv, '', $pdo);
         
         self::jsonSQLReporting(func_get_args(), $sql);
         
@@ -195,7 +194,7 @@ MYSQL;
         self::bind($stmt);
 
         if (!$stmt->execute()) {
-            throw new PublicAlert('Failed to execute the query on Carbon_User_Followers.', 'danger');
+            throw new PublicAlert('Failed to execute the query on Creation_Logs.', 'danger');
         }
 
         $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -208,7 +207,7 @@ MYSQL;
         */
 
         
-        if ($primary !== null || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
+        if (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1) {
             $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
             // promise this is needed and will still return the desired array except for a single record will not be an array
         }
@@ -223,10 +222,10 @@ MYSQL;
     /**
      * @param array $argv
      * @param string|null $dependantEntityId - a C6 Hex entity key 
-     * @return bool|string|mixed
+     * @return bool|string
      * @throws PublicAlert|PDOException
      */
-    public static function Post(array $argv, string $dependantEntityId = null)
+    public static function Post(array $argv, string $dependantEntityId = null): bool
     {   
         self::startRest(self::POST, $argv);
     
@@ -236,94 +235,98 @@ MYSQL;
             }
         } 
         
-        $sql = 'INSERT INTO carbon_user_followers (follower_table_id, follows_user_id, user_id) VALUES ( UNHEX(:follower_table_id), UNHEX(:follows_user_id), UNHEX(:user_id))';
+        $sql = 'INSERT INTO creation_logs (uuid, resource_type, resource_uuid) VALUES ( UNHEX(:uuid), :resource_type, UNHEX(:resource_uuid))';
 
+        $pdo = self::database();
+        
+        if (!$pdo->inTransaction()) {
+            $pdo->beginTransaction();
+        }
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
-        $stmt = self::database()->prepare($sql);        
-        $follower_table_id = $id = $argv['carbon_user_followers.follower_table_id'] ?? false;
-        if ($id === false) {
-             $follower_table_id = $id = self::beginTransaction(self::class, $dependantEntityId);
-        } else {
-           $ref='carbon_user_followers.follower_table_id';
-           $op = self::EQUAL;
-           if (!self::validateInternalColumn(self::POST, $ref, $op, $follower_table_id)) {
-             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_followers.follower_table_id\'.');
-           }            
-        }
-        $stmt->bindParam(':follower_table_id',$follower_table_id, PDO::PARAM_STR, 16);
+        $stmt = self::database()->prepare($sql);
         
         
         
-        
-        
-        
-        
-        if (!array_key_exists('carbon_user_followers.follows_user_id', $argv)) {
-            throw new PublicAlert('Required argument "carbon_user_followers.follows_user_id" is missing from the request.', 'danger');
-        }
-        $follows_user_id = $argv['carbon_user_followers.follows_user_id'];
-        $ref='carbon_user_followers.follows_user_id';
+        $uuid = $argv['creation_logs.uuid'] ?? null;
+        $ref='creation_logs.uuid';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $follows_user_id)) {
-            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_followers.follows_user_id\'.');
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $uuid, $uuid === null)) {
+            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'creation_logs.uuid\'.');
         }
-        $stmt->bindParam(':follows_user_id',$follows_user_id, PDO::PARAM_STR, 16);
+        $stmt->bindParam(':uuid',$uuid, PDO::PARAM_STR, 16);
         
         
         
         
-        
-        if (!array_key_exists('carbon_user_followers.user_id', $argv)) {
-            throw new PublicAlert('Required argument "carbon_user_followers.user_id" is missing from the request.', 'danger');
-        }
-        $user_id = $argv['carbon_user_followers.user_id'];
-        $ref='carbon_user_followers.user_id';
+        $resource_type = $argv['creation_logs.resource_type'] ?? null;
+        $ref='creation_logs.resource_type';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $user_id)) {
-            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_followers.user_id\'.');
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $resource_type, $resource_type === null)) {
+            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'creation_logs.resource_type\'.');
         }
-        $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
+        $stmt->bindParam(':resource_type',$resource_type, PDO::PARAM_STR, 40);
+        
+        
+        
+        
+        $resource_uuid = $argv['creation_logs.resource_uuid'] ?? null;
+        $ref='creation_logs.resource_uuid';
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $resource_uuid, $resource_uuid === null)) {
+            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'creation_logs.resource_uuid\'.');
+        }
+        $stmt->bindParam(':resource_uuid',$resource_uuid, PDO::PARAM_STR, 16);
         
 
+
         if ($stmt->execute()) {
-            self::prepostprocessRestRequest($id);
-             
-            if (self::$commit && !Database::commit()) {
-               throw new PublicAlert('Failed to store commit transaction on table carbon_user_followers');
-            } 
-             
-            self::postprocessRestRequest($id); 
-             
-            self::completeRest(); 
+            self::prepostprocessRestRequest();
             
-            return $id; 
-        } 
-       
+            if (self::$commit && !Database::commit()) {
+               throw new PublicAlert('Failed to store commit transaction on table creation_logs');
+            }
+            
+            self::postprocessRestRequest();
+            
+            self::completeRest();
+            
+            return true;  
+        }
+        
         self::completeRest();
+         
         return false;
     }
     
     /**
     * @param array $return
-    * @param string $primary
+    
     * @param array $argv
     * @throws PublicAlert|PDOException
     * @return bool
     */
-    public static function Put(array &$return, string $primary, array $argv) : bool
+    public static function Put(array &$return,  array $argv) : bool
     {
         self::startRest(self::PUT, $argv);
         
-        if ('' === $primary) {
-            throw new PublicAlert('Restful tables which have a primary key must be updated by its primary key.', 'danger');
-        }
+        $where = $argv[self::WHERE] ?? [];
         
-        if (array_key_exists(self::UPDATE, $argv)) {
-            $argv = $argv[self::UPDATE];
+        if (empty($where)) {
+            throw new PublicAlert('Restful tables which have no primary key must be updated using conditions given to $argv[self::WHERE] and values given to $argv[self::UPDATE]. No WHERE attribute given.', 'danger');
+        }
+
+        $argv = $argv[self::UPDATE] ?? [];
+        
+        if (empty($argv)) {
+            throw new PublicAlert('Restful tables which have no primary key must be updated using conditions given to $argv[self::WHERE] and values given to $argv[self::UPDATE]. No UPDATE attribute given.', 'danger');
+        }
+
+        if (empty($where) || empty($argv)) {
+            throw new PublicAlert('Restful tables which have no primary key must be updated with specific where and update attributes.', 'danger');
         }
         
         foreach ($argv as $key => &$value) {
@@ -332,31 +335,31 @@ MYSQL;
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
-                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_followers.\'.');
+                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'creation_logs.\'.');
             }
         }
         unset($value);
 
-        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_user_followers SET '; // intellij cant handle this otherwise
+        $sql = /** @lang MySQLFragment */ 'UPDATE creation_logs SET '; // intellij cant handle this otherwise
 
         $set = '';
 
-        if (array_key_exists('carbon_user_followers.follower_table_id', $argv)) {
-            $set .= 'follower_table_id=UNHEX(:follower_table_id),';
+        if (array_key_exists('creation_logs.uuid', $argv)) {
+            $set .= 'uuid=UNHEX(:uuid),';
         }
-        if (array_key_exists('carbon_user_followers.follows_user_id', $argv)) {
-            $set .= 'follows_user_id=UNHEX(:follows_user_id),';
+        if (array_key_exists('creation_logs.resource_type', $argv)) {
+            $set .= 'resource_type=:resource_type,';
         }
-        if (array_key_exists('carbon_user_followers.user_id', $argv)) {
-            $set .= 'user_id=UNHEX(:user_id),';
+        if (array_key_exists('creation_logs.resource_uuid', $argv)) {
+            $set .= 'resource_uuid=UNHEX(:resource_uuid),';
         }
         
         $sql .= substr($set, 0, -1);
 
         $pdo = self::database();
 
-        $sql .= ' WHERE  follower_table_id=UNHEX('.self::addInjection($primary, $pdo).')';
         
+        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -364,38 +367,38 @@ MYSQL;
 
         $stmt = $pdo->prepare($sql);
 
-        if (array_key_exists('carbon_user_followers.follower_table_id', $argv)) {
-            $follower_table_id = $argv['carbon_user_followers.follower_table_id'];
-            $ref = 'carbon_user_followers.follower_table_id';
+        if (array_key_exists('creation_logs.uuid', $argv)) {
+            $uuid = $argv['creation_logs.uuid'];
+            $ref = 'creation_logs.uuid';
             $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $follower_table_id)) {
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $uuid)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':follower_table_id',$follower_table_id, PDO::PARAM_STR, 16);
+            $stmt->bindParam(':uuid',$uuid, PDO::PARAM_STR, 16);
         }
-        if (array_key_exists('carbon_user_followers.follows_user_id', $argv)) {
-            $follows_user_id = $argv['carbon_user_followers.follows_user_id'];
-            $ref = 'carbon_user_followers.follows_user_id';
+        if (array_key_exists('creation_logs.resource_type', $argv)) {
+            $resource_type = $argv['creation_logs.resource_type'];
+            $ref = 'creation_logs.resource_type';
             $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $follows_user_id)) {
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $resource_type)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':follows_user_id',$follows_user_id, PDO::PARAM_STR, 16);
+            $stmt->bindParam(':resource_type',$resource_type, PDO::PARAM_STR, 40);
         }
-        if (array_key_exists('carbon_user_followers.user_id', $argv)) {
-            $user_id = $argv['carbon_user_followers.user_id'];
-            $ref = 'carbon_user_followers.user_id';
+        if (array_key_exists('creation_logs.resource_uuid', $argv)) {
+            $resource_uuid = $argv['creation_logs.resource_uuid'];
+            $ref = 'creation_logs.resource_uuid';
             $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_id)) {
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $resource_uuid)) {
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
-            $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
+            $stmt->bindParam(':resource_uuid',$resource_uuid, PDO::PARAM_STR, 16);
         }
 
         self::bind($stmt);
 
         if (!$stmt->execute()) {
-            throw new PublicAlert('Restful table Carbon_User_Followers failed to execute the update query.', 'danger');
+            throw new PublicAlert('Restful table Creation_Logs failed to execute the update query.', 'danger');
         }
         
         if (!$stmt->rowCount()) {
@@ -404,7 +407,7 @@ MYSQL;
         
         $argv = array_combine(
             array_map(
-                static function($k) { return str_replace('carbon_user_followers.', '', $k); },
+                static function($k) { return str_replace('creation_logs.', '', $k); },
                 array_keys($argv)
             ),
             array_values($argv)
@@ -428,30 +431,23 @@ MYSQL;
     * @throws PublicAlert|PDOException
     * @return bool
     */
-    public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
+    public static function Delete(array &$remove, array $argv = []) : bool
     {
         self::startRest(self::DELETE, $argv);
         
-        if (null !== $primary) {
-            return Carbons::Delete($remove, $primary, $argv);
-        }
-
-        /**
-         *   While useful, we've decided to disallow full
-         *   table deletions through the rest api. For the
-         *   n00bs and future self, "I got chu."
+        /** @noinspection SqlWithoutWhere
+         * @noinspection UnknownInspectionInspection - intellij is funny sometimes.
          */
-        if (empty($argv)) {
-            throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.', 'danger');
-        }
-        
-        $sql = 'DELETE c FROM carbons c 
-                JOIN carbon_user_followers on c.entity_pk = carbon_user_followers.follower_table_id';
+        $sql = 'DELETE FROM creation_logs ';
 
         $pdo = self::database();
-
-        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
         
+        if (empty($argv)) {
+            throw new PublicAlert('When deleting from restful tables with out a primary key additional arguments must be provided.', 'danger');
+        } 
+         
+        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
+
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);

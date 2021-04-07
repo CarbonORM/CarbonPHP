@@ -689,6 +689,18 @@ FOOT;
                 if (defined("$table::REFRESH_SCHEMA")) {
                     self::runRefreshSchema($table::REFRESH_SCHEMA);
                 }
+
+                $db = self::database();
+
+                if ($db->inTransaction()) {
+                    self::colorCode('We are in a translation.', iColorCode::YELLOW);
+                }
+                
+                if (!self::commit()) {
+                    self::colorCode('Failed to commit to database!', iColorCode::RED);
+                    exit(1);
+                }
+                
             }
         } catch (\Throwable $e) {
             if ($cli) {
@@ -697,6 +709,7 @@ FOOT;
                 print '<h2>The refreshDatabase method failed.</h2>';
             }
             ErrorCatcher::generateLog($e);
+            exit(1);
         }
     }
 

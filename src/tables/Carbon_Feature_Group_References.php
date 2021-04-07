@@ -64,16 +64,7 @@ class Carbon_Feature_Group_References extends Rest implements iRestfulReferences
     public const PHP_VALIDATION = []; 
  
     public const REGEX_VALIDATION = []; 
-    /**
-     * REFRESH_SCHEMA
-     * @link https://stackoverflow.com/questions/298739/what-is-the-difference-between-a-schema-and-a-table-and-a-database
-     * These directives should be designed to maintain and update your team's schema &| database &| table over time. 
-     * The changes you made in your local env should be coded out in callables such as the 'tableExistsOrExecuteSQL' 
-     * method call below. If a PDO exception is thrown with `$e->getCode()` equal to 42S02 or 1049 CarbonPHP will attempt
-     * to REFRESH the full database with with all directives in all tables. If possible keep table specific procedures in 
-     * it's respective restful-class table file. Check out the 'tableExistsOrExecuteSQL' method in the parent class to see
-     * an example using self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS. 
-     */
+ 
     public const REFRESH_SCHEMA = [
         [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
                         PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS]
@@ -87,7 +78,7 @@ class Carbon_Feature_Group_References extends Rest implements iRestfulReferences
   KEY `carbon_feature_group_references_carbons_entity_pk_fk` (`group_entity_id`),
   CONSTRAINT `carbon_feature_group_references_carbons_entity_pk_fk` FOREIGN KEY (`group_entity_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `carbon_feature_references_carbons_entity_pk_fk` FOREIGN KEY (`feature_entity_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
-)  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+)  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 MYSQL;
    
    
