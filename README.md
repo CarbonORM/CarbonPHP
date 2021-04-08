@@ -19,7 +19,7 @@ Refer to the guide at [carbonphp.com](https://carbonphp.com)
 CarbonPHP is a PHP 7.4+ library to simplify the building of custom, dynamic web applications. Its main focus is to make
 webapps run ridiculously fast, with performance and high-traffic scalability being the absolute highest concern. CarbonPHP 
 has clocked in with impressive statistics, sometimes doubling the traffic that small servers with MySQL-intensive sites can handle.
-C6 works as a standalone backbone for your dev needs or in coroperation with other popular frameworks like [Wordpress](https://developer.wordpress.org)
+C6 works as a standalone backbone for your dev needs or in the corporation with other popular frameworks like [Wordpress](https://developer.wordpress.org)
 or [Laravel](https://laravel.com).
 CarbonPHP's other goals include portability; allowing your webapps to be installed on servers with different operating 
 systems (Windows, Mac, and Linux Support). Full MySQL ORM REST generator, and php written database tools designed around 

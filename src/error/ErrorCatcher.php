@@ -556,6 +556,10 @@ DESCRIPTION;
             $public_root = '/' . $public_root;
         }
 
+        if (!headers_sent()) {
+            header('Content-Type:text/html', true, $code);
+        }
+
         /** @noinspection CssUnknownTarget */
         print /** @lang HTML */
             <<<DEVOPS
