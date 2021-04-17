@@ -1429,7 +1429,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
      *          [self::class => 'disallowPublicAccess', self::class]
      *  though would loose information as self::class is a dynamic variable which must be used in this class given 
      *  static and constant context. 
-     *  @version ^8.3
+     *  @version ^9
      */
     {{^php_validation}}
     public const PHP_VALIDATION = [ 
