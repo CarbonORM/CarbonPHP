@@ -33,7 +33,7 @@ For the rest of us who live outside windows Hell C6 has a Websocket Library Clas
 ## Quick Start
 ### Existing projects
 
-    composer install richardtmiles/carbonphp@^8
+    composer install richardtmiles/carbonphp@^9
 
 ## Standards 
 
