@@ -21,11 +21,10 @@ use CarbonPHP\Error\PublicAlert;
  * then its primary key must be generated with
  *      Carbon\Entities.beginTransaction() : string
  *
+ * @deprecated
  */
 interface iRestfulReferences
 {
-    public static function createTableSQL() : string;
-
     /**
      * @param array $return
      * @param array $argv

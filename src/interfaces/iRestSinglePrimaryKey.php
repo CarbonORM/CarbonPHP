@@ -11,27 +11,18 @@ namespace CarbonPHP\Interfaces;
 use CarbonPHP\Error\PublicAlert;
 
 /**
- * Interface iTable
- * @package Carbon\Interfaces
- *
- * This should be implemented on all tables in
- * Application/Tables/ folder. Table files should
- * be named exactly that of the database tables. If
- * a tables contains, or may contain, foreign keys
- * then its primary key must be generated with
- *      Carbon\Entities.beginTransaction() : string
- *
- * @deprecated
+ * Interface iRestSinglePrimaryKey
+ * @package CarbonPHP\Interfaces
  */
-interface iRest
+interface iRestSinglePrimaryKey
 {
     /**
-     * @param array $return
+     * @param array $remove
      * @param string|null $primary
      * @param array $argv
      * @return bool
      */
-    public static function Delete(array &$return, string $primary = null, array $argv = []): bool;      // Delete all data from a tables given its primary key
+    public static function Delete(array &$remove, string $primary = null, array $argv = []): bool;      // Delete all data from a tables given its primary key
 
     /**
      * @param array $return
@@ -42,18 +33,18 @@ interface iRest
     public static function Get(array &$return, string $primary = null, array $argv = []): bool;   // Get tables columns given in argv (usually an array) and place them into our array
 
     /**
-     * @param array \$argv
+     * @param array $data
      * @param string|null \$dependantEntityId - a C6 Hex entity key
      * @return bool|string
      * @throws PublicAlert
      */
-    public static function Post(array $data, string $dependant = null);              // Add and associative array Column => value
+    public static function Post(array $data);              // Add and associative array Column => value
 
     /**
-     * @param array $return
-     * @param string $id
+     * @param array $returnUpdated
+     * @param string $primary
      * @param array $argv   - an associative array of Column => Value pairs
      * @return bool  - true on success false on failure
      */
-    public static function Put(array &$return, string $id, array $argv): bool;
+    public static function Put(array &$returnUpdated, string $primary, array $argv): bool;
 }
