@@ -1,7 +1,13 @@
 <?php
 
 namespace CarbonPHP\Interfaces;
-
+/**
+ * Interface iSingleton
+ * @package CarbonPHP\Interfaces
+ * @deprecated
+ * @inheritDoc CarbonPHP/Singleton
+ * @noinspection PhpInappropriateInheritDocUsageInspection lol.
+ */
 interface iSingleton
 {
 

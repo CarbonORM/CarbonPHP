@@ -48,13 +48,29 @@
     }
   },
   "scripts": {
-    "rei": "rm -rf vendor && rm composer.lock && composer i",
+    "apache:linkApplication": [
+      "rm /usr/local/var/www",
+      "ln -s $(pwd) /usr/local/var/www",
+      "@apache:restart:mac"
+    ],
+    "apache:restart:mac": "sudo /usr/local/bin/httpd -k restart",
+    "apache:start:mac": "sudo /usr/local/bin/httpd -k start",
+    "apache:stop:mac": "sudo /usr/local/bin/httpd -k restart",
+    "database:refresh:schema": [
+      "php index.php buildDatabase -r"
+    ],
     "force": "@composer install --ignore-platform-reqs",
     "forceUp": "@composer update --ignore-platform-reqs",
-    "start": "php -S dev.carbonphp.com:8080 index.php -d display_errors=1",
+    "metrics": [
+      "php ./vendor/bin/phpmetrics --config=php-metrics.json ."
+    ],
     "post-update-cmd": [
       "@rest",
       "@test"
+    ],
+    "rei": "rm -rf vendor && rm composer.lock && composer i",
+    "rest": [
+      "php index.php rest -json"
     ],
     "setup": [
       "@database:refresh:schema",
@@ -66,25 +82,9 @@
       "php index.php minify",
       "cd view/assets/react && npm install && npm run build"
     ],
-    "database:refresh:schema": [
-      "php index.php buildDatabase -r"
-    ],
-    "rest" :[
-      "php index.php rest -json"
-    ],
+    "start": "php -S dev.carbonphp.com:8080 index.php -d display_errors=1",
     "test": [
       "./vendor/bin/phpunit --log-junit junit.xml  --testdox || ./vendor/bin/phpunit  --log-junit junit.xml"
-    ],
-    "metrics": [
-      "php ./vendor/bin/phpmetrics --config=php-metrics.json ."
-    ],
-    "apache:linkApplication": [
-      "rm /usr/local/var/www",
-      "ln -s $(pwd) /usr/local/var/www",
-      "@apache:restart:mac"
-    ],
-    "apache:start:mac": "sudo /usr/local/bin/httpd -k start",
-    "apache:restart:mac": "sudo /usr/local/bin/httpd -k restart",
-    "apache:stop:mac": "sudo /usr/local/bin/httpd -k restart"
+    ]
   }
 }

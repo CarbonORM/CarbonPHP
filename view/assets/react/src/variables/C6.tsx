@@ -31,7 +31,6 @@ export const C6 = {
     COMMENT: 'carbon_comments.comment',
     PRIMARY: [
         'carbon_comments.comment_id',
-
     ],
     COLUMNS: {
       'carbon_comments.parent_id':'parent_id',
@@ -51,7 +50,6 @@ export const C6 = {
     ENTITY_TAG: 'carbons.entity_tag',
     PRIMARY: [
         'carbons.entity_pk',
-
     ],
     COLUMNS: {
       'carbons.entity_pk':'entity_pk',
@@ -85,7 +83,6 @@ export const C6 = {
     FEATURE_CREATION_DATE: 'carbon_features.feature_creation_date',
     PRIMARY: [
         'carbon_features.feature_entity_id',
-
     ],
     COLUMNS: {
       'carbon_features.feature_entity_id':'feature_entity_id',
@@ -120,7 +117,6 @@ export const C6 = {
     CREATION_DATE: 'carbon_groups.creation_date',
     PRIMARY: [
         'carbon_groups.entity_id',
-
     ],
     COLUMNS: {
       'carbon_groups.group_name':'group_name',
@@ -162,7 +158,6 @@ export const C6 = {
     ZIP: 'carbon_locations.zip',
     PRIMARY: [
         'carbon_locations.entity_id',
-
     ],
     COLUMNS: {
       'carbon_locations.entity_id':'entity_id',
@@ -188,7 +183,6 @@ export const C6 = {
     PHOTO_DESCRIPTION: 'carbon_photos.photo_description',
     PRIMARY: [
         'carbon_photos.parent_id',
-
     ],
     COLUMNS: {
       'carbon_photos.parent_id':'parent_id',
@@ -228,7 +222,6 @@ export const C6 = {
     USER_ID: 'carbon_user_followers.user_id',
     PRIMARY: [
         'carbon_user_followers.follower_table_id',
-
     ],
     COLUMNS: {
       'carbon_user_followers.follower_table_id':'follower_table_id',
@@ -265,7 +258,6 @@ export const C6 = {
     CREATION_DATE: 'carbon_user_messages.creation_date',
     PRIMARY: [
         'carbon_user_messages.message_id',
-
     ],
     COLUMNS: {
       'carbon_user_messages.message_id':'message_id',
@@ -290,7 +282,6 @@ export const C6 = {
     USER_ONLINE_STATUS: 'carbon_user_sessions.user_online_status',
     PRIMARY: [
         'carbon_user_sessions.session_id',
-
     ],
     COLUMNS: {
       'carbon_user_sessions.user_id':'user_id',
@@ -317,7 +308,6 @@ export const C6 = {
     END_DATE: 'carbon_user_tasks.end_date',
     PRIMARY: [
         'carbon_user_tasks.task_id',
-
     ],
     COLUMNS: {
       'carbon_user_tasks.task_id':'task_id',
@@ -365,7 +355,6 @@ export const C6 = {
     USER_CREATION_DATE: 'carbon_users.user_creation_date',
     PRIMARY: [
         'carbon_users.user_id',
-
     ],
     COLUMNS: {
       'carbon_users.user_username':'user_username',
@@ -451,7 +440,6 @@ export const C6 = {
     USER_ONLINE_STATUS: 'sessions.user_online_status',
     PRIMARY: [
         'sessions.session_id',
-
     ],
     COLUMNS: {
       'sessions.user_id':'user_id',

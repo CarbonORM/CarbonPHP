@@ -4,12 +4,15 @@ namespace CarbonPHP\Programs;
 
 
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iCommand;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestfulReferences;
+use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
+use CarbonPHP\Interfaces\iRestNoPrimaryKey;
+use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Rest;
 use CarbonPHP\Tables\Carbons;
-use PDO;
 use ReflectionException;
 use ReflectionMethod;
 use function count;
@@ -102,7 +105,7 @@ class RestBuilder implements iCommand
 
 \t       -trigger                      - build triggers and history tables for binary primary keys
 
-\t       -react [Dir_Path]             - creates a smart reference for you rest ops                     
+\t       -react [Dir_Path]             - creates a smart reference for you rest opsd             
 \n
 END;
         exit(1);
@@ -122,7 +125,6 @@ END;
         $this->password = $CONFIG['DATABASE']['DB_PASS'] ?? '';
     }
 
-    /** @noinspection SubStrUsedAsStrPosInspection */
     public function run(array $argv): void
     {
         // Check command line args, password is optional
@@ -133,7 +135,6 @@ END;
 
         // set default values
         $rest = [];
-        /** @noinspection PhpUnusedLocalVariableInspection */
         $QueryWithDatabaseName = $clean = true;
         $json = $carbon_namespace = CarbonPHP::$app_root . 'src' . DS === CarbonPHP::CARBON_ROOT;
         $targetDir = CarbonPHP::$app_root . ($carbon_namespace ? 'src/tables/' : 'tables/');
@@ -152,7 +153,6 @@ END;
         } catch (\Exception $e) {
             $subQuery = 'C6SUBTX2';
         }
-
 
         /** @noinspection ForeachInvariantsInspection - as we need $i++ */
         for ($i = 0; $i < $argc; $i++) {
@@ -333,14 +333,14 @@ END;
         }
 
 
-        $determineIfTableShouldBeSkipped = static function ($tableName) use ($exclude_these_tables, $only_these_tables, $history_table_query, $excludeTablesRegex, $verbose) : ?bool {
+        $determineIfTableShouldBeSkipped = static function ($tableName) use ($exclude_these_tables, $only_these_tables, $history_table_query, $excludeTablesRegex, $verbose): ?bool {
             // 'only these tables' is specified in the command line arguments (via file or comma list)
             if ((!empty($exclude_these_tables) && in_array($tableName, $exclude_these_tables, true))
                 || (!empty($only_these_tables) && !in_array($tableName, $only_these_tables, true))
                 || ($excludeTablesRegex !== null && preg_match($excludeTablesRegex, $tableName))) {
                 // Break from this loop (every line in the create) and the parent loop (the tables)
-                if ($verbose)  {
-                    ColorCode::colorCode( 'Skipping ' . $tableName . PHP_EOL);
+                if ($verbose) {
+                    ColorCode::colorCode('Skipping ' . $tableName . PHP_EOL);
                 }
                 // this is our condition to check right after this tables is executed
                 $skipTable = true;
@@ -453,7 +453,7 @@ END;
                         ];
 
                         // 'only these tables' is specified in the command line arguments (via file or comma list)
-                        if ($determineIfTableShouldBeSkipped($tableName) === true){
+                        if ($determineIfTableShouldBeSkipped($tableName) === true) {
                             $skipTable = true;
                             continue 2;
                         }
@@ -484,6 +484,9 @@ END;
                             array_splice($restStaticNameSpaces, 2, 0, [
                                 'use CarbonPHP\Interfaces\iRest;',
                                 'use CarbonPHP\Interfaces\iRestfulReferences;',
+                                'use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;',
+                                'use CarbonPHP\Interfaces\iRestNoPrimaryKey;',
+                                'use CarbonPHP\Interfaces\iRestSinglePrimaryKey;'
                             ]);
 
                             $matches = [];
@@ -591,7 +594,7 @@ END;
                             }
                             $rest[$tableName]['primary'][] = ['name' => $key];
                         }
-                        $rest[$tableName]['primary'][] = ['sql' => '$sql .= \' WHERE ' . implode(' OR ', $sql) . '\';'];
+                        $rest[$tableName]['sql'][] = ['sql' => '$sql .= \' WHERE ' . implode(' OR ', $sql) . '\';'];
                         // end - soon to deprecate
                         break;
 
@@ -725,6 +728,7 @@ END;
                                     // Trying to insert this condition w/ PDO is problematic
                                     $skipping_col[] = $name;
                                     $rest[$tableName]['explode'][$column]['skip'] = true;
+                                    $rest[$tableName]['explode'][$column]['CURRENT_TIMESTAMP'] = true;
                                 } else if (strpos($default, '\'') !== 0) {
                                     // We need to escape values for php
                                     $default = "'$default'";
@@ -759,6 +763,9 @@ END;
             }
 
             $rest[$tableName]['primaryExists'] = !empty($rest[$tableName]['primary']);
+
+            $rest[$tableName]['multiplePrimary'] = 1 < count($rest[$tableName]['primary']);
+
 
             // Make sure we didn't specify a flag that could cause us to move on...
             if (empty($rest[$tableName]['primary'])) {
@@ -845,10 +852,9 @@ END;
 
 
                 // 'only these tables' is specified in the command line arguments (via file or comma list)
-                if ($determineIfTableShouldBeSkipped($tableName) !== false){
+                if ($determineIfTableShouldBeSkipped($tableName) !== false) {
                     continue;
                 }
-
 
 
                 if (!class_exists($table = $rest[$tableName]['namespace'] . '\\' . $rest[$tableName]['ucEachTableName'])) {
@@ -856,14 +862,18 @@ END;
                     continue;
                 }
 
-                if (!is_subclass_of($table, \CarbonPHP\Rest::class)) {
+                if (!is_subclass_of($table, Rest::class)) {
                     continue;
                 }
 
                 $imp = array_map('strtolower', array_keys(class_implements($table)));
 
-                if (!in_array(strtolower(iRest::class), $imp, true) &&
-                    !in_array(strtolower(iRestfulReferences::class), $imp, true)) {
+                if (!in_array(strtolower(iRest::class), $imp, true)
+                    && !in_array(strtolower(iRestfulReferences::class), $imp, true)
+                    && !in_array(strtolower(iRestMultiplePrimaryKeys::class), $imp, true)
+                    && !in_array(strtolower(iRestSinglePrimaryKey::class), $imp, true)
+                    && !in_array(strtolower(iRestNoPrimaryKey::class), $imp, true)
+                ) {
                     continue;
                 }
 
@@ -922,24 +932,24 @@ END;
 
 export const C6 = {
 
-    SELECT: '" . \CarbonPHP\Rest::SELECT . "',
-    UPDATE: '" . \CarbonPHP\Rest::UPDATE . "',
-    WHERE: '" . \CarbonPHP\Rest::WHERE . "',
-    LIMIT: '" . \CarbonPHP\Rest::LIMIT . "',
-    PAGINATION: '" . \CarbonPHP\Rest::PAGINATION . "',
-    ORDER: '" . \CarbonPHP\Rest::ORDER . "',
-    DESC: '" . \CarbonPHP\Rest::DESC . "',
-    ASC: '" . \CarbonPHP\Rest::ASC . "',
-    JOIN: '" . \CarbonPHP\Rest::JOIN . "',
-    INNER: '" . \CarbonPHP\Rest::INNER . "',
-    LEFT: '" . \CarbonPHP\Rest::LEFT . "',
-    RIGHT: '" . \CarbonPHP\Rest::RIGHT . "',
-    DISTINCT: '" . \CarbonPHP\Rest::DISTINCT . "',
-    COUNT: '" . \CarbonPHP\Rest::COUNT . "',
-    SUM: '" . \CarbonPHP\Rest::SUM . "',
-    MIN: '" . \CarbonPHP\Rest::MIN . "',
-    MAX: '" . \CarbonPHP\Rest::MAX . "',
-    GROUP_CONCAT: '" . \CarbonPHP\Rest::GROUP_CONCAT . "',
+    SELECT: '" . Rest::SELECT . "',
+    UPDATE: '" . Rest::UPDATE . "',
+    WHERE: '" . Rest::WHERE . "',
+    LIMIT: '" . Rest::LIMIT . "',
+    PAGINATION: '" . Rest::PAGINATION . "',
+    ORDER: '" . Rest::ORDER . "',
+    DESC: '" . Rest::DESC . "',
+    ASC: '" . Rest::ASC . "',
+    JOIN: '" . Rest::JOIN . "',
+    INNER: '" . Rest::INNER . "',
+    LEFT: '" . Rest::LEFT . "',
+    RIGHT: '" . Rest::RIGHT . "',
+    DISTINCT: '" . Rest::DISTINCT . "',
+    COUNT: '" . Rest::COUNT . "',
+    SUM: '" . Rest::SUM . "',
+    MIN: '" . Rest::MIN . "',
+    MAX: '" . Rest::MAX . "',
+    GROUP_CONCAT: '" . Rest::GROUP_CONCAT . "',
     
     $references_tsx
     
@@ -977,24 +987,24 @@ export const convertForRequestBody = function(restfulObject: RestTableInterfaces
 
 const C6 = {
 
-    SELECT: '" . \CarbonPHP\Rest::SELECT . "',
-    UPDATE: '" . \CarbonPHP\Rest::UPDATE . "',
-    WHERE: '" . \CarbonPHP\Rest::WHERE . "',
-    LIMIT: '" . \CarbonPHP\Rest::LIMIT . "',
-    PAGINATION: '" . \CarbonPHP\Rest::PAGINATION . "',
-    ORDER: '" . \CarbonPHP\Rest::ORDER . "',
-    DESC: '" . \CarbonPHP\Rest::DESC . "',
-    ASC: '" . \CarbonPHP\Rest::ASC . "',
-    JOIN: '" . \CarbonPHP\Rest::JOIN . "',
-    INNER: '" . \CarbonPHP\Rest::INNER . "',
-    LEFT: '" . \CarbonPHP\Rest::LEFT . "',
-    RIGHT: '" . \CarbonPHP\Rest::RIGHT . "',
-    DISTINCT: '" . \CarbonPHP\Rest::DISTINCT . "',
-    COUNT: '" . \CarbonPHP\Rest::COUNT . "',
-    SUM: '" . \CarbonPHP\Rest::SUM . "',
-    MIN: '" . \CarbonPHP\Rest::MIN . "',
-    MAX: '" . \CarbonPHP\Rest::MAX . "',
-    GROUP_CONCAT: '" . \CarbonPHP\Rest::GROUP_CONCAT . "',
+    SELECT: '" . Rest::SELECT . "',
+    UPDATE: '" . Rest::UPDATE . "',
+    WHERE: '" . Rest::WHERE . "',
+    LIMIT: '" . Rest::LIMIT . "',
+    PAGINATION: '" . Rest::PAGINATION . "',
+    ORDER: '" . Rest::ORDER . "',
+    DESC: '" . Rest::DESC . "',
+    ASC: '" . Rest::ASC . "',
+    JOIN: '" . Rest::JOIN . "',
+    INNER: '" . Rest::INNER . "',
+    LEFT: '" . Rest::LEFT . "',
+    RIGHT: '" . Rest::RIGHT . "',
+    DISTINCT: '" . Rest::DISTINCT . "',
+    COUNT: '" . Rest::COUNT . "',
+    SUM: '" . Rest::SUM . "',
+    MIN: '" . Rest::MIN . "',
+    MAX: '" . Rest::MAX . "',
+    GROUP_CONCAT: '" . Rest::GROUP_CONCAT . "',
     
     $references_tsx
     
@@ -1208,6 +1218,7 @@ export interface  i{{ucEachTableName}}{
         return [
             'use CarbonPHP\Database;',
             'use CarbonPHP\Error\PublicAlert;',
+            'use CarbonPHP\Helpers\RestfulValidations;',
             'use CarbonPHP\Rest;',
             'use PDO;',
             'use PDOException;',
@@ -1222,8 +1233,11 @@ export interface  i{{ucEachTableName}}{
     {
         $staticNamespaces = $this->restTemplateStaticNameSpace();
 
+        $interface = /** @lang Handlebars */
+            '{{#primaryExists}}{{#multiplePrimary}}iRestMultiplePrimaryKeys{{/multiplePrimary}}{{^multiplePrimary}}iRestSinglePrimaryKey{{/multiplePrimary}}{{/primaryExists}}{{^primaryExists}}iRestNoPrimaryKey{{/primaryExists}}';
+
         array_splice($staticNamespaces, 2, 0, [
-            'use CarbonPHP\Interfaces\\{{#primaryExists}}iRest{{/primaryExists}}{{^primaryExists}}iRestfulReferences{{/primaryExists}};',
+            "use CarbonPHP\Interfaces\\$interface;",
         ]);
 
         $staticNamespaces = implode(PHP_EOL, $staticNamespaces);
@@ -1243,23 +1257,47 @@ $staticNamespaces
  * 
  * Class {{ucEachTableName}}
  * @package {{namespace}}
- * 
+ * @note Note for convenience a flag '-prefix' maybe passed to remove table prefixes.
+ *  Use '-help' for a full list of options.
+ * @link https://carbonphp.com/ 
+ *
+ * This class contains autogenerated code.
+ * This class is 1=1 relation named after a table in the database provided.
+ * Edits are carried over during updates given they follow::
+ *      METHODS SHOULD ONLY BE STATIC and may be reordered during generation.
+ *      FUNCTIONS MUST NOT exist outside the class.
+ *      IMPORTED CLASSED and FUNCTIONS ARE ALLOWED though maybe reordered.
+ *      ADDITIONAL CONSTANTS of any kind are NOT ALLOWED.
+ *      ADDITIONAL CLASS MEMBER VARIABLES are NOT ALLOWED.
+ *
+ * When creating member functions which require persistent variables, consider making them static members of that method.
  */
-class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/primaryExists}}{{^primaryExists}}iRestfulReferences{{/primaryExists}}
+class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multiplePrimary}}iRestMultiplePrimaryKeys{{/multiplePrimary}}{{^multiplePrimary}}iRestSinglePrimaryKey{{/multiplePrimary}}{{/primaryExists}}{{^primaryExists}}iRestNoPrimaryKey{{/primaryExists}}
 {
+    use RestfulValidations;
     
     public const CLASS_NAME = '{{ucEachTableName}}';
     public const CLASS_NAMESPACE = '{{namespace}}\\\\';
     public const TABLE_NAME = '{{TableName}}';
     public const TABLE_PREFIX = {{#prefixReplaced}}'{{prefix}}'{{/prefixReplaced}}{{^prefixReplaced}}''{{/prefixReplaced}};
     
+    /**
+     * COLUMNS
+     * The columns below are a 1=1 mapping to your columns found in {{TableName}}. Remember to regenerate when as all changes  
+     * SHOULD be made first in the database. The RestBuilder program will capture any changes made and update this file 
+     * auto-magically. 
+    **/
     {{#explode}}
     public const {{caps}} = '{{TableName}}.{{name}}'; 
     {{/explode}}
 
-    public const PRIMARY = [
-        {{#primary}}{{#name}}'{{TableName}}.{{name}}',{{/name}}{{/primary}}
-    ];
+    /**
+     * This could be null for tables without primary key(s), a string for tables with a single primary key, or an array 
+     * given composite primary keys. The existence and amount of primary keys of the will also determine the interface 
+     * aka method signatures used.
+    **/
+    public const PRIMARY = {{^primaryExists}}null{{/primaryExists}}{{#primaryExists}}{{#multiplePrimary}}[{{#primary}}{{#name}}'{{TableName}}.{{name}}',{{/name}}{{/primary}}
+    ]{{/multiplePrimary}}{{^multiplePrimary}}{{#primary}}'{{TableName}}.{{name}}'{{/primary}}{{/multiplePrimary}}{{/primaryExists}};
 
     public const COLUMNS = [
         {{#explode}}'{{TableName}}.{{name}}' => '{{name}}',{{/explode}}
@@ -1270,59 +1308,160 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}iRest{{/prim
     ];
      
     /**
+     * REGEX_VALIDATION
+     * Regular Expression validations are run before and recommended over PHP_VALIDATION.
+     * It is a 1 to 1 column regex relation with fully regex for preg_match_all(). This regex must satisfy the condition 
+     *        1 > preg_match_all(self::\$compiled_regex_validations[\$column], \$value, ...
+     * 
+     * Table generated column constants must be used. 
+     *       self::EXAMPLE_COLUMN_NAME => '#^[A-F0-9]{20,35}$#i'
+     *
+     * @link https://regexr.com
+     * @link https://php.net/manual/en/function.preg-match-all.php
+     */
+    {{^regex_validation}}
+    public const REGEX_VALIDATION = [];{{/regex_validation}} 
+    {{#regex_validation}}
+    {{{regex_validation}}} 
+    {{/regex_validation}}     
+     
+     
+    /**
      * PHP validations works as follows:
-     *  The first index '0' of PHP_VALIDATIONS will run after REGEX_VALIDATION's but
-     *  before every other validation method described here below.
-     *  The other index positions are respective to the request method calling the ORM
-     *  or column which maybe present in the request.
-     *  Column names using the 1 to 1 constants in the class maybe used for global
-     *  specific methods when under PHP_VALIDATION, or method specific operations when under
-     *  its respective request method, which only run when the column is requested or acted on.
-     *  Global functions and method specific functions will receive the full request which
-     *  maybe acted on by reference. All column specific validation methods will only receive
-     *  the associated value given in the request which may also be received by reference.
-     *  All methods MUST be declared as static.
+     * @note regex validation is always step #1 and should be favored over php validations.
+     *  Syntax ::
+     *      [Example_Class::class => 'disallowPublicAccess', (optional) ...\$rest]
+     *      self::EXAMPLE_COLUMN => [Example_Class::class => 'exampleOtherMethod', (optional) ...\$rest]
+     *
+     *  Callables defined above MUST NOT RETURN FALSE. Moreover; return values are ignored so `): void {` may be used. 
+     *  array_key_first() must return a classes fully qualified class with namespace. In the example above Example_Class would be a 
+     *  class defined in our system. PHP's `::class` appended to the end will return the fully qualified namespace. Note
+     *  this will require the custom import added to the top of the file. You can allow your editor to add these for you
+     *  as the RestBuilder program will capture, preserve, and possibly reorder the imports. The value of the first key 
+     *  MUST BE the exact name of a member-method of that class. Typically validations are defined in the same class 
+     *  they are used ('self::class') though it is useful to export more dynamic functions. The \$rest variable can be 
+     *  used to add additional arguments to the request. RESTFUL INTERNAL ARGUMENTS will be passed before any use defined
+     *  variables after the first key value pair. Only array values will be passed to the method. Thus, additional keys 
+     *  listed in the array will be ignored. Take for example::
+     *
+     *      [ self::class => 'validateUnique', self::class, self::EXAMPLE_COLUMN]
+     *  The above is defined in RestfulValidations::class. 
+     *      RestfulValidations::validateUnique(string \$columnValue, string \$className, string \$columnName)
+     *  Its definition is with a trait this classes inherits using `use` just after the `class` keyword. 
+     * 
+     *   What is the RESTFUL lifecycle?
+     *      Regex validations are done first on any main query; sub-queries are treated like callbacks which get run 
+     *      during the main queries invocation. The main query is 'paused' while the sub-query will compile and validate.
+     *      Validations across tables are concatenated on joins and sub-queries. All callbacks will be run across any 
+     *       table joins.
+     *      
+     *   What are the RESTFUL INTERNAL ARGUMENTS? (The single \$arg string or array passed before my own...)
+     *      REST_REQUEST_PREPROCESS_CALLBACKS ::   
+     *           PREPROCESS::
+     *              Methods defined here will be called at the beginning of every request. 
+     *              Each method will be passed ( & self::\$REST_REQUEST_PARAMETERS ) by reference so changes can be made pre-request.
+     *              Method validations under the main 'PREPROCESS' key will be run first, while validations specific to 
+     *              ( GET | POST | PUT | DELETE )::PREPROCESS will be run directly after.
+     *
+     *           FINAL:: 
+     *              Each method will be passed the final ( & \$SQL ), which may be a sub-query, by reference.
+     *              Modifying the SQL string will effect the parent function. This can have disastrous effects.
+     *
+     *           COLUMN::
+     *              Preformed while a column is being parsed in a query. The first column validations to run.
+     *              Each column specific method under PREPROCESS will be passed nothing from rest. 
+     *              Each method will ONLY be RUN ONCE regardless of how many times the column has been seen. 
+     *
+     *      COLUMN::
+     *           Column validations are only run when they have been parsed in the query. Global column validations maybe
+     *            RUN MULTIPLE TIMES if the column is used multiple times in a single restful query. 
+     *           If you have a column that is used multiple times the validations will run for each occurrence.
+     *           Column validation can mean many thing. There are three possible scenarios in which your method 
+     *            signature would change. For this reason it is more common to use method ( GET | POST ... ) wise column validations.
+     *              *The signature required are as follows:
+     *                  Should the column be...
+     *                      SELECTED:  
+     *                          In a select stmt no additional parameters will be passed.
+     *                      
+     *                      ORDERED BY: (self::ASC | self::DESC)
+     *                          The \$operator will be passed to the method.
+     *  
+     *                      JOIN STMT:
+     *                          The \$operator followed by the \$value will be passed. 
+     *                          The operator could be :: >,<,<=,<,=,<>,=,<=>
+     *
+     *      REST_REQUEST_FINNISH_CALLBACKS::
+     *          PREPROCESS::
+     *              These callbacks are called after a successful PDOStatement->execute() but before Database::commit().
+     *              Each method will be passed ( GET => &\$return, DELETE => &\$remove, PUT => &\$returnUpdated ) by reference. 
+     *              POST will BE PASSED NULL.          
+     *
+     *          FINAL::
+     *              Run directly after method specific [FINAL] callbacks.
+     *              The final, 'final' callback set. After these run rest will return. 
+     *              Each method will be passed ( GET => &\$return, DELETE => &\$remove, PUT => &\$returnUpdated ) by reference. 
+     *              POST will BE PASSED NULL. 
+     *
+     *          COLUMN::
+     *              These callables will be run after the [( GET | POST | PUT | DELETE )][FINAL] methods.
+     *              Directly after, the [REST_REQUEST_FINNISH_CALLBACKS][FINAL] will run. 
+     *              
+     *
+     *      (POST|GET|PUT|DELETE)::
+     *          PREPROCESS::
+     *              Methods run after any root 'REST_REQUEST_PREPROCESS_CALLBACKS'
+     *              Each method will not be passed any argument from system. User arguments will be directly reflected.
+     *
+     *          COLUMN::
+     *              Methods run after any root column validations, the last of the PREPROCESS column validations to run.
+     *              Based on the existences and number of primary key(s), the signature will change. 
+     *               See the notes on the base column validations as signature of parameters may change. 
+     *              It is not possible to directly define a method->column specific post processes. This can be done by
+     *               dynamically pairing multiple method processes starting with one here which signals a code routine 
+     *               in a `finial`-ly defined method. The FINAL block specific to the method would suffice. 
+     *
+     *          FINAL::
+     *              Passed the ( & \$return )  
+     *              Run before any other column validation 
+     *
+     *  Be aware the const: self::DISALLOW_PUBLIC_ACCESS = [self::class => 'disallowPublicAccess'];
+     *  could be used to replace each occurrence of 
+     *          [self::class => 'disallowPublicAccess', self::class]
+     *  though would loose information as self::class is a dynamic variable which must be used in this class given 
+     *  static and constant context. 
+     *  @version ^9
      */
     {{^php_validation}}
     public const PHP_VALIDATION = [ 
-        self::PREPROCESS => [ 
+        self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
             self::PREPROCESS => [ 
-                [self::class => 'disallowPublicAccess', self::class] 
+                [self::class => 'disallowPublicAccess', self::class],
             ]
         ],
-        self::GET => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],    
-        self::POST => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],    
-        self::PUT => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],    
-        self::DELETE => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],
-        self::FINISH => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]]    
+        self::GET => [ 
+            self::PREPROCESS => [ 
+                [self::class => 'disallowPublicAccess', self::class],
+            ]
+        ],    
+        self::POST => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
+        self::PUT => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
+        self::DELETE => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],
+        self::REST_REQUEST_FINNISH_CALLBACKS => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]]    
     ];{{/php_validation}} 
     {{#php_validation}} 
     {{{php_validation}}} 
     {{/php_validation}}
-    {{^regex_validation}}
     
     /**
-     * REGEX_VALIDATION
-     * Regular Expression validations are run before and recommended over PHP_VALIDATION.
-     * It is a 1 to 1 column regex relation with fully regex for preg_match_all().
-     * Table generated column constants must be used.
-     * @link https://php.net/manual/en/function.preg-match-all.php
-     */
-    public const REGEX_VALIDATION = [];{{/regex_validation}} 
-    {{#regex_validation}}
-    {{{regex_validation}}} 
-    {{/regex_validation}}
-    {{^REFRESH_SCHEMA}}
-    /**
      * REFRESH_SCHEMA
-     * @link https://stackoverflow.com/questions/298739/what-is-the-difference-between-a-schema-and-a-table-and-a-database
      * These directives should be designed to maintain and update your team's schema &| database &| table over time. 
      * The changes you made in your local env should be coded out in callables such as the 'tableExistsOrExecuteSQL' 
      * method call below. If a PDO exception is thrown with `\$e->getCode()` equal to 42S02 or 1049 CarbonPHP will attempt
      * to REFRESH the full database with with all directives in all tables. If possible keep table specific procedures in 
      * it's respective restful-class table file. Check out the 'tableExistsOrExecuteSQL' method in the parent class to see
-     * an example using self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS. 
+     * an example using self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS. Note each directive should be designed to run multiple times.
      */
+    {{^REFRESH_SCHEMA}}
     public const REFRESH_SCHEMA = [
         [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
                         PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS]
@@ -1358,14 +1497,15 @@ MYSQL;
     *
     *   \$argv = [
     *       Rest::SELECT => [
-    *              'table_name.column_name',
-    *              self::EXAMPLE_COLUMN_ONE,
-    *              [self::EXAMPLE_COLUMN_TWO, self::AS, 'customName'],
-    *              [self::GROUP_CONCAT, self::EXAMPLE_COLUMN_THREE], 
-    *              [self::MAX, self::EXAMPLE_COLUMN_FOUR], 
-    *              [self::MIN, self::EXAMPLE_COLUMN_FIVE], 
-    *              [self::SUM, self::EXAMPLE_COLUMN_SIX], 
-    *              [self::DISTINCT, self::EXAMPLE_COLUMN_SEVEN], 
+    *              'table_name.column_name',                            // bad, dont pass strings manually. Use Table Constants instead.
+    *              self::EXAMPLE_COLUMN_ONE,                            // good, 
+    *              [self::EXAMPLE_COLUMN_TWO, Rest::AS, 'customName'],
+    *              [Rest::COUNT, self::EXAMPLE_COLUMN_TWO, 'custom_return_name_using_as'],
+    *              [Rest::GROUP_CONCAT, self::EXAMPLE_COLUMN_THREE], 
+    *              [Rest::MAX, self::EXAMPLE_COLUMN_FOUR], 
+    *              [Rest::MIN, self::EXAMPLE_COLUMN_FIVE], 
+    *              [Rest::SUM, self::EXAMPLE_COLUMN_SIX], 
+    *              [Rest::DISTINCT, self::EXAMPLE_COLUMN_SEVEN], 
     *              ANOTHER_EXAMPLE_TABLE::subSelect(\$primary, \$argv, \$as, \$pdo, \$database)
     *       ],
     *       Rest::WHERE => [
@@ -1405,6 +1545,10 @@ MYSQL;
     *            ]
     *        ],
     *        Rest::PAGINATION => [
+    *              Rest::PAGE => (int) 0, // used for pagination which equates to 
+    *                  // ... LIMIT ' . ((\$argv[self::PAGINATION][self::PAGE] - 1) * \$argv[self::PAGINATION][self::LIMIT]) 
+    *                  //       . ',' . \$argv[self::PAGINATION][self::LIMIT];
+    *              
     *              Rest::LIMIT => (int) 90, // The maximum number of rows to return,
     *                       setting the limit explicitly to 1 will return a key pair array of only the
     *                       singular result. SETTING THE LIMIT TO NULL WILL ALLOW INFINITE RESULTS (NO LIMIT).
@@ -1412,19 +1556,20 @@ MYSQL;
     *
     *               Rest::ORDER => [self::EXAMPLE_COLUMN_TEN => Rest::ASC ],  // i.e.  'username' => Rest::DESC
     *         ],
-    *
     *   ];
     *
     *
-    * @param array \$return
-    * @param string|null \$primary
+    * @param array \$return{{#primaryExists}}
+    * @param {{#multiplePrimary}}array{{/multiplePrimary}}{{^multiplePrimary}}string{{/multiplePrimary}}|null \$primary{{/primaryExists}}
     * @param array \$argv
-    * @throws PublicAlert|PDOException
+    * @noinspection DuplicatedCode - possible as this is generated
+    * @generated
+    * @throws PublicAlert|PDOException|JsonException
     * @return bool
     */
-    public static function Get(array &\$return, {{#primaryExists}}string \$primary = null, {{/primaryExists}}array \$argv = []): bool
+    public static function Get(array &\$return, {{#primaryExists}}{{#multiplePrimary}}array{{/multiplePrimary}}{{^multiplePrimary}}string{{/multiplePrimary}} \$primary = null, {{/primaryExists}}array \$argv = []): bool
     {
-        self::startRest(self::GET, \$argv);
+        self::startRest(self::GET, \$return, \$argv {{#primaryExists}},\$primary{{/primaryExists}});
 
         \$pdo = self::database();
 
@@ -1439,7 +1584,8 @@ MYSQL;
         self::bind(\$stmt);
 
         if (!\$stmt->execute()) {
-            throw new PublicAlert('Failed to execute the query on {{ucEachTableName}}.', 'danger');
+            self::completeRest();
+            throw new PublicAlert('The REST generated PDOStatement failed to execute with error :: ' . json_encode(\$stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }
 
         \$return = \$stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -1454,37 +1600,34 @@ MYSQL;
         {{#primary}}{{#sql}}
         if (\$primary !== null || (isset(\$argv[self::PAGINATION][self::LIMIT]) && \$argv[self::PAGINATION][self::LIMIT] === 1 && count(\$return) === 1)) {
             \$return = isset(\$return[0]) && is_array(\$return[0]) ? \$return[0] : \$return;
-            // promise this is needed and will still return the desired array except for a single record will not be an array
         }{{/sql}}{{/primary}}
         {{^primary}}
         if (isset(\$argv[self::PAGINATION][self::LIMIT]) && \$argv[self::PAGINATION][self::LIMIT] === 1 && count(\$return) === 1) {
             \$return = isset(\$return[0]) && is_array(\$return[0]) ? \$return[0] : \$return;
-            // promise this is needed and will still return the desired array except for a single record will not be an array
-        }
-        {{/primary}}
-        
+        }{{/primary}}
         {{#explode}}{{#json}}
         if (array_key_exists('{{name}}', \$return)) {
                 \$return['{{name}}'] = json_decode(\$return['{{name}}'], true);
-        }
-        {{/json}}{{/explode}}
+        }{{/json}}{{/explode}}
 
         self::postprocessRestRequest(\$return);
+        
         self::completeRest();
+        
         return true;
     }
 
     /**
-     * @param array \$argv
-     * @param string|null \$dependantEntityId - a C6 Hex entity key 
+     * @param array \$data 
      * @return bool|string{{#primaryExists}}|mixed{{/primaryExists}}
-     * @throws PublicAlert|PDOException
+     * @generated
+     * @throws PublicAlert|PDOException|JsonException
      */
-    public static function Post(array \$argv, string \$dependantEntityId = null){{^primaryExists}}: bool{{/primaryExists}}
+    public static function Post(array \$data){{^primaryExists}}: bool{{/primaryExists}}
     {   
-        self::startRest(self::POST, \$argv);
+        self::startRest(self::POST, [], \$data);
     
-        foreach (\$argv as \$columnName => \$postValue) {
+        foreach (\$data as \$columnName => \$postValue) {
             if (!array_key_exists(\$columnName, self::PDO_VALIDATION)) {
                 throw new PublicAlert("Restful table could not post column \$columnName, because it does not appear to exist.", 'danger');
             }
@@ -1506,7 +1649,7 @@ MYSQL;
 
         \$stmt = self::database()->prepare(\$sql);{{#explode}}{{#primary_binary}}{{^carbon_table}}
         
-        \${{name}} = \$id = \$argv['{{TableName}}.{{name}}'] ?? false;
+        \${{name}} = \$id = \$data['{{TableName}}.{{name}}'] ?? false;
         if (\$id === false) {
              \${{name}} = \$id = self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
         } else {
@@ -1517,12 +1660,10 @@ MYSQL;
            }            
         }
         \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
-        {{/carbon_table}}
-        {{#carbon_table}}
-        
-        \${{name}} = \$id = \$argv['{{TableName}}.{{name}}'] ?? false;
+        {{/carbon_table}}{{#carbon_table}}
+        \${{name}} = \$id = \$data['{{TableName}}.{{name}}'] ?? false;
         if (\$id === false) {
-             \${{name}} = \$id = self::beginTransaction(self::class, \$dependantEntityId);
+             \${{name}} = \$id = self::beginTransaction(self::class, \$data[self::DEPENDANT_ON_ENTITY] ?? null);
         } else {
            \$ref='{{TableName}}.{{name}}';
            \$op = self::EQUAL;
@@ -1531,116 +1672,126 @@ MYSQL;
            }            
         }
         \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
-        {{/carbon_table}}{{/primary_binary}}
-        
-        {{^primary_binary}}{{^skip}}{{^length}}{{#json}}
-        
-        if (!array_key_exists('{{TableName}}.{{name}}', \$argv)) {
+        {{/carbon_table}}{{/primary_binary}}{{^primary_binary}}{{#skip}}{{#CURRENT_TIMESTAMP}}
+        if (array_key_exists('{{TableName}}.{{name}}', \$data)) {
+            throw new PublicAlert('The column \'{{TableName}}.{{name}}\' is set to default to CURRENT_TIMESTAMP. The Rest API does not allow POST requests with columns explicitly set whose default is CURRENT_TIMESTAMP. You can remove to the default in MySQL or the column \'{{TableName}}.{{name}}\' from the request.');
+        }
+        {{/CURRENT_TIMESTAMP}}{{/skip}}{{^skip}}{{^length}}{{#json}}
+        if (!array_key_exists('{{TableName}}.{{name}}', \$data)) {
             throw new PublicAlert('The column \'{{TableName}}.{{name}}\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
         }
-        \$ref='{{TableName}}.{{name}}';
+        \$ref = '{{TableName}}.{{name}}';
         \$op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, \$ref, \$op, \$argv['{{name}}'])) {
+        if (!self::validateInternalColumn(self::POST, \$ref, \$op, \$data['{{name}}'])) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
         }
-        if (!is_string(\${{name}} = \$argv['{{TableName}}.{{name}}']) && false === \${{name}} = json_encode(\${{name}})) {
+        if (!is_string(\${{name}} = \$data['{{TableName}}.{{name}}']) && false === \${{name}} = json_encode(\${{name}})) {
             throw new PublicAlert('The column \'{{TableName}}.{{name}}\' failed to be json encoded.');
         }
         \$stmt->bindValue(':{{name}}', \${{name}}, {{type}});
-        {{/json}} 
-        {{^json}}{{^default}}
-        
-        if (!array_key_exists('{{TableName}}.{{name}}', \$argv)) {
+        {{/json}}{{^json}}{{^default}}
+        if (!array_key_exists('{{TableName}}.{{name}}', \$data)) {
             throw new PublicAlert('The column \'{{TableName}}.{{name}}\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
         } 
         \$ref='{{TableName}}.{{name}}';
         \$op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, \$ref, \$op, \$argv['{{name}}'])) {
+        if (!self::validateInternalColumn(self::POST, \$ref, \$op, \$data['{{name}}'])) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
         }
-        \$stmt->bindValue(':{{name}}', \$argv['{{TableName}}.{{name}}'], {{type}});
-        {{/default}}
-        
-        {{#default}}         
-        \${{name}} = \$argv['{{TableName}}.{{name}}'] ?? {{default}};
+        \$stmt->bindValue(':{{name}}', \$data['{{TableName}}.{{name}}'], {{type}});
+        {{/default}}{{#default}}         
+        \${{name}} = \$data['{{TableName}}.{{name}}'] ?? {{default}};
         \$ref='{{TableName}}.{{name}}';
         \$op = self::EQUAL;
         if (!self::validateInternalColumn(self::POST, \$ref, \$op, \${{name}}, \${{name}} === {{{default}}})) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
         }
         \$stmt->bindValue(':{{name}}', \${{name}}, {{type}});
-        {{/default}}{{/json}}{{/length}}
-        {{#length}}{{^default}}
-        
-        if (!array_key_exists('{{TableName}}.{{name}}', \$argv)) {
+        {{/default}}{{/json}}{{/length}}{{#length}}{{^default}}
+        if (!array_key_exists('{{TableName}}.{{name}}', \$data)) {
             throw new PublicAlert('Required argument "{{TableName}}.{{name}}" is missing from the request.', 'danger');
         }{{/default}}
-        \${{name}} = {{^default}}\$argv['{{TableName}}.{{name}}'];{{/default}}{{#default}}\$argv['{{TableName}}.{{name}}'] ?? {{{default}}};{{/default}}
+        \${{name}} = {{^default}}\$data['{{TableName}}.{{name}}'];{{/default}}{{#default}}\$data['{{TableName}}.{{name}}'] ?? {{{default}}};{{/default}}
         \$ref='{{TableName}}.{{name}}';
         \$op = self::EQUAL;
         if (!self::validateInternalColumn(self::POST, \$ref, \$op, \${{name}}{{#default}}, \${{name}} === {{{default}}}{{/default}})) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
         }
         \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
-        {{/length}}{{/skip}}{{/primary_binary}}{{/explode}}
-
-        {{#binary_primary}}
-        if (\$stmt->execute()) {
-            self::prepostprocessRestRequest(\$id);
-             
-            if (self::\$commit && !Database::commit()) {
-               throw new PublicAlert('Failed to store commit transaction on table {{TableName}}');
-            } 
-             
-            self::postprocessRestRequest(\$id); 
-             
-            self::completeRest(); 
-            
-            return \$id; 
-        } 
-       
-        self::completeRest();
-        return false;{{/binary_primary}}
-        {{^binary_primary}}
-        if (\$stmt->execute()) {
-            {{#auto_increment_return_key}}
-            \$id = \$pdo->lastInsertId();
-            {{/auto_increment_return_key}}
-            self::prepostprocessRestRequest({{#auto_increment_return_key}}\$id{{/auto_increment_return_key}});
-            
-            if (self::\$commit && !Database::commit()) {
-               throw new PublicAlert('Failed to store commit transaction on table {{TableName}}');
-            }
-            
-            self::postprocessRestRequest({{#auto_increment_return_key}}\$id{{/auto_increment_return_key}});
-            
+        {{/length}}{{/skip}}{{/primary_binary}}{{/explode}}{{#binary_primary}}
+        if (!\$stmt->execute()) {
             self::completeRest();
-            
-            return {{^auto_increment_return_key}}true{{/auto_increment_return_key}}{{#auto_increment_return_key}}\$id{{/auto_increment_return_key}};  
+            throw new PublicAlert('The REST generated PDOStatement failed to execute with error :: ' . json_encode(\$stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }
         
-        self::completeRest();
+        self::prepostprocessRestRequest(\$id);
          
-        return false;
-        {{/binary_primary}}
+        if (self::\$commit && !Database::commit()) {
+           throw new PublicAlert('Failed to store commit transaction on table {{TableName}}');
+        } 
+         
+        self::postprocessRestRequest(\$id); 
+         
+        self::completeRest();
+        
+        return \$id; 
+        {{/binary_primary}}{{^binary_primary}}{{#auto_increment_return_key}}
+        \$id = \$pdo->lastInsertId();
+        {{/auto_increment_return_key}}
+        if (!\$stmt->execute()) {
+            self::completeRest();
+            throw new PublicAlert('The REST generated PDOStatement failed to execute with error :: ' . json_encode(\$stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
+        }
+        
+        self::prepostprocessRestRequest({{#auto_increment_return_key}}\$id{{/auto_increment_return_key}});
+        
+        if (self::\$commit && !Database::commit()) {
+           throw new PublicAlert('Failed to store commit transaction on table {{TableName}}');
+        }
+        
+        self::postprocessRestRequest({{#auto_increment_return_key}}\$id{{/auto_increment_return_key}});
+        
+        self::completeRest();
+        
+        return {{^auto_increment_return_key}}true{{/auto_increment_return_key}}{{#auto_increment_return_key}}\$id{{/auto_increment_return_key}};  {{/binary_primary}}
     }
     
     /**
-    * @param array \$return
+    * 
+    * {{^primaryExists}}
+    *  Syntax should be as follows.
+    *  \$argv = [
+    *       Rest::UPDATE => [
+    *              ...
+    *       ],
+    *       Rest::WHERE => [
+    *              ...
+    *       ]
+    * {{/primaryExists}}{{#primaryExists}}
+    * Tables where primary keys exist must be updated by its primary key. 
+    * Column should be in a key value pair passed to \$argv or optionally using syntax:
+    * \$argv => [
+    *       Rest::UPDATE => [
+    *              ...
+    *       ]
+    * ]
+    * {{/primaryExists}}
+    * @param array \$returnUpdated - will be merged with with array_merge, with a successful update. 
     {{#primaryExists}}* @param string \$primary{{/primaryExists}}
-    * @param array \$argv
-    * @throws PublicAlert|PDOException
-    * @return bool
+    * @param array \$argv 
+    * @generated
+    * @throws PublicAlert|PDOException|JsonException
+    * @return bool - if execute fails, false will be returned and \$returnUpdated = \$stmt->errorInfo(); 
     */
-    public static function Put(array &\$return, {{#primaryExists}}string \$primary,{{/primaryExists}} array \$argv) : bool
+    public static function Put(array &\$returnUpdated, {{#primaryExists}}string \$primary,{{/primaryExists}} array \$argv) : bool
     {
-        self::startRest(self::PUT, \$argv);
+        self::startRest(self::PUT, \$returnUpdated, \$argv{{#primaryExists}}, \$primary{{/primaryExists}});
         
         {{#primaryExists}}
         if ('' === \$primary) {
             throw new PublicAlert('Restful tables which have a primary key must be updated by its primary key.', 'danger');
         }
-        
+         
         if (array_key_exists(self::UPDATE, \$argv)) {
             \$argv = \$argv[self::UPDATE];
         }
@@ -1660,8 +1811,7 @@ MYSQL;
 
         if (empty(\$where) || empty(\$argv)) {
             throw new PublicAlert('Restful tables which have no primary key must be updated with specific where and update attributes.', 'danger');
-        }
-        {{/primaryExists}}
+        }{{/primaryExists}}
         
         foreach (\$argv as \$key => &\$value) {
             if (!array_key_exists(\$key, self::PDO_VALIDATION)){
@@ -1681,15 +1831,17 @@ MYSQL;
         {{#explode}}
         if (array_key_exists('{{TableName}}.{{name}}', \$argv)) {
             \$set .= '{{name}}={{#binary}}UNHEX(:{{name}}){{/binary}}{{^binary}}:{{name}}{{/binary}},';
-        }
-        {{/explode}}
+        }{{/explode}}
         
         \$sql .= substr(\$set, 0, -1);
 
         \$pdo = self::database();
+        
+        if (!\$pdo->inTransaction()) {
+            \$pdo->beginTransaction();
+        }
 
-        {{#primary}}{{{sql}}}{{/primary}}
-        {{^primary}}\$sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, \$where, \$pdo);{{/primary}}
+        {{#primary}}{{{sql.sql}}}{{/primary}}{{^primary}}\$sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, \$where, \$pdo);{{/primary}}
 
         {{#json}}self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
 
@@ -1697,8 +1849,7 @@ MYSQL;
 
         \$stmt = \$pdo->prepare(\$sql);
 
-        {{#explode}}
-        if (array_key_exists('{{TableName}}.{{name}}', \$argv)) {
+        {{#explode}}if (array_key_exists('{{TableName}}.{{name}}', \$argv)) {
         {{^length}}
             \$stmt->bindValue(':{{name}}',{{#json}}json_encode(\$argv['{{TableName}}.{{name}}']){{/json}}{{^json}}\$argv['{{TableName}}.{{name}}']{{/json}}, {{type}});
         {{/length}}
@@ -1710,18 +1861,17 @@ MYSQL;
                 throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
             }
             \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
-        {{/length}}
-        }
-        {{/explode}}
+        {{/length}}}{{/explode}}
 
         self::bind(\$stmt);
 
         if (!\$stmt->execute()) {
-            throw new PublicAlert('Restful table {{ucEachTableName}} failed to execute the update query.', 'danger');
+            self::completeRest();
+            throw new PublicAlert('The REST generated PDOStatement failed to execute with error :: ' . json_encode(\$stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }
         
         if (!\$stmt->rowCount()) {
-            throw new PublicAlert('Failed to update the target row.', 'danger');
+            throw new PublicAlert('Failed to find the target row.', 'danger');
         }
         
         \$argv = array_combine(
@@ -1732,11 +1882,11 @@ MYSQL;
             array_values(\$argv)
         );
 
-        \$return = array_merge(\$return, \$argv);
+        \$returnUpdated = array_merge(\$returnUpdated, \$argv);
 
-        self::prepostprocessRestRequest(\$return);
+        self::prepostprocessRestRequest(\$returnUpdated);
         
-        self::postprocessRestRequest(\$return);
+        self::postprocessRestRequest(\$returnUpdated);
         
         self::completeRest();
         
@@ -1744,17 +1894,18 @@ MYSQL;
     }
 
     /**
-    * @param array \$remove
-    * @param string|null \$primary
+    * @param array \$remove{{#primaryExists}}
+    * @param string|null \$primary{{/primaryExists}}
     * @param array \$argv
-    * @throws PublicAlert|PDOException
+    * @generated
+    * @noinspection DuplicatedCode
+    * @throws PublicAlert|PDOException|JsonException
     * @return bool
     */
     public static function Delete(array &\$remove, {{#primaryExists}}string \$primary = null, {{/primaryExists}}array \$argv = []) : bool
     {
-        self::startRest(self::DELETE, \$argv);
-        
-    {{#carbon_table}}
+        self::startRest(self::DELETE, \$remove, \$argv{{#primaryExists}}, \$primary{{/primaryExists}});
+        {{#carbon_table}}
         if (null !== \$primary) {
             return Carbons::Delete(\$remove, \$primary, \$argv);
         }
@@ -1772,6 +1923,10 @@ MYSQL;
                 JOIN {{^carbon_namespace}}{{#QueryWithDatabaseName}}{{database}}.{{/QueryWithDatabaseName}}{{/carbon_namespace}}{{TableName}} on c.entity_pk = {{#primary}}{{#name}}{{TableName}}.{{name}}{{/name}}{{/primary}}';
 
         \$pdo = self::database();
+        
+        if (!\$pdo->inTransaction()) {
+            \$pdo->beginTransaction();
+        }
 
         \$sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, \$argv, \$pdo);{{#json}}
         
@@ -1783,11 +1938,12 @@ MYSQL;
 
         self::bind(\$stmt);
 
-        \$r = \$stmt->execute();
-
-        if (\$r) {
-            \$remove = [];
+        if (!\$stmt->execute()) {
+            self::completeRest();
+            throw new PublicAlert('The REST generated PDOStatement failed to execute with error :: ' . json_encode(\$stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }
+        
+        \$remove = [];
         
         self::prepostprocessRestRequest(\$remove);
         
@@ -1795,7 +1951,7 @@ MYSQL;
         
         self::completeRest();
         
-        return \$r;
+        return true;
     {{/carbon_table}}
     {{^carbon_table}}
         /** @noinspection SqlWithoutWhere
@@ -1804,6 +1960,11 @@ MYSQL;
         \$sql = 'DELETE FROM {{^carbon_namespace}}{{#QueryWithDatabaseName}}{{database}}.{{/QueryWithDatabaseName}}{{/carbon_namespace}}{{TableName}} ';
 
         \$pdo = self::database();
+        
+        if (!\$pdo->inTransaction()) {
+            \$pdo->beginTransaction();
+        }
+        
         {{#primary}}{{#name}}
         if (null === \$primary) {
            /**
@@ -1827,7 +1988,7 @@ MYSQL;
         }{{/sql}}{{/primary}}
         {{^primary}}
         if (empty(\$argv)) {
-            throw new PublicAlert('When deleting from restful tables with out a primary key additional arguments must be provided.', 'danger');
+            throw new PublicAlert('When deleting from tables with out a primary key additional arguments must be provided.', 'danger');
         } 
          
         \$sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, \$argv, \$pdo);{{/primary}}
@@ -1840,11 +2001,12 @@ MYSQL;
 
         self::bind(\$stmt);
 
-        \$r = \$stmt->execute();
-
-        if (\$r) {
-            \$remove = [];
+        if (!\$stmt->execute()) {
+            self::completeRest();
+            throw new PublicAlert('The REST generated PDOStatement failed to execute with error :: ' . json_encode(\$stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }
+
+        \$remove = [];
         
         self::prepostprocessRestRequest(\$remove);
         
@@ -1852,11 +2014,9 @@ MYSQL;
         
         self::completeRest();
         
-        return \$r;
+        return true;
     {{/carbon_table}}
     }
-     
-
     
 }
 

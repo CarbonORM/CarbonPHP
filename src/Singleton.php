@@ -44,7 +44,11 @@ use function is_object;
  *
  * This will store the new closure in the methods variable and attempt to run it using
  * call_user_func_array();
- *
+ * @deprecated The complexity added buy using dynamically allocated callable methods out weighs the
+ * benefits of this pattern. With Rest taking center stage as a full MySQL ORM, the need to serialize class constants
+ * doesn't bid life in any real world application. I favor sockets for ws realtime communication and runtime which will
+ * hold variables forever if so programmed, or just restful json requests which are automatically generated.
+ * No Timeline has be set for removal. Probably major version release 9, or in subsequent minor version releases.
  */
 
 trait Singleton
@@ -59,7 +63,7 @@ trait Singleton
     /**
      * @param $methodName
      * @param array $arguments
-     * @return Singleton|mixed
+     * @return mixed
      * @throws ReflectionException
      * @throws InvalidArgumentException
      */
@@ -126,7 +130,7 @@ trait Singleton
     /**
      * @param $methodName
      * @param array $arguments
-     * @return Singleton|mixed
+     * @return mixed
      * @throws InvalidArgumentException
      */
     public function __call($methodName, array $arguments = [])
@@ -137,7 +141,7 @@ trait Singleton
     /**
      * @param $methodName
      * @param array $arguments
-     * @return Singleton|mixed
+     * @return mixed
      * @throws InvalidArgumentException
      */
     private function Skeleton(string $methodName, array $arguments = [])
@@ -191,9 +195,9 @@ trait Singleton
     }
 
     /** Attempt to serialize the current class.
-     * @return array|null
+     * @return array
      */
-    public function __sleep()
+    public function __sleep(): array
     {
         /** @noinspection PhpUndefinedClassConstantInspection */
         if (!defined('self::Singleton') || !self::Singleton) {

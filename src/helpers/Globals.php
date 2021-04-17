@@ -1,4 +1,6 @@
-<?php namespace CarbonPHP\Helpers;
+<?php
+
+namespace CarbonPHP\Helpers;
 
 use CarbonPHP\Singleton;
 

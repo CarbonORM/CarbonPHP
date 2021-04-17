@@ -8,6 +8,9 @@ use CarbonPHP\Helpers\Globals;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestfulReferences;
+use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
+use CarbonPHP\Interfaces\iRestNoPrimaryKey;
+use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Programs\Composer;
 use CarbonPHP\Tables\Carbons;
@@ -134,7 +137,6 @@ FOOT;
         } catch (PDOException $e) {
 
             switch ($e->getCode()) {        // Database has not been created
-
                 case 1049:
                     $query = explode(';', static::$dsn);    // I programmatically put it there which is why..
 
@@ -146,19 +148,17 @@ FOOT;
                     }
 
                     try {
-                        $prep = static function (PDO $db): PDO {
-                            $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                        // https://www.php.net/manual/en/pdo.setattribute.php
+                        static::$database = new PDO($query[0], static::$username, static::$password,
+                            [
+                                PDO::ATTR_PERSISTENT => CarbonPHP::$cli,                // only in cli (including websockets)
+                                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                                PDO::MYSQL_ATTR_FOUND_ROWS => true,
+                                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                                PDO::ATTR_CASE => PDO::CASE_NATURAL,
+                                PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL
+                            ]);
 
-                            $db->setAttribute(PDO::ATTR_PERSISTENT, CarbonPHP::$cli);
-
-                            $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-
-                            static::$database = $db;
-
-                            return static::$database;
-                        };
-
-                        $db = $prep(@new PDO($query[0], static::$username, static::$password, array(PDO::MYSQL_ATTR_FOUND_ROWS => true)));
                     } catch (PDOException $e) {
                         if ($e->getCode() === 1049) {
                             print '<h1>Auto Setup Failed!</h1><h3>Your database DSN may be slightly malformed.</h3>';
@@ -169,6 +169,7 @@ FOOT;
                         var_dump($e->getMessage());
                         exit($e->getMessage());
                     }
+
                     $stmt = "CREATE DATABASE $db_name;";
 
                     if (!$db->prepare($stmt)->execute()) {
@@ -681,8 +682,12 @@ FOOT;
 
                 $imp = array_map('strtolower', array_keys(class_implements($table)));
 
-                if (!in_array(strtolower(iRest::class), $imp, true) &&
-                    !in_array(strtolower(iRestfulReferences::class), $imp, true)) {
+                if (!in_array(strtolower(iRest::class), $imp, true)
+                    && !in_array(strtolower(iRestfulReferences::class), $imp, true)
+                    && !in_array(strtolower(iRestMultiplePrimaryKeys::class), $imp, true)
+                    && !in_array(strtolower(iRestSinglePrimaryKey::class), $imp, true)
+                    && !in_array(strtolower(iRestNoPrimaryKey::class), $imp, true)
+                ) {
                     continue;
                 }
 
@@ -702,7 +707,7 @@ FOOT;
                 }
                 
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             if ($cli) {
                 ColorCode::colorCode('The refreshDatabase method failed.', iColorCode::BACKGROUND_RED);
             } else {

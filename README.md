@@ -30,12 +30,21 @@ written in C (PHP is written in C) to support this task, however time is a facto
 this goal please contact me at Richard@Miles.Systems. Please see the documentation at Carbonphp.com for more information.
 For the rest of us who live outside windows Hell C6 has a Websocket Library Class for Standard use and Wordpress use. 
 
+## Quick Start
+### Existing projects
+
+    composer install richardtmiles/carbonphp@^8
+
 ## Standards 
 
 C6 should follow the [PHP Standards Recommendations](https://www.php-fig.org/psr/) listed below.
 
 [PSR-4](https://www.php-fig.org/psr/psr-4/)
+
 [PSR-12](https://www.php-fig.org/psr/psr-12/)
+
+[SEMVAR](https://semver.org)
+
 
 ## Requirements
 
@@ -207,7 +216,7 @@ Use of CarbonPHP implies agreement with its software license, available in the L
 
 ## Credits
 
-CarbonPHP was created by Richard Tyler Miles and inspired by [Tom Frost's](https://github.com/TomFrost) [Hydrogen](https://github.com/TomFrost/Hydrogen).
+CarbonPHP was created by Richard Tyler Miles, the BDFL, and inspired by [Tom Frost's](https://github.com/TomFrost) [Hydrogen](https://github.com/TomFrost/Hydrogen).
 
 Contributors can be found in the GitHub Contributor Listing.
 
