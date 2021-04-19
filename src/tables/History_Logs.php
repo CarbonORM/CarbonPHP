@@ -192,7 +192,7 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
      *          [self::class => 'disallowPublicAccess', self::class]
      *  though would loose information as self::class is a dynamic variable which must be used in this class given 
      *  static and constant context. 
-     *  @version ^8.3
+     *  @version ^9
      */
  
     public const PHP_VALIDATION = [
@@ -442,7 +442,8 @@ MYSQL;
             throw new PublicAlert('The column \'history_logs.data\' failed to be json encoded.');
         }
         $stmt->bindValue(':data', $data, PDO::PARAM_STR);
-                if (!$stmt->execute()) {
+        
+        if (!$stmt->execute()) {
             self::completeRest();
             throw new PublicAlert('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }

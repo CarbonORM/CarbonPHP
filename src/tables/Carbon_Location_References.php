@@ -190,7 +190,7 @@ class Carbon_Location_References extends Rest implements iRestNoPrimaryKey
      *          [self::class => 'disallowPublicAccess', self::class]
      *  though would loose information as self::class is a dynamic variable which must be used in this class given 
      *  static and constant context. 
-     *  @version ^8.3
+     *  @version ^9
      */
  
     public const PHP_VALIDATION = [ 
@@ -417,7 +417,8 @@ MYSQL;
         if (array_key_exists('carbon_location_references.location_time', $data)) {
             throw new PublicAlert('The column \'carbon_location_references.location_time\' is set to default to CURRENT_TIMESTAMP. The Rest API does not allow POST requests with columns explicitly set whose default is CURRENT_TIMESTAMP. You can remove to the default in MySQL or the column \'carbon_location_references.location_time\' from the request.');
         }
-                if (!$stmt->execute()) {
+        
+        if (!$stmt->execute()) {
             self::completeRest();
             throw new PublicAlert('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }

@@ -195,7 +195,7 @@ class Carbon_Locations extends Rest implements iRestSinglePrimaryKey
      *          [self::class => 'disallowPublicAccess', self::class]
      *  though would loose information as self::class is a dynamic variable which must be used in this class given 
      *  static and constant context. 
-     *  @version ^8.3
+     *  @version ^9
      */
  
     public const PHP_VALIDATION = [ 

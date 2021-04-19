@@ -1718,11 +1718,11 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
         }
         \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
-        {{/length}}{{/skip}}{{/primary_binary}}{{/explode}}{{#binary_primary}}
+        {{/length}}{{/skip}}{{/primary_binary}}{{/explode}}
         if (!\$stmt->execute()) {
             self::completeRest();
             throw new PublicAlert('The REST generated PDOStatement failed to execute with error :: ' . json_encode(\$stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
-        }
+        }{{#binary_primary}}
         
         self::prepostprocessRestRequest(\$id);
          
@@ -1736,12 +1736,8 @@ MYSQL;
         
         return \$id; 
         {{/binary_primary}}{{^binary_primary}}{{#auto_increment_return_key}}
-        \$id = \$pdo->lastInsertId();
-        {{/auto_increment_return_key}}
-        if (!\$stmt->execute()) {
-            self::completeRest();
-            throw new PublicAlert('The REST generated PDOStatement failed to execute with error :: ' . json_encode(\$stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
-        }
+        
+        \$id = \$pdo->lastInsertId();{{/auto_increment_return_key}}
         
         self::prepostprocessRestRequest({{#auto_increment_return_key}}\$id{{/auto_increment_return_key}});
         

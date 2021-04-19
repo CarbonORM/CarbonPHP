@@ -190,7 +190,7 @@ class Creation_Logs extends Rest implements iRestNoPrimaryKey
      *          [self::class => 'disallowPublicAccess', self::class]
      *  though would loose information as self::class is a dynamic variable which must be used in this class given 
      *  static and constant context. 
-     *  @version ^8.3
+     *  @version ^9
      */
  
     public const PHP_VALIDATION = [ 
@@ -420,7 +420,8 @@ MYSQL;
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'creation_logs.resource_uuid\'.');
         }
         $stmt->bindParam(':resource_uuid',$resource_uuid, PDO::PARAM_STR, 16);
-                if (!$stmt->execute()) {
+        
+        if (!$stmt->execute()) {
             self::completeRest();
             throw new PublicAlert('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }
