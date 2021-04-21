@@ -1779,7 +1779,7 @@ MYSQL;
     * @throws PublicAlert|PDOException|JsonException
     * @return bool - if execute fails, false will be returned and \$returnUpdated = \$stmt->errorInfo(); 
     */
-    public static function Put(array &\$returnUpdated, {{#primaryExists}}string \$primary,{{/primaryExists}} array \$argv) : bool
+    public static function Put(array &\$returnUpdated, {{#primaryExists}}{{#multiplePrimary}}array{{/multiplePrimary}}{{^multiplePrimary}}string{{/multiplePrimary}} \$primary,{{/primaryExists}} array \$argv) : bool
     {
         self::startRest(self::PUT, \$returnUpdated, \$argv{{#primaryExists}}, \$primary{{/primaryExists}});
         
@@ -1902,7 +1902,7 @@ MYSQL;
     * @throws PublicAlert|PDOException|JsonException
     * @return bool
     */
-    public static function Delete(array &\$remove, {{#primaryExists}}string \$primary = null, {{/primaryExists}}array \$argv = []) : bool
+    public static function Delete(array &\$remove, {{#primaryExists}}{{#multiplePrimary}}array{{/multiplePrimary}}{{^multiplePrimary}}string{{/multiplePrimary}} \$primary = null, {{/primaryExists}}array \$argv = []) : bool
     {
         self::startRest(self::DELETE, \$remove, \$argv{{#primaryExists}}, \$primary{{/primaryExists}});
         {{#carbon_table}}
