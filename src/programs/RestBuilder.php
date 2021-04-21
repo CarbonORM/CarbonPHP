@@ -4,7 +4,7 @@ namespace CarbonPHP\Programs;
 
 
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Database;use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iCommand;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestfulReferences;
@@ -1879,8 +1879,12 @@ MYSQL;
         );
 
         \$returnUpdated = array_merge(\$returnUpdated, \$argv);
-
+        
         self::prepostprocessRestRequest(\$returnUpdated);
+        
+        if (self::\$commit && !Database::commit()) {
+           throw new PublicAlert('Failed to store commit transaction on table wp_zesv6j_dig_comp_tourneytype');
+        }
         
         self::postprocessRestRequest(\$returnUpdated);
         
@@ -1942,6 +1946,10 @@ MYSQL;
         \$remove = [];
         
         self::prepostprocessRestRequest(\$remove);
+        
+        if (self::\$commit && !Database::commit()) {
+           throw new PublicAlert('Failed to store commit transaction on table wp_zesv6j_dig_comp_tourneytype');
+        }
         
         self::postprocessRestRequest(\$remove);
         
@@ -2005,6 +2013,10 @@ MYSQL;
         \$remove = [];
         
         self::prepostprocessRestRequest(\$remove);
+        
+        if (self::\$commit && !Database::commit()) {
+           throw new PublicAlert('Failed to store commit transaction on table wp_zesv6j_dig_comp_tourneytype');
+        }
         
         self::postprocessRestRequest(\$remove);
         
