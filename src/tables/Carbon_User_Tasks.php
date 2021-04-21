@@ -698,8 +698,12 @@ MYSQL;
         );
 
         $returnUpdated = array_merge($returnUpdated, $argv);
-
+        
         self::prepostprocessRestRequest($returnUpdated);
+        
+        if (self::$commit && !Database::commit()) {
+           throw new PublicAlert('Failed to store commit transaction on table carbon_user_tasks');
+        }
         
         self::postprocessRestRequest($returnUpdated);
         
@@ -760,6 +764,10 @@ MYSQL;
         $remove = [];
         
         self::prepostprocessRestRequest($remove);
+        
+        if (self::$commit && !Database::commit()) {
+           throw new PublicAlert('Failed to store commit transaction on table carbon_user_tasks');
+        }
         
         self::postprocessRestRequest($remove);
         

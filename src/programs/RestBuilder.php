@@ -1883,7 +1883,7 @@ MYSQL;
         self::prepostprocessRestRequest(\$returnUpdated);
         
         if (self::\$commit && !Database::commit()) {
-           throw new PublicAlert('Failed to store commit transaction on table wp_zesv6j_dig_comp_tourneytype');
+           throw new PublicAlert('Failed to store commit transaction on table {{TableName}}');
         }
         
         self::postprocessRestRequest(\$returnUpdated);
@@ -1948,7 +1948,7 @@ MYSQL;
         self::prepostprocessRestRequest(\$remove);
         
         if (self::\$commit && !Database::commit()) {
-           throw new PublicAlert('Failed to store commit transaction on table wp_zesv6j_dig_comp_tourneytype');
+           throw new PublicAlert('Failed to store commit transaction on table {{TableName}}');
         }
         
         self::postprocessRestRequest(\$remove);
@@ -2015,7 +2015,7 @@ MYSQL;
         self::prepostprocessRestRequest(\$remove);
         
         if (self::\$commit && !Database::commit()) {
-           throw new PublicAlert('Failed to store commit transaction on table wp_zesv6j_dig_comp_tourneytype');
+           throw new PublicAlert('Failed to store commit transaction on table {{TableName}}');
         }
         
         self::postprocessRestRequest(\$remove);

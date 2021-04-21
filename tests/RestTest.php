@@ -123,6 +123,12 @@ final class RestTest extends Config
      */
     public function testRestApiCanAggregate(): void
     {
+        $return = [];
+
+        self::assertTrue(Carbons::Get($return, $key = Carbons::Post([
+            Carbons::ENTITY_TAG => self::class
+        ])));
+
         $temp = [];
 
         self::assertTrue(Carbons::Get($temp, null, [
