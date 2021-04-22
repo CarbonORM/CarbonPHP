@@ -69,7 +69,7 @@ class Wp_Commentmeta extends Rest implements iRestSinglePrimaryKey
     ];
 
     public const PDO_VALIDATION = [
-        'wp_commentmeta.meta_id' => ['bigint', 'PDO::PARAM_STR', ''],'wp_commentmeta.comment_id' => ['bigint', 'PDO::PARAM_STR', ''],'wp_commentmeta.meta_key' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_commentmeta.meta_value' => ['longtext', 'PDO::PARAM_STR', ''],
+        'wp_commentmeta.meta_id' => ['bigint', 'PDO::PARAM_INT', ''],'wp_commentmeta.comment_id' => ['bigint', 'PDO::PARAM_INT', ''],'wp_commentmeta.meta_key' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_commentmeta.meta_value' => ['longtext', 'PDO::PARAM_STR', ''],
     ];
      
     /**
@@ -410,7 +410,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $comment_id, $comment_id === '0')) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'wp_commentmeta.comment_id\'.');
         }
-        $stmt->bindValue(':comment_id', $comment_id, PDO::PARAM_STR);
+        $stmt->bindValue(':comment_id', $comment_id, PDO::PARAM_INT);
         
         $meta_key = $data['wp_commentmeta.meta_key'] ?? null;
         $ref='wp_commentmeta.meta_key';
@@ -523,9 +523,9 @@ MYSQL;
         $stmt = $pdo->prepare($sql);
 
         if (array_key_exists('wp_commentmeta.meta_id', $argv)) {
-            $stmt->bindValue(':meta_id',$argv['wp_commentmeta.meta_id'], PDO::PARAM_STR);
+            $stmt->bindValue(':meta_id',$argv['wp_commentmeta.meta_id'], PDO::PARAM_INT);
 }if (array_key_exists('wp_commentmeta.comment_id', $argv)) {
-            $stmt->bindValue(':comment_id',$argv['wp_commentmeta.comment_id'], PDO::PARAM_STR);
+            $stmt->bindValue(':comment_id',$argv['wp_commentmeta.comment_id'], PDO::PARAM_INT);
 }if (array_key_exists('wp_commentmeta.meta_key', $argv)) {
             $meta_key = $argv['wp_commentmeta.meta_key'];
             $ref = 'wp_commentmeta.meta_key';

@@ -78,7 +78,7 @@ class Wp_Links extends Rest implements iRestSinglePrimaryKey
     ];
 
     public const PDO_VALIDATION = [
-        'wp_links.link_id' => ['bigint', 'PDO::PARAM_STR', ''],'wp_links.link_url' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_links.link_name' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_links.link_image' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_links.link_target' => ['varchar', 'PDO::PARAM_STR', '25'],'wp_links.link_description' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_links.link_visible' => ['varchar', 'PDO::PARAM_STR', '20'],'wp_links.link_owner' => ['bigint', 'PDO::PARAM_STR', ''],'wp_links.link_rating' => ['int', 'PDO::PARAM_INT', ''],'wp_links.link_updated' => ['datetime', 'PDO::PARAM_STR', ''],'wp_links.link_rel' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_links.link_notes' => ['mediumtext', 'PDO::PARAM_STR', ''],'wp_links.link_rss' => ['varchar', 'PDO::PARAM_STR', '255'],
+        'wp_links.link_id' => ['bigint', 'PDO::PARAM_INT', ''],'wp_links.link_url' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_links.link_name' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_links.link_image' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_links.link_target' => ['varchar', 'PDO::PARAM_STR', '25'],'wp_links.link_description' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_links.link_visible' => ['varchar', 'PDO::PARAM_STR', '20'],'wp_links.link_owner' => ['bigint', 'PDO::PARAM_INT', ''],'wp_links.link_rating' => ['int', 'PDO::PARAM_INT', ''],'wp_links.link_updated' => ['datetime', 'PDO::PARAM_STR', ''],'wp_links.link_rel' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_links.link_notes' => ['mediumtext', 'PDO::PARAM_STR', ''],'wp_links.link_rss' => ['varchar', 'PDO::PARAM_STR', '255'],
     ];
      
     /**
@@ -475,7 +475,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $link_owner, $link_owner === '1')) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'wp_links.link_owner\'.');
         }
-        $stmt->bindValue(':link_owner', $link_owner, PDO::PARAM_STR);
+        $stmt->bindValue(':link_owner', $link_owner, PDO::PARAM_INT);
                  
         $link_rating = $data['wp_links.link_rating'] ?? '0';
         $ref='wp_links.link_rating';
@@ -630,7 +630,7 @@ MYSQL;
         $stmt = $pdo->prepare($sql);
 
         if (array_key_exists('wp_links.link_id', $argv)) {
-            $stmt->bindValue(':link_id',$argv['wp_links.link_id'], PDO::PARAM_STR);
+            $stmt->bindValue(':link_id',$argv['wp_links.link_id'], PDO::PARAM_INT);
 }if (array_key_exists('wp_links.link_url', $argv)) {
             $link_url = $argv['wp_links.link_url'];
             $ref = 'wp_links.link_url';
@@ -680,7 +680,7 @@ MYSQL;
             }
             $stmt->bindParam(':link_visible',$link_visible, PDO::PARAM_STR, 20);
         }if (array_key_exists('wp_links.link_owner', $argv)) {
-            $stmt->bindValue(':link_owner',$argv['wp_links.link_owner'], PDO::PARAM_STR);
+            $stmt->bindValue(':link_owner',$argv['wp_links.link_owner'], PDO::PARAM_INT);
 }if (array_key_exists('wp_links.link_rating', $argv)) {
             $stmt->bindValue(':link_rating',$argv['wp_links.link_rating'], PDO::PARAM_INT);
 }if (array_key_exists('wp_links.link_updated', $argv)) {

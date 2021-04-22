@@ -11,6 +11,8 @@
       <sourceFolder url="file://$MODULE_DIR$/src/helpers" isTestSource="false" packagePrefix="CarbonPHP\Helpers\" />
       <sourceFolder url="file://$MODULE_DIR$/src/tables" isTestSource="false" packagePrefix="CarbonPHP\Tables\" />
       <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="false" packagePrefix="Tests\" />
+      <sourceFolder url="file://$MODULE_DIR$/tests/browser" isTestSource="false" packagePrefix="Tests\Browser\" />
+      <sourceFolder url="file://$MODULE_DIR$/tests/feature" isTestSource="false" packagePrefix="Tests\Feature\" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

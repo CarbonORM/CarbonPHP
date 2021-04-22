@@ -1,9 +1,10 @@
 <?php
 
-namespace Tests;
+namespace Tests\Feature;
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
+use Config\Documentation;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -81,18 +82,15 @@ abstract class Config extends TestCase
         define('DS', DIRECTORY_SEPARATOR);
 
         // Set our root folder for the application, this will move up one directory to the c6 root
-        define('SERVER_ROOT', dirname(__DIR__) . DS);
+        define('SERVER_ROOT', dirname(__DIR__, 2) . DS);
 
         CarbonPHP::$app_root = SERVER_ROOT;
 
-        // Composer autoload
-        if (false === (include  CarbonPHP::$app_root . 'vendor' . DS . 'autoload.php')) {     // Load the autoload() for composer dependencies located in the Services folder
-            die(1);
+        // Composer autoload, phpunit has some sort of auto-loading to get us this far, but we need ours
+        /** @noinspection PhpIncludeInspection - i hate this issue */
+        if (false === (include SERVER_ROOT . DIRECTORY_SEPARATOR . 'wp-load.php')) {     // Load the autoload() for composer dependencies located in the Services folder
+            die("Failed to load wordpress.");
         }
-
-        // The app can exit here if a configuration failure exists
-        new CarbonPHP(\Config\Documentation::class);
-
     }
 
     public function commit(callable $lambda = null): bool

@@ -69,7 +69,7 @@ class Wp_Options extends Rest implements iRestSinglePrimaryKey
     ];
 
     public const PDO_VALIDATION = [
-        'wp_options.option_id' => ['bigint', 'PDO::PARAM_STR', ''],'wp_options.option_name' => ['varchar', 'PDO::PARAM_STR', '191'],'wp_options.option_value' => ['longtext', 'PDO::PARAM_STR', ''],'wp_options.autoload' => ['varchar', 'PDO::PARAM_STR', '20'],
+        'wp_options.option_id' => ['bigint', 'PDO::PARAM_INT', ''],'wp_options.option_name' => ['varchar', 'PDO::PARAM_STR', '191'],'wp_options.option_value' => ['longtext', 'PDO::PARAM_STR', ''],'wp_options.autoload' => ['varchar', 'PDO::PARAM_STR', '20'],
     ];
      
     /**
@@ -523,7 +523,7 @@ MYSQL;
         $stmt = $pdo->prepare($sql);
 
         if (array_key_exists('wp_options.option_id', $argv)) {
-            $stmt->bindValue(':option_id',$argv['wp_options.option_id'], PDO::PARAM_STR);
+            $stmt->bindValue(':option_id',$argv['wp_options.option_id'], PDO::PARAM_INT);
 }if (array_key_exists('wp_options.option_name', $argv)) {
             $option_name = $argv['wp_options.option_name'];
             $ref = 'wp_options.option_name';

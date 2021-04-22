@@ -17,7 +17,7 @@ use function is_array;
 
 // Custom User Imports
 use CarbonPHP\CarbonPHP;
-use Tests\RestTest;
+use Tests\Feature\RestTest;
 
 /**
  * 

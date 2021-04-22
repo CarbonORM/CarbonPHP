@@ -69,7 +69,7 @@ class Wp_Term_Relationships extends Rest implements iRestMultiplePrimaryKeys
     ];
 
     public const PDO_VALIDATION = [
-        'wp_term_relationships.object_id' => ['bigint', 'PDO::PARAM_STR', ''],'wp_term_relationships.term_taxonomy_id' => ['bigint', 'PDO::PARAM_STR', ''],'wp_term_relationships.term_order' => ['int', 'PDO::PARAM_INT', ''],
+        'wp_term_relationships.object_id' => ['bigint', 'PDO::PARAM_INT', ''],'wp_term_relationships.term_taxonomy_id' => ['bigint', 'PDO::PARAM_INT', ''],'wp_term_relationships.term_order' => ['int', 'PDO::PARAM_INT', ''],
     ];
      
     /**
@@ -411,7 +411,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $object_id, $object_id === '0')) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'wp_term_relationships.object_id\'.');
         }
-        $stmt->bindValue(':object_id', $object_id, PDO::PARAM_STR);
+        $stmt->bindValue(':object_id', $object_id, PDO::PARAM_INT);
                  
         $term_taxonomy_id = $data['wp_term_relationships.term_taxonomy_id'] ?? '0';
         $ref='wp_term_relationships.term_taxonomy_id';
@@ -419,7 +419,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $term_taxonomy_id, $term_taxonomy_id === '0')) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'wp_term_relationships.term_taxonomy_id\'.');
         }
-        $stmt->bindValue(':term_taxonomy_id', $term_taxonomy_id, PDO::PARAM_STR);
+        $stmt->bindValue(':term_taxonomy_id', $term_taxonomy_id, PDO::PARAM_INT);
                  
         $term_order = $data['wp_term_relationships.term_order'] ?? '0';
         $ref='wp_term_relationships.term_order';
@@ -518,9 +518,9 @@ MYSQL;
         $stmt = $pdo->prepare($sql);
 
         if (array_key_exists('wp_term_relationships.object_id', $argv)) {
-            $stmt->bindValue(':object_id',$argv['wp_term_relationships.object_id'], PDO::PARAM_STR);
+            $stmt->bindValue(':object_id',$argv['wp_term_relationships.object_id'], PDO::PARAM_INT);
 }if (array_key_exists('wp_term_relationships.term_taxonomy_id', $argv)) {
-            $stmt->bindValue(':term_taxonomy_id',$argv['wp_term_relationships.term_taxonomy_id'], PDO::PARAM_STR);
+            $stmt->bindValue(':term_taxonomy_id',$argv['wp_term_relationships.term_taxonomy_id'], PDO::PARAM_INT);
 }if (array_key_exists('wp_term_relationships.term_order', $argv)) {
             $stmt->bindValue(':term_order',$argv['wp_term_relationships.term_order'], PDO::PARAM_INT);
 }

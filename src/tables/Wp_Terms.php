@@ -69,7 +69,7 @@ class Wp_Terms extends Rest implements iRestSinglePrimaryKey
     ];
 
     public const PDO_VALIDATION = [
-        'wp_terms.term_id' => ['bigint', 'PDO::PARAM_STR', ''],'wp_terms.name' => ['varchar', 'PDO::PARAM_STR', '200'],'wp_terms.slug' => ['varchar', 'PDO::PARAM_STR', '200'],'wp_terms.term_group' => ['bigint', 'PDO::PARAM_STR', ''],
+        'wp_terms.term_id' => ['bigint', 'PDO::PARAM_INT', ''],'wp_terms.name' => ['varchar', 'PDO::PARAM_STR', '200'],'wp_terms.slug' => ['varchar', 'PDO::PARAM_STR', '200'],'wp_terms.term_group' => ['bigint', 'PDO::PARAM_INT', ''],
     ];
      
     /**
@@ -426,7 +426,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $term_group, $term_group === '0')) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'wp_terms.term_group\'.');
         }
-        $stmt->bindValue(':term_group', $term_group, PDO::PARAM_STR);
+        $stmt->bindValue(':term_group', $term_group, PDO::PARAM_INT);
         
         if (!$stmt->execute()) {
             self::completeRest();
@@ -521,7 +521,7 @@ MYSQL;
         $stmt = $pdo->prepare($sql);
 
         if (array_key_exists('wp_terms.term_id', $argv)) {
-            $stmt->bindValue(':term_id',$argv['wp_terms.term_id'], PDO::PARAM_STR);
+            $stmt->bindValue(':term_id',$argv['wp_terms.term_id'], PDO::PARAM_INT);
 }if (array_key_exists('wp_terms.name', $argv)) {
             $name = $argv['wp_terms.name'];
             $ref = 'wp_terms.name';
@@ -539,7 +539,7 @@ MYSQL;
             }
             $stmt->bindParam(':slug',$slug, PDO::PARAM_STR, 200);
         }if (array_key_exists('wp_terms.term_group', $argv)) {
-            $stmt->bindValue(':term_group',$argv['wp_terms.term_group'], PDO::PARAM_STR);
+            $stmt->bindValue(':term_group',$argv['wp_terms.term_group'], PDO::PARAM_INT);
 }
 
         self::bind($stmt);

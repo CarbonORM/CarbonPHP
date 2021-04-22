@@ -71,7 +71,7 @@ class Wp_Term_Taxonomy extends Rest implements iRestSinglePrimaryKey
     ];
 
     public const PDO_VALIDATION = [
-        'wp_term_taxonomy.term_taxonomy_id' => ['bigint', 'PDO::PARAM_STR', ''],'wp_term_taxonomy.term_id' => ['bigint', 'PDO::PARAM_STR', ''],'wp_term_taxonomy.taxonomy' => ['varchar', 'PDO::PARAM_STR', '32'],'wp_term_taxonomy.description' => ['longtext', 'PDO::PARAM_STR', ''],'wp_term_taxonomy.parent' => ['bigint', 'PDO::PARAM_STR', ''],'wp_term_taxonomy.count' => ['bigint', 'PDO::PARAM_STR', ''],
+        'wp_term_taxonomy.term_taxonomy_id' => ['bigint', 'PDO::PARAM_INT', ''],'wp_term_taxonomy.term_id' => ['bigint', 'PDO::PARAM_INT', ''],'wp_term_taxonomy.taxonomy' => ['varchar', 'PDO::PARAM_STR', '32'],'wp_term_taxonomy.description' => ['longtext', 'PDO::PARAM_STR', ''],'wp_term_taxonomy.parent' => ['bigint', 'PDO::PARAM_INT', ''],'wp_term_taxonomy.count' => ['bigint', 'PDO::PARAM_INT', ''],
     ];
      
     /**
@@ -414,7 +414,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $term_id, $term_id === '0')) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'wp_term_taxonomy.term_id\'.');
         }
-        $stmt->bindValue(':term_id', $term_id, PDO::PARAM_STR);
+        $stmt->bindValue(':term_id', $term_id, PDO::PARAM_INT);
         
         $taxonomy = $data['wp_term_taxonomy.taxonomy'] ?? '';
         $ref='wp_term_taxonomy.taxonomy';
@@ -440,7 +440,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $parent, $parent === '0')) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'wp_term_taxonomy.parent\'.');
         }
-        $stmt->bindValue(':parent', $parent, PDO::PARAM_STR);
+        $stmt->bindValue(':parent', $parent, PDO::PARAM_INT);
                  
         $count = $data['wp_term_taxonomy.count'] ?? '0';
         $ref='wp_term_taxonomy.count';
@@ -448,7 +448,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $count, $count === '0')) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'wp_term_taxonomy.count\'.');
         }
-        $stmt->bindValue(':count', $count, PDO::PARAM_STR);
+        $stmt->bindValue(':count', $count, PDO::PARAM_INT);
         
         if (!$stmt->execute()) {
             self::completeRest();
@@ -547,9 +547,9 @@ MYSQL;
         $stmt = $pdo->prepare($sql);
 
         if (array_key_exists('wp_term_taxonomy.term_taxonomy_id', $argv)) {
-            $stmt->bindValue(':term_taxonomy_id',$argv['wp_term_taxonomy.term_taxonomy_id'], PDO::PARAM_STR);
+            $stmt->bindValue(':term_taxonomy_id',$argv['wp_term_taxonomy.term_taxonomy_id'], PDO::PARAM_INT);
 }if (array_key_exists('wp_term_taxonomy.term_id', $argv)) {
-            $stmt->bindValue(':term_id',$argv['wp_term_taxonomy.term_id'], PDO::PARAM_STR);
+            $stmt->bindValue(':term_id',$argv['wp_term_taxonomy.term_id'], PDO::PARAM_INT);
 }if (array_key_exists('wp_term_taxonomy.taxonomy', $argv)) {
             $taxonomy = $argv['wp_term_taxonomy.taxonomy'];
             $ref = 'wp_term_taxonomy.taxonomy';
@@ -561,9 +561,9 @@ MYSQL;
         }if (array_key_exists('wp_term_taxonomy.description', $argv)) {
             $stmt->bindValue(':description',$argv['wp_term_taxonomy.description'], PDO::PARAM_STR);
 }if (array_key_exists('wp_term_taxonomy.parent', $argv)) {
-            $stmt->bindValue(':parent',$argv['wp_term_taxonomy.parent'], PDO::PARAM_STR);
+            $stmt->bindValue(':parent',$argv['wp_term_taxonomy.parent'], PDO::PARAM_INT);
 }if (array_key_exists('wp_term_taxonomy.count', $argv)) {
-            $stmt->bindValue(':count',$argv['wp_term_taxonomy.count'], PDO::PARAM_STR);
+            $stmt->bindValue(':count',$argv['wp_term_taxonomy.count'], PDO::PARAM_INT);
 }
 
         self::bind($stmt);

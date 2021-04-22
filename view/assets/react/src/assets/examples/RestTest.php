@@ -219,7 +219,6 @@ final class RestTest extends Config
             Carbon_Location_References::LOCATION_REFERENCE => $lid
         ]), 'Failed to create location references.');
 
-        $this->commit();
 
         $user = [];
 

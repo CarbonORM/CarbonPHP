@@ -48,6 +48,8 @@
       "CarbonPHP\\Programs\\": "src/programs/",
       "CarbonPHP\\Tables\\": "src/tables/",
       "CarbonPHP\\": "src/",
+      "Tests\\Browser\\": "tests/browser/",
+      "Tests\\Feature\\": "tests/feature/",
       "Tests\\": "tests/",
       "Config\\": "config/"
     }

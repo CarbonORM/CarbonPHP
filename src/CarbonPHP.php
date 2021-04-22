@@ -9,7 +9,7 @@ use CarbonPHP\Interfaces\iConfig;
 use CarbonPHP\Programs\CLI;
 use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Programs\WebSocket;
-use Tests\RestTest;
+use Tests\Feature\RestTest;
 use Throwable;
 use function define;
 use function defined;

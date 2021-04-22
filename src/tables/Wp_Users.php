@@ -75,7 +75,7 @@ class Wp_Users extends Rest implements iRestSinglePrimaryKey
     ];
 
     public const PDO_VALIDATION = [
-        'wp_users.ID' => ['bigint', 'PDO::PARAM_STR', ''],'wp_users.user_login' => ['varchar', 'PDO::PARAM_STR', '60'],'wp_users.user_pass' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_users.user_nicename' => ['varchar', 'PDO::PARAM_STR', '50'],'wp_users.user_email' => ['varchar', 'PDO::PARAM_STR', '100'],'wp_users.user_url' => ['varchar', 'PDO::PARAM_STR', '100'],'wp_users.user_registered' => ['datetime', 'PDO::PARAM_STR', ''],'wp_users.user_activation_key' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_users.user_status' => ['int', 'PDO::PARAM_INT', ''],'wp_users.display_name' => ['varchar', 'PDO::PARAM_STR', '250'],
+        'wp_users.ID' => ['bigint', 'PDO::PARAM_INT', ''],'wp_users.user_login' => ['varchar', 'PDO::PARAM_STR', '60'],'wp_users.user_pass' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_users.user_nicename' => ['varchar', 'PDO::PARAM_STR', '50'],'wp_users.user_email' => ['varchar', 'PDO::PARAM_STR', '100'],'wp_users.user_url' => ['varchar', 'PDO::PARAM_STR', '100'],'wp_users.user_registered' => ['datetime', 'PDO::PARAM_STR', ''],'wp_users.user_activation_key' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_users.user_status' => ['int', 'PDO::PARAM_INT', ''],'wp_users.display_name' => ['varchar', 'PDO::PARAM_STR', '250'],
     ];
      
     /**
@@ -594,7 +594,7 @@ MYSQL;
         $stmt = $pdo->prepare($sql);
 
         if (array_key_exists('wp_users.ID', $argv)) {
-            $stmt->bindValue(':ID',$argv['wp_users.ID'], PDO::PARAM_STR);
+            $stmt->bindValue(':ID',$argv['wp_users.ID'], PDO::PARAM_INT);
 }if (array_key_exists('wp_users.user_login', $argv)) {
             $user_login = $argv['wp_users.user_login'];
             $ref = 'wp_users.user_login';

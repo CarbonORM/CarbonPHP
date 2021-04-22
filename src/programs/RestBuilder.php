@@ -659,6 +659,7 @@ END;
                             # $PDO = [0 => PDO::PARAM_NULL, 1 => PDO::PARAM_BOOL, 2 => PDO::PARAM_INT, 3 => PDO::PARAM_STR];
 
                             switch ($type) {                // Use pdo for what it can actually do
+                                case 'bigint':
                                 case 'tinyint': // @link https://stackoverflow.com/questions/12839927/mysql-tinyint-2-vs-tinyint1-what-is-the-difference
                                 case 'int':
                                 case 'smallint':

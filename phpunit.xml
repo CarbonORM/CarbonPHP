@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit backupGlobals="false"
          backupStaticAttributes="false"
+         bootstrap="vendor/autoload.php"
          colors="true"
          convertErrorsToExceptions="true"
          convertNoticesToExceptions="true"
@@ -8,8 +9,14 @@
          stopOnFailure="false"
          syntaxCheck="false">
     <testsuites>
-        <testsuite name="CarbonPHP Test Suite">
-            <directory>./tests/</directory>
+        <testsuite name="feature">
+            <file>tests/feature/UserTest.php</file>
+            <file>tests/feature/RestTest.php</file>
+            <file>tests/feature/WordpressTest.php</file>
+            <file>tests/feature/RestWordpressTest.php</file>
+        </testsuite>
+        <testsuite name="browser">
+            <directory>./tests/browser/</directory>
         </testsuite>
     </testsuites>
     <php>

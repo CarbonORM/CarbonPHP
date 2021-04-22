@@ -465,12 +465,9 @@ abstract class Rest extends Database
 
                     if (array_key_exists(0, $_GET)) {
                         $_GET = json_decode(stripcslashes($_GET[0]), true, JSON_THROW_ON_ERROR);    // which is why this is here
-
                         if (null === $_GET) {
                             throw new PublicAlert('Json decoding of $_GET[0] returned null. Please attempt serializing another way.');
                         }
-
-
                     } else {
                         array_key_exists(self::SELECT, $_GET) and $_GET[self::SELECT] = json_decode($_GET[self::SELECT], true);
                         array_key_exists(self::JOIN, $_GET) and $_GET[self::JOIN] = json_decode($_GET[self::JOIN], true);
@@ -757,7 +754,7 @@ abstract class Rest extends Database
             }
             $limit = "$order $limit";
         } else if (!$noHEX && static::PRIMARY !== null) {
-            $limit = ' ORDER BY ' . (is_string(static::PRIMARY) ? static::PRIMARY : static::PRIMARY[0]). ' ASC LIMIT 100';
+            $limit = ' ORDER BY ' . (is_string(static::PRIMARY) ? static::PRIMARY : static::PRIMARY[0]). ' ASC LIMIT ' . (null === $primary ? '100' : '1');
         } else {
             $limit = '';
         }

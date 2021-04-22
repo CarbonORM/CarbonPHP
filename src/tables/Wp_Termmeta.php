@@ -69,7 +69,7 @@ class Wp_Termmeta extends Rest implements iRestSinglePrimaryKey
     ];
 
     public const PDO_VALIDATION = [
-        'wp_termmeta.meta_id' => ['bigint', 'PDO::PARAM_STR', ''],'wp_termmeta.term_id' => ['bigint', 'PDO::PARAM_STR', ''],'wp_termmeta.meta_key' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_termmeta.meta_value' => ['longtext', 'PDO::PARAM_STR', ''],
+        'wp_termmeta.meta_id' => ['bigint', 'PDO::PARAM_INT', ''],'wp_termmeta.term_id' => ['bigint', 'PDO::PARAM_INT', ''],'wp_termmeta.meta_key' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_termmeta.meta_value' => ['longtext', 'PDO::PARAM_STR', ''],
     ];
      
     /**
@@ -410,7 +410,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $term_id, $term_id === '0')) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'wp_termmeta.term_id\'.');
         }
-        $stmt->bindValue(':term_id', $term_id, PDO::PARAM_STR);
+        $stmt->bindValue(':term_id', $term_id, PDO::PARAM_INT);
         
         $meta_key = $data['wp_termmeta.meta_key'] ?? null;
         $ref='wp_termmeta.meta_key';
@@ -523,9 +523,9 @@ MYSQL;
         $stmt = $pdo->prepare($sql);
 
         if (array_key_exists('wp_termmeta.meta_id', $argv)) {
-            $stmt->bindValue(':meta_id',$argv['wp_termmeta.meta_id'], PDO::PARAM_STR);
+            $stmt->bindValue(':meta_id',$argv['wp_termmeta.meta_id'], PDO::PARAM_INT);
 }if (array_key_exists('wp_termmeta.term_id', $argv)) {
-            $stmt->bindValue(':term_id',$argv['wp_termmeta.term_id'], PDO::PARAM_STR);
+            $stmt->bindValue(':term_id',$argv['wp_termmeta.term_id'], PDO::PARAM_INT);
 }if (array_key_exists('wp_termmeta.meta_key', $argv)) {
             $meta_key = $argv['wp_termmeta.meta_key'];
             $ref = 'wp_termmeta.meta_key';

@@ -80,7 +80,7 @@ class Wp_Comments extends Rest implements iRestSinglePrimaryKey
     ];
 
     public const PDO_VALIDATION = [
-        'wp_comments.comment_ID' => ['bigint', 'PDO::PARAM_STR', ''],'wp_comments.comment_post_ID' => ['bigint', 'PDO::PARAM_STR', ''],'wp_comments.comment_author' => ['tinytext', 'PDO::PARAM_STR', ''],'wp_comments.comment_author_email' => ['varchar', 'PDO::PARAM_STR', '100'],'wp_comments.comment_author_url' => ['varchar', 'PDO::PARAM_STR', '200'],'wp_comments.comment_author_IP' => ['varchar', 'PDO::PARAM_STR', '100'],'wp_comments.comment_date' => ['datetime', 'PDO::PARAM_STR', ''],'wp_comments.comment_date_gmt' => ['datetime', 'PDO::PARAM_STR', ''],'wp_comments.comment_content' => ['text', 'PDO::PARAM_STR', ''],'wp_comments.comment_karma' => ['int', 'PDO::PARAM_INT', ''],'wp_comments.comment_approved' => ['varchar', 'PDO::PARAM_STR', '20'],'wp_comments.comment_agent' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_comments.comment_type' => ['varchar', 'PDO::PARAM_STR', '20'],'wp_comments.comment_parent' => ['bigint', 'PDO::PARAM_STR', ''],'wp_comments.user_id' => ['bigint', 'PDO::PARAM_STR', ''],
+        'wp_comments.comment_ID' => ['bigint', 'PDO::PARAM_INT', ''],'wp_comments.comment_post_ID' => ['bigint', 'PDO::PARAM_INT', ''],'wp_comments.comment_author' => ['tinytext', 'PDO::PARAM_STR', ''],'wp_comments.comment_author_email' => ['varchar', 'PDO::PARAM_STR', '100'],'wp_comments.comment_author_url' => ['varchar', 'PDO::PARAM_STR', '200'],'wp_comments.comment_author_IP' => ['varchar', 'PDO::PARAM_STR', '100'],'wp_comments.comment_date' => ['datetime', 'PDO::PARAM_STR', ''],'wp_comments.comment_date_gmt' => ['datetime', 'PDO::PARAM_STR', ''],'wp_comments.comment_content' => ['text', 'PDO::PARAM_STR', ''],'wp_comments.comment_karma' => ['int', 'PDO::PARAM_INT', ''],'wp_comments.comment_approved' => ['varchar', 'PDO::PARAM_STR', '20'],'wp_comments.comment_agent' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_comments.comment_type' => ['varchar', 'PDO::PARAM_STR', '20'],'wp_comments.comment_parent' => ['bigint', 'PDO::PARAM_INT', ''],'wp_comments.user_id' => ['bigint', 'PDO::PARAM_INT', ''],
     ];
      
     /**
@@ -435,7 +435,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $comment_post_ID, $comment_post_ID === '0')) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'wp_comments.comment_post_ID\'.');
         }
-        $stmt->bindValue(':comment_post_ID', $comment_post_ID, PDO::PARAM_STR);
+        $stmt->bindValue(':comment_post_ID', $comment_post_ID, PDO::PARAM_INT);
         
         if (!array_key_exists('wp_comments.comment_author', $data)) {
             throw new PublicAlert('The column \'wp_comments.comment_author\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
@@ -535,7 +535,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $comment_parent, $comment_parent === '0')) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'wp_comments.comment_parent\'.');
         }
-        $stmt->bindValue(':comment_parent', $comment_parent, PDO::PARAM_STR);
+        $stmt->bindValue(':comment_parent', $comment_parent, PDO::PARAM_INT);
                  
         $user_id = $data['wp_comments.user_id'] ?? '0';
         $ref='wp_comments.user_id';
@@ -543,7 +543,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $user_id, $user_id === '0')) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'wp_comments.user_id\'.');
         }
-        $stmt->bindValue(':user_id', $user_id, PDO::PARAM_STR);
+        $stmt->bindValue(':user_id', $user_id, PDO::PARAM_INT);
         
         if (!$stmt->execute()) {
             self::completeRest();
@@ -660,9 +660,9 @@ MYSQL;
         $stmt = $pdo->prepare($sql);
 
         if (array_key_exists('wp_comments.comment_ID', $argv)) {
-            $stmt->bindValue(':comment_ID',$argv['wp_comments.comment_ID'], PDO::PARAM_STR);
+            $stmt->bindValue(':comment_ID',$argv['wp_comments.comment_ID'], PDO::PARAM_INT);
 }if (array_key_exists('wp_comments.comment_post_ID', $argv)) {
-            $stmt->bindValue(':comment_post_ID',$argv['wp_comments.comment_post_ID'], PDO::PARAM_STR);
+            $stmt->bindValue(':comment_post_ID',$argv['wp_comments.comment_post_ID'], PDO::PARAM_INT);
 }if (array_key_exists('wp_comments.comment_author', $argv)) {
             $stmt->bindValue(':comment_author',$argv['wp_comments.comment_author'], PDO::PARAM_STR);
 }if (array_key_exists('wp_comments.comment_author_email', $argv)) {
@@ -722,9 +722,9 @@ MYSQL;
             }
             $stmt->bindParam(':comment_type',$comment_type, PDO::PARAM_STR, 20);
         }if (array_key_exists('wp_comments.comment_parent', $argv)) {
-            $stmt->bindValue(':comment_parent',$argv['wp_comments.comment_parent'], PDO::PARAM_STR);
+            $stmt->bindValue(':comment_parent',$argv['wp_comments.comment_parent'], PDO::PARAM_INT);
 }if (array_key_exists('wp_comments.user_id', $argv)) {
-            $stmt->bindValue(':user_id',$argv['wp_comments.user_id'], PDO::PARAM_STR);
+            $stmt->bindValue(':user_id',$argv['wp_comments.user_id'], PDO::PARAM_INT);
 }
 
         self::bind($stmt);

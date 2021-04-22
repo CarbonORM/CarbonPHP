@@ -69,7 +69,7 @@ class Wp_Usermeta extends Rest implements iRestSinglePrimaryKey
     ];
 
     public const PDO_VALIDATION = [
-        'wp_usermeta.umeta_id' => ['bigint', 'PDO::PARAM_STR', ''],'wp_usermeta.user_id' => ['bigint', 'PDO::PARAM_STR', ''],'wp_usermeta.meta_key' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_usermeta.meta_value' => ['longtext', 'PDO::PARAM_STR', ''],
+        'wp_usermeta.umeta_id' => ['bigint', 'PDO::PARAM_INT', ''],'wp_usermeta.user_id' => ['bigint', 'PDO::PARAM_INT', ''],'wp_usermeta.meta_key' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_usermeta.meta_value' => ['longtext', 'PDO::PARAM_STR', ''],
     ];
      
     /**
@@ -410,7 +410,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $user_id, $user_id === '0')) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'wp_usermeta.user_id\'.');
         }
-        $stmt->bindValue(':user_id', $user_id, PDO::PARAM_STR);
+        $stmt->bindValue(':user_id', $user_id, PDO::PARAM_INT);
         
         $meta_key = $data['wp_usermeta.meta_key'] ?? null;
         $ref='wp_usermeta.meta_key';
@@ -523,9 +523,9 @@ MYSQL;
         $stmt = $pdo->prepare($sql);
 
         if (array_key_exists('wp_usermeta.umeta_id', $argv)) {
-            $stmt->bindValue(':umeta_id',$argv['wp_usermeta.umeta_id'], PDO::PARAM_STR);
+            $stmt->bindValue(':umeta_id',$argv['wp_usermeta.umeta_id'], PDO::PARAM_INT);
 }if (array_key_exists('wp_usermeta.user_id', $argv)) {
-            $stmt->bindValue(':user_id',$argv['wp_usermeta.user_id'], PDO::PARAM_STR);
+            $stmt->bindValue(':user_id',$argv['wp_usermeta.user_id'], PDO::PARAM_INT);
 }if (array_key_exists('wp_usermeta.meta_key', $argv)) {
             $meta_key = $argv['wp_usermeta.meta_key'];
             $ref = 'wp_usermeta.meta_key';

@@ -88,7 +88,7 @@ class Wp_Posts extends Rest implements iRestSinglePrimaryKey
     ];
 
     public const PDO_VALIDATION = [
-        'wp_posts.ID' => ['bigint', 'PDO::PARAM_STR', ''],'wp_posts.post_author' => ['bigint', 'PDO::PARAM_STR', ''],'wp_posts.post_date' => ['datetime', 'PDO::PARAM_STR', ''],'wp_posts.post_date_gmt' => ['datetime', 'PDO::PARAM_STR', ''],'wp_posts.post_content' => ['longtext', 'PDO::PARAM_STR', ''],'wp_posts.post_title' => ['text', 'PDO::PARAM_STR', ''],'wp_posts.post_excerpt' => ['text', 'PDO::PARAM_STR', ''],'wp_posts.post_status' => ['varchar', 'PDO::PARAM_STR', '20'],'wp_posts.comment_status' => ['varchar', 'PDO::PARAM_STR', '20'],'wp_posts.ping_status' => ['varchar', 'PDO::PARAM_STR', '20'],'wp_posts.post_password' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_posts.post_name' => ['varchar', 'PDO::PARAM_STR', '200'],'wp_posts.to_ping' => ['text', 'PDO::PARAM_STR', ''],'wp_posts.pinged' => ['text', 'PDO::PARAM_STR', ''],'wp_posts.post_modified' => ['datetime', 'PDO::PARAM_STR', ''],'wp_posts.post_modified_gmt' => ['datetime', 'PDO::PARAM_STR', ''],'wp_posts.post_content_filtered' => ['longtext', 'PDO::PARAM_STR', ''],'wp_posts.post_parent' => ['bigint', 'PDO::PARAM_STR', ''],'wp_posts.guid' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_posts.menu_order' => ['int', 'PDO::PARAM_INT', ''],'wp_posts.post_type' => ['varchar', 'PDO::PARAM_STR', '20'],'wp_posts.post_mime_type' => ['varchar', 'PDO::PARAM_STR', '100'],'wp_posts.comment_count' => ['bigint', 'PDO::PARAM_STR', ''],
+        'wp_posts.ID' => ['bigint', 'PDO::PARAM_INT', ''],'wp_posts.post_author' => ['bigint', 'PDO::PARAM_INT', ''],'wp_posts.post_date' => ['datetime', 'PDO::PARAM_STR', ''],'wp_posts.post_date_gmt' => ['datetime', 'PDO::PARAM_STR', ''],'wp_posts.post_content' => ['longtext', 'PDO::PARAM_STR', ''],'wp_posts.post_title' => ['text', 'PDO::PARAM_STR', ''],'wp_posts.post_excerpt' => ['text', 'PDO::PARAM_STR', ''],'wp_posts.post_status' => ['varchar', 'PDO::PARAM_STR', '20'],'wp_posts.comment_status' => ['varchar', 'PDO::PARAM_STR', '20'],'wp_posts.ping_status' => ['varchar', 'PDO::PARAM_STR', '20'],'wp_posts.post_password' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_posts.post_name' => ['varchar', 'PDO::PARAM_STR', '200'],'wp_posts.to_ping' => ['text', 'PDO::PARAM_STR', ''],'wp_posts.pinged' => ['text', 'PDO::PARAM_STR', ''],'wp_posts.post_modified' => ['datetime', 'PDO::PARAM_STR', ''],'wp_posts.post_modified_gmt' => ['datetime', 'PDO::PARAM_STR', ''],'wp_posts.post_content_filtered' => ['longtext', 'PDO::PARAM_STR', ''],'wp_posts.post_parent' => ['bigint', 'PDO::PARAM_INT', ''],'wp_posts.guid' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_posts.menu_order' => ['int', 'PDO::PARAM_INT', ''],'wp_posts.post_type' => ['varchar', 'PDO::PARAM_STR', '20'],'wp_posts.post_mime_type' => ['varchar', 'PDO::PARAM_STR', '100'],'wp_posts.comment_count' => ['bigint', 'PDO::PARAM_INT', ''],
     ];
      
     /**
@@ -450,7 +450,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $post_author, $post_author === '0')) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'wp_posts.post_author\'.');
         }
-        $stmt->bindValue(':post_author', $post_author, PDO::PARAM_STR);
+        $stmt->bindValue(':post_author', $post_author, PDO::PARAM_INT);
                  
         $post_date = $data['wp_posts.post_date'] ?? '0000-00-00 00:00:00';
         $ref='wp_posts.post_date';
@@ -590,7 +590,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $post_parent, $post_parent === '0')) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'wp_posts.post_parent\'.');
         }
-        $stmt->bindValue(':post_parent', $post_parent, PDO::PARAM_STR);
+        $stmt->bindValue(':post_parent', $post_parent, PDO::PARAM_INT);
         
         $guid = $data['wp_posts.guid'] ?? '';
         $ref='wp_posts.guid';
@@ -630,7 +630,7 @@ MYSQL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $comment_count, $comment_count === '0')) {
             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'wp_posts.comment_count\'.');
         }
-        $stmt->bindValue(':comment_count', $comment_count, PDO::PARAM_STR);
+        $stmt->bindValue(':comment_count', $comment_count, PDO::PARAM_INT);
         
         if (!$stmt->execute()) {
             self::completeRest();
@@ -763,9 +763,9 @@ MYSQL;
         $stmt = $pdo->prepare($sql);
 
         if (array_key_exists('wp_posts.ID', $argv)) {
-            $stmt->bindValue(':ID',$argv['wp_posts.ID'], PDO::PARAM_STR);
+            $stmt->bindValue(':ID',$argv['wp_posts.ID'], PDO::PARAM_INT);
 }if (array_key_exists('wp_posts.post_author', $argv)) {
-            $stmt->bindValue(':post_author',$argv['wp_posts.post_author'], PDO::PARAM_STR);
+            $stmt->bindValue(':post_author',$argv['wp_posts.post_author'], PDO::PARAM_INT);
 }if (array_key_exists('wp_posts.post_date', $argv)) {
             $stmt->bindValue(':post_date',$argv['wp_posts.post_date'], PDO::PARAM_STR);
 }if (array_key_exists('wp_posts.post_date_gmt', $argv)) {
@@ -827,7 +827,7 @@ MYSQL;
 }if (array_key_exists('wp_posts.post_content_filtered', $argv)) {
             $stmt->bindValue(':post_content_filtered',$argv['wp_posts.post_content_filtered'], PDO::PARAM_STR);
 }if (array_key_exists('wp_posts.post_parent', $argv)) {
-            $stmt->bindValue(':post_parent',$argv['wp_posts.post_parent'], PDO::PARAM_STR);
+            $stmt->bindValue(':post_parent',$argv['wp_posts.post_parent'], PDO::PARAM_INT);
 }if (array_key_exists('wp_posts.guid', $argv)) {
             $guid = $argv['wp_posts.guid'];
             $ref = 'wp_posts.guid';
@@ -855,7 +855,7 @@ MYSQL;
             }
             $stmt->bindParam(':post_mime_type',$post_mime_type, PDO::PARAM_STR, 100);
         }if (array_key_exists('wp_posts.comment_count', $argv)) {
-            $stmt->bindValue(':comment_count',$argv['wp_posts.comment_count'], PDO::PARAM_STR);
+            $stmt->bindValue(':comment_count',$argv['wp_posts.comment_count'], PDO::PARAM_INT);
 }
 
         self::bind($stmt);
