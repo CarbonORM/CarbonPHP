@@ -56,7 +56,7 @@ class Documentation extends Application implements iConfig
      * @return mixed|void
      * @throws PublicAlert
      */
-    public function defaultRoute()  // Sockets will not execute this
+    public function defaultRoute() : void // Sockets will not execute this
     {
         self::getUser();
 

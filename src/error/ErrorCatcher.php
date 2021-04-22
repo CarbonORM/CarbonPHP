@@ -290,9 +290,11 @@ END;
          */
         $exception_handler = static function (Throwable $exception) {
 
-            $browserOutput['Exception Handler'] = 'CarbonPHP Generated This Report.';
+            $browserOutput = [];
 
             self::generateLog($exception, null, $browserOutput, 'yellow');
+
+            $browserOutput['Exception Handler'] = 'CarbonPHP Generated This Report.';
 
             if (!CarbonPHP::$cli) {
                 self::generateBrowserReport($browserOutput); // this will die(1)

@@ -456,7 +456,7 @@ abstract class Rest extends Database
 
             $implementations = array_map('strtolower', array_keys(class_implements($namespace . $mainTable)));
             $requestTableHasPrimary = in_array(strtolower(iRestSinglePrimaryKey::class),$implementations, true)
-                                        || in_array(strtolower(iRestMultiplePrimaryKeys::class),$implementations, true);
+                || in_array(strtolower(iRestMultiplePrimaryKeys::class),$implementations, true);
 
             $method = strtoupper($_SERVER['REQUEST_METHOD']);
 
@@ -971,8 +971,8 @@ abstract class Rest extends Database
                 ]);
                 switch (count($value)) {
                     case 2:
-                        if (!array_key_exists(0, $value) ||
-                            !array_key_exists(1, $value)) {
+                        if (!array_key_exists(0, $value) || !is_string($value[0]) ||
+                            !array_key_exists(1, $value) || !is_string($value[1])) {
                             $addJoinNext = true;
                             $sql .= self::buildBooleanJoinConditions($method, $value, $pdo, $booleanOperator === 'AND' ? 'OR' : 'AND');
                             break;
@@ -991,9 +991,9 @@ abstract class Rest extends Database
                         }
                         break;
                     case 3:
-                        if (!array_key_exists(0, $value) ||
-                            !array_key_exists(1, $value) ||
-                            !array_key_exists(2, $value)) {
+                        if (!array_key_exists(0, $value) || !is_string($value[0]) ||
+                            !array_key_exists(1, $value) || !is_string($value[1]) ||
+                            !array_key_exists(2, $value) || !is_string($value[2])) {
                             $sql .= self::buildBooleanJoinConditions($method, $value, $pdo, $booleanOperator === 'AND' ? 'OR' : 'AND');
                             break;
                         }
@@ -1248,6 +1248,8 @@ abstract class Rest extends Database
                     }
                 } else {
                     $primaryKey = self::REST_REQUEST_PRIMARY_KEY;
+
+                    // add primary key to custom validations request as it maybe passed outside the $argv
                     self::$REST_REQUEST_PARAMETERS[self::REST_REQUEST_PRIMARY_KEY] = &$primaryKey;
                     if (false === call_user_func_array([$class, $validationMethod],
                             [&self::$REST_REQUEST_PARAMETERS, ...$validation]
@@ -1255,11 +1257,7 @@ abstract class Rest extends Database
                         throw new PublicAlert('The global request validation failed, please make sure the arguments are correct.');
                     }
                     self::$REST_REQUEST_PRIMARY_KEY = $primaryKey;
-                    
-                    if (is_array($primaryKey)) {
-                        sortDump($primaryKey);
-                    }
-                    
+
                     unset(self::$REST_REQUEST_PARAMETERS[self::REST_REQUEST_PRIMARY_KEY]);
                 }
             } else if (false === call_user_func_array([$class, $validationMethod], [&$rest, ...$validation])) {

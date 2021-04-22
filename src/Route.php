@@ -58,7 +58,7 @@ abstract class Route
      * false when this class destructs the default route will be executed.
      * @return mixed
      */
-    abstract public function defaultRoute();
+    abstract public function defaultRoute() : void;
 
     /**
      * Will be run when the active object is destroyed. If the
@@ -111,8 +111,6 @@ abstract class Route
      */
     public function changeURI(string $uri): void
     {
-
-
         $this->uri = $uri = trim($uri, '/');
         $this->uriExplode = explode('/', $uri);
         $this->uriLength = substr_count($uri, '/') + 1;

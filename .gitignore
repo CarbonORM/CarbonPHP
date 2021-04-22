@@ -18,5 +18,25 @@ config/buildDatabase.php
 /PhpMetrics
 /out/*
 
-#wp
-wp-config.php
+# wordpress
+/wp-content/index.php
+/wp-content/themes/index.php
+
+# wordpress themes
+!wp-content/themes/documentation/*
+/wp-content/themes/twenty*/*
+
+# other wordpress content
+/wp-content/plugins/*
+/wp-content/uploads/*
+
+# wordpress admin
+wp-admin/*
+
+# wordpress root
+/wp-includes/*
+readme.html
+!wp-config.php
+/wp-*.php
+/xmlrpc.php
+license.txt

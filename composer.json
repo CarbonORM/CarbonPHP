@@ -3,7 +3,12 @@
   "license": "MIT",
   "type": "library",
   "keywords": [
-    "Sockets", "Carbon", "Pipes", "IO", "Session", "Routing"
+    "Sockets",
+    "Carbon",
+    "Pipes",
+    "IO",
+    "Session",
+    "Routing"
   ],
   "homepage": "https://github.com/richardtmiles/carbonphp",
   "description": "A PHP 7.4+ tool kit featuring RESTFUL ORM, sockets, session management, and routing.",
@@ -85,6 +90,21 @@
     "start": "php -S dev.carbonphp.com:8080 index.php -d display_errors=1",
     "test": [
       "./vendor/bin/phpunit --log-junit junit.xml  --testdox || ./vendor/bin/phpunit  --log-junit junit.xml"
+    ],
+    "wordpress:download:latest-stable": "php -r \"copy('http://wordpress.org/latest.tar.gz', 'latest.tar.gz');\"",
+    "wordpress:download:nightly-build": "php -r \"copy('https://wordpress.org/nightly-builds/wordpress-latest.zip', 'latest.tar.gz');\"",
+    "wordpress:download:unpack": [
+      "tar xfz latest.tar.gz",
+      "cp -R wordpress/* ./",
+      "rm -rf wordpress",
+      "rm -f latest.tar.gz"
+    ],
+    "wordpress:install": "wp core install --url=127.0.0.1:8080 --title=CarbonPHP --admin_user=root --admin_password=password --admin_email=richard@miles.systems",
+    "wordpress:install:cli:global": [
+      "php -r \"copy('https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar', 'wp-cli.phar');\"",
+      "php wp-cli.phar --info",
+      "chmod +x wp-cli.phar",
+      "mv wp-cli.phar /usr/local/bin/wp"
     ]
   }
 }
