@@ -11,6 +11,7 @@ config/buildDatabase.php
 /logs/*.log
 /mysql.cnf
 /mysqldump.cnf
+/mysqldump_data.sql
 /mysqldump.sql
 /scratch/
 /.htaccess

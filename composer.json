@@ -77,7 +77,7 @@
     ],
     "rei": "rm -rf vendor && rm composer.lock && composer i",
     "rest": [
-      "php index.php rest -json"
+      "php index.php rest -json -dumpData"
     ],
     "setup": [
       "@database:refresh:schema",

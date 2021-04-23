@@ -123,6 +123,19 @@ IDENTIFIED;
         return $this->mysqldump = CarbonPHP::$app_root . 'mysqldump.sql';
     }
 
+
+    /**
+     * @param String|null $mysqldump
+     * @return string
+     */
+    private function MySQLDumpData(String $mysqldump = null): string
+    {
+        $cmd = ($mysqldump ?? 'mysqldump') . ' --defaults-extra-file="' . $this->buildCNF() . '" --no-create-info --no-create-db ' . $this->config['DATABASE']['DB_NAME'] . ' > ' . CarbonPHP::$app_root . 'mysqldump_data.sql';
+        ColorCode::colorCode("\n\n>> $cmd");
+        shell_exec($cmd);
+        return $this->mysqldump = CarbonPHP::$app_root . 'mysqldump_data.sql';
+    }
+
     /**
      * @param bool $verbose
      * @param String $query
