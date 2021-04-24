@@ -84,7 +84,6 @@ class CarbonPHP
      * CarbonPHP constructor.
      * @param iConfig|string|null $config
      * @param string|null $app_root
-     * @throws Error\PublicAlert
      */
     public function __construct($config = null, string $app_root = null)
     {
@@ -175,8 +174,7 @@ class CarbonPHP
      *
      * @param string $uri - This will always be set in a socket, restarts routing
      * @return bool Returns the response from the bootstrap as a bool
-     * @link
-     *
+     * @link http://carbonphp.com
      */
     public static function startApplication(string $uri = ''): ?bool
     {
@@ -239,7 +237,7 @@ class CarbonPHP
                 self::$not_invoked_application = $configuration;
             }
 
-            /** @noinspection PhpUndefinedMethodInspection */
+            /** @noinspection PhpPossiblePolymorphicInvocationInspection */
             return self::$configuration = $config = $configuration::configuration();
 
         }
@@ -270,7 +268,6 @@ class CarbonPHP
     /**
      * @param iConfig|string|null $configuration
      * @param string|null $app_root
-     * @throws Error\PublicAlert
      * @todo - php 8 add strict types
      */
     public static function make($configuration = null, string $app_root = null): void
@@ -379,11 +376,9 @@ class CarbonPHP
             #####################   ERRORS + Warnings + Alerts    #######################
             if ($config['ERROR'] ??= false) {
                 ErrorCatcher::$defaultLocation = self::$reports . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
-                ErrorCatcher::$fullReports = $config['ERROR']['FULL'] ?? true;
-                ErrorCatcher::$printToScreen = $config['ERROR']['SHOW'] ?? true;
-                ErrorCatcher::$storeReport = $config['ERROR']['STORE'] ?? false;
-                ErrorCatcher::$level = $config['ERROR']['LEVEL'] ??  E_ALL | E_STRICT;
-                ErrorCatcher::start();
+                ErrorCatcher::$printToScreen = $config['ERROR']['SHOW'] ?? ErrorCatcher::$printToScreen;
+                ErrorCatcher::$storeReport = $config['ERROR']['STORE'] ?? ErrorCatcher::$storeReport;
+                ErrorCatcher::$level = $config['ERROR']['LEVEL'] ??  ErrorCatcher::$level;
             }
 
 
@@ -419,7 +414,6 @@ class CarbonPHP
                 case WebSocket::$port:
                     self::$protocol = 'wss://';    // todo - ws vs wss
             }
-
 
             $_SERVER['SERVER_NAME'] ??= self::$server_ip;
 
@@ -488,14 +482,7 @@ class CarbonPHP
             self::$setupComplete = true;
 
         } catch (Throwable $e) {
-            print PHP_EOL . 'Carbon Failed Initialization' . PHP_EOL;
-            print "\t" . $e->getMessage() . PHP_EOL . PHP_EOL;
-
-            if (self::$app_local && function_exists('sortDump')) {
-                sortDump($e, true, false);
-                print PHP_EOL . PHP_EOL;
-            }
-            die(1);
+            ErrorCatcher::generateBrowserReportFromError($e);   // this will exit if executed
         }
     }
 
@@ -619,7 +606,6 @@ class CarbonPHP
     {
         // Drop-in replacement for apache_request_headers() when it's not available
         if (function_exists('apache_request_headers')) {
-            /** @noinspection PhpComposerExtensionStubsInspection */
             return apache_request_headers();
         }
 

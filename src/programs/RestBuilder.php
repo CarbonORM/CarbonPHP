@@ -24,7 +24,6 @@ class RestBuilder implements iCommand
 {
     use ColorCode, Composer, Background, MySQL {
         ColorCode::colorCode insteadof Composer;
-        __construct as setup;
         cleanUp as removeFiles;
     }
 
@@ -122,7 +121,6 @@ END;
     public function __construct($CONFIG)
     {
         ini_set('memory_limit', '2048M');  // TODO - make this a config variable
-        $this->setup($CONFIG);
         [$CONFIG] = $CONFIG;
         $this->schema = $CONFIG['DATABASE']['DB_NAME'] ?? '';
         $this->user = $CONFIG['DATABASE']['DB_USER'] ?? '';
@@ -143,7 +141,8 @@ END;
         $json = $carbon_namespace = CarbonPHP::$app_root . 'src' . DS === CarbonPHP::CARBON_ROOT;
         $targetDir = CarbonPHP::$app_root . ($carbon_namespace ? 'src/tables/' : 'tables/');
         $only_these_tables = $history_table_query = $mysql = null;
-        $verbose = $debug = $primary_required = $delete_dump = $skipTable = $logClasses = $javascriptBindings = false;
+        $verbose = $debug = $primary_required = $delete_dump = $skipTable = $logClasses =
+            $javascriptBindings = $dumpData = false;
         $target_namespace = 'Tables\\';
         $prefix = '';
         $exclude_these_tables = [];
@@ -162,7 +161,7 @@ END;
         for ($i = 0; $i < $argc; $i++) {
             switch ($argv[$i]) {
                 case '-dumpData':
-                    $this->MySQLDumpData();
+                    $dumpData = true;
                     break;
                 case '-javascript':
                     $javascriptBindings = $argv[++$i];
@@ -380,7 +379,7 @@ END;
             exit(1);
         }
 
-        $this->mysqldump = $dumpFilePath = $dump ?? $this->MySQLDump($mysqldump ?? null);
+        $this->mysqldump = $dumpFilePath = $dump ?? $this->MySQLDump($mysqldump ?? null, $dumpData);
 
         if (!file_exists($this->mysqldump)) {
             print 'Could not load mysql dump file!' . PHP_EOL;

@@ -180,7 +180,7 @@ namespace {                                     // This runs the following code 
      * unset an allocated reference variable. It should be noted that explicitly
      * passing by reference is slower than to not do such. It should not be your
      * first choice in writing php code, though maybe appropriate*. Thus running
-     * in a z-value issues is extremely low.
+     * into a z-value issues is extremely low.
      *
      * @noinspection ForgottenDebugOutputInspection
      * @noinspection PhpExpressionResultUnusedInspection
@@ -297,4 +297,41 @@ namespace {                                     // This runs the following code 
         return $merged;
     }
 
+    /**
+     * @link https://stackoverflow.com/questions/9167548/how-can-i-display-echo-print-the-currently-set-error-reporting-level-in-php
+     * @param int|null $errorLevel
+     * @param string $separator
+     * @return string
+     */
+    function errorLevelToString(int $errorLevel = null, $separator = ' & '): string
+    {
+        if (null === $errorLevel) {
+            $errorLevel = error_reporting();
+        }
+
+        $errorLevels = array(
+            E_ALL => 'E_ALL',
+            E_USER_DEPRECATED => 'E_USER_DEPRECATED',
+            E_DEPRECATED => 'E_DEPRECATED',
+            E_RECOVERABLE_ERROR => 'E_RECOVERABLE_ERROR',
+            E_STRICT => 'E_STRICT',
+            E_USER_NOTICE => 'E_USER_NOTICE',
+            E_USER_WARNING => 'E_USER_WARNING',
+            E_USER_ERROR => 'E_USER_ERROR',
+            E_COMPILE_WARNING => 'E_COMPILE_WARNING',
+            E_COMPILE_ERROR => 'E_COMPILE_ERROR',
+            E_CORE_WARNING => 'E_CORE_WARNING',
+            E_CORE_ERROR => 'E_CORE_ERROR',
+            E_NOTICE => 'E_NOTICE',
+            E_PARSE => 'E_PARSE',
+            E_WARNING => 'E_WARNING',
+            E_ERROR => 'E_ERROR');
+        $result = '';
+        foreach($errorLevels as $number => $name)
+        {
+            if (($errorLevel & $number) === $number) {
+                $result .= ($result !== '' ? $separator : '').$name; }
+        }
+        return $result;
+    }
 }

@@ -14,39 +14,34 @@ namespace CarbonPHP\Programs;
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Interfaces\iColorCode;
 use Throwable;
 
 trait MySQL
 {
 
-    private array $config;
     private string $mysql = '';
     private string $mysqldump = '';
 
 
-    public function __construct($CONFIG)
+    private function mysql_native_password(): void
     {
-        [$this->config] = $CONFIG;
-    }
+        $c = CarbonPHP::$configuration;
 
-    private function mysql_native_password() : void
-    {
         $query = <<<IDENTIFIED
-                    ALTER USER '{$this->config['DATABASE']['DB_USER']}'@'localhost' IDENTIFIED WITH mysql_native_password BY '{$this->config['DATABASE']['DB_PASS']}';
-                    ALTER USER '{$this->config['DATABASE']['DB_USER']}'@'%' IDENTIFIED WITH mysql_native_password BY '{$this->config['DATABASE']['DB_PASS']}';
+                    ALTER USER '{$c['DATABASE']['DB_USER']}'@'localhost' IDENTIFIED WITH mysql_native_password BY '{$c['DATABASE']['DB_PASS']}';
+                    ALTER USER '{$c['DATABASE']['DB_USER']}'@'%' IDENTIFIED WITH mysql_native_password BY '{$c['DATABASE']['DB_PASS']}';
 IDENTIFIED;
 
         print PHP_EOL . $query . PHP_EOL;
 
         try {
-            if (!file_put_contents('query.txt', $query)){
+            if (!file_put_contents('query.txt', $query)) {
                 print 'Failed to create query file!';
                 exit(2);
             }
 
             $out = $this->MySQLSource(true, 'query.txt');
-
-            $this->removeFiles();
 
             if (!unlink('query.txt')) {
                 print 'Failed to remove query.txt file' . PHP_EOL;
@@ -61,44 +56,45 @@ IDENTIFIED;
     }
 
 
-    private function buildCNF($cnfFile = null) : string
+    private function buildCNF($cnfFile = null): string
     {
+        $c = CarbonPHP::$configuration;
+
         if ($cnfFile !== null) {
             $this->mysql = $cnfFile;
             return $cnfFile;
         }
 
-        if (!empty($this->mysql)){
+        if (!empty($this->mysql)) {
             return $this->mysql;
         }
 
-        if (empty($this->config['SITE']['CONFIG'])) {
+        if (empty($c['SITE']['CONFIG'])) {
             print 'The [\'SITE\'][\'CONFIG\'] option is missing. It should have the value __FILE__. This helps with debugging.' . PHP_EOL;
             exit(1);
         }
 
-        if (empty($this->config['DATABASE']['DB_USER'])){
-            print 'You must set [\'DATABASE\'][\'DB_USER\'] in the "' . $this->config['SITE']['CONFIG'] . '".  Run `>> php index.php setup` to fix this.' . PHP_EOL;
+        if (empty($c['DATABASE']['DB_USER'])) {
+            print 'You must set [\'DATABASE\'][\'DB_USER\'] in the "' . $c['SITE']['CONFIG'] . '".  Run `>> php index.php setup` to fix this.' . PHP_EOL;
             exit(1);
         }
 
-        if (empty($this->config['DATABASE']['DB_HOST'])) {
-            print 'You must set [\'DATABASE\'][\'DB_HOST\'] in the "' . $this->config['SITE']['CONFIG'] . '".  Run `>> php index.php setup` to fix this.' . PHP_EOL;
+        if (empty($c['DATABASE']['DB_HOST'])) {
+            print 'You must set [\'DATABASE\'][\'DB_HOST\'] in the "' . $c['SITE']['CONFIG'] . '".  Run `>> php index.php setup` to fix this.' . PHP_EOL;
             exit(1);
         }
 
         $cnf = [
             '[client]',
-            "user = {$this->config['DATABASE']['DB_USER']}",
-            "password = {$this->config['DATABASE']['DB_PASS']}",
-            "host = {$this->config['DATABASE']['DB_HOST']}"
+            "user = {$c['DATABASE']['DB_USER']}",
+            "password = {$c['DATABASE']['DB_PASS']}",
+            "host = {$c['DATABASE']['DB_HOST']}"
         ];
 
-
-        if (($this->config['DATABASE']['DB_PORT'] ?? false) && $this->config['DATABASE']['DB_PORT'] !== '') {
-            ColorCode::colorCode( 'No [\'DATABASE\'][\'DB_PORT\'] configuration active. Using default port 3306. ' . PHP_EOL . 'Set to an empty string "" for mysql to auto-resolve.', 'yellow');
-            $this->config['DATABASE']['DB_PORT'] = 3306;
-            $cnf[] = "port = {$this->config['DATABASE']['DB_PORT']}";
+        if (($c['DATABASE']['DB_PORT'] ?? false) && $c['DATABASE']['DB_PORT'] !== '') {
+            ColorCode::colorCode('No [\'DATABASE\'][\'DB_PORT\'] configuration active. Using default port 3306. ' . PHP_EOL . 'Set to an empty string "" for mysql to auto-resolve.', 'yellow');
+            $c['DATABASE']['DB_PORT'] = 3306;
+            $cnf[] = "port = {$c['DATABASE']['DB_PORT']}";
         }
 
         // We're going to use this function to execute mysql from the command line
@@ -107,53 +103,47 @@ IDENTIFIED;
             print 'Failed to store file contents of mysql.cnf in ' . CarbonPHP::$app_root;
             exit('Failed to store file contents mysql.cnf in ' . CarbonPHP::$app_root);
         }
+
         return $this->mysql = CarbonPHP::$app_root . 'mysql.cnf';
     }
 
     /**
      * @param String|null $mysqldump
+     * @param bool $data
      * @return string
      */
-    private function MySQLDump(String $mysqldump = null) : string
+    private function MySQLDump(string $mysqldump = null, bool $data = false): string
     {
-        $cmd = ($mysqldump ?? 'mysqldump') . ' --defaults-extra-file="' . $this->buildCNF() . '" --no-data ' . $this->config['DATABASE']['DB_NAME'] . ' > '. CarbonPHP::$app_root.'mysqldump.sql';
+        $c = CarbonPHP::$configuration;
+        $cmd = ($mysqldump ?? 'mysqldump') . ' --defaults-extra-file="' . $this->buildCNF() . '" '
+            . ($data ? '' : '--no-data ') . $c['DATABASE']['DB_NAME'] . ' > ' . CarbonPHP::$app_root . 'mysqldump.sql';
         ColorCode::colorCode("\n\n>> $cmd");
         shell_exec($cmd);
-
         return $this->mysqldump = CarbonPHP::$app_root . 'mysqldump.sql';
     }
 
-
-    /**
-     * @param String|null $mysqldump
-     * @return string
-     */
-    private function MySQLDumpData(String $mysqldump = null): string
-    {
-        $cmd = ($mysqldump ?? 'mysqldump') . ' --defaults-extra-file="' . $this->buildCNF() . '" --no-create-info --no-create-db ' . $this->config['DATABASE']['DB_NAME'] . ' > ' . CarbonPHP::$app_root . 'mysqldump_data.sql';
-        ColorCode::colorCode("\n\n>> $cmd");
-        shell_exec($cmd);
-        return $this->mysqldump = CarbonPHP::$app_root . 'mysqldump_data.sql';
-    }
 
     /**
      * @param bool $verbose
      * @param String $query
      * @param bool $mysql
      * @return string|null
-     * @throws PublicAlert
      */
-    private function MySQLSource(bool $verbose, String $query, $mysql = false) : ?string
+    private function MySQLSource(bool $verbose, string $query, $mysql = false): ?string
     {
-        $cmd = ($mysql ?: 'mysql') . ' --defaults-extra-file="' . $this->buildCNF() . '" ' . $this->config['DATABASE']['DB_NAME'] . ' < "' . $query . '"';
+        $c = CarbonPHP::$configuration;
+        $cmd = ($mysql ?: 'mysql') . ' --defaults-extra-file="' . $this->buildCNF() . '" ' . $c['DATABASE']['DB_NAME'] . ' < "' . $query . '"';
         ColorCode::colorCode("\n\nRunning Command >> $cmd\n\n");
         return shell_exec($cmd);
     }
 
     public function cleanUp() : void
     {
-        #unlink('./mysql.cnf');
-        #unlink('./mysqldump.sql');  todo - argument, uncommenting will break git actions
+        if (file_exists(CarbonPHP::$app_root . 'mysql.cnf') && !unlink('./mysql.cnf')) {
+            ColorCode::colorCode('Failed to unlink mysql.cnf', iColorCode::BACKGROUND_RED);
+        }
+        if (file_exists(CarbonPHP::$app_root . 'mysqldump.sql') && !unlink('./mysqldump.sql')) {
+            ColorCode::colorCode('Failed to unlink mysqldump.sql', iColorCode::BACKGROUND_RED);
+        }
     }
-
 }

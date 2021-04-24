@@ -8,6 +8,9 @@ namespace CarbonPHP;
  */
 class View
 {
+
+    public static array $json = [];
+
     /**
      * @var string
      */

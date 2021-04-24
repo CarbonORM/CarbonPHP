@@ -58,6 +58,12 @@ jobs:
       - name: php index.php buildDatabase -r
         run: php index.php buildDatabase -r
 
+      - name: php index.php rest
+        run: php index.php rest
+
+      - name: php index.php rest  (again to ensure generated php valid)
+        run: php index.php rest
+
       - name: ./vendor/se/selenium-server-standalone/composer/bin/selenium-server-standalone &
         run: ./vendor/se/selenium-server-standalone/composer/bin/selenium-server-standalone &
 

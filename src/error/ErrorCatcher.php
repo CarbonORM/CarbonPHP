@@ -28,10 +28,8 @@ class ErrorCatcher
 {
     use Background, ColorCode;
 
-    /**
-     * @var string TODO - re-setup logs saving to files
-     */
-    public static string $defaultLocation = 'error_lot.txt';
+    // todo - defaultLocation this does nothing.
+    public static ?string $defaultLocation = null;
     /**
      * @var bool $printToScreen determine if a generated error log should be shown on the browser.
      * This value can be set using the ["ERROR"]["SHOW"] configuration option
@@ -40,11 +38,7 @@ class ErrorCatcher
     /**
      * @var bool
      */
-    public static bool $fullReports = true;
-    /**
-     * @var bool
-     */
-    public static bool $storeReport = true;
+    public static bool $storeReport = false;
 
 
     public static string $fileName = '';
@@ -320,14 +314,30 @@ END;
     public static function stop(): void
     {
         if (self::$old_error_level === null) {
-            throw new PublicAlert('Looks like you are trying to run ErrorCatcher::stop() before running start. This is not supported.');
+            // @link https://www.php.net/manual/en/language.exceptions.php
+            // @link https://stackoverflow.com/questions/1095860/is-there-any-way-to-show-or-throw-a-php-warning
+            trigger_error('Looks like you are trying to run ErrorCatcher::stop() before running start. This is not supported.', E_USER_WARNING);
+            return;
         }
-
         error_reporting(self::$old_error_level);
         $error_handler = self::$old_error_handler;
         $exception_handler = self::$old_exception_handler;
         set_error_handler($error_handler);
         set_exception_handler($exception_handler);   // takes one argument
+    }
+
+    /**
+     * @deprecated use generateCustomLogArrayFromThrowable
+     *             or  generateBrowserReportFromError which will kill execution
+     * @param Throwable|null $e
+     * @param string|null $level
+     * @param array $browserOutput
+     * @param string $color
+     * @return array
+     */
+    public static function generateLog(Throwable $e = null, string $level = null, array &$browserOutput = [], string $color = iColorCode::RED): array
+    {
+        return self::generateCustomLogArrayFromThrowable($e,$level,$browserOutput, $color);
     }
 
 
@@ -349,7 +359,7 @@ END;
      * @internal param $argv
      * @noinspection ForgottenDebugOutputInspection
      */
-    public static function generateLog(Throwable $e = null, string $level = null, array &$browserOutput = [], string $color = iColorCode::RED): array
+    public static function generateCustomLogArrayFromThrowable(Throwable $e = null, string $level = null, array &$browserOutput = [], string $color = iColorCode::RED): array
     {
         if (null === $level) {
             $level = 'log';
@@ -397,21 +407,22 @@ END;
         }
 
         if (self::$storeReport === true || self::$storeReport === 'file') {
-            if (!is_dir(CarbonPHP::$reports) && !mkdir($concurrentDirectory = CarbonPHP::$reports) && !is_dir($concurrentDirectory)) {
-                error_log($message = 'Failed storing to custom log. The directory could not be found or created :: ' . CarbonPHP::$reports);
-                $browserOutput['[C6] ISSUE'] = $message;
-            } else {
-                $file = fopen($fileName = CarbonPHP::$reports . 'Log_' . time() . '.log', 'ab');
-
-                if (!\is_resource($file)) {
-                    error_log($message = 'Failed writing to log to file. The file could not opened :: ' . $fileName);
+            try {
+                if (!is_dir(CarbonPHP::$reports) && !mkdir($concurrentDirectory = CarbonPHP::$reports) && !is_dir($concurrentDirectory)) {
+                    error_log($message = 'Failed storing to custom log. The directory could not be found or created :: ' . CarbonPHP::$reports);
                     $browserOutput['[C6] ISSUE'] = $message;
-                } else if (!fwrite($file, $cliOutput)) {
-                    error_log($message = 'Failed writing to log to file. The file could not be written to :: ' . $fileName);
-                    $browserOutput['[C6] ISSUE'] = $message;
+                } else {
+                    $file = fopen($fileName = CarbonPHP::$reports . 'Log_' . time() . '.log', 'ab');
+                    if (!\is_resource($file)) {
+                        error_log($message = 'Failed writing to log to file. The file could not opened :: ' . $fileName);
+                        $browserOutput['[C6] ISSUE'] = $message;
+                    } else if (!fwrite($file, $cliOutput)) {
+                        error_log($message = 'Failed writing to log to file. The file could not be written to :: ' . $fileName);
+                        $browserOutput['[C6] ISSUE'] = $message;
+                    }
+                    fclose($file);
                 }
-                fclose($file);
-            }
+            } catch (Throwable $e) {} finally {} // NO MATTER WHAT.. continue
         }
 
         if (self::$storeReport === true || self::$storeReport === 'database') {

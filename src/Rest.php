@@ -105,6 +105,7 @@ abstract class Rest extends Database
     public static bool $externalRestfulRequestsAPI = false;
 
     /**
+     * static::class ends up not working either because of how it is called.
      * @param $request
      * @param string|null $calledFrom
      * @throws PublicAlert
@@ -112,10 +113,6 @@ abstract class Rest extends Database
      */
     public static function disallowPublicAccess($request, $calledFrom = null): void
     {
-        if (null === $calledFrom) {
-            $calledFrom = static::class;
-        }
-
         if (self::$externalRestfulRequestsAPI) {
             throw new PublicAlert('Rest request denied by the PHP_VALIDATION\'s in the tables ORM. Remove DISALLOW_PUBLIC_ACCESS ' . (null !== $calledFrom ? ' from \'' . $calledFrom . '\'' : '') . ' to gain privileges.');
         }
