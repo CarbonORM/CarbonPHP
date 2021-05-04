@@ -311,9 +311,9 @@ END;
     public static ?int $old_error_level = null;
 
 
-    public static function stop(): void
+    public static function stop(bool $ignoreRedundantStops = false): void
     {
-        if (self::$old_error_level === null) {
+        if (false === $ignoreRedundantStops && self::$old_error_level === null) {
             // @link https://www.php.net/manual/en/language.exceptions.php
             // @link https://stackoverflow.com/questions/1095860/is-there-any-way-to-show-or-throw-a-php-warning
             trigger_error('Looks like you are trying to run ErrorCatcher::stop() before running start. This is not supported.', E_USER_WARNING);

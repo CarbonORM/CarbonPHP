@@ -17,7 +17,7 @@ use CarbonPHP\Error\ErrorCatcher;
  * In both method in this class I have commented out changing the
  * user / owner of the named pipe. Some environments MAY require that
  * you change permissions. Over the past few years I've migrated to
- * many diffrent hosting solutions and I believe this
+ * many different hosting solutions and I believe this
  * was a fix on one. But im not positive...
  */
 class Pipe
@@ -70,7 +70,7 @@ class Pipe
     /** Attempt to send a string to a named pipe. This is normally done
      * after forking so error are logged via error catcher.
      *
-     * your http user // group shuold match that of the process or
+     * your http user // group should match that of the process or
      * ws socket server, for example, so the files may work as intended.
      *
      * Sometimes this can be overwritten by the exec function
@@ -91,6 +91,7 @@ class Pipe
 
             posix_mkfifo($fifoPath, 0666);
 
+            // this would be needed should you be switching branches
             # $user = get_current_user();                    // get current process user
 
             #exec("chown -R {$user}:{$user} $fifoPath");    // We need to modify the permissions so users can write to it

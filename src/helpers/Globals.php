@@ -18,6 +18,6 @@ use CarbonPHP\Singleton;
  * Hints: intellij users can double-click the shift key
  * to find files buried deep in the file layout.
  * Command clicking functions, methods, and classes
- * wil aslo take you to there implementation.
+ * wil also take you to there implementation.
  */
 class Globals { use Singleton; }

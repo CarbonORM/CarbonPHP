@@ -379,6 +379,7 @@ class CarbonPHP
                 ErrorCatcher::$printToScreen = $config['ERROR']['SHOW'] ?? ErrorCatcher::$printToScreen;
                 ErrorCatcher::$storeReport = $config['ERROR']['STORE'] ?? ErrorCatcher::$storeReport;
                 ErrorCatcher::$level = $config['ERROR']['LEVEL'] ??  ErrorCatcher::$level;
+                ErrorCatcher::start();
             }
 
 
