@@ -327,7 +327,7 @@ FOOT;
                 }
             }
         } catch (PDOException $e) {                     // todo - think about this more
-            PublicAlert::danger($e->getMessage());
+            ErrorCatcher::generateBrowserReportFromError($e);
         } finally {
             if (null !== $errorMessage) {
                 PublicAlert::danger($errorMessage);
@@ -381,7 +381,7 @@ FOOT;
      * transaction without running beginTransaction again
      *
      * @param string $tag_id - passed to new_entity
-     * @param string $dependant - passed to new_entity
+     * @param ?string $dependant - passed to new_entity
      *
      * @return bool|PDOStatement|string
      * @throws PublicAlert
@@ -426,7 +426,7 @@ FOOT;
      * @return string
      * @throws PublicAlert
      */
-    protected static function new_entity(string $tag_id, string $dependant = null): string
+    public static function new_entity(string $tag_id, string $dependant = null): string
     {
         $count = 0;
         do {
@@ -452,14 +452,14 @@ FOOT;
      * @return bool
      * @throws PublicAlert
      */
-    protected static function remove_entity($id): bool
+    public static function remove_entity($id): bool
     {
         $ref = [];
         return Carbons::Delete($ref, $id, []); //Database::database()->prepare('DELETE FROM carbon WHERE entity_pk = ?')->execute([$id]);
     }
 
 
-    protected static function execute(string $sql, ...$execute): bool
+    public static function execute(string $sql, ...$execute): bool
     {
         return self::database()->prepare($sql)->execute($execute);
     }
