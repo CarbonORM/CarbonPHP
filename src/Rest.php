@@ -988,6 +988,7 @@ abstract class Rest extends Database
                         if (!array_key_exists(0, $value) || !is_string($value[0]) ||
                             !array_key_exists(1, $value) || !is_string($value[1]) ||
                             !array_key_exists(2, $value) || !is_string($value[2])) {
+                            $addJoinNext = true;
                             $sql .= self::buildBooleanJoinConditions($method, $value, $pdo, $booleanOperator === 'AND' ? 'OR' : 'AND');
                             break;
                         }
