@@ -229,10 +229,7 @@ class Carbon_User_Followers extends Rest implements iRestSinglePrimaryKey
   CONSTRAINT `followers_entity_followers_pk_fk` FOREIGN KEY (`user_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 MYSQL;
-   
-   
 
-    
     /**
      * @deprecated Use the class constant CREATE_TABLE_SQL directly
      * @return string

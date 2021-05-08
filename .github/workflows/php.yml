@@ -52,6 +52,9 @@ jobs:
       - name: composer validate
         run: composer validate
 
+      - name: composer wordpress:download:latest-stable
+        run: composer wordpress:download:latest-stable
+
       - name: composer install --prefer-dist --no-progress --no-suggest
         run: composer install --prefer-dist --no-progress --no-suggest
 

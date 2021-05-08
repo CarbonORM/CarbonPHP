@@ -88,7 +88,7 @@ abstract class Config extends TestCase
 
         // Composer autoload, phpunit has some sort of auto-loading to get us this far, but we need ours
         /** @noinspection PhpIncludeInspection - i hate this issue */
-        if (false === (include SERVER_ROOT . DIRECTORY_SEPARATOR . 'wp-load.php')) {     // Load the autoload() for composer dependencies located in the Services folder
+        if (false === (include SERVER_ROOT . 'wp-load.php')) {     // Load the autoload() for composer dependencies located in the Services folder
             die("Failed to load wordpress.");
         }
     }
