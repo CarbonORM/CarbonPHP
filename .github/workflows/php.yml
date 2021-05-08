@@ -55,6 +55,9 @@ jobs:
       - name: composer wordpress:download:latest-stable
         run: composer wordpress:download:latest-stable
 
+      - name: composer wordpress:download:unpack
+        run: composer wordpress:download:unpack
+
       - name: composer install --prefer-dist --no-progress --no-suggest
         run: composer install --prefer-dist --no-progress --no-suggest
 
