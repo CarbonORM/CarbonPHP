@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection DuplicatedCode */
 /**
  * The base configuration for WordPress
  *
@@ -23,6 +23,12 @@
 
 use CarbonPHP\CarbonPHP;
 use Config\Documentation;
+
+// Composer autoload
+if (false === (include __DIR__ . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php')) {
+    print '<h1>Composer Failed. Please run <b>composer install</b>.</h1>';
+    die(1);
+}
 
 define( 'DB_NAME', 'CarbonPHP' );
 

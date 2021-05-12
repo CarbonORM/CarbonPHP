@@ -52,6 +52,7 @@ class CarbonPHP
     public static bool $setupComplete = false;
 
     // Application invocation method
+    public static bool $is_running_production = false;
     public static bool $app_local = false;
     public static bool $socket = false;
     public static bool $cli = false;
@@ -505,6 +506,7 @@ class CarbonPHP
      * If the url is not equal to the server url, and we are not
      * on a local development server, then Redirect to url provided.
      *
+     * @todo recursion checking
      *
      * @param array|null $cacheControl
      * @return bool
@@ -513,9 +515,11 @@ class CarbonPHP
     {
         if (!empty($URL = strtolower($URL)) && $_SERVER['SERVER_NAME'] !== $URL && !self::$app_local) {
             header("Refresh:0; url=$URL");
-            print '<html lang="en"><head><!--suppress InjectedReferences -->
-    <meta http-equiv="refresh" content="5; url=' . $URL . '"></head><body>' .
-                self::$server_ip . '<h1>You appear to be lost.</h1><h2>Moving to <a href="//' . $URL . '"> ' . $URL . '</a></h2>' .
+            print '<html lang="en"><head><meta http-equiv="refresh" content="5; url=//' . $URL . '"></head><body>' .
+                self::$server_ip . '<h1>Whoa, this server you reached does not appear to have permission to access the website hosted on it.' .
+                ' The server name (' . $_SERVER["SERVER_NAME"] . ') must match that passed via ["SITE"]["URL"] to CarbonPHP.</h1>' .
+                '<h3>This message can be bypassed by leaving the configuration field "URL".</h3>' .
+                '<h2>Redirecting to <a href="//' . $URL . '"> ' . $URL . '</a></h2>' .
                 "<script>window.location.type = $URL</script></body></html>";
             exit(1);
         }

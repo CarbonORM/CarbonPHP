@@ -1602,7 +1602,7 @@ MYSQL;
 
         if (!\$stmt->execute()) {
             self::completeRest();
-            throw new PublicAlert('The REST generated PDOStatement failed to execute with error :: ' . json_encode(\$stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
+            return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode(\$stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }
 
         \$return = \$stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -1646,7 +1646,7 @@ MYSQL;
     
         foreach (\$data as \$columnName => \$postValue) {
             if (!array_key_exists(\$columnName, self::PDO_VALIDATION)) {
-                throw new PublicAlert("Restful table could not post column \$columnName, because it does not appear to exist.", 'danger');
+                return self::signalError("Restful table could not post column \$columnName, because it does not appear to exist.", 'danger');
             }
         } 
         
@@ -1672,48 +1672,48 @@ MYSQL;
         } else {
             \$ref='{{TableName}}.{{name}}';
             \$op = self::EQUAL;
-           if (!self::validateInternalColumn(self::POST, \$ref, \$op, \${{name}})) {
-             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
-           }            
+            if (!self::validateInternalColumn(self::POST, \$ref, \$op, \${{name}})) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
+            }            
         }
         \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
         {{/carbon_table}}{{#carbon_table}}
         \${{name}} = \$id = \$data['{{TableName}}.{{name}}'] ?? false;
         if (\$id === false) {
-             \${{name}} = \$id = self::beginTransaction(self::class, \$data[self::DEPENDANT_ON_ENTITY] ?? null);
+            \${{name}} = \$id = self::beginTransaction(self::class, \$data[self::DEPENDANT_ON_ENTITY] ?? null);
         } else {
-           \$ref='{{TableName}}.{{name}}';
-           \$op = self::EQUAL;
-           if (!self::validateInternalColumn(self::POST, \$ref, \$op, \${{name}})) {
-             throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
-           }            
+            \$ref='{{TableName}}.{{name}}';
+            \$op = self::EQUAL;
+            if (!self::validateInternalColumn(self::POST, \$ref, \$op, \${{name}})) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
+            }            
         }
         \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
         {{/carbon_table}}{{/primary_binary}}{{^primary_binary}}{{#skip}}{{#CURRENT_TIMESTAMP}}
         if (array_key_exists('{{TableName}}.{{name}}', \$data)) {
-            throw new PublicAlert('The column \'{{TableName}}.{{name}}\' is set to default to CURRENT_TIMESTAMP. The Rest API does not allow POST requests with columns explicitly set whose default is CURRENT_TIMESTAMP. You can remove to the default in MySQL or the column \'{{TableName}}.{{name}}\' from the request.');
+            return self::signalError('The column \'{{TableName}}.{{name}}\' is set to default to CURRENT_TIMESTAMP. The Rest API does not allow POST requests with columns explicitly set whose default is CURRENT_TIMESTAMP. You can remove to the default in MySQL or the column \'{{TableName}}.{{name}}\' from the request.');
         }
         {{/CURRENT_TIMESTAMP}}{{/skip}}{{^skip}}{{^length}}{{#json}}
         if (!array_key_exists('{{TableName}}.{{name}}', \$data)) {
-            throw new PublicAlert('The column \'{{TableName}}.{{name}}\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
+            return self::signalError('The column \'{{TableName}}.{{name}}\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
         }
         \$ref = '{{TableName}}.{{name}}';
         \$op = self::EQUAL;
         if (!self::validateInternalColumn(self::POST, \$ref, \$op, \$data['{{name}}'])) {
-            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
         }
         if (!is_string(\${{name}} = \$data['{{TableName}}.{{name}}']) && false === \${{name}} = json_encode(\${{name}})) {
-            throw new PublicAlert('The column \'{{TableName}}.{{name}}\' failed to be json encoded.');
+            return self::signalError('The column \'{{TableName}}.{{name}}\' failed to be json encoded.');
         }
         \$stmt->bindValue(':{{name}}', \${{name}}, {{type}});
         {{/json}}{{^json}}{{^default}}
         if (!array_key_exists('{{TableName}}.{{name}}', \$data)) {
-            throw new PublicAlert('The column \'{{TableName}}.{{name}}\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
+            return self::signalError('The column \'{{TableName}}.{{name}}\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
         } 
         \$ref='{{TableName}}.{{name}}';
         \$op = self::EQUAL;
         if (!self::validateInternalColumn(self::POST, \$ref, \$op, \$data['{{name}}'])) {
-            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
         }
         \$stmt->bindValue(':{{name}}', \$data['{{TableName}}.{{name}}'], {{type}});
         {{/default}}{{#default}}         
@@ -1721,30 +1721,30 @@ MYSQL;
         \$ref='{{TableName}}.{{name}}';
         \$op = self::EQUAL;
         if (!self::validateInternalColumn(self::POST, \$ref, \$op, \${{name}}, \${{name}} === {{{default}}})) {
-            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
         }
         \$stmt->bindValue(':{{name}}', \${{name}}, {{type}});
         {{/default}}{{/json}}{{/length}}{{#length}}{{^default}}
         if (!array_key_exists('{{TableName}}.{{name}}', \$data)) {
-            throw new PublicAlert('Required argument "{{TableName}}.{{name}}" is missing from the request.', 'danger');
+            return self::signalError('Required argument "{{TableName}}.{{name}}" is missing from the request.', 'danger');
         }{{/default}}
         \${{name}} = {{^default}}\$data['{{TableName}}.{{name}}'];{{/default}}{{#default}}\$data['{{TableName}}.{{name}}'] ?? {{{default}}};{{/default}}
         \$ref='{{TableName}}.{{name}}';
         \$op = self::EQUAL;
         if (!self::validateInternalColumn(self::POST, \$ref, \$op, \${{name}}{{#default}}, \${{name}} === {{{default}}}{{/default}})) {
-            throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
         }
         \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
         {{/length}}{{/skip}}{{/primary_binary}}{{/explode}}
         if (!\$stmt->execute()) {
             self::completeRest();
-            throw new PublicAlert('The REST generated PDOStatement failed to execute with error :: ' . json_encode(\$stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
+            return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode(\$stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }{{#binary_primary}}
         
         self::prepostprocessRestRequest(\$id);
          
         if (self::\$commit && !Database::commit()) {
-           throw new PublicAlert('Failed to store commit transaction on table {{TableName}}');
+           return self::signalError('Failed to store commit transaction on table {{TableName}}');
         } 
          
         self::postprocessRestRequest(\$id); 
@@ -1759,7 +1759,7 @@ MYSQL;
         self::prepostprocessRestRequest({{#auto_increment_return_key}}\$id{{/auto_increment_return_key}});
         
         if (self::\$commit && !Database::commit()) {
-           throw new PublicAlert('Failed to store commit transaction on table {{TableName}}');
+            return self::signalError('Failed to store commit transaction on table {{TableName}}');
         }
         
         self::postprocessRestRequest({{#auto_increment_return_key}}\$id{{/auto_increment_return_key}});
@@ -1802,7 +1802,7 @@ MYSQL;
         
         {{#primaryExists}}
         if ('' === \$primary) {
-            throw new PublicAlert('Restful tables which have a primary key must be updated by its primary key.', 'danger');
+            return self::signalError('Restful tables which have a primary key must be updated by its primary key.', 'danger');
         }
          
         if (array_key_exists(self::UPDATE, \$argv)) {
@@ -1813,26 +1813,26 @@ MYSQL;
         \$where = \$argv[self::WHERE] ?? [];
         
         if (empty(\$where)) {
-            throw new PublicAlert('Restful tables which have no primary key must be updated using conditions given to \$argv[self::WHERE] and values given to \$argv[self::UPDATE]. No WHERE attribute given.', 'danger');
+            return self::signalError('Restful tables which have no primary key must be updated using conditions given to \$argv[self::WHERE] and values given to \$argv[self::UPDATE]. No WHERE attribute given.', 'danger');
         }
 
         \$argv = \$argv[self::UPDATE] ?? [];
         
         if (empty(\$argv)) {
-            throw new PublicAlert('Restful tables which have no primary key must be updated using conditions given to \$argv[self::WHERE] and values given to \$argv[self::UPDATE]. No UPDATE attribute given.', 'danger');
+            return self::signalError('Restful tables which have no primary key must be updated using conditions given to \$argv[self::WHERE] and values given to \$argv[self::UPDATE]. No UPDATE attribute given.', 'danger');
         }
 
         if (empty(\$where) || empty(\$argv)) {
-            throw new PublicAlert('Restful tables which have no primary key must be updated with specific where and update attributes.', 'danger');
+            return self::signalError('Restful tables which have no primary key must be updated with specific where and update attributes.', 'danger');
         }{{/primaryExists}}
         
         foreach (\$argv as \$key => &\$value) {
             if (!array_key_exists(\$key, self::PDO_VALIDATION)){
-                throw new PublicAlert('Restful table could not update column \$key, because it does not appear to exist.', 'danger');
+                return self::signalError('Restful table could not update column \$key, because it does not appear to exist.', 'danger');
             }
             \$op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, \$key, \$op, \$value)) {
-                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
             }
         }
         unset(\$value);
@@ -1871,7 +1871,7 @@ MYSQL;
             \$ref = '{{TableName}}.{{name}}';
             \$op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, \$ref, \$op, \${{name}})) {
-                throw new PublicAlert('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'{{name}}\'.');
             }
             \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
         {{/length}}}{{/explode}}
@@ -1880,11 +1880,11 @@ MYSQL;
 
         if (!\$stmt->execute()) {
             self::completeRest();
-            throw new PublicAlert('The REST generated PDOStatement failed to execute with error :: ' . json_encode(\$stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
+            return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode(\$stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }
         
         if (!\$stmt->rowCount()) {
-            throw new PublicAlert('Failed to find the target row.', 'danger');
+            return self::signalError('Failed to find the target row.', 'danger');
         }
         
         \$argv = array_combine(
@@ -1900,7 +1900,7 @@ MYSQL;
         self::prepostprocessRestRequest(\$returnUpdated);
         
         if (self::\$commit && !Database::commit()) {
-           throw new PublicAlert('Failed to store commit transaction on table {{TableName}}');
+            return self::signalError('Failed to store commit transaction on table {{TableName}}');
         }
         
         self::postprocessRestRequest(\$returnUpdated);
@@ -1933,7 +1933,7 @@ MYSQL;
          *   n00bs and future self, "I got chu."
          */
         if (empty(\$argv)) {
-            throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.', 'danger');
+            return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
         }
         
         \$sql = 'DELETE c FROM {{^carbon_namespace}}{{#QueryWithDatabaseName}}{{database}}.{{/QueryWithDatabaseName}}{{/carbon_namespace}}carbons c 
@@ -1957,7 +1957,7 @@ MYSQL;
 
         if (!\$stmt->execute()) {
             self::completeRest();
-            throw new PublicAlert('The REST generated PDOStatement failed to execute with error :: ' . json_encode(\$stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
+            return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode(\$stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }
         
         \$remove = [];
@@ -1965,7 +1965,7 @@ MYSQL;
         self::prepostprocessRestRequest(\$remove);
         
         if (self::\$commit && !Database::commit()) {
-           throw new PublicAlert('Failed to store commit transaction on table {{TableName}}');
+           return self::signalError('Failed to store commit transaction on table {{TableName}}');
         }
         
         self::postprocessRestRequest(\$remove);
@@ -1994,13 +1994,13 @@ MYSQL;
             *   n00bs and future self, "I got chu."
             */
             if (empty(\$argv)) {
-                throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided.', 'danger');
+                return self::signalError('When deleting from restful tables a primary key or where query must be provided.', 'danger');
             }
             
             \$where = self::buildBooleanJoinConditions(self::DELETE, \$argv, \$pdo);
             
             if (empty(\$where)) {
-                throw new PublicAlert('The where condition provided appears invalid.', 'danger');
+                return self::signalError('The where condition provided appears invalid.', 'danger');
             }
 
             \$sql .= ' WHERE ' . \$where;
@@ -2009,7 +2009,7 @@ MYSQL;
         }{{/sql}}{{/primary}}
         {{^primary}}
         if (empty(\$argv)) {
-            throw new PublicAlert('When deleting from tables with out a primary key additional arguments must be provided.', 'danger');
+            return self::signalError('When deleting from tables with out a primary key additional arguments must be provided.', 'danger');
         } 
          
         \$sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, \$argv, \$pdo);{{/primary}}
@@ -2024,7 +2024,7 @@ MYSQL;
 
         if (!\$stmt->execute()) {
             self::completeRest();
-            throw new PublicAlert('The REST generated PDOStatement failed to execute with error :: ' . json_encode(\$stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
+            return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode(\$stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }
 
         \$remove = [];
@@ -2032,7 +2032,7 @@ MYSQL;
         self::prepostprocessRestRequest(\$remove);
         
         if (self::\$commit && !Database::commit()) {
-           throw new PublicAlert('Failed to store commit transaction on table {{TableName}}');
+           return self::signalError('Failed to store commit transaction on table {{TableName}}');
         }
         
         self::postprocessRestRequest(\$remove);

@@ -325,17 +325,17 @@ END;
     }
 
     /**
-     * @deprecated use generateCustomLogArrayFromThrowable
-     *             or  generateBrowserReportFromError which will kill execution
      * @param Throwable|null $e
      * @param string|null $level
      * @param array $browserOutput
      * @param string $color
      * @return array
+     * @deprecated use generateCustomLogArrayFromThrowable
+     *             or  generateBrowserReportFromError which will kill execution
      */
     public static function generateLog(Throwable $e = null, string $level = null, array &$browserOutput = [], string $color = iColorCode::RED): array
     {
-        return self::generateCustomLogArrayFromThrowable($e,$level,$browserOutput, $color);
+        return self::generateCustomLogArrayFromThrowable($e, $level, $browserOutput, $color);
     }
 
 
@@ -420,7 +420,9 @@ END;
                     }
                     fclose($file);
                 }
-            } catch (Throwable $e) {} finally {} // NO MATTER WHAT.. continue
+            } catch (Throwable $e) {
+            } finally {
+            } // NO MATTER WHAT.. continue
         }
 
         if (self::$storeReport === true || self::$storeReport === 'database') {
@@ -680,14 +682,8 @@ DESCRIPTION;
                 }
             }
             
-            <!-- code opts -->
-            
-            table {
-              background-color:#ffffff;
-            }
-            
             pre {
-              background-color:rgba(255,255,255,0.9);
+              background-color:rgba(18,18,18,0.9);
               max-height: 30%;
               overflow:scroll;
               margin:0 0 1em;

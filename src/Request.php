@@ -22,7 +22,7 @@ class Request   // requires carbon::application;
     ########################## Manual Input ################################
 
     /** Adds comma separated parameters to the set
-     * @param array ...$argv
+     * @param mixed ...$argv
      * @return Request
      */
     public function set(...$argv): self
@@ -166,7 +166,7 @@ class Request   // requires carbon::application;
 
 
     /** Filter the $_GET array with the arguments passed in
-     * @param array ...$argv
+     * @param mixed ...$argv
      * @return Request
      */
     public function get(...$argv): self
@@ -175,7 +175,7 @@ class Request   // requires carbon::application;
     }
 
     /** Filter the $_POST array with the arguments passed in
-     * @param array ...$argv
+     * @param mixed ...$argv
      * @return Request
      */
     public function post(...$argv): self
@@ -184,7 +184,7 @@ class Request   // requires carbon::application;
     }
 
     /** Filter the $_COOKIE array with the arguments passed in
-     * @param array ...$argv
+     * @param mixed ...$argv
      * @return Request
      */
     public function cookie(...$argv): self
@@ -193,7 +193,7 @@ class Request   // requires carbon::application;
     }
 
     /** Filter the $_FILES array with the arguments passed in
-     * @param array ...$argv
+     * @param mixed ...$argv
      * @return Request
      */
     public function files(...$argv): self
@@ -241,7 +241,7 @@ class Request   // requires carbon::application;
     }
 
     /** Removes passed arguments from the set
-     * @param array ...$argv
+     * @param mixed ...$argv
      * @return Request
      */
     public function except(...$argv): self

@@ -118,6 +118,13 @@ abstract class Rest extends Database
         }
     }
 
+    public static function signalError(string $message) : bool {
+        if (!self::$externalRestfulRequestsAPI && CarbonPHP::$is_running_production) {
+                return false;
+        }
+        throw new PublicAlert($message);
+    }
+
     public static function preprocessRestRequest(): void
     {
         if ((self::$compiled_PHP_validations[self::REST_REQUEST_PREPROCESS_CALLBACKS][self::PREPROCESS] ?? false) &&
