@@ -22,6 +22,7 @@
 /** The name of the database for WordPress */
 
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Database;
 use Config\Documentation;
 
 // Composer autoload
@@ -30,16 +31,19 @@ if (false === (include __DIR__ . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPA
     die(1);
 }
 
-define( 'DB_NAME', 'CarbonPHP' );
+/** @noinspection PhpUnhandledExceptionInspection */
+CarbonPHP::make(Documentation::class, ABSPATH);
+
+define( 'DB_NAME', Database::$name );
 
 /** MySQL database username */
-define( 'DB_USER', 'root' );
+define( 'DB_USER', Database::$username );
 
 /** MySQL database password */
-define( 'DB_PASSWORD', 'password' );
+define( 'DB_PASSWORD', Database::$password );
 
 /** MySQL hostname */
-define( 'DB_HOST', 'localhost' );
+define( 'DB_HOST', Database::$host );
 
 /** Database Charset to use in creating database tables. */
 define( 'DB_CHARSET', 'utf8' );
@@ -96,8 +100,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', __DIR__ . '/' );
 }
 
-/** @noinspection PhpUnhandledExceptionInspection */
-CarbonPHP::make(Documentation::class, ABSPATH);
 
 /** Sets up WordPress vars and included files. */
 require_once ABSPATH . 'wp-settings.php';
