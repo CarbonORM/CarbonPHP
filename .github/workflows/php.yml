@@ -55,14 +55,11 @@ jobs:
       - name: composer wordpress:download:latest-stable
         run: composer wordpress:download:latest-stable
 
-      - name: composer wordpress:download:unpack
-        run: composer wordpress:download:unpack
+      - name: php index.php buildDatabase -r
+        run: php index.php buildDatabase -r
 
       - name: composer install --prefer-dist --no-progress --no-suggest
         run: composer install --prefer-dist --no-progress --no-suggest
-
-      - name: php index.php buildDatabase -r
-        run: php index.php buildDatabase -r
 
       - name: php index.php rest
         run: php index.php rest
@@ -73,7 +70,10 @@ jobs:
       - name: ./vendor/se/selenium-server-standalone/composer/bin/selenium-server-standalone &
         run: ./vendor/se/selenium-server-standalone/composer/bin/selenium-server-standalone &
 
+      - name: composer wordpress:download:unpack
+        run: composer wordpress:download:unpack
+
         # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
         # Docs: https://getcomposer.org/doc/articles/scripts.md
-      - name: Run test suite
+      - name: composer run test (Run test suite)
         run: composer run test
