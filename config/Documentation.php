@@ -571,7 +571,8 @@ SOCKET;
                 'CACHE_CONTROL' => [
                     'ico|pdf|flv' => 'Cache-Control: max-age=29030400, public',
                     'jpg|jpeg|png|gif|swf|xml|txt|css|woff2|tff|ttf|svg' => 'Cache-Control: max-age=604800, public',
-                    'html|htm|hbs|js' => 'Cache-Control: max-age=0, private, public',
+                    'html|htm|hbs|js' => 'Cache-Control: max-age=0, private, public',   // It is not recommended to add php as an extension as explicitly hitting the .php would output its contents without compilation.
+                                                                                        // This can be a valid use, but for 99% of users it will seem like a bug with apache.
                 ],
                 'CONFIG' => __FILE__,               // Send to sockets
                 'TIMEZONE' => 'America/Phoenix',    //  Current timezone
