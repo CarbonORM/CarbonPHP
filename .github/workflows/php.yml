@@ -55,11 +55,11 @@ jobs:
       - name: composer wordpress:download:latest-stable
         run: composer wordpress:download:latest-stable
 
-      - name: php index.php buildDatabase -r
-        run: php index.php buildDatabase -r
-
       - name: composer install --prefer-dist --no-progress --no-suggest
         run: composer install --prefer-dist --no-progress --no-suggest
+
+      - name: php index.php buildDatabase -r
+        run: php index.php buildDatabase -r
 
       - name: php index.php rest
         run: php index.php rest
