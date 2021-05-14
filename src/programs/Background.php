@@ -2,25 +2,22 @@
 
 namespace CarbonPHP\Programs;
 
-
-// TODO - probably should be named better but were preserving backwards compatibility (BC)
 use Throwable;
 
 trait Background
 {
-    public function background($cmd, $outputFile = null)
+    public static function background($cmd, $outputFile = null)
     {
         try {
             if (strpos(PHP_OS, 'Windows') === 0) {
                 $cmd = "start /B $cmd > $outputFile";
                 print $cmd . PHP_EOL . PHP_EOL;
-                pclose(popen($cmd, 'r'));
-            } else {
-                // TODO - this doesn't work???
-                $cmd = sprintf('sudo %s > %s', $cmd, $outputFile); // sudo %s > %s 2>$1 & echo $!
-                print $cmd . PHP_EOL . PHP_EOL;
-                exec($cmd, $pid);
+                return pclose(popen($cmd, 'r'));
             }
+            // TODO - this doesn't work???
+            $cmd = sprintf('sudo %s > %s', $cmd, $outputFile); // sudo %s > %s 2>$1 & echo $!
+            print $cmd . PHP_EOL . PHP_EOL;
+            exec($cmd, $pid);
         } catch (Throwable $e) {
         }
         return $pid[0] ?? 'Failed to execute cmd!';
