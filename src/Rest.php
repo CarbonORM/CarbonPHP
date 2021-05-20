@@ -628,7 +628,7 @@ abstract class Rest extends Database
      * @return string
      * @throws PublicAlert
      */
-    protected static function buildSelectQuery(string $primary = null, array $argv, string $database = '', PDO $pdo = null, bool $noHEX = false): string
+    protected static function buildSelectQuery(string $primary = null, array $argv = [], string $database = '', PDO $pdo = null, bool $noHEX = false): string
     {
 
         if ($pdo === null) {
@@ -871,7 +871,7 @@ abstract class Rest extends Database
      * @param string $database
      * @return callable
      */
-    public static function subSelect($primary = null, array $argv, string $as = '', PDO $pdo = null, string $database = ''): callable
+    public static function subSelect($primary = null, array $argv = [], string $as = '', PDO $pdo = null, string $database = ''): callable
     {
         return static function () use ($primary, $argv, $as, $database, $pdo): string {
             self::$allowSubSelectQueries = true;
