@@ -45,6 +45,9 @@ abstract class Rest extends Database
     public const EQUAL = '=';
     public const EQUAL_NULL_SAFE = '<=>';
     public const LIKE = ' LIKE ';
+    public const CURRENT_TIMESTAMP = ' CURRENT_TIMESTAMP ';
+    public const NOW = ' NOW() ';
+    public const TRANSACTION_TIMESTAMP = ' TRANSACTION_TIMESTAMP ';
 
     # carbon identifiers
     public const DEPENDANT_ON_ENTITY = 'DEPENDANT_ON_ENTITY';
@@ -90,7 +93,6 @@ abstract class Rest extends Database
      * @var mixed
      */
     public static $REST_REQUEST_RETURN_DATA = [];           // this is set with the request payload
-
     public static array $VALIDATED_REST_COLUMNS = [];
     public static array $compiled_valid_columns = [];
     public static array $compiled_PDO_validations = [];
@@ -101,6 +103,7 @@ abstract class Rest extends Database
 
     // validating across joins for rest is hard enough. I'm not going to allow user/FED provided sub queries
     public static bool $commit = true;
+    public static bool $allowInternalMysqlFunctions = true;
     public static bool $allowSubSelectQueries = false;
     public static bool $externalRestfulRequestsAPI = false;
 

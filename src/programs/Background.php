@@ -6,18 +6,18 @@ use Throwable;
 
 trait Background
 {
-    public static function background($cmd, $outputFile = null)
+    public static function background($cmd, $outputFile = '/dev/null')
     {
         try {
-            if (strpos(PHP_OS, 'Windows') === 0) {
+            if (DIRECTORY_SEPARATOR === '\\') { // windows
                 $cmd = "start /B $cmd > $outputFile";
                 print $cmd . PHP_EOL . PHP_EOL;
                 return pclose(popen($cmd, 'r'));
             }
-            // TODO - this doesn't work???
-            $cmd = sprintf('sudo %s > %s', $cmd, $outputFile); // sudo %s > %s 2>$1 & echo $!
-            print $cmd . PHP_EOL . PHP_EOL;
-            exec($cmd, $pid);
+            $cmd = sprintf('sudo sh %s > %s 2>&1 & echo $!;', $cmd, $outputFile); // sudo %s > %s 2>$1 & echo $!
+            $pid = exec($cmd, $pid);
+            print PHP_EOL . $cmd . '<=>' . $pid . PHP_EOL . PHP_EOL;
+            return $pid;
         } catch (Throwable $e) {
         }
         return $pid[0] ?? 'Failed to execute cmd!';
