@@ -15,8 +15,8 @@ trait Background
                 return pclose(popen($cmd, 'r'));
             }
             $cmd = sprintf('sudo sh %s > %s 2>&1 & echo $!;', $cmd, $outputFile); // sudo %s > %s 2>$1 & echo $!
-            $pid = exec($cmd, $pid);
-            print PHP_EOL . $cmd . '<=>' . $pid . PHP_EOL . PHP_EOL;
+            exec($cmd, $pid);
+            ColorCode::colorCode("Running CMD (pid::$pid)>> " . $$cmd . PHP_EOL . PHP_EOL . ' ');
             return $pid;
         } catch (Throwable $e) {
         }
