@@ -465,7 +465,7 @@ MYSQL;
     
         foreach ($data as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
-                return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
+                return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.");
             }
         } 
         
@@ -490,7 +490,7 @@ MYSQL;
         $stmt->bindParam(':task_id',$task_id, PDO::PARAM_STR, 16);
         
         if (!array_key_exists('carbon_user_tasks.user_id', $data)) {
-            return self::signalError('Required argument "carbon_user_tasks.user_id" is missing from the request.', 'danger');
+            return self::signalError('Required argument "carbon_user_tasks.user_id" is missing from the request.');
         }
         $user_id = $data['carbon_user_tasks.user_id'];
         $ref='carbon_user_tasks.user_id';
@@ -509,7 +509,7 @@ MYSQL;
         $stmt->bindParam(':from_id',$from_id, PDO::PARAM_STR, 16);
         
         if (!array_key_exists('carbon_user_tasks.task_name', $data)) {
-            return self::signalError('Required argument "carbon_user_tasks.task_name" is missing from the request.', 'danger');
+            return self::signalError('Required argument "carbon_user_tasks.task_name" is missing from the request.');
         }
         $task_name = $data['carbon_user_tasks.task_name'];
         $ref='carbon_user_tasks.task_name';
@@ -593,17 +593,19 @@ MYSQL;
         self::startRest(self::PUT, $returnUpdated, $argv, $primary);
         
         if ('' === $primary) {
-            return self::signalError('Restful tables which have a primary key must be updated by its primary key.', 'danger');
+            return self::signalError('Restful tables which have a primary key must be updated by its primary key.');
         }
          
         if (array_key_exists(self::UPDATE, $argv)) {
             $argv = $argv[self::UPDATE];
         }
 
+        $where = [self::PRIMARY => $primary];
+        
         
         foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column $key, because it does not appear to exist.', 'danger');
+                return self::signalError('Restful table could not update column $key, because it does not appear to exist.');
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
@@ -618,19 +620,26 @@ MYSQL;
 
         if (array_key_exists('carbon_user_tasks.task_id', $argv)) {
             $set .= 'task_id=UNHEX(:task_id),';
-        }        if (array_key_exists('carbon_user_tasks.user_id', $argv)) {
+        }
+        if (array_key_exists('carbon_user_tasks.user_id', $argv)) {
             $set .= 'user_id=UNHEX(:user_id),';
-        }        if (array_key_exists('carbon_user_tasks.from_id', $argv)) {
+        }
+        if (array_key_exists('carbon_user_tasks.from_id', $argv)) {
             $set .= 'from_id=UNHEX(:from_id),';
-        }        if (array_key_exists('carbon_user_tasks.task_name', $argv)) {
+        }
+        if (array_key_exists('carbon_user_tasks.task_name', $argv)) {
             $set .= 'task_name=:task_name,';
-        }        if (array_key_exists('carbon_user_tasks.task_description', $argv)) {
+        }
+        if (array_key_exists('carbon_user_tasks.task_description', $argv)) {
             $set .= 'task_description=:task_description,';
-        }        if (array_key_exists('carbon_user_tasks.percent_complete', $argv)) {
+        }
+        if (array_key_exists('carbon_user_tasks.percent_complete', $argv)) {
             $set .= 'percent_complete=:percent_complete,';
-        }        if (array_key_exists('carbon_user_tasks.start_date', $argv)) {
+        }
+        if (array_key_exists('carbon_user_tasks.start_date', $argv)) {
             $set .= 'start_date=:start_date,';
-        }        if (array_key_exists('carbon_user_tasks.end_date', $argv)) {
+        }
+        if (array_key_exists('carbon_user_tasks.end_date', $argv)) {
             $set .= 'end_date=:end_date,';
         }
         
@@ -642,7 +651,7 @@ MYSQL;
             $pdo->beginTransaction();
         }
 
-        
+        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -706,7 +715,7 @@ MYSQL;
         }
         
         if (!$stmt->rowCount()) {
-            return self::signalError('Failed to find the target row.', 'danger');
+            return self::signalError('Failed to find the target row.');
         }
         
         $argv = array_combine(
@@ -744,6 +753,7 @@ MYSQL;
     public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
     {
         self::startRest(self::DELETE, $remove, $argv, $primary);
+        
         if (null !== $primary) {
             return Carbons::Delete($remove, $primary, $argv);
         }

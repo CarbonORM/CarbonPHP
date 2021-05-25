@@ -389,7 +389,7 @@ MYSQL;
     
         foreach ($data as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
-                return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
+                return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.");
             }
         } 
         
@@ -479,25 +479,26 @@ MYSQL;
     {
         self::startRest(self::PUT, $returnUpdated, $argv);
         
+
         $where = $argv[self::WHERE] ?? [];
         
         if (empty($where)) {
-            return self::signalError('Restful tables which have no primary key must be updated using conditions given to $argv[self::WHERE] and values given to $argv[self::UPDATE]. No WHERE attribute given.', 'danger');
+            return self::signalError('Restful tables which have no primary key must be updated using conditions given to $argv[self::WHERE] and values given to $argv[self::UPDATE]. No WHERE attribute given.');
         }
 
         $argv = $argv[self::UPDATE] ?? [];
         
         if (empty($argv)) {
-            return self::signalError('Restful tables which have no primary key must be updated using conditions given to $argv[self::WHERE] and values given to $argv[self::UPDATE]. No UPDATE attribute given.', 'danger');
+            return self::signalError('Restful tables which have no primary key must be updated using conditions given to $argv[self::WHERE] and values given to $argv[self::UPDATE]. No UPDATE attribute given.');
         }
 
         if (empty($where) || empty($argv)) {
-            return self::signalError('Restful tables which have no primary key must be updated with specific where and update attributes.', 'danger');
+            return self::signalError('Restful tables which have no primary key must be updated with specific where and update attributes.');
         }
         
         foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column $key, because it does not appear to exist.', 'danger');
+                return self::signalError('Restful table could not update column $key, because it does not appear to exist.');
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
@@ -512,11 +513,14 @@ MYSQL;
 
         if (array_key_exists('carbon_reports.log_level', $argv)) {
             $set .= 'log_level=:log_level,';
-        }        if (array_key_exists('carbon_reports.report', $argv)) {
+        }
+        if (array_key_exists('carbon_reports.report', $argv)) {
             $set .= 'report=:report,';
-        }        if (array_key_exists('carbon_reports.date', $argv)) {
+        }
+        if (array_key_exists('carbon_reports.date', $argv)) {
             $set .= 'date=:date,';
-        }        if (array_key_exists('carbon_reports.call_trace', $argv)) {
+        }
+        if (array_key_exists('carbon_reports.call_trace', $argv)) {
             $set .= 'call_trace=:call_trace,';
         }
         
@@ -560,7 +564,7 @@ MYSQL;
         }
         
         if (!$stmt->rowCount()) {
-            return self::signalError('Failed to find the target row.', 'danger');
+            return self::signalError('Failed to find the target row.');
         }
         
         $argv = array_combine(
@@ -597,6 +601,7 @@ MYSQL;
     public static function Delete(array &$remove, array $argv = []) : bool
     {
         self::startRest(self::DELETE, $remove, $argv);
+        
         /** @noinspection SqlWithoutWhere
          * @noinspection UnknownInspectionInspection - intellij is funny sometimes.
          */
@@ -610,7 +615,7 @@ MYSQL;
         
         
         if (empty($argv)) {
-            return self::signalError('When deleting from tables with out a primary key additional arguments must be provided.', 'danger');
+            return self::signalError('When deleting from tables with out a primary key additional arguments must be provided.');
         } 
          
         $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);

@@ -390,7 +390,7 @@ MYSQL;
     
         foreach ($data as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
-                return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
+                return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.");
             }
         } 
         
@@ -408,7 +408,7 @@ MYSQL;
 
         $stmt = self::database()->prepare($sql);
         if (!array_key_exists('carbon_location_references.entity_reference', $data)) {
-            return self::signalError('Required argument "carbon_location_references.entity_reference" is missing from the request.', 'danger');
+            return self::signalError('Required argument "carbon_location_references.entity_reference" is missing from the request.');
         }
         $entity_reference = $data['carbon_location_references.entity_reference'];
         $ref='carbon_location_references.entity_reference';
@@ -419,7 +419,7 @@ MYSQL;
         $stmt->bindParam(':entity_reference',$entity_reference, PDO::PARAM_STR, 16);
         
         if (!array_key_exists('carbon_location_references.location_reference', $data)) {
-            return self::signalError('Required argument "carbon_location_references.location_reference" is missing from the request.', 'danger');
+            return self::signalError('Required argument "carbon_location_references.location_reference" is missing from the request.');
         }
         $location_reference = $data['carbon_location_references.location_reference'];
         $ref='carbon_location_references.location_reference';
@@ -474,25 +474,26 @@ MYSQL;
     {
         self::startRest(self::PUT, $returnUpdated, $argv);
         
+
         $where = $argv[self::WHERE] ?? [];
         
         if (empty($where)) {
-            return self::signalError('Restful tables which have no primary key must be updated using conditions given to $argv[self::WHERE] and values given to $argv[self::UPDATE]. No WHERE attribute given.', 'danger');
+            return self::signalError('Restful tables which have no primary key must be updated using conditions given to $argv[self::WHERE] and values given to $argv[self::UPDATE]. No WHERE attribute given.');
         }
 
         $argv = $argv[self::UPDATE] ?? [];
         
         if (empty($argv)) {
-            return self::signalError('Restful tables which have no primary key must be updated using conditions given to $argv[self::WHERE] and values given to $argv[self::UPDATE]. No UPDATE attribute given.', 'danger');
+            return self::signalError('Restful tables which have no primary key must be updated using conditions given to $argv[self::WHERE] and values given to $argv[self::UPDATE]. No UPDATE attribute given.');
         }
 
         if (empty($where) || empty($argv)) {
-            return self::signalError('Restful tables which have no primary key must be updated with specific where and update attributes.', 'danger');
+            return self::signalError('Restful tables which have no primary key must be updated with specific where and update attributes.');
         }
         
         foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column $key, because it does not appear to exist.', 'danger');
+                return self::signalError('Restful table could not update column $key, because it does not appear to exist.');
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
@@ -507,9 +508,11 @@ MYSQL;
 
         if (array_key_exists('carbon_location_references.entity_reference', $argv)) {
             $set .= 'entity_reference=UNHEX(:entity_reference),';
-        }        if (array_key_exists('carbon_location_references.location_reference', $argv)) {
+        }
+        if (array_key_exists('carbon_location_references.location_reference', $argv)) {
             $set .= 'location_reference=UNHEX(:location_reference),';
-        }        if (array_key_exists('carbon_location_references.location_time', $argv)) {
+        }
+        if (array_key_exists('carbon_location_references.location_time', $argv)) {
             $set .= 'location_time=:location_time,';
         }
         
@@ -557,7 +560,7 @@ MYSQL;
         }
         
         if (!$stmt->rowCount()) {
-            return self::signalError('Failed to find the target row.', 'danger');
+            return self::signalError('Failed to find the target row.');
         }
         
         $argv = array_combine(
@@ -594,6 +597,7 @@ MYSQL;
     public static function Delete(array &$remove, array $argv = []) : bool
     {
         self::startRest(self::DELETE, $remove, $argv);
+        
         /** @noinspection SqlWithoutWhere
          * @noinspection UnknownInspectionInspection - intellij is funny sometimes.
          */
@@ -607,7 +611,7 @@ MYSQL;
         
         
         if (empty($argv)) {
-            return self::signalError('When deleting from tables with out a primary key additional arguments must be provided.', 'danger');
+            return self::signalError('When deleting from tables with out a primary key additional arguments must be provided.');
         } 
          
         $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);

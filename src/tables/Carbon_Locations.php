@@ -406,7 +406,7 @@ MYSQL;
     
         foreach ($data as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
-                return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
+                return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.");
             }
         } 
         
@@ -528,17 +528,19 @@ MYSQL;
         self::startRest(self::PUT, $returnUpdated, $argv, $primary);
         
         if ('' === $primary) {
-            return self::signalError('Restful tables which have a primary key must be updated by its primary key.', 'danger');
+            return self::signalError('Restful tables which have a primary key must be updated by its primary key.');
         }
          
         if (array_key_exists(self::UPDATE, $argv)) {
             $argv = $argv[self::UPDATE];
         }
 
+        $where = [self::PRIMARY => $primary];
+        
         
         foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column $key, because it does not appear to exist.', 'danger');
+                return self::signalError('Restful table could not update column $key, because it does not appear to exist.');
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
@@ -553,19 +555,26 @@ MYSQL;
 
         if (array_key_exists('carbon_locations.entity_id', $argv)) {
             $set .= 'entity_id=UNHEX(:entity_id),';
-        }        if (array_key_exists('carbon_locations.latitude', $argv)) {
+        }
+        if (array_key_exists('carbon_locations.latitude', $argv)) {
             $set .= 'latitude=:latitude,';
-        }        if (array_key_exists('carbon_locations.longitude', $argv)) {
+        }
+        if (array_key_exists('carbon_locations.longitude', $argv)) {
             $set .= 'longitude=:longitude,';
-        }        if (array_key_exists('carbon_locations.street', $argv)) {
+        }
+        if (array_key_exists('carbon_locations.street', $argv)) {
             $set .= 'street=:street,';
-        }        if (array_key_exists('carbon_locations.city', $argv)) {
+        }
+        if (array_key_exists('carbon_locations.city', $argv)) {
             $set .= 'city=:city,';
-        }        if (array_key_exists('carbon_locations.state', $argv)) {
+        }
+        if (array_key_exists('carbon_locations.state', $argv)) {
             $set .= 'state=:state,';
-        }        if (array_key_exists('carbon_locations.elevation', $argv)) {
+        }
+        if (array_key_exists('carbon_locations.elevation', $argv)) {
             $set .= 'elevation=:elevation,';
-        }        if (array_key_exists('carbon_locations.zip', $argv)) {
+        }
+        if (array_key_exists('carbon_locations.zip', $argv)) {
             $set .= 'zip=:zip,';
         }
         
@@ -577,7 +586,7 @@ MYSQL;
             $pdo->beginTransaction();
         }
 
-        
+        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -653,7 +662,7 @@ MYSQL;
         }
         
         if (!$stmt->rowCount()) {
-            return self::signalError('Failed to find the target row.', 'danger');
+            return self::signalError('Failed to find the target row.');
         }
         
         $argv = array_combine(
@@ -691,6 +700,7 @@ MYSQL;
     public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
     {
         self::startRest(self::DELETE, $remove, $argv, $primary);
+        
         if (null !== $primary) {
             return Carbons::Delete($remove, $primary, $argv);
         }

@@ -403,7 +403,7 @@ MYSQL;
     
         foreach ($data as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
-                return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
+                return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.");
             }
         } 
         
@@ -487,17 +487,19 @@ MYSQL;
         self::startRest(self::PUT, $returnUpdated, $argv, $primary);
         
         if ('' === $primary) {
-            return self::signalError('Restful tables which have a primary key must be updated by its primary key.', 'danger');
+            return self::signalError('Restful tables which have a primary key must be updated by its primary key.');
         }
          
         if (array_key_exists(self::UPDATE, $argv)) {
             $argv = $argv[self::UPDATE];
         }
 
+        $where = [self::PRIMARY => $primary];
+        
         
         foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column $key, because it does not appear to exist.', 'danger');
+                return self::signalError('Restful table could not update column $key, because it does not appear to exist.');
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
@@ -512,11 +514,14 @@ MYSQL;
 
         if (array_key_exists('wp_terms.term_id', $argv)) {
             $set .= 'term_id=:term_id,';
-        }        if (array_key_exists('wp_terms.name', $argv)) {
+        }
+        if (array_key_exists('wp_terms.name', $argv)) {
             $set .= 'name=:name,';
-        }        if (array_key_exists('wp_terms.slug', $argv)) {
+        }
+        if (array_key_exists('wp_terms.slug', $argv)) {
             $set .= 'slug=:slug,';
-        }        if (array_key_exists('wp_terms.term_group', $argv)) {
+        }
+        if (array_key_exists('wp_terms.term_group', $argv)) {
             $set .= 'term_group=:term_group,';
         }
         
@@ -528,7 +533,7 @@ MYSQL;
             $pdo->beginTransaction();
         }
 
-        
+        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -566,7 +571,7 @@ MYSQL;
         }
         
         if (!$stmt->rowCount()) {
-            return self::signalError('Failed to find the target row.', 'danger');
+            return self::signalError('Failed to find the target row.');
         }
         
         $argv = array_combine(
@@ -604,6 +609,7 @@ MYSQL;
     public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
     {
         self::startRest(self::DELETE, $remove, $argv, $primary);
+        
         /** @noinspection SqlWithoutWhere
          * @noinspection UnknownInspectionInspection - intellij is funny sometimes.
          */
@@ -623,13 +629,14 @@ MYSQL;
             *   n00bs and future self, "I got chu."
             */
             if (empty($argv)) {
-                return self::signalError('When deleting from restful tables a primary key or where query must be provided.', 'danger');
+                return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
             }
+            $argv[self::PRIMARY] = $primary;
             
             $where = self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
             
             if (empty($where)) {
-                return self::signalError('The where condition provided appears invalid.', 'danger');
+                return self::signalError('The where condition provided appears invalid.');
             }
 
             $sql .= ' WHERE ' . $where;

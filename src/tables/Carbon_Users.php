@@ -482,7 +482,7 @@ MYSQL;
     
         foreach ($data as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
-                return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
+                return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.");
             }
         } 
         
@@ -495,7 +495,7 @@ MYSQL;
 
         $stmt = self::database()->prepare($sql);
         if (!array_key_exists('carbon_users.user_username', $data)) {
-            return self::signalError('Required argument "carbon_users.user_username" is missing from the request.', 'danger');
+            return self::signalError('Required argument "carbon_users.user_username" is missing from the request.');
         }
         $user_username = $data['carbon_users.user_username'];
         $ref='carbon_users.user_username';
@@ -506,7 +506,7 @@ MYSQL;
         $stmt->bindParam(':user_username',$user_username, PDO::PARAM_STR, 100);
         
         if (!array_key_exists('carbon_users.user_password', $data)) {
-            return self::signalError('Required argument "carbon_users.user_password" is missing from the request.', 'danger');
+            return self::signalError('Required argument "carbon_users.user_password" is missing from the request.');
         }
         $user_password = $data['carbon_users.user_password'];
         $ref='carbon_users.user_password';
@@ -561,7 +561,7 @@ MYSQL;
         $stmt->bindParam(':user_facebook_id',$user_facebook_id, PDO::PARAM_STR, 225);
         
         if (!array_key_exists('carbon_users.user_first_name', $data)) {
-            return self::signalError('Required argument "carbon_users.user_first_name" is missing from the request.', 'danger');
+            return self::signalError('Required argument "carbon_users.user_first_name" is missing from the request.');
         }
         $user_first_name = $data['carbon_users.user_first_name'];
         $ref='carbon_users.user_first_name';
@@ -572,7 +572,7 @@ MYSQL;
         $stmt->bindParam(':user_first_name',$user_first_name, PDO::PARAM_STR, 25);
         
         if (!array_key_exists('carbon_users.user_last_name', $data)) {
-            return self::signalError('Required argument "carbon_users.user_last_name" is missing from the request.', 'danger');
+            return self::signalError('Required argument "carbon_users.user_last_name" is missing from the request.');
         }
         $user_last_name = $data['carbon_users.user_last_name'];
         $ref='carbon_users.user_last_name';
@@ -639,7 +639,7 @@ MYSQL;
         $stmt->bindValue(':user_rank', $user_rank, PDO::PARAM_INT);
         
         if (!array_key_exists('carbon_users.user_email', $data)) {
-            return self::signalError('Required argument "carbon_users.user_email" is missing from the request.', 'danger');
+            return self::signalError('Required argument "carbon_users.user_email" is missing from the request.');
         }
         $user_email = $data['carbon_users.user_email'];
         $ref='carbon_users.user_email';
@@ -694,7 +694,7 @@ MYSQL;
         }
         
         if (!array_key_exists('carbon_users.user_ip', $data)) {
-            return self::signalError('Required argument "carbon_users.user_ip" is missing from the request.', 'danger');
+            return self::signalError('Required argument "carbon_users.user_ip" is missing from the request.');
         }
         $user_ip = $data['carbon_users.user_ip'];
         $ref='carbon_users.user_ip';
@@ -766,17 +766,19 @@ MYSQL;
         self::startRest(self::PUT, $returnUpdated, $argv, $primary);
         
         if ('' === $primary) {
-            return self::signalError('Restful tables which have a primary key must be updated by its primary key.', 'danger');
+            return self::signalError('Restful tables which have a primary key must be updated by its primary key.');
         }
          
         if (array_key_exists(self::UPDATE, $argv)) {
             $argv = $argv[self::UPDATE];
         }
 
+        $where = [self::PRIMARY => $primary];
+        
         
         foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column $key, because it does not appear to exist.', 'danger');
+                return self::signalError('Restful table could not update column $key, because it does not appear to exist.');
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
@@ -791,57 +793,83 @@ MYSQL;
 
         if (array_key_exists('carbon_users.user_username', $argv)) {
             $set .= 'user_username=:user_username,';
-        }        if (array_key_exists('carbon_users.user_password', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_password', $argv)) {
             $set .= 'user_password=:user_password,';
-        }        if (array_key_exists('carbon_users.user_id', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_id', $argv)) {
             $set .= 'user_id=UNHEX(:user_id),';
-        }        if (array_key_exists('carbon_users.user_type', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_type', $argv)) {
             $set .= 'user_type=:user_type,';
-        }        if (array_key_exists('carbon_users.user_sport', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_sport', $argv)) {
             $set .= 'user_sport=:user_sport,';
-        }        if (array_key_exists('carbon_users.user_session_id', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_session_id', $argv)) {
             $set .= 'user_session_id=:user_session_id,';
-        }        if (array_key_exists('carbon_users.user_facebook_id', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_facebook_id', $argv)) {
             $set .= 'user_facebook_id=:user_facebook_id,';
-        }        if (array_key_exists('carbon_users.user_first_name', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_first_name', $argv)) {
             $set .= 'user_first_name=:user_first_name,';
-        }        if (array_key_exists('carbon_users.user_last_name', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_last_name', $argv)) {
             $set .= 'user_last_name=:user_last_name,';
-        }        if (array_key_exists('carbon_users.user_profile_pic', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_profile_pic', $argv)) {
             $set .= 'user_profile_pic=:user_profile_pic,';
-        }        if (array_key_exists('carbon_users.user_profile_uri', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_profile_uri', $argv)) {
             $set .= 'user_profile_uri=:user_profile_uri,';
-        }        if (array_key_exists('carbon_users.user_cover_photo', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_cover_photo', $argv)) {
             $set .= 'user_cover_photo=:user_cover_photo,';
-        }        if (array_key_exists('carbon_users.user_birthday', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_birthday', $argv)) {
             $set .= 'user_birthday=:user_birthday,';
-        }        if (array_key_exists('carbon_users.user_gender', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_gender', $argv)) {
             $set .= 'user_gender=:user_gender,';
-        }        if (array_key_exists('carbon_users.user_about_me', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_about_me', $argv)) {
             $set .= 'user_about_me=:user_about_me,';
-        }        if (array_key_exists('carbon_users.user_rank', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_rank', $argv)) {
             $set .= 'user_rank=:user_rank,';
-        }        if (array_key_exists('carbon_users.user_email', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_email', $argv)) {
             $set .= 'user_email=:user_email,';
-        }        if (array_key_exists('carbon_users.user_email_code', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_email_code', $argv)) {
             $set .= 'user_email_code=:user_email_code,';
-        }        if (array_key_exists('carbon_users.user_email_confirmed', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_email_confirmed', $argv)) {
             $set .= 'user_email_confirmed=:user_email_confirmed,';
-        }        if (array_key_exists('carbon_users.user_generated_string', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_generated_string', $argv)) {
             $set .= 'user_generated_string=:user_generated_string,';
-        }        if (array_key_exists('carbon_users.user_membership', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_membership', $argv)) {
             $set .= 'user_membership=:user_membership,';
-        }        if (array_key_exists('carbon_users.user_deactivated', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_deactivated', $argv)) {
             $set .= 'user_deactivated=:user_deactivated,';
-        }        if (array_key_exists('carbon_users.user_last_login', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_last_login', $argv)) {
             $set .= 'user_last_login=:user_last_login,';
-        }        if (array_key_exists('carbon_users.user_ip', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_ip', $argv)) {
             $set .= 'user_ip=:user_ip,';
-        }        if (array_key_exists('carbon_users.user_education_history', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_education_history', $argv)) {
             $set .= 'user_education_history=:user_education_history,';
-        }        if (array_key_exists('carbon_users.user_location', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_location', $argv)) {
             $set .= 'user_location=:user_location,';
-        }        if (array_key_exists('carbon_users.user_creation_date', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_creation_date', $argv)) {
             $set .= 'user_creation_date=:user_creation_date,';
         }
         
@@ -853,7 +881,7 @@ MYSQL;
             $pdo->beginTransaction();
         }
 
-        
+        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -1063,7 +1091,7 @@ MYSQL;
         }
         
         if (!$stmt->rowCount()) {
-            return self::signalError('Failed to find the target row.', 'danger');
+            return self::signalError('Failed to find the target row.');
         }
         
         $argv = array_combine(
@@ -1101,6 +1129,7 @@ MYSQL;
     public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
     {
         self::startRest(self::DELETE, $remove, $argv, $primary);
+        
         if (null !== $primary) {
             return Carbons::Delete($remove, $primary, $argv);
         }

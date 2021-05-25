@@ -1646,7 +1646,7 @@ MYSQL;
     
         foreach (\$data as \$columnName => \$postValue) {
             if (!array_key_exists(\$columnName, self::PDO_VALIDATION)) {
-                return self::signalError("Restful table could not post column \$columnName, because it does not appear to exist.", 'danger');
+                return self::signalError("Restful table could not post column \$columnName, because it does not appear to exist.");
             }
         } 
         
@@ -1726,7 +1726,7 @@ MYSQL;
         \$stmt->bindValue(':{{name}}', \${{name}}, {{type}});
         {{/default}}{{/json}}{{/length}}{{#length}}{{^default}}
         if (!array_key_exists('{{TableName}}.{{name}}', \$data)) {
-            return self::signalError('Required argument "{{TableName}}.{{name}}" is missing from the request.', 'danger');
+            return self::signalError('Required argument "{{TableName}}.{{name}}" is missing from the request.');
         }{{/default}}
         \${{name}} = {{^default}}\$data['{{TableName}}.{{name}}'];{{/default}}{{#default}}\$data['{{TableName}}.{{name}}'] ?? {{{default}}};{{/default}}
         \$ref='{{TableName}}.{{name}}';
@@ -1801,34 +1801,37 @@ MYSQL;
         self::startRest(self::PUT, \$returnUpdated, \$argv{{#primaryExists}}, \$primary{{/primaryExists}});
         
         {{#primaryExists}}
-        if ('' === \$primary) {
-            return self::signalError('Restful tables which have a primary key must be updated by its primary key.', 'danger');
+        if ({{^multiplePrimary}}''{{/multiplePrimary}}{{#multiplePrimary}}[]{{/multiplePrimary}} === \$primary) {
+            return self::signalError('Restful tables which have a primary key must be updated by its primary key.');
         }
          
         if (array_key_exists(self::UPDATE, \$argv)) {
             \$argv = \$argv[self::UPDATE];
         }
-        {{/primaryExists}}
-        {{^primaryExists}}
+        {{#multiplePrimary}}
+        \$where = array_merge(\$argv, \$primary);
+        {{/multiplePrimary}}{{^multiplePrimary}}
+        \$where = [self::PRIMARY => \$primary];
+        {{/multiplePrimary}}{{/primaryExists}}{{^primaryExists}}
         \$where = \$argv[self::WHERE] ?? [];
         
         if (empty(\$where)) {
-            return self::signalError('Restful tables which have no primary key must be updated using conditions given to \$argv[self::WHERE] and values given to \$argv[self::UPDATE]. No WHERE attribute given.', 'danger');
+            return self::signalError('Restful tables which have no primary key must be updated using conditions given to \$argv[self::WHERE] and values given to \$argv[self::UPDATE]. No WHERE attribute given.');
         }
 
         \$argv = \$argv[self::UPDATE] ?? [];
         
         if (empty(\$argv)) {
-            return self::signalError('Restful tables which have no primary key must be updated using conditions given to \$argv[self::WHERE] and values given to \$argv[self::UPDATE]. No UPDATE attribute given.', 'danger');
+            return self::signalError('Restful tables which have no primary key must be updated using conditions given to \$argv[self::WHERE] and values given to \$argv[self::UPDATE]. No UPDATE attribute given.');
         }
 
         if (empty(\$where) || empty(\$argv)) {
-            return self::signalError('Restful tables which have no primary key must be updated with specific where and update attributes.', 'danger');
+            return self::signalError('Restful tables which have no primary key must be updated with specific where and update attributes.');
         }{{/primaryExists}}
         
         foreach (\$argv as \$key => &\$value) {
             if (!array_key_exists(\$key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column \$key, because it does not appear to exist.', 'danger');
+                return self::signalError('Restful table could not update column \$key, because it does not appear to exist.');
             }
             \$op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, \$key, \$op, \$value)) {
@@ -1844,7 +1847,8 @@ MYSQL;
         {{#explode}}
         if (array_key_exists('{{TableName}}.{{name}}', \$argv)) {
             \$set .= '{{name}}={{#binary}}UNHEX(:{{name}}){{/binary}}{{^binary}}:{{name}}{{/binary}},';
-        }{{/explode}}
+        }
+        {{/explode}}
         
         \$sql .= substr(\$set, 0, -1);
 
@@ -1854,7 +1858,7 @@ MYSQL;
             \$pdo->beginTransaction();
         }
 
-        {{#primary}}{{{sql.sql}}}{{/primary}}{{^primary}}\$sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, \$where, \$pdo);{{/primary}}
+        \$sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, \$where, \$pdo);
 
         {{#json}}self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
 
@@ -1884,7 +1888,7 @@ MYSQL;
         }
         
         if (!\$stmt->rowCount()) {
-            return self::signalError('Failed to find the target row.', 'danger');
+            return self::signalError('Failed to find the target row.');
         }
         
         \$argv = array_combine(
@@ -1922,6 +1926,7 @@ MYSQL;
     public static function Delete(array &\$remove, {{#primaryExists}}{{#multiplePrimary}}array{{/multiplePrimary}}{{^multiplePrimary}}string{{/multiplePrimary}} \$primary = null, {{/primaryExists}}array \$argv = []) : bool
     {
         self::startRest(self::DELETE, \$remove, \$argv{{#primaryExists}}, \$primary{{/primaryExists}});
+        
         {{#carbon_table}}
         if (null !== \$primary) {
             return Carbons::Delete(\$remove, \$primary, \$argv);
@@ -1994,13 +1999,17 @@ MYSQL;
             *   n00bs and future self, "I got chu."
             */
             if (empty(\$argv)) {
-                return self::signalError('When deleting from restful tables a primary key or where query must be provided.', 'danger');
-            }
+                return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
+            }{{#multiplePrimary}}
+            \$argv = array_merge(\$argv, \$primary);
+            {{/multiplePrimary}}{{^multiplePrimary}}
+            \$argv[self::PRIMARY] = \$primary;
+            {{/multiplePrimary}}
             
             \$where = self::buildBooleanJoinConditions(self::DELETE, \$argv, \$pdo);
             
             if (empty(\$where)) {
-                return self::signalError('The where condition provided appears invalid.', 'danger');
+                return self::signalError('The where condition provided appears invalid.');
             }
 
             \$sql .= ' WHERE ' . \$where;
@@ -2009,7 +2018,7 @@ MYSQL;
         }{{/sql}}{{/primary}}
         {{^primary}}
         if (empty(\$argv)) {
-            return self::signalError('When deleting from tables with out a primary key additional arguments must be provided.', 'danger');
+            return self::signalError('When deleting from tables with out a primary key additional arguments must be provided.');
         } 
          
         \$sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, \$argv, \$pdo);{{/primary}}

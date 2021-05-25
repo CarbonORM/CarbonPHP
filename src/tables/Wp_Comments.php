@@ -439,7 +439,7 @@ MYSQL;
     
         foreach ($data as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
-                return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
+                return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.");
             }
         } 
         
@@ -615,17 +615,19 @@ MYSQL;
         self::startRest(self::PUT, $returnUpdated, $argv, $primary);
         
         if ('' === $primary) {
-            return self::signalError('Restful tables which have a primary key must be updated by its primary key.', 'danger');
+            return self::signalError('Restful tables which have a primary key must be updated by its primary key.');
         }
          
         if (array_key_exists(self::UPDATE, $argv)) {
             $argv = $argv[self::UPDATE];
         }
 
+        $where = [self::PRIMARY => $primary];
+        
         
         foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column $key, because it does not appear to exist.', 'danger');
+                return self::signalError('Restful table could not update column $key, because it does not appear to exist.');
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
@@ -640,33 +642,47 @@ MYSQL;
 
         if (array_key_exists('wp_comments.comment_ID', $argv)) {
             $set .= 'comment_ID=:comment_ID,';
-        }        if (array_key_exists('wp_comments.comment_post_ID', $argv)) {
+        }
+        if (array_key_exists('wp_comments.comment_post_ID', $argv)) {
             $set .= 'comment_post_ID=:comment_post_ID,';
-        }        if (array_key_exists('wp_comments.comment_author', $argv)) {
+        }
+        if (array_key_exists('wp_comments.comment_author', $argv)) {
             $set .= 'comment_author=:comment_author,';
-        }        if (array_key_exists('wp_comments.comment_author_email', $argv)) {
+        }
+        if (array_key_exists('wp_comments.comment_author_email', $argv)) {
             $set .= 'comment_author_email=:comment_author_email,';
-        }        if (array_key_exists('wp_comments.comment_author_url', $argv)) {
+        }
+        if (array_key_exists('wp_comments.comment_author_url', $argv)) {
             $set .= 'comment_author_url=:comment_author_url,';
-        }        if (array_key_exists('wp_comments.comment_author_IP', $argv)) {
+        }
+        if (array_key_exists('wp_comments.comment_author_IP', $argv)) {
             $set .= 'comment_author_IP=:comment_author_IP,';
-        }        if (array_key_exists('wp_comments.comment_date', $argv)) {
+        }
+        if (array_key_exists('wp_comments.comment_date', $argv)) {
             $set .= 'comment_date=:comment_date,';
-        }        if (array_key_exists('wp_comments.comment_date_gmt', $argv)) {
+        }
+        if (array_key_exists('wp_comments.comment_date_gmt', $argv)) {
             $set .= 'comment_date_gmt=:comment_date_gmt,';
-        }        if (array_key_exists('wp_comments.comment_content', $argv)) {
+        }
+        if (array_key_exists('wp_comments.comment_content', $argv)) {
             $set .= 'comment_content=:comment_content,';
-        }        if (array_key_exists('wp_comments.comment_karma', $argv)) {
+        }
+        if (array_key_exists('wp_comments.comment_karma', $argv)) {
             $set .= 'comment_karma=:comment_karma,';
-        }        if (array_key_exists('wp_comments.comment_approved', $argv)) {
+        }
+        if (array_key_exists('wp_comments.comment_approved', $argv)) {
             $set .= 'comment_approved=:comment_approved,';
-        }        if (array_key_exists('wp_comments.comment_agent', $argv)) {
+        }
+        if (array_key_exists('wp_comments.comment_agent', $argv)) {
             $set .= 'comment_agent=:comment_agent,';
-        }        if (array_key_exists('wp_comments.comment_type', $argv)) {
+        }
+        if (array_key_exists('wp_comments.comment_type', $argv)) {
             $set .= 'comment_type=:comment_type,';
-        }        if (array_key_exists('wp_comments.comment_parent', $argv)) {
+        }
+        if (array_key_exists('wp_comments.comment_parent', $argv)) {
             $set .= 'comment_parent=:comment_parent,';
-        }        if (array_key_exists('wp_comments.user_id', $argv)) {
+        }
+        if (array_key_exists('wp_comments.user_id', $argv)) {
             $set .= 'user_id=:user_id,';
         }
         
@@ -678,7 +694,7 @@ MYSQL;
             $pdo->beginTransaction();
         }
 
-        
+        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -762,7 +778,7 @@ MYSQL;
         }
         
         if (!$stmt->rowCount()) {
-            return self::signalError('Failed to find the target row.', 'danger');
+            return self::signalError('Failed to find the target row.');
         }
         
         $argv = array_combine(
@@ -800,6 +816,7 @@ MYSQL;
     public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
     {
         self::startRest(self::DELETE, $remove, $argv, $primary);
+        
         /** @noinspection SqlWithoutWhere
          * @noinspection UnknownInspectionInspection - intellij is funny sometimes.
          */
@@ -819,13 +836,14 @@ MYSQL;
             *   n00bs and future self, "I got chu."
             */
             if (empty($argv)) {
-                return self::signalError('When deleting from restful tables a primary key or where query must be provided.', 'danger');
+                return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
             }
+            $argv[self::PRIMARY] = $primary;
             
             $where = self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
             
             if (empty($where)) {
-                return self::signalError('The where condition provided appears invalid.', 'danger');
+                return self::signalError('The where condition provided appears invalid.');
             }
 
             $sql .= ' WHERE ' . $where;

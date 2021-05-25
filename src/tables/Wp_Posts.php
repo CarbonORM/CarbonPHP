@@ -462,7 +462,7 @@ MYSQL;
     
         foreach ($data as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
-                return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
+                return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.");
             }
         } 
         
@@ -710,17 +710,19 @@ MYSQL;
         self::startRest(self::PUT, $returnUpdated, $argv, $primary);
         
         if ('' === $primary) {
-            return self::signalError('Restful tables which have a primary key must be updated by its primary key.', 'danger');
+            return self::signalError('Restful tables which have a primary key must be updated by its primary key.');
         }
          
         if (array_key_exists(self::UPDATE, $argv)) {
             $argv = $argv[self::UPDATE];
         }
 
+        $where = [self::PRIMARY => $primary];
+        
         
         foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column $key, because it does not appear to exist.', 'danger');
+                return self::signalError('Restful table could not update column $key, because it does not appear to exist.');
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
@@ -735,49 +737,71 @@ MYSQL;
 
         if (array_key_exists('wp_posts.ID', $argv)) {
             $set .= 'ID=:ID,';
-        }        if (array_key_exists('wp_posts.post_author', $argv)) {
+        }
+        if (array_key_exists('wp_posts.post_author', $argv)) {
             $set .= 'post_author=:post_author,';
-        }        if (array_key_exists('wp_posts.post_date', $argv)) {
+        }
+        if (array_key_exists('wp_posts.post_date', $argv)) {
             $set .= 'post_date=:post_date,';
-        }        if (array_key_exists('wp_posts.post_date_gmt', $argv)) {
+        }
+        if (array_key_exists('wp_posts.post_date_gmt', $argv)) {
             $set .= 'post_date_gmt=:post_date_gmt,';
-        }        if (array_key_exists('wp_posts.post_content', $argv)) {
+        }
+        if (array_key_exists('wp_posts.post_content', $argv)) {
             $set .= 'post_content=:post_content,';
-        }        if (array_key_exists('wp_posts.post_title', $argv)) {
+        }
+        if (array_key_exists('wp_posts.post_title', $argv)) {
             $set .= 'post_title=:post_title,';
-        }        if (array_key_exists('wp_posts.post_excerpt', $argv)) {
+        }
+        if (array_key_exists('wp_posts.post_excerpt', $argv)) {
             $set .= 'post_excerpt=:post_excerpt,';
-        }        if (array_key_exists('wp_posts.post_status', $argv)) {
+        }
+        if (array_key_exists('wp_posts.post_status', $argv)) {
             $set .= 'post_status=:post_status,';
-        }        if (array_key_exists('wp_posts.comment_status', $argv)) {
+        }
+        if (array_key_exists('wp_posts.comment_status', $argv)) {
             $set .= 'comment_status=:comment_status,';
-        }        if (array_key_exists('wp_posts.ping_status', $argv)) {
+        }
+        if (array_key_exists('wp_posts.ping_status', $argv)) {
             $set .= 'ping_status=:ping_status,';
-        }        if (array_key_exists('wp_posts.post_password', $argv)) {
+        }
+        if (array_key_exists('wp_posts.post_password', $argv)) {
             $set .= 'post_password=:post_password,';
-        }        if (array_key_exists('wp_posts.post_name', $argv)) {
+        }
+        if (array_key_exists('wp_posts.post_name', $argv)) {
             $set .= 'post_name=:post_name,';
-        }        if (array_key_exists('wp_posts.to_ping', $argv)) {
+        }
+        if (array_key_exists('wp_posts.to_ping', $argv)) {
             $set .= 'to_ping=:to_ping,';
-        }        if (array_key_exists('wp_posts.pinged', $argv)) {
+        }
+        if (array_key_exists('wp_posts.pinged', $argv)) {
             $set .= 'pinged=:pinged,';
-        }        if (array_key_exists('wp_posts.post_modified', $argv)) {
+        }
+        if (array_key_exists('wp_posts.post_modified', $argv)) {
             $set .= 'post_modified=:post_modified,';
-        }        if (array_key_exists('wp_posts.post_modified_gmt', $argv)) {
+        }
+        if (array_key_exists('wp_posts.post_modified_gmt', $argv)) {
             $set .= 'post_modified_gmt=:post_modified_gmt,';
-        }        if (array_key_exists('wp_posts.post_content_filtered', $argv)) {
+        }
+        if (array_key_exists('wp_posts.post_content_filtered', $argv)) {
             $set .= 'post_content_filtered=:post_content_filtered,';
-        }        if (array_key_exists('wp_posts.post_parent', $argv)) {
+        }
+        if (array_key_exists('wp_posts.post_parent', $argv)) {
             $set .= 'post_parent=:post_parent,';
-        }        if (array_key_exists('wp_posts.guid', $argv)) {
+        }
+        if (array_key_exists('wp_posts.guid', $argv)) {
             $set .= 'guid=:guid,';
-        }        if (array_key_exists('wp_posts.menu_order', $argv)) {
+        }
+        if (array_key_exists('wp_posts.menu_order', $argv)) {
             $set .= 'menu_order=:menu_order,';
-        }        if (array_key_exists('wp_posts.post_type', $argv)) {
+        }
+        if (array_key_exists('wp_posts.post_type', $argv)) {
             $set .= 'post_type=:post_type,';
-        }        if (array_key_exists('wp_posts.post_mime_type', $argv)) {
+        }
+        if (array_key_exists('wp_posts.post_mime_type', $argv)) {
             $set .= 'post_mime_type=:post_mime_type,';
-        }        if (array_key_exists('wp_posts.comment_count', $argv)) {
+        }
+        if (array_key_exists('wp_posts.comment_count', $argv)) {
             $set .= 'comment_count=:comment_count,';
         }
         
@@ -789,7 +813,7 @@ MYSQL;
             $pdo->beginTransaction();
         }
 
-        
+        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -901,7 +925,7 @@ MYSQL;
         }
         
         if (!$stmt->rowCount()) {
-            return self::signalError('Failed to find the target row.', 'danger');
+            return self::signalError('Failed to find the target row.');
         }
         
         $argv = array_combine(
@@ -939,6 +963,7 @@ MYSQL;
     public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
     {
         self::startRest(self::DELETE, $remove, $argv, $primary);
+        
         /** @noinspection SqlWithoutWhere
          * @noinspection UnknownInspectionInspection - intellij is funny sometimes.
          */
@@ -958,13 +983,14 @@ MYSQL;
             *   n00bs and future self, "I got chu."
             */
             if (empty($argv)) {
-                return self::signalError('When deleting from restful tables a primary key or where query must be provided.', 'danger');
+                return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
             }
+            $argv[self::PRIMARY] = $primary;
             
             $where = self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
             
             if (empty($where)) {
-                return self::signalError('The where condition provided appears invalid.', 'danger');
+                return self::signalError('The where condition provided appears invalid.');
             }
 
             $sql .= ' WHERE ' . $where;

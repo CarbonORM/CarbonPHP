@@ -100,7 +100,7 @@ class Sessions extends Rest implements iRestSinglePrimaryKey
      */
     public const REFRESH_SCHEMA = [
         [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
-                        PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS]
+            PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS]
     ]; 
     
     /**
@@ -225,17 +225,17 @@ class Sessions extends Rest implements iRestSinglePrimaryKey
      *  @version ^9
      */
  
-    public const PHP_VALIDATION = [ 
-        self::PREPROCESS => [ 
-            self::PREPROCESS => [ 
-                [self::class => 'disallowPublicAccess', self::class] 
+    public const PHP_VALIDATION = [
+        self::PREPROCESS => [
+            self::PREPROCESS => [
+                [self::class => 'disallowPublicAccess', self::class]
             ]
         ],
-        self::GET => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],    
-        self::POST => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],    
-        self::PUT => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],    
-        self::DELETE => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]],
-        self::FINISH => [ self::PREPROCESS => [ self::DISALLOW_PUBLIC_ACCESS ]]    
+        self::GET => [self::PREPROCESS => [self::DISALLOW_PUBLIC_ACCESS]],
+        self::POST => [self::PREPROCESS => [self::DISALLOW_PUBLIC_ACCESS]],
+        self::PUT => [self::PREPROCESS => [self::DISALLOW_PUBLIC_ACCESS]],
+        self::DELETE => [self::PREPROCESS => [self::DISALLOW_PUBLIC_ACCESS]],
+        self::FINISH => [self::PREPROCESS => [self::DISALLOW_PUBLIC_ACCESS]]
     ]; 
    
     /**
@@ -255,7 +255,8 @@ class Sessions extends Rest implements iRestSinglePrimaryKey
 MYSQL;
    
    
-    public static function validateRestTestSuite(){
+    public static function validateRestTestSuite()
+    {
         if (CarbonPHP::$test) {
 
         }
@@ -407,7 +408,7 @@ MYSQL;
     
         foreach ($data as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
-                return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
+                return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.");
             }
         } 
         
@@ -425,7 +426,7 @@ MYSQL;
 
         $stmt = self::database()->prepare($sql);
         if (!array_key_exists('sessions.user_id', $data)) {
-            return self::signalError('Required argument "sessions.user_id" is missing from the request.', 'danger');
+            return self::signalError('Required argument "sessions.user_id" is missing from the request.');
         }
         $user_id = $data['sessions.user_id'];
         $ref='sessions.user_id';
@@ -444,7 +445,7 @@ MYSQL;
         $stmt->bindParam(':user_ip',$user_ip, PDO::PARAM_STR, 20);
         
         if (!array_key_exists('sessions.session_id', $data)) {
-            return self::signalError('Required argument "sessions.session_id" is missing from the request.', 'danger');
+            return self::signalError('Required argument "sessions.session_id" is missing from the request.');
         }
         $session_id = $data['sessions.session_id'];
         $ref='sessions.session_id';
@@ -523,17 +524,19 @@ MYSQL;
         self::startRest(self::PUT, $returnUpdated, $argv, $primary);
         
         if ('' === $primary) {
-            return self::signalError('Restful tables which have a primary key must be updated by its primary key.', 'danger');
+            return self::signalError('Restful tables which have a primary key must be updated by its primary key.');
         }
          
         if (array_key_exists(self::UPDATE, $argv)) {
             $argv = $argv[self::UPDATE];
         }
 
+        $where = [self::PRIMARY => $primary];
+        
         
         foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column $key, because it does not appear to exist.', 'danger');
+                return self::signalError('Restful table could not update column $key, because it does not appear to exist.');
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
@@ -548,15 +551,20 @@ MYSQL;
 
         if (array_key_exists('sessions.user_id', $argv)) {
             $set .= 'user_id=UNHEX(:user_id),';
-        }        if (array_key_exists('sessions.user_ip', $argv)) {
+        }
+        if (array_key_exists('sessions.user_ip', $argv)) {
             $set .= 'user_ip=:user_ip,';
-        }        if (array_key_exists('sessions.session_id', $argv)) {
+        }
+        if (array_key_exists('sessions.session_id', $argv)) {
             $set .= 'session_id=:session_id,';
-        }        if (array_key_exists('sessions.session_expires', $argv)) {
+        }
+        if (array_key_exists('sessions.session_expires', $argv)) {
             $set .= 'session_expires=:session_expires,';
-        }        if (array_key_exists('sessions.session_data', $argv)) {
+        }
+        if (array_key_exists('sessions.session_data', $argv)) {
             $set .= 'session_data=:session_data,';
-        }        if (array_key_exists('sessions.user_online_status', $argv)) {
+        }
+        if (array_key_exists('sessions.user_online_status', $argv)) {
             $set .= 'user_online_status=:user_online_status,';
         }
         
@@ -568,7 +576,7 @@ MYSQL;
             $pdo->beginTransaction();
         }
 
-        
+        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -622,7 +630,7 @@ MYSQL;
         }
         
         if (!$stmt->rowCount()) {
-            return self::signalError('Failed to find the target row.', 'danger');
+            return self::signalError('Failed to find the target row.');
         }
         
         $argv = array_combine(
@@ -660,6 +668,7 @@ MYSQL;
     public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
     {
         self::startRest(self::DELETE, $remove, $argv, $primary);
+        
         /** @noinspection SqlWithoutWhere
          * @noinspection UnknownInspectionInspection - intellij is funny sometimes.
          */
@@ -679,13 +688,14 @@ MYSQL;
             *   n00bs and future self, "I got chu."
             */
             if (empty($argv)) {
-                return self::signalError('When deleting from restful tables a primary key or where query must be provided.', 'danger');
+                return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
             }
+            $argv[self::PRIMARY] = $primary;
             
             $where = self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
             
             if (empty($where)) {
-                return self::signalError('The where condition provided appears invalid.', 'danger');
+                return self::signalError('The where condition provided appears invalid.');
             }
 
             $sql .= ' WHERE ' . $where;

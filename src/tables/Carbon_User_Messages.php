@@ -404,7 +404,7 @@ MYSQL;
     
         foreach ($data as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
-                return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
+                return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.");
             }
         } 
         
@@ -429,7 +429,7 @@ MYSQL;
         $stmt->bindParam(':message_id',$message_id, PDO::PARAM_STR, 16);
         
         if (!array_key_exists('carbon_user_messages.from_user_id', $data)) {
-            return self::signalError('Required argument "carbon_user_messages.from_user_id" is missing from the request.', 'danger');
+            return self::signalError('Required argument "carbon_user_messages.from_user_id" is missing from the request.');
         }
         $from_user_id = $data['carbon_user_messages.from_user_id'];
         $ref='carbon_user_messages.from_user_id';
@@ -440,7 +440,7 @@ MYSQL;
         $stmt->bindParam(':from_user_id',$from_user_id, PDO::PARAM_STR, 16);
         
         if (!array_key_exists('carbon_user_messages.to_user_id', $data)) {
-            return self::signalError('Required argument "carbon_user_messages.to_user_id" is missing from the request.', 'danger');
+            return self::signalError('Required argument "carbon_user_messages.to_user_id" is missing from the request.');
         }
         $to_user_id = $data['carbon_user_messages.to_user_id'];
         $ref='carbon_user_messages.to_user_id';
@@ -514,17 +514,19 @@ MYSQL;
         self::startRest(self::PUT, $returnUpdated, $argv, $primary);
         
         if ('' === $primary) {
-            return self::signalError('Restful tables which have a primary key must be updated by its primary key.', 'danger');
+            return self::signalError('Restful tables which have a primary key must be updated by its primary key.');
         }
          
         if (array_key_exists(self::UPDATE, $argv)) {
             $argv = $argv[self::UPDATE];
         }
 
+        $where = [self::PRIMARY => $primary];
+        
         
         foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column $key, because it does not appear to exist.', 'danger');
+                return self::signalError('Restful table could not update column $key, because it does not appear to exist.');
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
@@ -539,15 +541,20 @@ MYSQL;
 
         if (array_key_exists('carbon_user_messages.message_id', $argv)) {
             $set .= 'message_id=UNHEX(:message_id),';
-        }        if (array_key_exists('carbon_user_messages.from_user_id', $argv)) {
+        }
+        if (array_key_exists('carbon_user_messages.from_user_id', $argv)) {
             $set .= 'from_user_id=UNHEX(:from_user_id),';
-        }        if (array_key_exists('carbon_user_messages.to_user_id', $argv)) {
+        }
+        if (array_key_exists('carbon_user_messages.to_user_id', $argv)) {
             $set .= 'to_user_id=UNHEX(:to_user_id),';
-        }        if (array_key_exists('carbon_user_messages.message', $argv)) {
+        }
+        if (array_key_exists('carbon_user_messages.message', $argv)) {
             $set .= 'message=:message,';
-        }        if (array_key_exists('carbon_user_messages.message_read', $argv)) {
+        }
+        if (array_key_exists('carbon_user_messages.message_read', $argv)) {
             $set .= 'message_read=:message_read,';
-        }        if (array_key_exists('carbon_user_messages.creation_date', $argv)) {
+        }
+        if (array_key_exists('carbon_user_messages.creation_date', $argv)) {
             $set .= 'creation_date=:creation_date,';
         }
         
@@ -559,7 +566,7 @@ MYSQL;
             $pdo->beginTransaction();
         }
 
-        
+        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -613,7 +620,7 @@ MYSQL;
         }
         
         if (!$stmt->rowCount()) {
-            return self::signalError('Failed to find the target row.', 'danger');
+            return self::signalError('Failed to find the target row.');
         }
         
         $argv = array_combine(
@@ -651,6 +658,7 @@ MYSQL;
     public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
     {
         self::startRest(self::DELETE, $remove, $argv, $primary);
+        
         if (null !== $primary) {
             return Carbons::Delete($remove, $primary, $argv);
         }

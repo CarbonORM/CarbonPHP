@@ -389,7 +389,7 @@ MYSQL;
     
         foreach ($data as $columnName => $postValue) {
             if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
-                return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.", 'danger');
+                return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.");
             }
         } 
         
@@ -402,7 +402,7 @@ MYSQL;
 
         $stmt = self::database()->prepare($sql);
         if (!array_key_exists('carbon_groups.group_name', $data)) {
-            return self::signalError('Required argument "carbon_groups.group_name" is missing from the request.', 'danger');
+            return self::signalError('Required argument "carbon_groups.group_name" is missing from the request.');
         }
         $group_name = $data['carbon_groups.group_name'];
         $ref='carbon_groups.group_name';
@@ -425,7 +425,7 @@ MYSQL;
         $stmt->bindParam(':entity_id',$entity_id, PDO::PARAM_STR, 16);
         
         if (!array_key_exists('carbon_groups.created_by', $data)) {
-            return self::signalError('Required argument "carbon_groups.created_by" is missing from the request.', 'danger');
+            return self::signalError('Required argument "carbon_groups.created_by" is missing from the request.');
         }
         $created_by = $data['carbon_groups.created_by'];
         $ref='carbon_groups.created_by';
@@ -481,17 +481,19 @@ MYSQL;
         self::startRest(self::PUT, $returnUpdated, $argv, $primary);
         
         if ('' === $primary) {
-            return self::signalError('Restful tables which have a primary key must be updated by its primary key.', 'danger');
+            return self::signalError('Restful tables which have a primary key must be updated by its primary key.');
         }
          
         if (array_key_exists(self::UPDATE, $argv)) {
             $argv = $argv[self::UPDATE];
         }
 
+        $where = [self::PRIMARY => $primary];
+        
         
         foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column $key, because it does not appear to exist.', 'danger');
+                return self::signalError('Restful table could not update column $key, because it does not appear to exist.');
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
@@ -506,11 +508,14 @@ MYSQL;
 
         if (array_key_exists('carbon_groups.group_name', $argv)) {
             $set .= 'group_name=:group_name,';
-        }        if (array_key_exists('carbon_groups.entity_id', $argv)) {
+        }
+        if (array_key_exists('carbon_groups.entity_id', $argv)) {
             $set .= 'entity_id=UNHEX(:entity_id),';
-        }        if (array_key_exists('carbon_groups.created_by', $argv)) {
+        }
+        if (array_key_exists('carbon_groups.created_by', $argv)) {
             $set .= 'created_by=UNHEX(:created_by),';
-        }        if (array_key_exists('carbon_groups.creation_date', $argv)) {
+        }
+        if (array_key_exists('carbon_groups.creation_date', $argv)) {
             $set .= 'creation_date=:creation_date,';
         }
         
@@ -522,7 +527,7 @@ MYSQL;
             $pdo->beginTransaction();
         }
 
-        
+        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -566,7 +571,7 @@ MYSQL;
         }
         
         if (!$stmt->rowCount()) {
-            return self::signalError('Failed to find the target row.', 'danger');
+            return self::signalError('Failed to find the target row.');
         }
         
         $argv = array_combine(
@@ -604,6 +609,7 @@ MYSQL;
     public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
     {
         self::startRest(self::DELETE, $remove, $argv, $primary);
+        
         if (null !== $primary) {
             return Carbons::Delete($remove, $primary, $argv);
         }
