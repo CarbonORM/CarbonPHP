@@ -827,7 +827,7 @@ abstract class Rest extends Database
             if ('binary' === (static::PDO_VALIDATION[static::PRIMARY][0] ?? false)) {
                 $sql .= ' WHERE ' . static::PRIMARY . "=UNHEX(" . self::addInjection($primary, $pdo) . ') ';
             } else {
-                $sql .= ' WHERE ' . static::PRIMARY . "=" . self::addInjection($primary, $pdo, self::$compiled_PDO_validations[static::PRIMARY]) . ' ';
+                $sql .= ' WHERE ' . static::PRIMARY . "=" . self::addInjection($primary, $pdo, static::PDO_VALIDATION[static::PRIMARY]) . ' ';
             }
             if (!empty($where)) {
                 throw new PublicAlert('Restful tables with a single primary key must not have WHERE values passed when the primary key is given. Table ' . static::class . ' was passed a non empty key `WHERE` to the arguments of GET.');
