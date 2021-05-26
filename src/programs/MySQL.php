@@ -116,7 +116,7 @@ IDENTIFIED;
     {
         $c = CarbonPHP::$configuration;
         $cmd = ($mysqldump ?? 'mysqldump') . ' --defaults-extra-file="' . $this->buildCNF() . '" '
-            . ($data ? '' : '--no-data ') . $c['DATABASE']['DB_NAME'] . ' > ' . CarbonPHP::$app_root . 'mysqldump.sql';
+            . ($data ? '' : '--no-data ') . $c['DATABASE']['DB_NAME'] . ' > "' . CarbonPHP::$app_root . 'mysqldump.sql"';
         ColorCode::colorCode("\n\n>> $cmd");
         shell_exec($cmd);
         return $this->mysqldump = CarbonPHP::$app_root . 'mysqldump.sql';
