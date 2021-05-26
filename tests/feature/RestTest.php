@@ -475,6 +475,72 @@ final class RestTest extends Config
     }
 
 
+    public function testRestApiCanUpdateCarbonPrimaryKeysWithNoCollisions(): void
+    {
+        self::assertNotFalse($USER_ID_ONE = Carbons::Post([]));
+        self::assertNotFalse($USER_ID_TWO = Carbons::Post([Carbons::ENTITY_FK => $USER_ID_ONE]));
+        self::assertNotFalse($USER_ID_THREE = Carbons::Post([Carbons::ENTITY_FK => $USER_ID_TWO]));
+        $returnUpdated = [];
+        self::assertNotFalse(Carbons::Put($returnUpdated, $USER_ID_TWO, [Carbons::ENTITY_FK => $USER_ID_FOUR = Carbons::Post([])]));
+        $return = [];
+        self::assertTrue(Carbons::Get($return, $USER_ID_ONE, []));
+        self::assertEmpty($return[Carbons::COLUMNS[Carbons::ENTITY_FK]]);
+    }
+
+    public function testRestApiCanUpdateNonCarbonPrimaryKeysWithNoCollisions(): void
+    {
+        $return = [];
+
+        self::assertNotFalse(Sessions::Post([
+            Sessions::USER_ID => $USER_ID_ONE = Carbons::Post([]),
+            Sessions::USER_IP => '127.0.0.1',
+            Sessions::SESSION_ID => $SESSION_ID_ONE = Carbons::Post([]),
+            Sessions::SESSION_EXPIRES => date('Y-m-d H:i:s'), // @link https://stackoverflow.com/questions/2215354/php-date-format-when-inserting-into-datetime-in-mysql/17295570
+            Sessions::SESSION_DATA => '',
+            Sessions::USER_ONLINE_STATUS => 1
+        ]));
+
+        self::assertTrue(Sessions::Get($return, $SESSION_ID_ONE, []));
+
+        self::assertNotEmpty($return, 'Could not query rest sessions table with id :: ' . $SESSION_ID_ONE);
+
+        self::assertNotFalse(Sessions::Post([
+            Sessions::USER_ID => $USER_ID_TWO = Carbons::Post([]),
+            Sessions::USER_IP => '127.0.0.1',
+            Sessions::SESSION_ID => $SESSION_ID_TWO = Carbons::Post([]),
+            Sessions::SESSION_EXPIRES => date('Y-m-d H:i:s'), // @link https://stackoverflow.com/questions/2215354/php-date-format-when-inserting-into-datetime-in-mysql/17295570
+            Sessions::SESSION_DATA => '',
+            Sessions::USER_ONLINE_STATUS => 1
+        ]));
+
+        self::assertTrue(Sessions::Put($return, $SESSION_ID_TWO, [
+            Sessions::USER_IP => '127.0.0.2',
+            Sessions::USER_ONLINE_STATUS => 0
+        ]));
+
+        $return = [];
+
+        self::assertTrue(Sessions::Get($return, $SESSION_ID_ONE, []));
+
+        self::assertNotEmpty($return);
+
+        self::assertNotEquals('127.0.0.2', $return[Sessions::COLUMNS[Sessions::USER_IP]]);
+        self::assertNotEquals('0', $return[Sessions::COLUMNS[Sessions::USER_ONLINE_STATUS]]);
+        
+        self::assertTrue(Sessions::Get($return, $SESSION_ID_TWO, []));
+        self::assertNotEmpty($return);
+        
+        self::assertEquals('127.0.0.2', $return[Sessions::COLUMNS[Sessions::USER_IP]]);
+        
+        self::assertEquals('0', $return[Sessions::COLUMNS[Sessions::USER_ONLINE_STATUS]]);
+        self::assertTrue(Sessions::Delete($return, $SESSION_ID_ONE));
+        self::assertTrue(Sessions::Delete($return, $SESSION_ID_TWO));
+        self::assertTrue(Carbons::Delete($return, $USER_ID_ONE));
+        self::assertTrue(Carbons::Delete($return, $USER_ID_TWO));
+    }
+
+
+
     /**
      * It can be noted that history logs are not Carbon tables as the reff will be deleted before it
      * is added to this table.

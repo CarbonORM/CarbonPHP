@@ -121,9 +121,10 @@ abstract class Rest extends Database
         }
     }
 
-    public static function signalError(string $message) : bool {
+    public static function signalError(string $message): bool
+    {
         if (!self::$externalRestfulRequestsAPI && CarbonPHP::$is_running_production) {
-                return false;
+            return false;
         }
         throw new PublicAlert($message);
     }
@@ -312,7 +313,7 @@ abstract class Rest extends Database
                 && !in_array(strtolower(iRestSinglePrimaryKey::class), $imp, true)
                 && !in_array(strtolower(iRestNoPrimaryKey::class), $imp, true)
             ) {
-                $possibleImpl = implode( '|', [iRest::class, iRestfulReferences::class, iRestMultiplePrimaryKeys::class, iRestSinglePrimaryKey::class, iRestNoPrimaryKey::class]);
+                $possibleImpl = implode('|', [iRest::class, iRestfulReferences::class, iRestMultiplePrimaryKeys::class, iRestSinglePrimaryKey::class, iRestNoPrimaryKey::class]);
                 throw new PublicAlert("The table does not implement the correct interface. Requires ($possibleImpl). Try re-running the RestBuilder.");
             }
 
@@ -462,8 +463,8 @@ abstract class Rest extends Database
             }
 
             $implementations = array_map('strtolower', array_keys(class_implements($namespace . $mainTable)));
-            $requestTableHasPrimary = in_array(strtolower(iRestSinglePrimaryKey::class),$implementations, true)
-                || in_array(strtolower(iRestMultiplePrimaryKeys::class),$implementations, true);
+            $requestTableHasPrimary = in_array(strtolower(iRestSinglePrimaryKey::class), $implementations, true)
+                || in_array(strtolower(iRestMultiplePrimaryKeys::class), $implementations, true);
 
             $method = strtoupper($_SERVER['REQUEST_METHOD']);
 
@@ -761,7 +762,7 @@ abstract class Rest extends Database
             }
             $limit = "$order $limit";
         } else if (!$noHEX && static::PRIMARY !== null) {
-            $limit = ' ORDER BY ' . (is_string(static::PRIMARY) ? static::PRIMARY : static::PRIMARY[0]). ' ASC LIMIT ' . (null === $primary ? '100' : '1');
+            $limit = ' ORDER BY ' . (is_string(static::PRIMARY) ? static::PRIMARY : static::PRIMARY[0]) . ' ASC LIMIT ' . (null === $primary ? '100' : '1');
         } else {
             $limit = '';
         }
@@ -795,7 +796,7 @@ abstract class Rest extends Database
                 continue;
             }
 
-            if (array_key_exists($column, $joinColumns)) {  // todo - we need to cache everywhere / for every / validateColumnName
+            if (array_key_exists($column, $joinColumns)) {  // todo - we need to cache everywhere / for every / validateColumnName -- orrr should we // what about validations
                 $sql .= $column;
                 continue;
             }
@@ -826,7 +827,7 @@ abstract class Rest extends Database
             if ('binary' === (static::PDO_VALIDATION[static::PRIMARY][0] ?? false)) {
                 $sql .= ' WHERE ' . static::PRIMARY . "=UNHEX(" . self::addInjection($primary, $pdo) . ') ';
             } else {
-                $sql .= ' WHERE ' . static::PRIMARY . "=" . self::addInjection($primary, $pdo, static::PDO_VALIDATION[static::PRIMARY]) . ' ';
+                $sql .= ' WHERE ' . static::PRIMARY . "=" . self::addInjection($primary, $pdo, self::$compiled_PDO_validations[static::PRIMARY]) . ' ';
             }
             if (!empty($where)) {
                 throw new PublicAlert('Restful tables with a single primary key must not have WHERE values passed when the primary key is given. Table ' . static::class . ' was passed a non empty key `WHERE` to the arguments of GET.');
@@ -1183,10 +1184,15 @@ abstract class Rest extends Database
     public static function addInjection($value, PDO $pdo, array $pdo_column_validation = null): string
     {
         $inject = ':injection' . count(self::$injection);
-        if ($pdo_column_validation === null || 'PDO::PARAM_INT' === $pdo_column_validation[1]) {
-            self::$injection[$inject] = $value;
-        } else {
-            self::$injection[$inject] = $pdo->quote($value);        // boolean I suppose... possibly more
+
+        switch ($pdo_column_validation[1] ?? null) {
+            case null:
+            case 'PDO::PARAM_INT':
+            case 'PDO::PARAM_STR': // bindValue will quote strings
+                self::$injection[$inject] = $value;
+                break;
+            default:
+                self::$injection[$inject] = $pdo->quote($value);        // boolean, string
         }
         return $inject;
     }
