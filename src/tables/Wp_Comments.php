@@ -8,6 +8,7 @@ use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Helpers\RestfulValidations;
 use CarbonPHP\Rest;
+use JsonException;
 use PDO;
 use PDOException;
 use function array_key_exists;
@@ -19,7 +20,7 @@ use function is_array;
 
 
 /**
- * 
+ *
  * Class Wp_Comments
  * @package CarbonPHP\Tables
  * @note Note for convenience, a flag '-prefix' maybe passed to remove table prefixes.
@@ -405,20 +406,10 @@ MYSQL;
         }
 
         $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        /**
-        *   The next part is so every response from the rest api
-        *   formats to a set of rows. Even if only one row is returned.
-        *   You must set the third parameter to true, otherwise '0' is
-        *   apparently in the self::PDO_VALIDATION
-        */
-
         
-        if ($primary !== null || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
+        if ((null !== $primary && '' !== $primary) || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
             $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
         }
-
-        
 
         self::postprocessRestRequest($return);
         
@@ -433,7 +424,7 @@ MYSQL;
      * @generated
      * @throws PublicAlert|PDOException|JsonException
      */
-    public static function Post(array $data)
+    public static function Post(array $data = [])
     {   
         self::startRest(self::POST, [], $data);
     
@@ -455,7 +446,8 @@ MYSQL;
 
         self::postpreprocessRestRequest($sql);
 
-        $stmt = self::database()->prepare($sql);         
+        $stmt = self::database()->prepare($sql);
+                 
         $comment_post_ID = $data['wp_comments.comment_post_ID'] ?? '0';
         $ref='wp_comments.comment_post_ID';
         $op = self::EQUAL;
@@ -597,37 +589,47 @@ MYSQL;
     * 
     * Tables where primary keys exist must be updated by its primary key. 
     * Column should be in a key value pair passed to $argv or optionally using syntax:
-    * $argv => [
+    * $argv = [
     *       Rest::UPDATE => [
     *              ...
     *       ]
     * ]
     * 
     * @param array $returnUpdated - will be merged with with array_merge, with a successful update. 
-    * @param string $primary
+    * @param string|null $primary
     * @param array $argv 
     * @generated
     * @throws PublicAlert|PDOException|JsonException
     * @return bool - if execute fails, false will be returned and $returnUpdated = $stmt->errorInfo(); 
     */
-    public static function Put(array &$returnUpdated, string $primary, array $argv) : bool
+    public static function Put(array &$returnUpdated, string $primary = null, array $argv = []) : bool
     {
         self::startRest(self::PUT, $returnUpdated, $argv, $primary);
         
-        if ('' === $primary) {
-            return self::signalError('Restful tables which have a primary key must be updated by its primary key.');
+        $where = [];
+
+        if (array_key_exists(self::WHERE, $argv)) {
+            $where = $argv[self::WHERE];
+            unset($argv[self::WHERE]);
         }
-         
+        
         if (array_key_exists(self::UPDATE, $argv)) {
             $argv = $argv[self::UPDATE];
         }
-
-        $where = [self::PRIMARY => $primary];
         
+        $emptyPrimary = null === $primary || '' === $primary;
+        
+        if (false === self::$allowFullTableUpdates && $emptyPrimary) { 
+            return self::signalError('Restful tables which have a primary key must be updated by its primary key. To bypass this set you may set `self::$allowFullTableUpdates = true;` during the PREPROCESS events.');
+        }
+
+        if (!$emptyPrimary) {
+            $where[self::PRIMARY] = $primary;
+        }
         
         foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column $key, because it does not appear to exist.');
+                return self::signalError('Restful table could not update column $key, because it does not appear to exist. Please re-run RestBuilder if you beleive this is incorrect.');
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
@@ -694,21 +696,26 @@ MYSQL;
             $pdo->beginTransaction();
         }
 
-        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
-
+        if (false === self::$allowFullTableUpdates || !empty($where)) {
+            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
+        }
+        
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
         $stmt = $pdo->prepare($sql);
 
-        if (array_key_exists('wp_comments.comment_ID', $argv)) {
+        if (array_key_exists('wp_comments.comment_ID', $argv)) { 
             $stmt->bindValue(':comment_ID',$argv['wp_comments.comment_ID'], PDO::PARAM_INT);
-}if (array_key_exists('wp_comments.comment_post_ID', $argv)) {
+        }
+        if (array_key_exists('wp_comments.comment_post_ID', $argv)) { 
             $stmt->bindValue(':comment_post_ID',$argv['wp_comments.comment_post_ID'], PDO::PARAM_INT);
-}if (array_key_exists('wp_comments.comment_author', $argv)) {
+        }
+        if (array_key_exists('wp_comments.comment_author', $argv)) { 
             $stmt->bindValue(':comment_author',$argv['wp_comments.comment_author'], PDO::PARAM_STR);
-}if (array_key_exists('wp_comments.comment_author_email', $argv)) {
+        }
+        if (array_key_exists('wp_comments.comment_author_email', $argv)) { 
             $comment_author_email = $argv['wp_comments.comment_author_email'];
             $ref = 'wp_comments.comment_author_email';
             $op = self::EQUAL;
@@ -716,7 +723,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'comment_author_email\'.');
             }
             $stmt->bindParam(':comment_author_email',$comment_author_email, PDO::PARAM_STR, 100);
-        }if (array_key_exists('wp_comments.comment_author_url', $argv)) {
+        }
+        if (array_key_exists('wp_comments.comment_author_url', $argv)) { 
             $comment_author_url = $argv['wp_comments.comment_author_url'];
             $ref = 'wp_comments.comment_author_url';
             $op = self::EQUAL;
@@ -724,7 +732,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'comment_author_url\'.');
             }
             $stmt->bindParam(':comment_author_url',$comment_author_url, PDO::PARAM_STR, 200);
-        }if (array_key_exists('wp_comments.comment_author_IP', $argv)) {
+        }
+        if (array_key_exists('wp_comments.comment_author_IP', $argv)) { 
             $comment_author_IP = $argv['wp_comments.comment_author_IP'];
             $ref = 'wp_comments.comment_author_IP';
             $op = self::EQUAL;
@@ -732,15 +741,20 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'comment_author_IP\'.');
             }
             $stmt->bindParam(':comment_author_IP',$comment_author_IP, PDO::PARAM_STR, 100);
-        }if (array_key_exists('wp_comments.comment_date', $argv)) {
+        }
+        if (array_key_exists('wp_comments.comment_date', $argv)) { 
             $stmt->bindValue(':comment_date',$argv['wp_comments.comment_date'], PDO::PARAM_STR);
-}if (array_key_exists('wp_comments.comment_date_gmt', $argv)) {
+        }
+        if (array_key_exists('wp_comments.comment_date_gmt', $argv)) { 
             $stmt->bindValue(':comment_date_gmt',$argv['wp_comments.comment_date_gmt'], PDO::PARAM_STR);
-}if (array_key_exists('wp_comments.comment_content', $argv)) {
+        }
+        if (array_key_exists('wp_comments.comment_content', $argv)) { 
             $stmt->bindValue(':comment_content',$argv['wp_comments.comment_content'], PDO::PARAM_STR);
-}if (array_key_exists('wp_comments.comment_karma', $argv)) {
+        }
+        if (array_key_exists('wp_comments.comment_karma', $argv)) { 
             $stmt->bindValue(':comment_karma',$argv['wp_comments.comment_karma'], PDO::PARAM_INT);
-}if (array_key_exists('wp_comments.comment_approved', $argv)) {
+        }
+        if (array_key_exists('wp_comments.comment_approved', $argv)) { 
             $comment_approved = $argv['wp_comments.comment_approved'];
             $ref = 'wp_comments.comment_approved';
             $op = self::EQUAL;
@@ -748,7 +762,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'comment_approved\'.');
             }
             $stmt->bindParam(':comment_approved',$comment_approved, PDO::PARAM_STR, 20);
-        }if (array_key_exists('wp_comments.comment_agent', $argv)) {
+        }
+        if (array_key_exists('wp_comments.comment_agent', $argv)) { 
             $comment_agent = $argv['wp_comments.comment_agent'];
             $ref = 'wp_comments.comment_agent';
             $op = self::EQUAL;
@@ -756,7 +771,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'comment_agent\'.');
             }
             $stmt->bindParam(':comment_agent',$comment_agent, PDO::PARAM_STR, 255);
-        }if (array_key_exists('wp_comments.comment_type', $argv)) {
+        }
+        if (array_key_exists('wp_comments.comment_type', $argv)) { 
             $comment_type = $argv['wp_comments.comment_type'];
             $ref = 'wp_comments.comment_type';
             $op = self::EQUAL;
@@ -764,12 +780,14 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'comment_type\'.');
             }
             $stmt->bindParam(':comment_type',$comment_type, PDO::PARAM_STR, 20);
-        }if (array_key_exists('wp_comments.comment_parent', $argv)) {
+        }
+        if (array_key_exists('wp_comments.comment_parent', $argv)) { 
             $stmt->bindValue(':comment_parent',$argv['wp_comments.comment_parent'], PDO::PARAM_INT);
-}if (array_key_exists('wp_comments.user_id', $argv)) {
+        }
+        if (array_key_exists('wp_comments.user_id', $argv)) { 
             $stmt->bindValue(':user_id',$argv['wp_comments.user_id'], PDO::PARAM_INT);
-}
-
+        }
+        
         self::bind($stmt);
 
         if (!$stmt->execute()) {
@@ -783,7 +801,7 @@ MYSQL;
         
         $argv = array_combine(
             array_map(
-                static function($k) { return str_replace('wp_comments.', '', $k); },
+                static fn($k) => str_replace('wp_comments.', '', $k),
                 array_keys($argv)
             ),
             array_values($argv)
@@ -817,41 +835,36 @@ MYSQL;
     {
         self::startRest(self::DELETE, $remove, $argv, $primary);
         
-        /** @noinspection SqlWithoutWhere
-         * @noinspection UnknownInspectionInspection - intellij is funny sometimes.
-         */
-        $sql = 'DELETE FROM wp_comments ';
-
         $pdo = self::database();
+        
+        $emptyPrimary = null === $primary || '' === $primary;
+        
+        $sql =  /** @lang MySQLFragment */ 'DELETE FROM wp_comments ';
+        
+        if (false === self::$allowFullTableDeletes && $emptyPrimary && empty($argv)) {
+            return self::signalError('When deleting from restful tables a primary key or where query must be provided. This can be disabled by setting `self::$allowFullTableUpdates = true;` during the PREPROCESS events, or just directly before this request.');
+        }
+        
+        if (!$emptyPrimary) {
+            $argv[self::PRIMARY] = $primary;
+        }
+        
+        $where = self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
+        
+        $emptyWhere = empty($where);
+        
+        if ($emptyWhere && false === self::$allowFullTableDeletes) {
+            return self::signalError('The where condition provided appears invalid.');
+        }
+
+        if (!$emptyWhere) {
+            $sql .= ' WHERE ' . $where;
+        }
         
         if (!$pdo->inTransaction()) {
             $pdo->beginTransaction();
         }
         
-        
-        if (null === $primary) {
-           /**
-            *   While useful, we've decided to disallow full
-            *   table deletions through the rest api. For the
-            *   n00bs and future self, "I got chu."
-            */
-            if (empty($argv)) {
-                return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
-            }
-            $argv[self::PRIMARY] = $primary;
-            
-            $where = self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
-            
-            if (empty($where)) {
-                return self::signalError('The where condition provided appears invalid.');
-            }
-
-            $sql .= ' WHERE ' . $where;
-        } else {
-            $sql .= ' WHERE  comment_ID='.self::addInjection($primary, $pdo).'';
-        }
-
-
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
@@ -879,5 +892,4 @@ MYSQL;
         
         return true;
     }
-    
 }

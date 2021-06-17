@@ -107,6 +107,10 @@ abstract class Rest extends Database
     public static bool $allowSubSelectQueries = false;
     public static bool $externalRestfulRequestsAPI = false;
 
+    // todo - realize the following two booleans
+    public static bool $allowFullTableUpdates = false;
+    public static bool $allowFullTableDeletes = false;
+
     /**
      * static::class ends up not working either because of how it is called.
      * @param $request
@@ -121,6 +125,11 @@ abstract class Rest extends Database
         }
     }
 
+    /**
+     * @param string $message
+     * @return bool
+     * @throws PublicAlert
+     */
     public static function signalError(string $message): bool
     {
         if (!self::$externalRestfulRequestsAPI && CarbonPHP::$is_running_production) {
@@ -163,7 +172,6 @@ abstract class Rest extends Database
             self::runValidations(self::$compiled_PHP_validations[self::FINISH][self::PREPROCESS], $return);
         }
     }
-
 
     public static function postprocessRestRequest(&$return = null): void
     {

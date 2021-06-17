@@ -8,6 +8,7 @@ use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Helpers\RestfulValidations;
 use CarbonPHP\Rest;
+use JsonException;
 use PDO;
 use PDOException;
 use function array_key_exists;
@@ -19,7 +20,7 @@ use function is_array;
 
 
 /**
- * 
+ *
  * Class Wp_Terms
  * @package CarbonPHP\Tables
  * @note Note for convenience, a flag '-prefix' maybe passed to remove table prefixes.
@@ -369,20 +370,10 @@ MYSQL;
         }
 
         $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        /**
-        *   The next part is so every response from the rest api
-        *   formats to a set of rows. Even if only one row is returned.
-        *   You must set the third parameter to true, otherwise '0' is
-        *   apparently in the self::PDO_VALIDATION
-        */
-
         
-        if ($primary !== null || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
+        if ((null !== $primary && '' !== $primary) || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
             $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
         }
-
-        
 
         self::postprocessRestRequest($return);
         
@@ -397,7 +388,7 @@ MYSQL;
      * @generated
      * @throws PublicAlert|PDOException|JsonException
      */
-    public static function Post(array $data)
+    public static function Post(array $data = [])
     {   
         self::startRest(self::POST, [], $data);
     
@@ -420,6 +411,7 @@ MYSQL;
         self::postpreprocessRestRequest($sql);
 
         $stmt = self::database()->prepare($sql);
+        
         $name = $data['wp_terms.name'] ?? '';
         $ref='wp_terms.name';
         $op = self::EQUAL;
@@ -469,37 +461,47 @@ MYSQL;
     * 
     * Tables where primary keys exist must be updated by its primary key. 
     * Column should be in a key value pair passed to $argv or optionally using syntax:
-    * $argv => [
+    * $argv = [
     *       Rest::UPDATE => [
     *              ...
     *       ]
     * ]
     * 
     * @param array $returnUpdated - will be merged with with array_merge, with a successful update. 
-    * @param string $primary
+    * @param string|null $primary
     * @param array $argv 
     * @generated
     * @throws PublicAlert|PDOException|JsonException
     * @return bool - if execute fails, false will be returned and $returnUpdated = $stmt->errorInfo(); 
     */
-    public static function Put(array &$returnUpdated, string $primary, array $argv) : bool
+    public static function Put(array &$returnUpdated, string $primary = null, array $argv = []) : bool
     {
         self::startRest(self::PUT, $returnUpdated, $argv, $primary);
         
-        if ('' === $primary) {
-            return self::signalError('Restful tables which have a primary key must be updated by its primary key.');
+        $where = [];
+
+        if (array_key_exists(self::WHERE, $argv)) {
+            $where = $argv[self::WHERE];
+            unset($argv[self::WHERE]);
         }
-         
+        
         if (array_key_exists(self::UPDATE, $argv)) {
             $argv = $argv[self::UPDATE];
         }
-
-        $where = [self::PRIMARY => $primary];
         
+        $emptyPrimary = null === $primary || '' === $primary;
+        
+        if (false === self::$allowFullTableUpdates && $emptyPrimary) { 
+            return self::signalError('Restful tables which have a primary key must be updated by its primary key. To bypass this set you may set `self::$allowFullTableUpdates = true;` during the PREPROCESS events.');
+        }
+
+        if (!$emptyPrimary) {
+            $where[self::PRIMARY] = $primary;
+        }
         
         foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column $key, because it does not appear to exist.');
+                return self::signalError('Restful table could not update column $key, because it does not appear to exist. Please re-run RestBuilder if you beleive this is incorrect.');
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
@@ -533,17 +535,20 @@ MYSQL;
             $pdo->beginTransaction();
         }
 
-        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
-
+        if (false === self::$allowFullTableUpdates || !empty($where)) {
+            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
+        }
+        
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
         $stmt = $pdo->prepare($sql);
 
-        if (array_key_exists('wp_terms.term_id', $argv)) {
+        if (array_key_exists('wp_terms.term_id', $argv)) { 
             $stmt->bindValue(':term_id',$argv['wp_terms.term_id'], PDO::PARAM_INT);
-}if (array_key_exists('wp_terms.name', $argv)) {
+        }
+        if (array_key_exists('wp_terms.name', $argv)) { 
             $name = $argv['wp_terms.name'];
             $ref = 'wp_terms.name';
             $op = self::EQUAL;
@@ -551,7 +556,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'name\'.');
             }
             $stmt->bindParam(':name',$name, PDO::PARAM_STR, 200);
-        }if (array_key_exists('wp_terms.slug', $argv)) {
+        }
+        if (array_key_exists('wp_terms.slug', $argv)) { 
             $slug = $argv['wp_terms.slug'];
             $ref = 'wp_terms.slug';
             $op = self::EQUAL;
@@ -559,10 +565,11 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'slug\'.');
             }
             $stmt->bindParam(':slug',$slug, PDO::PARAM_STR, 200);
-        }if (array_key_exists('wp_terms.term_group', $argv)) {
+        }
+        if (array_key_exists('wp_terms.term_group', $argv)) { 
             $stmt->bindValue(':term_group',$argv['wp_terms.term_group'], PDO::PARAM_INT);
-}
-
+        }
+        
         self::bind($stmt);
 
         if (!$stmt->execute()) {
@@ -576,7 +583,7 @@ MYSQL;
         
         $argv = array_combine(
             array_map(
-                static function($k) { return str_replace('wp_terms.', '', $k); },
+                static fn($k) => str_replace('wp_terms.', '', $k),
                 array_keys($argv)
             ),
             array_values($argv)
@@ -610,41 +617,36 @@ MYSQL;
     {
         self::startRest(self::DELETE, $remove, $argv, $primary);
         
-        /** @noinspection SqlWithoutWhere
-         * @noinspection UnknownInspectionInspection - intellij is funny sometimes.
-         */
-        $sql = 'DELETE FROM wp_terms ';
-
         $pdo = self::database();
+        
+        $emptyPrimary = null === $primary || '' === $primary;
+        
+        $sql =  /** @lang MySQLFragment */ 'DELETE FROM wp_terms ';
+        
+        if (false === self::$allowFullTableDeletes && $emptyPrimary && empty($argv)) {
+            return self::signalError('When deleting from restful tables a primary key or where query must be provided. This can be disabled by setting `self::$allowFullTableUpdates = true;` during the PREPROCESS events, or just directly before this request.');
+        }
+        
+        if (!$emptyPrimary) {
+            $argv[self::PRIMARY] = $primary;
+        }
+        
+        $where = self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
+        
+        $emptyWhere = empty($where);
+        
+        if ($emptyWhere && false === self::$allowFullTableDeletes) {
+            return self::signalError('The where condition provided appears invalid.');
+        }
+
+        if (!$emptyWhere) {
+            $sql .= ' WHERE ' . $where;
+        }
         
         if (!$pdo->inTransaction()) {
             $pdo->beginTransaction();
         }
         
-        
-        if (null === $primary) {
-           /**
-            *   While useful, we've decided to disallow full
-            *   table deletions through the rest api. For the
-            *   n00bs and future self, "I got chu."
-            */
-            if (empty($argv)) {
-                return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
-            }
-            $argv[self::PRIMARY] = $primary;
-            
-            $where = self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
-            
-            if (empty($where)) {
-                return self::signalError('The where condition provided appears invalid.');
-            }
-
-            $sql .= ' WHERE ' . $where;
-        } else {
-            $sql .= ' WHERE  term_id='.self::addInjection($primary, $pdo).'';
-        }
-
-
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
@@ -672,5 +674,4 @@ MYSQL;
         
         return true;
     }
-    
 }

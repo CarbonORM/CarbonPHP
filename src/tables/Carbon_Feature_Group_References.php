@@ -8,6 +8,7 @@ use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use CarbonPHP\Helpers\RestfulValidations;
 use CarbonPHP\Rest;
+use JsonException;
 use PDO;
 use PDOException;
 use function array_key_exists;
@@ -19,7 +20,7 @@ use function is_array;
 
 
 /**
- * 
+ *
  * Class Carbon_Feature_Group_References
  * @package CarbonPHP\Tables
  * @note Note for convenience, a flag '-prefix' maybe passed to remove table prefixes.
@@ -92,7 +93,7 @@ class Carbon_Feature_Group_References extends Rest implements iRestNoPrimaryKey
      */
     public const REFRESH_SCHEMA = [
         [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
-                        PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS]
+            PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS]
     ]; 
     
     /**
@@ -348,19 +349,10 @@ MYSQL;
         }
 
         $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        /**
-        *   The next part is so every response from the rest api
-        *   formats to a set of rows. Even if only one row is returned.
-        *   You must set the third parameter to true, otherwise '0' is
-        *   apparently in the self::PDO_VALIDATION
-        */
-
         
         if (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1) {
             $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
         }
-        
 
         self::postprocessRestRequest($return);
         
@@ -375,7 +367,7 @@ MYSQL;
      * @generated
      * @throws PublicAlert|PDOException|JsonException
      */
-    public static function Post(array $data): bool
+    public static function Post(array $data = []): bool
     {   
         self::startRest(self::POST, [], $data);
     
@@ -398,6 +390,7 @@ MYSQL;
         self::postpreprocessRestRequest($sql);
 
         $stmt = self::database()->prepare($sql);
+        
         $feature_entity_id = $data['carbon_feature_group_references.feature_entity_id'] ?? null;
         $ref='carbon_feature_group_references.feature_entity_id';
         $op = self::EQUAL;
@@ -451,30 +444,32 @@ MYSQL;
     * @throws PublicAlert|PDOException|JsonException
     * @return bool - if execute fails, false will be returned and $returnUpdated = $stmt->errorInfo(); 
     */
-    public static function Put(array &$returnUpdated,  array $argv) : bool
+    public static function Put(array &$returnUpdated,  array $argv = []) : bool
     {
         self::startRest(self::PUT, $returnUpdated, $argv);
         
+        $where = [];
 
-        $where = $argv[self::WHERE] ?? [];
-        
-        if (empty($where)) {
-            return self::signalError('Restful tables which have no primary key must be updated using conditions given to $argv[self::WHERE] and values given to $argv[self::UPDATE]. No WHERE attribute given.');
+        if (array_key_exists(self::WHERE, $argv)) {
+            $where = $argv[self::WHERE];
+            unset($argv[self::WHERE]);
         }
-
-        $argv = $argv[self::UPDATE] ?? [];
+        
+        if (array_key_exists(self::UPDATE, $argv)) {
+            $argv = $argv[self::UPDATE];
+        }
+        
+        if (false === self::$allowFullTableUpdates && empty($where)) {
+            return self::signalError('Restful tables which have no primary key must be updated using conditions given to $argv[self::WHERE] and values to be updated given to $argv[self::UPDATE]. No WHERE attribute given. To bypass this set `self::$allowFullTableUpdates = true;` during the PREPROCESS events, or just directly before this request.');
+        }
         
         if (empty($argv)) {
-            return self::signalError('Restful tables which have no primary key must be updated using conditions given to $argv[self::WHERE] and values given to $argv[self::UPDATE]. No UPDATE attribute given.');
-        }
-
-        if (empty($where) || empty($argv)) {
-            return self::signalError('Restful tables which have no primary key must be updated with specific where and update attributes.');
+            return self::signalError('Restful tables which have no primary key must be updated using conditions given to $argv[self::WHERE] and values to be updated given to $argv[self::UPDATE]. No UPDATE attribute given.');
         }
         
         foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column $key, because it does not appear to exist.');
+                return self::signalError('Restful table could not update column $key, because it does not appear to exist. Please re-run RestBuilder if you beleive this is incorrect.');
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
@@ -502,15 +497,17 @@ MYSQL;
             $pdo->beginTransaction();
         }
 
-        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
-
+        if (false === self::$allowFullTableUpdates || !empty($where)) {
+            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
+        }
+        
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
         $stmt = $pdo->prepare($sql);
 
-        if (array_key_exists('carbon_feature_group_references.feature_entity_id', $argv)) {
+        if (array_key_exists('carbon_feature_group_references.feature_entity_id', $argv)) { 
             $feature_entity_id = $argv['carbon_feature_group_references.feature_entity_id'];
             $ref = 'carbon_feature_group_references.feature_entity_id';
             $op = self::EQUAL;
@@ -518,7 +515,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'feature_entity_id\'.');
             }
             $stmt->bindParam(':feature_entity_id',$feature_entity_id, PDO::PARAM_STR, 16);
-        }if (array_key_exists('carbon_feature_group_references.group_entity_id', $argv)) {
+        }
+        if (array_key_exists('carbon_feature_group_references.group_entity_id', $argv)) { 
             $group_entity_id = $argv['carbon_feature_group_references.group_entity_id'];
             $ref = 'carbon_feature_group_references.group_entity_id';
             $op = self::EQUAL;
@@ -527,7 +525,7 @@ MYSQL;
             }
             $stmt->bindParam(':group_entity_id',$group_entity_id, PDO::PARAM_STR, 16);
         }
-
+        
         self::bind($stmt);
 
         if (!$stmt->execute()) {
@@ -541,7 +539,7 @@ MYSQL;
         
         $argv = array_combine(
             array_map(
-                static function($k) { return str_replace('carbon_feature_group_references.', '', $k); },
+                static fn($k) => str_replace('carbon_feature_group_references.', '', $k),
                 array_keys($argv)
             ),
             array_values($argv)
@@ -574,24 +572,22 @@ MYSQL;
     {
         self::startRest(self::DELETE, $remove, $argv);
         
-        /** @noinspection SqlWithoutWhere
-         * @noinspection UnknownInspectionInspection - intellij is funny sometimes.
-         */
-        $sql = 'DELETE FROM carbon_feature_group_references ';
-
         $pdo = self::database();
+        
+        $sql =  /** @lang MySQLFragment */ 'DELETE FROM carbon_feature_group_references ';
+        
+        if (false === self::$allowFullTableDeletes && empty($argv)) {
+            return self::signalError('When deleting from tables with out a primary key additional arguments must be provided.');
+        } 
+        
+        if (!empty($argv)) {
+            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
+        }
         
         if (!$pdo->inTransaction()) {
             $pdo->beginTransaction();
         }
         
-        
-        if (empty($argv)) {
-            return self::signalError('When deleting from tables with out a primary key additional arguments must be provided.');
-        } 
-         
-        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
-
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
@@ -619,5 +615,4 @@ MYSQL;
         
         return true;
     }
-    
 }

@@ -145,7 +145,7 @@ class PublicAlert extends CustomException {
      * @param null $code
      * @param $message
      */
-    public function __call($code = null, $message)
+    public function __call($code, $message)
     {
         static::alert( $message[0], $code );
     }
@@ -157,7 +157,7 @@ class PublicAlert extends CustomException {
      * @param null $code
      * @param $message
      */
-    public static function __callStatic($code = null, $message)
+    public static function __callStatic($code, $message)
     {
         static::alert( $message[0], $code );
     }

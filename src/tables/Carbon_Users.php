@@ -8,6 +8,7 @@ use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Helpers\RestfulValidations;
 use CarbonPHP\Rest;
+use JsonException;
 use PDO;
 use PDOException;
 use function array_key_exists;
@@ -19,7 +20,7 @@ use function is_array;
 use CarbonPHP\Programs\ColorCode;
 
 /**
- * 
+ *
  * Class Carbon_Users
  * @package CarbonPHP\Tables
  * @note Note for convenience, a flag '-prefix' maybe passed to remove table prefixes.
@@ -448,20 +449,10 @@ MYSQL;
         }
 
         $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        /**
-        *   The next part is so every response from the rest api
-        *   formats to a set of rows. Even if only one row is returned.
-        *   You must set the third parameter to true, otherwise '0' is
-        *   apparently in the self::PDO_VALIDATION
-        */
-
         
-        if ($primary !== null || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
+        if ((null !== $primary && '' !== $primary) || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
             $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
         }
-
-        
 
         self::postprocessRestRequest($return);
         
@@ -476,7 +467,7 @@ MYSQL;
      * @generated
      * @throws PublicAlert|PDOException|JsonException
      */
-    public static function Post(array $data)
+    public static function Post(array $data = [])
     {   
         self::startRest(self::POST, [], $data);
     
@@ -494,6 +485,7 @@ MYSQL;
         self::postpreprocessRestRequest($sql);
 
         $stmt = self::database()->prepare($sql);
+        
         if (!array_key_exists('carbon_users.user_username', $data)) {
             return self::signalError('Required argument "carbon_users.user_username" is missing from the request.');
         }
@@ -748,37 +740,47 @@ MYSQL;
     * 
     * Tables where primary keys exist must be updated by its primary key. 
     * Column should be in a key value pair passed to $argv or optionally using syntax:
-    * $argv => [
+    * $argv = [
     *       Rest::UPDATE => [
     *              ...
     *       ]
     * ]
     * 
     * @param array $returnUpdated - will be merged with with array_merge, with a successful update. 
-    * @param string $primary
+    * @param string|null $primary
     * @param array $argv 
     * @generated
     * @throws PublicAlert|PDOException|JsonException
     * @return bool - if execute fails, false will be returned and $returnUpdated = $stmt->errorInfo(); 
     */
-    public static function Put(array &$returnUpdated, string $primary, array $argv) : bool
+    public static function Put(array &$returnUpdated, string $primary = null, array $argv = []) : bool
     {
         self::startRest(self::PUT, $returnUpdated, $argv, $primary);
         
-        if ('' === $primary) {
-            return self::signalError('Restful tables which have a primary key must be updated by its primary key.');
+        $where = [];
+
+        if (array_key_exists(self::WHERE, $argv)) {
+            $where = $argv[self::WHERE];
+            unset($argv[self::WHERE]);
         }
-         
+        
         if (array_key_exists(self::UPDATE, $argv)) {
             $argv = $argv[self::UPDATE];
         }
-
-        $where = [self::PRIMARY => $primary];
         
+        $emptyPrimary = null === $primary || '' === $primary;
+        
+        if (false === self::$allowFullTableUpdates && $emptyPrimary) { 
+            return self::signalError('Restful tables which have a primary key must be updated by its primary key. To bypass this set you may set `self::$allowFullTableUpdates = true;` during the PREPROCESS events.');
+        }
+
+        if (!$emptyPrimary) {
+            $where[self::PRIMARY] = $primary;
+        }
         
         foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column $key, because it does not appear to exist.');
+                return self::signalError('Restful table could not update column $key, because it does not appear to exist. Please re-run RestBuilder if you beleive this is incorrect.');
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
@@ -881,15 +883,17 @@ MYSQL;
             $pdo->beginTransaction();
         }
 
-        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
-
+        if (false === self::$allowFullTableUpdates || !empty($where)) {
+            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
+        }
+        
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
         $stmt = $pdo->prepare($sql);
 
-        if (array_key_exists('carbon_users.user_username', $argv)) {
+        if (array_key_exists('carbon_users.user_username', $argv)) { 
             $user_username = $argv['carbon_users.user_username'];
             $ref = 'carbon_users.user_username';
             $op = self::EQUAL;
@@ -897,7 +901,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_username\'.');
             }
             $stmt->bindParam(':user_username',$user_username, PDO::PARAM_STR, 100);
-        }if (array_key_exists('carbon_users.user_password', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_password', $argv)) { 
             $user_password = $argv['carbon_users.user_password'];
             $ref = 'carbon_users.user_password';
             $op = self::EQUAL;
@@ -905,7 +910,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_password\'.');
             }
             $stmt->bindParam(':user_password',$user_password, PDO::PARAM_STR, 225);
-        }if (array_key_exists('carbon_users.user_id', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_id', $argv)) { 
             $user_id = $argv['carbon_users.user_id'];
             $ref = 'carbon_users.user_id';
             $op = self::EQUAL;
@@ -913,7 +919,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_id\'.');
             }
             $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
-        }if (array_key_exists('carbon_users.user_type', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_type', $argv)) { 
             $user_type = $argv['carbon_users.user_type'];
             $ref = 'carbon_users.user_type';
             $op = self::EQUAL;
@@ -921,7 +928,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_type\'.');
             }
             $stmt->bindParam(':user_type',$user_type, PDO::PARAM_STR, 20);
-        }if (array_key_exists('carbon_users.user_sport', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_sport', $argv)) { 
             $user_sport = $argv['carbon_users.user_sport'];
             $ref = 'carbon_users.user_sport';
             $op = self::EQUAL;
@@ -929,7 +937,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_sport\'.');
             }
             $stmt->bindParam(':user_sport',$user_sport, PDO::PARAM_STR, 20);
-        }if (array_key_exists('carbon_users.user_session_id', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_session_id', $argv)) { 
             $user_session_id = $argv['carbon_users.user_session_id'];
             $ref = 'carbon_users.user_session_id';
             $op = self::EQUAL;
@@ -937,7 +946,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_session_id\'.');
             }
             $stmt->bindParam(':user_session_id',$user_session_id, PDO::PARAM_STR, 225);
-        }if (array_key_exists('carbon_users.user_facebook_id', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_facebook_id', $argv)) { 
             $user_facebook_id = $argv['carbon_users.user_facebook_id'];
             $ref = 'carbon_users.user_facebook_id';
             $op = self::EQUAL;
@@ -945,7 +955,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_facebook_id\'.');
             }
             $stmt->bindParam(':user_facebook_id',$user_facebook_id, PDO::PARAM_STR, 225);
-        }if (array_key_exists('carbon_users.user_first_name', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_first_name', $argv)) { 
             $user_first_name = $argv['carbon_users.user_first_name'];
             $ref = 'carbon_users.user_first_name';
             $op = self::EQUAL;
@@ -953,7 +964,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_first_name\'.');
             }
             $stmt->bindParam(':user_first_name',$user_first_name, PDO::PARAM_STR, 25);
-        }if (array_key_exists('carbon_users.user_last_name', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_last_name', $argv)) { 
             $user_last_name = $argv['carbon_users.user_last_name'];
             $ref = 'carbon_users.user_last_name';
             $op = self::EQUAL;
@@ -961,7 +973,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_last_name\'.');
             }
             $stmt->bindParam(':user_last_name',$user_last_name, PDO::PARAM_STR, 25);
-        }if (array_key_exists('carbon_users.user_profile_pic', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_profile_pic', $argv)) { 
             $user_profile_pic = $argv['carbon_users.user_profile_pic'];
             $ref = 'carbon_users.user_profile_pic';
             $op = self::EQUAL;
@@ -969,7 +982,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_profile_pic\'.');
             }
             $stmt->bindParam(':user_profile_pic',$user_profile_pic, PDO::PARAM_STR, 225);
-        }if (array_key_exists('carbon_users.user_profile_uri', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_profile_uri', $argv)) { 
             $user_profile_uri = $argv['carbon_users.user_profile_uri'];
             $ref = 'carbon_users.user_profile_uri';
             $op = self::EQUAL;
@@ -977,7 +991,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_profile_uri\'.');
             }
             $stmt->bindParam(':user_profile_uri',$user_profile_uri, PDO::PARAM_STR, 225);
-        }if (array_key_exists('carbon_users.user_cover_photo', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_cover_photo', $argv)) { 
             $user_cover_photo = $argv['carbon_users.user_cover_photo'];
             $ref = 'carbon_users.user_cover_photo';
             $op = self::EQUAL;
@@ -985,7 +1000,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_cover_photo\'.');
             }
             $stmt->bindParam(':user_cover_photo',$user_cover_photo, PDO::PARAM_STR, 225);
-        }if (array_key_exists('carbon_users.user_birthday', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_birthday', $argv)) { 
             $user_birthday = $argv['carbon_users.user_birthday'];
             $ref = 'carbon_users.user_birthday';
             $op = self::EQUAL;
@@ -993,7 +1009,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_birthday\'.');
             }
             $stmt->bindParam(':user_birthday',$user_birthday, PDO::PARAM_STR, 9);
-        }if (array_key_exists('carbon_users.user_gender', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_gender', $argv)) { 
             $user_gender = $argv['carbon_users.user_gender'];
             $ref = 'carbon_users.user_gender';
             $op = self::EQUAL;
@@ -1001,7 +1018,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_gender\'.');
             }
             $stmt->bindParam(':user_gender',$user_gender, PDO::PARAM_STR, 25);
-        }if (array_key_exists('carbon_users.user_about_me', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_about_me', $argv)) { 
             $user_about_me = $argv['carbon_users.user_about_me'];
             $ref = 'carbon_users.user_about_me';
             $op = self::EQUAL;
@@ -1009,9 +1027,11 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_about_me\'.');
             }
             $stmt->bindParam(':user_about_me',$user_about_me, PDO::PARAM_STR, 225);
-        }if (array_key_exists('carbon_users.user_rank', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_rank', $argv)) { 
             $stmt->bindValue(':user_rank',$argv['carbon_users.user_rank'], PDO::PARAM_INT);
-}if (array_key_exists('carbon_users.user_email', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_email', $argv)) { 
             $user_email = $argv['carbon_users.user_email'];
             $ref = 'carbon_users.user_email';
             $op = self::EQUAL;
@@ -1019,7 +1039,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_email\'.');
             }
             $stmt->bindParam(':user_email',$user_email, PDO::PARAM_STR, 50);
-        }if (array_key_exists('carbon_users.user_email_code', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_email_code', $argv)) { 
             $user_email_code = $argv['carbon_users.user_email_code'];
             $ref = 'carbon_users.user_email_code';
             $op = self::EQUAL;
@@ -1027,7 +1048,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_email_code\'.');
             }
             $stmt->bindParam(':user_email_code',$user_email_code, PDO::PARAM_STR, 225);
-        }if (array_key_exists('carbon_users.user_email_confirmed', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_email_confirmed', $argv)) { 
             $user_email_confirmed = $argv['carbon_users.user_email_confirmed'];
             $ref = 'carbon_users.user_email_confirmed';
             $op = self::EQUAL;
@@ -1035,7 +1057,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_email_confirmed\'.');
             }
             $stmt->bindParam(':user_email_confirmed',$user_email_confirmed, PDO::PARAM_INT, 1);
-        }if (array_key_exists('carbon_users.user_generated_string', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_generated_string', $argv)) { 
             $user_generated_string = $argv['carbon_users.user_generated_string'];
             $ref = 'carbon_users.user_generated_string';
             $op = self::EQUAL;
@@ -1043,9 +1066,11 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_generated_string\'.');
             }
             $stmt->bindParam(':user_generated_string',$user_generated_string, PDO::PARAM_STR, 200);
-        }if (array_key_exists('carbon_users.user_membership', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_membership', $argv)) { 
             $stmt->bindValue(':user_membership',$argv['carbon_users.user_membership'], PDO::PARAM_INT);
-}if (array_key_exists('carbon_users.user_deactivated', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_deactivated', $argv)) { 
             $user_deactivated = $argv['carbon_users.user_deactivated'];
             $ref = 'carbon_users.user_deactivated';
             $op = self::EQUAL;
@@ -1053,9 +1078,11 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_deactivated\'.');
             }
             $stmt->bindParam(':user_deactivated',$user_deactivated, PDO::PARAM_INT, 1);
-        }if (array_key_exists('carbon_users.user_last_login', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_last_login', $argv)) { 
             $stmt->bindValue(':user_last_login',$argv['carbon_users.user_last_login'], PDO::PARAM_STR);
-}if (array_key_exists('carbon_users.user_ip', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_ip', $argv)) { 
             $user_ip = $argv['carbon_users.user_ip'];
             $ref = 'carbon_users.user_ip';
             $op = self::EQUAL;
@@ -1063,7 +1090,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_ip\'.');
             }
             $stmt->bindParam(':user_ip',$user_ip, PDO::PARAM_STR, 20);
-        }if (array_key_exists('carbon_users.user_education_history', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_education_history', $argv)) { 
             $user_education_history = $argv['carbon_users.user_education_history'];
             $ref = 'carbon_users.user_education_history';
             $op = self::EQUAL;
@@ -1071,7 +1099,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_education_history\'.');
             }
             $stmt->bindParam(':user_education_history',$user_education_history, PDO::PARAM_STR, 200);
-        }if (array_key_exists('carbon_users.user_location', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_location', $argv)) { 
             $user_location = $argv['carbon_users.user_location'];
             $ref = 'carbon_users.user_location';
             $op = self::EQUAL;
@@ -1079,10 +1108,11 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_location\'.');
             }
             $stmt->bindParam(':user_location',$user_location, PDO::PARAM_STR, 20);
-        }if (array_key_exists('carbon_users.user_creation_date', $argv)) {
+        }
+        if (array_key_exists('carbon_users.user_creation_date', $argv)) { 
             $stmt->bindValue(':user_creation_date',$argv['carbon_users.user_creation_date'], PDO::PARAM_STR);
-}
-
+        }
+        
         self::bind($stmt);
 
         if (!$stmt->execute()) {
@@ -1096,7 +1126,7 @@ MYSQL;
         
         $argv = array_combine(
             array_map(
-                static function($k) { return str_replace('carbon_users.', '', $k); },
+                static fn($k) => str_replace('carbon_users.', '', $k),
                 array_keys($argv)
             ),
             array_values($argv)
@@ -1130,29 +1160,29 @@ MYSQL;
     {
         self::startRest(self::DELETE, $remove, $argv, $primary);
         
-        if (null !== $primary) {
+        $pdo = self::database();
+        
+        $emptyPrimary = null === $primary || '' === $primary;
+        
+        if (!$emptyPrimary) {
             return Carbons::Delete($remove, $primary, $argv);
         }
 
-        /**
-         *   While useful, we've decided to disallow full
-         *   table deletions through the rest api. For the
-         *   n00bs and future self, "I got chu."
-         */
-        if (empty($argv)) {
+        if (false === self::$allowFullTableDeletes && empty($argv)) {
             return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
         }
         
         $sql = 'DELETE c FROM carbons c 
                 JOIN carbon_users on c.entity_pk = carbon_users.user_id';
 
-        $pdo = self::database();
+        
+        if (false === self::$allowFullTableDeletes || !empty($argv)) {
+            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
+        }
         
         if (!$pdo->inTransaction()) {
             $pdo->beginTransaction();
         }
-
-        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
         
         self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -1166,7 +1196,7 @@ MYSQL;
             self::completeRest();
             return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }
-        
+
         $remove = [];
         
         self::prepostprocessRestRequest($remove);
@@ -1181,5 +1211,4 @@ MYSQL;
         
         return true;
     }
-    
 }

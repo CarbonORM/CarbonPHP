@@ -8,6 +8,7 @@ use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Helpers\RestfulValidations;
 use CarbonPHP\Rest;
+use JsonException;
 use PDO;
 use PDOException;
 use function array_key_exists;
@@ -20,7 +21,7 @@ use CarbonPHP\CarbonPHP;
 use Tests\Feature\RestTest;
 
 /**
- * 
+ *
  * Class Carbon_User_Tasks
  * @package CarbonPHP\Tables
  * @note Note for convenience, a flag '-prefix' maybe passed to remove table prefixes.
@@ -431,20 +432,10 @@ MYSQL;
         }
 
         $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        /**
-        *   The next part is so every response from the rest api
-        *   formats to a set of rows. Even if only one row is returned.
-        *   You must set the third parameter to true, otherwise '0' is
-        *   apparently in the self::PDO_VALIDATION
-        */
-
         
-        if ($primary !== null || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
+        if ((null !== $primary && '' !== $primary) || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
             $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
         }
-
-        
 
         self::postprocessRestRequest($return);
         
@@ -459,7 +450,7 @@ MYSQL;
      * @generated
      * @throws PublicAlert|PDOException|JsonException
      */
-    public static function Post(array $data)
+    public static function Post(array $data = [])
     {   
         self::startRest(self::POST, [], $data);
     
@@ -477,6 +468,7 @@ MYSQL;
         self::postpreprocessRestRequest($sql);
 
         $stmt = self::database()->prepare($sql);
+        
         $task_id = $id = $data['carbon_user_tasks.task_id'] ?? false;
         if ($id === false) {
             $task_id = $id = self::beginTransaction(self::class, $data[self::DEPENDANT_ON_ENTITY] ?? null);
@@ -575,37 +567,47 @@ MYSQL;
     * 
     * Tables where primary keys exist must be updated by its primary key. 
     * Column should be in a key value pair passed to $argv or optionally using syntax:
-    * $argv => [
+    * $argv = [
     *       Rest::UPDATE => [
     *              ...
     *       ]
     * ]
     * 
     * @param array $returnUpdated - will be merged with with array_merge, with a successful update. 
-    * @param string $primary
+    * @param string|null $primary
     * @param array $argv 
     * @generated
     * @throws PublicAlert|PDOException|JsonException
     * @return bool - if execute fails, false will be returned and $returnUpdated = $stmt->errorInfo(); 
     */
-    public static function Put(array &$returnUpdated, string $primary, array $argv) : bool
+    public static function Put(array &$returnUpdated, string $primary = null, array $argv = []) : bool
     {
         self::startRest(self::PUT, $returnUpdated, $argv, $primary);
         
-        if ('' === $primary) {
-            return self::signalError('Restful tables which have a primary key must be updated by its primary key.');
+        $where = [];
+
+        if (array_key_exists(self::WHERE, $argv)) {
+            $where = $argv[self::WHERE];
+            unset($argv[self::WHERE]);
         }
-         
+        
         if (array_key_exists(self::UPDATE, $argv)) {
             $argv = $argv[self::UPDATE];
         }
-
-        $where = [self::PRIMARY => $primary];
         
+        $emptyPrimary = null === $primary || '' === $primary;
+        
+        if (false === self::$allowFullTableUpdates && $emptyPrimary) { 
+            return self::signalError('Restful tables which have a primary key must be updated by its primary key. To bypass this set you may set `self::$allowFullTableUpdates = true;` during the PREPROCESS events.');
+        }
+
+        if (!$emptyPrimary) {
+            $where[self::PRIMARY] = $primary;
+        }
         
         foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column $key, because it does not appear to exist.');
+                return self::signalError('Restful table could not update column $key, because it does not appear to exist. Please re-run RestBuilder if you beleive this is incorrect.');
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
@@ -651,15 +653,17 @@ MYSQL;
             $pdo->beginTransaction();
         }
 
-        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
-
+        if (false === self::$allowFullTableUpdates || !empty($where)) {
+            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
+        }
+        
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
         $stmt = $pdo->prepare($sql);
 
-        if (array_key_exists('carbon_user_tasks.task_id', $argv)) {
+        if (array_key_exists('carbon_user_tasks.task_id', $argv)) { 
             $task_id = $argv['carbon_user_tasks.task_id'];
             $ref = 'carbon_user_tasks.task_id';
             $op = self::EQUAL;
@@ -667,7 +671,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'task_id\'.');
             }
             $stmt->bindParam(':task_id',$task_id, PDO::PARAM_STR, 16);
-        }if (array_key_exists('carbon_user_tasks.user_id', $argv)) {
+        }
+        if (array_key_exists('carbon_user_tasks.user_id', $argv)) { 
             $user_id = $argv['carbon_user_tasks.user_id'];
             $ref = 'carbon_user_tasks.user_id';
             $op = self::EQUAL;
@@ -675,7 +680,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_id\'.');
             }
             $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
-        }if (array_key_exists('carbon_user_tasks.from_id', $argv)) {
+        }
+        if (array_key_exists('carbon_user_tasks.from_id', $argv)) { 
             $from_id = $argv['carbon_user_tasks.from_id'];
             $ref = 'carbon_user_tasks.from_id';
             $op = self::EQUAL;
@@ -683,7 +689,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'from_id\'.');
             }
             $stmt->bindParam(':from_id',$from_id, PDO::PARAM_STR, 16);
-        }if (array_key_exists('carbon_user_tasks.task_name', $argv)) {
+        }
+        if (array_key_exists('carbon_user_tasks.task_name', $argv)) { 
             $task_name = $argv['carbon_user_tasks.task_name'];
             $ref = 'carbon_user_tasks.task_name';
             $op = self::EQUAL;
@@ -691,7 +698,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'task_name\'.');
             }
             $stmt->bindParam(':task_name',$task_name, PDO::PARAM_STR, 40);
-        }if (array_key_exists('carbon_user_tasks.task_description', $argv)) {
+        }
+        if (array_key_exists('carbon_user_tasks.task_description', $argv)) { 
             $task_description = $argv['carbon_user_tasks.task_description'];
             $ref = 'carbon_user_tasks.task_description';
             $op = self::EQUAL;
@@ -699,14 +707,17 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'task_description\'.');
             }
             $stmt->bindParam(':task_description',$task_description, PDO::PARAM_STR, 225);
-        }if (array_key_exists('carbon_user_tasks.percent_complete', $argv)) {
+        }
+        if (array_key_exists('carbon_user_tasks.percent_complete', $argv)) { 
             $stmt->bindValue(':percent_complete',$argv['carbon_user_tasks.percent_complete'], PDO::PARAM_INT);
-}if (array_key_exists('carbon_user_tasks.start_date', $argv)) {
+        }
+        if (array_key_exists('carbon_user_tasks.start_date', $argv)) { 
             $stmt->bindValue(':start_date',$argv['carbon_user_tasks.start_date'], PDO::PARAM_STR);
-}if (array_key_exists('carbon_user_tasks.end_date', $argv)) {
+        }
+        if (array_key_exists('carbon_user_tasks.end_date', $argv)) { 
             $stmt->bindValue(':end_date',$argv['carbon_user_tasks.end_date'], PDO::PARAM_STR);
-}
-
+        }
+        
         self::bind($stmt);
 
         if (!$stmt->execute()) {
@@ -720,7 +731,7 @@ MYSQL;
         
         $argv = array_combine(
             array_map(
-                static function($k) { return str_replace('carbon_user_tasks.', '', $k); },
+                static fn($k) => str_replace('carbon_user_tasks.', '', $k),
                 array_keys($argv)
             ),
             array_values($argv)
@@ -754,29 +765,29 @@ MYSQL;
     {
         self::startRest(self::DELETE, $remove, $argv, $primary);
         
-        if (null !== $primary) {
+        $pdo = self::database();
+        
+        $emptyPrimary = null === $primary || '' === $primary;
+        
+        if (!$emptyPrimary) {
             return Carbons::Delete($remove, $primary, $argv);
         }
 
-        /**
-         *   While useful, we've decided to disallow full
-         *   table deletions through the rest api. For the
-         *   n00bs and future self, "I got chu."
-         */
-        if (empty($argv)) {
+        if (false === self::$allowFullTableDeletes && empty($argv)) {
             return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
         }
         
         $sql = 'DELETE c FROM carbons c 
                 JOIN carbon_user_tasks on c.entity_pk = carbon_user_tasks.task_id';
 
-        $pdo = self::database();
+        
+        if (false === self::$allowFullTableDeletes || !empty($argv)) {
+            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
+        }
         
         if (!$pdo->inTransaction()) {
             $pdo->beginTransaction();
         }
-
-        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
         
         self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -790,7 +801,7 @@ MYSQL;
             self::completeRest();
             return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }
-        
+
         $remove = [];
         
         self::prepostprocessRestRequest($remove);
@@ -805,5 +816,4 @@ MYSQL;
         
         return true;
     }
-    
 }

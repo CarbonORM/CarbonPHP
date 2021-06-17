@@ -4,7 +4,7 @@ namespace CarbonPHP\Programs;
 
 
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\Database;use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestfulReferences;
@@ -23,7 +23,6 @@ use function random_int;
 class RestBuilder implements iCommand
 {
     use ColorCode, Composer, Background, MySQL {
-        ColorCode::colorCode insteadof Composer;
         cleanUp as removeFiles;
     }
 
@@ -379,14 +378,14 @@ END;
             exit(1);
         }
 
-        $this->mysqldump = $dumpFilePath = $dump ?? $this->MySQLDump($mysqldump ?? null, $dumpData);
+        self::$mysqldump = $dumpFilePath = $dump ?? self::mysqldump($mysqldump ?? null, $dumpData);
 
-        if (!file_exists($this->mysqldump)) {
+        if (!file_exists(self::$mysqldump)) {
             print 'Could not load mysql dump file!' . PHP_EOL;
             exit(1);
         }
 
-        if (empty($this->mysqldump = file_get_contents($this->mysqldump))) {
+        if (empty(self::$mysqldump = file_get_contents(self::$mysqldump))) {
             print 'Contents of the mysql dump file appears empty. Build Failed!';
             exit(1);
         }
@@ -394,13 +393,11 @@ END;
         // This is our mustache template engine implemented in php, used for rendering user content
         $mustache = new \Mustache_Engine();
 
-        $verbose and var_dump($this->mysqldump);
+        $verbose and var_dump(self::$mysqldump);
 
         // match all tables from a mysql dump
-        preg_match_all('#CREATE\s+TABLE(.|\s)+?(?=ENGINE=)ENGINE=.+;#', $this->mysqldump, $matches);
+        preg_match_all('#CREATE\s+TABLE(.|\s)+?(?=ENGINE=)ENGINE=.+;#', self::$mysqldump, $matches);
 
-
-        //file_put_contents('testing.txt', $matches[0][4]);die;
 
         // I just want the list of matches, nothing more.
         $matches = $matches[0];
@@ -571,7 +568,9 @@ END;
                         // Composite Primary Keys are a thing,  TODO - optimise the template for none vs single vs double key
                         $primary = explode('`,`', trim($words_in_insert_stmt[2], '(`),'));
 
-                        // todo return composite primary key correctly
+                        // todo return composite primary key correctly (also, multiple auto increments a thing?)
+
+
                         foreach ($primary as $key) {
                             foreach ($rest[$tableName]['explode'] as &$value) {
                                 if ($value['name'] !== $key) {
@@ -584,12 +583,12 @@ END;
                             unset($value);
                         }
 
-
                         $rest[$tableName]['primarySort'] = implode(',', $primary);
-
 
                         // Build the insert stmt - used in put rn / exported in abstract rest
                         $sql = [];
+
+
                         foreach ($primary as $key) {
                             if (in_array($key, $binary, true)) {
                                 // binary data is expected as hex @ rest call (GET,PUT,DELETE)
@@ -598,10 +597,17 @@ END;
                                 // otherwise just create the stmt normally
                                 $sql[] = ' ' . $key . '=\'.self::addInjection($primary, $pdo).\'';
                             }
-                            $rest[$tableName]['primary'][] = ['name' => $key];
+                            $rest[$tableName]['primary'][] = [
+                                'name' => $key,
+                                'binary' => in_array($key, $binary, true)
+                            ];
                         }
+
+
                         $rest[$tableName]['sql'][] = ['sql' => '$sql .= \' WHERE ' . implode(' OR ', $sql) . '\';'];
-                        // end - soon to deprecate
+
+
+                        // end - soon to deprecate todo remove
                         break;
 
                     case 'CONSTRAINT':
@@ -776,7 +782,7 @@ END;
 
             // Make sure we didn't specify a flag that could cause us to move on...
             if (empty($rest[$tableName]['primary'])) {
-                $verbose and self::colorCode("\n\nThe tables {$rest[$tableName]['TableName']} does not have a primary key.\n", 'yellow');
+                $verbose and self::colorCode("\n\nThe tables {$rest[$tableName]['TableName']} does not have a primary key.\n", iColorCode::YELLOW);
                 if ($primary_required) {
                     self::colorCode(" \tSkipping...\n ",);
                     continue;
@@ -787,7 +793,7 @@ END;
                         'pageSize',
                         'pageNumber'
                     ])) {
-                        self::colorCode($rest[$tableName]['TableName'] . " uses reserved C6 RESTFULL keywords as a column identifier => $value\n\tRest Failed", 'red');
+                        self::colorCode($rest[$tableName]['TableName'] . " uses reserved C6 RESTFULL keywords as a column identifier => $value\n\tRest Failed", iColorCode::RED);
                         die(1);
                     }
 
@@ -1069,7 +1075,7 @@ const convertForRequestBody = function(restfulObject, tableName) {
 
             file_put_contents('triggers.sql', 'DELIMITER ;;' . PHP_EOL . $triggers . PHP_EOL . 'DELIMITER ;');
 
-            $this->MySQLSource($verbose, 'triggers.sql', $mysql ?? null);
+            $this->MySQLSource( 'triggers.sql', $mysql ?? null);
         }
 
         // debug is a subset of the verbose flag
@@ -1096,19 +1102,20 @@ const convertForRequestBody = function(restfulObject, tableName) {
             foreach ($columns as $key => &$column) {
                 $column = in_array($column, $binary, true)
                     ? <<<END
-\nSET json = CONCAT(json,'"$column":"', HEX($op.$column), '"');
-END
+                        \nSET json = CONCAT(json,'"$column":"', HEX($op.$column), '"');
+                        END
                     : <<<END
-\nSET json = CONCAT(json,'"$column":"', COALESCE($op.$column,''), '"');
-END;
+                        \nSET json = CONCAT(json,'"$column":"', COALESCE($op.$column,''), '"');
+                        END;
             }
             unset($column);
 
             $mid .= implode("\nSET json = CONCAT(json, ',');", $columns);
 
             $mid .= <<<END
-SET json = CONCAT(json, '}');
-END;
+                SET json = CONCAT(json, '}');
+                END;
+
             return $mid;
         };
 
@@ -1227,6 +1234,7 @@ export interface  i{{ucEachTableName}}{
             'use CarbonPHP\Error\PublicAlert;',
             'use CarbonPHP\Helpers\RestfulValidations;',
             'use CarbonPHP\Rest;',
+            'use JsonException;',
             'use PDO;',
             'use PDOException;',
             'use function array_key_exists;',
@@ -1261,7 +1269,7 @@ $staticNamespaces
 {{#CustomImports}}{{{CustomImports}}}{{/CustomImports}}
 
 /**
- * 
+ *
  * Class {{ucEachTableName}}
  * @package {{namespace}}
  * @note Note for convenience, a flag '-prefix' maybe passed to remove table prefixes.
@@ -1605,24 +1613,16 @@ MYSQL;
             return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode(\$stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }
 
-        \$return = \$stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        /**
-        *   The next part is so every response from the rest api
-        *   formats to a set of rows. Even if only one row is returned.
-        *   You must set the third parameter to true, otherwise '0' is
-        *   apparently in the self::PDO_VALIDATION
-        */
-
-        {{#primary}}{{#sql}}
-        if (\$primary !== null || (isset(\$argv[self::PAGINATION][self::LIMIT]) && \$argv[self::PAGINATION][self::LIMIT] === 1 && count(\$return) === 1)) {
+        \$return = \$stmt->fetchAll(PDO::FETCH_ASSOC);{{#primaryExists}}{{#sql}}
+        
+        if ((null !== \$primary && {{^multiplePrimary}}''{{/multiplePrimary}}{{#multiplePrimary}}[]{{/multiplePrimary}} !== \$primary) || (isset(\$argv[self::PAGINATION][self::LIMIT]) && \$argv[self::PAGINATION][self::LIMIT] === 1 && count(\$return) === 1)) {
             \$return = isset(\$return[0]) && is_array(\$return[0]) ? \$return[0] : \$return;
-        }{{/sql}}{{/primary}}
-        {{^primary}}
+        }{{/sql}}{{/primaryExists}}{{^primary}}
+        
         if (isset(\$argv[self::PAGINATION][self::LIMIT]) && \$argv[self::PAGINATION][self::LIMIT] === 1 && count(\$return) === 1) {
             \$return = isset(\$return[0]) && is_array(\$return[0]) ? \$return[0] : \$return;
-        }{{/primary}}
-        {{#explode}}{{#json}}
+        }{{/primary}}{{#explode}}{{#json}}
+        
         if (array_key_exists('{{name}}', \$return)) {
                 \$return['{{name}}'] = json_decode(\$return['{{name}}'], true);
         }{{/json}}{{/explode}}
@@ -1640,7 +1640,7 @@ MYSQL;
      * @generated
      * @throws PublicAlert|PDOException|JsonException
      */
-    public static function Post(array \$data){{^primaryExists}}: bool{{/primaryExists}}
+    public static function Post(array \$data = []){{^primaryExists}}: bool{{/primaryExists}}
     {   
         self::startRest(self::POST, [], \$data);
     
@@ -1664,8 +1664,8 @@ MYSQL;
 
         self::postpreprocessRestRequest(\$sql);
 
-        \$stmt = self::database()->prepare(\$sql);{{#explode}}{{#primary_binary}}{{^carbon_table}}
-        
+        \$stmt = self::database()->prepare(\$sql);
+        {{#explode}}{{#primary_binary}}{{^carbon_table}}
         \${{name}} = \$id = \$data['{{TableName}}.{{name}}'] ?? false;
         if (\$id === false) {
              \${{name}} = \$id = self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
@@ -1783,55 +1783,62 @@ MYSQL;
     * {{/primaryExists}}{{#primaryExists}}
     * Tables where primary keys exist must be updated by its primary key. 
     * Column should be in a key value pair passed to \$argv or optionally using syntax:
-    * \$argv => [
+    * \$argv = [
     *       Rest::UPDATE => [
     *              ...
     *       ]
     * ]
     * {{/primaryExists}}
     * @param array \$returnUpdated - will be merged with with array_merge, with a successful update. 
-    {{#primaryExists}}* @param string \$primary{{/primaryExists}}
+    {{#primaryExists}}* @param {{#multiplePrimary}}array{{/multiplePrimary}}{{^multiplePrimary}}string{{/multiplePrimary}}|null \$primary{{/primaryExists}}
     * @param array \$argv 
     * @generated
     * @throws PublicAlert|PDOException|JsonException
     * @return bool - if execute fails, false will be returned and \$returnUpdated = \$stmt->errorInfo(); 
     */
-    public static function Put(array &\$returnUpdated, {{#primaryExists}}{{#multiplePrimary}}array{{/multiplePrimary}}{{^multiplePrimary}}string{{/multiplePrimary}} \$primary,{{/primaryExists}} array \$argv) : bool
+    public static function Put(array &\$returnUpdated, {{#primaryExists}}{{#multiplePrimary}}array{{/multiplePrimary}}{{^multiplePrimary}}string{{/multiplePrimary}} \$primary = null,{{/primaryExists}} array \$argv = []) : bool
     {
         self::startRest(self::PUT, \$returnUpdated, \$argv{{#primaryExists}}, \$primary{{/primaryExists}});
         
-        {{#primaryExists}}
-        if ({{^multiplePrimary}}''{{/multiplePrimary}}{{#multiplePrimary}}[]{{/multiplePrimary}} === \$primary) {
-            return self::signalError('Restful tables which have a primary key must be updated by its primary key.');
+        \$where = [];
+
+        if (array_key_exists(self::WHERE, \$argv)) {
+            \$where = \$argv[self::WHERE];
+            unset(\$argv[self::WHERE]);
         }
-         
+        
         if (array_key_exists(self::UPDATE, \$argv)) {
             \$argv = \$argv[self::UPDATE];
+        }{{#primaryExists}}
+        
+        \$emptyPrimary = null === \$primary || {{^multiplePrimary}}''{{/multiplePrimary}}{{#multiplePrimary}}[]{{/multiplePrimary}} === \$primary;
+        
+        if (false === self::\$allowFullTableUpdates && \$emptyPrimary) { 
+            return self::signalError('Restful tables which have a primary key must be updated by its primary key. To bypass this set you may set `self::\$allowFullTableUpdates = true;` during the PREPROCESS events.');
         }
         {{#multiplePrimary}}
-        \$where = array_merge(\$argv, \$primary);
-        {{/multiplePrimary}}{{^multiplePrimary}}
-        \$where = [self::PRIMARY => \$primary];
-        {{/multiplePrimary}}{{/primaryExists}}{{^primaryExists}}
-        \$where = \$argv[self::WHERE] ?? [];
-        
-        if (empty(\$where)) {
-            return self::signalError('Restful tables which have no primary key must be updated using conditions given to \$argv[self::WHERE] and values given to \$argv[self::UPDATE]. No WHERE attribute given.');
+        if (false === self::\$allowFullTableUpdates || !\$emptyPrimary) {
+            if (count(array_intersect_key(\$primary, self::PRIMARY)) !== count(self::PRIMARY)) {
+                return self::signalError('You must provide all primary keys (' . implode(', ', self::PRIMARY) . ').');
+            }
+            \$where = array_merge(\$argv, \$primary);
         }
-
-        \$argv = \$argv[self::UPDATE] ?? [];
+        {{/multiplePrimary}}{{^multiplePrimary}}
+        if (!\$emptyPrimary) {
+            \$where[self::PRIMARY] = \$primary;
+        }{{/multiplePrimary}}{{/primaryExists}}{{^primaryExists}}
+        
+        if (false === self::\$allowFullTableUpdates && empty(\$where)) {
+            return self::signalError('Restful tables which have no primary key must be updated using conditions given to \$argv[self::WHERE] and values to be updated given to \$argv[self::UPDATE]. No WHERE attribute given. To bypass this set `self::\$allowFullTableUpdates = true;` during the PREPROCESS events, or just directly before this request.');
+        }
         
         if (empty(\$argv)) {
-            return self::signalError('Restful tables which have no primary key must be updated using conditions given to \$argv[self::WHERE] and values given to \$argv[self::UPDATE]. No UPDATE attribute given.');
-        }
-
-        if (empty(\$where) || empty(\$argv)) {
-            return self::signalError('Restful tables which have no primary key must be updated with specific where and update attributes.');
+            return self::signalError('Restful tables which have no primary key must be updated using conditions given to \$argv[self::WHERE] and values to be updated given to \$argv[self::UPDATE]. No UPDATE attribute given.');
         }{{/primaryExists}}
         
         foreach (\$argv as \$key => &\$value) {
             if (!array_key_exists(\$key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column \$key, because it does not appear to exist.');
+                return self::signalError('Restful table could not update column \$key, because it does not appear to exist. Please re-run RestBuilder if you beleive this is incorrect.');
             }
             \$op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, \$key, \$op, \$value)) {
@@ -1858,28 +1865,29 @@ MYSQL;
             \$pdo->beginTransaction();
         }
 
-        \$sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, \$where, \$pdo);
-
-        {{#json}}self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
+        if (false === self::\$allowFullTableUpdates || !empty(\$where)) {
+            \$sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, \$where, \$pdo);
+        }{{#json}}
+        
+        self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
 
         self::postpreprocessRestRequest(\$sql);
 
         \$stmt = \$pdo->prepare(\$sql);
 
-        {{#explode}}if (array_key_exists('{{TableName}}.{{name}}', \$argv)) {
-        {{^length}}
-            \$stmt->bindValue(':{{name}}',{{#json}}json_encode(\$argv['{{TableName}}.{{name}}']){{/json}}{{^json}}\$argv['{{TableName}}.{{name}}']{{/json}}, {{type}});
-        {{/length}}
-        {{#length}}
+        {{#explode}}
+        if (array_key_exists('{{TableName}}.{{name}}', \$argv)) { {{^length}}
+            \$stmt->bindValue(':{{name}}',{{#json}}json_encode(\$argv['{{TableName}}.{{name}}']){{/json}}{{^json}}\$argv['{{TableName}}.{{name}}']{{/json}}, {{type}});{{/length}}{{#length}}
             \${{name}} = \$argv['{{TableName}}.{{name}}'];
             \$ref = '{{TableName}}.{{name}}';
             \$op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, \$ref, \$op, \${{name}})) {
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'{{name}}\'.');
             }
-            \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
-        {{/length}}}{{/explode}}
-
+            \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});{{/length}}
+        }
+        {{/explode}}
+        
         self::bind(\$stmt);
 
         if (!\$stmt->execute()) {
@@ -1893,7 +1901,7 @@ MYSQL;
         
         \$argv = array_combine(
             array_map(
-                static function(\$k) { return str_replace('{{TableName}}.', '', \$k); },
+                static fn(\$k) => str_replace('{{TableName}}.', '', \$k),
                 array_keys(\$argv)
             ),
             array_values(\$argv)
@@ -1916,7 +1924,7 @@ MYSQL;
 
     /**
     * @param array \$remove{{#primaryExists}}
-    * @param string|null \$primary{{/primaryExists}}
+    * @param {{#multiplePrimary}}array{{/multiplePrimary}}{{^multiplePrimary}}string{{/multiplePrimary}}|null \$primary{{/primaryExists}}
     * @param array \$argv
     * @generated
     * @noinspection DuplicatedCode
@@ -1927,30 +1935,74 @@ MYSQL;
     {
         self::startRest(self::DELETE, \$remove, \$argv{{#primaryExists}}, \$primary{{/primaryExists}});
         
-        {{#carbon_table}}
-        if (null !== \$primary) {
+        \$pdo = self::database();{{#primaryExists}}
+        
+        \$emptyPrimary = null === \$primary || {{^multiplePrimary}}''{{/multiplePrimary}}{{#multiplePrimary}}[]{{/multiplePrimary}} === \$primary;{{/primaryExists}}{{#carbon_table}}
+        
+        if (!\$emptyPrimary) {
             return Carbons::Delete(\$remove, \$primary, \$argv);
         }
 
-        /**
-         *   While useful, we've decided to disallow full
-         *   table deletions through the rest api. For the
-         *   n00bs and future self, "I got chu."
-         */
-        if (empty(\$argv)) {
+        if (false === self::\$allowFullTableDeletes && empty(\$argv)) {
             return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
         }
         
         \$sql = 'DELETE c FROM {{^carbon_namespace}}{{#QueryWithDatabaseName}}{{database}}.{{/QueryWithDatabaseName}}{{/carbon_namespace}}carbons c 
                 JOIN {{^carbon_namespace}}{{#QueryWithDatabaseName}}{{database}}.{{/QueryWithDatabaseName}}{{/carbon_namespace}}{{TableName}} on c.entity_pk = {{#primary}}{{#name}}{{TableName}}.{{name}}{{/name}}{{/primary}}';
 
-        \$pdo = self::database();
+        
+        if (false === self::\$allowFullTableDeletes || !empty(\$argv)) {
+            \$sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, \$argv, \$pdo);
+        }{{/carbon_table}}{{^carbon_table}}
+        
+        \$sql =  /** @lang MySQLFragment */ 'DELETE FROM {{^carbon_namespace}}{{#QueryWithDatabaseName}}{{database}}.{{/QueryWithDatabaseName}}{{/carbon_namespace}}{{TableName}} ';{{#primaryExists}}
+        
+        if (false === self::\$allowFullTableDeletes && \$emptyPrimary && empty(\$argv)) {
+            return self::signalError('When deleting from restful tables a primary key or where query must be provided. This can be disabled by setting `self::\$allowFullTableUpdates = true;` during the PREPROCESS events, or just directly before this request.');
+        }{{#multiplePrimary}}
+        
+        \$primaryIntersect = count(array_intersect_key(\$primary, self::PRIMARY));
+        
+        \$primaryCount = count(\$primary);
+        
+        if (\$primaryCount !== \$primaryIntersect) {
+            return self::signalError('The keys provided to table {{TableName}} was not a subset of (' . implode(', ', self::PRIMARY) . '). Only primary keys associated with the root table requested, thus not joined tables, are allowed.');
+        }
+        
+        if (false === self::\$allowFullTableDeletes && \$primaryIntersect !== count(self::PRIMARY)) {
+            return self::signalError('You must provide all primary keys (' . implode(', ', self::PRIMARY) . '). This can be disabled by setting `self::\$allowFullTableUpdates = true;` during the PREPROCESS events, or just directly before this request.');
+        }
+            
+        \$argv = array_merge(\$argv, \$primary);
+        {{/multiplePrimary}}{{^multiplePrimary}}
+        
+        if (!\$emptyPrimary) {
+            \$argv[self::PRIMARY] = \$primary;
+        }{{/multiplePrimary}}
+        
+        \$where = self::buildBooleanJoinConditions(self::DELETE, \$argv, \$pdo);
+        
+        \$emptyWhere = empty(\$where);
+        
+        if (\$emptyWhere && false === self::\$allowFullTableDeletes) {
+            return self::signalError('The where condition provided appears invalid.');
+        }
+
+        if (!\$emptyWhere) {
+            \$sql .= ' WHERE ' . \$where;
+        }{{/primaryExists}}{{^primaryExists}}
+        
+        if (false === self::\$allowFullTableDeletes && empty(\$argv)) {
+            return self::signalError('When deleting from tables with out a primary key additional arguments must be provided.');
+        } 
+        
+        if (!empty(\$argv)) {
+            \$sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, \$argv, \$pdo);
+        }{{/primaryExists}}{{/carbon_table}}
         
         if (!\$pdo->inTransaction()) {
             \$pdo->beginTransaction();
-        }
-
-        \$sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, \$argv, \$pdo);{{#json}}
+        }{{#json}}
         
         self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
 
@@ -1964,77 +2016,6 @@ MYSQL;
             self::completeRest();
             return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode(\$stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }
-        
-        \$remove = [];
-        
-        self::prepostprocessRestRequest(\$remove);
-        
-        if (self::\$commit && !Database::commit()) {
-           return self::signalError('Failed to store commit transaction on table {{TableName}}');
-        }
-        
-        self::postprocessRestRequest(\$remove);
-        
-        self::completeRest();
-        
-        return true;
-    {{/carbon_table}}
-    {{^carbon_table}}
-        /** @noinspection SqlWithoutWhere
-         * @noinspection UnknownInspectionInspection - intellij is funny sometimes.
-         */
-        \$sql = 'DELETE FROM {{^carbon_namespace}}{{#QueryWithDatabaseName}}{{database}}.{{/QueryWithDatabaseName}}{{/carbon_namespace}}{{TableName}} ';
-
-        \$pdo = self::database();
-        
-        if (!\$pdo->inTransaction()) {
-            \$pdo->beginTransaction();
-        }
-        
-        {{#primary}}{{#name}}
-        if (null === \$primary) {
-           /**
-            *   While useful, we've decided to disallow full
-            *   table deletions through the rest api. For the
-            *   n00bs and future self, "I got chu."
-            */
-            if (empty(\$argv)) {
-                return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
-            }{{#multiplePrimary}}
-            \$argv = array_merge(\$argv, \$primary);
-            {{/multiplePrimary}}{{^multiplePrimary}}
-            \$argv[self::PRIMARY] = \$primary;
-            {{/multiplePrimary}}
-            
-            \$where = self::buildBooleanJoinConditions(self::DELETE, \$argv, \$pdo);
-            
-            if (empty(\$where)) {
-                return self::signalError('The where condition provided appears invalid.');
-            }
-
-            \$sql .= ' WHERE ' . \$where;
-        } {{/name}}{{#sql}}else {
-            {{{sql}}}
-        }{{/sql}}{{/primary}}
-        {{^primary}}
-        if (empty(\$argv)) {
-            return self::signalError('When deleting from tables with out a primary key additional arguments must be provided.');
-        } 
-         
-        \$sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, \$argv, \$pdo);{{/primary}}
-
-        {{#json}}self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
-
-        self::postpreprocessRestRequest(\$sql);
-
-        \$stmt = \$pdo->prepare(\$sql);
-
-        self::bind(\$stmt);
-
-        if (!\$stmt->execute()) {
-            self::completeRest();
-            return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode(\$stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
-        }
 
         \$remove = [];
         
@@ -2049,9 +2030,7 @@ MYSQL;
         self::completeRest();
         
         return true;
-    {{/carbon_table}}
     }
-    
 }
 
 STRING;
