@@ -13,6 +13,7 @@ use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Rest;
 use CarbonPHP\Tables\Carbons;
+use DirectoryIterator;
 use ReflectionException;
 use ReflectionMethod;
 use function count;
@@ -397,6 +398,48 @@ END;
 
         // match all tables from a mysql dump
         preg_match_all('#CREATE\s+TABLE(.|\s)+?(?=ENGINE=)ENGINE=.+;#', self::$mysqldump, $matches);
+
+
+        // from version ^9.1 to ^9.2 a deprecation/update was made in an interface...
+        $dir = new DirectoryIterator($targetDir);
+        foreach ($dir as $fileinfo) {
+            if (!$fileinfo->isDot()) {
+                $filename = $fileinfo->getFilename();
+
+                $verbose and ColorCode::colorCode('Checking version information of ' . $targetDir . $filename, iColorCode::MAGENTA);
+
+                $text = file_get_contents($targetDir.$filename);
+
+                if (
+                    strpos($text, 'iRestMultiplePrimaryKeys') === false &&
+                    strpos($text, 'iRestNoPrimaryKey') === false &&
+                    strpos($text, 'iRestSinglePrimaryKey') === false
+                ) {
+                    continue;
+                }
+
+                $count = $count2 = $count3 = 0;
+
+                $text = preg_replace('#public static function Post\(array \$data\)#', 'public static function Post(array $data = [])', $text, 1, $count);
+                $text = preg_replace('#public static function Put\(array &\$returnUpdated, string \$primary, array \$argv\)#', 'public static function Put(array &$returnUpdated, string $primary = null, array $argv = [])', $text, 1, $count2);
+                $text = preg_replace('#public static function Put\(array &\$returnUpdated, array \$primary, array \$argv\)#', 'public static function Put(array &$returnUpdated, array $primary = null, array $argv = [])', $text, 1, $count2);
+                $text = preg_replace('#public static function Put\(array &\$returnUpdated, array \$argv\)#', 'public static function Put(array &$returnUpdated, array $argv = [])', $text, 1, $count3);
+                $count += $count2 + $count3;
+
+                if ($count === 0) {
+                    $verbose and ColorCode::colorCode('No breaking changes detected in ' . $targetDir . $filename, iColorCode::GREEN);
+                    continue;
+                }
+
+                ColorCode::colorCode('The file (' . $targetDir . $filename . ') was updated to handle the 9.1 - 9.2 interface deprecation.', iColorCode::CYAN);
+
+                if (false === file_put_contents($targetDir.$filename, $text)) { // if you run into this; I'm sorry, but I didn't have issues with it
+                    ColorCode::colorCode('A fatal error has occurred. Manually updating php code via text for interface changes failed. Refer to the code to fix this...', iColorCode::RED);
+                    die;
+                }
+            }
+        }
+        unset($text);
 
 
         // I just want the list of matches, nothing more.
