@@ -118,23 +118,22 @@ IDENTIFIED;
         $cmd = ($mysqldump ?? 'mysqldump') . ' --defaults-extra-file="' . self::buildCNF() . '" '
             . ($data ? '' : '--no-data ') . $c['DATABASE']['DB_NAME'] . ' > "' . CarbonPHP::$app_root . 'mysqldump.sql"';
         ColorCode::colorCode("\n\n>> $cmd");
-        shell_exec($cmd);
+        Background::executeAndCheckStatus($cmd);
         return self::$mysqldump = CarbonPHP::$app_root . 'mysqldump.sql';
     }
 
 
     /**
-     * @param bool $verbose
-     * @param String $query
+     * @param String $filename
      * @param bool $mysql
-     * @return string|null
+     * @return void
      */
-    public static function MySQLSource(string $query, $mysql = false): ?string
+    public static function MySQLSource(string $filename, $mysql = false): void
     {
         $c = CarbonPHP::$configuration;
-        $cmd = ($mysql ?: 'mysql') . ' --defaults-extra-file="' . self::buildCNF() . '" ' . ($c['DATABASE']['DB_NAME'] ?? '') . ' < "' . $query . '"';
+        $cmd = ($mysql ?: 'mysql') . ' --defaults-extra-file="' . self::buildCNF() . '" ' . ($c['DATABASE']['DB_NAME'] ?? '') . ' < "' . $filename . '"';
         ColorCode::colorCode("\n\nRunning Command >> $cmd\n\n");
-        return shell_exec($cmd);
+        Background::executeAndCheckStatus($cmd);
     }
 
     public function cleanUp() : void
