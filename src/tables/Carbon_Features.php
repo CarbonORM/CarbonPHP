@@ -234,7 +234,7 @@ class Carbon_Features extends Rest implements iRestSinglePrimaryKey
   PRIMARY KEY (`feature_entity_id`),
   UNIQUE KEY `carbon_features_feature_code_uindex` (`feature_code`),
   UNIQUE KEY `carbon_features_feature_entity_id_uindex` (`feature_entity_id`),
-  CONSTRAINT `carbon_features_carbons_entity_pk_fk` FOREIGN KEY (`feature_entity_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `carbon_features_carbons_entity_pk_fk` FOREIGN KEY (`feature_entity_id`) REFERENCES carbon_carbons (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 MYSQL;
    
@@ -603,7 +603,7 @@ MYSQL;
             return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
         }
         
-        $sql = 'DELETE c FROM carbons c 
+        $sql = 'DELETE c FROM carbon_carbons c 
                 JOIN carbon_features on c.entity_pk = carbon_features.feature_entity_id';
 
         

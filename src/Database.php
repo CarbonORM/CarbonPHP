@@ -625,8 +625,7 @@ FOOT;
             $composerJson = self::getComposerConfig();
             $tableDirectory = $composerJson['autoload']['psr-4']["Tables\\"] ?? false;
             if (false === $tableDirectory) {
-                throw new PublicAlert('Failed to parse composer json for ["autoload"]["psr-4"]["Tables\\"]. You
-                    can use ');
+                throw new PublicAlert('Failed to parse composer json for ["autoload"]["psr-4"]["Tables\\"].');
             }
             $tableDirectory = CarbonPHP::$app_root . $tableDirectory;
         };
@@ -643,9 +642,11 @@ FOOT;
             } else {
                 print '<html><head><title>(Setup || Rebuild) Database</title></head><body><h1>REFRESHING SYSTEM</h1>' . PHP_EOL;
             }
+
             $restful = glob($tableDirectory . '*.php');
 
             $classNamespace = '';
+
             foreach ($restful as $filename) {
                 $fileAsString = file_get_contents($filename);
                 $matches = [];

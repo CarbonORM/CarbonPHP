@@ -311,7 +311,7 @@ class Carbon_Users extends Rest implements iRestSinglePrimaryKey
   UNIQUE KEY `carbon_users_user_username_uindex` (`user_username`),
   UNIQUE KEY `user_user_profile_uri_uindex` (`user_profile_uri`),
   UNIQUE KEY `carbon_users_user_facebook_id_uindex` (`user_facebook_id`),
-  CONSTRAINT `user_entity_entity_pk_fk` FOREIGN KEY (`user_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `user_entity_entity_pk_fk` FOREIGN KEY (`user_id`) REFERENCES carbon_carbons (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 MYSQL;
    
@@ -1172,7 +1172,7 @@ MYSQL;
             return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
         }
         
-        $sql = 'DELETE c FROM carbons c 
+        $sql = 'DELETE c FROM carbon_carbons c 
                 JOIN carbon_users on c.entity_pk = carbon_users.user_id';
 
         

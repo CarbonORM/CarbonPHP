@@ -10,6 +10,7 @@ namespace CarbonPHP\Programs;
 
 
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
 
 class CLI implements iCommand
@@ -27,8 +28,6 @@ class CLI implements iCommand
 
     public function __construct(array $configuration)
     {
-        CarbonPHP::$socket = true;
-
         [$this->CONFIG, $this->ARGV] = $configuration;
 
         $this->programList();
@@ -37,7 +36,7 @@ class CLI implements iCommand
         $argv = &$this->ARGV;
 
         $fullCommand = 'php ' . implode(' ', $argv);
-        self::colorCode("\nCLI Command Parsed >>", 'blue');
+        self::colorCode("CLI Command Parsed >>", iColorCode::BLUE);
         self::colorCode($fullCommand);
 
         array_shift($argv);
@@ -53,10 +52,8 @@ class CLI implements iCommand
         if (empty($program)) {
             self::colorCode('No command provided. Printing help.');
             $this->usage();
-            exit(1);
+            return;
         }
-
-        self::colorCode("Searching for program :: '$program'");
 
         $searchAndConstruct = static function ($array, bool $C6Internal = true) use ($program, $PHP, $argv) {
             // Validation with this loop
@@ -67,8 +64,8 @@ class CLI implements iCommand
                     continue;
                 }
 
+                // todo - custom namespaces?
                 $namespace = ($C6Internal ? "CarbonPHP\\" : '') . "Programs\\$name";
-
 
                 if (!class_exists($namespace)) {
                     self::colorCode("Failed to load the class ($namespace). Your namespace is probably incorrect.\n");
@@ -87,7 +84,7 @@ class CLI implements iCommand
                 if ($cmd instanceof iCommand) { // only because my editor is dumb
                     self::$program = $cmd;
                 } else {
-                    self::colorCode("\nA very unexpected error occurred. Your command doesn't implement iCommand?", 'red');
+                    self::colorCode("\nA very unexpected error occurred. Your command doesn't implement iCommand?", iColorCode::RED);
                     exit(1);
                 }
                 return true;
@@ -103,7 +100,7 @@ class CLI implements iCommand
             return;
         }
 
-        self::colorCode("Program not found in C6 (safely moving on) :: '$program'", 'yellow');
+        self::colorCode("Program not found in CarbonPHP. Use help to list all CarbonPHP programs. Safely moving on :: '$program'", iColorCode::YELLOW);
     }
 
     public function programList(): void
@@ -219,8 +216,7 @@ class CLI implements iCommand
 
     public function usage(): void
     {
-        // common knowledge tabs do not work well across os
-        $c6 = implode("\n                        ", $this->C6Programs);
+        # $c6 = implode("\n                        ", $this->C6Programs);
 
         if (CarbonPHP::$app_root . 'src/' !== CarbonPHP::CARBON_ROOT) {
             if (!empty($this->UserPrograms)) {
@@ -233,7 +229,7 @@ class CLI implements iCommand
 
                         $UserPrograms
 
-END,'green');
+END);
 
             } else {
 
@@ -270,11 +266,9 @@ END,'green');
                 
                 }
 
-END, 'yellow');
+END, iColorCode::YELLOW);
             }
         }
-
-        // $c6
 
         self::colorCode("
           
@@ -296,7 +290,7 @@ END, 'yellow');
           While CarbonPHP displays this in the cli, it does not exit here. Custom functions may 
           be written after the CarbonPHP invocation. The CLI execution will however, stop the 
           routing of HTTP(S) request normally invoked through the (index.php). <-- Which could really 
-          be any file run in CLI with CarbonPHP invoked.\n\n", 'blue');
+          be any file run in CLI with CarbonPHP invoked.\n\n", iColorCode::BLUE);
     }
 
     public function cleanUp(): void

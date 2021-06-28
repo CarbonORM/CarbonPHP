@@ -243,9 +243,9 @@ class Carbon_Comments extends Rest implements iRestSinglePrimaryKey
   PRIMARY KEY (`comment_id`),
   KEY `entity_comments_entity_parent_pk_fk` (`parent_id`),
   KEY `entity_comments_entity_user_pk_fk` (`user_id`),
-  CONSTRAINT `entity_comments_entity_entity_pk_fk` FOREIGN KEY (`comment_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `entity_comments_entity_parent_pk_fk` FOREIGN KEY (`parent_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `entity_comments_entity_user_pk_fk` FOREIGN KEY (`user_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `entity_comments_entity_entity_pk_fk` FOREIGN KEY (`comment_id`) REFERENCES carbon_carbons (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `entity_comments_entity_parent_pk_fk` FOREIGN KEY (`parent_id`) REFERENCES carbon_carbons (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `entity_comments_entity_user_pk_fk` FOREIGN KEY (`user_id`) REFERENCES carbon_carbons (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 MYSQL;
    
@@ -643,7 +643,7 @@ MYSQL;
             return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
         }
         
-        $sql = 'DELETE c FROM carbons c 
+        $sql = 'DELETE c FROM carbon_carbons c 
                 JOIN carbon_comments on c.entity_pk = carbon_comments.comment_id';
 
         

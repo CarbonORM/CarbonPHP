@@ -305,9 +305,9 @@ class Carbon_User_Tasks extends Rest implements iRestSinglePrimaryKey
   KEY `user_tasks_entity_entity_pk_fk` (`from_id`),
   KEY `user_tasks_entity_task_pk_fk` (`task_id`),
   KEY `carbon_user_tasks_carbons_entity_pk_fk_2` (`user_id`),
-  CONSTRAINT `carbon_user_tasks_carbons_entity_pk_fk` FOREIGN KEY (`task_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `carbon_user_tasks_carbons_entity_pk_fk_2` FOREIGN KEY (`user_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `carbon_user_tasks_carbons_entity_pk_fk_3` FOREIGN KEY (`from_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `carbon_user_tasks_carbons_entity_pk_fk` FOREIGN KEY (`task_id`) REFERENCES carbon_carbons (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `carbon_user_tasks_carbons_entity_pk_fk_2` FOREIGN KEY (`user_id`) REFERENCES carbon_carbons (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `carbon_user_tasks_carbons_entity_pk_fk_3` FOREIGN KEY (`from_id`) REFERENCES carbon_carbons (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 MYSQL;
    
@@ -777,7 +777,7 @@ MYSQL;
             return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
         }
         
-        $sql = 'DELETE c FROM carbons c 
+        $sql = 'DELETE c FROM carbon_carbons c 
                 JOIN carbon_user_tasks on c.entity_pk = carbon_user_tasks.task_id';
 
         

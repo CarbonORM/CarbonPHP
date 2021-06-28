@@ -88,7 +88,8 @@ IDENTIFIED;
             '[client]',
             "user = {$c['DATABASE']['DB_USER']}",
             "password = {$c['DATABASE']['DB_PASS']}",
-            "host = {$c['DATABASE']['DB_HOST']}"
+            "host = {$c['DATABASE']['DB_HOST']}",
+            PHP_EOL
         ];
 
         if (($c['DATABASE']['DB_PORT'] ?? false) && $c['DATABASE']['DB_PORT'] !== '') {

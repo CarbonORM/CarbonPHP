@@ -27,9 +27,18 @@ class RestBuilder implements iCommand
         cleanUp as removeFiles;
     }
 
+    // database
     private string $schema;
     private string $user;
     private string $password;
+
+
+    // rest params
+    private string $target_namespace;
+    private string $table_prefix;
+
+
+
     private bool $cleanUp = false;
 
     public function cleanUp(): void
@@ -122,15 +131,21 @@ END;
     {
         ini_set('memory_limit', '2048M');  // TODO - make this a config variable
         [$CONFIG] = $CONFIG;
-        $this->schema = $CONFIG['DATABASE']['DB_NAME'] ?? '';
-        $this->user = $CONFIG['DATABASE']['DB_USER'] ?? '';
-        $this->password = $CONFIG['DATABASE']['DB_PASS'] ?? '';
+
+        $this->schema = $CONFIG[CarbonPHP::DATABASE][CarbonPHP::DB_NAME] ?? '';
+        $this->user = $CONFIG[CarbonPHP::DATABASE][CarbonPHP::DB_USER] ?? '';
+        $this->password = $CONFIG[CarbonPHP::DATABASE][CarbonPHP::DB_PASS] ?? '';
+        $this->target_namespace = $CONFIG[CarbonPHP::REST][CarbonPHP::NAMESPACE] ?? '';
+        $this->table_prefix = $CONFIG[CarbonPHP::REST][CarbonPHP::TABLE_PREFIX] ?? '';
+
+
+
     }
 
     public function run(array $argv): void
     {
         // Check command line args, password is optional
-        self::colorCode("\tBuilding Rest Api!\n", 'blue');
+        self::colorCode("Building Rest Api!", iColorCode::BLUE);
 
         // C syntax
         $argc = count($argv);
@@ -138,7 +153,8 @@ END;
         // set default values
         $rest = [];
         $QueryWithDatabaseName = $clean = true;
-        $json = $carbon_namespace = CarbonPHP::$app_root . 'src' . DS === CarbonPHP::CARBON_ROOT;
+        $json = $carbon_namespace = CarbonPHP::isCarbonPHPDocumentation();
+
         $targetDir = CarbonPHP::$app_root . ($carbon_namespace ? 'src/tables/' : 'tables/');
         $only_these_tables = $history_table_query = $mysql = null;
         $verbose = $debug = $primary_required = $delete_dump = $skipTable = $logClasses =
@@ -149,14 +165,7 @@ END;
         $excludeTablesRegex = null;
 
         $react = $carbon_namespace ? CarbonPHP::$app_root . 'view/assets/react/src/variables/' : false;
-
-        // TODO - we shouldn't open ourselfs for sql injection, was this a bandage
-        try {
-            $subQuery = 'C6SUB' . random_int(0, 1000);
-        } catch (\Exception $e) {
-            $subQuery = 'C6SUBTX2';
-        }
-
+        
         /** @noinspection ForeachInvariantsInspection - as we need $i++ */
         for ($i = 0; $i < $argc; $i++) {
             switch ($argv[$i]) {
@@ -198,6 +207,7 @@ END;
                     if (count($target_namespace_array) === 1) {
                         switch (strtolower(readline("Does the namespace ($target_namespace) look correct? [Y,n]"))) {
                             default:
+                                self::colorCode('TTY not active. Skipping namespace double check.', iColorCode::BACKGROUND_YELLOW);
                                 break;
                             case 'no':
                             case 'n':
@@ -247,19 +257,6 @@ END;
                     break;
                 case '-trigger':
                     $history_table_query = true;
-                    $query = <<<QUERY
-CREATE TABLE IF NOT EXISTS carbon_history_logs
-(
-  uuid BINARY(16) NULL,
-  resource_type VARCHAR(10) NULL,
-  resource_uuid BINARY(16) NULL,
-  operation_type VARCHAR(16) NULL COMMENT 'POST|PUT|DELETE',
-  data BLOB NULL,
-  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
-  modified_by INT(16) NULL
-);
-QUERY;
-                    file_put_contents('triggers.sql', $query);
                     break;
                 case '-help':
                     $this->usage();
@@ -478,8 +475,6 @@ END;
                         $rest[$tableName] = [
                             'prefix' => $prefix,
                             'createTableSQL' => Rest::parseSchemaSQL($createTableSQL) . ';',
-                            'subQuery' => $subQuery,
-                            'subQueryLength' => strlen($subQuery),
                             'QueryWithDatabaseName' => $QueryWithDatabaseName,
                             'json' => $json,
                             'binary_primary' => false,

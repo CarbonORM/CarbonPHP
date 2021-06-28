@@ -13,6 +13,7 @@ use CarbonPHP\Programs\WebSocket;
 use CarbonPHP\Request;
 use CarbonPHP\Rest;
 use CarbonPHP\Tables\Carbon_Users;
+use CarbonPHP\Tables\Carbons;
 use CarbonPHP\View;
 
 class Documentation extends Application implements iConfig
@@ -56,7 +57,7 @@ class Documentation extends Application implements iConfig
      * @return mixed|void
      * @throws PublicAlert
      */
-    public function defaultRoute() : void // Sockets will not execute this
+    public function defaultRoute(): void // Sockets will not execute this
     {
         self::getUser();
 
@@ -555,38 +556,41 @@ SOCKET;
             $databasePassword = 'goldteamrules';
         }
 
-
         return [
-            'DATABASE' => [
-                'DB_HOST' => CarbonPHP::$app_local ? '127.0.0.1' : '35.224.229.250',                        // IP
-                'DB_PORT' => '3306',
-                'DB_NAME' => 'CarbonPHP',                       // Schema
-                'DB_USER' => 'root',                            // User
-                'DB_PASS' => $databasePassword,                          // Password
-                'REBUILD' => false
+            CarbonPHP::REST => [
+                CarbonPHP::NAMESPACE => Carbons::CLASS_NAMESPACE === '' ? 'carbon' : Carbons::CLASS_NAMESPACE,
+                CarbonPHP::TABLE_PREFIX => Carbons::TABLE_PREFIX
             ],
-            'SITE' => [
-                'URL' => CarbonPHP::$app_local ? 'dev.carbonphp.com' : 'carbonphp.com',    /* Evaluated and if not the accurate Redirect. Local php server okay. Remove for any domain */
-                'ROOT' => CarbonPHP::$app_root,          /* This was defined in our ../index.php */
-                'CACHE_CONTROL' => [
+            CarbonPHP::DATABASE => [
+                CarbonPHP::DB_HOST => CarbonPHP::$app_local ? '127.0.0.1' : '35.224.229.250',                        // IP
+                CarbonPHP::DB_PORT => '3306',
+                CarbonPHP::DB_NAME => 'CarbonPHP',                       // Schema
+                CarbonPHP::DB_USER => 'root',                            // User
+                CarbonPHP::DB_PASS => $databasePassword,                          // Password
+                CarbonPHP::REBUILD => false
+            ],
+            CarbonPHP::SITE => [
+                CarbonPHP::URL => CarbonPHP::$app_local ? 'dev.carbonphp.com' : 'carbonphp.com',    /* Evaluated and if not the accurate Redirect. Local php server okay. Remove for any domain */
+                CarbonPHP::ROOT => CarbonPHP::$app_root,          /* This was defined in our ../index.php */
+                CarbonPHP::CACHE_CONTROL => [
                     'ico|pdf|flv' => 'Cache-Control: max-age=29030400, public',
                     'jpg|jpeg|png|gif|swf|xml|txt|css|woff2|tff|ttf|svg' => 'Cache-Control: max-age=604800, public',
                     'html|htm|hbs|js' => 'Cache-Control: max-age=0, private, public',   // It is not recommended to add php as an extension as explicitly hitting the .php would output its contents without compilation.
-                                                                                        // This can be a valid use, but for 99% of users it will seem like a bug with apache.
+                    // This can be a valid use, but for 99% of users it will seem like a bug with apache.
                 ],
-                'CONFIG' => __FILE__,               // Send to sockets
-                'TIMEZONE' => 'America/Phoenix',    //  Current timezone
-                'TITLE' => 'CarbonPHP • C6',        // Website title
-                'VERSION' => '4.9.0',               // Add link to semantic versioning
-                'SEND_EMAIL' => 'richard@miles.systems',
-                'REPLY_EMAIL' => 'richard@miles.systems',
-                'HTTP' => CarbonPHP::$app_local
+                CarbonPHP::CONFIG => __FILE__,               // Send to sockets
+                CarbonPHP::TIMEZONE => 'America/Phoenix',    //  Current timezone
+                CarbonPHP::TITLE => 'CarbonPHP • C6',        // Website title
+                CarbonPHP::VERSION => trim(`git tag | tail -n 1`),               // Add link to semantic versioning
+                CarbonPHP::SEND_EMAIL => 'richard@miles.systems',
+                CarbonPHP::REPLY_EMAIL => 'richard@miles.systems',
+                CarbonPHP::HTTP => CarbonPHP::$app_local
             ],
-            'SESSION' => [
-                'REMOTE' => true,             // Store the session in the SQL database
-                # 'SERIALIZE' => [ ],           // These global variables will be stored between session
-                # 'PATH' => ''
-                'CALLBACK' => static function () {         // optional variable $reset which would be true if a url is passed to startApplication()
+            CarbonPHP::SESSION => [
+                CarbonPHP::REMOTE => true,             // Store the session in the SQL database
+                # CarbonPHP::SERIALIZE => [ ],           // These global variables will be stored between session
+                # CarbonPHP::PATH => ''
+                CarbonPHP::CALLBACK => static function () {         // optional variable $reset which would be true if a url is passed to startApplication()
                     // optional variable $reset which would be true if a url is passed to startApplication()
                     // This is a special case used for documentation and should not be used in prod. See repo stats.coach for example
                     /*if ($_SESSION['id'] ??= false) {
@@ -594,31 +598,31 @@ SOCKET;
                     }*/
                 },
             ],
-            'SOCKET' => [
-                'WEBSOCKETD' => false,
-                'PORT' => 8888,
-                'DEV' => true,
-                'SSL' => [
-                    'KEY' => '',
-                    'CERT' => ''
+            CarbonPHP::SOCKET => [
+                CarbonPHP::WEBSOCKETD => false,
+                CarbonPHP::PORT => 8888,
+                CarbonPHP::DEV => true,
+                CarbonPHP::SSL => [
+                    CarbonPHP::KEY => '',
+                    CarbonPHP::CERT => ''
                 ]
             ],
             // ERRORS on point
-            'ERROR' => [
-                'LOCATION' => CarbonPHP::$app_root . 'logs' . DS,
-                'LEVEL' => E_ALL | E_STRICT,  // php ini level
-                'STORE' => false,      // Database if specified and / or File 'LOCATION' in your system
-                'SHOW' => true,       // Show errors on browser
-                'FULL' => true        // Generate custom stacktrace will high detail - DO NOT set to TRUE in PRODUCTION
+            CarbonPHP::ERROR => [
+                CarbonPHP::LOCATION => CarbonPHP::$app_root . 'logs' . DS,
+                CarbonPHP::LEVEL => E_ALL | E_STRICT,  // php ini level
+                CarbonPHP::STORE => false,      // Database if specified and / or File 'LOCATION' in your system
+                CarbonPHP::SHOW => true,       // Show errors on browser
+                CarbonPHP::FULL => true        // Generate custom stacktrace will high detail - DO NOT set to TRUE in PRODUCTION
             ],
-            'VIEW' => [
+            CarbonPHP::VIEW => [
                 // TODO - THIS IS USED AS A URL AND DIRECTORY PATH. THIS IS BAD. WE NEED DS
-                'VIEW' => 'view/',  // This is where the MVC() function will map the HTML.PHP and HTML.HBS . See Carbonphp.com/mvc
-                'WRAPPER' => '20/Wrapper.hbs',     // View::content() will produce this
+                CarbonPHP::VIEW => 'view/',  // This is where the MVC() function will map the HTML.PHP and HTML.HBS . See Carbonphp.com/mvc
+                CarbonPHP::WRAPPER => '20/Wrapper.hbs',     // View::content() will produce this
             ],
-            'MINIFY' => [
-                'CSS' => [
-                    'OUT' => CarbonPHP::$app_root . 'view/assets/css/style.css',
+            CarbonPHP::MINIFY => [
+                CarbonPHP::CSS => [
+                    CarbonPHP::OUT => CarbonPHP::$app_root . 'view/assets/css/style.css',
                     CarbonPHP::$app_root . 'node_modules/admin-lte/bower_components/bootstrap/dist/css/bootstrap.min.css',
                     CarbonPHP::$app_root . 'node_modules/admin-lte/dist/css/AdminLTE.min.css',
                     CarbonPHP::$app_root . 'node_modules/admin-lte/dist/css/skins/_all-skins.min.css',
@@ -640,8 +644,8 @@ SOCKET;
                     CarbonPHP::$app_root . 'node_modules/admin-lte/bower_components/font-awesome/css/font-awesome.min.css',
                     CarbonPHP::$app_root . 'node_modules/admin-lte/bower_components/fullcalendar/dist/fullcalendar.min.css'
                 ],
-                'JS' => [
-                    'OUT' => CarbonPHP::$app_root . 'view/assets/js/javascript.js',
+                CarbonPHP::JS => [
+                    CarbonPHP::OUT => CarbonPHP::$app_root . 'view/assets/js/javascript.js',
                     CarbonPHP::$app_root . 'node_modules/admin-lte/bower_components/jquery/dist/jquery.js',  // do not use slim version
                     CarbonPHP::$app_root . 'node_modules/jquery-pjax/jquery.pjax.js',
                     CarbonPHP::$app_root . 'node_modules/mustache/mustache.js',

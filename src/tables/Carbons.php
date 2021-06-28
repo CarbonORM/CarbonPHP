@@ -245,7 +245,7 @@ class Carbons extends Rest implements iRestSinglePrimaryKey
   PRIMARY KEY (`entity_pk`),
   UNIQUE KEY `entity_entity_pk_uindex` (`entity_pk`),
   KEY `entity_entity_entity_pk_fk` (`entity_fk`),
-  CONSTRAINT `entity_entity_entity_pk_fk` FOREIGN KEY (`entity_fk`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `entity_entity_entity_pk_fk` FOREIGN KEY (`entity_fk`) REFERENCES carbon_carbons (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 MYSQL;
    
@@ -392,7 +392,7 @@ MYSQL;
             }
         } 
         
-        $sql = 'INSERT INTO carbons (entity_pk, entity_fk, entity_tag) VALUES ( UNHEX(:entity_pk), UNHEX(:entity_fk), :entity_tag)';
+        $sql = 'INSERT INTO carbon_carbons (entity_pk, entity_fk, entity_tag) VALUES ( UNHEX(:entity_pk), UNHEX(:entity_fk), :entity_tag)';
 
 
         self::jsonSQLReporting(func_get_args(), $sql);
