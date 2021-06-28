@@ -21,7 +21,7 @@ use function is_array;
 
 /**
  *
- * Class Carbon_User_Sessions
+ * Class User_Tasks
  * @package CarbonPHP\Tables
  * @note Note for convenience, a flag '-prefix' maybe passed to remove table prefixes.
  *  Use '-help' for a full list of options.
@@ -39,32 +39,36 @@ use function is_array;
  * When creating static member functions which require persistent variables, consider making them static members of that 
  *  static method.
  */
-class Carbon_User_Sessions extends Rest implements iRestSinglePrimaryKey
+class User_Tasks extends Rest implements iRestSinglePrimaryKey
 {
     use RestfulValidations;
     
-    public const CLASS_NAME = 'Carbon_User_Sessions';
+    public const CLASS_NAME = 'User_Tasks';
     public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
-    public const TABLE_NAME = 'carbon_user_sessions';
-    public const TABLE_PREFIX = '';
+    public const TABLE_NAME = 'carbon_user_tasks';
+    public const TABLE_PREFIX = 'carbon_';
     
     /**
      * COLUMNS
-     * The columns below are a 1=1 mapping to the columns found in carbon_user_sessions. 
+     * The columns below are a 1=1 mapping to the columns found in carbon_user_tasks. 
      * Changes, shuch as adding or removing a column, SHOULD be made first in the database. The RestBuilder program will 
      * capture any changes made in MySQL and update this file auto-magically. 
     **/
-    public const USER_ID = 'carbon_user_sessions.user_id'; 
+    public const TASK_ID = 'carbon_user_tasks.task_id'; 
 
-    public const USER_IP = 'carbon_user_sessions.user_ip'; 
+    public const USER_ID = 'carbon_user_tasks.user_id'; 
 
-    public const SESSION_ID = 'carbon_user_sessions.session_id'; 
+    public const FROM_ID = 'carbon_user_tasks.from_id'; 
 
-    public const SESSION_EXPIRES = 'carbon_user_sessions.session_expires'; 
+    public const TASK_NAME = 'carbon_user_tasks.task_name'; 
 
-    public const SESSION_DATA = 'carbon_user_sessions.session_data'; 
+    public const TASK_DESCRIPTION = 'carbon_user_tasks.task_description'; 
 
-    public const USER_ONLINE_STATUS = 'carbon_user_sessions.user_online_status'; 
+    public const PERCENT_COMPLETE = 'carbon_user_tasks.percent_complete'; 
+
+    public const START_DATE = 'carbon_user_tasks.start_date'; 
+
+    public const END_DATE = 'carbon_user_tasks.end_date'; 
 
     /**
      * PRIMARY
@@ -72,7 +76,7 @@ class Carbon_User_Sessions extends Rest implements iRestSinglePrimaryKey
      * given composite primary keys. The existence and amount of primary keys of the will also determine the interface 
      * aka method signatures used.
     **/
-    public const PRIMARY = 'carbon_user_sessions.session_id';
+    public const PRIMARY = 'carbon_user_tasks.task_id';
 
     /**
      * COLUMNS
@@ -82,11 +86,11 @@ class Carbon_User_Sessions extends Rest implements iRestSinglePrimaryKey
      *      $return[self::COLUMNS[self::EXAMPLE_COLUMN_ONE]]
     **/ 
     public const COLUMNS = [
-        'carbon_user_sessions.user_id' => 'user_id','carbon_user_sessions.user_ip' => 'user_ip','carbon_user_sessions.session_id' => 'session_id','carbon_user_sessions.session_expires' => 'session_expires','carbon_user_sessions.session_data' => 'session_data','carbon_user_sessions.user_online_status' => 'user_online_status',
+        'carbon_user_tasks.task_id' => 'task_id','carbon_user_tasks.user_id' => 'user_id','carbon_user_tasks.from_id' => 'from_id','carbon_user_tasks.task_name' => 'task_name','carbon_user_tasks.task_description' => 'task_description','carbon_user_tasks.percent_complete' => 'percent_complete','carbon_user_tasks.start_date' => 'start_date','carbon_user_tasks.end_date' => 'end_date',
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_user_sessions.user_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_sessions.user_ip' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_sessions.session_id' => ['varchar', 'PDO::PARAM_STR', '255'],'carbon_user_sessions.session_expires' => ['datetime', 'PDO::PARAM_STR', ''],'carbon_user_sessions.session_data' => ['text,', 'PDO::PARAM_STR', ''],'carbon_user_sessions.user_online_status' => ['tinyint', 'PDO::PARAM_INT', '1'],
+        'carbon_user_tasks.task_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_tasks.user_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_tasks.from_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_tasks.task_name' => ['varchar', 'PDO::PARAM_STR', '40'],'carbon_user_tasks.task_description' => ['varchar', 'PDO::PARAM_STR', '225'],'carbon_user_tasks.percent_complete' => ['int', 'PDO::PARAM_INT', ''],'carbon_user_tasks.start_date' => ['datetime', 'PDO::PARAM_STR', ''],'carbon_user_tasks.end_date' => ['datetime', 'PDO::PARAM_STR', ''],
     ];
      
     /**
@@ -227,11 +231,20 @@ class Carbon_User_Sessions extends Rest implements iRestSinglePrimaryKey
      */
  
     public const PHP_VALIDATION = [ 
-        [self::DISALLOW_PUBLIC_ACCESS],
-        self::GET => [ self::DISALLOW_PUBLIC_ACCESS ],    
-        self::POST => [ self::DISALLOW_PUBLIC_ACCESS ],    
-        self::PUT => [ self::DISALLOW_PUBLIC_ACCESS ],    
-        self::DELETE => [ self::DISALLOW_PUBLIC_ACCESS ],    
+        self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
+            self::PREPROCESS => [ 
+                [self::class => 'disallowPublicAccess', self::class],
+            ]
+        ],
+        self::GET => [ 
+            self::PREPROCESS => [ 
+                [self::class => 'disallowPublicAccess', self::class],
+            ]
+        ],    
+        self::POST => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
+        self::PUT => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
+        self::DELETE => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],
+        self::REST_REQUEST_FINNISH_CALLBACKS => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]]    
     ]; 
    
     /**
@@ -239,14 +252,22 @@ class Carbon_User_Sessions extends Rest implements iRestSinglePrimaryKey
      * the RestBuilder program.
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
-    CREATE TABLE `carbon_user_sessions` (
-  `user_id` binary(16) NOT NULL,
-  `user_ip` binary(16) DEFAULT NULL,
-  `session_id` varchar(255) NOT NULL,
-  `session_expires` datetime NOT NULL,
-  `session_data` text,
-  `user_online_status` tinyint(1) DEFAULT '1',
-  PRIMARY KEY (`session_id`)
+    CREATE TABLE `carbon_user_tasks` (
+  `task_id` binary(16) NOT NULL,
+  `user_id` binary(16) NOT NULL COMMENT 'This is the user the task is being assigned to',
+  `from_id` binary(16) DEFAULT NULL COMMENT 'Keeping this colum so forgen key will remove task if user deleted',
+  `task_name` varchar(40) NOT NULL,
+  `task_description` varchar(225) DEFAULT NULL,
+  `percent_complete` int DEFAULT '0',
+  `start_date` datetime DEFAULT NULL,
+  `end_date` datetime DEFAULT NULL,
+  PRIMARY KEY (`task_id`),
+  KEY `user_tasks_entity_entity_pk_fk` (`from_id`),
+  KEY `user_tasks_entity_task_pk_fk` (`task_id`),
+  KEY `carbon_user_tasks_carbons_entity_pk_fk_2` (`user_id`),
+  CONSTRAINT `carbon_user_tasks_carbons_entity_pk_fk` FOREIGN KEY (`task_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `carbon_user_tasks_carbons_entity_pk_fk_2` FOREIGN KEY (`user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `carbon_user_tasks_carbons_entity_pk_fk_3` FOREIGN KEY (`from_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 MYSQL;
    
@@ -393,13 +414,8 @@ MYSQL;
             }
         } 
         
-        $sql = 'INSERT INTO carbon_user_sessions (user_id, user_ip, session_id, session_expires, session_data, user_online_status) VALUES ( UNHEX(:user_id), UNHEX(:user_ip), :session_id, :session_expires, :session_data, :user_online_status)';
+        $sql = 'INSERT INTO carbon_user_tasks (task_id, user_id, from_id, task_name, task_description, percent_complete, start_date, end_date) VALUES ( UNHEX(:task_id), UNHEX(:user_id), UNHEX(:from_id), :task_name, :task_description, :percent_complete, :start_date, :end_date)';
 
-        $pdo = self::database();
-        
-        if (!$pdo->inTransaction()) {
-            $pdo->beginTransaction();
-        }
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -407,80 +423,97 @@ MYSQL;
 
         $stmt = self::database()->prepare($sql);
         
-        if (!array_key_exists('carbon_user_sessions.user_id', $data)) {
-            return self::signalError('Required argument "carbon_user_sessions.user_id" is missing from the request.');
+        $task_id = $id = $data['carbon_user_tasks.task_id'] ?? false;
+        if ($id === false) {
+             $task_id = $id = self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
+        } else {
+            $ref='carbon_user_tasks.task_id';
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::POST, $ref, $op, $task_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.task_id\'.');
+            }            
         }
-        $user_id = $data['carbon_user_sessions.user_id'];
-        $ref='carbon_user_sessions.user_id';
+        $stmt->bindParam(':task_id',$task_id, PDO::PARAM_STR, 16);
+        
+        if (!array_key_exists('carbon_user_tasks.user_id', $data)) {
+            return self::signalError('Required argument "carbon_user_tasks.user_id" is missing from the request.');
+        }
+        $user_id = $data['carbon_user_tasks.user_id'];
+        $ref='carbon_user_tasks.user_id';
         $op = self::EQUAL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $user_id)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.user_id\'.');
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.user_id\'.');
         }
         $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
         
-        $user_ip = $data['carbon_user_sessions.user_ip'] ?? null;
-        $ref='carbon_user_sessions.user_ip';
+        $from_id = $data['carbon_user_tasks.from_id'] ?? null;
+        $ref='carbon_user_tasks.from_id';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $user_ip, $user_ip === null)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.user_ip\'.');
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $from_id, $from_id === null)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.from_id\'.');
         }
-        $stmt->bindParam(':user_ip',$user_ip, PDO::PARAM_STR, 16);
+        $stmt->bindParam(':from_id',$from_id, PDO::PARAM_STR, 16);
         
-        if (!array_key_exists('carbon_user_sessions.session_id', $data)) {
-            return self::signalError('Required argument "carbon_user_sessions.session_id" is missing from the request.');
+        if (!array_key_exists('carbon_user_tasks.task_name', $data)) {
+            return self::signalError('Required argument "carbon_user_tasks.task_name" is missing from the request.');
         }
-        $session_id = $data['carbon_user_sessions.session_id'];
-        $ref='carbon_user_sessions.session_id';
+        $task_name = $data['carbon_user_tasks.task_name'];
+        $ref='carbon_user_tasks.task_name';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $session_id)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.session_id\'.');
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $task_name)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.task_name\'.');
         }
-        $stmt->bindParam(':session_id',$session_id, PDO::PARAM_STR, 255);
+        $stmt->bindParam(':task_name',$task_name, PDO::PARAM_STR, 40);
         
-        if (!array_key_exists('carbon_user_sessions.session_expires', $data)) {
-            return self::signalError('The column \'carbon_user_sessions.session_expires\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
-        } 
-        $ref='carbon_user_sessions.session_expires';
+        $task_description = $data['carbon_user_tasks.task_description'] ?? null;
+        $ref='carbon_user_tasks.task_description';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $data['session_expires'])) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.session_expires\'.');
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $task_description, $task_description === null)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.task_description\'.');
         }
-        $stmt->bindValue(':session_expires', $data['carbon_user_sessions.session_expires'], PDO::PARAM_STR);
-        
-        if (!array_key_exists('carbon_user_sessions.session_data', $data)) {
-            return self::signalError('The column \'carbon_user_sessions.session_data\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
-        } 
-        $ref='carbon_user_sessions.session_data';
+        $stmt->bindParam(':task_description',$task_description, PDO::PARAM_STR, 225);
+                 
+        $percent_complete = $data['carbon_user_tasks.percent_complete'] ?? '0';
+        $ref='carbon_user_tasks.percent_complete';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $data['session_data'])) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.session_data\'.');
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $percent_complete, $percent_complete === '0')) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.percent_complete\'.');
         }
-        $stmt->bindValue(':session_data', $data['carbon_user_sessions.session_data'], PDO::PARAM_STR);
-        
-        $user_online_status = $data['carbon_user_sessions.user_online_status'] ?? '1';
-        $ref='carbon_user_sessions.user_online_status';
+        $stmt->bindValue(':percent_complete', $percent_complete, PDO::PARAM_INT);
+                 
+        $start_date = $data['carbon_user_tasks.start_date'] ?? null;
+        $ref='carbon_user_tasks.start_date';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $user_online_status, $user_online_status === '1')) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.user_online_status\'.');
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $start_date, $start_date === null)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.start_date\'.');
         }
-        $stmt->bindParam(':user_online_status',$user_online_status, PDO::PARAM_INT, 1);
+        $stmt->bindValue(':start_date', $start_date, PDO::PARAM_STR);
+                 
+        $end_date = $data['carbon_user_tasks.end_date'] ?? null;
+        $ref='carbon_user_tasks.end_date';
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $end_date, $end_date === null)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
+        }
+        $stmt->bindValue(':end_date', $end_date, PDO::PARAM_STR);
         
         if (!$stmt->execute()) {
             self::completeRest();
             return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }
         
-        self::prepostprocessRestRequest();
-        
+        self::prepostprocessRestRequest($id);
+         
         if (self::$commit && !Database::commit()) {
-            return self::signalError('Failed to store commit transaction on table carbon_user_sessions');
-        }
-        
-        self::postprocessRestRequest();
-        
+           return self::signalError('Failed to store commit transaction on table carbon_user_tasks');
+        } 
+         
+        self::postprocessRestRequest($id); 
+         
         self::completeRest();
         
-        return true;  
+        return $id; 
+        
     }
     
     /**
@@ -532,32 +565,38 @@ MYSQL;
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.\'.');
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.\'.');
             }
         }
         unset($value);
 
-        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_user_sessions SET '; // intellij cant handle this otherwise
+        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_user_tasks SET '; // intellij cant handle this otherwise
 
         $set = '';
 
-        if (array_key_exists('carbon_user_sessions.user_id', $argv)) {
+        if (array_key_exists('carbon_user_tasks.task_id', $argv)) {
+            $set .= 'task_id=UNHEX(:task_id),';
+        }
+        if (array_key_exists('carbon_user_tasks.user_id', $argv)) {
             $set .= 'user_id=UNHEX(:user_id),';
         }
-        if (array_key_exists('carbon_user_sessions.user_ip', $argv)) {
-            $set .= 'user_ip=UNHEX(:user_ip),';
+        if (array_key_exists('carbon_user_tasks.from_id', $argv)) {
+            $set .= 'from_id=UNHEX(:from_id),';
         }
-        if (array_key_exists('carbon_user_sessions.session_id', $argv)) {
-            $set .= 'session_id=:session_id,';
+        if (array_key_exists('carbon_user_tasks.task_name', $argv)) {
+            $set .= 'task_name=:task_name,';
         }
-        if (array_key_exists('carbon_user_sessions.session_expires', $argv)) {
-            $set .= 'session_expires=:session_expires,';
+        if (array_key_exists('carbon_user_tasks.task_description', $argv)) {
+            $set .= 'task_description=:task_description,';
         }
-        if (array_key_exists('carbon_user_sessions.session_data', $argv)) {
-            $set .= 'session_data=:session_data,';
+        if (array_key_exists('carbon_user_tasks.percent_complete', $argv)) {
+            $set .= 'percent_complete=:percent_complete,';
         }
-        if (array_key_exists('carbon_user_sessions.user_online_status', $argv)) {
-            $set .= 'user_online_status=:user_online_status,';
+        if (array_key_exists('carbon_user_tasks.start_date', $argv)) {
+            $set .= 'start_date=:start_date,';
+        }
+        if (array_key_exists('carbon_user_tasks.end_date', $argv)) {
+            $set .= 'end_date=:end_date,';
         }
         
         $sql .= substr($set, 0, -1);
@@ -578,47 +617,59 @@ MYSQL;
 
         $stmt = $pdo->prepare($sql);
 
-        if (array_key_exists('carbon_user_sessions.user_id', $argv)) { 
-            $user_id = $argv['carbon_user_sessions.user_id'];
-            $ref = 'carbon_user_sessions.user_id';
+        if (array_key_exists('carbon_user_tasks.task_id', $argv)) { 
+            $task_id = $argv['carbon_user_tasks.task_id'];
+            $ref = 'carbon_user_tasks.task_id';
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $task_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'task_id\'.');
+            }
+            $stmt->bindParam(':task_id',$task_id, PDO::PARAM_STR, 16);
+        }
+        if (array_key_exists('carbon_user_tasks.user_id', $argv)) { 
+            $user_id = $argv['carbon_user_tasks.user_id'];
+            $ref = 'carbon_user_tasks.user_id';
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_id)) {
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_id\'.');
             }
             $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
         }
-        if (array_key_exists('carbon_user_sessions.user_ip', $argv)) { 
-            $user_ip = $argv['carbon_user_sessions.user_ip'];
-            $ref = 'carbon_user_sessions.user_ip';
+        if (array_key_exists('carbon_user_tasks.from_id', $argv)) { 
+            $from_id = $argv['carbon_user_tasks.from_id'];
+            $ref = 'carbon_user_tasks.from_id';
             $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_ip)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'user_ip\'.');
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $from_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'from_id\'.');
             }
-            $stmt->bindParam(':user_ip',$user_ip, PDO::PARAM_STR, 16);
+            $stmt->bindParam(':from_id',$from_id, PDO::PARAM_STR, 16);
         }
-        if (array_key_exists('carbon_user_sessions.session_id', $argv)) { 
-            $session_id = $argv['carbon_user_sessions.session_id'];
-            $ref = 'carbon_user_sessions.session_id';
+        if (array_key_exists('carbon_user_tasks.task_name', $argv)) { 
+            $task_name = $argv['carbon_user_tasks.task_name'];
+            $ref = 'carbon_user_tasks.task_name';
             $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $session_id)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'session_id\'.');
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $task_name)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'task_name\'.');
             }
-            $stmt->bindParam(':session_id',$session_id, PDO::PARAM_STR, 255);
+            $stmt->bindParam(':task_name',$task_name, PDO::PARAM_STR, 40);
         }
-        if (array_key_exists('carbon_user_sessions.session_expires', $argv)) { 
-            $stmt->bindValue(':session_expires',$argv['carbon_user_sessions.session_expires'], PDO::PARAM_STR);
-        }
-        if (array_key_exists('carbon_user_sessions.session_data', $argv)) { 
-            $stmt->bindValue(':session_data',$argv['carbon_user_sessions.session_data'], PDO::PARAM_STR);
-        }
-        if (array_key_exists('carbon_user_sessions.user_online_status', $argv)) { 
-            $user_online_status = $argv['carbon_user_sessions.user_online_status'];
-            $ref = 'carbon_user_sessions.user_online_status';
+        if (array_key_exists('carbon_user_tasks.task_description', $argv)) { 
+            $task_description = $argv['carbon_user_tasks.task_description'];
+            $ref = 'carbon_user_tasks.task_description';
             $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_online_status)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'user_online_status\'.');
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $task_description)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'task_description\'.');
             }
-            $stmt->bindParam(':user_online_status',$user_online_status, PDO::PARAM_INT, 1);
+            $stmt->bindParam(':task_description',$task_description, PDO::PARAM_STR, 225);
+        }
+        if (array_key_exists('carbon_user_tasks.percent_complete', $argv)) { 
+            $stmt->bindValue(':percent_complete',$argv['carbon_user_tasks.percent_complete'], PDO::PARAM_INT);
+        }
+        if (array_key_exists('carbon_user_tasks.start_date', $argv)) { 
+            $stmt->bindValue(':start_date',$argv['carbon_user_tasks.start_date'], PDO::PARAM_STR);
+        }
+        if (array_key_exists('carbon_user_tasks.end_date', $argv)) { 
+            $stmt->bindValue(':end_date',$argv['carbon_user_tasks.end_date'], PDO::PARAM_STR);
         }
         
         self::bind($stmt);
@@ -634,7 +685,7 @@ MYSQL;
         
         $argv = array_combine(
             array_map(
-                static fn($k) => str_replace('carbon_user_sessions.', '', $k),
+                static fn($k) => str_replace('carbon_user_tasks.', '', $k),
                 array_keys($argv)
             ),
             array_values($argv)
@@ -645,7 +696,7 @@ MYSQL;
         self::prepostprocessRestRequest($returnUpdated);
         
         if (self::$commit && !Database::commit()) {
-            return self::signalError('Failed to store commit transaction on table carbon_user_sessions');
+            return self::signalError('Failed to store commit transaction on table carbon_user_tasks');
         }
         
         self::postprocessRestRequest($returnUpdated);
@@ -672,7 +723,7 @@ MYSQL;
         
         $emptyPrimary = null === $primary || '' === $primary;
         
-        $sql =  /** @lang MySQLFragment */ 'DELETE FROM carbon_user_sessions ';
+        $sql =  /** @lang MySQLFragment */ 'DELETE FROM carbon_user_tasks ';
         
         if (false === self::$allowFullTableDeletes && $emptyPrimary && empty($argv)) {
             return self::signalError('When deleting from restful tables a primary key or where query must be provided. This can be disabled by setting `self::$allowFullTableUpdates = true;` during the PREPROCESS events, or just directly before this request.');
@@ -716,7 +767,7 @@ MYSQL;
         self::prepostprocessRestRequest($remove);
         
         if (self::$commit && !Database::commit()) {
-           return self::signalError('Failed to store commit transaction on table carbon_user_sessions');
+           return self::signalError('Failed to store commit transaction on table carbon_user_tasks');
         }
         
         self::postprocessRestRequest($remove);

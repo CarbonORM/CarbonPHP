@@ -159,8 +159,8 @@ END;
         $only_these_tables = $history_table_query = $mysql = null;
         $verbose = $debug = $primary_required = $delete_dump = $skipTable = $logClasses =
         $javascriptBindings = $dumpData = false;
-        $target_namespace = 'Tables\\';
-        $prefix = '';
+        $target_namespace = $this->target_namespace ??= 'Tables\\';
+        $prefix = $this->table_prefix ??= '';
         $exclude_these_tables = [];
         $excludeTablesRegex = null;
 

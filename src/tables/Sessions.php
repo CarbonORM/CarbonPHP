@@ -45,26 +45,26 @@ class Sessions extends Rest implements iRestSinglePrimaryKey
     
     public const CLASS_NAME = 'Sessions';
     public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
-    public const TABLE_NAME = 'sessions';
-    public const TABLE_PREFIX = '';
+    public const TABLE_NAME = 'carbon_sessions';
+    public const TABLE_PREFIX = 'carbon_';
     
     /**
      * COLUMNS
-     * The columns below are a 1=1 mapping to the columns found in sessions. 
+     * The columns below are a 1=1 mapping to the columns found in carbon_sessions. 
      * Changes, shuch as adding or removing a column, SHOULD be made first in the database. The RestBuilder program will 
      * capture any changes made in MySQL and update this file auto-magically. 
     **/
-    public const USER_ID = 'sessions.user_id'; 
+    public const USER_ID = 'carbon_sessions.user_id'; 
 
-    public const USER_IP = 'sessions.user_ip'; 
+    public const USER_IP = 'carbon_sessions.user_ip'; 
 
-    public const SESSION_ID = 'sessions.session_id'; 
+    public const SESSION_ID = 'carbon_sessions.session_id'; 
 
-    public const SESSION_EXPIRES = 'sessions.session_expires'; 
+    public const SESSION_EXPIRES = 'carbon_sessions.session_expires'; 
 
-    public const SESSION_DATA = 'sessions.session_data'; 
+    public const SESSION_DATA = 'carbon_sessions.session_data'; 
 
-    public const USER_ONLINE_STATUS = 'sessions.user_online_status'; 
+    public const USER_ONLINE_STATUS = 'carbon_sessions.user_online_status'; 
 
     /**
      * PRIMARY
@@ -72,7 +72,7 @@ class Sessions extends Rest implements iRestSinglePrimaryKey
      * given composite primary keys. The existence and amount of primary keys of the will also determine the interface 
      * aka method signatures used.
     **/
-    public const PRIMARY = 'sessions.session_id';
+    public const PRIMARY = 'carbon_sessions.session_id';
 
     /**
      * COLUMNS
@@ -82,11 +82,11 @@ class Sessions extends Rest implements iRestSinglePrimaryKey
      *      $return[self::COLUMNS[self::EXAMPLE_COLUMN_ONE]]
     **/ 
     public const COLUMNS = [
-        'sessions.user_id' => 'user_id','sessions.user_ip' => 'user_ip','sessions.session_id' => 'session_id','sessions.session_expires' => 'session_expires','sessions.session_data' => 'session_data','sessions.user_online_status' => 'user_online_status',
+        'carbon_sessions.user_id' => 'user_id','carbon_sessions.user_ip' => 'user_ip','carbon_sessions.session_id' => 'session_id','carbon_sessions.session_expires' => 'session_expires','carbon_sessions.session_data' => 'session_data','carbon_sessions.user_online_status' => 'user_online_status',
     ];
 
     public const PDO_VALIDATION = [
-        'sessions.user_id' => ['binary', 'PDO::PARAM_STR', '16'],'sessions.user_ip' => ['varchar', 'PDO::PARAM_STR', '20'],'sessions.session_id' => ['varchar', 'PDO::PARAM_STR', '255'],'sessions.session_expires' => ['datetime', 'PDO::PARAM_STR', ''],'sessions.session_data' => ['text,', 'PDO::PARAM_STR', ''],'sessions.user_online_status' => ['tinyint', 'PDO::PARAM_INT', '1'],
+        'carbon_sessions.user_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_sessions.user_ip' => ['varchar', 'PDO::PARAM_STR', '20'],'carbon_sessions.session_id' => ['varchar', 'PDO::PARAM_STR', '255'],'carbon_sessions.session_expires' => ['datetime', 'PDO::PARAM_STR', ''],'carbon_sessions.session_data' => ['text,', 'PDO::PARAM_STR', ''],'carbon_sessions.user_online_status' => ['tinyint', 'PDO::PARAM_INT', '1'],
     ];
      
     /**
@@ -244,7 +244,7 @@ class Sessions extends Rest implements iRestSinglePrimaryKey
      * the RestBuilder program.
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
-    CREATE TABLE `sessions` (
+    CREATE TABLE `carbon_sessions` (
   `user_id` binary(16) NOT NULL,
   `user_ip` varchar(20) DEFAULT NULL,
   `session_id` varchar(255) NOT NULL,
@@ -417,61 +417,61 @@ MYSQL;
 
         $stmt = self::database()->prepare($sql);
         
-        if (!array_key_exists('sessions.user_id', $data)) {
-            return self::signalError('Required argument "sessions.user_id" is missing from the request.');
+        if (!array_key_exists('carbon_sessions.user_id', $data)) {
+            return self::signalError('Required argument "carbon_sessions.user_id" is missing from the request.');
         }
-        $user_id = $data['sessions.user_id'];
-        $ref='sessions.user_id';
+        $user_id = $data['carbon_sessions.user_id'];
+        $ref='carbon_sessions.user_id';
         $op = self::EQUAL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $user_id)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'sessions.user_id\'.');
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_sessions.user_id\'.');
         }
         $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
         
-        $user_ip = $data['sessions.user_ip'] ?? null;
-        $ref='sessions.user_ip';
+        $user_ip = $data['carbon_sessions.user_ip'] ?? null;
+        $ref='carbon_sessions.user_ip';
         $op = self::EQUAL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $user_ip, $user_ip === null)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'sessions.user_ip\'.');
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_sessions.user_ip\'.');
         }
         $stmt->bindParam(':user_ip',$user_ip, PDO::PARAM_STR, 20);
         
-        if (!array_key_exists('sessions.session_id', $data)) {
-            return self::signalError('Required argument "sessions.session_id" is missing from the request.');
+        if (!array_key_exists('carbon_sessions.session_id', $data)) {
+            return self::signalError('Required argument "carbon_sessions.session_id" is missing from the request.');
         }
-        $session_id = $data['sessions.session_id'];
-        $ref='sessions.session_id';
+        $session_id = $data['carbon_sessions.session_id'];
+        $ref='carbon_sessions.session_id';
         $op = self::EQUAL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $session_id)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'sessions.session_id\'.');
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_sessions.session_id\'.');
         }
         $stmt->bindParam(':session_id',$session_id, PDO::PARAM_STR, 255);
         
-        if (!array_key_exists('sessions.session_expires', $data)) {
-            return self::signalError('The column \'sessions.session_expires\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
+        if (!array_key_exists('carbon_sessions.session_expires', $data)) {
+            return self::signalError('The column \'carbon_sessions.session_expires\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
         } 
-        $ref='sessions.session_expires';
+        $ref='carbon_sessions.session_expires';
         $op = self::EQUAL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $data['session_expires'])) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'sessions.session_expires\'.');
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_sessions.session_expires\'.');
         }
-        $stmt->bindValue(':session_expires', $data['sessions.session_expires'], PDO::PARAM_STR);
+        $stmt->bindValue(':session_expires', $data['carbon_sessions.session_expires'], PDO::PARAM_STR);
         
-        if (!array_key_exists('sessions.session_data', $data)) {
-            return self::signalError('The column \'sessions.session_data\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
+        if (!array_key_exists('carbon_sessions.session_data', $data)) {
+            return self::signalError('The column \'carbon_sessions.session_data\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
         } 
-        $ref='sessions.session_data';
+        $ref='carbon_sessions.session_data';
         $op = self::EQUAL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $data['session_data'])) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'sessions.session_data\'.');
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_sessions.session_data\'.');
         }
-        $stmt->bindValue(':session_data', $data['sessions.session_data'], PDO::PARAM_STR);
+        $stmt->bindValue(':session_data', $data['carbon_sessions.session_data'], PDO::PARAM_STR);
         
-        $user_online_status = $data['sessions.user_online_status'] ?? '1';
-        $ref='sessions.user_online_status';
+        $user_online_status = $data['carbon_sessions.user_online_status'] ?? '1';
+        $ref='carbon_sessions.user_online_status';
         $op = self::EQUAL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $user_online_status, $user_online_status === '1')) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'sessions.user_online_status\'.');
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_sessions.user_online_status\'.');
         }
         $stmt->bindParam(':user_online_status',$user_online_status, PDO::PARAM_INT, 1);
         
@@ -483,7 +483,7 @@ MYSQL;
         self::prepostprocessRestRequest();
         
         if (self::$commit && !Database::commit()) {
-            return self::signalError('Failed to store commit transaction on table sessions');
+            return self::signalError('Failed to store commit transaction on table carbon_sessions');
         }
         
         self::postprocessRestRequest();
@@ -542,31 +542,31 @@ MYSQL;
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'sessions.\'.');
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_sessions.\'.');
             }
         }
         unset($value);
 
-        $sql = /** @lang MySQLFragment */ 'UPDATE sessions SET '; // intellij cant handle this otherwise
+        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_sessions SET '; // intellij cant handle this otherwise
 
         $set = '';
 
-        if (array_key_exists('sessions.user_id', $argv)) {
+        if (array_key_exists('carbon_sessions.user_id', $argv)) {
             $set .= 'user_id=UNHEX(:user_id),';
         }
-        if (array_key_exists('sessions.user_ip', $argv)) {
+        if (array_key_exists('carbon_sessions.user_ip', $argv)) {
             $set .= 'user_ip=:user_ip,';
         }
-        if (array_key_exists('sessions.session_id', $argv)) {
+        if (array_key_exists('carbon_sessions.session_id', $argv)) {
             $set .= 'session_id=:session_id,';
         }
-        if (array_key_exists('sessions.session_expires', $argv)) {
+        if (array_key_exists('carbon_sessions.session_expires', $argv)) {
             $set .= 'session_expires=:session_expires,';
         }
-        if (array_key_exists('sessions.session_data', $argv)) {
+        if (array_key_exists('carbon_sessions.session_data', $argv)) {
             $set .= 'session_data=:session_data,';
         }
-        if (array_key_exists('sessions.user_online_status', $argv)) {
+        if (array_key_exists('carbon_sessions.user_online_status', $argv)) {
             $set .= 'user_online_status=:user_online_status,';
         }
         
@@ -588,42 +588,42 @@ MYSQL;
 
         $stmt = $pdo->prepare($sql);
 
-        if (array_key_exists('sessions.user_id', $argv)) { 
-            $user_id = $argv['sessions.user_id'];
-            $ref = 'sessions.user_id';
+        if (array_key_exists('carbon_sessions.user_id', $argv)) { 
+            $user_id = $argv['carbon_sessions.user_id'];
+            $ref = 'carbon_sessions.user_id';
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_id)) {
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_id\'.');
             }
             $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
         }
-        if (array_key_exists('sessions.user_ip', $argv)) { 
-            $user_ip = $argv['sessions.user_ip'];
-            $ref = 'sessions.user_ip';
+        if (array_key_exists('carbon_sessions.user_ip', $argv)) { 
+            $user_ip = $argv['carbon_sessions.user_ip'];
+            $ref = 'carbon_sessions.user_ip';
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_ip)) {
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_ip\'.');
             }
             $stmt->bindParam(':user_ip',$user_ip, PDO::PARAM_STR, 20);
         }
-        if (array_key_exists('sessions.session_id', $argv)) { 
-            $session_id = $argv['sessions.session_id'];
-            $ref = 'sessions.session_id';
+        if (array_key_exists('carbon_sessions.session_id', $argv)) { 
+            $session_id = $argv['carbon_sessions.session_id'];
+            $ref = 'carbon_sessions.session_id';
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $session_id)) {
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'session_id\'.');
             }
             $stmt->bindParam(':session_id',$session_id, PDO::PARAM_STR, 255);
         }
-        if (array_key_exists('sessions.session_expires', $argv)) { 
-            $stmt->bindValue(':session_expires',$argv['sessions.session_expires'], PDO::PARAM_STR);
+        if (array_key_exists('carbon_sessions.session_expires', $argv)) { 
+            $stmt->bindValue(':session_expires',$argv['carbon_sessions.session_expires'], PDO::PARAM_STR);
         }
-        if (array_key_exists('sessions.session_data', $argv)) { 
-            $stmt->bindValue(':session_data',$argv['sessions.session_data'], PDO::PARAM_STR);
+        if (array_key_exists('carbon_sessions.session_data', $argv)) { 
+            $stmt->bindValue(':session_data',$argv['carbon_sessions.session_data'], PDO::PARAM_STR);
         }
-        if (array_key_exists('sessions.user_online_status', $argv)) { 
-            $user_online_status = $argv['sessions.user_online_status'];
-            $ref = 'sessions.user_online_status';
+        if (array_key_exists('carbon_sessions.user_online_status', $argv)) { 
+            $user_online_status = $argv['carbon_sessions.user_online_status'];
+            $ref = 'carbon_sessions.user_online_status';
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_online_status)) {
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_online_status\'.');
@@ -644,7 +644,7 @@ MYSQL;
         
         $argv = array_combine(
             array_map(
-                static fn($k) => str_replace('sessions.', '', $k),
+                static fn($k) => str_replace('carbon_sessions.', '', $k),
                 array_keys($argv)
             ),
             array_values($argv)
@@ -655,7 +655,7 @@ MYSQL;
         self::prepostprocessRestRequest($returnUpdated);
         
         if (self::$commit && !Database::commit()) {
-            return self::signalError('Failed to store commit transaction on table sessions');
+            return self::signalError('Failed to store commit transaction on table carbon_sessions');
         }
         
         self::postprocessRestRequest($returnUpdated);
@@ -682,7 +682,7 @@ MYSQL;
         
         $emptyPrimary = null === $primary || '' === $primary;
         
-        $sql =  /** @lang MySQLFragment */ 'DELETE FROM sessions ';
+        $sql =  /** @lang MySQLFragment */ 'DELETE FROM carbon_sessions ';
         
         if (false === self::$allowFullTableDeletes && $emptyPrimary && empty($argv)) {
             return self::signalError('When deleting from restful tables a primary key or where query must be provided. This can be disabled by setting `self::$allowFullTableUpdates = true;` during the PREPROCESS events, or just directly before this request.');
@@ -726,7 +726,7 @@ MYSQL;
         self::prepostprocessRestRequest($remove);
         
         if (self::$commit && !Database::commit()) {
-           return self::signalError('Failed to store commit transaction on table sessions');
+           return self::signalError('Failed to store commit transaction on table carbon_sessions');
         }
         
         self::postprocessRestRequest($remove);

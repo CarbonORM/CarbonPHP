@@ -17,12 +17,11 @@ use function func_get_args;
 use function is_array;
 
 // Custom User Imports
-use CarbonPHP\CarbonPHP;
-use Tests\Feature\RestTest;
+
 
 /**
  *
- * Class Carbon_User_Tasks
+ * Class User_Followers
  * @package CarbonPHP\Tables
  * @note Note for convenience, a flag '-prefix' maybe passed to remove table prefixes.
  *  Use '-help' for a full list of options.
@@ -40,36 +39,26 @@ use Tests\Feature\RestTest;
  * When creating static member functions which require persistent variables, consider making them static members of that 
  *  static method.
  */
-class Carbon_User_Tasks extends Rest implements iRestSinglePrimaryKey
+class User_Followers extends Rest implements iRestSinglePrimaryKey
 {
     use RestfulValidations;
     
-    public const CLASS_NAME = 'Carbon_User_Tasks';
+    public const CLASS_NAME = 'User_Followers';
     public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
-    public const TABLE_NAME = 'carbon_user_tasks';
-    public const TABLE_PREFIX = '';
+    public const TABLE_NAME = 'carbon_user_followers';
+    public const TABLE_PREFIX = 'carbon_';
     
     /**
      * COLUMNS
-     * The columns below are a 1=1 mapping to the columns found in carbon_user_tasks. 
+     * The columns below are a 1=1 mapping to the columns found in carbon_user_followers. 
      * Changes, shuch as adding or removing a column, SHOULD be made first in the database. The RestBuilder program will 
      * capture any changes made in MySQL and update this file auto-magically. 
     **/
-    public const TASK_ID = 'carbon_user_tasks.task_id'; 
+    public const FOLLOWER_TABLE_ID = 'carbon_user_followers.follower_table_id'; 
 
-    public const USER_ID = 'carbon_user_tasks.user_id'; 
+    public const FOLLOWS_USER_ID = 'carbon_user_followers.follows_user_id'; 
 
-    public const FROM_ID = 'carbon_user_tasks.from_id'; 
-
-    public const TASK_NAME = 'carbon_user_tasks.task_name'; 
-
-    public const TASK_DESCRIPTION = 'carbon_user_tasks.task_description'; 
-
-    public const PERCENT_COMPLETE = 'carbon_user_tasks.percent_complete'; 
-
-    public const START_DATE = 'carbon_user_tasks.start_date'; 
-
-    public const END_DATE = 'carbon_user_tasks.end_date'; 
+    public const USER_ID = 'carbon_user_followers.user_id'; 
 
     /**
      * PRIMARY
@@ -77,7 +66,7 @@ class Carbon_User_Tasks extends Rest implements iRestSinglePrimaryKey
      * given composite primary keys. The existence and amount of primary keys of the will also determine the interface 
      * aka method signatures used.
     **/
-    public const PRIMARY = 'carbon_user_tasks.task_id';
+    public const PRIMARY = 'carbon_user_followers.follower_table_id';
 
     /**
      * COLUMNS
@@ -87,11 +76,11 @@ class Carbon_User_Tasks extends Rest implements iRestSinglePrimaryKey
      *      $return[self::COLUMNS[self::EXAMPLE_COLUMN_ONE]]
     **/ 
     public const COLUMNS = [
-        'carbon_user_tasks.task_id' => 'task_id','carbon_user_tasks.user_id' => 'user_id','carbon_user_tasks.from_id' => 'from_id','carbon_user_tasks.task_name' => 'task_name','carbon_user_tasks.task_description' => 'task_description','carbon_user_tasks.percent_complete' => 'percent_complete','carbon_user_tasks.start_date' => 'start_date','carbon_user_tasks.end_date' => 'end_date',
+        'carbon_user_followers.follower_table_id' => 'follower_table_id','carbon_user_followers.follows_user_id' => 'follows_user_id','carbon_user_followers.user_id' => 'user_id',
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_user_tasks.task_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_tasks.user_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_tasks.from_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_tasks.task_name' => ['varchar', 'PDO::PARAM_STR', '40'],'carbon_user_tasks.task_description' => ['varchar', 'PDO::PARAM_STR', '225'],'carbon_user_tasks.percent_complete' => ['int', 'PDO::PARAM_INT', ''],'carbon_user_tasks.start_date' => ['datetime', 'PDO::PARAM_STR', ''],'carbon_user_tasks.end_date' => ['datetime', 'PDO::PARAM_STR', ''],
+        'carbon_user_followers.follower_table_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_followers.follows_user_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_followers.user_id' => ['binary', 'PDO::PARAM_STR', '16'],
     ];
      
     /**
@@ -231,60 +220,21 @@ class Carbon_User_Tasks extends Rest implements iRestSinglePrimaryKey
      *  @version ^9
      */
  
-    public const PHP_VALIDATION = [
-        self::PREPROCESS => [
-            self::PREPROCESS => [
+    public const PHP_VALIDATION = [ 
+        self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
+            self::PREPROCESS => [ 
                 [self::class => 'disallowPublicAccess', self::class],
-                [self::class => 'restTesting', self::PREPROCESS, self::class],
             ]
         ],
-        self::GET => [
-            self::PREPROCESS => [
-                self::DISALLOW_PUBLIC_ACCESS
-            ],
-            self::TASK_ID => [
-                [self::class => 'restTesting', self::GET, self::PREPROCESS],
+        self::GET => [ 
+            self::PREPROCESS => [ 
+                [self::class => 'disallowPublicAccess', self::class],
             ]
-        ],
-        self::POST => [
-            self::PREPROCESS => [
-                self::DISALLOW_PUBLIC_ACCESS,
-                [self::class => 'restTesting', self::POST, self::PREPROCESS],
-            ],
-            self::PERCENT_COMPLETE => [
-                [self::class => 'restTesting', self::PERCENT_COMPLETE, 'CustomArgument', self::POST],
-            ],
-            self::TASK_DESCRIPTION => [
-                [self::class => 'restTesting']
-            ]
-        ],
-        self::PUT => [
-            self::PREPROCESS => [
-                self::DISALLOW_PUBLIC_ACCESS,
-                [self::class => 'restTesting']
-            ],
-            self::TASK_NAME => [
-                [self::class => 'restTesting', self::PUT]
-            ]
-        ],
-        self::DELETE => [
-            self::PREPROCESS => [
-                self::DISALLOW_PUBLIC_ACCESS,
-                [self::class => 'restTesting', self::DELETE]
-            ]
-        ],
-        self::FINISH => [
-            self::PREPROCESS => [
-                self::DISALLOW_PUBLIC_ACCESS,
-                [self::class => 'restTesting', self::FINISH, self::PREPROCESS]
-            ],
-            self::END_DATE => [
-                [self::class => 'restTesting', self::FINISH, 'Post Process When EndDate Requested.']
-            ],
-            self::FINISH => [
-                [self::class => 'restTesting', self::FINISH]
-            ]
-        ]
+        ],    
+        self::POST => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
+        self::PUT => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
+        self::DELETE => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],
+        self::REST_REQUEST_FINNISH_CALLBACKS => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]]    
     ]; 
    
     /**
@@ -292,33 +242,21 @@ class Carbon_User_Tasks extends Rest implements iRestSinglePrimaryKey
      * the RestBuilder program.
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
-    CREATE TABLE `carbon_user_tasks` (
-  `task_id` binary(16) NOT NULL,
-  `user_id` binary(16) NOT NULL COMMENT 'This is the user the task is being assigned to',
-  `from_id` binary(16) DEFAULT NULL COMMENT 'Keeping this colum so forgen key will remove task if user deleted',
-  `task_name` varchar(40) NOT NULL,
-  `task_description` varchar(225) DEFAULT NULL,
-  `percent_complete` int DEFAULT '0',
-  `start_date` datetime DEFAULT NULL,
-  `end_date` datetime DEFAULT NULL,
-  PRIMARY KEY (`task_id`),
-  KEY `user_tasks_entity_entity_pk_fk` (`from_id`),
-  KEY `user_tasks_entity_task_pk_fk` (`task_id`),
-  KEY `carbon_user_tasks_carbons_entity_pk_fk_2` (`user_id`),
-  CONSTRAINT `carbon_user_tasks_carbons_entity_pk_fk` FOREIGN KEY (`task_id`) REFERENCES carbon_carbons (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `carbon_user_tasks_carbons_entity_pk_fk_2` FOREIGN KEY (`user_id`) REFERENCES carbon_carbons (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `carbon_user_tasks_carbons_entity_pk_fk_3` FOREIGN KEY (`from_id`) REFERENCES carbon_carbons (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+    CREATE TABLE `carbon_user_followers` (
+  `follower_table_id` binary(16) NOT NULL,
+  `follows_user_id` binary(16) NOT NULL,
+  `user_id` binary(16) NOT NULL,
+  PRIMARY KEY (`follower_table_id`),
+  KEY `followers_entity_entity_pk_fk` (`follows_user_id`),
+  KEY `followers_entity_entity_followers_pk_fk` (`user_id`),
+  CONSTRAINT `carbon_user_followers_carbons_entity_pk_fk` FOREIGN KEY (`follower_table_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `followers_entity_entity_follows_pk_fk` FOREIGN KEY (`follows_user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `followers_entity_followers_pk_fk` FOREIGN KEY (`user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 MYSQL;
    
    
-    public static function restTesting(...$argv)
-    {
-        if (CarbonPHP::$test) {
-            /** @noinspection PhpUndefinedClassInspection - todo - remove example php files in react */
-            RestTest::$restChallenge[] = $argv;
-        }
-    }
+
     
     /**
      * @deprecated Use the class constant CREATE_TABLE_SQL directly
@@ -460,7 +398,7 @@ MYSQL;
             }
         } 
         
-        $sql = 'INSERT INTO carbon_user_tasks (task_id, user_id, from_id, task_name, task_description, percent_complete, start_date, end_date) VALUES ( UNHEX(:task_id), UNHEX(:user_id), UNHEX(:from_id), :task_name, :task_description, :percent_complete, :start_date, :end_date)';
+        $sql = 'INSERT INTO carbon_user_followers (follower_table_id, follows_user_id, user_id) VALUES ( UNHEX(:follower_table_id), UNHEX(:follows_user_id), UNHEX(:user_id))';
 
 
         self::jsonSQLReporting(func_get_args(), $sql);
@@ -469,79 +407,39 @@ MYSQL;
 
         $stmt = self::database()->prepare($sql);
         
-        $task_id = $id = $data['carbon_user_tasks.task_id'] ?? false;
+        $follower_table_id = $id = $data['carbon_user_followers.follower_table_id'] ?? false;
         if ($id === false) {
-            $task_id = $id = self::beginTransaction(self::class, $data[self::DEPENDANT_ON_ENTITY] ?? null);
+             $follower_table_id = $id = self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
         } else {
-            $ref='carbon_user_tasks.task_id';
+            $ref='carbon_user_followers.follower_table_id';
             $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::POST, $ref, $op, $task_id)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.task_id\'.');
+            if (!self::validateInternalColumn(self::POST, $ref, $op, $follower_table_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_followers.follower_table_id\'.');
             }            
         }
-        $stmt->bindParam(':task_id',$task_id, PDO::PARAM_STR, 16);
+        $stmt->bindParam(':follower_table_id',$follower_table_id, PDO::PARAM_STR, 16);
         
-        if (!array_key_exists('carbon_user_tasks.user_id', $data)) {
-            return self::signalError('Required argument "carbon_user_tasks.user_id" is missing from the request.');
+        if (!array_key_exists('carbon_user_followers.follows_user_id', $data)) {
+            return self::signalError('Required argument "carbon_user_followers.follows_user_id" is missing from the request.');
         }
-        $user_id = $data['carbon_user_tasks.user_id'];
-        $ref='carbon_user_tasks.user_id';
+        $follows_user_id = $data['carbon_user_followers.follows_user_id'];
+        $ref='carbon_user_followers.follows_user_id';
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $follows_user_id)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_followers.follows_user_id\'.');
+        }
+        $stmt->bindParam(':follows_user_id',$follows_user_id, PDO::PARAM_STR, 16);
+        
+        if (!array_key_exists('carbon_user_followers.user_id', $data)) {
+            return self::signalError('Required argument "carbon_user_followers.user_id" is missing from the request.');
+        }
+        $user_id = $data['carbon_user_followers.user_id'];
+        $ref='carbon_user_followers.user_id';
         $op = self::EQUAL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $user_id)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.user_id\'.');
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_followers.user_id\'.');
         }
         $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
-        
-        $from_id = $data['carbon_user_tasks.from_id'] ?? null;
-        $ref='carbon_user_tasks.from_id';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $from_id, $from_id === null)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.from_id\'.');
-        }
-        $stmt->bindParam(':from_id',$from_id, PDO::PARAM_STR, 16);
-        
-        if (!array_key_exists('carbon_user_tasks.task_name', $data)) {
-            return self::signalError('Required argument "carbon_user_tasks.task_name" is missing from the request.');
-        }
-        $task_name = $data['carbon_user_tasks.task_name'];
-        $ref='carbon_user_tasks.task_name';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $task_name)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.task_name\'.');
-        }
-        $stmt->bindParam(':task_name',$task_name, PDO::PARAM_STR, 40);
-        
-        $task_description = $data['carbon_user_tasks.task_description'] ?? null;
-        $ref='carbon_user_tasks.task_description';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $task_description, $task_description === null)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.task_description\'.');
-        }
-        $stmt->bindParam(':task_description',$task_description, PDO::PARAM_STR, 225);
-                 
-        $percent_complete = $data['carbon_user_tasks.percent_complete'] ?? '0';
-        $ref='carbon_user_tasks.percent_complete';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $percent_complete, $percent_complete === '0')) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.percent_complete\'.');
-        }
-        $stmt->bindValue(':percent_complete', $percent_complete, PDO::PARAM_INT);
-                 
-        $start_date = $data['carbon_user_tasks.start_date'] ?? null;
-        $ref='carbon_user_tasks.start_date';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $start_date, $start_date === null)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.start_date\'.');
-        }
-        $stmt->bindValue(':start_date', $start_date, PDO::PARAM_STR);
-                 
-        $end_date = $data['carbon_user_tasks.end_date'] ?? null;
-        $ref='carbon_user_tasks.end_date';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $end_date, $end_date === null)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
-        }
-        $stmt->bindValue(':end_date', $end_date, PDO::PARAM_STR);
         
         if (!$stmt->execute()) {
             self::completeRest();
@@ -551,7 +449,7 @@ MYSQL;
         self::prepostprocessRestRequest($id);
          
         if (self::$commit && !Database::commit()) {
-           return self::signalError('Failed to store commit transaction on table carbon_user_tasks');
+           return self::signalError('Failed to store commit transaction on table carbon_user_followers');
         } 
          
         self::postprocessRestRequest($id); 
@@ -611,38 +509,23 @@ MYSQL;
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.\'.');
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_followers.\'.');
             }
         }
         unset($value);
 
-        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_user_tasks SET '; // intellij cant handle this otherwise
+        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_user_followers SET '; // intellij cant handle this otherwise
 
         $set = '';
 
-        if (array_key_exists('carbon_user_tasks.task_id', $argv)) {
-            $set .= 'task_id=UNHEX(:task_id),';
+        if (array_key_exists('carbon_user_followers.follower_table_id', $argv)) {
+            $set .= 'follower_table_id=UNHEX(:follower_table_id),';
         }
-        if (array_key_exists('carbon_user_tasks.user_id', $argv)) {
+        if (array_key_exists('carbon_user_followers.follows_user_id', $argv)) {
+            $set .= 'follows_user_id=UNHEX(:follows_user_id),';
+        }
+        if (array_key_exists('carbon_user_followers.user_id', $argv)) {
             $set .= 'user_id=UNHEX(:user_id),';
-        }
-        if (array_key_exists('carbon_user_tasks.from_id', $argv)) {
-            $set .= 'from_id=UNHEX(:from_id),';
-        }
-        if (array_key_exists('carbon_user_tasks.task_name', $argv)) {
-            $set .= 'task_name=:task_name,';
-        }
-        if (array_key_exists('carbon_user_tasks.task_description', $argv)) {
-            $set .= 'task_description=:task_description,';
-        }
-        if (array_key_exists('carbon_user_tasks.percent_complete', $argv)) {
-            $set .= 'percent_complete=:percent_complete,';
-        }
-        if (array_key_exists('carbon_user_tasks.start_date', $argv)) {
-            $set .= 'start_date=:start_date,';
-        }
-        if (array_key_exists('carbon_user_tasks.end_date', $argv)) {
-            $set .= 'end_date=:end_date,';
         }
         
         $sql .= substr($set, 0, -1);
@@ -663,59 +546,32 @@ MYSQL;
 
         $stmt = $pdo->prepare($sql);
 
-        if (array_key_exists('carbon_user_tasks.task_id', $argv)) { 
-            $task_id = $argv['carbon_user_tasks.task_id'];
-            $ref = 'carbon_user_tasks.task_id';
+        if (array_key_exists('carbon_user_followers.follower_table_id', $argv)) { 
+            $follower_table_id = $argv['carbon_user_followers.follower_table_id'];
+            $ref = 'carbon_user_followers.follower_table_id';
             $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $task_id)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'task_id\'.');
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $follower_table_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'follower_table_id\'.');
             }
-            $stmt->bindParam(':task_id',$task_id, PDO::PARAM_STR, 16);
+            $stmt->bindParam(':follower_table_id',$follower_table_id, PDO::PARAM_STR, 16);
         }
-        if (array_key_exists('carbon_user_tasks.user_id', $argv)) { 
-            $user_id = $argv['carbon_user_tasks.user_id'];
-            $ref = 'carbon_user_tasks.user_id';
+        if (array_key_exists('carbon_user_followers.follows_user_id', $argv)) { 
+            $follows_user_id = $argv['carbon_user_followers.follows_user_id'];
+            $ref = 'carbon_user_followers.follows_user_id';
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $follows_user_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'follows_user_id\'.');
+            }
+            $stmt->bindParam(':follows_user_id',$follows_user_id, PDO::PARAM_STR, 16);
+        }
+        if (array_key_exists('carbon_user_followers.user_id', $argv)) { 
+            $user_id = $argv['carbon_user_followers.user_id'];
+            $ref = 'carbon_user_followers.user_id';
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_id)) {
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_id\'.');
             }
             $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
-        }
-        if (array_key_exists('carbon_user_tasks.from_id', $argv)) { 
-            $from_id = $argv['carbon_user_tasks.from_id'];
-            $ref = 'carbon_user_tasks.from_id';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $from_id)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'from_id\'.');
-            }
-            $stmt->bindParam(':from_id',$from_id, PDO::PARAM_STR, 16);
-        }
-        if (array_key_exists('carbon_user_tasks.task_name', $argv)) { 
-            $task_name = $argv['carbon_user_tasks.task_name'];
-            $ref = 'carbon_user_tasks.task_name';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $task_name)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'task_name\'.');
-            }
-            $stmt->bindParam(':task_name',$task_name, PDO::PARAM_STR, 40);
-        }
-        if (array_key_exists('carbon_user_tasks.task_description', $argv)) { 
-            $task_description = $argv['carbon_user_tasks.task_description'];
-            $ref = 'carbon_user_tasks.task_description';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $task_description)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'task_description\'.');
-            }
-            $stmt->bindParam(':task_description',$task_description, PDO::PARAM_STR, 225);
-        }
-        if (array_key_exists('carbon_user_tasks.percent_complete', $argv)) { 
-            $stmt->bindValue(':percent_complete',$argv['carbon_user_tasks.percent_complete'], PDO::PARAM_INT);
-        }
-        if (array_key_exists('carbon_user_tasks.start_date', $argv)) { 
-            $stmt->bindValue(':start_date',$argv['carbon_user_tasks.start_date'], PDO::PARAM_STR);
-        }
-        if (array_key_exists('carbon_user_tasks.end_date', $argv)) { 
-            $stmt->bindValue(':end_date',$argv['carbon_user_tasks.end_date'], PDO::PARAM_STR);
         }
         
         self::bind($stmt);
@@ -731,7 +587,7 @@ MYSQL;
         
         $argv = array_combine(
             array_map(
-                static fn($k) => str_replace('carbon_user_tasks.', '', $k),
+                static fn($k) => str_replace('carbon_user_followers.', '', $k),
                 array_keys($argv)
             ),
             array_values($argv)
@@ -742,7 +598,7 @@ MYSQL;
         self::prepostprocessRestRequest($returnUpdated);
         
         if (self::$commit && !Database::commit()) {
-            return self::signalError('Failed to store commit transaction on table carbon_user_tasks');
+            return self::signalError('Failed to store commit transaction on table carbon_user_followers');
         }
         
         self::postprocessRestRequest($returnUpdated);
@@ -769,20 +625,26 @@ MYSQL;
         
         $emptyPrimary = null === $primary || '' === $primary;
         
+        $sql =  /** @lang MySQLFragment */ 'DELETE FROM carbon_user_followers ';
+        
+        if (false === self::$allowFullTableDeletes && $emptyPrimary && empty($argv)) {
+            return self::signalError('When deleting from restful tables a primary key or where query must be provided. This can be disabled by setting `self::$allowFullTableUpdates = true;` during the PREPROCESS events, or just directly before this request.');
+        }
+        
         if (!$emptyPrimary) {
-            return Carbons::Delete($remove, $primary, $argv);
-        }
-
-        if (false === self::$allowFullTableDeletes && empty($argv)) {
-            return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
+            $argv[self::PRIMARY] = $primary;
         }
         
-        $sql = 'DELETE c FROM carbon_carbons c 
-                JOIN carbon_user_tasks on c.entity_pk = carbon_user_tasks.task_id';
-
+        $where = self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
         
-        if (false === self::$allowFullTableDeletes || !empty($argv)) {
-            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
+        $emptyWhere = empty($where);
+        
+        if ($emptyWhere && false === self::$allowFullTableDeletes) {
+            return self::signalError('The where condition provided appears invalid.');
+        }
+
+        if (!$emptyWhere) {
+            $sql .= ' WHERE ' . $where;
         }
         
         if (!$pdo->inTransaction()) {
@@ -807,7 +669,7 @@ MYSQL;
         self::prepostprocessRestRequest($remove);
         
         if (self::$commit && !Database::commit()) {
-           return self::signalError('Failed to store commit transaction on table carbon_user_tasks');
+           return self::signalError('Failed to store commit transaction on table carbon_user_followers');
         }
         
         self::postprocessRestRequest($remove);

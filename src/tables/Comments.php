@@ -5,7 +5,7 @@ namespace CarbonPHP\Tables;
 // Restful defaults
 use CarbonPHP\Database;
 use CarbonPHP\Error\PublicAlert;
-use CarbonPHP\Interfaces\iRestNoPrimaryKey;
+use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Helpers\RestfulValidations;
 use CarbonPHP\Rest;
 use JsonException;
@@ -21,7 +21,7 @@ use function is_array;
 
 /**
  *
- * Class Carbon_Feature_Group_References
+ * Class Comments
  * @package CarbonPHP\Tables
  * @note Note for convenience, a flag '-prefix' maybe passed to remove table prefixes.
  *  Use '-help' for a full list of options.
@@ -39,24 +39,28 @@ use function is_array;
  * When creating static member functions which require persistent variables, consider making them static members of that 
  *  static method.
  */
-class Carbon_Feature_Group_References extends Rest implements iRestNoPrimaryKey
+class Comments extends Rest implements iRestSinglePrimaryKey
 {
     use RestfulValidations;
     
-    public const CLASS_NAME = 'Carbon_Feature_Group_References';
+    public const CLASS_NAME = 'Comments';
     public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
-    public const TABLE_NAME = 'carbon_feature_group_references';
-    public const TABLE_PREFIX = '';
+    public const TABLE_NAME = 'carbon_comments';
+    public const TABLE_PREFIX = 'carbon_';
     
     /**
      * COLUMNS
-     * The columns below are a 1=1 mapping to the columns found in carbon_feature_group_references. 
+     * The columns below are a 1=1 mapping to the columns found in carbon_comments. 
      * Changes, shuch as adding or removing a column, SHOULD be made first in the database. The RestBuilder program will 
      * capture any changes made in MySQL and update this file auto-magically. 
     **/
-    public const FEATURE_ENTITY_ID = 'carbon_feature_group_references.feature_entity_id'; 
+    public const PARENT_ID = 'carbon_comments.parent_id'; 
 
-    public const GROUP_ENTITY_ID = 'carbon_feature_group_references.group_entity_id'; 
+    public const COMMENT_ID = 'carbon_comments.comment_id'; 
+
+    public const USER_ID = 'carbon_comments.user_id'; 
+
+    public const COMMENT = 'carbon_comments.comment'; 
 
     /**
      * PRIMARY
@@ -64,7 +68,7 @@ class Carbon_Feature_Group_References extends Rest implements iRestNoPrimaryKey
      * given composite primary keys. The existence and amount of primary keys of the will also determine the interface 
      * aka method signatures used.
     **/
-    public const PRIMARY = null;
+    public const PRIMARY = 'carbon_comments.comment_id';
 
     /**
      * COLUMNS
@@ -74,11 +78,11 @@ class Carbon_Feature_Group_References extends Rest implements iRestNoPrimaryKey
      *      $return[self::COLUMNS[self::EXAMPLE_COLUMN_ONE]]
     **/ 
     public const COLUMNS = [
-        'carbon_feature_group_references.feature_entity_id' => 'feature_entity_id','carbon_feature_group_references.group_entity_id' => 'group_entity_id',
+        'carbon_comments.parent_id' => 'parent_id','carbon_comments.comment_id' => 'comment_id','carbon_comments.user_id' => 'user_id','carbon_comments.comment' => 'comment',
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_feature_group_references.feature_entity_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_feature_group_references.group_entity_id' => ['binary', 'PDO::PARAM_STR', '16'],
+        'carbon_comments.parent_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_comments.comment_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_comments.user_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_comments.comment' => ['blob', 'PDO::PARAM_STR', ''],
     ];
      
     /**
@@ -93,7 +97,7 @@ class Carbon_Feature_Group_References extends Rest implements iRestNoPrimaryKey
      */
     public const REFRESH_SCHEMA = [
         [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
-            PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS]
+                        PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS]
     ]; 
     
     /**
@@ -218,20 +222,39 @@ class Carbon_Feature_Group_References extends Rest implements iRestNoPrimaryKey
      *  @version ^9
      */
  
-    public const PHP_VALIDATION = []; 
+    public const PHP_VALIDATION = [ 
+        self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
+            self::PREPROCESS => [ 
+                [self::class => 'disallowPublicAccess', self::class],
+            ]
+        ],
+        self::GET => [ 
+            self::PREPROCESS => [ 
+                [self::class => 'disallowPublicAccess', self::class],
+            ]
+        ],    
+        self::POST => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
+        self::PUT => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
+        self::DELETE => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],
+        self::REST_REQUEST_FINNISH_CALLBACKS => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]]    
+    ]; 
    
     /**
      * CREATE_TABLE_SQL is autogenerated and should not be manually updated. Make changes in MySQL and regenerate using
      * the RestBuilder program.
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
-    CREATE TABLE `carbon_feature_group_references` (
-  `feature_entity_id` binary(16) DEFAULT NULL,
-  `group_entity_id` binary(16) DEFAULT NULL,
-  KEY `carbon_feature_references_carbons_entity_pk_fk_2` (`feature_entity_id`),
-  KEY `carbon_feature_group_references_carbons_entity_pk_fk` (`group_entity_id`),
-  CONSTRAINT `carbon_feature_group_references_carbons_entity_pk_fk` FOREIGN KEY (`group_entity_id`) REFERENCES carbon_carbons (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `carbon_feature_references_carbons_entity_pk_fk` FOREIGN KEY (`feature_entity_id`) REFERENCES carbon_carbons (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+    CREATE TABLE `carbon_comments` (
+  `parent_id` binary(16) NOT NULL,
+  `comment_id` binary(16) NOT NULL,
+  `user_id` binary(16) NOT NULL,
+  `comment` blob NOT NULL,
+  PRIMARY KEY (`comment_id`),
+  KEY `entity_comments_entity_parent_pk_fk` (`parent_id`),
+  KEY `entity_comments_entity_user_pk_fk` (`user_id`),
+  CONSTRAINT `entity_comments_entity_entity_pk_fk` FOREIGN KEY (`comment_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `entity_comments_entity_parent_pk_fk` FOREIGN KEY (`parent_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `entity_comments_entity_user_pk_fk` FOREIGN KEY (`user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 MYSQL;
    
@@ -321,19 +344,20 @@ MYSQL;
     *
     *
     * @param array $return
+    * @param string|null $primary
     * @param array $argv
     * @noinspection DuplicatedCode - possible as this is generated
     * @generated
     * @throws PublicAlert|PDOException|JsonException
     * @return bool
     */
-    public static function Get(array &$return, array $argv = []): bool
+    public static function Get(array &$return, string $primary = null, array $argv = []): bool
     {
-        self::startRest(self::GET, $return, $argv );
+        self::startRest(self::GET, $return, $argv ,$primary);
 
         $pdo = self::database();
 
-        $sql = self::buildSelectQuery(null, $argv, '', $pdo);
+        $sql = self::buildSelectQuery($primary, $argv, '', $pdo);
         
         self::jsonSQLReporting(func_get_args(), $sql);
         
@@ -350,7 +374,7 @@ MYSQL;
 
         $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        if (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1) {
+        if ((null !== $primary && '' !== $primary) || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
             $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
         }
 
@@ -363,11 +387,11 @@ MYSQL;
 
     /**
      * @param array $data 
-     * @return bool|string
+     * @return bool|string|mixed
      * @generated
      * @throws PublicAlert|PDOException|JsonException
      */
-    public static function Post(array $data = []): bool
+    public static function Post(array $data = [])
     {   
         self::startRest(self::POST, [], $data);
     
@@ -377,13 +401,8 @@ MYSQL;
             }
         } 
         
-        $sql = 'INSERT INTO carbon_feature_group_references (feature_entity_id, group_entity_id) VALUES ( UNHEX(:feature_entity_id), UNHEX(:group_entity_id))';
+        $sql = 'INSERT INTO carbon_comments (parent_id, comment_id, user_id, comment) VALUES ( UNHEX(:parent_id), UNHEX(:comment_id), UNHEX(:user_id), :comment)';
 
-        $pdo = self::database();
-        
-        if (!$pdo->inTransaction()) {
-            $pdo->beginTransaction();
-        }
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -391,62 +410,90 @@ MYSQL;
 
         $stmt = self::database()->prepare($sql);
         
-        $feature_entity_id = $data['carbon_feature_group_references.feature_entity_id'] ?? null;
-        $ref='carbon_feature_group_references.feature_entity_id';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $feature_entity_id, $feature_entity_id === null)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_feature_group_references.feature_entity_id\'.');
+        if (!array_key_exists('carbon_comments.parent_id', $data)) {
+            return self::signalError('Required argument "carbon_comments.parent_id" is missing from the request.');
         }
-        $stmt->bindParam(':feature_entity_id',$feature_entity_id, PDO::PARAM_STR, 16);
+        $parent_id = $data['carbon_comments.parent_id'];
+        $ref='carbon_comments.parent_id';
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $parent_id)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_comments.parent_id\'.');
+        }
+        $stmt->bindParam(':parent_id',$parent_id, PDO::PARAM_STR, 16);
         
-        $group_entity_id = $data['carbon_feature_group_references.group_entity_id'] ?? null;
-        $ref='carbon_feature_group_references.group_entity_id';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $group_entity_id, $group_entity_id === null)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_feature_group_references.group_entity_id\'.');
+        $comment_id = $id = $data['carbon_comments.comment_id'] ?? false;
+        if ($id === false) {
+             $comment_id = $id = self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
+        } else {
+            $ref='carbon_comments.comment_id';
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::POST, $ref, $op, $comment_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_comments.comment_id\'.');
+            }            
         }
-        $stmt->bindParam(':group_entity_id',$group_entity_id, PDO::PARAM_STR, 16);
+        $stmt->bindParam(':comment_id',$comment_id, PDO::PARAM_STR, 16);
+        
+        if (!array_key_exists('carbon_comments.user_id', $data)) {
+            return self::signalError('Required argument "carbon_comments.user_id" is missing from the request.');
+        }
+        $user_id = $data['carbon_comments.user_id'];
+        $ref='carbon_comments.user_id';
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $user_id)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_comments.user_id\'.');
+        }
+        $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
+        
+        if (!array_key_exists('carbon_comments.comment', $data)) {
+            return self::signalError('The column \'carbon_comments.comment\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
+        } 
+        $ref='carbon_comments.comment';
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $data['comment'])) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_comments.comment\'.');
+        }
+        $stmt->bindValue(':comment', $data['carbon_comments.comment'], PDO::PARAM_STR);
         
         if (!$stmt->execute()) {
             self::completeRest();
             return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }
         
-        self::prepostprocessRestRequest();
-        
+        self::prepostprocessRestRequest($id);
+         
         if (self::$commit && !Database::commit()) {
-            return self::signalError('Failed to store commit transaction on table carbon_feature_group_references');
-        }
-        
-        self::postprocessRestRequest();
-        
+           return self::signalError('Failed to store commit transaction on table carbon_comments');
+        } 
+         
+        self::postprocessRestRequest($id); 
+         
         self::completeRest();
         
-        return true;  
+        return $id; 
+        
     }
     
     /**
     * 
     * 
-    *  Syntax should be as follows.
-    *  $argv = [
+    * Tables where primary keys exist must be updated by its primary key. 
+    * Column should be in a key value pair passed to $argv or optionally using syntax:
+    * $argv = [
     *       Rest::UPDATE => [
     *              ...
-    *       ],
-    *       Rest::WHERE => [
-    *              ...
     *       ]
+    * ]
     * 
     * @param array $returnUpdated - will be merged with with array_merge, with a successful update. 
-    
+    * @param string|null $primary
     * @param array $argv 
     * @generated
     * @throws PublicAlert|PDOException|JsonException
     * @return bool - if execute fails, false will be returned and $returnUpdated = $stmt->errorInfo(); 
     */
-    public static function Put(array &$returnUpdated,  array $argv = []) : bool
+    public static function Put(array &$returnUpdated, string $primary = null, array $argv = []) : bool
     {
-        self::startRest(self::PUT, $returnUpdated, $argv);
+        self::startRest(self::PUT, $returnUpdated, $argv, $primary);
         
         $where = [];
 
@@ -459,12 +506,14 @@ MYSQL;
             $argv = $argv[self::UPDATE];
         }
         
-        if (false === self::$allowFullTableUpdates && empty($where)) {
-            return self::signalError('Restful tables which have no primary key must be updated using conditions given to $argv[self::WHERE] and values to be updated given to $argv[self::UPDATE]. No WHERE attribute given. To bypass this set `self::$allowFullTableUpdates = true;` during the PREPROCESS events, or just directly before this request.');
-        }
+        $emptyPrimary = null === $primary || '' === $primary;
         
-        if (empty($argv)) {
-            return self::signalError('Restful tables which have no primary key must be updated using conditions given to $argv[self::WHERE] and values to be updated given to $argv[self::UPDATE]. No UPDATE attribute given.');
+        if (false === self::$allowFullTableUpdates && $emptyPrimary) { 
+            return self::signalError('Restful tables which have a primary key must be updated by its primary key. To bypass this set you may set `self::$allowFullTableUpdates = true;` during the PREPROCESS events.');
+        }
+
+        if (!$emptyPrimary) {
+            $where[self::PRIMARY] = $primary;
         }
         
         foreach ($argv as $key => &$value) {
@@ -473,20 +522,26 @@ MYSQL;
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_feature_group_references.\'.');
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_comments.\'.');
             }
         }
         unset($value);
 
-        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_feature_group_references SET '; // intellij cant handle this otherwise
+        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_comments SET '; // intellij cant handle this otherwise
 
         $set = '';
 
-        if (array_key_exists('carbon_feature_group_references.feature_entity_id', $argv)) {
-            $set .= 'feature_entity_id=UNHEX(:feature_entity_id),';
+        if (array_key_exists('carbon_comments.parent_id', $argv)) {
+            $set .= 'parent_id=UNHEX(:parent_id),';
         }
-        if (array_key_exists('carbon_feature_group_references.group_entity_id', $argv)) {
-            $set .= 'group_entity_id=UNHEX(:group_entity_id),';
+        if (array_key_exists('carbon_comments.comment_id', $argv)) {
+            $set .= 'comment_id=UNHEX(:comment_id),';
+        }
+        if (array_key_exists('carbon_comments.user_id', $argv)) {
+            $set .= 'user_id=UNHEX(:user_id),';
+        }
+        if (array_key_exists('carbon_comments.comment', $argv)) {
+            $set .= 'comment=:comment,';
         }
         
         $sql .= substr($set, 0, -1);
@@ -507,23 +562,35 @@ MYSQL;
 
         $stmt = $pdo->prepare($sql);
 
-        if (array_key_exists('carbon_feature_group_references.feature_entity_id', $argv)) { 
-            $feature_entity_id = $argv['carbon_feature_group_references.feature_entity_id'];
-            $ref = 'carbon_feature_group_references.feature_entity_id';
+        if (array_key_exists('carbon_comments.parent_id', $argv)) { 
+            $parent_id = $argv['carbon_comments.parent_id'];
+            $ref = 'carbon_comments.parent_id';
             $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $feature_entity_id)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'feature_entity_id\'.');
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $parent_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'parent_id\'.');
             }
-            $stmt->bindParam(':feature_entity_id',$feature_entity_id, PDO::PARAM_STR, 16);
+            $stmt->bindParam(':parent_id',$parent_id, PDO::PARAM_STR, 16);
         }
-        if (array_key_exists('carbon_feature_group_references.group_entity_id', $argv)) { 
-            $group_entity_id = $argv['carbon_feature_group_references.group_entity_id'];
-            $ref = 'carbon_feature_group_references.group_entity_id';
+        if (array_key_exists('carbon_comments.comment_id', $argv)) { 
+            $comment_id = $argv['carbon_comments.comment_id'];
+            $ref = 'carbon_comments.comment_id';
             $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $group_entity_id)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'group_entity_id\'.');
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $comment_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'comment_id\'.');
             }
-            $stmt->bindParam(':group_entity_id',$group_entity_id, PDO::PARAM_STR, 16);
+            $stmt->bindParam(':comment_id',$comment_id, PDO::PARAM_STR, 16);
+        }
+        if (array_key_exists('carbon_comments.user_id', $argv)) { 
+            $user_id = $argv['carbon_comments.user_id'];
+            $ref = 'carbon_comments.user_id';
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'user_id\'.');
+            }
+            $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
+        }
+        if (array_key_exists('carbon_comments.comment', $argv)) { 
+            $stmt->bindValue(':comment',$argv['carbon_comments.comment'], PDO::PARAM_STR);
         }
         
         self::bind($stmt);
@@ -539,7 +606,7 @@ MYSQL;
         
         $argv = array_combine(
             array_map(
-                static fn($k) => str_replace('carbon_feature_group_references.', '', $k),
+                static fn($k) => str_replace('carbon_comments.', '', $k),
                 array_keys($argv)
             ),
             array_values($argv)
@@ -550,7 +617,7 @@ MYSQL;
         self::prepostprocessRestRequest($returnUpdated);
         
         if (self::$commit && !Database::commit()) {
-            return self::signalError('Failed to store commit transaction on table carbon_feature_group_references');
+            return self::signalError('Failed to store commit transaction on table carbon_comments');
         }
         
         self::postprocessRestRequest($returnUpdated);
@@ -562,26 +629,41 @@ MYSQL;
 
     /**
     * @param array $remove
+    * @param string|null $primary
     * @param array $argv
     * @generated
     * @noinspection DuplicatedCode
     * @throws PublicAlert|PDOException|JsonException
     * @return bool
     */
-    public static function Delete(array &$remove, array $argv = []) : bool
+    public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
     {
-        self::startRest(self::DELETE, $remove, $argv);
+        self::startRest(self::DELETE, $remove, $argv, $primary);
         
         $pdo = self::database();
         
-        $sql =  /** @lang MySQLFragment */ 'DELETE FROM carbon_feature_group_references ';
+        $emptyPrimary = null === $primary || '' === $primary;
         
-        if (false === self::$allowFullTableDeletes && empty($argv)) {
-            return self::signalError('When deleting from tables with out a primary key additional arguments must be provided.');
-        } 
+        $sql =  /** @lang MySQLFragment */ 'DELETE FROM carbon_comments ';
         
-        if (!empty($argv)) {
-            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
+        if (false === self::$allowFullTableDeletes && $emptyPrimary && empty($argv)) {
+            return self::signalError('When deleting from restful tables a primary key or where query must be provided. This can be disabled by setting `self::$allowFullTableUpdates = true;` during the PREPROCESS events, or just directly before this request.');
+        }
+        
+        if (!$emptyPrimary) {
+            $argv[self::PRIMARY] = $primary;
+        }
+        
+        $where = self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
+        
+        $emptyWhere = empty($where);
+        
+        if ($emptyWhere && false === self::$allowFullTableDeletes) {
+            return self::signalError('The where condition provided appears invalid.');
+        }
+
+        if (!$emptyWhere) {
+            $sql .= ' WHERE ' . $where;
         }
         
         if (!$pdo->inTransaction()) {
@@ -606,7 +688,7 @@ MYSQL;
         self::prepostprocessRestRequest($remove);
         
         if (self::$commit && !Database::commit()) {
-           return self::signalError('Failed to store commit transaction on table carbon_feature_group_references');
+           return self::signalError('Failed to store commit transaction on table carbon_comments');
         }
         
         self::postprocessRestRequest($remove);

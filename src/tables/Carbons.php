@@ -45,20 +45,20 @@ class Carbons extends Rest implements iRestSinglePrimaryKey
     
     public const CLASS_NAME = 'Carbons';
     public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
-    public const TABLE_NAME = 'carbons';
-    public const TABLE_PREFIX = '';
+    public const TABLE_NAME = 'carbon_carbons';
+    public const TABLE_PREFIX = 'carbon_';
     
     /**
      * COLUMNS
-     * The columns below are a 1=1 mapping to the columns found in carbons. 
+     * The columns below are a 1=1 mapping to the columns found in carbon_carbons. 
      * Changes, shuch as adding or removing a column, SHOULD be made first in the database. The RestBuilder program will 
      * capture any changes made in MySQL and update this file auto-magically. 
     **/
-    public const ENTITY_PK = 'carbons.entity_pk'; 
+    public const ENTITY_PK = 'carbon_carbons.entity_pk'; 
 
-    public const ENTITY_FK = 'carbons.entity_fk'; 
+    public const ENTITY_FK = 'carbon_carbons.entity_fk'; 
 
-    public const ENTITY_TAG = 'carbons.entity_tag'; 
+    public const ENTITY_TAG = 'carbon_carbons.entity_tag'; 
 
     /**
      * PRIMARY
@@ -66,7 +66,7 @@ class Carbons extends Rest implements iRestSinglePrimaryKey
      * given composite primary keys. The existence and amount of primary keys of the will also determine the interface 
      * aka method signatures used.
     **/
-    public const PRIMARY = 'carbons.entity_pk';
+    public const PRIMARY = 'carbon_carbons.entity_pk';
 
     /**
      * COLUMNS
@@ -76,11 +76,11 @@ class Carbons extends Rest implements iRestSinglePrimaryKey
      *      $return[self::COLUMNS[self::EXAMPLE_COLUMN_ONE]]
     **/ 
     public const COLUMNS = [
-        'carbons.entity_pk' => 'entity_pk','carbons.entity_fk' => 'entity_fk','carbons.entity_tag' => 'entity_tag',
+        'carbon_carbons.entity_pk' => 'entity_pk','carbon_carbons.entity_fk' => 'entity_fk','carbon_carbons.entity_tag' => 'entity_tag',
     ];
 
     public const PDO_VALIDATION = [
-        'carbons.entity_pk' => ['binary', 'PDO::PARAM_STR', '16'],'carbons.entity_fk' => ['binary', 'PDO::PARAM_STR', '16'],'carbons.entity_tag' => ['varchar', 'PDO::PARAM_STR', '100'],
+        'carbon_carbons.entity_pk' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_carbons.entity_fk' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_carbons.entity_tag' => ['varchar', 'PDO::PARAM_STR', '100'],
     ];
      
     /**
@@ -238,14 +238,14 @@ class Carbons extends Rest implements iRestSinglePrimaryKey
      * the RestBuilder program.
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
-    CREATE TABLE `carbons` (
+    CREATE TABLE `carbon_carbons` (
   `entity_pk` binary(16) NOT NULL,
   `entity_fk` binary(16) DEFAULT NULL,
   `entity_tag` varchar(100) NOT NULL DEFAULT 'manually',
   PRIMARY KEY (`entity_pk`),
   UNIQUE KEY `entity_entity_pk_uindex` (`entity_pk`),
   KEY `entity_entity_entity_pk_fk` (`entity_fk`),
-  CONSTRAINT `entity_entity_entity_pk_fk` FOREIGN KEY (`entity_fk`) REFERENCES carbon_carbons (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `entity_entity_entity_pk_fk` FOREIGN KEY (`entity_fk`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 MYSQL;
    
@@ -401,31 +401,31 @@ MYSQL;
 
         $stmt = self::database()->prepare($sql);
         
-        $entity_pk = $id = $data['carbons.entity_pk'] ?? false;
+        $entity_pk = $id = $data['carbon_carbons.entity_pk'] ?? false;
         if ($id === false) {
              $entity_pk = $id = self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
         } else {
-            $ref='carbons.entity_pk';
+            $ref='carbon_carbons.entity_pk';
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::POST, $ref, $op, $entity_pk)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbons.entity_pk\'.');
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_carbons.entity_pk\'.');
             }            
         }
         $stmt->bindParam(':entity_pk',$entity_pk, PDO::PARAM_STR, 16);
         
-        $entity_fk = $data['carbons.entity_fk'] ?? null;
-        $ref='carbons.entity_fk';
+        $entity_fk = $data['carbon_carbons.entity_fk'] ?? null;
+        $ref='carbon_carbons.entity_fk';
         $op = self::EQUAL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $entity_fk, $entity_fk === null)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbons.entity_fk\'.');
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_carbons.entity_fk\'.');
         }
         $stmt->bindParam(':entity_fk',$entity_fk, PDO::PARAM_STR, 16);
         
-        $entity_tag = $data['carbons.entity_tag'] ?? 'manually';
-        $ref='carbons.entity_tag';
+        $entity_tag = $data['carbon_carbons.entity_tag'] ?? 'manually';
+        $ref='carbon_carbons.entity_tag';
         $op = self::EQUAL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $entity_tag, $entity_tag === 'manually')) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbons.entity_tag\'.');
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_carbons.entity_tag\'.');
         }
         $stmt->bindParam(':entity_tag',$entity_tag, PDO::PARAM_STR, 100);
         
@@ -437,7 +437,7 @@ MYSQL;
         self::prepostprocessRestRequest($id);
          
         if (self::$commit && !Database::commit()) {
-           return self::signalError('Failed to store commit transaction on table carbons');
+           return self::signalError('Failed to store commit transaction on table carbon_carbons');
         } 
          
         self::postprocessRestRequest($id); 
@@ -497,22 +497,22 @@ MYSQL;
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbons.\'.');
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_carbons.\'.');
             }
         }
         unset($value);
 
-        $sql = /** @lang MySQLFragment */ 'UPDATE carbons SET '; // intellij cant handle this otherwise
+        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_carbons SET '; // intellij cant handle this otherwise
 
         $set = '';
 
-        if (array_key_exists('carbons.entity_pk', $argv)) {
+        if (array_key_exists('carbon_carbons.entity_pk', $argv)) {
             $set .= 'entity_pk=UNHEX(:entity_pk),';
         }
-        if (array_key_exists('carbons.entity_fk', $argv)) {
+        if (array_key_exists('carbon_carbons.entity_fk', $argv)) {
             $set .= 'entity_fk=UNHEX(:entity_fk),';
         }
-        if (array_key_exists('carbons.entity_tag', $argv)) {
+        if (array_key_exists('carbon_carbons.entity_tag', $argv)) {
             $set .= 'entity_tag=:entity_tag,';
         }
         
@@ -534,27 +534,27 @@ MYSQL;
 
         $stmt = $pdo->prepare($sql);
 
-        if (array_key_exists('carbons.entity_pk', $argv)) { 
-            $entity_pk = $argv['carbons.entity_pk'];
-            $ref = 'carbons.entity_pk';
+        if (array_key_exists('carbon_carbons.entity_pk', $argv)) { 
+            $entity_pk = $argv['carbon_carbons.entity_pk'];
+            $ref = 'carbon_carbons.entity_pk';
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $entity_pk)) {
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'entity_pk\'.');
             }
             $stmt->bindParam(':entity_pk',$entity_pk, PDO::PARAM_STR, 16);
         }
-        if (array_key_exists('carbons.entity_fk', $argv)) { 
-            $entity_fk = $argv['carbons.entity_fk'];
-            $ref = 'carbons.entity_fk';
+        if (array_key_exists('carbon_carbons.entity_fk', $argv)) { 
+            $entity_fk = $argv['carbon_carbons.entity_fk'];
+            $ref = 'carbon_carbons.entity_fk';
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $entity_fk)) {
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'entity_fk\'.');
             }
             $stmt->bindParam(':entity_fk',$entity_fk, PDO::PARAM_STR, 16);
         }
-        if (array_key_exists('carbons.entity_tag', $argv)) { 
-            $entity_tag = $argv['carbons.entity_tag'];
-            $ref = 'carbons.entity_tag';
+        if (array_key_exists('carbon_carbons.entity_tag', $argv)) { 
+            $entity_tag = $argv['carbon_carbons.entity_tag'];
+            $ref = 'carbon_carbons.entity_tag';
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $entity_tag)) {
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'entity_tag\'.');
@@ -575,7 +575,7 @@ MYSQL;
         
         $argv = array_combine(
             array_map(
-                static fn($k) => str_replace('carbons.', '', $k),
+                static fn($k) => str_replace('carbon_carbons.', '', $k),
                 array_keys($argv)
             ),
             array_values($argv)
@@ -586,7 +586,7 @@ MYSQL;
         self::prepostprocessRestRequest($returnUpdated);
         
         if (self::$commit && !Database::commit()) {
-            return self::signalError('Failed to store commit transaction on table carbons');
+            return self::signalError('Failed to store commit transaction on table carbon_carbons');
         }
         
         self::postprocessRestRequest($returnUpdated);
@@ -613,7 +613,7 @@ MYSQL;
         
         $emptyPrimary = null === $primary || '' === $primary;
         
-        $sql =  /** @lang MySQLFragment */ 'DELETE FROM carbons ';
+        $sql =  /** @lang MySQLFragment */ 'DELETE FROM carbon_carbons ';
         
         if (false === self::$allowFullTableDeletes && $emptyPrimary && empty($argv)) {
             return self::signalError('When deleting from restful tables a primary key or where query must be provided. This can be disabled by setting `self::$allowFullTableUpdates = true;` during the PREPROCESS events, or just directly before this request.');
@@ -657,7 +657,7 @@ MYSQL;
         self::prepostprocessRestRequest($remove);
         
         if (self::$commit && !Database::commit()) {
-           return self::signalError('Failed to store commit transaction on table carbons');
+           return self::signalError('Failed to store commit transaction on table carbon_carbons');
         }
         
         self::postprocessRestRequest($remove);

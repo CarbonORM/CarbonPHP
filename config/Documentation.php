@@ -558,8 +558,8 @@ SOCKET;
 
         return [
             CarbonPHP::REST => [
-                CarbonPHP::NAMESPACE => Carbons::CLASS_NAMESPACE === '' ? 'carbon' : Carbons::CLASS_NAMESPACE,
-                CarbonPHP::TABLE_PREFIX => Carbons::TABLE_PREFIX
+                CarbonPHP::NAMESPACE => Carbons::CLASS_NAMESPACE,
+                CarbonPHP::TABLE_PREFIX => 'carbon_' // Carbons::TABLE_PREFIX
             ],
             CarbonPHP::DATABASE => [
                 CarbonPHP::DB_HOST => CarbonPHP::$app_local ? '127.0.0.1' : '35.224.229.250',                        // IP

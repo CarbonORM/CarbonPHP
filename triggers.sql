@@ -1,5 +1,86 @@
 DELIMITER ;;
-DROP TRIGGER IF EXISTS `trigger_carbon_comments_b_d`;;
+DROP TRIGGER IF EXISTS `trigger_carbon_carbons_b_d`;;
+CREATE TRIGGER `trigger_carbon_carbons_b_d` BEFORE DELETE ON `carbon_carbons` FOR EACH ROW
+BEGIN
+DECLARE json text;
+ SET json = '{';
+SET json = CONCAT(json,'"entity_pk":"', HEX(OLD.entity_pk), '"');
+SET json = CONCAT(json, ',');
+SET json = CONCAT(json,'"entity_fk":"', HEX(OLD.entity_fk), '"');
+SET json = CONCAT(json, ',');
+SET json = CONCAT(json,'"entity_tag":"', COALESCE(OLD.entity_tag,''), '"');SET json = CONCAT(json, '}');
+      -- Insert record into audit tables
+INSERT INTO carbon_history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
+            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_carbons', OLD.entity_pk , 'DELETE', json);
+      -- Delete Children
+DELETE FROM carbon_carbons WHERE entity_fk = OLD.entity_pk;
+DELETE FROM carbon_comments WHERE comment_id = OLD.entity_pk;
+DELETE FROM carbon_comments WHERE parent_id = OLD.entity_pk;
+DELETE FROM carbon_comments WHERE user_id = OLD.entity_pk;
+DELETE FROM carbon_feature_group_references WHERE group_entity_id = OLD.entity_pk;
+DELETE FROM carbon_feature_group_references WHERE feature_entity_id = OLD.entity_pk;
+DELETE FROM carbon_features WHERE feature_entity_id = OLD.entity_pk;
+DELETE FROM carbon_group_references WHERE group_id = OLD.entity_pk;
+DELETE FROM carbon_group_references WHERE allowed_to_grant_group_id = OLD.entity_pk;
+DELETE FROM carbon_groups WHERE entity_id = OLD.entity_pk;
+DELETE FROM carbon_groups WHERE created_by = OLD.entity_pk;
+DELETE FROM carbon_location_references WHERE entity_reference = OLD.entity_pk;
+DELETE FROM carbon_location_references WHERE location_reference = OLD.entity_pk;
+DELETE FROM carbon_locations WHERE entity_id = OLD.entity_pk;
+DELETE FROM carbon_photos WHERE photo_id = OLD.entity_pk;
+DELETE FROM carbon_photos WHERE parent_id = OLD.entity_pk;
+DELETE FROM carbon_photos WHERE user_id = OLD.entity_pk;
+DELETE FROM carbon_user_followers WHERE follower_table_id = OLD.entity_pk;
+DELETE FROM carbon_user_followers WHERE follows_user_id = OLD.entity_pk;
+DELETE FROM carbon_user_followers WHERE user_id = OLD.entity_pk;
+DELETE FROM carbon_user_groups WHERE group_id = OLD.entity_pk;
+DELETE FROM carbon_user_groups WHERE user_id = OLD.entity_pk;
+DELETE FROM carbon_user_messages WHERE from_user_id = OLD.entity_pk;
+DELETE FROM carbon_user_messages WHERE message_id = OLD.entity_pk;
+DELETE FROM carbon_user_messages WHERE to_user_id = OLD.entity_pk;
+DELETE FROM carbon_user_tasks WHERE task_id = OLD.entity_pk;
+DELETE FROM carbon_user_tasks WHERE user_id = OLD.entity_pk;
+DELETE FROM carbon_user_tasks WHERE from_id = OLD.entity_pk;
+DELETE FROM carbon_users WHERE user_id = OLD.entity_pk;
+
+
+END;;
+
+DROP TRIGGER IF EXISTS `trigger_carbon_carbons_a_u`;;
+CREATE TRIGGER `trigger_carbon_carbons_a_u` AFTER UPDATE ON `carbon_carbons` FOR EACH ROW
+BEGIN
+
+DECLARE json text;
+ SET json = '{';
+SET json = CONCAT(json,'"entity_pk":"', HEX(NEW.entity_pk), '"');
+SET json = CONCAT(json, ',');
+SET json = CONCAT(json,'"entity_fk":"', HEX(NEW.entity_fk), '"');
+SET json = CONCAT(json, ',');
+SET json = CONCAT(json,'"entity_tag":"', COALESCE(NEW.entity_tag,''), '"');SET json = CONCAT(json, '}');
+      -- Insert record into audit tables
+INSERT INTO carbon_history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
+            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_carbons', NEW.entity_pk , 'PUT', json);
+
+END;;
+
+DROP TRIGGER IF EXISTS `trigger_carbon_carbons_a_i`;;
+CREATE TRIGGER `trigger_carbon_carbons_a_i` AFTER INSERT ON `carbon_carbons` FOR EACH ROW
+BEGIN
+
+DECLARE json text;
+ SET json = '{';
+SET json = CONCAT(json,'"entity_pk":"', HEX(NEW.entity_pk), '"');
+SET json = CONCAT(json, ',');
+SET json = CONCAT(json,'"entity_fk":"', HEX(NEW.entity_fk), '"');
+SET json = CONCAT(json, ',');
+SET json = CONCAT(json,'"entity_tag":"', COALESCE(NEW.entity_tag,''), '"');SET json = CONCAT(json, '}');
+      -- Insert record into audit tables
+INSERT INTO carbon_creation_logs (`uuid`, `resource_type`, `resource_uuid`)
+            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_carbons', NEW.entity_pk);
+INSERT INTO carbon_history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
+            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_carbons', NEW.entity_pk , 'POST', json);
+
+END;;DROP TRIGGER IF EXISTS `trigger_carbon_comments_b_d`;;
 CREATE TRIGGER `trigger_carbon_comments_b_d` BEFORE DELETE ON `carbon_comments` FOR EACH ROW
 BEGIN
 DECLARE json text;
@@ -56,87 +137,6 @@ INSERT INTO carbon_creation_logs (`uuid`, `resource_type`, `resource_uuid`)
             VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_comments', NEW.comment_id);
 INSERT INTO carbon_history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
             VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbon_comments', NEW.comment_id , 'POST', json);
-
-END;;DROP TRIGGER IF EXISTS `trigger_carbons_b_d`;;
-CREATE TRIGGER `trigger_carbons_b_d` BEFORE DELETE ON carbon_carbons FOR EACH ROW
-BEGIN
-DECLARE json text;
- SET json = '{';
-SET json = CONCAT(json,'"entity_pk":"', HEX(OLD.entity_pk), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"entity_fk":"', HEX(OLD.entity_fk), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"entity_tag":"', COALESCE(OLD.entity_tag,''), '"');SET json = CONCAT(json, '}');
-      -- Insert record into audit tables
-INSERT INTO carbon_history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbons', OLD.entity_pk , 'DELETE', json);
-      -- Delete Children
-DELETE FROM carbon_comments WHERE comment_id = OLD.entity_pk;
-DELETE FROM carbon_comments WHERE parent_id = OLD.entity_pk;
-DELETE FROM carbon_comments WHERE user_id = OLD.entity_pk;
-DELETE FROM carbon_feature_group_references WHERE group_entity_id = OLD.entity_pk;
-DELETE FROM carbon_feature_group_references WHERE feature_entity_id = OLD.entity_pk;
-DELETE FROM carbon_features WHERE feature_entity_id = OLD.entity_pk;
-DELETE FROM carbon_group_references WHERE group_id = OLD.entity_pk;
-DELETE FROM carbon_group_references WHERE allowed_to_grant_group_id = OLD.entity_pk;
-DELETE FROM carbon_groups WHERE entity_id = OLD.entity_pk;
-DELETE FROM carbon_groups WHERE created_by = OLD.entity_pk;
-DELETE FROM carbon_location_references WHERE entity_reference = OLD.entity_pk;
-DELETE FROM carbon_location_references WHERE location_reference = OLD.entity_pk;
-DELETE FROM carbon_locations WHERE entity_id = OLD.entity_pk;
-DELETE FROM carbon_photos WHERE photo_id = OLD.entity_pk;
-DELETE FROM carbon_photos WHERE parent_id = OLD.entity_pk;
-DELETE FROM carbon_photos WHERE user_id = OLD.entity_pk;
-DELETE FROM carbon_user_followers WHERE follower_table_id = OLD.entity_pk;
-DELETE FROM carbon_user_followers WHERE follows_user_id = OLD.entity_pk;
-DELETE FROM carbon_user_followers WHERE user_id = OLD.entity_pk;
-DELETE FROM carbon_user_groups WHERE group_id = OLD.entity_pk;
-DELETE FROM carbon_user_groups WHERE user_id = OLD.entity_pk;
-DELETE FROM carbon_user_messages WHERE from_user_id = OLD.entity_pk;
-DELETE FROM carbon_user_messages WHERE message_id = OLD.entity_pk;
-DELETE FROM carbon_user_messages WHERE to_user_id = OLD.entity_pk;
-DELETE FROM carbon_user_tasks WHERE task_id = OLD.entity_pk;
-DELETE FROM carbon_user_tasks WHERE user_id = OLD.entity_pk;
-DELETE FROM carbon_user_tasks WHERE from_id = OLD.entity_pk;
-DELETE FROM carbon_users WHERE user_id = OLD.entity_pk;
-DELETE FROM carbon_carbons WHERE entity_fk = OLD.entity_pk;
-
-
-END;;
-
-DROP TRIGGER IF EXISTS `trigger_carbons_a_u`;;
-CREATE TRIGGER `trigger_carbons_a_u` AFTER UPDATE ON carbon_carbons FOR EACH ROW
-BEGIN
-
-DECLARE json text;
- SET json = '{';
-SET json = CONCAT(json,'"entity_pk":"', HEX(NEW.entity_pk), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"entity_fk":"', HEX(NEW.entity_fk), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"entity_tag":"', COALESCE(NEW.entity_tag,''), '"');SET json = CONCAT(json, '}');
-      -- Insert record into audit tables
-INSERT INTO carbon_history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbons', NEW.entity_pk , 'PUT', json);
-
-END;;
-
-DROP TRIGGER IF EXISTS `trigger_carbons_a_i`;;
-CREATE TRIGGER `trigger_carbons_a_i` AFTER INSERT ON carbon_carbons FOR EACH ROW
-BEGIN
-
-DECLARE json text;
- SET json = '{';
-SET json = CONCAT(json,'"entity_pk":"', HEX(NEW.entity_pk), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"entity_fk":"', HEX(NEW.entity_fk), '"');
-SET json = CONCAT(json, ',');
-SET json = CONCAT(json,'"entity_tag":"', COALESCE(NEW.entity_tag,''), '"');SET json = CONCAT(json, '}');
-      -- Insert record into audit tables
-INSERT INTO carbon_creation_logs (`uuid`, `resource_type`, `resource_uuid`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbons', NEW.entity_pk);
-INSERT INTO carbon_history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), 'carbons', NEW.entity_pk , 'POST', json);
 
 END;;DROP TRIGGER IF EXISTS `trigger_carbon_features_b_d`;;
 CREATE TRIGGER `trigger_carbon_features_b_d` BEFORE DELETE ON `carbon_features` FOR EACH ROW

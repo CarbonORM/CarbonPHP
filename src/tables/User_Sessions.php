@@ -21,7 +21,7 @@ use function is_array;
 
 /**
  *
- * Class Carbon_Photos
+ * Class User_Sessions
  * @package CarbonPHP\Tables
  * @note Note for convenience, a flag '-prefix' maybe passed to remove table prefixes.
  *  Use '-help' for a full list of options.
@@ -39,30 +39,32 @@ use function is_array;
  * When creating static member functions which require persistent variables, consider making them static members of that 
  *  static method.
  */
-class Carbon_Photos extends Rest implements iRestSinglePrimaryKey
+class User_Sessions extends Rest implements iRestSinglePrimaryKey
 {
     use RestfulValidations;
     
-    public const CLASS_NAME = 'Carbon_Photos';
+    public const CLASS_NAME = 'User_Sessions';
     public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
-    public const TABLE_NAME = 'carbon_photos';
-    public const TABLE_PREFIX = '';
+    public const TABLE_NAME = 'carbon_user_sessions';
+    public const TABLE_PREFIX = 'carbon_';
     
     /**
      * COLUMNS
-     * The columns below are a 1=1 mapping to the columns found in carbon_photos. 
+     * The columns below are a 1=1 mapping to the columns found in carbon_user_sessions. 
      * Changes, shuch as adding or removing a column, SHOULD be made first in the database. The RestBuilder program will 
      * capture any changes made in MySQL and update this file auto-magically. 
     **/
-    public const PARENT_ID = 'carbon_photos.parent_id'; 
+    public const USER_ID = 'carbon_user_sessions.user_id'; 
 
-    public const PHOTO_ID = 'carbon_photos.photo_id'; 
+    public const USER_IP = 'carbon_user_sessions.user_ip'; 
 
-    public const USER_ID = 'carbon_photos.user_id'; 
+    public const SESSION_ID = 'carbon_user_sessions.session_id'; 
 
-    public const PHOTO_PATH = 'carbon_photos.photo_path'; 
+    public const SESSION_EXPIRES = 'carbon_user_sessions.session_expires'; 
 
-    public const PHOTO_DESCRIPTION = 'carbon_photos.photo_description'; 
+    public const SESSION_DATA = 'carbon_user_sessions.session_data'; 
+
+    public const USER_ONLINE_STATUS = 'carbon_user_sessions.user_online_status'; 
 
     /**
      * PRIMARY
@@ -70,7 +72,7 @@ class Carbon_Photos extends Rest implements iRestSinglePrimaryKey
      * given composite primary keys. The existence and amount of primary keys of the will also determine the interface 
      * aka method signatures used.
     **/
-    public const PRIMARY = 'carbon_photos.parent_id';
+    public const PRIMARY = 'carbon_user_sessions.session_id';
 
     /**
      * COLUMNS
@@ -80,11 +82,11 @@ class Carbon_Photos extends Rest implements iRestSinglePrimaryKey
      *      $return[self::COLUMNS[self::EXAMPLE_COLUMN_ONE]]
     **/ 
     public const COLUMNS = [
-        'carbon_photos.parent_id' => 'parent_id','carbon_photos.photo_id' => 'photo_id','carbon_photos.user_id' => 'user_id','carbon_photos.photo_path' => 'photo_path','carbon_photos.photo_description' => 'photo_description',
+        'carbon_user_sessions.user_id' => 'user_id','carbon_user_sessions.user_ip' => 'user_ip','carbon_user_sessions.session_id' => 'session_id','carbon_user_sessions.session_expires' => 'session_expires','carbon_user_sessions.session_data' => 'session_data','carbon_user_sessions.user_online_status' => 'user_online_status',
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_photos.parent_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_photos.photo_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_photos.user_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_photos.photo_path' => ['varchar', 'PDO::PARAM_STR', '225'],'carbon_photos.photo_description' => ['text,', 'PDO::PARAM_STR', ''],
+        'carbon_user_sessions.user_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_sessions.user_ip' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_sessions.session_id' => ['varchar', 'PDO::PARAM_STR', '255'],'carbon_user_sessions.session_expires' => ['datetime', 'PDO::PARAM_STR', ''],'carbon_user_sessions.session_data' => ['text,', 'PDO::PARAM_STR', ''],'carbon_user_sessions.user_online_status' => ['tinyint', 'PDO::PARAM_INT', '1'],
     ];
      
     /**
@@ -225,11 +227,20 @@ class Carbon_Photos extends Rest implements iRestSinglePrimaryKey
      */
  
     public const PHP_VALIDATION = [ 
-        [self::DISALLOW_PUBLIC_ACCESS],
-        self::GET => [ self::DISALLOW_PUBLIC_ACCESS ],    
-        self::POST => [ self::DISALLOW_PUBLIC_ACCESS ],    
-        self::PUT => [ self::DISALLOW_PUBLIC_ACCESS ],    
-        self::DELETE => [ self::DISALLOW_PUBLIC_ACCESS ],    
+        self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
+            self::PREPROCESS => [ 
+                [self::class => 'disallowPublicAccess', self::class],
+            ]
+        ],
+        self::GET => [ 
+            self::PREPROCESS => [ 
+                [self::class => 'disallowPublicAccess', self::class],
+            ]
+        ],    
+        self::POST => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
+        self::PUT => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
+        self::DELETE => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],
+        self::REST_REQUEST_FINNISH_CALLBACKS => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]]    
     ]; 
    
     /**
@@ -237,18 +248,14 @@ class Carbon_Photos extends Rest implements iRestSinglePrimaryKey
      * the RestBuilder program.
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
-    CREATE TABLE `carbon_photos` (
-  `parent_id` binary(16) NOT NULL,
-  `photo_id` binary(16) NOT NULL,
+    CREATE TABLE `carbon_user_sessions` (
   `user_id` binary(16) NOT NULL,
-  `photo_path` varchar(225) NOT NULL,
-  `photo_description` text,
-  PRIMARY KEY (`parent_id`),
-  UNIQUE KEY `entity_photos_photo_id_uindex` (`photo_id`),
-  KEY `photos_entity_user_pk_fk` (`user_id`),
-  CONSTRAINT `entity_photos_entity_entity_pk_fk` FOREIGN KEY (`photo_id`) REFERENCES carbon_carbons (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `photos_entity_entity_pk_fk` FOREIGN KEY (`parent_id`) REFERENCES carbon_carbons (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `photos_entity_user_pk_fk` FOREIGN KEY (`user_id`) REFERENCES carbon_carbons (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+  `user_ip` binary(16) DEFAULT NULL,
+  `session_id` varchar(255) NOT NULL,
+  `session_expires` datetime NOT NULL,
+  `session_data` text,
+  `user_online_status` tinyint(1) DEFAULT '1',
+  PRIMARY KEY (`session_id`)
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 MYSQL;
    
@@ -395,8 +402,13 @@ MYSQL;
             }
         } 
         
-        $sql = 'INSERT INTO carbon_photos (parent_id, photo_id, user_id, photo_path, photo_description) VALUES ( UNHEX(:parent_id), UNHEX(:photo_id), UNHEX(:user_id), :photo_path, :photo_description)';
+        $sql = 'INSERT INTO carbon_user_sessions (user_id, user_ip, session_id, session_expires, session_data, user_online_status) VALUES ( UNHEX(:user_id), UNHEX(:user_ip), :session_id, :session_expires, :session_data, :user_online_status)';
 
+        $pdo = self::database();
+        
+        if (!$pdo->inTransaction()) {
+            $pdo->beginTransaction();
+        }
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -404,78 +416,80 @@ MYSQL;
 
         $stmt = self::database()->prepare($sql);
         
-        $parent_id = $id = $data['carbon_photos.parent_id'] ?? false;
-        if ($id === false) {
-            $parent_id = $id = self::beginTransaction(self::class, $data[self::DEPENDANT_ON_ENTITY] ?? null);
-        } else {
-            $ref='carbon_photos.parent_id';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::POST, $ref, $op, $parent_id)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_photos.parent_id\'.');
-            }            
+        if (!array_key_exists('carbon_user_sessions.user_id', $data)) {
+            return self::signalError('Required argument "carbon_user_sessions.user_id" is missing from the request.');
         }
-        $stmt->bindParam(':parent_id',$parent_id, PDO::PARAM_STR, 16);
-        
-        if (!array_key_exists('carbon_photos.photo_id', $data)) {
-            return self::signalError('Required argument "carbon_photos.photo_id" is missing from the request.');
-        }
-        $photo_id = $data['carbon_photos.photo_id'];
-        $ref='carbon_photos.photo_id';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $photo_id)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_photos.photo_id\'.');
-        }
-        $stmt->bindParam(':photo_id',$photo_id, PDO::PARAM_STR, 16);
-        
-        if (!array_key_exists('carbon_photos.user_id', $data)) {
-            return self::signalError('Required argument "carbon_photos.user_id" is missing from the request.');
-        }
-        $user_id = $data['carbon_photos.user_id'];
-        $ref='carbon_photos.user_id';
+        $user_id = $data['carbon_user_sessions.user_id'];
+        $ref='carbon_user_sessions.user_id';
         $op = self::EQUAL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $user_id)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_photos.user_id\'.');
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.user_id\'.');
         }
         $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
         
-        if (!array_key_exists('carbon_photos.photo_path', $data)) {
-            return self::signalError('Required argument "carbon_photos.photo_path" is missing from the request.');
-        }
-        $photo_path = $data['carbon_photos.photo_path'];
-        $ref='carbon_photos.photo_path';
+        $user_ip = $data['carbon_user_sessions.user_ip'] ?? null;
+        $ref='carbon_user_sessions.user_ip';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $photo_path)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_photos.photo_path\'.');
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $user_ip, $user_ip === null)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.user_ip\'.');
         }
-        $stmt->bindParam(':photo_path',$photo_path, PDO::PARAM_STR, 225);
+        $stmt->bindParam(':user_ip',$user_ip, PDO::PARAM_STR, 16);
         
-        if (!array_key_exists('carbon_photos.photo_description', $data)) {
-            return self::signalError('The column \'carbon_photos.photo_description\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
-        } 
-        $ref='carbon_photos.photo_description';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $data['photo_description'])) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_photos.photo_description\'.');
+        if (!array_key_exists('carbon_user_sessions.session_id', $data)) {
+            return self::signalError('Required argument "carbon_user_sessions.session_id" is missing from the request.');
         }
-        $stmt->bindValue(':photo_description', $data['carbon_photos.photo_description'], PDO::PARAM_STR);
+        $session_id = $data['carbon_user_sessions.session_id'];
+        $ref='carbon_user_sessions.session_id';
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $session_id)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.session_id\'.');
+        }
+        $stmt->bindParam(':session_id',$session_id, PDO::PARAM_STR, 255);
+        
+        if (!array_key_exists('carbon_user_sessions.session_expires', $data)) {
+            return self::signalError('The column \'carbon_user_sessions.session_expires\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
+        } 
+        $ref='carbon_user_sessions.session_expires';
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $data['session_expires'])) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.session_expires\'.');
+        }
+        $stmt->bindValue(':session_expires', $data['carbon_user_sessions.session_expires'], PDO::PARAM_STR);
+        
+        if (!array_key_exists('carbon_user_sessions.session_data', $data)) {
+            return self::signalError('The column \'carbon_user_sessions.session_data\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
+        } 
+        $ref='carbon_user_sessions.session_data';
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $data['session_data'])) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.session_data\'.');
+        }
+        $stmt->bindValue(':session_data', $data['carbon_user_sessions.session_data'], PDO::PARAM_STR);
+        
+        $user_online_status = $data['carbon_user_sessions.user_online_status'] ?? '1';
+        $ref='carbon_user_sessions.user_online_status';
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $user_online_status, $user_online_status === '1')) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.user_online_status\'.');
+        }
+        $stmt->bindParam(':user_online_status',$user_online_status, PDO::PARAM_INT, 1);
         
         if (!$stmt->execute()) {
             self::completeRest();
             return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }
         
-        self::prepostprocessRestRequest($id);
-         
+        self::prepostprocessRestRequest();
+        
         if (self::$commit && !Database::commit()) {
-           return self::signalError('Failed to store commit transaction on table carbon_photos');
-        } 
-         
-        self::postprocessRestRequest($id); 
-         
+            return self::signalError('Failed to store commit transaction on table carbon_user_sessions');
+        }
+        
+        self::postprocessRestRequest();
+        
         self::completeRest();
         
-        return $id; 
-        
+        return true;  
     }
     
     /**
@@ -527,29 +541,32 @@ MYSQL;
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_photos.\'.');
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.\'.');
             }
         }
         unset($value);
 
-        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_photos SET '; // intellij cant handle this otherwise
+        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_user_sessions SET '; // intellij cant handle this otherwise
 
         $set = '';
 
-        if (array_key_exists('carbon_photos.parent_id', $argv)) {
-            $set .= 'parent_id=UNHEX(:parent_id),';
-        }
-        if (array_key_exists('carbon_photos.photo_id', $argv)) {
-            $set .= 'photo_id=UNHEX(:photo_id),';
-        }
-        if (array_key_exists('carbon_photos.user_id', $argv)) {
+        if (array_key_exists('carbon_user_sessions.user_id', $argv)) {
             $set .= 'user_id=UNHEX(:user_id),';
         }
-        if (array_key_exists('carbon_photos.photo_path', $argv)) {
-            $set .= 'photo_path=:photo_path,';
+        if (array_key_exists('carbon_user_sessions.user_ip', $argv)) {
+            $set .= 'user_ip=UNHEX(:user_ip),';
         }
-        if (array_key_exists('carbon_photos.photo_description', $argv)) {
-            $set .= 'photo_description=:photo_description,';
+        if (array_key_exists('carbon_user_sessions.session_id', $argv)) {
+            $set .= 'session_id=:session_id,';
+        }
+        if (array_key_exists('carbon_user_sessions.session_expires', $argv)) {
+            $set .= 'session_expires=:session_expires,';
+        }
+        if (array_key_exists('carbon_user_sessions.session_data', $argv)) {
+            $set .= 'session_data=:session_data,';
+        }
+        if (array_key_exists('carbon_user_sessions.user_online_status', $argv)) {
+            $set .= 'user_online_status=:user_online_status,';
         }
         
         $sql .= substr($set, 0, -1);
@@ -570,44 +587,47 @@ MYSQL;
 
         $stmt = $pdo->prepare($sql);
 
-        if (array_key_exists('carbon_photos.parent_id', $argv)) { 
-            $parent_id = $argv['carbon_photos.parent_id'];
-            $ref = 'carbon_photos.parent_id';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $parent_id)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'parent_id\'.');
-            }
-            $stmt->bindParam(':parent_id',$parent_id, PDO::PARAM_STR, 16);
-        }
-        if (array_key_exists('carbon_photos.photo_id', $argv)) { 
-            $photo_id = $argv['carbon_photos.photo_id'];
-            $ref = 'carbon_photos.photo_id';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $photo_id)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'photo_id\'.');
-            }
-            $stmt->bindParam(':photo_id',$photo_id, PDO::PARAM_STR, 16);
-        }
-        if (array_key_exists('carbon_photos.user_id', $argv)) { 
-            $user_id = $argv['carbon_photos.user_id'];
-            $ref = 'carbon_photos.user_id';
+        if (array_key_exists('carbon_user_sessions.user_id', $argv)) { 
+            $user_id = $argv['carbon_user_sessions.user_id'];
+            $ref = 'carbon_user_sessions.user_id';
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_id)) {
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'user_id\'.');
             }
             $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
         }
-        if (array_key_exists('carbon_photos.photo_path', $argv)) { 
-            $photo_path = $argv['carbon_photos.photo_path'];
-            $ref = 'carbon_photos.photo_path';
+        if (array_key_exists('carbon_user_sessions.user_ip', $argv)) { 
+            $user_ip = $argv['carbon_user_sessions.user_ip'];
+            $ref = 'carbon_user_sessions.user_ip';
             $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $photo_path)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'photo_path\'.');
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_ip)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'user_ip\'.');
             }
-            $stmt->bindParam(':photo_path',$photo_path, PDO::PARAM_STR, 225);
+            $stmt->bindParam(':user_ip',$user_ip, PDO::PARAM_STR, 16);
         }
-        if (array_key_exists('carbon_photos.photo_description', $argv)) { 
-            $stmt->bindValue(':photo_description',$argv['carbon_photos.photo_description'], PDO::PARAM_STR);
+        if (array_key_exists('carbon_user_sessions.session_id', $argv)) { 
+            $session_id = $argv['carbon_user_sessions.session_id'];
+            $ref = 'carbon_user_sessions.session_id';
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $session_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'session_id\'.');
+            }
+            $stmt->bindParam(':session_id',$session_id, PDO::PARAM_STR, 255);
+        }
+        if (array_key_exists('carbon_user_sessions.session_expires', $argv)) { 
+            $stmt->bindValue(':session_expires',$argv['carbon_user_sessions.session_expires'], PDO::PARAM_STR);
+        }
+        if (array_key_exists('carbon_user_sessions.session_data', $argv)) { 
+            $stmt->bindValue(':session_data',$argv['carbon_user_sessions.session_data'], PDO::PARAM_STR);
+        }
+        if (array_key_exists('carbon_user_sessions.user_online_status', $argv)) { 
+            $user_online_status = $argv['carbon_user_sessions.user_online_status'];
+            $ref = 'carbon_user_sessions.user_online_status';
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_online_status)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'user_online_status\'.');
+            }
+            $stmt->bindParam(':user_online_status',$user_online_status, PDO::PARAM_INT, 1);
         }
         
         self::bind($stmt);
@@ -623,7 +643,7 @@ MYSQL;
         
         $argv = array_combine(
             array_map(
-                static fn($k) => str_replace('carbon_photos.', '', $k),
+                static fn($k) => str_replace('carbon_user_sessions.', '', $k),
                 array_keys($argv)
             ),
             array_values($argv)
@@ -634,7 +654,7 @@ MYSQL;
         self::prepostprocessRestRequest($returnUpdated);
         
         if (self::$commit && !Database::commit()) {
-            return self::signalError('Failed to store commit transaction on table carbon_photos');
+            return self::signalError('Failed to store commit transaction on table carbon_user_sessions');
         }
         
         self::postprocessRestRequest($returnUpdated);
@@ -661,20 +681,26 @@ MYSQL;
         
         $emptyPrimary = null === $primary || '' === $primary;
         
+        $sql =  /** @lang MySQLFragment */ 'DELETE FROM carbon_user_sessions ';
+        
+        if (false === self::$allowFullTableDeletes && $emptyPrimary && empty($argv)) {
+            return self::signalError('When deleting from restful tables a primary key or where query must be provided. This can be disabled by setting `self::$allowFullTableUpdates = true;` during the PREPROCESS events, or just directly before this request.');
+        }
+        
         if (!$emptyPrimary) {
-            return Carbons::Delete($remove, $primary, $argv);
-        }
-
-        if (false === self::$allowFullTableDeletes && empty($argv)) {
-            return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
+            $argv[self::PRIMARY] = $primary;
         }
         
-        $sql = 'DELETE c FROM carbon_carbons c 
-                JOIN carbon_photos on c.entity_pk = carbon_photos.parent_id';
-
+        $where = self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
         
-        if (false === self::$allowFullTableDeletes || !empty($argv)) {
-            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
+        $emptyWhere = empty($where);
+        
+        if ($emptyWhere && false === self::$allowFullTableDeletes) {
+            return self::signalError('The where condition provided appears invalid.');
+        }
+
+        if (!$emptyWhere) {
+            $sql .= ' WHERE ' . $where;
         }
         
         if (!$pdo->inTransaction()) {
@@ -699,7 +725,7 @@ MYSQL;
         self::prepostprocessRestRequest($remove);
         
         if (self::$commit && !Database::commit()) {
-           return self::signalError('Failed to store commit transaction on table carbon_photos');
+           return self::signalError('Failed to store commit transaction on table carbon_user_sessions');
         }
         
         self::postprocessRestRequest($remove);

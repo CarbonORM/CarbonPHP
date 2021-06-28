@@ -21,7 +21,7 @@ use function is_array;
 
 /**
  *
- * Class Carbon_Locations
+ * Class Groups
  * @package CarbonPHP\Tables
  * @note Note for convenience, a flag '-prefix' maybe passed to remove table prefixes.
  *  Use '-help' for a full list of options.
@@ -39,36 +39,28 @@ use function is_array;
  * When creating static member functions which require persistent variables, consider making them static members of that 
  *  static method.
  */
-class Carbon_Locations extends Rest implements iRestSinglePrimaryKey
+class Groups extends Rest implements iRestSinglePrimaryKey
 {
     use RestfulValidations;
     
-    public const CLASS_NAME = 'Carbon_Locations';
+    public const CLASS_NAME = 'Groups';
     public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
-    public const TABLE_NAME = 'carbon_locations';
-    public const TABLE_PREFIX = '';
+    public const TABLE_NAME = 'carbon_groups';
+    public const TABLE_PREFIX = 'carbon_';
     
     /**
      * COLUMNS
-     * The columns below are a 1=1 mapping to the columns found in carbon_locations. 
+     * The columns below are a 1=1 mapping to the columns found in carbon_groups. 
      * Changes, shuch as adding or removing a column, SHOULD be made first in the database. The RestBuilder program will 
      * capture any changes made in MySQL and update this file auto-magically. 
     **/
-    public const ENTITY_ID = 'carbon_locations.entity_id'; 
+    public const GROUP_NAME = 'carbon_groups.group_name'; 
 
-    public const LATITUDE = 'carbon_locations.latitude'; 
+    public const ENTITY_ID = 'carbon_groups.entity_id'; 
 
-    public const LONGITUDE = 'carbon_locations.longitude'; 
+    public const CREATED_BY = 'carbon_groups.created_by'; 
 
-    public const STREET = 'carbon_locations.street'; 
-
-    public const CITY = 'carbon_locations.city'; 
-
-    public const STATE = 'carbon_locations.state'; 
-
-    public const ELEVATION = 'carbon_locations.elevation'; 
-
-    public const ZIP = 'carbon_locations.zip'; 
+    public const CREATION_DATE = 'carbon_groups.creation_date'; 
 
     /**
      * PRIMARY
@@ -76,7 +68,7 @@ class Carbon_Locations extends Rest implements iRestSinglePrimaryKey
      * given composite primary keys. The existence and amount of primary keys of the will also determine the interface 
      * aka method signatures used.
     **/
-    public const PRIMARY = 'carbon_locations.entity_id';
+    public const PRIMARY = 'carbon_groups.entity_id';
 
     /**
      * COLUMNS
@@ -86,11 +78,11 @@ class Carbon_Locations extends Rest implements iRestSinglePrimaryKey
      *      $return[self::COLUMNS[self::EXAMPLE_COLUMN_ONE]]
     **/ 
     public const COLUMNS = [
-        'carbon_locations.entity_id' => 'entity_id','carbon_locations.latitude' => 'latitude','carbon_locations.longitude' => 'longitude','carbon_locations.street' => 'street','carbon_locations.city' => 'city','carbon_locations.state' => 'state','carbon_locations.elevation' => 'elevation','carbon_locations.zip' => 'zip',
+        'carbon_groups.group_name' => 'group_name','carbon_groups.entity_id' => 'entity_id','carbon_groups.created_by' => 'created_by','carbon_groups.creation_date' => 'creation_date',
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_locations.entity_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_locations.latitude' => ['varchar', 'PDO::PARAM_STR', '225'],'carbon_locations.longitude' => ['varchar', 'PDO::PARAM_STR', '225'],'carbon_locations.street' => ['varchar', 'PDO::PARAM_STR', '225'],'carbon_locations.city' => ['varchar', 'PDO::PARAM_STR', '40'],'carbon_locations.state' => ['varchar', 'PDO::PARAM_STR', '10'],'carbon_locations.elevation' => ['varchar', 'PDO::PARAM_STR', '40'],'carbon_locations.zip' => ['int', 'PDO::PARAM_INT', ''],
+        'carbon_groups.group_name' => ['varchar', 'PDO::PARAM_STR', '20'],'carbon_groups.entity_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_groups.created_by' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_groups.creation_date' => ['datetime', 'PDO::PARAM_STR', ''],
     ];
      
     /**
@@ -231,11 +223,20 @@ class Carbon_Locations extends Rest implements iRestSinglePrimaryKey
      */
  
     public const PHP_VALIDATION = [ 
-        [self::DISALLOW_PUBLIC_ACCESS],
-        self::GET => [ self::DISALLOW_PUBLIC_ACCESS ],    
-        self::POST => [ self::DISALLOW_PUBLIC_ACCESS ],    
-        self::PUT => [ self::DISALLOW_PUBLIC_ACCESS ],    
-        self::DELETE => [ self::DISALLOW_PUBLIC_ACCESS ],    
+        self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
+            self::PREPROCESS => [ 
+                [self::class => 'disallowPublicAccess', self::class],
+            ]
+        ],
+        self::GET => [ 
+            self::PREPROCESS => [ 
+                [self::class => 'disallowPublicAccess', self::class],
+            ]
+        ],    
+        self::POST => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
+        self::PUT => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
+        self::DELETE => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],
+        self::REST_REQUEST_FINNISH_CALLBACKS => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]]    
     ]; 
    
     /**
@@ -243,18 +244,15 @@ class Carbon_Locations extends Rest implements iRestSinglePrimaryKey
      * the RestBuilder program.
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
-    CREATE TABLE `carbon_locations` (
+    CREATE TABLE `carbon_groups` (
+  `group_name` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `entity_id` binary(16) NOT NULL,
-  `latitude` varchar(225) DEFAULT NULL,
-  `longitude` varchar(225) DEFAULT NULL,
-  `street` varchar(225) DEFAULT NULL,
-  `city` varchar(40) DEFAULT NULL,
-  `state` varchar(10) DEFAULT NULL,
-  `elevation` varchar(40) DEFAULT NULL,
-  `zip` int DEFAULT NULL,
+  `created_by` binary(16) NOT NULL,
+  `creation_date` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`entity_id`),
-  UNIQUE KEY `entity_location_entity_id_uindex` (`entity_id`),
-  CONSTRAINT `entity_location_entity_entity_pk_fk` FOREIGN KEY (`entity_id`) REFERENCES carbon_carbons (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+  KEY `carbon_feature_groups_carbons_entity_pk_fk_2` (`created_by`),
+  CONSTRAINT `carbon_feature_groups_carbons_entity_pk_fk` FOREIGN KEY (`entity_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `carbon_feature_groups_carbons_entity_pk_fk_2` FOREIGN KEY (`created_by`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 MYSQL;
    
@@ -401,7 +399,7 @@ MYSQL;
             }
         } 
         
-        $sql = 'INSERT INTO carbon_locations (entity_id, latitude, longitude, street, city, state, elevation, zip) VALUES ( UNHEX(:entity_id), :latitude, :longitude, :street, :city, :state, :elevation, :zip)';
+        $sql = 'INSERT INTO carbon_groups (group_name, entity_id, created_by) VALUES ( :group_name, UNHEX(:entity_id), UNHEX(:created_by))';
 
 
         self::jsonSQLReporting(func_get_args(), $sql);
@@ -410,73 +408,43 @@ MYSQL;
 
         $stmt = self::database()->prepare($sql);
         
-        $entity_id = $id = $data['carbon_locations.entity_id'] ?? false;
+        if (!array_key_exists('carbon_groups.group_name', $data)) {
+            return self::signalError('Required argument "carbon_groups.group_name" is missing from the request.');
+        }
+        $group_name = $data['carbon_groups.group_name'];
+        $ref='carbon_groups.group_name';
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $group_name)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_groups.group_name\'.');
+        }
+        $stmt->bindParam(':group_name',$group_name, PDO::PARAM_STR, 20);
+        
+        $entity_id = $id = $data['carbon_groups.entity_id'] ?? false;
         if ($id === false) {
-            $entity_id = $id = self::beginTransaction(self::class, $data[self::DEPENDANT_ON_ENTITY] ?? null);
+             $entity_id = $id = self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
         } else {
-            $ref='carbon_locations.entity_id';
+            $ref='carbon_groups.entity_id';
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::POST, $ref, $op, $entity_id)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_locations.entity_id\'.');
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_groups.entity_id\'.');
             }            
         }
         $stmt->bindParam(':entity_id',$entity_id, PDO::PARAM_STR, 16);
         
-        $latitude = $data['carbon_locations.latitude'] ?? null;
-        $ref='carbon_locations.latitude';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $latitude, $latitude === null)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_locations.latitude\'.');
+        if (!array_key_exists('carbon_groups.created_by', $data)) {
+            return self::signalError('Required argument "carbon_groups.created_by" is missing from the request.');
         }
-        $stmt->bindParam(':latitude',$latitude, PDO::PARAM_STR, 225);
+        $created_by = $data['carbon_groups.created_by'];
+        $ref='carbon_groups.created_by';
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $created_by)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_groups.created_by\'.');
+        }
+        $stmt->bindParam(':created_by',$created_by, PDO::PARAM_STR, 16);
         
-        $longitude = $data['carbon_locations.longitude'] ?? null;
-        $ref='carbon_locations.longitude';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $longitude, $longitude === null)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_locations.longitude\'.');
+        if (array_key_exists('carbon_groups.creation_date', $data)) {
+            return self::signalError('The column \'carbon_groups.creation_date\' is set to default to CURRENT_TIMESTAMP. The Rest API does not allow POST requests with columns explicitly set whose default is CURRENT_TIMESTAMP. You can remove to the default in MySQL or the column \'carbon_groups.creation_date\' from the request.');
         }
-        $stmt->bindParam(':longitude',$longitude, PDO::PARAM_STR, 225);
-        
-        $street = $data['carbon_locations.street'] ?? null;
-        $ref='carbon_locations.street';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $street, $street === null)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_locations.street\'.');
-        }
-        $stmt->bindParam(':street',$street, PDO::PARAM_STR, 225);
-        
-        $city = $data['carbon_locations.city'] ?? null;
-        $ref='carbon_locations.city';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $city, $city === null)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_locations.city\'.');
-        }
-        $stmt->bindParam(':city',$city, PDO::PARAM_STR, 40);
-        
-        $state = $data['carbon_locations.state'] ?? null;
-        $ref='carbon_locations.state';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $state, $state === null)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_locations.state\'.');
-        }
-        $stmt->bindParam(':state',$state, PDO::PARAM_STR, 10);
-        
-        $elevation = $data['carbon_locations.elevation'] ?? null;
-        $ref='carbon_locations.elevation';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $elevation, $elevation === null)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_locations.elevation\'.');
-        }
-        $stmt->bindParam(':elevation',$elevation, PDO::PARAM_STR, 40);
-                 
-        $zip = $data['carbon_locations.zip'] ?? null;
-        $ref='carbon_locations.zip';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $zip, $zip === null)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_locations.zip\'.');
-        }
-        $stmt->bindValue(':zip', $zip, PDO::PARAM_INT);
         
         if (!$stmt->execute()) {
             self::completeRest();
@@ -486,7 +454,7 @@ MYSQL;
         self::prepostprocessRestRequest($id);
          
         if (self::$commit && !Database::commit()) {
-           return self::signalError('Failed to store commit transaction on table carbon_locations');
+           return self::signalError('Failed to store commit transaction on table carbon_groups');
         } 
          
         self::postprocessRestRequest($id); 
@@ -546,38 +514,26 @@ MYSQL;
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_locations.\'.');
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_groups.\'.');
             }
         }
         unset($value);
 
-        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_locations SET '; // intellij cant handle this otherwise
+        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_groups SET '; // intellij cant handle this otherwise
 
         $set = '';
 
-        if (array_key_exists('carbon_locations.entity_id', $argv)) {
+        if (array_key_exists('carbon_groups.group_name', $argv)) {
+            $set .= 'group_name=:group_name,';
+        }
+        if (array_key_exists('carbon_groups.entity_id', $argv)) {
             $set .= 'entity_id=UNHEX(:entity_id),';
         }
-        if (array_key_exists('carbon_locations.latitude', $argv)) {
-            $set .= 'latitude=:latitude,';
+        if (array_key_exists('carbon_groups.created_by', $argv)) {
+            $set .= 'created_by=UNHEX(:created_by),';
         }
-        if (array_key_exists('carbon_locations.longitude', $argv)) {
-            $set .= 'longitude=:longitude,';
-        }
-        if (array_key_exists('carbon_locations.street', $argv)) {
-            $set .= 'street=:street,';
-        }
-        if (array_key_exists('carbon_locations.city', $argv)) {
-            $set .= 'city=:city,';
-        }
-        if (array_key_exists('carbon_locations.state', $argv)) {
-            $set .= 'state=:state,';
-        }
-        if (array_key_exists('carbon_locations.elevation', $argv)) {
-            $set .= 'elevation=:elevation,';
-        }
-        if (array_key_exists('carbon_locations.zip', $argv)) {
-            $set .= 'zip=:zip,';
+        if (array_key_exists('carbon_groups.creation_date', $argv)) {
+            $set .= 'creation_date=:creation_date,';
         }
         
         $sql .= substr($set, 0, -1);
@@ -598,71 +554,35 @@ MYSQL;
 
         $stmt = $pdo->prepare($sql);
 
-        if (array_key_exists('carbon_locations.entity_id', $argv)) { 
-            $entity_id = $argv['carbon_locations.entity_id'];
-            $ref = 'carbon_locations.entity_id';
+        if (array_key_exists('carbon_groups.group_name', $argv)) { 
+            $group_name = $argv['carbon_groups.group_name'];
+            $ref = 'carbon_groups.group_name';
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $group_name)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'group_name\'.');
+            }
+            $stmt->bindParam(':group_name',$group_name, PDO::PARAM_STR, 20);
+        }
+        if (array_key_exists('carbon_groups.entity_id', $argv)) { 
+            $entity_id = $argv['carbon_groups.entity_id'];
+            $ref = 'carbon_groups.entity_id';
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $ref, $op, $entity_id)) {
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'entity_id\'.');
             }
             $stmt->bindParam(':entity_id',$entity_id, PDO::PARAM_STR, 16);
         }
-        if (array_key_exists('carbon_locations.latitude', $argv)) { 
-            $latitude = $argv['carbon_locations.latitude'];
-            $ref = 'carbon_locations.latitude';
+        if (array_key_exists('carbon_groups.created_by', $argv)) { 
+            $created_by = $argv['carbon_groups.created_by'];
+            $ref = 'carbon_groups.created_by';
             $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $latitude)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'latitude\'.');
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $created_by)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'created_by\'.');
             }
-            $stmt->bindParam(':latitude',$latitude, PDO::PARAM_STR, 225);
+            $stmt->bindParam(':created_by',$created_by, PDO::PARAM_STR, 16);
         }
-        if (array_key_exists('carbon_locations.longitude', $argv)) { 
-            $longitude = $argv['carbon_locations.longitude'];
-            $ref = 'carbon_locations.longitude';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $longitude)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'longitude\'.');
-            }
-            $stmt->bindParam(':longitude',$longitude, PDO::PARAM_STR, 225);
-        }
-        if (array_key_exists('carbon_locations.street', $argv)) { 
-            $street = $argv['carbon_locations.street'];
-            $ref = 'carbon_locations.street';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $street)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'street\'.');
-            }
-            $stmt->bindParam(':street',$street, PDO::PARAM_STR, 225);
-        }
-        if (array_key_exists('carbon_locations.city', $argv)) { 
-            $city = $argv['carbon_locations.city'];
-            $ref = 'carbon_locations.city';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $city)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'city\'.');
-            }
-            $stmt->bindParam(':city',$city, PDO::PARAM_STR, 40);
-        }
-        if (array_key_exists('carbon_locations.state', $argv)) { 
-            $state = $argv['carbon_locations.state'];
-            $ref = 'carbon_locations.state';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $state)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'state\'.');
-            }
-            $stmt->bindParam(':state',$state, PDO::PARAM_STR, 10);
-        }
-        if (array_key_exists('carbon_locations.elevation', $argv)) { 
-            $elevation = $argv['carbon_locations.elevation'];
-            $ref = 'carbon_locations.elevation';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $elevation)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'elevation\'.');
-            }
-            $stmt->bindParam(':elevation',$elevation, PDO::PARAM_STR, 40);
-        }
-        if (array_key_exists('carbon_locations.zip', $argv)) { 
-            $stmt->bindValue(':zip',$argv['carbon_locations.zip'], PDO::PARAM_INT);
+        if (array_key_exists('carbon_groups.creation_date', $argv)) { 
+            $stmt->bindValue(':creation_date',$argv['carbon_groups.creation_date'], PDO::PARAM_STR);
         }
         
         self::bind($stmt);
@@ -678,7 +598,7 @@ MYSQL;
         
         $argv = array_combine(
             array_map(
-                static fn($k) => str_replace('carbon_locations.', '', $k),
+                static fn($k) => str_replace('carbon_groups.', '', $k),
                 array_keys($argv)
             ),
             array_values($argv)
@@ -689,7 +609,7 @@ MYSQL;
         self::prepostprocessRestRequest($returnUpdated);
         
         if (self::$commit && !Database::commit()) {
-            return self::signalError('Failed to store commit transaction on table carbon_locations');
+            return self::signalError('Failed to store commit transaction on table carbon_groups');
         }
         
         self::postprocessRestRequest($returnUpdated);
@@ -716,20 +636,26 @@ MYSQL;
         
         $emptyPrimary = null === $primary || '' === $primary;
         
+        $sql =  /** @lang MySQLFragment */ 'DELETE FROM carbon_groups ';
+        
+        if (false === self::$allowFullTableDeletes && $emptyPrimary && empty($argv)) {
+            return self::signalError('When deleting from restful tables a primary key or where query must be provided. This can be disabled by setting `self::$allowFullTableUpdates = true;` during the PREPROCESS events, or just directly before this request.');
+        }
+        
         if (!$emptyPrimary) {
-            return Carbons::Delete($remove, $primary, $argv);
-        }
-
-        if (false === self::$allowFullTableDeletes && empty($argv)) {
-            return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
+            $argv[self::PRIMARY] = $primary;
         }
         
-        $sql = 'DELETE c FROM carbon_carbons c 
-                JOIN carbon_locations on c.entity_pk = carbon_locations.entity_id';
-
+        $where = self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
         
-        if (false === self::$allowFullTableDeletes || !empty($argv)) {
-            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
+        $emptyWhere = empty($where);
+        
+        if ($emptyWhere && false === self::$allowFullTableDeletes) {
+            return self::signalError('The where condition provided appears invalid.');
+        }
+
+        if (!$emptyWhere) {
+            $sql .= ' WHERE ' . $where;
         }
         
         if (!$pdo->inTransaction()) {
@@ -754,7 +680,7 @@ MYSQL;
         self::prepostprocessRestRequest($remove);
         
         if (self::$commit && !Database::commit()) {
-           return self::signalError('Failed to store commit transaction on table carbon_locations');
+           return self::signalError('Failed to store commit transaction on table carbon_groups');
         }
         
         self::postprocessRestRequest($remove);
