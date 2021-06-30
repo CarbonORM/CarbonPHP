@@ -47,6 +47,7 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
     public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
     public const TABLE_NAME = 'carbon_history_logs';
     public const TABLE_PREFIX = 'carbon_';
+    public const DIRECTORY = __DIR__ . DIRECTORY_SEPARATOR;
     
     /**
      * COLUMNS
@@ -54,15 +55,19 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
      * Changes, shuch as adding or removing a column, SHOULD be made first in the database. The RestBuilder program will 
      * capture any changes made in MySQL and update this file auto-magically. 
     **/
-    public const UUID = 'carbon_history_logs.uuid'; 
+    public const HISTORY_UUID = 'carbon_history_logs.history_uuid'; 
 
-    public const RESOURCE_TYPE = 'carbon_history_logs.resource_type'; 
+    public const HISTORY_TABLE = 'carbon_history_logs.history_table'; 
 
-    public const RESOURCE_UUID = 'carbon_history_logs.resource_uuid'; 
+    public const HISTORY_TYPE = 'carbon_history_logs.history_type'; 
 
-    public const OPERATION_TYPE = 'carbon_history_logs.operation_type'; 
+    public const HISTORY_DATA = 'carbon_history_logs.history_data'; 
 
-    public const DATA = 'carbon_history_logs.data'; 
+    public const HISTORY_ORIGINAL_QUERY = 'carbon_history_logs.history_original_query'; 
+
+    public const HISTORY_PRIMARY = 'carbon_history_logs.history_primary'; 
+
+    public const HISTORY_TIME = 'carbon_history_logs.history_time'; 
 
     /**
      * PRIMARY
@@ -80,11 +85,11 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
      *      $return[self::COLUMNS[self::EXAMPLE_COLUMN_ONE]]
     **/ 
     public const COLUMNS = [
-        'carbon_history_logs.uuid' => 'uuid','carbon_history_logs.resource_type' => 'resource_type','carbon_history_logs.resource_uuid' => 'resource_uuid','carbon_history_logs.operation_type' => 'operation_type','carbon_history_logs.data' => 'data',
+        'carbon_history_logs.history_uuid' => 'history_uuid','carbon_history_logs.history_table' => 'history_table','carbon_history_logs.history_type' => 'history_type','carbon_history_logs.history_data' => 'history_data','carbon_history_logs.history_original_query' => 'history_original_query','carbon_history_logs.history_primary' => 'history_primary','carbon_history_logs.history_time' => 'history_time',
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_history_logs.uuid' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_history_logs.resource_type' => ['varchar', 'PDO::PARAM_STR', '40'],'carbon_history_logs.resource_uuid' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_history_logs.operation_type' => ['varchar', 'PDO::PARAM_STR', '20'],'carbon_history_logs.data' => ['json', 'PDO::PARAM_STR', ''],
+        'carbon_history_logs.history_uuid' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_history_logs.history_table' => ['varchar', 'PDO::PARAM_STR', '255'],'carbon_history_logs.history_type' => ['varchar', 'PDO::PARAM_STR', '20'],'carbon_history_logs.history_data' => ['text,', 'PDO::PARAM_STR', ''],'carbon_history_logs.history_original_query' => ['varchar', 'PDO::PARAM_STR', '1024'],'carbon_history_logs.history_primary' => ['varchar', 'PDO::PARAM_STR', '255'],'carbon_history_logs.history_time' => ['datetime', 'PDO::PARAM_STR', ''],
     ];
      
     /**
@@ -238,11 +243,13 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
     CREATE TABLE `carbon_history_logs` (
-  `uuid` binary(16) NOT NULL,
-  `resource_type` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `resource_uuid` binary(16) DEFAULT NULL,
-  `operation_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `data` json DEFAULT NULL
+  `history_uuid` binary(16) NOT NULL,
+  `history_table` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `history_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `history_data` text,
+  `history_original_query` varchar(1024) DEFAULT NULL,
+  `history_primary` varchar(255) DEFAULT NULL,
+  `history_time` datetime DEFAULT CURRENT_TIMESTAMP
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 MYSQL;
    
@@ -364,10 +371,6 @@ MYSQL;
         if (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1) {
             $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
         }
-        
-        if (array_key_exists('data', $return)) {
-                $return['data'] = json_decode($return['data'], true);
-        }
 
         self::postprocessRestRequest($return);
         
@@ -392,7 +395,7 @@ MYSQL;
             }
         } 
         
-        $sql = 'INSERT INTO carbon_history_logs (uuid, resource_type, resource_uuid, operation_type, data) VALUES ( UNHEX(:uuid), :resource_type, UNHEX(:resource_uuid), :operation_type, :data)';
+        $sql = 'INSERT INTO carbon_history_logs (history_uuid, history_table, history_type, history_data, history_original_query, history_primary) VALUES ( UNHEX(:history_uuid), :history_table, :history_type, :history_data, :history_original_query, :history_primary)';
 
         $pdo = self::database();
         
@@ -406,53 +409,62 @@ MYSQL;
 
         $stmt = self::database()->prepare($sql);
         
-        if (!array_key_exists('carbon_history_logs.uuid', $data)) {
-            return self::signalError('Required argument "carbon_history_logs.uuid" is missing from the request.');
+        if (!array_key_exists('carbon_history_logs.history_uuid', $data)) {
+            return self::signalError('Required argument "carbon_history_logs.history_uuid" is missing from the request.');
         }
-        $uuid = $data['carbon_history_logs.uuid'];
-        $ref='carbon_history_logs.uuid';
+        $history_uuid = $data['carbon_history_logs.history_uuid'];
+        $ref='carbon_history_logs.history_uuid';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $uuid)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_history_logs.uuid\'.');
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $history_uuid)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_history_logs.history_uuid\'.');
         }
-        $stmt->bindParam(':uuid',$uuid, PDO::PARAM_STR, 16);
+        $stmt->bindParam(':history_uuid',$history_uuid, PDO::PARAM_STR, 16);
         
-        $resource_type = $data['carbon_history_logs.resource_type'] ?? null;
-        $ref='carbon_history_logs.resource_type';
+        $history_table = $data['carbon_history_logs.history_table'] ?? null;
+        $ref='carbon_history_logs.history_table';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $resource_type, $resource_type === null)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_history_logs.resource_type\'.');
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $history_table, $history_table === null)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_history_logs.history_table\'.');
         }
-        $stmt->bindParam(':resource_type',$resource_type, PDO::PARAM_STR, 40);
+        $stmt->bindParam(':history_table',$history_table, PDO::PARAM_STR, 255);
         
-        $resource_uuid = $data['carbon_history_logs.resource_uuid'] ?? null;
-        $ref='carbon_history_logs.resource_uuid';
+        $history_type = $data['carbon_history_logs.history_type'] ?? null;
+        $ref='carbon_history_logs.history_type';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $resource_uuid, $resource_uuid === null)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_history_logs.resource_uuid\'.');
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $history_type, $history_type === null)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_history_logs.history_type\'.');
         }
-        $stmt->bindParam(':resource_uuid',$resource_uuid, PDO::PARAM_STR, 16);
+        $stmt->bindParam(':history_type',$history_type, PDO::PARAM_STR, 20);
         
-        $operation_type = $data['carbon_history_logs.operation_type'] ?? null;
-        $ref='carbon_history_logs.operation_type';
+        if (!array_key_exists('carbon_history_logs.history_data', $data)) {
+            return self::signalError('The column \'carbon_history_logs.history_data\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
+        } 
+        $ref='carbon_history_logs.history_data';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $operation_type, $operation_type === null)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_history_logs.operation_type\'.');
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $data['history_data'])) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_history_logs.history_data\'.');
         }
-        $stmt->bindParam(':operation_type',$operation_type, PDO::PARAM_STR, 20);
+        $stmt->bindValue(':history_data', $data['carbon_history_logs.history_data'], PDO::PARAM_STR);
         
-        if (!array_key_exists('carbon_history_logs.data', $data)) {
-            return self::signalError('The column \'carbon_history_logs.data\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
-        }
-        $ref = 'carbon_history_logs.data';
+        $history_original_query = $data['carbon_history_logs.history_original_query'] ?? null;
+        $ref='carbon_history_logs.history_original_query';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $data['data'])) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_history_logs.data\'.');
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $history_original_query, $history_original_query === null)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_history_logs.history_original_query\'.');
         }
-        if (!is_string($data = $data['carbon_history_logs.data']) && false === $data = json_encode($data)) {
-            return self::signalError('The column \'carbon_history_logs.data\' failed to be json encoded.');
+        $stmt->bindParam(':history_original_query',$history_original_query, PDO::PARAM_STR, 1024);
+        
+        $history_primary = $data['carbon_history_logs.history_primary'] ?? null;
+        $ref='carbon_history_logs.history_primary';
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $history_primary, $history_primary === null)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_history_logs.history_primary\'.');
         }
-        $stmt->bindValue(':data', $data, PDO::PARAM_STR);
+        $stmt->bindParam(':history_primary',$history_primary, PDO::PARAM_STR, 255);
+        
+        if (array_key_exists('carbon_history_logs.history_time', $data)) {
+            return self::signalError('The column \'carbon_history_logs.history_time\' is set to default to CURRENT_TIMESTAMP. The Rest API does not allow POST requests with columns explicitly set whose default is CURRENT_TIMESTAMP. You can remove to the default in MySQL or the column \'carbon_history_logs.history_time\' from the request.');
+        }
         
         if (!$stmt->execute()) {
             self::completeRest();
@@ -529,20 +541,26 @@ MYSQL;
 
         $set = '';
 
-        if (array_key_exists('carbon_history_logs.uuid', $argv)) {
-            $set .= 'uuid=UNHEX(:uuid),';
+        if (array_key_exists('carbon_history_logs.history_uuid', $argv)) {
+            $set .= 'history_uuid=UNHEX(:history_uuid),';
         }
-        if (array_key_exists('carbon_history_logs.resource_type', $argv)) {
-            $set .= 'resource_type=:resource_type,';
+        if (array_key_exists('carbon_history_logs.history_table', $argv)) {
+            $set .= 'history_table=:history_table,';
         }
-        if (array_key_exists('carbon_history_logs.resource_uuid', $argv)) {
-            $set .= 'resource_uuid=UNHEX(:resource_uuid),';
+        if (array_key_exists('carbon_history_logs.history_type', $argv)) {
+            $set .= 'history_type=:history_type,';
         }
-        if (array_key_exists('carbon_history_logs.operation_type', $argv)) {
-            $set .= 'operation_type=:operation_type,';
+        if (array_key_exists('carbon_history_logs.history_data', $argv)) {
+            $set .= 'history_data=:history_data,';
         }
-        if (array_key_exists('carbon_history_logs.data', $argv)) {
-            $set .= 'data=:data,';
+        if (array_key_exists('carbon_history_logs.history_original_query', $argv)) {
+            $set .= 'history_original_query=:history_original_query,';
+        }
+        if (array_key_exists('carbon_history_logs.history_primary', $argv)) {
+            $set .= 'history_primary=:history_primary,';
+        }
+        if (array_key_exists('carbon_history_logs.history_time', $argv)) {
+            $set .= 'history_time=:history_time,';
         }
         
         $sql .= substr($set, 0, -1);
@@ -563,44 +581,56 @@ MYSQL;
 
         $stmt = $pdo->prepare($sql);
 
-        if (array_key_exists('carbon_history_logs.uuid', $argv)) { 
-            $uuid = $argv['carbon_history_logs.uuid'];
-            $ref = 'carbon_history_logs.uuid';
+        if (array_key_exists('carbon_history_logs.history_uuid', $argv)) { 
+            $history_uuid = $argv['carbon_history_logs.history_uuid'];
+            $ref = 'carbon_history_logs.history_uuid';
             $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $uuid)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'uuid\'.');
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $history_uuid)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'history_uuid\'.');
             }
-            $stmt->bindParam(':uuid',$uuid, PDO::PARAM_STR, 16);
+            $stmt->bindParam(':history_uuid',$history_uuid, PDO::PARAM_STR, 16);
         }
-        if (array_key_exists('carbon_history_logs.resource_type', $argv)) { 
-            $resource_type = $argv['carbon_history_logs.resource_type'];
-            $ref = 'carbon_history_logs.resource_type';
+        if (array_key_exists('carbon_history_logs.history_table', $argv)) { 
+            $history_table = $argv['carbon_history_logs.history_table'];
+            $ref = 'carbon_history_logs.history_table';
             $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $resource_type)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'resource_type\'.');
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $history_table)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'history_table\'.');
             }
-            $stmt->bindParam(':resource_type',$resource_type, PDO::PARAM_STR, 40);
+            $stmt->bindParam(':history_table',$history_table, PDO::PARAM_STR, 255);
         }
-        if (array_key_exists('carbon_history_logs.resource_uuid', $argv)) { 
-            $resource_uuid = $argv['carbon_history_logs.resource_uuid'];
-            $ref = 'carbon_history_logs.resource_uuid';
+        if (array_key_exists('carbon_history_logs.history_type', $argv)) { 
+            $history_type = $argv['carbon_history_logs.history_type'];
+            $ref = 'carbon_history_logs.history_type';
             $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $resource_uuid)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'resource_uuid\'.');
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $history_type)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'history_type\'.');
             }
-            $stmt->bindParam(':resource_uuid',$resource_uuid, PDO::PARAM_STR, 16);
+            $stmt->bindParam(':history_type',$history_type, PDO::PARAM_STR, 20);
         }
-        if (array_key_exists('carbon_history_logs.operation_type', $argv)) { 
-            $operation_type = $argv['carbon_history_logs.operation_type'];
-            $ref = 'carbon_history_logs.operation_type';
+        if (array_key_exists('carbon_history_logs.history_data', $argv)) { 
+            $stmt->bindValue(':history_data',$argv['carbon_history_logs.history_data'], PDO::PARAM_STR);
+        }
+        if (array_key_exists('carbon_history_logs.history_original_query', $argv)) { 
+            $history_original_query = $argv['carbon_history_logs.history_original_query'];
+            $ref = 'carbon_history_logs.history_original_query';
             $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $operation_type)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'operation_type\'.');
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $history_original_query)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'history_original_query\'.');
             }
-            $stmt->bindParam(':operation_type',$operation_type, PDO::PARAM_STR, 20);
+            $stmt->bindParam(':history_original_query',$history_original_query, PDO::PARAM_STR, 1024);
         }
-        if (array_key_exists('carbon_history_logs.data', $argv)) { 
-            $stmt->bindValue(':data',json_encode($argv['carbon_history_logs.data']), PDO::PARAM_STR);
+        if (array_key_exists('carbon_history_logs.history_primary', $argv)) { 
+            $history_primary = $argv['carbon_history_logs.history_primary'];
+            $ref = 'carbon_history_logs.history_primary';
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $history_primary)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'history_primary\'.');
+            }
+            $stmt->bindParam(':history_primary',$history_primary, PDO::PARAM_STR, 255);
+        }
+        if (array_key_exists('carbon_history_logs.history_time', $argv)) { 
+            $stmt->bindValue(':history_time',$argv['carbon_history_logs.history_time'], PDO::PARAM_STR);
         }
         
         self::bind($stmt);

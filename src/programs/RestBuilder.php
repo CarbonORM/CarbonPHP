@@ -13,12 +13,12 @@ use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Rest;
 use CarbonPHP\Tables\Carbons;
+use CarbonPHP\Tables\History_Logs;
 use DirectoryIterator;
 use ReflectionException;
 use ReflectionMethod;
 use function count;
 use function in_array;
-use function random_int;
 
 
 class RestBuilder implements iCommand
@@ -36,7 +36,6 @@ class RestBuilder implements iCommand
     // rest params
     private string $target_namespace;
     private string $table_prefix;
-
 
 
     private bool $cleanUp = false;
@@ -129,6 +128,7 @@ END;
      */
     public function __construct($CONFIG)
     {
+        /** @noinspection PhpExpressionResultUnusedInspection */
         ini_set('memory_limit', '2048M');  // TODO - make this a config variable
         [$CONFIG] = $CONFIG;
 
@@ -137,7 +137,6 @@ END;
         $this->password = $CONFIG[CarbonPHP::DATABASE][CarbonPHP::DB_PASS] ?? '';
         $this->target_namespace = $CONFIG[CarbonPHP::REST][CarbonPHP::NAMESPACE] ?? '';
         $this->table_prefix = $CONFIG[CarbonPHP::REST][CarbonPHP::TABLE_PREFIX] ?? '';
-
 
 
     }
@@ -165,7 +164,7 @@ END;
         $excludeTablesRegex = null;
 
         $react = $carbon_namespace ? CarbonPHP::$app_root . 'view/assets/react/src/variables/' : false;
-        
+
         /** @noinspection ForeachInvariantsInspection - as we need $i++ */
         for ($i = 0; $i < $argc; $i++) {
             switch ($argv[$i]) {
@@ -405,7 +404,7 @@ END;
 
                 $verbose and ColorCode::colorCode('Checking version information of ' . $targetDir . $filename, iColorCode::MAGENTA);
 
-                $text = file_get_contents($targetDir.$filename);
+                $text = file_get_contents($targetDir . $filename);
 
                 if (
                     strpos($text, 'iRestMultiplePrimaryKeys') === false &&
@@ -430,7 +429,7 @@ END;
 
                 ColorCode::colorCode('The file (' . $targetDir . $filename . ') was updated to handle the 9.1 - 9.2 interface deprecation.', iColorCode::CYAN);
 
-                if (false === file_put_contents($targetDir.$filename, $text)) { // if you run into this; I'm sorry, but I didn't have issues with it
+                if (false === file_put_contents($targetDir . $filename, $text)) { // if you run into this; I'm sorry, but I didn't have issues with it
                     ColorCode::colorCode('A fatal error has occurred. Manually updating php code via text for interface changes failed. Refer to the code to fix this...', iColorCode::RED);
                     die;
                 }
@@ -1103,17 +1102,20 @@ const convertForRequestBody = function(restfulObject, tableName) {
 
             $triggers = '';
             foreach ($rest as $table) {
-                if (in_array($table['TableName'], ['sys_resource_creation_logs', 'sys_resource_history_logs'])) {
+                if ($table['TableName'] === $this->table_prefix . History_Logs::TABLE_NAME
+                    || $table['TableName'] === History_Logs::TABLE_NAME
+                ) {
                     continue;
                 }
-                if ($table['binary_primary'] && ($only_these_tables === null || in_array($table['TableName'], $only_these_tables, true))) {
-                    $triggers .= self::trigger($table['TableName'], $table['columns'], $table['binary_trigger'] ?? [], $table['dependencies'], $table['primary'][0]['name']);
+                if ($only_these_tables === null || in_array($table['TableName'], $only_these_tables, true)) {
+                    $triggers .= self::trigger($table['TableName'], $table['columns'], $table['binary_trigger'] ?? [], $table['dependencies'], $table['primary']);
                 }
             }
 
             file_put_contents('triggers.sql', 'DELIMITER ;;' . PHP_EOL . $triggers . PHP_EOL . 'DELIMITER ;');
 
-            $this->MySQLSource( 'triggers.sql', $mysql ?? null);
+
+            self::MySQLSource('triggers.sql', $mysql ?? null);
         }
 
         // debug is a subset of the verbose flag
@@ -1135,23 +1137,24 @@ const convertForRequestBody = function(restfulObject, tableName) {
      */
     public static function trigger($table, $columns, $binary, $dependencies, $primary): string
     {
+        // callback to create the json
         $json_mysql = static function ($op = 'NEW') use ($columns, $binary) {
-            $mid = "DECLARE json text;\n SET json = '{';";
-            foreach ($columns as $key => &$column) {
-                $column = in_array($column, $binary, true)
+
+            $mid = "SET history_data = '{';\n";
+
+            foreach ($columns as $column) {
+                $mid .= in_array($column, $binary, true)
                     ? <<<END
-                        \nSET json = CONCAT(json,'"$column":"', HEX($op.$column), '"');
+                        SET history_data = CONCAT(history_data,'"$column":"', HEX($op.$column), '"');
                         END
                     : <<<END
-                        \nSET json = CONCAT(json,'"$column":"', COALESCE($op.$column,''), '"');
+                        SET history_data = CONCAT(history_data,'"$column":"', COALESCE($op.$column,''), '"');
                         END;
             }
-            unset($column);
-
-            $mid .= implode("\nSET json = CONCAT(json, ',');", $columns);
 
             $mid .= <<<END
-                SET json = CONCAT(json, '}');
+                SET history_data = TRIM(TRAILING ',' FROM history_data);
+                SET history_data = CONCAT(history_data, '}');
                 END;
 
             return $mid;
@@ -1159,33 +1162,54 @@ const convertForRequestBody = function(restfulObject, tableName) {
 
         // sys_resource_creation_logs sys_resource_history_logs
 
-        $history_sql = static function ($operation_type = 'POST') use ($table, $primary) {
-            $query = '';
-            $relative_time = $operation_type === 'POST' ? 'NEW' : ($operation_type === 'PUT' ? 'NEW' : 'OLD');
+        $history_sql = static function ($operation_type = 'POST') use ($binary, $table, $primary)
+        {
+            $relative_time = 'OLD';
+
             switch ($operation_type) {
                 case 'POST':
-                    // todo - triggers? logs? idk.. i dont remember
-                    /** @noinspection SqlResolve */
-                    $query = "INSERT INTO carbon_creation_logs (`uuid`, `resource_type`, `resource_uuid`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), '$table', $relative_time.$primary);\n";
                 case 'PUT':
-                case 'DELETE':
-                    /** @noinspection SqlResolve */
-                    $query .= "INSERT INTO carbon_history_logs (`uuid`, `resource_type`, `resource_uuid`, `operation_type`, `data`)
-            VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), '$table', $relative_time.$primary , '$operation_type', json);";
-                    break;
-                case 'GET':
-                default:
+                    $relative_time = 'NEW';
                     break;
             }
 
+            $query = "SET history_primary_data = '{';\n";
+
+            foreach ($primary as $primary_array) {
+
+                $column = $primary_array['name'] ?? null;
+
+                if (null === $column) {
+                    ColorCode::colorCode('Failed to parse a name from the primary key array while building triggers.');
+                }
+
+                $query .= in_array($column, $binary, true)
+                    ? <<<END
+                        SET history_primary_data = CONCAT(history_primary_data,'"$column":"', HEX($relative_time.$column), '",');
+                        END
+                    : <<<END
+                        SET history_primary_data = CONCAT(history_primary_data,'"$column":"', COALESCE($relative_time.$column,''), '",');
+                        END;
+            }
+
+            $query .= <<<END
+                SET history_primary_data = TRIM(TRAILING ',' FROM history_primary_data);
+                SET history_primary_data = CONCAT(history_primary_data, '}');
+                END;
+
+            /** @noinspection SqlResolve */
+            $query .= "INSERT INTO carbon_history_logs (history_uuid, history_table, history_primary, history_type, history_data, history_original_query)
+                VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), '$table', history_primary_data , '$operation_type', history_data, history_original_query);";
+
             return $query;
+            
         };
 
         $delete_children = static function () use ($dependencies) {
             $sql = '';
             if (!empty($dependencies)) {
                 foreach ($dependencies as $array) {
+                    // todo - I have this feeling advanced relations don't work correctly
                     foreach ($array as $child => $relation) {
                         foreach ($relation as $c => $keys) {
                             /** @noinspection SqlResolve */
@@ -1201,6 +1225,18 @@ const convertForRequestBody = function(restfulObject, tableName) {
 DROP TRIGGER IF EXISTS `trigger_{$table}_b_d`;;
 CREATE TRIGGER `trigger_{$table}_b_d` BEFORE DELETE ON `$table` FOR EACH ROW
 BEGIN
+
+DECLARE history_data text;
+DECLARE history_primary_data text;
+DECLARE original_query text;
+
+SELECT argument INTO original_query 
+  FROM mysql.general_log 
+  where thread_id = connection_id() 
+  order by event_time desc 
+  limit 1;
+
+
 {$json_mysql('OLD')}
       -- Insert record into audit tables
 {$history_sql('DELETE')}
@@ -1213,6 +1249,16 @@ DROP TRIGGER IF EXISTS `trigger_{$table}_a_u`;;
 CREATE TRIGGER `trigger_{$table}_a_u` AFTER UPDATE ON `$table` FOR EACH ROW
 BEGIN
 
+DECLARE history_data text;
+DECLARE history_primary_data text;
+DECLARE original_query text;
+
+SELECT argument INTO original_query 
+  FROM mysql.general_log 
+  where thread_id = connection_id() 
+  order by event_time desc 
+  limit 1;
+
 {$json_mysql()}
       -- Insert record into audit tables
 {$history_sql('PUT')}
@@ -1223,12 +1269,23 @@ DROP TRIGGER IF EXISTS `trigger_{$table}_a_i`;;
 CREATE TRIGGER `trigger_{$table}_a_i` AFTER INSERT ON `$table` FOR EACH ROW
 BEGIN
 
+DECLARE history_data text;
+DECLARE history_primary_data text;
+DECLARE original_query text;
+
+SELECT argument INTO original_query 
+  FROM mysql.general_log 
+  where thread_id = connection_id() 
+  order by event_time desc 
+  limit 1;
+
 {$json_mysql()}
       -- Insert record into audit tables
 {$history_sql('POST')}
 
 END;;
 TRIGGER;
+        
     }
 
     /**
@@ -1334,6 +1391,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
     public const CLASS_NAMESPACE = '{{namespace}}\\\\';
     public const TABLE_NAME = '{{TableName}}';
     public const TABLE_PREFIX = {{#prefixReplaced}}'{{prefix}}'{{/prefixReplaced}}{{^prefixReplaced}}''{{/prefixReplaced}};
+    public const DIRECTORY = __DIR__ . DIRECTORY_SEPARATOR;
     
     /**
      * COLUMNS

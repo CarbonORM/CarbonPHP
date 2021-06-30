@@ -289,7 +289,7 @@ FOOT;
 
         if ($refresh && !$cli) {
             print '<br><br><h2>Refreshing in 6 seconds</h2><script>let t1 = window.setTimeout(function(){ window.location.href = \'' . CarbonPHP::$site . '\'; },6000);</script>';
-            exit('Database had an unexpected refresh.');
+            exit(0);
         }
 
         if (CarbonPHP::$cli) {
@@ -615,6 +615,21 @@ FOOT;
         }
     }
 
+
+    public static function buildCarbonPHP() : void {
+        self::refreshDatabase(CarbonPHP::CARBON_ROOT . DS . 'tables' . DS);
+    }
+
+
+    /**
+     * This is not implemeted in the wild rn
+     *
+     *
+     * to be proficient it needs to use dynamically the configuration passed to carbonphp
+     *
+     * @param string $tableDirectory
+     * @param bool|null $cli
+     */
     public static function refreshDatabase(string $tableDirectory = '', bool $cli = null): void
     {
         if (null === $cli) {
@@ -623,16 +638,17 @@ FOOT;
 
         $autoTarget = static function () use (&$tableDirectory) {
             $composerJson = self::getComposerConfig();
-            $tableDirectory = $composerJson['autoload']['psr-4']["Tables\\"] ?? false;
+            $tableNamespace = CarbonPHP::$configuration[CarbonPHP::REST][CarbonPHP::NAMESPACE] ??= "Tables\\";
+            $tableDirectory = $composerJson['autoload']['psr-4'][$tableNamespace] ?? false;
             if (false === $tableDirectory) {
-                throw new PublicAlert('Failed to parse composer json for ["autoload"]["psr-4"]["Tables\\"].');
+                throw new PublicAlert('Failed to parse composer json for ["autoload"]["psr-4"]["' . $tableNamespace .'"].');
             }
             $tableDirectory = CarbonPHP::$app_root . $tableDirectory;
         };
 
         try {
             if (CarbonPHP::$carbon_is_root) {
-                $tableDirectory = CarbonPHP::CARBON_ROOT . 'tables/';
+                $tableDirectory = CarbonPHP::CARBON_ROOT . 'tables/'; // todo - use config array to set this
             } elseif ($tableDirectory === '') {
                 $autoTarget();
             }
@@ -642,6 +658,8 @@ FOOT;
             } else {
                 print '<html><head><title>(Setup || Rebuild) Database</title></head><body><h1>REFRESHING SYSTEM</h1>' . PHP_EOL;
             }
+
+            // ADVANCED REST REBUILD
 
             $restful = glob($tableDirectory . '*.php');
 
@@ -653,10 +671,12 @@ FOOT;
                 if (!preg_match('#public const CLASS_NAMESPACE\s?=\s?\'(.*)\';#i', $fileAsString, $matches)) {
                     continue;
                 }
+
                 if (array_key_exists(1, $matches)) {
                     $classNamespace = $matches[1];
                     break;
                 }
+
             }
 
             if (empty($classNamespace)) {

@@ -72,7 +72,7 @@ usage;
                 case '-m':
                 case '--mysql_native_password':
                     self::colorCode('Adjusting Mysql For PHP Compatibility');
-                    $this->mysql_native_password();
+                    self::mysql_native_password();
                     self::colorCode('Done with mysql password compatibility');
                     exit(0);
                 case '-s':
@@ -84,7 +84,7 @@ usage;
 
         self::colorCode('This feature is DEPRECATED and will be removed in future versions of C6', iColorCode::RED);
 
-        $dump = file_get_contents($this->MySQLDump());
+        $dump = file_get_contents(self::MySQLDump());
 
         if (!preg_match_all('#DROP TABLE IF EXISTS `(.+)`;([^-])+#', $dump, $matches)) {
             print 'No tables matched in MySQL Dump. It does not look like CarbonPHP is setup correctly. Run `>> php index.php setup` to fix this.' . PHP_EOL;

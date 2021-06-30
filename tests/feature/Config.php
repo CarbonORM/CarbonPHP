@@ -23,7 +23,8 @@ abstract class Config extends TestCase
     public static function setupServerVariables(): void   // todo - wut
     {
         CarbonPHP::$safelyExit = true;  // We just want the env to load, not route life :)
-        $_SERVER = [
+        $_SERVER = array_merge($_SERVER, $_SERVER = [
+            'SCRIPT_FILENAME' => __FILE__,  // added for wp compatibility
             'REMOTE_ADDR' => '::1',
             'REMOTE_PORT' => '53950',
             'SERVER_SOFTWARE' => 'PHP 7.4.3 Development Server',
@@ -44,7 +45,7 @@ abstract class Config extends TestCase
             'HTTP_ACCEPT_ENCODING' => 'gzip, deflate, br',
             'HTTP_ACCEPT_LANGUAGE' => 'en-US,en;q=0.9',
             'HTTP_COOKIE' => 'PHPSESSID=gn4amaq3el5giekaboa29q27gp;',
-        ];
+        ]);
     }
 
     public function setUp() : void /* The :void return type declaration that should be here would cause a BC issue */

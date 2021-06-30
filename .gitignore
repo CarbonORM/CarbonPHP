@@ -41,3 +41,18 @@ readme.html
 /wp-*.php
 /xmlrpc.php
 license.txt
+
+
+# wp rest tables
+src/tables/Wp_Commentmeta.php
+src/tables/Wp_Comments.php
+src/tables/Wp_Links.php
+src/tables/Wp_Options.php
+src/tables/Wp_Postmeta.php
+src/tables/Wp_Posts.php
+src/tables/Wp_Term_Relationships.php
+src/tables/Wp_Term_Taxonomy.php
+src/tables/Wp_Termmeta.php
+src/tables/Wp_Terms.php
+src/tables/Wp_Usermeta.php
+src/tables/Wp_Users.php

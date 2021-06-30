@@ -12,9 +12,9 @@ namespace Tests;
 
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Rest;
-use CarbonPHP\Tables\Carbon_Location_References;
-use CarbonPHP\Tables\Carbon_Locations;
-use CarbonPHP\Tables\Carbon_Users as Users;
+use CarbonPHP\Tables\Location_References;
+use CarbonPHP\Tables\Locations;
+use CarbonPHP\Tables\Users as Users;
 use CarbonPHP\Tables\Carbons;
 
 
@@ -208,15 +208,15 @@ final class RestTest extends Config
             Users::USER_GENDER => 'Male'
         ]), 'No string ID was returned');
 
-        self::assertInternalType('string', $lid = Carbon_Locations::Post([
-            Carbon_Locations::CITY => 'Grapevine',
-            Carbon_Locations::STATE => 'Texas',
-            Carbon_Locations::ZIP => 76051
+        self::assertInternalType('string', $lid = Locations::Post([
+            Locations::CITY => 'Grapevine',
+            Locations::STATE => 'Texas',
+            Locations::ZIP => 76051
         ]), 'Failed to create location entity.');
 
-        self::assertTrue(Carbon_Location_References::Post([
-            Carbon_Location_References::ENTITY_REFERENCE => $uid,
-            Carbon_Location_References::LOCATION_REFERENCE => $lid
+        self::assertTrue(Location_References::Post([
+            Location_References::ENTITY_REFERENCE => $uid,
+            Location_References::LOCATION_REFERENCE => $lid
         ]), 'Failed to create location references.');
 
 
@@ -225,17 +225,17 @@ final class RestTest extends Config
         self::assertTrue(Users::Get($user, $uid, [
             Users::SELECT => [
                 Users::USER_USERNAME,
-                Carbon_Locations::STATE
+                Locations::STATE
             ],
             Users::JOIN => [
                 Users::INNER => [
-                    Carbon_Location_References::TABLE_NAME => [
+                    Location_References::TABLE_NAME => [
                         Users::USER_ID,
-                        Carbon_Location_References::ENTITY_REFERENCE
+                        Location_References::ENTITY_REFERENCE
                     ],
-                    Carbon_Locations::TABLE_NAME => [
-                        Carbon_Locations::ENTITY_ID,
-                        Carbon_Location_References::LOCATION_REFERENCE
+                    Locations::TABLE_NAME => [
+                        Locations::ENTITY_ID,
+                        Location_References::LOCATION_REFERENCE
                     ]
                 ]
             ],
@@ -249,7 +249,7 @@ final class RestTest extends Config
 
         self::assertEquals(Config::ADMIN_USERNAME, $user[Users::COLUMNS[Users::USER_USERNAME]]);
 
-        self::assertEquals('Texas', $user[Carbon_Locations::COLUMNS[Carbon_Locations::STATE]]);
+        self::assertEquals('Texas', $user[Locations::COLUMNS[Locations::STATE]]);
     }
 
 
@@ -306,17 +306,17 @@ final class RestTest extends Config
 
         $_POST = [Users::SELECT => [
             Users::USER_USERNAME,
-            Carbon_Locations::STATE
+            Locations::STATE
         ],
             Users::JOIN => [
                 Users::INNER => [
-                    Carbon_Location_References::TABLE_NAME => [
+                    Location_References::TABLE_NAME => [
                         Users::USER_ID,
-                        Carbon_Location_References::ENTITY_REFERENCE
+                        Location_References::ENTITY_REFERENCE
                     ],
-                    Carbon_Locations::TABLE_NAME => [
-                        Carbon_Locations::ENTITY_ID,
-                        Carbon_Location_References::LOCATION_REFERENCE
+                    Locations::TABLE_NAME => [
+                        Locations::ENTITY_ID,
+                        Location_References::LOCATION_REFERENCE
                     ]
                 ]
             ],

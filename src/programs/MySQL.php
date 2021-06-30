@@ -133,7 +133,6 @@ IDENTIFIED;
     {
         $c = CarbonPHP::$configuration;
         $cmd = ($mysql ?: 'mysql') . ' --defaults-extra-file="' . self::buildCNF() . '" ' . ($c['DATABASE']['DB_NAME'] ?? '') . ' < "' . $filename . '"';
-        ColorCode::colorCode("\n\nRunning Command >> $cmd\n\n");
         Background::executeAndCheckStatus($cmd);
     }
 

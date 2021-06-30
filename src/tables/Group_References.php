@@ -47,6 +47,7 @@ class Group_References extends Rest implements iRestNoPrimaryKey
     public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
     public const TABLE_NAME = 'carbon_group_references';
     public const TABLE_PREFIX = 'carbon_';
+    public const DIRECTORY = __DIR__ . DIRECTORY_SEPARATOR;
     
     /**
      * COLUMNS

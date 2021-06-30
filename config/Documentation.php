@@ -12,7 +12,7 @@ use CarbonPHP\Programs\Deployment;
 use CarbonPHP\Programs\WebSocket;
 use CarbonPHP\Request;
 use CarbonPHP\Rest;
-use CarbonPHP\Tables\Carbon_Users;
+use CarbonPHP\Tables\Users;
 use CarbonPHP\Tables\Carbons;
 use CarbonPHP\View;
 
@@ -506,18 +506,18 @@ SOCKET;
         }
 
         $me = [];
-        if (!Carbon_Users::Get($me, null, [
+        if (!Users::Get($me, null, [
             REST::SELECT => [
-                Carbon_Users::USER_ID,
-                Carbon_Users::USER_USERNAME,
-                Carbon_Users::USER_PASSWORD,
-                Carbon_Users::USER_FIRST_NAME,
-                Carbon_Users::USER_LAST_NAME
+                Users::USER_ID,
+                Users::USER_USERNAME,
+                Users::USER_PASSWORD,
+                Users::USER_FIRST_NAME,
+                Users::USER_LAST_NAME
             ],
             REST::WHERE => [
                 [
-                    Carbon_Users::USER_USERNAME => $id,
-                    Carbon_Users::USER_PASSWORD => $id
+                    Users::USER_USERNAME => $id,
+                    Users::USER_PASSWORD => $id
                 ]
             ],
             REST::PAGINATION => [
@@ -529,15 +529,15 @@ SOCKET;
         }
 
         if (!empty($me)) {
-            $_SESSION['id'] = $json['id'] = $me[Carbon_Users::COLUMNS[Carbon_Users::USER_ID]];
-        } else if (is_string($id = Carbon_Users::Post([         // required fields :P
-                Carbon_Users::USER_USERNAME => $id,
-                Carbon_Users::USER_PASSWORD => $id,
-                Carbon_Users::USER_FIRST_NAME => 'Guest',
-                Carbon_Users::USER_LAST_NAME => 'Account',
-                Carbon_Users::USER_GENDER => 'N/A',
-                Carbon_Users::USER_EMAIL => 'N/A',
-                Carbon_Users::USER_IP => CarbonPHP::$server_ip
+            $_SESSION['id'] = $json['id'] = $me[Users::COLUMNS[Users::USER_ID]];
+        } else if (is_string($id = Users::Post([         // required fields :P
+                Users::USER_USERNAME => $id,
+                Users::USER_PASSWORD => $id,
+                Users::USER_FIRST_NAME => 'Guest',
+                Users::USER_LAST_NAME => 'Account',
+                Users::USER_GENDER => 'N/A',
+                Users::USER_EMAIL => 'N/A',
+                Users::USER_IP => CarbonPHP::$server_ip
             ])) && Database::commit()) {
             PublicAlert::info('A new session has been established with the id ' . $id);
         } else {

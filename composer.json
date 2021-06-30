@@ -29,6 +29,7 @@
     "ext-readline": "*"
   },
   "require-dev": {
+    "wp-cli/wp-cli-bundle": "2.4.0",
     "phpunit/phpunit-selenium": "4.1.0",
     "phpmetrics/phpmetrics": "^2.7"
   },

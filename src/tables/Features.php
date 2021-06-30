@@ -47,6 +47,7 @@ class Features extends Rest implements iRestSinglePrimaryKey
     public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
     public const TABLE_NAME = 'carbon_features';
     public const TABLE_PREFIX = 'carbon_';
+    public const DIRECTORY = __DIR__ . DIRECTORY_SEPARATOR;
     
     /**
      * COLUMNS
