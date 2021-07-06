@@ -79,7 +79,7 @@ class Group_References extends Rest implements iRestNoPrimaryKey
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_group_references.group_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_group_references.allowed_to_grant_group_id' => ['binary', 'PDO::PARAM_STR', '16'],
+        'carbon_group_references.group_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_group_references.allowed_to_grant_group_id' => ['binary', PDO::PARAM_STR, '16'],
     ];
      
     /**

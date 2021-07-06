@@ -1440,7 +1440,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
     ];
 
     public const PDO_VALIDATION = [
-        {{#explode}}'{{TableName}}.{{name}}' => ['{{mysql_type}}', '{{type}}', '{{length}}'],{{/explode}}
+        {{#explode}}'{{TableName}}.{{name}}' => ['{{mysql_type}}', {{type}}, '{{length}}'],{{/explode}}
     ];
      
     /**

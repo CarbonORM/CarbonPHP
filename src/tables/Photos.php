@@ -85,7 +85,7 @@ class Photos extends Rest implements iRestSinglePrimaryKey
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_photos.parent_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_photos.photo_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_photos.user_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_photos.photo_path' => ['varchar', 'PDO::PARAM_STR', '225'],'carbon_photos.photo_description' => ['text,', 'PDO::PARAM_STR', ''],
+        'carbon_photos.parent_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_photos.photo_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_photos.user_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_photos.photo_path' => ['varchar', PDO::PARAM_STR, '225'],'carbon_photos.photo_description' => ['text,', PDO::PARAM_STR, ''],
     ];
      
     /**

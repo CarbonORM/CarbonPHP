@@ -83,7 +83,7 @@ class Reports extends Rest implements iRestNoPrimaryKey
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_reports.log_level' => ['varchar', 'PDO::PARAM_STR', '20'],'carbon_reports.report' => ['text,', 'PDO::PARAM_STR', ''],'carbon_reports.date' => ['datetime', 'PDO::PARAM_STR', ''],'carbon_reports.call_trace' => ['text', 'PDO::PARAM_STR', ''],
+        'carbon_reports.log_level' => ['varchar', PDO::PARAM_STR, '20'],'carbon_reports.report' => ['text,', PDO::PARAM_STR, ''],'carbon_reports.date' => ['datetime', PDO::PARAM_STR, ''],'carbon_reports.call_trace' => ['text', PDO::PARAM_STR, ''],
     ];
      
     /**

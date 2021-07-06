@@ -83,7 +83,7 @@ class Comments extends Rest implements iRestSinglePrimaryKey
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_comments.parent_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_comments.comment_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_comments.user_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_comments.comment' => ['blob', 'PDO::PARAM_STR', ''],
+        'carbon_comments.parent_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_comments.comment_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_comments.user_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_comments.comment' => ['blob', PDO::PARAM_STR, ''],
     ];
      
     /**

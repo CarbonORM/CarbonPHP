@@ -87,7 +87,7 @@ class User_Messages extends Rest implements iRestSinglePrimaryKey
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_user_messages.message_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_messages.from_user_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_messages.to_user_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_messages.message' => ['text', 'PDO::PARAM_STR', ''],'carbon_user_messages.message_read' => ['tinyint', 'PDO::PARAM_INT', '1'],'carbon_user_messages.creation_date' => ['datetime', 'PDO::PARAM_STR', ''],
+        'carbon_user_messages.message_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_user_messages.from_user_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_user_messages.to_user_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_user_messages.message' => ['text', PDO::PARAM_STR, ''],'carbon_user_messages.message_read' => ['tinyint', PDO::PARAM_INT, '1'],'carbon_user_messages.creation_date' => ['datetime', PDO::PARAM_STR, ''],
     ];
      
     /**

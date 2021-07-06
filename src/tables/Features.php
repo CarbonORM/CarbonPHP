@@ -81,7 +81,7 @@ class Features extends Rest implements iRestSinglePrimaryKey
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_features.feature_entity_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_features.feature_code' => ['varchar', 'PDO::PARAM_STR', '30'],'carbon_features.feature_creation_date' => ['datetime', 'PDO::PARAM_STR', ''],
+        'carbon_features.feature_entity_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_features.feature_code' => ['varchar', PDO::PARAM_STR, '30'],'carbon_features.feature_creation_date' => ['datetime', PDO::PARAM_STR, ''],
     ];
      
     /**

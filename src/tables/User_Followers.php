@@ -81,7 +81,7 @@ class User_Followers extends Rest implements iRestSinglePrimaryKey
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_user_followers.follower_table_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_followers.follows_user_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_followers.user_id' => ['binary', 'PDO::PARAM_STR', '16'],
+        'carbon_user_followers.follower_table_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_user_followers.follows_user_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_user_followers.user_id' => ['binary', PDO::PARAM_STR, '16'],
     ];
      
     /**

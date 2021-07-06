@@ -89,7 +89,7 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_history_logs.history_uuid' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_history_logs.history_table' => ['varchar', 'PDO::PARAM_STR', '255'],'carbon_history_logs.history_type' => ['varchar', 'PDO::PARAM_STR', '20'],'carbon_history_logs.history_data' => ['json', 'PDO::PARAM_STR', ''],'carbon_history_logs.history_original_query' => ['varchar', 'PDO::PARAM_STR', '1024'],'carbon_history_logs.history_primary' => ['json', 'PDO::PARAM_STR', ''],'carbon_history_logs.history_time' => ['datetime', 'PDO::PARAM_STR', ''],
+        'carbon_history_logs.history_uuid' => ['binary', PDO::PARAM_STR, '16'],'carbon_history_logs.history_table' => ['varchar', PDO::PARAM_STR, '255'],'carbon_history_logs.history_type' => ['varchar', PDO::PARAM_STR, '20'],'carbon_history_logs.history_data' => ['json', PDO::PARAM_STR, ''],'carbon_history_logs.history_original_query' => ['varchar', PDO::PARAM_STR, '1024'],'carbon_history_logs.history_primary' => ['json', PDO::PARAM_STR, ''],'carbon_history_logs.history_time' => ['datetime', PDO::PARAM_STR, ''],
     ];
      
     /**

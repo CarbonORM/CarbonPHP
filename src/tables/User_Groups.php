@@ -79,7 +79,7 @@ class User_Groups extends Rest implements iRestNoPrimaryKey
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_user_groups.group_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_groups.user_id' => ['binary', 'PDO::PARAM_STR', '16'],
+        'carbon_user_groups.group_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_user_groups.user_id' => ['binary', PDO::PARAM_STR, '16'],
     ];
      
     /**

@@ -83,7 +83,7 @@ class Groups extends Rest implements iRestSinglePrimaryKey
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_groups.group_name' => ['varchar', 'PDO::PARAM_STR', '20'],'carbon_groups.entity_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_groups.created_by' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_groups.creation_date' => ['datetime', 'PDO::PARAM_STR', ''],
+        'carbon_groups.group_name' => ['varchar', PDO::PARAM_STR, '20'],'carbon_groups.entity_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_groups.created_by' => ['binary', PDO::PARAM_STR, '16'],'carbon_groups.creation_date' => ['datetime', PDO::PARAM_STR, ''],
     ];
      
     /**

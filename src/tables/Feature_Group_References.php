@@ -79,7 +79,7 @@ class Feature_Group_References extends Rest implements iRestNoPrimaryKey
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_feature_group_references.feature_entity_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_feature_group_references.group_entity_id' => ['binary', 'PDO::PARAM_STR', '16'],
+        'carbon_feature_group_references.feature_entity_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_feature_group_references.group_entity_id' => ['binary', PDO::PARAM_STR, '16'],
     ];
      
     /**

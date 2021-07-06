@@ -91,7 +91,7 @@ class Locations extends Rest implements iRestSinglePrimaryKey
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_locations.entity_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_locations.latitude' => ['varchar', 'PDO::PARAM_STR', '225'],'carbon_locations.longitude' => ['varchar', 'PDO::PARAM_STR', '225'],'carbon_locations.street' => ['varchar', 'PDO::PARAM_STR', '225'],'carbon_locations.city' => ['varchar', 'PDO::PARAM_STR', '40'],'carbon_locations.state' => ['varchar', 'PDO::PARAM_STR', '10'],'carbon_locations.elevation' => ['varchar', 'PDO::PARAM_STR', '40'],'carbon_locations.zip' => ['int', 'PDO::PARAM_INT', ''],
+        'carbon_locations.entity_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_locations.latitude' => ['varchar', PDO::PARAM_STR, '225'],'carbon_locations.longitude' => ['varchar', PDO::PARAM_STR, '225'],'carbon_locations.street' => ['varchar', PDO::PARAM_STR, '225'],'carbon_locations.city' => ['varchar', PDO::PARAM_STR, '40'],'carbon_locations.state' => ['varchar', PDO::PARAM_STR, '10'],'carbon_locations.elevation' => ['varchar', PDO::PARAM_STR, '40'],'carbon_locations.zip' => ['int', PDO::PARAM_INT, ''],
     ];
      
     /**

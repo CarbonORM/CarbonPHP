@@ -81,7 +81,7 @@ class Location_References extends Rest implements iRestNoPrimaryKey
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_location_references.entity_reference' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_location_references.location_reference' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_location_references.location_time' => ['datetime', 'PDO::PARAM_STR', ''],
+        'carbon_location_references.entity_reference' => ['binary', PDO::PARAM_STR, '16'],'carbon_location_references.location_reference' => ['binary', PDO::PARAM_STR, '16'],'carbon_location_references.location_time' => ['datetime', PDO::PARAM_STR, ''],
     ];
      
     /**

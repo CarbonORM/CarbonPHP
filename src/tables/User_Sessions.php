@@ -87,7 +87,7 @@ class User_Sessions extends Rest implements iRestSinglePrimaryKey
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_user_sessions.user_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_sessions.user_ip' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_sessions.session_id' => ['varchar', 'PDO::PARAM_STR', '255'],'carbon_user_sessions.session_expires' => ['datetime', 'PDO::PARAM_STR', ''],'carbon_user_sessions.session_data' => ['text,', 'PDO::PARAM_STR', ''],'carbon_user_sessions.user_online_status' => ['tinyint', 'PDO::PARAM_INT', '1'],
+        'carbon_user_sessions.user_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_user_sessions.user_ip' => ['binary', PDO::PARAM_STR, '16'],'carbon_user_sessions.session_id' => ['varchar', PDO::PARAM_STR, '255'],'carbon_user_sessions.session_expires' => ['datetime', PDO::PARAM_STR, ''],'carbon_user_sessions.session_data' => ['text,', PDO::PARAM_STR, ''],'carbon_user_sessions.user_online_status' => ['tinyint', PDO::PARAM_INT, '1'],
     ];
      
     /**

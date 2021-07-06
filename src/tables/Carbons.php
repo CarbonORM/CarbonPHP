@@ -81,7 +81,7 @@ class Carbons extends Rest implements iRestSinglePrimaryKey
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_carbons.entity_pk' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_carbons.entity_fk' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_carbons.entity_tag' => ['varchar', 'PDO::PARAM_STR', '100'],
+        'carbon_carbons.entity_pk' => ['binary', PDO::PARAM_STR, '16'],'carbon_carbons.entity_fk' => ['binary', PDO::PARAM_STR, '16'],'carbon_carbons.entity_tag' => ['varchar', PDO::PARAM_STR, '100'],
     ];
      
     /**

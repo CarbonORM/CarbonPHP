@@ -1246,8 +1246,8 @@ abstract class Rest extends Database
 
         switch ($pdo_column_validation[1] ?? null) {
             case null:
-            case 'PDO::PARAM_INT':
-            case 'PDO::PARAM_STR': // bindValue will quote strings
+            case PDO::PARAM_INT:
+            case PDO::PARAM_STR: // bindValue will quote strings
                 self::$injection[$inject] = $value;
                 break;
             default:
