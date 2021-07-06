@@ -322,7 +322,7 @@ CONF;
                     $db_user = 'root';
                     $db_password = 'password';
                     $db_host = 'localhost';
-                    $table_prefix = 'wp_c6_';
+                    $table_prefix = 'carbon_wp_';
                     $salts = '';
 
                     array_shift($argv); // aka wordpress:configuration

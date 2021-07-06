@@ -138,6 +138,7 @@ END;
     }
 
     /**
+     * This terminates!
      * @param Throwable $throwable
      */
     public static function generateBrowserReportFromError(Throwable $throwable): void
@@ -146,6 +147,7 @@ END;
     }
 
     /**
+     * This terminates!
      * @param array $errorForTemplate
      */
     public static function generateBrowserReport(array $errorForTemplate): void

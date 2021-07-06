@@ -363,7 +363,7 @@ FOOT;
         $return = $lambda();
 
         if (!is_bool($return)) {
-            throw new Error('The return type of the lambda supplied should be a boolean');
+            throw new PublicAlert('The return type of the lambda supplied should be a boolean');
         }
 
         return $return;
@@ -429,12 +429,22 @@ FOOT;
     public static function new_entity(string $tag_id, string $dependant = null): string
     {
         $count = 0;
+
+        $carbons = Rest::getDynamicRestClass(Carbons::class);
+
+        if (!in_array(iRestSinglePrimaryKey::class, class_implements($carbons), true)) {
+            throw new PublicAlert('The carbon_carbons class should implement ' . iRestSinglePrimaryKey::class);
+        }
+
         do {
             $count++;
-            $id = Carbons::Post([
-                Carbons::ENTITY_TAG => $tag_id,
-                Carbons::ENTITY_FK => $dependant
+
+            /** @noinspection PhpUndefinedMethodInspection - intellij is not good at php static refs */
+            $id = $carbons::Post([
+                $carbons::ENTITY_TAG => $tag_id,
+                $carbons::ENTITY_FK => $dependant
             ]);
+
         } while ($id === false && $count < 4);  // todo - why four?
 
         if ($id === false) {
@@ -745,6 +755,7 @@ FOOT;
         $existed = self::fetch("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
             WHERE table_name = '$table_name' 
               AND column_name = '$column'");
+
         // If not exists
         if ([] === $existed) {
             $status = self::execute($sql);
@@ -765,13 +776,27 @@ FOOT;
         }
     }
 
+
+    public static function addTablePrefix(string $table_name, string $table_prefix, string &$sql) : void {
+        $prefix = CarbonPHP::$configuration[CarbonPHP::REST][CarbonPHP::TABLE_PREFIX] ?? '';
+
+        if ($prefix === '' || $prefix === $table_prefix || $prefix === Carbons::TABLE_PREFIX) {
+            return;
+        }
+
+        $sql = preg_replace("#CREATE TABLE `$table_name", "CREATE TABLE `$prefix$table_name", $sql);
+    }
+
+
     /**
      * @param string $table_name
+     * @param string $table_prefix
      * @param string $sql
-     * @param bool $forceEngineAndCharset - this will force the table to generate with InnoDB and utf8mb4 for the charset
+     * @param bool $carbonTable
      * @return bool|null
+     * @throws PublicAlert
      */
-    public static function tableExistsOrExecuteSQL(string $table_name, string $sql, bool $forceEngineAndCharset = true): ?bool
+    public static function tableExistsOrExecuteSQL(string $table_name, string $table_prefix, string $sql, bool $carbonTable = false): ?bool
     {
         // Check if exist the column named image
         $result = self::fetch("SELECT * 
@@ -781,15 +806,22 @@ FOOT;
                         LIMIT 1;");
 
         if ([] === $result) {
-            self::colorCode("Attempting to update table ($table_name).");
+            self::colorCode("Attempting to create table ($table_name).");
+
+            if ($carbonTable) {
+                self::addTablePrefix($table_name, $table_prefix, $sql);
+            }
+
             if (!self::execute($sql)) {
                 throw new PublicAlert('Failed to update table :: ' . $table_name);
             }
+
             if (CarbonPHP::$cli) {
                 self::colorCode('Table `' . $table_name . '` Created');
             } else {
                 print '<br><p style="color: green">Table `' . $table_name . '` Created</p>';
             }
+
         } else if (CarbonPHP::$cli) {
             self::colorCode('Table `' . $table_name . '` already exists');
         } else {

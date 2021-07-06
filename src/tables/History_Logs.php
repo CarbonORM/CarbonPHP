@@ -48,12 +48,12 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
     public const TABLE_NAME = 'carbon_history_logs';
     public const TABLE_PREFIX = 'carbon_';
     public const DIRECTORY = __DIR__ . DIRECTORY_SEPARATOR;
-    
+
     /**
      * COLUMNS
      * The columns below are a 1=1 mapping to the columns found in carbon_history_logs. 
-     * Changes, shuch as adding or removing a column, SHOULD be made first in the database. The RestBuilder program will 
-     * capture any changes made in MySQL and update this file auto-magically. 
+     * Changes, shuch as adding or removing a column, SHOULD be made first in the database. The ResitBuilder program will 
+     * capture any changes made in MySQL and update this file auto-magically.
     **/
     public const HISTORY_UUID = 'carbon_history_logs.history_uuid'; 
 
@@ -79,8 +79,8 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
 
     /**
      * COLUMNS
-     * This is a convience constant for accessing your data after it has be returned from a rest operation. It is needed
-     * as Mysql will strip away the tablename we have explicitly provided to each column (to help with join statments).
+     * This is a convenience constant for accessing your data after it has be returned from a rest operation. It is needed
+     * as Mysql will strip away the table name we have explicitly provided to each column (to help with join statments).
      * Thus, accessing your return values might look something like:
      *      $return[self::COLUMNS[self::EXAMPLE_COLUMN_ONE]]
     **/ 
@@ -89,7 +89,7 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_history_logs.history_uuid' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_history_logs.history_table' => ['varchar', 'PDO::PARAM_STR', '255'],'carbon_history_logs.history_type' => ['varchar', 'PDO::PARAM_STR', '20'],'carbon_history_logs.history_data' => ['text,', 'PDO::PARAM_STR', ''],'carbon_history_logs.history_original_query' => ['varchar', 'PDO::PARAM_STR', '1024'],'carbon_history_logs.history_primary' => ['varchar', 'PDO::PARAM_STR', '255'],'carbon_history_logs.history_time' => ['datetime', 'PDO::PARAM_STR', ''],
+        'carbon_history_logs.history_uuid' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_history_logs.history_table' => ['varchar', 'PDO::PARAM_STR', '255'],'carbon_history_logs.history_type' => ['varchar', 'PDO::PARAM_STR', '20'],'carbon_history_logs.history_data' => ['json', 'PDO::PARAM_STR', ''],'carbon_history_logs.history_original_query' => ['varchar', 'PDO::PARAM_STR', '1024'],'carbon_history_logs.history_primary' => ['json', 'PDO::PARAM_STR', ''],'carbon_history_logs.history_time' => ['datetime', 'PDO::PARAM_STR', ''],
     ];
      
     /**
@@ -105,7 +105,7 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
     public const REFRESH_SCHEMA = [
         [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
                         PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS]
-    ]; 
+    ];
     
     /**
      * REGEX_VALIDATION
@@ -246,9 +246,9 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
   `history_uuid` binary(16) NOT NULL,
   `history_table` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `history_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `history_data` text,
+  `history_data` json DEFAULT NULL,
   `history_original_query` varchar(1024) DEFAULT NULL,
-  `history_primary` varchar(255) DEFAULT NULL,
+  `history_primary` json DEFAULT NULL,
   `history_time` datetime DEFAULT CURRENT_TIMESTAMP
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 MYSQL;
@@ -371,6 +371,14 @@ MYSQL;
         if (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1) {
             $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
         }
+        
+        if (array_key_exists('history_data', $return)) {
+                $return['history_data'] = json_decode($return['history_data'], true);
+        }
+        
+        if (array_key_exists('history_primary', $return)) {
+                $return['history_primary'] = json_decode($return['history_primary'], true);
+        }
 
         self::postprocessRestRequest($return);
         
@@ -390,7 +398,7 @@ MYSQL;
         self::startRest(self::POST, [], $data);
     
         foreach ($data as $columnName => $postValue) {
-            if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
+            if (!array_key_exists($columnName, self::COLUMNS)) {
                 return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.");
             }
         } 
@@ -438,13 +446,16 @@ MYSQL;
         
         if (!array_key_exists('carbon_history_logs.history_data', $data)) {
             return self::signalError('The column \'carbon_history_logs.history_data\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
-        } 
-        $ref='carbon_history_logs.history_data';
+        }
+        $ref = 'carbon_history_logs.history_data';
         $op = self::EQUAL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $data['history_data'])) {
             return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_history_logs.history_data\'.');
         }
-        $stmt->bindValue(':history_data', $data['carbon_history_logs.history_data'], PDO::PARAM_STR);
+        if (!is_string($history_data = $data['carbon_history_logs.history_data']) && false === $history_data = json_encode($history_data)) {
+            return self::signalError('The column \'carbon_history_logs.history_data\' failed to be json encoded.');
+        }
+        $stmt->bindValue(':history_data', $history_data, PDO::PARAM_STR);
         
         $history_original_query = $data['carbon_history_logs.history_original_query'] ?? null;
         $ref='carbon_history_logs.history_original_query';
@@ -454,13 +465,18 @@ MYSQL;
         }
         $stmt->bindParam(':history_original_query',$history_original_query, PDO::PARAM_STR, 1024);
         
-        $history_primary = $data['carbon_history_logs.history_primary'] ?? null;
-        $ref='carbon_history_logs.history_primary';
+        if (!array_key_exists('carbon_history_logs.history_primary', $data)) {
+            return self::signalError('The column \'carbon_history_logs.history_primary\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
+        }
+        $ref = 'carbon_history_logs.history_primary';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $history_primary, $history_primary === null)) {
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $data['history_primary'])) {
             return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_history_logs.history_primary\'.');
         }
-        $stmt->bindParam(':history_primary',$history_primary, PDO::PARAM_STR, 255);
+        if (!is_string($history_primary = $data['carbon_history_logs.history_primary']) && false === $history_primary = json_encode($history_primary)) {
+            return self::signalError('The column \'carbon_history_logs.history_primary\' failed to be json encoded.');
+        }
+        $stmt->bindValue(':history_primary', $history_primary, PDO::PARAM_STR);
         
         if (array_key_exists('carbon_history_logs.history_time', $data)) {
             return self::signalError('The column \'carbon_history_logs.history_time\' is set to default to CURRENT_TIMESTAMP. The Rest API does not allow POST requests with columns explicitly set whose default is CURRENT_TIMESTAMP. You can remove to the default in MySQL or the column \'carbon_history_logs.history_time\' from the request.');
@@ -528,7 +544,7 @@ MYSQL;
         
         foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column $key, because it does not appear to exist. Please re-run RestBuilder if you beleive this is incorrect.');
+                return self::signalError("Restful table could not update column $key, because it does not appear to exist. Please re-run RestBuilder if you believe this is incorrect.");
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
@@ -609,7 +625,7 @@ MYSQL;
             $stmt->bindParam(':history_type',$history_type, PDO::PARAM_STR, 20);
         }
         if (array_key_exists('carbon_history_logs.history_data', $argv)) { 
-            $stmt->bindValue(':history_data',$argv['carbon_history_logs.history_data'], PDO::PARAM_STR);
+            $stmt->bindValue(':history_data',json_encode($argv['carbon_history_logs.history_data']), PDO::PARAM_STR);
         }
         if (array_key_exists('carbon_history_logs.history_original_query', $argv)) { 
             $history_original_query = $argv['carbon_history_logs.history_original_query'];
@@ -621,13 +637,7 @@ MYSQL;
             $stmt->bindParam(':history_original_query',$history_original_query, PDO::PARAM_STR, 1024);
         }
         if (array_key_exists('carbon_history_logs.history_primary', $argv)) { 
-            $history_primary = $argv['carbon_history_logs.history_primary'];
-            $ref = 'carbon_history_logs.history_primary';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $history_primary)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'history_primary\'.');
-            }
-            $stmt->bindParam(':history_primary',$history_primary, PDO::PARAM_STR, 255);
+            $stmt->bindValue(':history_primary',json_encode($argv['carbon_history_logs.history_primary']), PDO::PARAM_STR);
         }
         if (array_key_exists('carbon_history_logs.history_time', $argv)) { 
             $stmt->bindValue(':history_time',$argv['carbon_history_logs.history_time'], PDO::PARAM_STR);

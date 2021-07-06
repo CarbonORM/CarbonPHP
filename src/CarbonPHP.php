@@ -246,7 +246,7 @@ class CarbonPHP
         $application = self::getApplication();
 
         if ($uri === '') {
-            Session::update(false);       // Check wrapper / session callback
+            Session::update();       // Check wrapper / session callback
             $uri = $application->uri;
         } else if ($uri === '/') {
             return self::resetApplication();
@@ -426,8 +426,8 @@ class CarbonPHP
             self::$reports = $config[self::ERROR][self::LOCATION] ?? '';
 
             #####################   AUTOLOAD    #######################
-            // it may serve pompous to dynamically load namespaces on call time
-            // this however is not recommended if avoidable by using composer.
+            // it may serve to dynamically load namespaces on call time
+            // this however is not recommended and is avoidable by using composer.
             if ($config[self::AUTOLOAD] ?? false) {
                 $PSR4 = new Autoload();
                 if (is_array($config[self::AUTOLOAD] ?? false)) {

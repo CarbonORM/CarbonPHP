@@ -13,6 +13,7 @@ config/buildDatabase.php
 /mysqldump.cnf
 /mysqldump_data.sql
 /mysqldump.sql
+/triggers.sql
 /scratch/
 /.htaccess
 /junit.xml
@@ -56,3 +57,5 @@ src/tables/Wp_Termmeta.php
 src/tables/Wp_Terms.php
 src/tables/Wp_Usermeta.php
 src/tables/Wp_Users.php
+
+

@@ -48,12 +48,12 @@ class Groups extends Rest implements iRestSinglePrimaryKey
     public const TABLE_NAME = 'carbon_groups';
     public const TABLE_PREFIX = 'carbon_';
     public const DIRECTORY = __DIR__ . DIRECTORY_SEPARATOR;
-    
+
     /**
      * COLUMNS
      * The columns below are a 1=1 mapping to the columns found in carbon_groups. 
-     * Changes, shuch as adding or removing a column, SHOULD be made first in the database. The RestBuilder program will 
-     * capture any changes made in MySQL and update this file auto-magically. 
+     * Changes, shuch as adding or removing a column, SHOULD be made first in the database. The ResitBuilder program will 
+     * capture any changes made in MySQL and update this file auto-magically.
     **/
     public const GROUP_NAME = 'carbon_groups.group_name'; 
 
@@ -73,8 +73,8 @@ class Groups extends Rest implements iRestSinglePrimaryKey
 
     /**
      * COLUMNS
-     * This is a convience constant for accessing your data after it has be returned from a rest operation. It is needed
-     * as Mysql will strip away the tablename we have explicitly provided to each column (to help with join statments).
+     * This is a convenience constant for accessing your data after it has be returned from a rest operation. It is needed
+     * as Mysql will strip away the table name we have explicitly provided to each column (to help with join statments).
      * Thus, accessing your return values might look something like:
      *      $return[self::COLUMNS[self::EXAMPLE_COLUMN_ONE]]
     **/ 
@@ -99,7 +99,7 @@ class Groups extends Rest implements iRestSinglePrimaryKey
     public const REFRESH_SCHEMA = [
         [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
                         PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS]
-    ]; 
+    ];
     
     /**
      * REGEX_VALIDATION
@@ -395,7 +395,7 @@ MYSQL;
         self::startRest(self::POST, [], $data);
     
         foreach ($data as $columnName => $postValue) {
-            if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
+            if (!array_key_exists($columnName, self::COLUMNS)) {
                 return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.");
             }
         } 
@@ -422,7 +422,7 @@ MYSQL;
         
         $entity_id = $id = $data['carbon_groups.entity_id'] ?? false;
         if ($id === false) {
-             $entity_id = $id = self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
+            $entity_id = $id = self::beginTransaction(self::class, $data[self::DEPENDANT_ON_ENTITY] ?? null);
         } else {
             $ref='carbon_groups.entity_id';
             $op = self::EQUAL;
@@ -511,7 +511,7 @@ MYSQL;
         
         foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column $key, because it does not appear to exist. Please re-run RestBuilder if you beleive this is incorrect.');
+                return self::signalError("Restful table could not update column $key, because it does not appear to exist. Please re-run RestBuilder if you believe this is incorrect.");
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
@@ -637,26 +637,20 @@ MYSQL;
         
         $emptyPrimary = null === $primary || '' === $primary;
         
-        $sql =  /** @lang MySQLFragment */ 'DELETE FROM carbon_groups ';
-        
-        if (false === self::$allowFullTableDeletes && $emptyPrimary && empty($argv)) {
-            return self::signalError('When deleting from restful tables a primary key or where query must be provided. This can be disabled by setting `self::$allowFullTableUpdates = true;` during the PREPROCESS events, or just directly before this request.');
-        }
-        
         if (!$emptyPrimary) {
-            $argv[self::PRIMARY] = $primary;
-        }
-        
-        $where = self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
-        
-        $emptyWhere = empty($where);
-        
-        if ($emptyWhere && false === self::$allowFullTableDeletes) {
-            return self::signalError('The where condition provided appears invalid.');
+            return Carbons::Delete($remove, $primary, $argv);
         }
 
-        if (!$emptyWhere) {
-            $sql .= ' WHERE ' . $where;
+        if (false === self::$allowFullTableDeletes && empty($argv)) {
+            return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
+        }
+        
+        $sql = 'DELETE c FROM carbon_carbons c 
+                JOIN carbon_groups on c.entity_pk = carbon_groups.entity_id';
+
+        
+        if (false === self::$allowFullTableDeletes || !empty($argv)) {
+            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
         }
         
         if (!$pdo->inTransaction()) {

@@ -17,7 +17,7 @@ use function func_get_args;
 use function is_array;
 
 // Custom User Imports
-
+use CarbonPHP\CarbonPHP;
 
 /**
  *
@@ -48,12 +48,12 @@ class Carbons extends Rest implements iRestSinglePrimaryKey
     public const TABLE_NAME = 'carbon_carbons';
     public const TABLE_PREFIX = 'carbon_';
     public const DIRECTORY = __DIR__ . DIRECTORY_SEPARATOR;
-    
+
     /**
      * COLUMNS
      * The columns below are a 1=1 mapping to the columns found in carbon_carbons. 
-     * Changes, shuch as adding or removing a column, SHOULD be made first in the database. The RestBuilder program will 
-     * capture any changes made in MySQL and update this file auto-magically. 
+     * Changes, shuch as adding or removing a column, SHOULD be made first in the database. The ResitBuilder program will 
+     * capture any changes made in MySQL and update this file auto-magically.
     **/
     public const ENTITY_PK = 'carbon_carbons.entity_pk'; 
 
@@ -71,8 +71,8 @@ class Carbons extends Rest implements iRestSinglePrimaryKey
 
     /**
      * COLUMNS
-     * This is a convience constant for accessing your data after it has be returned from a rest operation. It is needed
-     * as Mysql will strip away the tablename we have explicitly provided to each column (to help with join statments).
+     * This is a convenience constant for accessing your data after it has be returned from a rest operation. It is needed
+     * as Mysql will strip away the table name we have explicitly provided to each column (to help with join statments).
      * Thus, accessing your return values might look something like:
      *      $return[self::COLUMNS[self::EXAMPLE_COLUMN_ONE]]
     **/ 
@@ -95,9 +95,9 @@ class Carbons extends Rest implements iRestSinglePrimaryKey
      * Each directive MUST be designed to run multiple times without failure.
      */
     public const REFRESH_SCHEMA = [
-        [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
-                        PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS]
-    ]; 
+        [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::TABLE_PREFIX, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
+                        PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS, true]
+    ];
     
     /**
      * REGEX_VALIDATION
@@ -388,7 +388,7 @@ MYSQL;
         self::startRest(self::POST, [], $data);
     
         foreach ($data as $columnName => $postValue) {
-            if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
+            if (!array_key_exists($columnName, self::COLUMNS)) {
                 return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.");
             }
         } 
@@ -494,7 +494,7 @@ MYSQL;
         
         foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column $key, because it does not appear to exist. Please re-run RestBuilder if you beleive this is incorrect.');
+                return self::signalError("Restful table could not update column $key, because it does not appear to exist. Please re-run RestBuilder if you believe this is incorrect.");
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
@@ -617,7 +617,7 @@ MYSQL;
         $sql =  /** @lang MySQLFragment */ 'DELETE FROM carbon_carbons ';
         
         if (false === self::$allowFullTableDeletes && $emptyPrimary && empty($argv)) {
-            return self::signalError('When deleting from restful tables a primary key or where query must be provided. This can be disabled by setting `self::$allowFullTableUpdates = true;` during the PREPROCESS events, or just directly before this request.');
+            return self::signalError('When deleting from restful tables a primary key or where query must be provided. This can be disabled by setting `self::$allowFullTableDeletes = true;` during the PREPROCESS events, or just directly before this request.');
         }
         
         if (!$emptyPrimary) {

@@ -16,6 +16,7 @@
 namespace CarbonPHP;
 
 use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Helpers\Serialized;
 use CarbonPHP\Programs\Background;
 use CarbonPHP\Programs\ColorCode;
@@ -37,13 +38,13 @@ class Session implements \SessionHandlerInterface
 
     protected static ?Session $singleton = null;
     /**
-     * @var string - if we need to close or pause the session in the middle of execution,
+     * @var null|string - if we need to close or pause the session in the middle of execution,
      * this will persistently hold our session_id.
      */
     public static ?string $session_id;
 
     /**
-     * @var string $user_id - After a session is closed the session data is serialized and removed
+     * @var null|string $user_id - After a session is closed the session data is serialized and removed
      * from the global (accessible) scope.
      */
     public static ?string $user_id;
@@ -73,9 +74,10 @@ class Session implements \SessionHandlerInterface
             headers_sent() or ini_set('session.use_strict_mode', 1);
 
             if ($dbStore && !headers_sent()) {
+                /** @noinspection PhpExpressionResultUnusedInspection */
                 ini_set('session.gc_probability', 1);  // Clear any lingering session data in default locations
                 if (!session_set_save_handler($this, false)) {           // set this class as the session handler
-                    die('Session failed to store remotely');
+                    throw new PublicAlert('Session failed to store remotely');
                 }
             }
 
@@ -87,7 +89,7 @@ class Session implements \SessionHandlerInterface
         try {
             // this should not throw an error.. but if it doesnt we will catch and die
             if (false === session_start()) {
-                die('Carbon failed to start your session');
+                throw new PublicAlert('CarbonPHP failed to start your session');
             }
 
             static::$session_id = session_id();
@@ -95,8 +97,7 @@ class Session implements \SessionHandlerInterface
             $_SESSION['id'] = array_key_exists('id', $_SESSION ??= []) ? $_SESSION['id'] : false;
 
         } catch (Throwable $e) {
-            ErrorCatcher::generateLog($e);
-            die(1);
+            ErrorCatcher::generateBrowserReportFromError($e); // This terminates!
         }
     }
 

@@ -16,7 +16,7 @@ use CarbonPHP\Rest;
 use CarbonPHP\Tables\Location_References;
 use CarbonPHP\Tables\Locations;
 use CarbonPHP\Tables\User_Tasks;
-use CarbonPHP\Tables\Users as Users;
+use CarbonPHP\Tables\Users;
 use CarbonPHP\Tables\Carbons;
 use CarbonPHP\Tables\History_Logs;
 use CarbonPHP\Tables\Sessions;
@@ -411,9 +411,10 @@ final class RestTest extends Config
 
         $out = trim(ob_get_clean());
 
-        self::assertNotEmpty($GLOBALS['json']['rest']);
-
         self::assertStringEndsWith('}', $out, 'Did not detect json output. OUTPUT :: ' . $out);
+
+        self::assertNotEmpty($GLOBALS['json']['rest'], $out);
+
 
     }
 
@@ -553,19 +554,20 @@ final class RestTest extends Config
 
         // Should return a unique hex id
         self::assertTrue(History_Logs::Post([
-            History_Logs::RESOURCE_TYPE => $condition,
-            History_Logs::RESOURCE_UUID => $RESOURCE_UUID = Carbons::Post([]),
-            History_Logs::UUID => $uuid = Carbons::Post([]),
-            History_Logs::DATA => '{}'
+            History_Logs::HISTORY_UUID => $UUID = Carbons::Post([]),
+            History_Logs::HISTORY_PRIMARY => '{}',
+            History_Logs::HISTORY_TABLE => $condition,
+            History_Logs::HISTORY_DATA => '{}',
         ]));
 
         // Should return a unique hex id
         self::assertTrue(History_Logs::Put($ignore, [
             Rest::UPDATE => [
-                History_Logs::DATA => '',
+                History_Logs::HISTORY_UUID => $UUID = Carbons::Post([]),
+                History_Logs::HISTORY_DATA => '{}',
             ],
             Rest::WHERE => [
-                History_Logs::RESOURCE_UUID => $RESOURCE_UUID,
+                History_Logs::HISTORY_TABLE => $condition,
             ]
         ]));
 
@@ -573,15 +575,15 @@ final class RestTest extends Config
 
         self::assertTrue(History_Logs::Get($return, [
             Rest::WHERE => [
-                History_Logs::RESOURCE_TYPE => $condition
+                History_Logs::HISTORY_TABLE => $condition
             ],
             Rest::PAGINATION => [
                 Rest::LIMIT => 1,
-                Rest::ORDER => [History_Logs::UUID => Rest::ASC]
+                Rest::ORDER => [History_Logs::HISTORY_TIME => Rest::ASC]
             ]
         ]));
 
-        self::assertCount(5, $return);
+        self::assertCount(7, $return);
     }
 
     public function testRestApiCanUseJson(): void
@@ -589,27 +591,26 @@ final class RestTest extends Config
         $ignore = [];
         $condition = 'ME';
 
+        self::assertTrue(History_Logs::Delete($ignore, [
+            History_Logs::HISTORY_UUID => '8544e3d581ba11e8942cd89ef3fc55fb'
+        ]));
+
         self::assertTrue(History_Logs::Post([
-            History_Logs::RESOURCE_TYPE => $condition,
-            History_Logs::RESOURCE_UUID => $RESOURCE_UUID = Carbons::Post([]),
-            History_Logs::UUID => $UUID = Carbons::Post([]),
-            History_Logs::DATA => [
-                'Test' => 'Value'
-            ]
+            History_Logs::HISTORY_DATA => '{}',
+            History_Logs::HISTORY_TABLE => $condition,
+            History_Logs::HISTORY_PRIMARY => '{}',
+            History_Logs::HISTORY_UUID => $UUID = Carbons::Post([])
         ]));
 
 
         // Should return a unique hex id
         self::assertTrue(History_Logs::Put($ignore, [
             Rest::UPDATE => [
-                History_Logs::RESOURCE_UUID => '8544e3d581ba11e8942cd89ef3fc55fb',
-                History_Logs::UUID => '8544e3d581ba11e8942cd89ef3fc55fb',
-                History_Logs::DATA => [
-                    'Test' => 'Value'
-                ]
+                History_Logs::HISTORY_PRIMARY => '{["8544e3d581ba11e8942cd89ef3fc55fb"]}',
+                History_Logs::HISTORY_UUID => '8544e3d581ba11e8942cd89ef3fc55fb',
             ],
             Rest::WHERE => [
-                History_Logs::RESOURCE_TYPE => $condition,
+                History_Logs::HISTORY_TABLE => $condition,
             ]
         ]));
 
@@ -617,16 +618,18 @@ final class RestTest extends Config
 
         self::assertTrue(History_Logs::Get($return, [
             Rest::WHERE => [
-                History_Logs::RESOURCE_TYPE => $condition
+                History_Logs::HISTORY_TABLE => $condition
             ],
             Rest::PAGINATION => [
                 Rest::LIMIT => 1,
-                Rest::ORDER => [History_Logs::UUID => Rest::ASC]
+                Rest::ORDER => [History_Logs::HISTORY_TIME => Rest::ASC]
             ]
         ]));
 
-        self::assertCount(5, $return);
 
+
+
+        self::assertCount(7, $return);
 
     }
 
