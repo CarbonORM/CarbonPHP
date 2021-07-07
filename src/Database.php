@@ -810,6 +810,10 @@ FOOT;
      */
     public static function tableExistsOrExecuteSQL(string $table_name, string $table_prefix, string $sql, bool $carbonTable = false): ?bool
     {
+        if ($carbonTable) {
+            self::addTablePrefix($table_name, $table_prefix, $sql);
+        }
+
         // Check if exist the column named image
         $result = self::fetch("SELECT * 
                         FROM information_schema.tables
@@ -819,10 +823,6 @@ FOOT;
 
         if ([] === $result) {
             self::colorCode("Attempting to create table ($table_name).");
-
-            if ($carbonTable) {
-                self::addTablePrefix($table_name, $table_prefix, $sql);
-            }
 
             if (!self::execute($sql)) {
                 throw new PublicAlert('Failed to update table :: ' . $table_name);
