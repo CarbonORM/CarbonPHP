@@ -461,7 +461,9 @@ FOOT;
     public static function remove_entity($id): bool
     {
         $ref = [];
-        return Carbons::Delete($ref, $id, []); //Database::database()->prepare('DELETE FROM carbon WHERE entity_pk = ?')->execute([$id]);
+        $carbons = Rest::getDynamicRestClass(Carbons::class);
+        /** @noinspection PhpUndefinedMethodInspection */
+        return $carbons::Delete($ref, $id, []); //Database::database()->prepare('DELETE FROM carbon WHERE entity_pk = ?')->execute([$id]);
     }
 
 
@@ -780,7 +782,7 @@ FOOT;
             return;
         }
 
-        $sql = preg_replace("#CREATE TABLE `$table_name", "CREATE TABLE `$prefix$table_name", $sql);
+        $sql = preg_replace("#CREATE TABLE `$table_name`#", 'CREATE TABLE ' . $prefix . $table_name, $sql);
     }
 
 

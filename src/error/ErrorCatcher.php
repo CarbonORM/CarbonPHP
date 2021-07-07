@@ -9,6 +9,8 @@ use CarbonPHP\Database;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Programs\Background;
 use CarbonPHP\Programs\ColorCode;
+use CarbonPHP\Rest;
+use CarbonPHP\Tables\Carbons;
 use CarbonPHP\Tables\Reports;
 use ReflectionException;
 use ReflectionMethod;
@@ -430,10 +432,12 @@ END;
         if (self::$storeReport === true || self::$storeReport === 'database') {
             if (Database::$initialized) {
                 try {
-                    if (!Reports::Post([
-                        Reports::LOG_LEVEL => $level,
-                        Reports::REPORT => $cliOutput,
-                        Reports::CALL_TRACE => $trace
+                    $reports = Rest::getDynamicRestClass(Reports::class);
+
+                    if (!$reports::Post([
+                        $reports::LOG_LEVEL => $level,
+                        $reports::REPORT => $cliOutput,
+                        $reports::CALL_TRACE => $trace
                     ])) {
                         error_log($message = 'Failed storing log in database. The restful Reports table returned false.');
                         $browserOutput['[C6] ISSUE'] = $message;
