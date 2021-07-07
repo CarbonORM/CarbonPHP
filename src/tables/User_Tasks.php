@@ -8,6 +8,7 @@ use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Helpers\RestfulValidations;
 use CarbonPHP\Rest;
+use JsonException;
 use PDO;
 use PDOException;
 use function array_key_exists;
@@ -16,11 +17,12 @@ use function func_get_args;
 use function is_array;
 
 // Custom User Imports
-
+use CarbonPHP\CarbonPHP;
+use Tests\Feature\RestTest;
 
 /**
- * 
- * Class Wp_Users
+ *
+ * Class User_Tasks
  * @package CarbonPHP\Tables
  * @note Note for convenience, a flag '-prefix' maybe passed to remove table prefixes.
  *  Use '-help' for a full list of options.
@@ -38,40 +40,38 @@ use function is_array;
  * When creating static member functions which require persistent variables, consider making them static members of that 
  *  static method.
  */
-class Wp_Users extends Rest implements iRestSinglePrimaryKey
+class User_Tasks extends Rest implements iRestSinglePrimaryKey
 {
     use RestfulValidations;
     
-    public const CLASS_NAME = 'Wp_Users';
+    public const CLASS_NAME = 'User_Tasks';
     public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
-    public const TABLE_NAME = 'wp_users';
-    public const TABLE_PREFIX = '';
-    
+    public const TABLE_NAME = 'carbon_user_tasks';
+    public const TABLE_PREFIX = 'carbon_';
+    public const DIRECTORY = __DIR__ . DIRECTORY_SEPARATOR;
+
     /**
      * COLUMNS
-     * The columns below are a 1=1 mapping to the columns found in wp_users. 
-     * Changes, shuch as adding or removing a column, SHOULD be made first in the database. The RestBuilder program will 
-     * capture any changes made in MySQL and update this file auto-magically. 
+     * The columns below are a 1=1 mapping to the columns found in carbon_user_tasks. 
+     * Changes, such as adding or removing a column, MAY be made first in the database. The ResitBuilder program will 
+     * capture any changes made in MySQL and update this file auto-magically. If you work in a team it is RECCOMENDED to
+     * progromattically make these changes using the REFRESH_SCHEMA constant below.
     **/
-    public const ID = 'wp_users.ID'; 
+    public const TASK_ID = 'carbon_user_tasks.task_id'; 
 
-    public const USER_LOGIN = 'wp_users.user_login'; 
+    public const USER_ID = 'carbon_user_tasks.user_id'; 
 
-    public const USER_PASS = 'wp_users.user_pass'; 
+    public const FROM_ID = 'carbon_user_tasks.from_id'; 
 
-    public const USER_NICENAME = 'wp_users.user_nicename'; 
+    public const TASK_NAME = 'carbon_user_tasks.task_name'; 
 
-    public const USER_EMAIL = 'wp_users.user_email'; 
+    public const TASK_DESCRIPTION = 'carbon_user_tasks.task_description'; 
 
-    public const USER_URL = 'wp_users.user_url'; 
+    public const PERCENT_COMPLETE = 'carbon_user_tasks.percent_complete'; 
 
-    public const USER_REGISTERED = 'wp_users.user_registered'; 
+    public const START_DATE = 'carbon_user_tasks.start_date'; 
 
-    public const USER_ACTIVATION_KEY = 'wp_users.user_activation_key'; 
-
-    public const USER_STATUS = 'wp_users.user_status'; 
-
-    public const DISPLAY_NAME = 'wp_users.display_name'; 
+    public const END_DATE = 'carbon_user_tasks.end_date'; 
 
     /**
      * PRIMARY
@@ -79,21 +79,21 @@ class Wp_Users extends Rest implements iRestSinglePrimaryKey
      * given composite primary keys. The existence and amount of primary keys of the will also determine the interface 
      * aka method signatures used.
     **/
-    public const PRIMARY = 'wp_users.ID';
+    public const PRIMARY = 'carbon_user_tasks.task_id';
 
     /**
      * COLUMNS
-     * This is a convience constant for accessing your data after it has be returned from a rest operation. It is needed
-     * as Mysql will strip away the tablename we have explicitly provided to each column (to help with join statments).
+     * This is a convenience constant for accessing your data after it has be returned from a rest operation. It is needed
+     * as Mysql will strip away the table name we have explicitly provided to each column (to help with join statments).
      * Thus, accessing your return values might look something like:
      *      $return[self::COLUMNS[self::EXAMPLE_COLUMN_ONE]]
     **/ 
     public const COLUMNS = [
-        'wp_users.ID' => 'ID','wp_users.user_login' => 'user_login','wp_users.user_pass' => 'user_pass','wp_users.user_nicename' => 'user_nicename','wp_users.user_email' => 'user_email','wp_users.user_url' => 'user_url','wp_users.user_registered' => 'user_registered','wp_users.user_activation_key' => 'user_activation_key','wp_users.user_status' => 'user_status','wp_users.display_name' => 'display_name',
+        'carbon_user_tasks.task_id' => 'task_id','carbon_user_tasks.user_id' => 'user_id','carbon_user_tasks.from_id' => 'from_id','carbon_user_tasks.task_name' => 'task_name','carbon_user_tasks.task_description' => 'task_description','carbon_user_tasks.percent_complete' => 'percent_complete','carbon_user_tasks.start_date' => 'start_date','carbon_user_tasks.end_date' => 'end_date',
     ];
 
     public const PDO_VALIDATION = [
-        'wp_users.ID' => ['bigint', 'PDO::PARAM_INT', ''],'wp_users.user_login' => ['varchar', 'PDO::PARAM_STR', '60'],'wp_users.user_pass' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_users.user_nicename' => ['varchar', 'PDO::PARAM_STR', '50'],'wp_users.user_email' => ['varchar', 'PDO::PARAM_STR', '100'],'wp_users.user_url' => ['varchar', 'PDO::PARAM_STR', '100'],'wp_users.user_registered' => ['datetime', 'PDO::PARAM_STR', ''],'wp_users.user_activation_key' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_users.user_status' => ['int', 'PDO::PARAM_INT', ''],'wp_users.display_name' => ['varchar', 'PDO::PARAM_STR', '250'],
+        'carbon_user_tasks.task_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_user_tasks.user_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_user_tasks.from_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_user_tasks.task_name' => ['varchar', PDO::PARAM_STR, '40'],'carbon_user_tasks.task_description' => ['varchar', PDO::PARAM_STR, '225'],'carbon_user_tasks.percent_complete' => ['int', PDO::PARAM_INT, ''],'carbon_user_tasks.start_date' => ['datetime', PDO::PARAM_STR, ''],'carbon_user_tasks.end_date' => ['datetime', PDO::PARAM_STR, ''],
     ];
      
     /**
@@ -107,9 +107,9 @@ class Wp_Users extends Rest implements iRestSinglePrimaryKey
      * Each directive MUST be designed to run multiple times without failure.
      */
     public const REFRESH_SCHEMA = [
-        [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
-                        PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS]
-    ]; 
+        [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::TABLE_PREFIX, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
+                        PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS, true]
+    ];
     
     /**
      * REGEX_VALIDATION
@@ -234,20 +234,59 @@ class Wp_Users extends Rest implements iRestSinglePrimaryKey
      */
  
     public const PHP_VALIDATION = [ 
-        self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
+        self::REST_REQUEST_PREPROCESS_CALLBACKS => [
             self::PREPROCESS => [ 
                 [self::class => 'disallowPublicAccess', self::class],
+                [self::class => 'restTesting', self::PREPROCESS, self::class],
             ]
         ],
         self::GET => [ 
             self::PREPROCESS => [ 
-                [self::class => 'disallowPublicAccess', self::class],
+                self::DISALLOW_PUBLIC_ACCESS
+            ],
+            self::TASK_ID => [
+                [self::class => 'restTesting', self::GET, self::PREPROCESS],
+            ]
+        ],
+        self::POST => [
+            self::PREPROCESS => [
+                self::DISALLOW_PUBLIC_ACCESS,
+                [self::class => 'restTesting', self::POST, self::PREPROCESS],
+            ],
+            self::PERCENT_COMPLETE => [
+                [self::class => 'restTesting', self::PERCENT_COMPLETE, 'CustomArgument', self::POST],
+            ],
+            self::TASK_DESCRIPTION => [
+                [self::class => 'restTesting']
+            ]
+        ],
+        self::PUT => [
+            self::PREPROCESS => [
+                self::DISALLOW_PUBLIC_ACCESS,
+                [self::class => 'restTesting']
+            ],
+            self::TASK_NAME => [
+                [self::class => 'restTesting', self::PUT]
+            ]
+        ],
+        self::DELETE => [
+            self::PREPROCESS => [
+                self::DISALLOW_PUBLIC_ACCESS,
+                [self::class => 'restTesting', self::DELETE]
             ]
         ],    
-        self::POST => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
-        self::PUT => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
-        self::DELETE => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],
-        self::REST_REQUEST_FINNISH_CALLBACKS => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]]    
+        self::FINISH => [
+            self::PREPROCESS => [
+                self::DISALLOW_PUBLIC_ACCESS,
+                [self::class => 'restTesting', self::FINISH, self::PREPROCESS]
+            ],
+            self::END_DATE => [
+                [self::class => 'restTesting', self::FINISH, 'Post Process When EndDate Requested.']
+            ],
+            self::FINISH => [
+                [self::class => 'restTesting', self::FINISH]
+            ]
+        ]
     ]; 
    
     /**
@@ -255,26 +294,33 @@ class Wp_Users extends Rest implements iRestSinglePrimaryKey
      * the RestBuilder program.
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
-    CREATE TABLE `wp_users` (
-  `ID` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `user_login` varchar(60) COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT '',
-  `user_pass` varchar(255) COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT '',
-  `user_nicename` varchar(50) COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT '',
-  `user_email` varchar(100) COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT '',
-  `user_url` varchar(100) COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT '',
-  `user_registered` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `user_activation_key` varchar(255) COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT '',
-  `user_status` int NOT NULL DEFAULT '0',
-  `display_name` varchar(250) COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT '',
-  PRIMARY KEY (`ID`),
-  KEY `user_login_key` (`user_login`),
-  KEY `user_nicename` (`user_nicename`),
-  KEY `user_email` (`user_email`)
+    CREATE TABLE `carbon_user_tasks` (
+  `task_id` binary(16) NOT NULL,
+  `user_id` binary(16) NOT NULL COMMENT 'This is the user the task is being assigned to',
+  `from_id` binary(16) DEFAULT NULL COMMENT 'Keeping this colum so forgen key will remove task if user deleted',
+  `task_name` varchar(40) NOT NULL,
+  `task_description` varchar(225) DEFAULT NULL,
+  `percent_complete` int DEFAULT '0',
+  `start_date` datetime DEFAULT NULL,
+  `end_date` datetime DEFAULT NULL,
+  PRIMARY KEY (`task_id`),
+  KEY `user_tasks_entity_entity_pk_fk` (`from_id`),
+  KEY `user_tasks_entity_task_pk_fk` (`task_id`),
+  KEY `carbon_user_tasks_carbons_entity_pk_fk_2` (`user_id`),
+  CONSTRAINT `carbon_user_tasks_carbons_entity_pk_fk` FOREIGN KEY (`task_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `carbon_user_tasks_carbons_entity_pk_fk_2` FOREIGN KEY (`user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `carbon_user_tasks_carbons_entity_pk_fk_3` FOREIGN KEY (`from_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 MYSQL;
    
    
-
+    public static function restTesting(...$argv)
+    {
+        if (CarbonPHP::$test) {
+            /** @noinspection PhpUndefinedClassInspection - todo - remove example php files in react */
+            RestTest::$restChallenge[] = $argv;
+        }
+    }
     
     /**
      * @deprecated Use the class constant CREATE_TABLE_SQL directly
@@ -388,20 +434,10 @@ MYSQL;
         }
 
         $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        /**
-        *   The next part is so every response from the rest api
-        *   formats to a set of rows. Even if only one row is returned.
-        *   You must set the third parameter to true, otherwise '0' is
-        *   apparently in the self::PDO_VALIDATION
-        */
-
         
-        if ($primary !== null || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
+        if ((null !== $primary && '' !== $primary) || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
             $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
         }
-
-        
 
         self::postprocessRestRequest($return);
         
@@ -416,119 +452,116 @@ MYSQL;
      * @generated
      * @throws PublicAlert|PDOException|JsonException
      */
-    public static function Post(array $data)
+    public static function Post(array $data = [])
     {   
         self::startRest(self::POST, [], $data);
     
         foreach ($data as $columnName => $postValue) {
-            if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
+            if (!array_key_exists($columnName, self::COLUMNS)) {
                 return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.");
             }
         } 
         
-        $sql = 'INSERT INTO wp_users (user_login, user_pass, user_nicename, user_email, user_url, user_registered, user_activation_key, user_status, display_name) VALUES ( :user_login, :user_pass, :user_nicename, :user_email, :user_url, :user_registered, :user_activation_key, :user_status, :display_name)';
+        $sql = 'INSERT INTO carbon_user_tasks (task_id, user_id, from_id, task_name, task_description, percent_complete, start_date, end_date) VALUES ( UNHEX(:task_id), UNHEX(:user_id), UNHEX(:from_id), :task_name, :task_description, :percent_complete, :start_date, :end_date)';
 
-        $pdo = self::database();
-        
-        if (!$pdo->inTransaction()) {
-            $pdo->beginTransaction();
-        }
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
         $stmt = self::database()->prepare($sql);
-        $user_login = $data['wp_users.user_login'] ?? '';
-        $ref='wp_users.user_login';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $user_login, $user_login === '')) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'wp_users.user_login\'.');
-        }
-        $stmt->bindParam(':user_login',$user_login, PDO::PARAM_STR, 60);
         
-        $user_pass = $data['wp_users.user_pass'] ?? '';
-        $ref='wp_users.user_pass';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $user_pass, $user_pass === '')) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'wp_users.user_pass\'.');
+        $task_id = $id = $data['carbon_user_tasks.task_id'] ?? false;
+        if ($id === false) {
+            $task_id = $id = self::beginTransaction(self::class, $data[self::DEPENDANT_ON_ENTITY] ?? null);
+        } else {
+            $ref='carbon_user_tasks.task_id';
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::POST, $ref, $op, $task_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.task_id\'.');
+            }            
         }
-        $stmt->bindParam(':user_pass',$user_pass, PDO::PARAM_STR, 255);
+        $stmt->bindParam(':task_id',$task_id, PDO::PARAM_STR, 16);
         
-        $user_nicename = $data['wp_users.user_nicename'] ?? '';
-        $ref='wp_users.user_nicename';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $user_nicename, $user_nicename === '')) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'wp_users.user_nicename\'.');
+        if (!array_key_exists('carbon_user_tasks.user_id', $data)) {
+            return self::signalError('Required argument "carbon_user_tasks.user_id" is missing from the request.');
         }
-        $stmt->bindParam(':user_nicename',$user_nicename, PDO::PARAM_STR, 50);
+        $user_id = $data['carbon_user_tasks.user_id'];
+        $ref='carbon_user_tasks.user_id';
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $user_id)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.user_id\'.');
+        }
+        $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
         
-        $user_email = $data['wp_users.user_email'] ?? '';
-        $ref='wp_users.user_email';
+        $from_id = $data['carbon_user_tasks.from_id'] ?? null;
+        $ref='carbon_user_tasks.from_id';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $user_email, $user_email === '')) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'wp_users.user_email\'.');
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $from_id, $from_id === null)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.from_id\'.');
         }
-        $stmt->bindParam(':user_email',$user_email, PDO::PARAM_STR, 100);
+        $stmt->bindParam(':from_id',$from_id, PDO::PARAM_STR, 16);
         
-        $user_url = $data['wp_users.user_url'] ?? '';
-        $ref='wp_users.user_url';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $user_url, $user_url === '')) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'wp_users.user_url\'.');
+        if (!array_key_exists('carbon_user_tasks.task_name', $data)) {
+            return self::signalError('Required argument "carbon_user_tasks.task_name" is missing from the request.');
         }
-        $stmt->bindParam(':user_url',$user_url, PDO::PARAM_STR, 100);
+        $task_name = $data['carbon_user_tasks.task_name'];
+        $ref='carbon_user_tasks.task_name';
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $task_name)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.task_name\'.');
+        }
+        $stmt->bindParam(':task_name',$task_name, PDO::PARAM_STR, 40);
+        
+        $task_description = $data['carbon_user_tasks.task_description'] ?? null;
+        $ref='carbon_user_tasks.task_description';
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $task_description, $task_description === null)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.task_description\'.');
+        }
+        $stmt->bindParam(':task_description',$task_description, PDO::PARAM_STR, 225);
                  
-        $user_registered = $data['wp_users.user_registered'] ?? '0000-00-00 00:00:00';
-        $ref='wp_users.user_registered';
+        $percent_complete = $data['carbon_user_tasks.percent_complete'] ?? '0';
+        $ref='carbon_user_tasks.percent_complete';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $user_registered, $user_registered === '0000-00-00 00:00:00')) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'wp_users.user_registered\'.');
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $percent_complete, $percent_complete === '0')) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.percent_complete\'.');
         }
-        $stmt->bindValue(':user_registered', $user_registered, PDO::PARAM_STR);
-        
-        $user_activation_key = $data['wp_users.user_activation_key'] ?? '';
-        $ref='wp_users.user_activation_key';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $user_activation_key, $user_activation_key === '')) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'wp_users.user_activation_key\'.');
-        }
-        $stmt->bindParam(':user_activation_key',$user_activation_key, PDO::PARAM_STR, 255);
+        $stmt->bindValue(':percent_complete', $percent_complete, PDO::PARAM_INT);
                  
-        $user_status = $data['wp_users.user_status'] ?? '0';
-        $ref='wp_users.user_status';
+        $start_date = $data['carbon_user_tasks.start_date'] ?? null;
+        $ref='carbon_user_tasks.start_date';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $user_status, $user_status === '0')) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'wp_users.user_status\'.');
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $start_date, $start_date === null)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.start_date\'.');
         }
-        $stmt->bindValue(':user_status', $user_status, PDO::PARAM_INT);
-        
-        $display_name = $data['wp_users.display_name'] ?? '';
-        $ref='wp_users.display_name';
+        $stmt->bindValue(':start_date', $start_date, PDO::PARAM_STR);
+                 
+        $end_date = $data['carbon_user_tasks.end_date'] ?? null;
+        $ref='carbon_user_tasks.end_date';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $display_name, $display_name === '')) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'wp_users.display_name\'.');
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $end_date, $end_date === null)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.end_date\'.');
         }
-        $stmt->bindParam(':display_name',$display_name, PDO::PARAM_STR, 250);
+        $stmt->bindValue(':end_date', $end_date, PDO::PARAM_STR);
         
         if (!$stmt->execute()) {
             self::completeRest();
             return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }
         
-        $id = $pdo->lastInsertId();
-        
         self::prepostprocessRestRequest($id);
-        
+         
         if (self::$commit && !Database::commit()) {
-            return self::signalError('Failed to store commit transaction on table wp_users');
-        }
-        
-        self::postprocessRestRequest($id);
-        
+           return self::signalError('Failed to store commit transaction on table carbon_user_tasks');
+        } 
+         
+        self::postprocessRestRequest($id); 
+         
         self::completeRest();
         
-        return $id;  
+        return $id; 
+        
     }
     
     /**
@@ -536,78 +569,82 @@ MYSQL;
     * 
     * Tables where primary keys exist must be updated by its primary key. 
     * Column should be in a key value pair passed to $argv or optionally using syntax:
-    * $argv => [
+    * $argv = [
     *       Rest::UPDATE => [
     *              ...
     *       ]
     * ]
     * 
     * @param array $returnUpdated - will be merged with with array_merge, with a successful update. 
-    * @param string $primary
+    * @param string|null $primary
     * @param array $argv 
     * @generated
     * @throws PublicAlert|PDOException|JsonException
     * @return bool - if execute fails, false will be returned and $returnUpdated = $stmt->errorInfo(); 
     */
-    public static function Put(array &$returnUpdated, string $primary, array $argv) : bool
+    public static function Put(array &$returnUpdated, string $primary = null, array $argv = []) : bool
     {
         self::startRest(self::PUT, $returnUpdated, $argv, $primary);
         
-        if ('' === $primary) {
-            return self::signalError('Restful tables which have a primary key must be updated by its primary key.');
+        $where = [];
+
+        if (array_key_exists(self::WHERE, $argv)) {
+            $where = $argv[self::WHERE];
+            unset($argv[self::WHERE]);
         }
-         
+        
         if (array_key_exists(self::UPDATE, $argv)) {
             $argv = $argv[self::UPDATE];
         }
-
-        $where = [self::PRIMARY => $primary];
         
+        $emptyPrimary = null === $primary || '' === $primary;
+        
+        if (false === self::$allowFullTableUpdates && $emptyPrimary) { 
+            return self::signalError('Restful tables which have a primary key must be updated by its primary key. To bypass this set you may set `self::$allowFullTableUpdates = true;` during the PREPROCESS events.');
+        }
+
+        if (!$emptyPrimary) {
+            $where[self::PRIMARY] = $primary;
+        }
         
         foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column $key, because it does not appear to exist.');
+                return self::signalError("Restful table could not update column $key, because it does not appear to exist. Please re-run RestBuilder if you believe this is incorrect.");
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'wp_users.\'.');
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_tasks.\'.');
             }
         }
         unset($value);
 
-        $sql = /** @lang MySQLFragment */ 'UPDATE wp_users SET '; // intellij cant handle this otherwise
+        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_user_tasks SET '; // intellij cant handle this otherwise
 
         $set = '';
 
-        if (array_key_exists('wp_users.ID', $argv)) {
-            $set .= 'ID=:ID,';
+        if (array_key_exists('carbon_user_tasks.task_id', $argv)) {
+            $set .= 'task_id=UNHEX(:task_id),';
         }
-        if (array_key_exists('wp_users.user_login', $argv)) {
-            $set .= 'user_login=:user_login,';
+        if (array_key_exists('carbon_user_tasks.user_id', $argv)) {
+            $set .= 'user_id=UNHEX(:user_id),';
         }
-        if (array_key_exists('wp_users.user_pass', $argv)) {
-            $set .= 'user_pass=:user_pass,';
+        if (array_key_exists('carbon_user_tasks.from_id', $argv)) {
+            $set .= 'from_id=UNHEX(:from_id),';
         }
-        if (array_key_exists('wp_users.user_nicename', $argv)) {
-            $set .= 'user_nicename=:user_nicename,';
+        if (array_key_exists('carbon_user_tasks.task_name', $argv)) {
+            $set .= 'task_name=:task_name,';
         }
-        if (array_key_exists('wp_users.user_email', $argv)) {
-            $set .= 'user_email=:user_email,';
+        if (array_key_exists('carbon_user_tasks.task_description', $argv)) {
+            $set .= 'task_description=:task_description,';
         }
-        if (array_key_exists('wp_users.user_url', $argv)) {
-            $set .= 'user_url=:user_url,';
+        if (array_key_exists('carbon_user_tasks.percent_complete', $argv)) {
+            $set .= 'percent_complete=:percent_complete,';
         }
-        if (array_key_exists('wp_users.user_registered', $argv)) {
-            $set .= 'user_registered=:user_registered,';
+        if (array_key_exists('carbon_user_tasks.start_date', $argv)) {
+            $set .= 'start_date=:start_date,';
         }
-        if (array_key_exists('wp_users.user_activation_key', $argv)) {
-            $set .= 'user_activation_key=:user_activation_key,';
-        }
-        if (array_key_exists('wp_users.user_status', $argv)) {
-            $set .= 'user_status=:user_status,';
-        }
-        if (array_key_exists('wp_users.display_name', $argv)) {
-            $set .= 'display_name=:display_name,';
+        if (array_key_exists('carbon_user_tasks.end_date', $argv)) {
+            $set .= 'end_date=:end_date,';
         }
         
         $sql .= substr($set, 0, -1);
@@ -618,78 +655,71 @@ MYSQL;
             $pdo->beginTransaction();
         }
 
-        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
-
+        if (false === self::$allowFullTableUpdates || !empty($where)) {
+            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
+        }
+        
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
         $stmt = $pdo->prepare($sql);
 
-        if (array_key_exists('wp_users.ID', $argv)) {
-            $stmt->bindValue(':ID',$argv['wp_users.ID'], PDO::PARAM_INT);
-}if (array_key_exists('wp_users.user_login', $argv)) {
-            $user_login = $argv['wp_users.user_login'];
-            $ref = 'wp_users.user_login';
+        if (array_key_exists('carbon_user_tasks.task_id', $argv)) { 
+            $task_id = $argv['carbon_user_tasks.task_id'];
+            $ref = 'carbon_user_tasks.task_id';
             $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_login)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'user_login\'.');
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $task_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'task_id\'.');
             }
-            $stmt->bindParam(':user_login',$user_login, PDO::PARAM_STR, 60);
-        }if (array_key_exists('wp_users.user_pass', $argv)) {
-            $user_pass = $argv['wp_users.user_pass'];
-            $ref = 'wp_users.user_pass';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_pass)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'user_pass\'.');
-            }
-            $stmt->bindParam(':user_pass',$user_pass, PDO::PARAM_STR, 255);
-        }if (array_key_exists('wp_users.user_nicename', $argv)) {
-            $user_nicename = $argv['wp_users.user_nicename'];
-            $ref = 'wp_users.user_nicename';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_nicename)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'user_nicename\'.');
-            }
-            $stmt->bindParam(':user_nicename',$user_nicename, PDO::PARAM_STR, 50);
-        }if (array_key_exists('wp_users.user_email', $argv)) {
-            $user_email = $argv['wp_users.user_email'];
-            $ref = 'wp_users.user_email';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_email)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'user_email\'.');
-            }
-            $stmt->bindParam(':user_email',$user_email, PDO::PARAM_STR, 100);
-        }if (array_key_exists('wp_users.user_url', $argv)) {
-            $user_url = $argv['wp_users.user_url'];
-            $ref = 'wp_users.user_url';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_url)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'user_url\'.');
-            }
-            $stmt->bindParam(':user_url',$user_url, PDO::PARAM_STR, 100);
-        }if (array_key_exists('wp_users.user_registered', $argv)) {
-            $stmt->bindValue(':user_registered',$argv['wp_users.user_registered'], PDO::PARAM_STR);
-}if (array_key_exists('wp_users.user_activation_key', $argv)) {
-            $user_activation_key = $argv['wp_users.user_activation_key'];
-            $ref = 'wp_users.user_activation_key';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_activation_key)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'user_activation_key\'.');
-            }
-            $stmt->bindParam(':user_activation_key',$user_activation_key, PDO::PARAM_STR, 255);
-        }if (array_key_exists('wp_users.user_status', $argv)) {
-            $stmt->bindValue(':user_status',$argv['wp_users.user_status'], PDO::PARAM_INT);
-}if (array_key_exists('wp_users.display_name', $argv)) {
-            $display_name = $argv['wp_users.display_name'];
-            $ref = 'wp_users.display_name';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $display_name)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'display_name\'.');
-            }
-            $stmt->bindParam(':display_name',$display_name, PDO::PARAM_STR, 250);
+            $stmt->bindParam(':task_id',$task_id, PDO::PARAM_STR, 16);
         }
-
+        if (array_key_exists('carbon_user_tasks.user_id', $argv)) { 
+            $user_id = $argv['carbon_user_tasks.user_id'];
+            $ref = 'carbon_user_tasks.user_id';
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'user_id\'.');
+            }
+            $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
+        }
+        if (array_key_exists('carbon_user_tasks.from_id', $argv)) { 
+            $from_id = $argv['carbon_user_tasks.from_id'];
+            $ref = 'carbon_user_tasks.from_id';
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $from_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'from_id\'.');
+            }
+            $stmt->bindParam(':from_id',$from_id, PDO::PARAM_STR, 16);
+        }
+        if (array_key_exists('carbon_user_tasks.task_name', $argv)) { 
+            $task_name = $argv['carbon_user_tasks.task_name'];
+            $ref = 'carbon_user_tasks.task_name';
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $task_name)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'task_name\'.');
+            }
+            $stmt->bindParam(':task_name',$task_name, PDO::PARAM_STR, 40);
+        }
+        if (array_key_exists('carbon_user_tasks.task_description', $argv)) { 
+            $task_description = $argv['carbon_user_tasks.task_description'];
+            $ref = 'carbon_user_tasks.task_description';
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $task_description)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'task_description\'.');
+            }
+            $stmt->bindParam(':task_description',$task_description, PDO::PARAM_STR, 225);
+        }
+        if (array_key_exists('carbon_user_tasks.percent_complete', $argv)) { 
+            $stmt->bindValue(':percent_complete',$argv['carbon_user_tasks.percent_complete'], PDO::PARAM_INT);
+        }
+        if (array_key_exists('carbon_user_tasks.start_date', $argv)) { 
+            $stmt->bindValue(':start_date',$argv['carbon_user_tasks.start_date'], PDO::PARAM_STR);
+        }
+        if (array_key_exists('carbon_user_tasks.end_date', $argv)) { 
+            $stmt->bindValue(':end_date',$argv['carbon_user_tasks.end_date'], PDO::PARAM_STR);
+        }
+        
         self::bind($stmt);
 
         if (!$stmt->execute()) {
@@ -703,7 +733,7 @@ MYSQL;
         
         $argv = array_combine(
             array_map(
-                static function($k) { return str_replace('wp_users.', '', $k); },
+                static fn($k) => str_replace('carbon_user_tasks.', '', $k),
                 array_keys($argv)
             ),
             array_values($argv)
@@ -714,7 +744,7 @@ MYSQL;
         self::prepostprocessRestRequest($returnUpdated);
         
         if (self::$commit && !Database::commit()) {
-            return self::signalError('Failed to store commit transaction on table wp_users');
+            return self::signalError('Failed to store commit transaction on table carbon_user_tasks');
         }
         
         self::postprocessRestRequest($returnUpdated);
@@ -737,41 +767,30 @@ MYSQL;
     {
         self::startRest(self::DELETE, $remove, $argv, $primary);
         
-        /** @noinspection SqlWithoutWhere
-         * @noinspection UnknownInspectionInspection - intellij is funny sometimes.
-         */
-        $sql = 'DELETE FROM wp_users ';
-
         $pdo = self::database();
+        
+        $emptyPrimary = null === $primary || '' === $primary;
+        
+        if (!$emptyPrimary) {
+            return Carbons::Delete($remove, $primary, $argv);
+        }
+
+        if (false === self::$allowFullTableDeletes && empty($argv)) {
+            return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
+        }
+        
+        $sql = 'DELETE c FROM carbon_carbons c 
+                JOIN carbon_user_tasks on c.entity_pk = carbon_user_tasks.task_id';
+
+        
+        if (false === self::$allowFullTableDeletes || !empty($argv)) {
+            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
+        }
         
         if (!$pdo->inTransaction()) {
             $pdo->beginTransaction();
         }
         
-        
-        if (null === $primary) {
-           /**
-            *   While useful, we've decided to disallow full
-            *   table deletions through the rest api. For the
-            *   n00bs and future self, "I got chu."
-            */
-            if (empty($argv)) {
-                return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
-            }
-            $argv[self::PRIMARY] = $primary;
-            
-            $where = self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
-            
-            if (empty($where)) {
-                return self::signalError('The where condition provided appears invalid.');
-            }
-
-            $sql .= ' WHERE ' . $where;
-        } else {
-            $sql .= ' WHERE  ID='.self::addInjection($primary, $pdo).'';
-        }
-
-
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
@@ -790,7 +809,7 @@ MYSQL;
         self::prepostprocessRestRequest($remove);
         
         if (self::$commit && !Database::commit()) {
-           return self::signalError('Failed to store commit transaction on table wp_users');
+           return self::signalError('Failed to store commit transaction on table carbon_user_tasks');
         }
         
         self::postprocessRestRequest($remove);
@@ -799,5 +818,4 @@ MYSQL;
         
         return true;
     }
-    
 }

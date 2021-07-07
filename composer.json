@@ -29,6 +29,7 @@
     "ext-readline": "*"
   },
   "require-dev": {
+    "wp-cli/wp-cli-bundle": "2.4.0",
     "phpunit/phpunit-selenium": "4.1.0",
     "phpmetrics/phpmetrics": "^2.7"
   },
@@ -77,7 +78,7 @@
     ],
     "rei": "rm -rf vendor && rm composer.lock && composer i",
     "rest": [
-      "php index.php rest -json -dumpData"
+      "php index.php rest -json -dumpData -trigger"
     ],
     "setup": [
       "@database:refresh:schema",

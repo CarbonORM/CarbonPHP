@@ -107,6 +107,10 @@ abstract class Rest extends Database
     public static bool $allowSubSelectQueries = false;
     public static bool $externalRestfulRequestsAPI = false;
 
+    // False for external and internal requests by default. If a primary key exists you should always attempt to use it.
+    public static bool $allowFullTableUpdates = false;
+    public static bool $allowFullTableDeletes = false;
+
     /**
      * static::class ends up not working either because of how it is called.
      * @param $request
@@ -116,11 +120,49 @@ abstract class Rest extends Database
      */
     public static function disallowPublicAccess($request, $calledFrom = null): void
     {
-        if (self::$externalRestfulRequestsAPI) {
+        if (self::$externalRestfulRequestsAPI && !CarbonPHP::$test) {
             throw new PublicAlert('Rest request denied by the PHP_VALIDATION\'s in the tables ORM. Remove DISALLOW_PUBLIC_ACCESS ' . (null !== $calledFrom ? ' from \'' . $calledFrom . '\'' : '') . ' to gain privileges.');
         }
     }
 
+    public static function getDynamicRestClass(string $fullyQualifiedRestClassName): string
+    {
+        $prefix = CarbonPHP::$configuration[CarbonPHP::REST][CarbonPHP::TABLE_PREFIX] ?? '';
+
+        if ($fullyQualifiedRestClassName::TABLE_PREFIX === $prefix) {
+            return $fullyQualifiedRestClassName;
+        }
+
+        $namespace = CarbonPHP::$configuration[CarbonPHP::REST][CarbonPHP::NAMESPACE] ?? '';
+
+        $custom_prefix_carbon_table = $namespace . $fullyQualifiedRestClassName::TABLE_NAME;        //  we're using table name and not class name as any different prefix, even a subset of the original, will be appended
+
+        if (!class_exists($custom_prefix_carbon_table)) {
+            throw new PublicAlert("Could not find the required class ($custom_prefix_carbon_table) in the user defined namespace ($namespace). This is required because a custom table prefix ($prefix) has been detected.");
+        }
+
+        if (in_array(iRestSinglePrimaryKey::class, class_implements($fullyQualifiedRestClassName), true)) {
+            if (!in_array(iRestSinglePrimaryKey::class, class_implements($custom_prefix_carbon_table), true)) {
+                throw new PublicAlert("Your implementation ($custom_prefix_carbon_table) of ($fullyQualifiedRestClassName) should implement " . iRestSinglePrimaryKey::class . '. You should rerun RestBuilder.');
+            }
+        } else if (in_array(iRestNoPrimaryKey::class, class_implements($fullyQualifiedRestClassName), true)) {
+            if (!in_array(iRestNoPrimaryKey::class, class_implements($custom_prefix_carbon_table), true)) {
+                throw new PublicAlert("Your implementation ($custom_prefix_carbon_table) of ($fullyQualifiedRestClassName) should implement " . iRestNoPrimaryKey::class . '. You should rerun RestBuilder.');
+            }
+        } else if (in_array(iRestMultiplePrimaryKeys::class, class_implements($fullyQualifiedRestClassName), true)
+                    && !in_array(iRestMultiplePrimaryKeys::class, class_implements($custom_prefix_carbon_table), true)) {
+            throw new PublicAlert("Your implementation ($custom_prefix_carbon_table) of ($fullyQualifiedRestClassName) should implement " . iRestMultiplePrimaryKeys::class . '. You should rerun RestBuilder.');
+        }
+
+        return $custom_prefix_carbon_table;
+    }
+
+
+    /**
+     * @param string $message
+     * @return bool
+     * @throws PublicAlert
+     */
     public static function signalError(string $message): bool
     {
         if (!self::$externalRestfulRequestsAPI && CarbonPHP::$is_running_production) {
@@ -163,7 +205,6 @@ abstract class Rest extends Database
             self::runValidations(self::$compiled_PHP_validations[self::FINISH][self::PREPROCESS], $return);
         }
     }
-
 
     public static function postprocessRestRequest(&$return = null): void
     {
@@ -297,7 +338,10 @@ abstract class Rest extends Database
                 throw new PublicAlert('The rest table did not appear to have constant CLASS_NAMESPACE. Please try regenerating rest tables.');
             }
 
-            if (!class_exists($table = static::CLASS_NAMESPACE . $table)) {
+            $class_name = preg_replace('/^' . preg_quote(constant(static::class . '::TABLE_PREFIX'), '/') . '/i', '', $table);
+
+            if (!class_exists($table = static::CLASS_NAMESPACE . $table)
+                && !class_exists($table = static::CLASS_NAMESPACE . $class_name)) {
                 throw new PublicAlert("Failed to find the table ($table) requested.");
             }
 
@@ -451,14 +495,13 @@ abstract class Rest extends Database
 
         self::$externalRestfulRequestsAPI = true;   // This is to help you determine the request type in
 
+        $prefix = CarbonPHP::$configuration[CarbonPHP::REST][CarbonPHP::TABLE_PREFIX] ?? '';
+
         try {
-            $mainTable = explode('_', $mainTable);      // table name semantics vs class name
+            $mainTable = ucwords($mainTable, '_');
 
-            $mainTable = array_map('ucfirst', $mainTable);
-
-            $mainTable = implode('_', $mainTable);
-
-            if (!class_exists($namespace . $mainTable)) {
+            if (!class_exists($namespace . $mainTable)
+                && !class_exists($namespace . $mainTable = preg_replace('/^' . preg_quote($prefix, '/') . '/i', '', $mainTable))) {
                 throw new PublicAlert("The table $mainTable was not found in our generated api. Please try rerunning the rest builder and contact us if problems persist.");
             }
 
@@ -620,6 +663,16 @@ abstract class Rest extends Database
     }
 
 
+    protected static function getCheckPrefix($table_prefix): void
+    {
+
+        $prefix = CarbonPHP::$configuration[CarbonPHP::REST][CarbonPHP::TABLE_PREFIX] ?? '';
+
+        if ($prefix !== $table_prefix) {
+            throw new PublicAlert("The tables prefix ($prefix) does not match the on found in your configuration.");
+        }
+    }
+
     /**
      * @param string|null $primary
      * @param array $argv
@@ -631,7 +684,6 @@ abstract class Rest extends Database
      */
     protected static function buildSelectQuery(string $primary = null, array $argv = [], string $database = '', PDO $pdo = null, bool $noHEX = false): string
     {
-
         if ($pdo === null) {
             $pdo = self::database();
         }
@@ -671,9 +723,12 @@ abstract class Rest extends Database
 
                 foreach ($tables as $class => $stmt) {
 
-                    $JoiningClass = static::CLASS_NAMESPACE . ucwords($class, '_');
+                    $class = ucwords($class, '_');
 
-                    if (!class_exists($JoiningClass)) {
+                    if (
+                        !class_exists($JoiningClass = static::CLASS_NAMESPACE . $class)
+                        && !class_exists($JoiningClass = static::CLASS_NAMESPACE . preg_replace('/^' . preg_quote(static::TABLE_PREFIX, '/') . '/i', '', $class))
+                    ) {
                         throw new PublicAlert('A table ' . $JoiningClass . ' provided in the Restful join request was not found in the system. This may mean you need to auto generate your restful tables in the CLI.');
                     }
 
@@ -695,17 +750,30 @@ abstract class Rest extends Database
 
                 foreach ($tables as $class => $stmt) {
 
-                    $JoiningClass = static::CLASS_NAMESPACE . ucwords($class, '_');
+                    $class = ucwords($class, '_');
+
+                    if (
+                        !class_exists($JoiningClass = static::CLASS_NAMESPACE . $class)
+                        && !class_exists($JoiningClass = static::CLASS_NAMESPACE . preg_replace('/^' . preg_quote(static::TABLE_PREFIX, '/') . '/i', '', $class))
+                    ) {
+                        throw new PublicAlert('A table ' . $JoiningClass . ' provided in the Restful join request was not found in the system. This may mean you need to auto generate your restful tables in the CLI.');
+                    }
 
                     $table = $JoiningClass::TABLE_NAME;
 
-                    $join .= ' ' . strtoupper($by) . ' JOIN ' . $table . ' ON ' . self::buildBooleanJoinConditions(self::GET, $stmt, $pdo);
+                    /**
+                     * Prefix is normally included in the table name variable.
+                     * The table prefix is expected to be an empty string for all tables except carbon_ internals.
+                     * The following check is so CarbonPHP internal tables can be compatible with table prefixing.
+                     * It also ensures the table you are joining has been generated correctly for your current build.
+                     */
+                    $prefix = self::getCheckPrefix($JoiningClass::TABLE_PREFIX);
+
+                    $join .= ' ' . strtoupper($by) . ' JOIN ' . $prefix . $table . ' ON ' . self::buildBooleanJoinConditions(self::GET, $stmt, $pdo);
 
                 }
-
             }
         }
-
 
         // pagination [self::PAGINATION][self::LIMIT]
         if (array_key_exists(self::PAGINATION, $argv) && !empty($argv[self::PAGINATION])) {    // !empty should not be in this block - I look all the time
@@ -814,8 +882,14 @@ abstract class Rest extends Database
             throw new PublicAlert('Could not validate a column ' . $column . ' in the request.');
         }
 
+        /**
+         * The table prefix is normally included int the TABLE_NAME constant.
+         * The only time prefix is not an empty string is when a CarbonPHP table is
+         **/
+        $prefix = self::getCheckPrefix(static::TABLE_PREFIX);
+
         // case sensitive select
-        $sql = 'SELECT ' . $sql . ' FROM ' . ($database === '' ? '' : $database . '.') . static::TABLE_NAME . ' ' . $join;
+        $sql = 'SELECT ' . $sql . ' FROM ' . ($database === '' ? '' : $database . '.') . $prefix . static::TABLE_NAME . ' ' . $join;
 
         if (null === $primary) {
             if (!empty($where)) {
@@ -877,21 +951,16 @@ abstract class Rest extends Database
         return static function () use ($primary, $argv, $as, $database, $pdo): string {
             self::$allowSubSelectQueries = true;
 
-            if (is_array($pre = $primary)) {
-                sortDump($primary);
-            }
-
             self::startRest(self::GET, self::$REST_REQUEST_PARAMETERS, $primary, $argv, true);
 
-            if (is_array($primary)) {
-                sortDump($pre);
-            }
-
             $sql = self::buildSelectQuery($primary, $argv, $database, $pdo, true);
+
             if (!empty($as)) {
                 $sql = "$sql AS $as";
             }
+
             self::completeRest(true);
+
             return $sql;
         };
     }
@@ -1084,6 +1153,8 @@ abstract class Rest extends Database
         &$primary = null,
         bool $subQuery = false): void
     {
+        self::getCheckPrefix(static::TABLE_PREFIX);
+
         if (self::$REST_REQUEST_METHOD !== null) {
             self::$activeQueryStates[] = [
                 self::$REST_REQUEST_METHOD,
@@ -1187,8 +1258,8 @@ abstract class Rest extends Database
 
         switch ($pdo_column_validation[1] ?? null) {
             case null:
-            case 'PDO::PARAM_INT':
-            case 'PDO::PARAM_STR': // bindValue will quote strings
+            case PDO::PARAM_INT:
+            case PDO::PARAM_STR: // bindValue will quote strings
                 self::$injection[$inject] = $value;
                 break;
             default:

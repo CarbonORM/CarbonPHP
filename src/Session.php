@@ -16,12 +16,14 @@
 namespace CarbonPHP;
 
 use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Helpers\Serialized;
 use CarbonPHP\Programs\Background;
 use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Programs\WebSocket;
 use CarbonPHP\Tables\Sessions;
 use PDOException;
+use SessionHandlerInterface;
 use Throwable;
 use function define;
 use function defined;
@@ -30,20 +32,20 @@ use function is_callable;
 
 
 // most important line - session_set_save_handler($this, false)
-class Session implements \SessionHandlerInterface
+class Session implements SessionHandlerInterface
 {
     use Background, ColorCode;
 
 
     protected static ?Session $singleton = null;
     /**
-     * @var string - if we need to close or pause the session in the middle of execution,
+     * @var null|string - if we need to close or pause the session in the middle of execution,
      * this will persistently hold our session_id.
      */
     public static ?string $session_id;
 
     /**
-     * @var string $user_id - After a session is closed the session data is serialized and removed
+     * @var null|string $user_id - After a session is closed the session data is serialized and removed
      * from the global (accessible) scope.
      */
     public static ?string $user_id;
@@ -73,9 +75,10 @@ class Session implements \SessionHandlerInterface
             headers_sent() or ini_set('session.use_strict_mode', 1);
 
             if ($dbStore && !headers_sent()) {
+                /** @noinspection PhpExpressionResultUnusedInspection */
                 ini_set('session.gc_probability', 1);  // Clear any lingering session data in default locations
                 if (!session_set_save_handler($this, false)) {           // set this class as the session handler
-                    die('Session failed to store remotely');
+                    throw new PublicAlert('Session failed to store remotely');
                 }
             }
 
@@ -87,7 +90,7 @@ class Session implements \SessionHandlerInterface
         try {
             // this should not throw an error.. but if it doesnt we will catch and die
             if (false === session_start()) {
-                die('Carbon failed to start your session');
+                throw new PublicAlert('CarbonPHP failed to start your session');
             }
 
             static::$session_id = session_id();
@@ -95,8 +98,7 @@ class Session implements \SessionHandlerInterface
             $_SESSION['id'] = array_key_exists('id', $_SESSION ??= []) ? $_SESSION['id'] : false;
 
         } catch (Throwable $e) {
-            ErrorCatcher::generateLog($e);
-            die(1);
+            ErrorCatcher::generateBrowserReportFromError($e); // This terminates!
         }
     }
 
@@ -188,16 +190,23 @@ class Session implements \SessionHandlerInterface
      */
     public static function clear(): void
     {
+
+        $session = Rest::getDynamicRestClass(Sessions::class);
+
         try {
             $id = session_id();
+
             $_SESSION = array();
+
             session_write_close();
-            # $db = Database::database();
-            # $db->prepare('DELETE FROM sessions WHERE session_id = ?')->execute([$id]);
-            sessions::Delete($_SESSION, $id, []);
+
+            /** @noinspection PhpUndefinedMethodInspection */
+            $session::Delete($_SESSION, $id, []);
+
             session_start();
+
         } catch (PDOException $e) {
-            ErrorCatcher::generateLog($e);               // todo - error catcher
+            ErrorCatcher::generateBrowserReportFromError($e);   // this terminates!
         }
     }
 
@@ -207,7 +216,6 @@ class Session implements \SessionHandlerInterface
      *
      * @param $ip - the ip address to look up from our database.
      * @return bool
-     * @throws Error\PublicAlert
      */
     public static function verifySocket($ip): bool
     {
@@ -237,7 +245,9 @@ class Session implements \SessionHandlerInterface
 
         $db = Database::database();
 
-        $sql = 'SELECT count(*) FROM '.Sessions::TABLE_NAME.' WHERE '.Sessions::USER_IP.' = ? AND '.Sessions::SESSION_ID.' = ? LIMIT 1';
+        $session = Rest::getDynamicRestClass(Sessions::class);
+
+        $sql = 'SELECT count(*) FROM ' . $session::TABLE_NAME . ' WHERE ' . $session::USER_IP . ' = ? AND ' . $session::SESSION_ID . ' = ? LIMIT 1';
 
         $stmt = $db->prepare($sql);
 
@@ -246,7 +256,7 @@ class Session implements \SessionHandlerInterface
         $session = $stmt->fetchColumn();
 
         if (!$session) {
-            self::colorCode('BAD ADDRESS :: ' . $_SERVER['REMOTE_ADDR'] . "\n\n",'red');
+            self::colorCode('BAD ADDRESS :: ' . $_SERVER['REMOTE_ADDR'] . "\n\n", 'red');
             return false;
         }
 
@@ -266,8 +276,10 @@ class Session implements \SessionHandlerInterface
      */
     public function open($savePath, $sessionName): bool
     {
+        $session = Rest::getDynamicRestClass(Sessions::class);
+
         try {
-            Database::database()->prepare('SELECT count(*) FROM '.Sessions::TABLE_NAME.' LIMIT 1')->execute();
+            Database::database()->prepare('SELECT count(*) FROM ' . $session::TABLE_NAME . ' LIMIT 1')->execute();
         } catch (PDOException $e) {
             if ($e->getCode()) {
                 print "<h1>Setting up database {$e->getCode()}</h1>";
@@ -301,8 +313,9 @@ class Session implements \SessionHandlerInterface
      */
     public function read($id): string
     {
+        $session = Rest::getDynamicRestClass(Sessions::class);
         // TODO - if ip has changed and session id hasn't invalidated // assume man in the middle not cell phone tower change
-        $stmt = Database::database()->prepare('SELECT '.Sessions::SESSION_DATA.' FROM '.Sessions::TABLE_NAME.' WHERE '.Sessions::SESSION_ID.' = ?');
+        $stmt = Database::database()->prepare('SELECT ' . $session::SESSION_DATA . ' FROM ' . $session::TABLE_NAME . ' WHERE ' . $session::SESSION_ID . ' = ?');
         $stmt->execute([$id]);
         return $stmt->fetchColumn() ?: '';
     }
@@ -316,13 +329,14 @@ class Session implements \SessionHandlerInterface
     public function write($id, $data): bool
     {
         $db = Database::database();
+        $session = Rest::getDynamicRestClass(Sessions::class);
         if (empty(self::$user_id)) {
             self::$user_id = $_SESSION['id'] ??= false;
         }
         $NewDateTime = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . ' + 1 d,lay'));  // so from time of last write and whenever the gc_collector hits
 
         try {
-            $db->prepare('REPLACE INTO '.Sessions::TABLE_NAME.' SET '.Sessions::SESSION_ID.' = ?, '.Sessions::USER_ID.' = UNHEX(?), '.Sessions::USER_IP.' = ?,  '.Sessions::SESSION_EXPIRES.' = ?, '.Sessions::SESSION_DATA.' = ?')->execute([
+            $db->prepare('REPLACE INTO ' . $session::TABLE_NAME . ' SET ' . $session::SESSION_ID . ' = ?, ' . $session::USER_ID . ' = UNHEX(?), ' . $session::USER_IP . ' = ?,  ' . $session::SESSION_EXPIRES . ' = ?, ' . $session::SESSION_DATA . ' = ?')->execute([
                 $id,
                 static::$user_id,
                 CarbonPHP::$server_ip,
@@ -343,7 +357,8 @@ class Session implements \SessionHandlerInterface
     public function destroy($id): bool
     {
         $db = Database::database();
-        return $db->prepare('DELETE FROM '.Sessions::TABLE_NAME.' WHERE '.Sessions::USER_ID.' = UNHEX(?) OR '.Sessions::SESSION_ID.' = ?')->execute([self::$user_id, $id]) ?
+        $session = Rest::getDynamicRestClass(Sessions::class);
+        return $db->prepare('DELETE FROM ' . $session::TABLE_NAME . ' WHERE ' . $session::USER_ID . ' = UNHEX(?) OR ' . $session::SESSION_ID . ' = ?')->execute([self::$user_id, $id]) ?
             true : false;
     }
 
@@ -356,7 +371,8 @@ class Session implements \SessionHandlerInterface
     public function gc($maxLife): bool
     {
         $db = Database::database();
-        return $db->prepare('DELETE FROM '.Sessions::TABLE_NAME.' WHERE (UNIX_TIMESTAMP('.Sessions::SESSION_EXPIRES.') + ? ) < UNIX_TIMESTAMP(?)')->execute([$maxLife, date('Y-m-d H:i:s')]) ?
+        $session = Rest::getDynamicRestClass(Sessions::class);
+        return $db->prepare('DELETE FROM ' . $session::TABLE_NAME . ' WHERE (UNIX_TIMESTAMP(' . $session::SESSION_EXPIRES . ') + ? ) < UNIX_TIMESTAMP(?)')->execute([$maxLife, date('Y-m-d H:i:s')]) ?
             true : false;
     }
 }

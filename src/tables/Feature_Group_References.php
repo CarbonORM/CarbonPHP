@@ -5,9 +5,10 @@ namespace CarbonPHP\Tables;
 // Restful defaults
 use CarbonPHP\Database;
 use CarbonPHP\Error\PublicAlert;
-use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
+use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use CarbonPHP\Helpers\RestfulValidations;
 use CarbonPHP\Rest;
+use JsonException;
 use PDO;
 use PDOException;
 use function array_key_exists;
@@ -19,8 +20,8 @@ use function is_array;
 
 
 /**
- * 
- * Class Wp_Options
+ *
+ * Class Feature_Group_References
  * @package CarbonPHP\Tables
  * @note Note for convenience, a flag '-prefix' maybe passed to remove table prefixes.
  *  Use '-help' for a full list of options.
@@ -38,28 +39,26 @@ use function is_array;
  * When creating static member functions which require persistent variables, consider making them static members of that 
  *  static method.
  */
-class Wp_Options extends Rest implements iRestSinglePrimaryKey
+class Feature_Group_References extends Rest implements iRestNoPrimaryKey
 {
     use RestfulValidations;
     
-    public const CLASS_NAME = 'Wp_Options';
+    public const CLASS_NAME = 'Feature_Group_References';
     public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
-    public const TABLE_NAME = 'wp_options';
-    public const TABLE_PREFIX = '';
-    
+    public const TABLE_NAME = 'carbon_feature_group_references';
+    public const TABLE_PREFIX = 'carbon_';
+    public const DIRECTORY = __DIR__ . DIRECTORY_SEPARATOR;
+
     /**
      * COLUMNS
-     * The columns below are a 1=1 mapping to the columns found in wp_options. 
-     * Changes, shuch as adding or removing a column, SHOULD be made first in the database. The RestBuilder program will 
-     * capture any changes made in MySQL and update this file auto-magically. 
+     * The columns below are a 1=1 mapping to the columns found in carbon_feature_group_references. 
+     * Changes, such as adding or removing a column, MAY be made first in the database. The ResitBuilder program will 
+     * capture any changes made in MySQL and update this file auto-magically. If you work in a team it is RECCOMENDED to
+     * progromattically make these changes using the REFRESH_SCHEMA constant below.
     **/
-    public const OPTION_ID = 'wp_options.option_id'; 
+    public const FEATURE_ENTITY_ID = 'carbon_feature_group_references.feature_entity_id'; 
 
-    public const OPTION_NAME = 'wp_options.option_name'; 
-
-    public const OPTION_VALUE = 'wp_options.option_value'; 
-
-    public const AUTOLOAD = 'wp_options.autoload'; 
+    public const GROUP_ENTITY_ID = 'carbon_feature_group_references.group_entity_id'; 
 
     /**
      * PRIMARY
@@ -67,21 +66,21 @@ class Wp_Options extends Rest implements iRestSinglePrimaryKey
      * given composite primary keys. The existence and amount of primary keys of the will also determine the interface 
      * aka method signatures used.
     **/
-    public const PRIMARY = 'wp_options.option_id';
+    public const PRIMARY = null;
 
     /**
      * COLUMNS
-     * This is a convience constant for accessing your data after it has be returned from a rest operation. It is needed
-     * as Mysql will strip away the tablename we have explicitly provided to each column (to help with join statments).
+     * This is a convenience constant for accessing your data after it has be returned from a rest operation. It is needed
+     * as Mysql will strip away the table name we have explicitly provided to each column (to help with join statments).
      * Thus, accessing your return values might look something like:
      *      $return[self::COLUMNS[self::EXAMPLE_COLUMN_ONE]]
     **/ 
     public const COLUMNS = [
-        'wp_options.option_id' => 'option_id','wp_options.option_name' => 'option_name','wp_options.option_value' => 'option_value','wp_options.autoload' => 'autoload',
+        'carbon_feature_group_references.feature_entity_id' => 'feature_entity_id','carbon_feature_group_references.group_entity_id' => 'group_entity_id',
     ];
 
     public const PDO_VALIDATION = [
-        'wp_options.option_id' => ['bigint', 'PDO::PARAM_INT', ''],'wp_options.option_name' => ['varchar', 'PDO::PARAM_STR', '191'],'wp_options.option_value' => ['longtext', 'PDO::PARAM_STR', ''],'wp_options.autoload' => ['varchar', 'PDO::PARAM_STR', '20'],
+        'carbon_feature_group_references.feature_entity_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_feature_group_references.group_entity_id' => ['binary', PDO::PARAM_STR, '16'],
     ];
      
     /**
@@ -95,9 +94,9 @@ class Wp_Options extends Rest implements iRestSinglePrimaryKey
      * Each directive MUST be designed to run multiple times without failure.
      */
     public const REFRESH_SCHEMA = [
-        [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
-                        PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS]
-    ]; 
+        [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::TABLE_PREFIX, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
+                        PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS, true]
+    ];
     
     /**
      * REGEX_VALIDATION
@@ -243,14 +242,13 @@ class Wp_Options extends Rest implements iRestSinglePrimaryKey
      * the RestBuilder program.
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
-    CREATE TABLE `wp_options` (
-  `option_id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `option_name` varchar(191) COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT '',
-  `option_value` longtext COLLATE utf8mb4_unicode_520_ci NOT NULL,
-  `autoload` varchar(20) COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT 'yes',
-  PRIMARY KEY (`option_id`),
-  UNIQUE KEY `option_name` (`option_name`),
-  KEY `autoload` (`autoload`)
+    CREATE TABLE `carbon_feature_group_references` (
+  `feature_entity_id` binary(16) DEFAULT NULL,
+  `group_entity_id` binary(16) DEFAULT NULL,
+  KEY `carbon_feature_references_carbons_entity_pk_fk_2` (`feature_entity_id`),
+  KEY `carbon_feature_group_references_carbons_entity_pk_fk` (`group_entity_id`),
+  CONSTRAINT `carbon_feature_group_references_carbons_entity_pk_fk` FOREIGN KEY (`group_entity_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `carbon_feature_references_carbons_entity_pk_fk` FOREIGN KEY (`feature_entity_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 MYSQL;
    
@@ -340,20 +338,19 @@ MYSQL;
     *
     *
     * @param array $return
-    * @param string|null $primary
     * @param array $argv
     * @noinspection DuplicatedCode - possible as this is generated
     * @generated
     * @throws PublicAlert|PDOException|JsonException
     * @return bool
     */
-    public static function Get(array &$return, string $primary = null, array $argv = []): bool
+    public static function Get(array &$return, array $argv = []): bool
     {
-        self::startRest(self::GET, $return, $argv ,$primary);
+        self::startRest(self::GET, $return, $argv );
 
         $pdo = self::database();
 
-        $sql = self::buildSelectQuery($primary, $argv, '', $pdo);
+        $sql = self::buildSelectQuery(null, $argv, '', $pdo);
         
         self::jsonSQLReporting(func_get_args(), $sql);
         
@@ -369,20 +366,10 @@ MYSQL;
         }
 
         $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        /**
-        *   The next part is so every response from the rest api
-        *   formats to a set of rows. Even if only one row is returned.
-        *   You must set the third parameter to true, otherwise '0' is
-        *   apparently in the self::PDO_VALIDATION
-        */
-
         
-        if ($primary !== null || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
+        if (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1) {
             $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
         }
-
-        
 
         self::postprocessRestRequest($return);
         
@@ -393,21 +380,21 @@ MYSQL;
 
     /**
      * @param array $data 
-     * @return bool|string|mixed
+     * @return bool|string
      * @generated
      * @throws PublicAlert|PDOException|JsonException
      */
-    public static function Post(array $data)
+    public static function Post(array $data = []): bool
     {   
         self::startRest(self::POST, [], $data);
     
         foreach ($data as $columnName => $postValue) {
-            if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
+            if (!array_key_exists($columnName, self::COLUMNS)) {
                 return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.");
             }
         } 
         
-        $sql = 'INSERT INTO wp_options (option_name, option_value, autoload) VALUES ( :option_name, :option_value, :autoload)';
+        $sql = 'INSERT INTO carbon_feature_group_references (feature_entity_id, group_entity_id) VALUES ( UNHEX(:feature_entity_id), UNHEX(:group_entity_id))';
 
         $pdo = self::database();
         
@@ -420,111 +407,103 @@ MYSQL;
         self::postpreprocessRestRequest($sql);
 
         $stmt = self::database()->prepare($sql);
-        $option_name = $data['wp_options.option_name'] ?? '';
-        $ref='wp_options.option_name';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $option_name, $option_name === '')) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'wp_options.option_name\'.');
-        }
-        $stmt->bindParam(':option_name',$option_name, PDO::PARAM_STR, 191);
         
-        if (!array_key_exists('wp_options.option_value', $data)) {
-            return self::signalError('The column \'wp_options.option_value\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
-        } 
-        $ref='wp_options.option_value';
+        $feature_entity_id = $data['carbon_feature_group_references.feature_entity_id'] ?? null;
+        $ref='carbon_feature_group_references.feature_entity_id';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $data['option_value'])) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'wp_options.option_value\'.');
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $feature_entity_id, $feature_entity_id === null)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_feature_group_references.feature_entity_id\'.');
         }
-        $stmt->bindValue(':option_value', $data['wp_options.option_value'], PDO::PARAM_STR);
+        $stmt->bindParam(':feature_entity_id',$feature_entity_id, PDO::PARAM_STR, 16);
         
-        $autoload = $data['wp_options.autoload'] ?? 'yes';
-        $ref='wp_options.autoload';
+        $group_entity_id = $data['carbon_feature_group_references.group_entity_id'] ?? null;
+        $ref='carbon_feature_group_references.group_entity_id';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $autoload, $autoload === 'yes')) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'wp_options.autoload\'.');
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $group_entity_id, $group_entity_id === null)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_feature_group_references.group_entity_id\'.');
         }
-        $stmt->bindParam(':autoload',$autoload, PDO::PARAM_STR, 20);
+        $stmt->bindParam(':group_entity_id',$group_entity_id, PDO::PARAM_STR, 16);
         
         if (!$stmt->execute()) {
             self::completeRest();
             return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }
         
-        $id = $pdo->lastInsertId();
-        
-        self::prepostprocessRestRequest($id);
+        self::prepostprocessRestRequest();
         
         if (self::$commit && !Database::commit()) {
-            return self::signalError('Failed to store commit transaction on table wp_options');
+            return self::signalError('Failed to store commit transaction on table carbon_feature_group_references');
         }
         
-        self::postprocessRestRequest($id);
+        self::postprocessRestRequest();
         
         self::completeRest();
         
-        return $id;  
+        return true;  
     }
     
     /**
     * 
     * 
-    * Tables where primary keys exist must be updated by its primary key. 
-    * Column should be in a key value pair passed to $argv or optionally using syntax:
-    * $argv => [
+    *  Syntax should be as follows.
+    *  $argv = [
     *       Rest::UPDATE => [
     *              ...
+    *       ],
+    *       Rest::WHERE => [
+    *              ...
     *       ]
-    * ]
     * 
     * @param array $returnUpdated - will be merged with with array_merge, with a successful update. 
-    * @param string $primary
+    
     * @param array $argv 
     * @generated
     * @throws PublicAlert|PDOException|JsonException
     * @return bool - if execute fails, false will be returned and $returnUpdated = $stmt->errorInfo(); 
     */
-    public static function Put(array &$returnUpdated, string $primary, array $argv) : bool
+    public static function Put(array &$returnUpdated,  array $argv = []) : bool
     {
-        self::startRest(self::PUT, $returnUpdated, $argv, $primary);
+        self::startRest(self::PUT, $returnUpdated, $argv);
         
-        if ('' === $primary) {
-            return self::signalError('Restful tables which have a primary key must be updated by its primary key.');
+        $where = [];
+
+        if (array_key_exists(self::WHERE, $argv)) {
+            $where = $argv[self::WHERE];
+            unset($argv[self::WHERE]);
         }
-         
+        
         if (array_key_exists(self::UPDATE, $argv)) {
             $argv = $argv[self::UPDATE];
         }
-
-        $where = [self::PRIMARY => $primary];
         
+        if (false === self::$allowFullTableUpdates && empty($where)) {
+            return self::signalError('Restful tables which have no primary key must be updated using conditions given to $argv[self::WHERE] and values to be updated given to $argv[self::UPDATE]. No WHERE attribute given. To bypass this set `self::$allowFullTableUpdates = true;` during the PREPROCESS events, or just directly before this request.');
+        }
+        
+        if (empty($argv)) {
+            return self::signalError('Restful tables which have no primary key must be updated using conditions given to $argv[self::WHERE] and values to be updated given to $argv[self::UPDATE]. No UPDATE attribute given.');
+        }
         
         foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column $key, because it does not appear to exist.');
+                return self::signalError("Restful table could not update column $key, because it does not appear to exist. Please re-run RestBuilder if you believe this is incorrect.");
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'wp_options.\'.');
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_feature_group_references.\'.');
             }
         }
         unset($value);
 
-        $sql = /** @lang MySQLFragment */ 'UPDATE wp_options SET '; // intellij cant handle this otherwise
+        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_feature_group_references SET '; // intellij cant handle this otherwise
 
         $set = '';
 
-        if (array_key_exists('wp_options.option_id', $argv)) {
-            $set .= 'option_id=:option_id,';
+        if (array_key_exists('carbon_feature_group_references.feature_entity_id', $argv)) {
+            $set .= 'feature_entity_id=UNHEX(:feature_entity_id),';
         }
-        if (array_key_exists('wp_options.option_name', $argv)) {
-            $set .= 'option_name=:option_name,';
-        }
-        if (array_key_exists('wp_options.option_value', $argv)) {
-            $set .= 'option_value=:option_value,';
-        }
-        if (array_key_exists('wp_options.autoload', $argv)) {
-            $set .= 'autoload=:autoload,';
+        if (array_key_exists('carbon_feature_group_references.group_entity_id', $argv)) {
+            $set .= 'group_entity_id=UNHEX(:group_entity_id),';
         }
         
         $sql .= substr($set, 0, -1);
@@ -535,36 +514,35 @@ MYSQL;
             $pdo->beginTransaction();
         }
 
-        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
-
+        if (false === self::$allowFullTableUpdates || !empty($where)) {
+            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
+        }
+        
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
         $stmt = $pdo->prepare($sql);
 
-        if (array_key_exists('wp_options.option_id', $argv)) {
-            $stmt->bindValue(':option_id',$argv['wp_options.option_id'], PDO::PARAM_INT);
-}if (array_key_exists('wp_options.option_name', $argv)) {
-            $option_name = $argv['wp_options.option_name'];
-            $ref = 'wp_options.option_name';
+        if (array_key_exists('carbon_feature_group_references.feature_entity_id', $argv)) { 
+            $feature_entity_id = $argv['carbon_feature_group_references.feature_entity_id'];
+            $ref = 'carbon_feature_group_references.feature_entity_id';
             $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $option_name)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'option_name\'.');
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $feature_entity_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'feature_entity_id\'.');
             }
-            $stmt->bindParam(':option_name',$option_name, PDO::PARAM_STR, 191);
-        }if (array_key_exists('wp_options.option_value', $argv)) {
-            $stmt->bindValue(':option_value',$argv['wp_options.option_value'], PDO::PARAM_STR);
-}if (array_key_exists('wp_options.autoload', $argv)) {
-            $autoload = $argv['wp_options.autoload'];
-            $ref = 'wp_options.autoload';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $autoload)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'autoload\'.');
-            }
-            $stmt->bindParam(':autoload',$autoload, PDO::PARAM_STR, 20);
+            $stmt->bindParam(':feature_entity_id',$feature_entity_id, PDO::PARAM_STR, 16);
         }
-
+        if (array_key_exists('carbon_feature_group_references.group_entity_id', $argv)) { 
+            $group_entity_id = $argv['carbon_feature_group_references.group_entity_id'];
+            $ref = 'carbon_feature_group_references.group_entity_id';
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $group_entity_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'group_entity_id\'.');
+            }
+            $stmt->bindParam(':group_entity_id',$group_entity_id, PDO::PARAM_STR, 16);
+        }
+        
         self::bind($stmt);
 
         if (!$stmt->execute()) {
@@ -578,7 +556,7 @@ MYSQL;
         
         $argv = array_combine(
             array_map(
-                static function($k) { return str_replace('wp_options.', '', $k); },
+                static fn($k) => str_replace('carbon_feature_group_references.', '', $k),
                 array_keys($argv)
             ),
             array_values($argv)
@@ -589,7 +567,7 @@ MYSQL;
         self::prepostprocessRestRequest($returnUpdated);
         
         if (self::$commit && !Database::commit()) {
-            return self::signalError('Failed to store commit transaction on table wp_options');
+            return self::signalError('Failed to store commit transaction on table carbon_feature_group_references');
         }
         
         self::postprocessRestRequest($returnUpdated);
@@ -601,52 +579,32 @@ MYSQL;
 
     /**
     * @param array $remove
-    * @param string|null $primary
     * @param array $argv
     * @generated
     * @noinspection DuplicatedCode
     * @throws PublicAlert|PDOException|JsonException
     * @return bool
     */
-    public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
+    public static function Delete(array &$remove, array $argv = []) : bool
     {
-        self::startRest(self::DELETE, $remove, $argv, $primary);
+        self::startRest(self::DELETE, $remove, $argv);
         
-        /** @noinspection SqlWithoutWhere
-         * @noinspection UnknownInspectionInspection - intellij is funny sometimes.
-         */
-        $sql = 'DELETE FROM wp_options ';
-
         $pdo = self::database();
+        
+        $sql =  /** @lang MySQLFragment */ 'DELETE FROM carbon_feature_group_references ';
+        
+        if (false === self::$allowFullTableDeletes && empty($argv)) {
+            return self::signalError('When deleting from tables with out a primary key additional arguments must be provided.');
+        } 
+        
+        if (!empty($argv)) {
+            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
+        }
         
         if (!$pdo->inTransaction()) {
             $pdo->beginTransaction();
         }
         
-        
-        if (null === $primary) {
-           /**
-            *   While useful, we've decided to disallow full
-            *   table deletions through the rest api. For the
-            *   n00bs and future self, "I got chu."
-            */
-            if (empty($argv)) {
-                return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
-            }
-            $argv[self::PRIMARY] = $primary;
-            
-            $where = self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
-            
-            if (empty($where)) {
-                return self::signalError('The where condition provided appears invalid.');
-            }
-
-            $sql .= ' WHERE ' . $where;
-        } else {
-            $sql .= ' WHERE  option_id='.self::addInjection($primary, $pdo).'';
-        }
-
-
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
@@ -665,7 +623,7 @@ MYSQL;
         self::prepostprocessRestRequest($remove);
         
         if (self::$commit && !Database::commit()) {
-           return self::signalError('Failed to store commit transaction on table wp_options');
+           return self::signalError('Failed to store commit transaction on table carbon_feature_group_references');
         }
         
         self::postprocessRestRequest($remove);
@@ -674,5 +632,4 @@ MYSQL;
         
         return true;
     }
-    
 }

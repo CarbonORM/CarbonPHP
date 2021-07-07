@@ -20,11 +20,11 @@ use Throwable;
 trait MySQL
 {
 
-    private string $mysql = '';
-    private string $mysqldump = '';
+    private static string $mysql = '';
+    private static string $mysqldump = '';
 
 
-    private function mysql_native_password(): void
+    public static function mysql_native_password(): void
     {
         $c = CarbonPHP::$configuration;
 
@@ -41,7 +41,7 @@ IDENTIFIED;
                 exit(2);
             }
 
-            $out = $this->MySQLSource(true, 'query.txt');
+            $out = self::mysqlSource('query.txt');
 
             if (!unlink('query.txt')) {
                 print 'Failed to remove query.txt file' . PHP_EOL;
@@ -56,17 +56,17 @@ IDENTIFIED;
     }
 
 
-    private function buildCNF($cnfFile = null): string
+    public static function buildCNF($cnfFile = null): string
     {
         $c = CarbonPHP::$configuration;
 
         if ($cnfFile !== null) {
-            $this->mysql = $cnfFile;
+            self::$mysql = $cnfFile;
             return $cnfFile;
         }
 
-        if (!empty($this->mysql)) {
-            return $this->mysql;
+        if (!empty(self::$mysql)) {
+            return self::$mysql;
         }
 
         if (empty($c['SITE']['CONFIG'])) {
@@ -88,7 +88,8 @@ IDENTIFIED;
             '[client]',
             "user = {$c['DATABASE']['DB_USER']}",
             "password = {$c['DATABASE']['DB_PASS']}",
-            "host = {$c['DATABASE']['DB_HOST']}"
+            "host = {$c['DATABASE']['DB_HOST']}",
+            PHP_EOL
         ];
 
         if (($c['DATABASE']['DB_PORT'] ?? false) && $c['DATABASE']['DB_PORT'] !== '') {
@@ -104,7 +105,7 @@ IDENTIFIED;
             exit('Failed to store file contents mysql.cnf in ' . CarbonPHP::$app_root);
         }
 
-        return $this->mysql = CarbonPHP::$app_root . 'mysql.cnf';
+        return self::$mysql = CarbonPHP::$app_root . 'mysql.cnf';
     }
 
     /**
@@ -112,29 +113,26 @@ IDENTIFIED;
      * @param bool $data
      * @return string
      */
-    private function MySQLDump(string $mysqldump = null, bool $data = false): string
+    public static function MySQLDump(string $mysqldump = null, bool $data = false): string
     {
         $c = CarbonPHP::$configuration;
-        $cmd = ($mysqldump ?? 'mysqldump') . ' --defaults-extra-file="' . $this->buildCNF() . '" '
+        $cmd = ($mysqldump ?? 'mysqldump') . ' --defaults-extra-file="' . self::buildCNF() . '" '
             . ($data ? '' : '--no-data ') . $c['DATABASE']['DB_NAME'] . ' > "' . CarbonPHP::$app_root . 'mysqldump.sql"';
-        ColorCode::colorCode("\n\n>> $cmd");
-        shell_exec($cmd);
-        return $this->mysqldump = CarbonPHP::$app_root . 'mysqldump.sql';
+        Background::executeAndCheckStatus($cmd);
+        return self::$mysqldump = CarbonPHP::$app_root . 'mysqldump.sql';
     }
 
 
     /**
-     * @param bool $verbose
-     * @param String $query
+     * @param String $filename
      * @param bool $mysql
-     * @return string|null
+     * @return void
      */
-    private function MySQLSource(bool $verbose, string $query, $mysql = false): ?string
+    public static function MySQLSource(string $filename, $mysql = false): void
     {
         $c = CarbonPHP::$configuration;
-        $cmd = ($mysql ?: 'mysql') . ' --defaults-extra-file="' . $this->buildCNF() . '" ' . $c['DATABASE']['DB_NAME'] . ' < "' . $query . '"';
-        ColorCode::colorCode("\n\nRunning Command >> $cmd\n\n");
-        return shell_exec($cmd);
+        $cmd = ($mysql ?: 'mysql') . ' --defaults-extra-file="' . self::buildCNF() . '" ' . ($c['DATABASE']['DB_NAME'] ?? '') . ' < "' . $filename . '"';
+        Background::executeAndCheckStatus($cmd);
     }
 
     public function cleanUp() : void

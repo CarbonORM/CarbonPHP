@@ -5,9 +5,10 @@ namespace CarbonPHP\Tables;
 // Restful defaults
 use CarbonPHP\Database;
 use CarbonPHP\Error\PublicAlert;
-use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
+use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use CarbonPHP\Helpers\RestfulValidations;
 use CarbonPHP\Rest;
+use JsonException;
 use PDO;
 use PDOException;
 use function array_key_exists;
@@ -19,8 +20,8 @@ use function is_array;
 
 
 /**
- * 
- * Class Carbon_User_Messages
+ *
+ * Class Reports
  * @package CarbonPHP\Tables
  * @note Note for convenience, a flag '-prefix' maybe passed to remove table prefixes.
  *  Use '-help' for a full list of options.
@@ -38,32 +39,30 @@ use function is_array;
  * When creating static member functions which require persistent variables, consider making them static members of that 
  *  static method.
  */
-class Carbon_User_Messages extends Rest implements iRestSinglePrimaryKey
+class Reports extends Rest implements iRestNoPrimaryKey
 {
     use RestfulValidations;
     
-    public const CLASS_NAME = 'Carbon_User_Messages';
+    public const CLASS_NAME = 'Reports';
     public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
-    public const TABLE_NAME = 'carbon_user_messages';
-    public const TABLE_PREFIX = '';
-    
+    public const TABLE_NAME = 'carbon_reports';
+    public const TABLE_PREFIX = 'carbon_';
+    public const DIRECTORY = __DIR__ . DIRECTORY_SEPARATOR;
+
     /**
      * COLUMNS
-     * The columns below are a 1=1 mapping to the columns found in carbon_user_messages. 
-     * Changes, shuch as adding or removing a column, SHOULD be made first in the database. The RestBuilder program will 
-     * capture any changes made in MySQL and update this file auto-magically. 
+     * The columns below are a 1=1 mapping to the columns found in carbon_reports. 
+     * Changes, such as adding or removing a column, MAY be made first in the database. The ResitBuilder program will 
+     * capture any changes made in MySQL and update this file auto-magically. If you work in a team it is RECCOMENDED to
+     * progromattically make these changes using the REFRESH_SCHEMA constant below.
     **/
-    public const MESSAGE_ID = 'carbon_user_messages.message_id'; 
+    public const LOG_LEVEL = 'carbon_reports.log_level'; 
 
-    public const FROM_USER_ID = 'carbon_user_messages.from_user_id'; 
+    public const REPORT = 'carbon_reports.report'; 
 
-    public const TO_USER_ID = 'carbon_user_messages.to_user_id'; 
+    public const DATE = 'carbon_reports.date'; 
 
-    public const MESSAGE = 'carbon_user_messages.message'; 
-
-    public const MESSAGE_READ = 'carbon_user_messages.message_read'; 
-
-    public const CREATION_DATE = 'carbon_user_messages.creation_date'; 
+    public const CALL_TRACE = 'carbon_reports.call_trace'; 
 
     /**
      * PRIMARY
@@ -71,21 +70,21 @@ class Carbon_User_Messages extends Rest implements iRestSinglePrimaryKey
      * given composite primary keys. The existence and amount of primary keys of the will also determine the interface 
      * aka method signatures used.
     **/
-    public const PRIMARY = 'carbon_user_messages.message_id';
+    public const PRIMARY = null;
 
     /**
      * COLUMNS
-     * This is a convience constant for accessing your data after it has be returned from a rest operation. It is needed
-     * as Mysql will strip away the tablename we have explicitly provided to each column (to help with join statments).
+     * This is a convenience constant for accessing your data after it has be returned from a rest operation. It is needed
+     * as Mysql will strip away the table name we have explicitly provided to each column (to help with join statments).
      * Thus, accessing your return values might look something like:
      *      $return[self::COLUMNS[self::EXAMPLE_COLUMN_ONE]]
     **/ 
     public const COLUMNS = [
-        'carbon_user_messages.message_id' => 'message_id','carbon_user_messages.from_user_id' => 'from_user_id','carbon_user_messages.to_user_id' => 'to_user_id','carbon_user_messages.message' => 'message','carbon_user_messages.message_read' => 'message_read','carbon_user_messages.creation_date' => 'creation_date',
+        'carbon_reports.log_level' => 'log_level','carbon_reports.report' => 'report','carbon_reports.date' => 'date','carbon_reports.call_trace' => 'call_trace',
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_user_messages.message_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_messages.from_user_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_messages.to_user_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_messages.message' => ['text', 'PDO::PARAM_STR', ''],'carbon_user_messages.message_read' => ['tinyint', 'PDO::PARAM_INT', '1'],'carbon_user_messages.creation_date' => ['datetime', 'PDO::PARAM_STR', ''],
+        'carbon_reports.log_level' => ['varchar', PDO::PARAM_STR, '20'],'carbon_reports.report' => ['text,', PDO::PARAM_STR, ''],'carbon_reports.date' => ['datetime', PDO::PARAM_STR, ''],'carbon_reports.call_trace' => ['text', PDO::PARAM_STR, ''],
     ];
      
     /**
@@ -99,9 +98,9 @@ class Carbon_User_Messages extends Rest implements iRestSinglePrimaryKey
      * Each directive MUST be designed to run multiple times without failure.
      */
     public const REFRESH_SCHEMA = [
-        [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
-                        PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS]
-    ]; 
+        [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::TABLE_PREFIX, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
+                        PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS, true]
+    ];
     
     /**
      * REGEX_VALIDATION
@@ -226,11 +225,20 @@ class Carbon_User_Messages extends Rest implements iRestSinglePrimaryKey
      */
  
     public const PHP_VALIDATION = [ 
-        [self::DISALLOW_PUBLIC_ACCESS],
-        self::GET => [ self::DISALLOW_PUBLIC_ACCESS ],    
-        self::POST => [ self::DISALLOW_PUBLIC_ACCESS ],    
-        self::PUT => [ self::DISALLOW_PUBLIC_ACCESS ],    
-        self::DELETE => [ self::DISALLOW_PUBLIC_ACCESS ],    
+        self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
+            self::PREPROCESS => [ 
+                [self::class => 'disallowPublicAccess', self::class],
+            ]
+        ],
+        self::GET => [ 
+            self::PREPROCESS => [ 
+                [self::class => 'disallowPublicAccess', self::class],
+            ]
+        ],    
+        self::POST => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
+        self::PUT => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
+        self::DELETE => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],
+        self::REST_REQUEST_FINNISH_CALLBACKS => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]]    
     ]; 
    
     /**
@@ -238,20 +246,11 @@ class Carbon_User_Messages extends Rest implements iRestSinglePrimaryKey
      * the RestBuilder program.
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
-    CREATE TABLE `carbon_user_messages` (
-  `message_id` binary(16) NOT NULL,
-  `from_user_id` binary(16) NOT NULL,
-  `to_user_id` binary(16) NOT NULL,
-  `message` text NOT NULL,
-  `message_read` tinyint(1) DEFAULT '0',
-  `creation_date` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`message_id`),
-  KEY `messages_entity_entity_pk_fk` (`message_id`),
-  KEY `messages_entity_user_from_pk_fk` (`to_user_id`),
-  KEY `carbon_user_messages_carbon_entity_pk_fk` (`from_user_id`),
-  CONSTRAINT `carbon_user_messages_carbon_entity_pk_fk` FOREIGN KEY (`from_user_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `messages_entity_entity_pk_fk` FOREIGN KEY (`message_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `messages_entity_user_from_pk_fk` FOREIGN KEY (`to_user_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+    CREATE TABLE `carbon_reports` (
+  `log_level` varchar(20) DEFAULT NULL,
+  `report` text,
+  `date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `call_trace` text NOT NULL
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 MYSQL;
    
@@ -341,20 +340,19 @@ MYSQL;
     *
     *
     * @param array $return
-    * @param string|null $primary
     * @param array $argv
     * @noinspection DuplicatedCode - possible as this is generated
     * @generated
     * @throws PublicAlert|PDOException|JsonException
     * @return bool
     */
-    public static function Get(array &$return, string $primary = null, array $argv = []): bool
+    public static function Get(array &$return, array $argv = []): bool
     {
-        self::startRest(self::GET, $return, $argv ,$primary);
+        self::startRest(self::GET, $return, $argv );
 
         $pdo = self::database();
 
-        $sql = self::buildSelectQuery($primary, $argv, '', $pdo);
+        $sql = self::buildSelectQuery(null, $argv, '', $pdo);
         
         self::jsonSQLReporting(func_get_args(), $sql);
         
@@ -370,20 +368,10 @@ MYSQL;
         }
 
         $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        /**
-        *   The next part is so every response from the rest api
-        *   formats to a set of rows. Even if only one row is returned.
-        *   You must set the third parameter to true, otherwise '0' is
-        *   apparently in the self::PDO_VALIDATION
-        */
-
         
-        if ($primary !== null || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
+        if (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1) {
             $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
         }
-
-        
 
         self::postprocessRestRequest($return);
         
@@ -394,168 +382,152 @@ MYSQL;
 
     /**
      * @param array $data 
-     * @return bool|string|mixed
+     * @return bool|string
      * @generated
      * @throws PublicAlert|PDOException|JsonException
      */
-    public static function Post(array $data)
+    public static function Post(array $data = []): bool
     {   
         self::startRest(self::POST, [], $data);
     
         foreach ($data as $columnName => $postValue) {
-            if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
+            if (!array_key_exists($columnName, self::COLUMNS)) {
                 return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.");
             }
         } 
         
-        $sql = 'INSERT INTO carbon_user_messages (message_id, from_user_id, to_user_id, message, message_read) VALUES ( UNHEX(:message_id), UNHEX(:from_user_id), UNHEX(:to_user_id), :message, :message_read)';
+        $sql = 'INSERT INTO carbon_reports (log_level, report, call_trace) VALUES ( :log_level, :report, :call_trace)';
 
+        $pdo = self::database();
+        
+        if (!$pdo->inTransaction()) {
+            $pdo->beginTransaction();
+        }
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
         $stmt = self::database()->prepare($sql);
-        $message_id = $id = $data['carbon_user_messages.message_id'] ?? false;
-        if ($id === false) {
-            $message_id = $id = self::beginTransaction(self::class, $data[self::DEPENDANT_ON_ENTITY] ?? null);
-        } else {
-            $ref='carbon_user_messages.message_id';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::POST, $ref, $op, $message_id)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_messages.message_id\'.');
-            }            
-        }
-        $stmt->bindParam(':message_id',$message_id, PDO::PARAM_STR, 16);
         
-        if (!array_key_exists('carbon_user_messages.from_user_id', $data)) {
-            return self::signalError('Required argument "carbon_user_messages.from_user_id" is missing from the request.');
-        }
-        $from_user_id = $data['carbon_user_messages.from_user_id'];
-        $ref='carbon_user_messages.from_user_id';
+        $log_level = $data['carbon_reports.log_level'] ?? null;
+        $ref='carbon_reports.log_level';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $from_user_id)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_messages.from_user_id\'.');
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $log_level, $log_level === null)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_reports.log_level\'.');
         }
-        $stmt->bindParam(':from_user_id',$from_user_id, PDO::PARAM_STR, 16);
+        $stmt->bindParam(':log_level',$log_level, PDO::PARAM_STR, 20);
         
-        if (!array_key_exists('carbon_user_messages.to_user_id', $data)) {
-            return self::signalError('Required argument "carbon_user_messages.to_user_id" is missing from the request.');
-        }
-        $to_user_id = $data['carbon_user_messages.to_user_id'];
-        $ref='carbon_user_messages.to_user_id';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $to_user_id)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_messages.to_user_id\'.');
-        }
-        $stmt->bindParam(':to_user_id',$to_user_id, PDO::PARAM_STR, 16);
-        
-        if (!array_key_exists('carbon_user_messages.message', $data)) {
-            return self::signalError('The column \'carbon_user_messages.message\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
+        if (!array_key_exists('carbon_reports.report', $data)) {
+            return self::signalError('The column \'carbon_reports.report\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
         } 
-        $ref='carbon_user_messages.message';
+        $ref='carbon_reports.report';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $data['message'])) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_messages.message\'.');
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $data['report'])) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_reports.report\'.');
         }
-        $stmt->bindValue(':message', $data['carbon_user_messages.message'], PDO::PARAM_STR);
+        $stmt->bindValue(':report', $data['carbon_reports.report'], PDO::PARAM_STR);
         
-        $message_read = $data['carbon_user_messages.message_read'] ?? '0';
-        $ref='carbon_user_messages.message_read';
+        if (array_key_exists('carbon_reports.date', $data)) {
+            return self::signalError('The column \'carbon_reports.date\' is set to default to CURRENT_TIMESTAMP. The Rest API does not allow POST requests with columns explicitly set whose default is CURRENT_TIMESTAMP. You can remove to the default in MySQL or the column \'carbon_reports.date\' from the request.');
+        }
+        
+        if (!array_key_exists('carbon_reports.call_trace', $data)) {
+            return self::signalError('The column \'carbon_reports.call_trace\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
+        } 
+        $ref='carbon_reports.call_trace';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $message_read, $message_read === '0')) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_messages.message_read\'.');
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $data['call_trace'])) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_reports.call_trace\'.');
         }
-        $stmt->bindParam(':message_read',$message_read, PDO::PARAM_INT, 1);
-        
-        if (array_key_exists('carbon_user_messages.creation_date', $data)) {
-            return self::signalError('The column \'carbon_user_messages.creation_date\' is set to default to CURRENT_TIMESTAMP. The Rest API does not allow POST requests with columns explicitly set whose default is CURRENT_TIMESTAMP. You can remove to the default in MySQL or the column \'carbon_user_messages.creation_date\' from the request.');
-        }
+        $stmt->bindValue(':call_trace', $data['carbon_reports.call_trace'], PDO::PARAM_STR);
         
         if (!$stmt->execute()) {
             self::completeRest();
             return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }
         
-        self::prepostprocessRestRequest($id);
-         
+        self::prepostprocessRestRequest();
+        
         if (self::$commit && !Database::commit()) {
-           return self::signalError('Failed to store commit transaction on table carbon_user_messages');
-        } 
-         
-        self::postprocessRestRequest($id); 
-         
+            return self::signalError('Failed to store commit transaction on table carbon_reports');
+        }
+        
+        self::postprocessRestRequest();
+        
         self::completeRest();
         
-        return $id; 
-        
+        return true;  
     }
     
     /**
     * 
     * 
-    * Tables where primary keys exist must be updated by its primary key. 
-    * Column should be in a key value pair passed to $argv or optionally using syntax:
-    * $argv => [
+    *  Syntax should be as follows.
+    *  $argv = [
     *       Rest::UPDATE => [
     *              ...
+    *       ],
+    *       Rest::WHERE => [
+    *              ...
     *       ]
-    * ]
     * 
     * @param array $returnUpdated - will be merged with with array_merge, with a successful update. 
-    * @param string $primary
+    
     * @param array $argv 
     * @generated
     * @throws PublicAlert|PDOException|JsonException
     * @return bool - if execute fails, false will be returned and $returnUpdated = $stmt->errorInfo(); 
     */
-    public static function Put(array &$returnUpdated, string $primary, array $argv) : bool
+    public static function Put(array &$returnUpdated,  array $argv = []) : bool
     {
-        self::startRest(self::PUT, $returnUpdated, $argv, $primary);
+        self::startRest(self::PUT, $returnUpdated, $argv);
         
-        if ('' === $primary) {
-            return self::signalError('Restful tables which have a primary key must be updated by its primary key.');
+        $where = [];
+
+        if (array_key_exists(self::WHERE, $argv)) {
+            $where = $argv[self::WHERE];
+            unset($argv[self::WHERE]);
         }
-         
+        
         if (array_key_exists(self::UPDATE, $argv)) {
             $argv = $argv[self::UPDATE];
         }
-
-        $where = [self::PRIMARY => $primary];
         
+        if (false === self::$allowFullTableUpdates && empty($where)) {
+            return self::signalError('Restful tables which have no primary key must be updated using conditions given to $argv[self::WHERE] and values to be updated given to $argv[self::UPDATE]. No WHERE attribute given. To bypass this set `self::$allowFullTableUpdates = true;` during the PREPROCESS events, or just directly before this request.');
+        }
+        
+        if (empty($argv)) {
+            return self::signalError('Restful tables which have no primary key must be updated using conditions given to $argv[self::WHERE] and values to be updated given to $argv[self::UPDATE]. No UPDATE attribute given.');
+        }
         
         foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column $key, because it does not appear to exist.');
+                return self::signalError("Restful table could not update column $key, because it does not appear to exist. Please re-run RestBuilder if you believe this is incorrect.");
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_messages.\'.');
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_reports.\'.');
             }
         }
         unset($value);
 
-        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_user_messages SET '; // intellij cant handle this otherwise
+        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_reports SET '; // intellij cant handle this otherwise
 
         $set = '';
 
-        if (array_key_exists('carbon_user_messages.message_id', $argv)) {
-            $set .= 'message_id=UNHEX(:message_id),';
+        if (array_key_exists('carbon_reports.log_level', $argv)) {
+            $set .= 'log_level=:log_level,';
         }
-        if (array_key_exists('carbon_user_messages.from_user_id', $argv)) {
-            $set .= 'from_user_id=UNHEX(:from_user_id),';
+        if (array_key_exists('carbon_reports.report', $argv)) {
+            $set .= 'report=:report,';
         }
-        if (array_key_exists('carbon_user_messages.to_user_id', $argv)) {
-            $set .= 'to_user_id=UNHEX(:to_user_id),';
+        if (array_key_exists('carbon_reports.date', $argv)) {
+            $set .= 'date=:date,';
         }
-        if (array_key_exists('carbon_user_messages.message', $argv)) {
-            $set .= 'message=:message,';
-        }
-        if (array_key_exists('carbon_user_messages.message_read', $argv)) {
-            $set .= 'message_read=:message_read,';
-        }
-        if (array_key_exists('carbon_user_messages.creation_date', $argv)) {
-            $set .= 'creation_date=:creation_date,';
+        if (array_key_exists('carbon_reports.call_trace', $argv)) {
+            $set .= 'call_trace=:call_trace,';
         }
         
         $sql .= substr($set, 0, -1);
@@ -566,52 +538,35 @@ MYSQL;
             $pdo->beginTransaction();
         }
 
-        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
-
+        if (false === self::$allowFullTableUpdates || !empty($where)) {
+            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
+        }
+        
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
         $stmt = $pdo->prepare($sql);
 
-        if (array_key_exists('carbon_user_messages.message_id', $argv)) {
-            $message_id = $argv['carbon_user_messages.message_id'];
-            $ref = 'carbon_user_messages.message_id';
+        if (array_key_exists('carbon_reports.log_level', $argv)) { 
+            $log_level = $argv['carbon_reports.log_level'];
+            $ref = 'carbon_reports.log_level';
             $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $message_id)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'message_id\'.');
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $log_level)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'log_level\'.');
             }
-            $stmt->bindParam(':message_id',$message_id, PDO::PARAM_STR, 16);
-        }if (array_key_exists('carbon_user_messages.from_user_id', $argv)) {
-            $from_user_id = $argv['carbon_user_messages.from_user_id'];
-            $ref = 'carbon_user_messages.from_user_id';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $from_user_id)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'from_user_id\'.');
-            }
-            $stmt->bindParam(':from_user_id',$from_user_id, PDO::PARAM_STR, 16);
-        }if (array_key_exists('carbon_user_messages.to_user_id', $argv)) {
-            $to_user_id = $argv['carbon_user_messages.to_user_id'];
-            $ref = 'carbon_user_messages.to_user_id';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $to_user_id)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'to_user_id\'.');
-            }
-            $stmt->bindParam(':to_user_id',$to_user_id, PDO::PARAM_STR, 16);
-        }if (array_key_exists('carbon_user_messages.message', $argv)) {
-            $stmt->bindValue(':message',$argv['carbon_user_messages.message'], PDO::PARAM_STR);
-}if (array_key_exists('carbon_user_messages.message_read', $argv)) {
-            $message_read = $argv['carbon_user_messages.message_read'];
-            $ref = 'carbon_user_messages.message_read';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $message_read)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'message_read\'.');
-            }
-            $stmt->bindParam(':message_read',$message_read, PDO::PARAM_INT, 1);
-        }if (array_key_exists('carbon_user_messages.creation_date', $argv)) {
-            $stmt->bindValue(':creation_date',$argv['carbon_user_messages.creation_date'], PDO::PARAM_STR);
-}
-
+            $stmt->bindParam(':log_level',$log_level, PDO::PARAM_STR, 20);
+        }
+        if (array_key_exists('carbon_reports.report', $argv)) { 
+            $stmt->bindValue(':report',$argv['carbon_reports.report'], PDO::PARAM_STR);
+        }
+        if (array_key_exists('carbon_reports.date', $argv)) { 
+            $stmt->bindValue(':date',$argv['carbon_reports.date'], PDO::PARAM_STR);
+        }
+        if (array_key_exists('carbon_reports.call_trace', $argv)) { 
+            $stmt->bindValue(':call_trace',$argv['carbon_reports.call_trace'], PDO::PARAM_STR);
+        }
+        
         self::bind($stmt);
 
         if (!$stmt->execute()) {
@@ -625,7 +580,7 @@ MYSQL;
         
         $argv = array_combine(
             array_map(
-                static function($k) { return str_replace('carbon_user_messages.', '', $k); },
+                static fn($k) => str_replace('carbon_reports.', '', $k),
                 array_keys($argv)
             ),
             array_values($argv)
@@ -636,7 +591,7 @@ MYSQL;
         self::prepostprocessRestRequest($returnUpdated);
         
         if (self::$commit && !Database::commit()) {
-            return self::signalError('Failed to store commit transaction on table carbon_user_messages');
+            return self::signalError('Failed to store commit transaction on table carbon_reports');
         }
         
         self::postprocessRestRequest($returnUpdated);
@@ -648,40 +603,31 @@ MYSQL;
 
     /**
     * @param array $remove
-    * @param string|null $primary
     * @param array $argv
     * @generated
     * @noinspection DuplicatedCode
     * @throws PublicAlert|PDOException|JsonException
     * @return bool
     */
-    public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
+    public static function Delete(array &$remove, array $argv = []) : bool
     {
-        self::startRest(self::DELETE, $remove, $argv, $primary);
+        self::startRest(self::DELETE, $remove, $argv);
         
-        if (null !== $primary) {
-            return Carbons::Delete($remove, $primary, $argv);
-        }
-
-        /**
-         *   While useful, we've decided to disallow full
-         *   table deletions through the rest api. For the
-         *   n00bs and future self, "I got chu."
-         */
-        if (empty($argv)) {
-            return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
-        }
-        
-        $sql = 'DELETE c FROM carbons c 
-                JOIN carbon_user_messages on c.entity_pk = carbon_user_messages.message_id';
-
         $pdo = self::database();
+        
+        $sql =  /** @lang MySQLFragment */ 'DELETE FROM carbon_reports ';
+        
+        if (false === self::$allowFullTableDeletes && empty($argv)) {
+            return self::signalError('When deleting from tables with out a primary key additional arguments must be provided.');
+        } 
+        
+        if (!empty($argv)) {
+            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
+        }
         
         if (!$pdo->inTransaction()) {
             $pdo->beginTransaction();
         }
-
-        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
         
         self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -695,13 +641,13 @@ MYSQL;
             self::completeRest();
             return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }
-        
+
         $remove = [];
         
         self::prepostprocessRestRequest($remove);
         
         if (self::$commit && !Database::commit()) {
-           return self::signalError('Failed to store commit transaction on table carbon_user_messages');
+           return self::signalError('Failed to store commit transaction on table carbon_reports');
         }
         
         self::postprocessRestRequest($remove);
@@ -710,5 +656,4 @@ MYSQL;
         
         return true;
     }
-    
 }

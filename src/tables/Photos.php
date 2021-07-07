@@ -8,6 +8,7 @@ use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Helpers\RestfulValidations;
 use CarbonPHP\Rest;
+use JsonException;
 use PDO;
 use PDOException;
 use function array_key_exists;
@@ -19,8 +20,8 @@ use function is_array;
 
 
 /**
- * 
- * Class Wp_Postmeta
+ *
+ * Class Photos
  * @package CarbonPHP\Tables
  * @note Note for convenience, a flag '-prefix' maybe passed to remove table prefixes.
  *  Use '-help' for a full list of options.
@@ -38,28 +39,32 @@ use function is_array;
  * When creating static member functions which require persistent variables, consider making them static members of that 
  *  static method.
  */
-class Wp_Postmeta extends Rest implements iRestSinglePrimaryKey
+class Photos extends Rest implements iRestSinglePrimaryKey
 {
     use RestfulValidations;
     
-    public const CLASS_NAME = 'Wp_Postmeta';
+    public const CLASS_NAME = 'Photos';
     public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
-    public const TABLE_NAME = 'wp_postmeta';
-    public const TABLE_PREFIX = '';
-    
+    public const TABLE_NAME = 'carbon_photos';
+    public const TABLE_PREFIX = 'carbon_';
+    public const DIRECTORY = __DIR__ . DIRECTORY_SEPARATOR;
+
     /**
      * COLUMNS
-     * The columns below are a 1=1 mapping to the columns found in wp_postmeta. 
-     * Changes, shuch as adding or removing a column, SHOULD be made first in the database. The RestBuilder program will 
-     * capture any changes made in MySQL and update this file auto-magically. 
+     * The columns below are a 1=1 mapping to the columns found in carbon_photos. 
+     * Changes, such as adding or removing a column, MAY be made first in the database. The ResitBuilder program will 
+     * capture any changes made in MySQL and update this file auto-magically. If you work in a team it is RECCOMENDED to
+     * progromattically make these changes using the REFRESH_SCHEMA constant below.
     **/
-    public const META_ID = 'wp_postmeta.meta_id'; 
+    public const PARENT_ID = 'carbon_photos.parent_id'; 
 
-    public const POST_ID = 'wp_postmeta.post_id'; 
+    public const PHOTO_ID = 'carbon_photos.photo_id'; 
 
-    public const META_KEY = 'wp_postmeta.meta_key'; 
+    public const USER_ID = 'carbon_photos.user_id'; 
 
-    public const META_VALUE = 'wp_postmeta.meta_value'; 
+    public const PHOTO_PATH = 'carbon_photos.photo_path'; 
+
+    public const PHOTO_DESCRIPTION = 'carbon_photos.photo_description'; 
 
     /**
      * PRIMARY
@@ -67,21 +72,21 @@ class Wp_Postmeta extends Rest implements iRestSinglePrimaryKey
      * given composite primary keys. The existence and amount of primary keys of the will also determine the interface 
      * aka method signatures used.
     **/
-    public const PRIMARY = 'wp_postmeta.meta_id';
+    public const PRIMARY = 'carbon_photos.parent_id';
 
     /**
      * COLUMNS
-     * This is a convience constant for accessing your data after it has be returned from a rest operation. It is needed
-     * as Mysql will strip away the tablename we have explicitly provided to each column (to help with join statments).
+     * This is a convenience constant for accessing your data after it has be returned from a rest operation. It is needed
+     * as Mysql will strip away the table name we have explicitly provided to each column (to help with join statments).
      * Thus, accessing your return values might look something like:
      *      $return[self::COLUMNS[self::EXAMPLE_COLUMN_ONE]]
     **/ 
     public const COLUMNS = [
-        'wp_postmeta.meta_id' => 'meta_id','wp_postmeta.post_id' => 'post_id','wp_postmeta.meta_key' => 'meta_key','wp_postmeta.meta_value' => 'meta_value',
+        'carbon_photos.parent_id' => 'parent_id','carbon_photos.photo_id' => 'photo_id','carbon_photos.user_id' => 'user_id','carbon_photos.photo_path' => 'photo_path','carbon_photos.photo_description' => 'photo_description',
     ];
 
     public const PDO_VALIDATION = [
-        'wp_postmeta.meta_id' => ['bigint', 'PDO::PARAM_INT', ''],'wp_postmeta.post_id' => ['bigint', 'PDO::PARAM_INT', ''],'wp_postmeta.meta_key' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_postmeta.meta_value' => ['longtext', 'PDO::PARAM_STR', ''],
+        'carbon_photos.parent_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_photos.photo_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_photos.user_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_photos.photo_path' => ['varchar', PDO::PARAM_STR, '225'],'carbon_photos.photo_description' => ['text,', PDO::PARAM_STR, ''],
     ];
      
     /**
@@ -95,9 +100,9 @@ class Wp_Postmeta extends Rest implements iRestSinglePrimaryKey
      * Each directive MUST be designed to run multiple times without failure.
      */
     public const REFRESH_SCHEMA = [
-        [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
-                        PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS]
-    ]; 
+        [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::TABLE_PREFIX, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
+                        PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS, true]
+    ];
     
     /**
      * REGEX_VALIDATION
@@ -243,14 +248,18 @@ class Wp_Postmeta extends Rest implements iRestSinglePrimaryKey
      * the RestBuilder program.
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
-    CREATE TABLE `wp_postmeta` (
-  `meta_id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `post_id` bigint unsigned NOT NULL DEFAULT '0',
-  `meta_key` varchar(255) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `meta_value` longtext COLLATE utf8mb4_unicode_520_ci,
-  PRIMARY KEY (`meta_id`),
-  KEY `post_id` (`post_id`),
-  KEY `meta_key` (`meta_key`(191))
+    CREATE TABLE `carbon_photos` (
+  `parent_id` binary(16) NOT NULL,
+  `photo_id` binary(16) NOT NULL,
+  `user_id` binary(16) NOT NULL,
+  `photo_path` varchar(225) NOT NULL,
+  `photo_description` text,
+  PRIMARY KEY (`parent_id`),
+  UNIQUE KEY `entity_photos_photo_id_uindex` (`photo_id`),
+  KEY `photos_entity_user_pk_fk` (`user_id`),
+  CONSTRAINT `entity_photos_entity_entity_pk_fk` FOREIGN KEY (`photo_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `photos_entity_entity_pk_fk` FOREIGN KEY (`parent_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `photos_entity_user_pk_fk` FOREIGN KEY (`user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 MYSQL;
    
@@ -369,20 +378,10 @@ MYSQL;
         }
 
         $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        /**
-        *   The next part is so every response from the rest api
-        *   formats to a set of rows. Even if only one row is returned.
-        *   You must set the third parameter to true, otherwise '0' is
-        *   apparently in the self::PDO_VALIDATION
-        */
-
         
-        if ($primary !== null || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
+        if ((null !== $primary && '' !== $primary) || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
             $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
         }
-
-        
 
         self::postprocessRestRequest($return);
         
@@ -397,73 +396,97 @@ MYSQL;
      * @generated
      * @throws PublicAlert|PDOException|JsonException
      */
-    public static function Post(array $data)
+    public static function Post(array $data = [])
     {   
         self::startRest(self::POST, [], $data);
     
         foreach ($data as $columnName => $postValue) {
-            if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
+            if (!array_key_exists($columnName, self::COLUMNS)) {
                 return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.");
             }
         } 
         
-        $sql = 'INSERT INTO wp_postmeta (post_id, meta_key, meta_value) VALUES ( :post_id, :meta_key, :meta_value)';
+        $sql = 'INSERT INTO carbon_photos (parent_id, photo_id, user_id, photo_path, photo_description) VALUES ( UNHEX(:parent_id), UNHEX(:photo_id), UNHEX(:user_id), :photo_path, :photo_description)';
 
-        $pdo = self::database();
-        
-        if (!$pdo->inTransaction()) {
-            $pdo->beginTransaction();
-        }
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
-        $stmt = self::database()->prepare($sql);         
-        $post_id = $data['wp_postmeta.post_id'] ?? '0';
-        $ref='wp_postmeta.post_id';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $post_id, $post_id === '0')) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'wp_postmeta.post_id\'.');
-        }
-        $stmt->bindValue(':post_id', $post_id, PDO::PARAM_INT);
+        $stmt = self::database()->prepare($sql);
         
-        $meta_key = $data['wp_postmeta.meta_key'] ?? null;
-        $ref='wp_postmeta.meta_key';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $meta_key, $meta_key === null)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'wp_postmeta.meta_key\'.');
+        $parent_id = $id = $data['carbon_photos.parent_id'] ?? false;
+        if ($id === false) {
+            $parent_id = $id = self::beginTransaction(self::class, $data[self::DEPENDANT_ON_ENTITY] ?? null);
+        } else {
+            $ref='carbon_photos.parent_id';
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::POST, $ref, $op, $parent_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_photos.parent_id\'.');
+            }            
         }
-        $stmt->bindParam(':meta_key',$meta_key, PDO::PARAM_STR, 255);
+        $stmt->bindParam(':parent_id',$parent_id, PDO::PARAM_STR, 16);
         
-        if (!array_key_exists('wp_postmeta.meta_value', $data)) {
-            return self::signalError('The column \'wp_postmeta.meta_value\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
+        if (!array_key_exists('carbon_photos.photo_id', $data)) {
+            return self::signalError('Required argument "carbon_photos.photo_id" is missing from the request.');
+        }
+        $photo_id = $data['carbon_photos.photo_id'];
+        $ref='carbon_photos.photo_id';
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $photo_id)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_photos.photo_id\'.');
+        }
+        $stmt->bindParam(':photo_id',$photo_id, PDO::PARAM_STR, 16);
+        
+        if (!array_key_exists('carbon_photos.user_id', $data)) {
+            return self::signalError('Required argument "carbon_photos.user_id" is missing from the request.');
+        }
+        $user_id = $data['carbon_photos.user_id'];
+        $ref='carbon_photos.user_id';
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $user_id)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_photos.user_id\'.');
+        }
+        $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
+        
+        if (!array_key_exists('carbon_photos.photo_path', $data)) {
+            return self::signalError('Required argument "carbon_photos.photo_path" is missing from the request.');
+        }
+        $photo_path = $data['carbon_photos.photo_path'];
+        $ref='carbon_photos.photo_path';
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $photo_path)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_photos.photo_path\'.');
+        }
+        $stmt->bindParam(':photo_path',$photo_path, PDO::PARAM_STR, 225);
+        
+        if (!array_key_exists('carbon_photos.photo_description', $data)) {
+            return self::signalError('The column \'carbon_photos.photo_description\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
         } 
-        $ref='wp_postmeta.meta_value';
+        $ref='carbon_photos.photo_description';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $data['meta_value'])) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'wp_postmeta.meta_value\'.');
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $data['photo_description'])) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_photos.photo_description\'.');
         }
-        $stmt->bindValue(':meta_value', $data['wp_postmeta.meta_value'], PDO::PARAM_STR);
+        $stmt->bindValue(':photo_description', $data['carbon_photos.photo_description'], PDO::PARAM_STR);
         
         if (!$stmt->execute()) {
             self::completeRest();
             return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }
         
-        $id = $pdo->lastInsertId();
-        
         self::prepostprocessRestRequest($id);
-        
+         
         if (self::$commit && !Database::commit()) {
-            return self::signalError('Failed to store commit transaction on table wp_postmeta');
-        }
-        
-        self::postprocessRestRequest($id);
-        
+           return self::signalError('Failed to store commit transaction on table carbon_photos');
+        } 
+         
+        self::postprocessRestRequest($id); 
+         
         self::completeRest();
         
-        return $id;  
+        return $id; 
+        
     }
     
     /**
@@ -471,60 +494,73 @@ MYSQL;
     * 
     * Tables where primary keys exist must be updated by its primary key. 
     * Column should be in a key value pair passed to $argv or optionally using syntax:
-    * $argv => [
+    * $argv = [
     *       Rest::UPDATE => [
     *              ...
     *       ]
     * ]
     * 
     * @param array $returnUpdated - will be merged with with array_merge, with a successful update. 
-    * @param string $primary
+    * @param string|null $primary
     * @param array $argv 
     * @generated
     * @throws PublicAlert|PDOException|JsonException
     * @return bool - if execute fails, false will be returned and $returnUpdated = $stmt->errorInfo(); 
     */
-    public static function Put(array &$returnUpdated, string $primary, array $argv) : bool
+    public static function Put(array &$returnUpdated, string $primary = null, array $argv = []) : bool
     {
         self::startRest(self::PUT, $returnUpdated, $argv, $primary);
         
-        if ('' === $primary) {
-            return self::signalError('Restful tables which have a primary key must be updated by its primary key.');
+        $where = [];
+
+        if (array_key_exists(self::WHERE, $argv)) {
+            $where = $argv[self::WHERE];
+            unset($argv[self::WHERE]);
         }
-         
+        
         if (array_key_exists(self::UPDATE, $argv)) {
             $argv = $argv[self::UPDATE];
         }
-
-        $where = [self::PRIMARY => $primary];
         
+        $emptyPrimary = null === $primary || '' === $primary;
+        
+        if (false === self::$allowFullTableUpdates && $emptyPrimary) { 
+            return self::signalError('Restful tables which have a primary key must be updated by its primary key. To bypass this set you may set `self::$allowFullTableUpdates = true;` during the PREPROCESS events.');
+        }
+
+        if (!$emptyPrimary) {
+            $where[self::PRIMARY] = $primary;
+        }
         
         foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column $key, because it does not appear to exist.');
+                return self::signalError("Restful table could not update column $key, because it does not appear to exist. Please re-run RestBuilder if you believe this is incorrect.");
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'wp_postmeta.\'.');
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_photos.\'.');
             }
         }
         unset($value);
 
-        $sql = /** @lang MySQLFragment */ 'UPDATE wp_postmeta SET '; // intellij cant handle this otherwise
+        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_photos SET '; // intellij cant handle this otherwise
 
         $set = '';
 
-        if (array_key_exists('wp_postmeta.meta_id', $argv)) {
-            $set .= 'meta_id=:meta_id,';
+        if (array_key_exists('carbon_photos.parent_id', $argv)) {
+            $set .= 'parent_id=UNHEX(:parent_id),';
         }
-        if (array_key_exists('wp_postmeta.post_id', $argv)) {
-            $set .= 'post_id=:post_id,';
+        if (array_key_exists('carbon_photos.photo_id', $argv)) {
+            $set .= 'photo_id=UNHEX(:photo_id),';
         }
-        if (array_key_exists('wp_postmeta.meta_key', $argv)) {
-            $set .= 'meta_key=:meta_key,';
+        if (array_key_exists('carbon_photos.user_id', $argv)) {
+            $set .= 'user_id=UNHEX(:user_id),';
         }
-        if (array_key_exists('wp_postmeta.meta_value', $argv)) {
-            $set .= 'meta_value=:meta_value,';
+        if (array_key_exists('carbon_photos.photo_path', $argv)) {
+            $set .= 'photo_path=:photo_path,';
+        }
+        if (array_key_exists('carbon_photos.photo_description', $argv)) {
+            $set .= 'photo_description=:photo_description,';
         }
         
         $sql .= substr($set, 0, -1);
@@ -535,30 +571,56 @@ MYSQL;
             $pdo->beginTransaction();
         }
 
-        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
-
+        if (false === self::$allowFullTableUpdates || !empty($where)) {
+            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
+        }
+        
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
         $stmt = $pdo->prepare($sql);
 
-        if (array_key_exists('wp_postmeta.meta_id', $argv)) {
-            $stmt->bindValue(':meta_id',$argv['wp_postmeta.meta_id'], PDO::PARAM_INT);
-}if (array_key_exists('wp_postmeta.post_id', $argv)) {
-            $stmt->bindValue(':post_id',$argv['wp_postmeta.post_id'], PDO::PARAM_INT);
-}if (array_key_exists('wp_postmeta.meta_key', $argv)) {
-            $meta_key = $argv['wp_postmeta.meta_key'];
-            $ref = 'wp_postmeta.meta_key';
+        if (array_key_exists('carbon_photos.parent_id', $argv)) { 
+            $parent_id = $argv['carbon_photos.parent_id'];
+            $ref = 'carbon_photos.parent_id';
             $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $meta_key)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'meta_key\'.');
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $parent_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'parent_id\'.');
             }
-            $stmt->bindParam(':meta_key',$meta_key, PDO::PARAM_STR, 255);
-        }if (array_key_exists('wp_postmeta.meta_value', $argv)) {
-            $stmt->bindValue(':meta_value',$argv['wp_postmeta.meta_value'], PDO::PARAM_STR);
-}
-
+            $stmt->bindParam(':parent_id',$parent_id, PDO::PARAM_STR, 16);
+        }
+        if (array_key_exists('carbon_photos.photo_id', $argv)) { 
+            $photo_id = $argv['carbon_photos.photo_id'];
+            $ref = 'carbon_photos.photo_id';
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $photo_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'photo_id\'.');
+            }
+            $stmt->bindParam(':photo_id',$photo_id, PDO::PARAM_STR, 16);
+        }
+        if (array_key_exists('carbon_photos.user_id', $argv)) { 
+            $user_id = $argv['carbon_photos.user_id'];
+            $ref = 'carbon_photos.user_id';
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'user_id\'.');
+            }
+            $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
+        }
+        if (array_key_exists('carbon_photos.photo_path', $argv)) { 
+            $photo_path = $argv['carbon_photos.photo_path'];
+            $ref = 'carbon_photos.photo_path';
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $photo_path)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'photo_path\'.');
+            }
+            $stmt->bindParam(':photo_path',$photo_path, PDO::PARAM_STR, 225);
+        }
+        if (array_key_exists('carbon_photos.photo_description', $argv)) { 
+            $stmt->bindValue(':photo_description',$argv['carbon_photos.photo_description'], PDO::PARAM_STR);
+        }
+        
         self::bind($stmt);
 
         if (!$stmt->execute()) {
@@ -572,7 +634,7 @@ MYSQL;
         
         $argv = array_combine(
             array_map(
-                static function($k) { return str_replace('wp_postmeta.', '', $k); },
+                static fn($k) => str_replace('carbon_photos.', '', $k),
                 array_keys($argv)
             ),
             array_values($argv)
@@ -583,7 +645,7 @@ MYSQL;
         self::prepostprocessRestRequest($returnUpdated);
         
         if (self::$commit && !Database::commit()) {
-            return self::signalError('Failed to store commit transaction on table wp_postmeta');
+            return self::signalError('Failed to store commit transaction on table carbon_photos');
         }
         
         self::postprocessRestRequest($returnUpdated);
@@ -606,41 +668,30 @@ MYSQL;
     {
         self::startRest(self::DELETE, $remove, $argv, $primary);
         
-        /** @noinspection SqlWithoutWhere
-         * @noinspection UnknownInspectionInspection - intellij is funny sometimes.
-         */
-        $sql = 'DELETE FROM wp_postmeta ';
-
         $pdo = self::database();
+        
+        $emptyPrimary = null === $primary || '' === $primary;
+        
+        if (!$emptyPrimary) {
+            return Carbons::Delete($remove, $primary, $argv);
+        }
+
+        if (false === self::$allowFullTableDeletes && empty($argv)) {
+            return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
+        }
+        
+        $sql = 'DELETE c FROM carbon_carbons c 
+                JOIN carbon_photos on c.entity_pk = carbon_photos.parent_id';
+
+        
+        if (false === self::$allowFullTableDeletes || !empty($argv)) {
+            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
+        }
         
         if (!$pdo->inTransaction()) {
             $pdo->beginTransaction();
         }
         
-        
-        if (null === $primary) {
-           /**
-            *   While useful, we've decided to disallow full
-            *   table deletions through the rest api. For the
-            *   n00bs and future self, "I got chu."
-            */
-            if (empty($argv)) {
-                return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
-            }
-            $argv[self::PRIMARY] = $primary;
-            
-            $where = self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
-            
-            if (empty($where)) {
-                return self::signalError('The where condition provided appears invalid.');
-            }
-
-            $sql .= ' WHERE ' . $where;
-        } else {
-            $sql .= ' WHERE  meta_id='.self::addInjection($primary, $pdo).'';
-        }
-
-
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
@@ -659,7 +710,7 @@ MYSQL;
         self::prepostprocessRestRequest($remove);
         
         if (self::$commit && !Database::commit()) {
-           return self::signalError('Failed to store commit transaction on table wp_postmeta');
+           return self::signalError('Failed to store commit transaction on table carbon_photos');
         }
         
         self::postprocessRestRequest($remove);
@@ -668,5 +719,4 @@ MYSQL;
         
         return true;
     }
-    
 }

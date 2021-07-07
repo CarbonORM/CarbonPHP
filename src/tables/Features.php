@@ -8,6 +8,7 @@ use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Helpers\RestfulValidations;
 use CarbonPHP\Rest;
+use JsonException;
 use PDO;
 use PDOException;
 use function array_key_exists;
@@ -19,8 +20,8 @@ use function is_array;
 
 
 /**
- * 
- * Class Carbon_Features
+ *
+ * Class Features
  * @package CarbonPHP\Tables
  * @note Note for convenience, a flag '-prefix' maybe passed to remove table prefixes.
  *  Use '-help' for a full list of options.
@@ -38,20 +39,22 @@ use function is_array;
  * When creating static member functions which require persistent variables, consider making them static members of that 
  *  static method.
  */
-class Carbon_Features extends Rest implements iRestSinglePrimaryKey
+class Features extends Rest implements iRestSinglePrimaryKey
 {
     use RestfulValidations;
     
-    public const CLASS_NAME = 'Carbon_Features';
+    public const CLASS_NAME = 'Features';
     public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
     public const TABLE_NAME = 'carbon_features';
-    public const TABLE_PREFIX = '';
-    
+    public const TABLE_PREFIX = 'carbon_';
+    public const DIRECTORY = __DIR__ . DIRECTORY_SEPARATOR;
+
     /**
      * COLUMNS
      * The columns below are a 1=1 mapping to the columns found in carbon_features. 
-     * Changes, shuch as adding or removing a column, SHOULD be made first in the database. The RestBuilder program will 
-     * capture any changes made in MySQL and update this file auto-magically. 
+     * Changes, such as adding or removing a column, MAY be made first in the database. The ResitBuilder program will 
+     * capture any changes made in MySQL and update this file auto-magically. If you work in a team it is RECCOMENDED to
+     * progromattically make these changes using the REFRESH_SCHEMA constant below.
     **/
     public const FEATURE_ENTITY_ID = 'carbon_features.feature_entity_id'; 
 
@@ -69,8 +72,8 @@ class Carbon_Features extends Rest implements iRestSinglePrimaryKey
 
     /**
      * COLUMNS
-     * This is a convience constant for accessing your data after it has be returned from a rest operation. It is needed
-     * as Mysql will strip away the tablename we have explicitly provided to each column (to help with join statments).
+     * This is a convenience constant for accessing your data after it has be returned from a rest operation. It is needed
+     * as Mysql will strip away the table name we have explicitly provided to each column (to help with join statments).
      * Thus, accessing your return values might look something like:
      *      $return[self::COLUMNS[self::EXAMPLE_COLUMN_ONE]]
     **/ 
@@ -79,7 +82,7 @@ class Carbon_Features extends Rest implements iRestSinglePrimaryKey
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_features.feature_entity_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_features.feature_code' => ['varchar', 'PDO::PARAM_STR', '30'],'carbon_features.feature_creation_date' => ['datetime', 'PDO::PARAM_STR', ''],
+        'carbon_features.feature_entity_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_features.feature_code' => ['varchar', PDO::PARAM_STR, '30'],'carbon_features.feature_creation_date' => ['datetime', PDO::PARAM_STR, ''],
     ];
      
     /**
@@ -93,9 +96,9 @@ class Carbon_Features extends Rest implements iRestSinglePrimaryKey
      * Each directive MUST be designed to run multiple times without failure.
      */
     public const REFRESH_SCHEMA = [
-        [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
-                        PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS]
-    ]; 
+        [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::TABLE_PREFIX, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
+                        PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS, true]
+    ];
     
     /**
      * REGEX_VALIDATION
@@ -219,7 +222,22 @@ class Carbon_Features extends Rest implements iRestSinglePrimaryKey
      *  @version ^9
      */
  
-    public const PHP_VALIDATION = []; 
+    public const PHP_VALIDATION = [ 
+        self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
+            self::PREPROCESS => [ 
+                [self::class => 'disallowPublicAccess', self::class],
+            ]
+        ],
+        self::GET => [ 
+            self::PREPROCESS => [ 
+                [self::class => 'disallowPublicAccess', self::class],
+            ]
+        ],    
+        self::POST => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
+        self::PUT => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
+        self::DELETE => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],
+        self::REST_REQUEST_FINNISH_CALLBACKS => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]]    
+    ]; 
    
     /**
      * CREATE_TABLE_SQL is autogenerated and should not be manually updated. Make changes in MySQL and regenerate using
@@ -233,7 +251,7 @@ class Carbon_Features extends Rest implements iRestSinglePrimaryKey
   PRIMARY KEY (`feature_entity_id`),
   UNIQUE KEY `carbon_features_feature_code_uindex` (`feature_code`),
   UNIQUE KEY `carbon_features_feature_entity_id_uindex` (`feature_entity_id`),
-  CONSTRAINT `carbon_features_carbons_entity_pk_fk` FOREIGN KEY (`feature_entity_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `carbon_features_carbons_entity_pk_fk` FOREIGN KEY (`feature_entity_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 MYSQL;
    
@@ -352,20 +370,10 @@ MYSQL;
         }
 
         $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        /**
-        *   The next part is so every response from the rest api
-        *   formats to a set of rows. Even if only one row is returned.
-        *   You must set the third parameter to true, otherwise '0' is
-        *   apparently in the self::PDO_VALIDATION
-        */
-
         
-        if ($primary !== null || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
+        if ((null !== $primary && '' !== $primary) || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
             $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
         }
-
-        
 
         self::postprocessRestRequest($return);
         
@@ -380,12 +388,12 @@ MYSQL;
      * @generated
      * @throws PublicAlert|PDOException|JsonException
      */
-    public static function Post(array $data)
+    public static function Post(array $data = [])
     {   
         self::startRest(self::POST, [], $data);
     
         foreach ($data as $columnName => $postValue) {
-            if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
+            if (!array_key_exists($columnName, self::COLUMNS)) {
                 return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.");
             }
         } 
@@ -398,6 +406,7 @@ MYSQL;
         self::postpreprocessRestRequest($sql);
 
         $stmt = self::database()->prepare($sql);
+        
         $feature_entity_id = $id = $data['carbon_features.feature_entity_id'] ?? false;
         if ($id === false) {
             $feature_entity_id = $id = self::beginTransaction(self::class, $data[self::DEPENDANT_ON_ENTITY] ?? null);
@@ -449,37 +458,47 @@ MYSQL;
     * 
     * Tables where primary keys exist must be updated by its primary key. 
     * Column should be in a key value pair passed to $argv or optionally using syntax:
-    * $argv => [
+    * $argv = [
     *       Rest::UPDATE => [
     *              ...
     *       ]
     * ]
     * 
     * @param array $returnUpdated - will be merged with with array_merge, with a successful update. 
-    * @param string $primary
+    * @param string|null $primary
     * @param array $argv 
     * @generated
     * @throws PublicAlert|PDOException|JsonException
     * @return bool - if execute fails, false will be returned and $returnUpdated = $stmt->errorInfo(); 
     */
-    public static function Put(array &$returnUpdated, string $primary, array $argv) : bool
+    public static function Put(array &$returnUpdated, string $primary = null, array $argv = []) : bool
     {
         self::startRest(self::PUT, $returnUpdated, $argv, $primary);
         
-        if ('' === $primary) {
-            return self::signalError('Restful tables which have a primary key must be updated by its primary key.');
+        $where = [];
+
+        if (array_key_exists(self::WHERE, $argv)) {
+            $where = $argv[self::WHERE];
+            unset($argv[self::WHERE]);
         }
-         
+        
         if (array_key_exists(self::UPDATE, $argv)) {
             $argv = $argv[self::UPDATE];
         }
-
-        $where = [self::PRIMARY => $primary];
         
+        $emptyPrimary = null === $primary || '' === $primary;
+        
+        if (false === self::$allowFullTableUpdates && $emptyPrimary) { 
+            return self::signalError('Restful tables which have a primary key must be updated by its primary key. To bypass this set you may set `self::$allowFullTableUpdates = true;` during the PREPROCESS events.');
+        }
+
+        if (!$emptyPrimary) {
+            $where[self::PRIMARY] = $primary;
+        }
         
         foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column $key, because it does not appear to exist.');
+                return self::signalError("Restful table could not update column $key, because it does not appear to exist. Please re-run RestBuilder if you believe this is incorrect.");
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
@@ -510,15 +529,17 @@ MYSQL;
             $pdo->beginTransaction();
         }
 
-        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
-
+        if (false === self::$allowFullTableUpdates || !empty($where)) {
+            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
+        }
+        
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
         $stmt = $pdo->prepare($sql);
 
-        if (array_key_exists('carbon_features.feature_entity_id', $argv)) {
+        if (array_key_exists('carbon_features.feature_entity_id', $argv)) { 
             $feature_entity_id = $argv['carbon_features.feature_entity_id'];
             $ref = 'carbon_features.feature_entity_id';
             $op = self::EQUAL;
@@ -526,7 +547,8 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'feature_entity_id\'.');
             }
             $stmt->bindParam(':feature_entity_id',$feature_entity_id, PDO::PARAM_STR, 16);
-        }if (array_key_exists('carbon_features.feature_code', $argv)) {
+        }
+        if (array_key_exists('carbon_features.feature_code', $argv)) { 
             $feature_code = $argv['carbon_features.feature_code'];
             $ref = 'carbon_features.feature_code';
             $op = self::EQUAL;
@@ -534,10 +556,11 @@ MYSQL;
                 return self::signalError('Your custom restful api validations caused the request to fail on column \'feature_code\'.');
             }
             $stmt->bindParam(':feature_code',$feature_code, PDO::PARAM_STR, 30);
-        }if (array_key_exists('carbon_features.feature_creation_date', $argv)) {
+        }
+        if (array_key_exists('carbon_features.feature_creation_date', $argv)) { 
             $stmt->bindValue(':feature_creation_date',$argv['carbon_features.feature_creation_date'], PDO::PARAM_STR);
-}
-
+        }
+        
         self::bind($stmt);
 
         if (!$stmt->execute()) {
@@ -551,7 +574,7 @@ MYSQL;
         
         $argv = array_combine(
             array_map(
-                static function($k) { return str_replace('carbon_features.', '', $k); },
+                static fn($k) => str_replace('carbon_features.', '', $k),
                 array_keys($argv)
             ),
             array_values($argv)
@@ -585,29 +608,29 @@ MYSQL;
     {
         self::startRest(self::DELETE, $remove, $argv, $primary);
         
-        if (null !== $primary) {
+        $pdo = self::database();
+        
+        $emptyPrimary = null === $primary || '' === $primary;
+        
+        if (!$emptyPrimary) {
             return Carbons::Delete($remove, $primary, $argv);
         }
 
-        /**
-         *   While useful, we've decided to disallow full
-         *   table deletions through the rest api. For the
-         *   n00bs and future self, "I got chu."
-         */
-        if (empty($argv)) {
+        if (false === self::$allowFullTableDeletes && empty($argv)) {
             return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
         }
         
-        $sql = 'DELETE c FROM carbons c 
+        $sql = 'DELETE c FROM carbon_carbons c 
                 JOIN carbon_features on c.entity_pk = carbon_features.feature_entity_id';
 
-        $pdo = self::database();
+        
+        if (false === self::$allowFullTableDeletes || !empty($argv)) {
+            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
+        }
         
         if (!$pdo->inTransaction()) {
             $pdo->beginTransaction();
         }
-
-        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
         
         self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -621,7 +644,7 @@ MYSQL;
             self::completeRest();
             return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }
-        
+
         $remove = [];
         
         self::prepostprocessRestRequest($remove);
@@ -636,5 +659,4 @@ MYSQL;
         
         return true;
     }
-    
 }

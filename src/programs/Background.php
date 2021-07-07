@@ -2,6 +2,7 @@
 
 namespace CarbonPHP\Programs;
 
+use CarbonPHP\Interfaces\iColorCode;
 use Throwable;
 
 trait Background
@@ -16,7 +17,7 @@ trait Background
             }
             $cmd = sprintf('sudo sh %s > %s 2>&1 & echo $!;', $cmd, $outputFile); // sudo %s > %s 2>$1 & echo $!
             exec($cmd, $pid);
-            ColorCode::colorCode("Running CMD (pid::$pid)>> " . $$cmd . PHP_EOL . PHP_EOL . ' ');
+            ColorCode::colorCode("Running Background CMD (pid::$pid)>> " . $$cmd . PHP_EOL . PHP_EOL);
             return $pid;
         } catch (Throwable $e) {
         }
@@ -30,9 +31,9 @@ trait Background
         ColorCode::colorCode('Running CMD >> ' . $command . PHP_EOL . PHP_EOL . ' ');
         exec($command, $output, $return_var);
         if ($return_var !== 0 && $return_var !== '0') {
-            ColorCode::colorCode("The command >>  $command \n\t returned with a status code (" . $return_var . '). Expecting 0 for success.', 'red');
+            ColorCode::colorCode("The command >>  $command \n\t returned with a status code (" . $return_var . '). Expecting 0 for success.', iColorCode::RED);
             $output = implode(PHP_EOL, $output);
-            ColorCode::colorCode("\n\n\tCommand output::\n\n $output \n\n", 'red');
+            ColorCode::colorCode("\n\n\tCommand output::\n\n $output \n\n", iColorCode::RED);
             exit($return_var);
         }
     }

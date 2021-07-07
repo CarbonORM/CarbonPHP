@@ -36,12 +36,12 @@ interface iRestNoPrimaryKey
      * @return bool|string
      * @throws PublicAlert
      */
-    public static function Post(array $data) : bool;              // Add and associative array Column => value
+    public static function Post(array $data = []) : bool;              // Add and associative array Column => value
 
     /**
      * @param array $returnUpdated
      * @param array $argv - an associative array of Column => Value pairs
      * @return bool  - true on success false on failure
      */
-    public static function Put(array &$returnUpdated, array $argv): bool;
+    public static function Put(array &$returnUpdated, array $argv = []): bool;
 }

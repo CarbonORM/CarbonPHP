@@ -5,9 +5,10 @@ namespace CarbonPHP\Tables;
 // Restful defaults
 use CarbonPHP\Database;
 use CarbonPHP\Error\PublicAlert;
-use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
+use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use CarbonPHP\Helpers\RestfulValidations;
 use CarbonPHP\Rest;
+use JsonException;
 use PDO;
 use PDOException;
 use function array_key_exists;
@@ -19,8 +20,8 @@ use function is_array;
 
 
 /**
- * 
- * Class Carbon_User_Followers
+ *
+ * Class Group_References
  * @package CarbonPHP\Tables
  * @note Note for convenience, a flag '-prefix' maybe passed to remove table prefixes.
  *  Use '-help' for a full list of options.
@@ -38,26 +39,26 @@ use function is_array;
  * When creating static member functions which require persistent variables, consider making them static members of that 
  *  static method.
  */
-class Carbon_User_Followers extends Rest implements iRestSinglePrimaryKey
+class Group_References extends Rest implements iRestNoPrimaryKey
 {
     use RestfulValidations;
     
-    public const CLASS_NAME = 'Carbon_User_Followers';
+    public const CLASS_NAME = 'Group_References';
     public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
-    public const TABLE_NAME = 'carbon_user_followers';
-    public const TABLE_PREFIX = '';
-    
+    public const TABLE_NAME = 'carbon_group_references';
+    public const TABLE_PREFIX = 'carbon_';
+    public const DIRECTORY = __DIR__ . DIRECTORY_SEPARATOR;
+
     /**
      * COLUMNS
-     * The columns below are a 1=1 mapping to the columns found in carbon_user_followers. 
-     * Changes, shuch as adding or removing a column, SHOULD be made first in the database. The RestBuilder program will 
-     * capture any changes made in MySQL and update this file auto-magically. 
+     * The columns below are a 1=1 mapping to the columns found in carbon_group_references. 
+     * Changes, such as adding or removing a column, MAY be made first in the database. The ResitBuilder program will 
+     * capture any changes made in MySQL and update this file auto-magically. If you work in a team it is RECCOMENDED to
+     * progromattically make these changes using the REFRESH_SCHEMA constant below.
     **/
-    public const FOLLOWER_TABLE_ID = 'carbon_user_followers.follower_table_id'; 
+    public const GROUP_ID = 'carbon_group_references.group_id'; 
 
-    public const FOLLOWS_USER_ID = 'carbon_user_followers.follows_user_id'; 
-
-    public const USER_ID = 'carbon_user_followers.user_id'; 
+    public const ALLOWED_TO_GRANT_GROUP_ID = 'carbon_group_references.allowed_to_grant_group_id'; 
 
     /**
      * PRIMARY
@@ -65,21 +66,21 @@ class Carbon_User_Followers extends Rest implements iRestSinglePrimaryKey
      * given composite primary keys. The existence and amount of primary keys of the will also determine the interface 
      * aka method signatures used.
     **/
-    public const PRIMARY = 'carbon_user_followers.follower_table_id';
+    public const PRIMARY = null;
 
     /**
      * COLUMNS
-     * This is a convience constant for accessing your data after it has be returned from a rest operation. It is needed
-     * as Mysql will strip away the tablename we have explicitly provided to each column (to help with join statments).
+     * This is a convenience constant for accessing your data after it has be returned from a rest operation. It is needed
+     * as Mysql will strip away the table name we have explicitly provided to each column (to help with join statments).
      * Thus, accessing your return values might look something like:
      *      $return[self::COLUMNS[self::EXAMPLE_COLUMN_ONE]]
     **/ 
     public const COLUMNS = [
-        'carbon_user_followers.follower_table_id' => 'follower_table_id','carbon_user_followers.follows_user_id' => 'follows_user_id','carbon_user_followers.user_id' => 'user_id',
+        'carbon_group_references.group_id' => 'group_id','carbon_group_references.allowed_to_grant_group_id' => 'allowed_to_grant_group_id',
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_user_followers.follower_table_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_followers.follows_user_id' => ['binary', 'PDO::PARAM_STR', '16'],'carbon_user_followers.user_id' => ['binary', 'PDO::PARAM_STR', '16'],
+        'carbon_group_references.group_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_group_references.allowed_to_grant_group_id' => ['binary', PDO::PARAM_STR, '16'],
     ];
      
     /**
@@ -93,9 +94,9 @@ class Carbon_User_Followers extends Rest implements iRestSinglePrimaryKey
      * Each directive MUST be designed to run multiple times without failure.
      */
     public const REFRESH_SCHEMA = [
-        [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
-                        PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS]
-    ]; 
+        [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::TABLE_PREFIX, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
+                        PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS, true]
+    ];
     
     /**
      * REGEX_VALIDATION
@@ -220,11 +221,20 @@ class Carbon_User_Followers extends Rest implements iRestSinglePrimaryKey
      */
  
     public const PHP_VALIDATION = [ 
-        [self::DISALLOW_PUBLIC_ACCESS],
-        self::GET => [ self::DISALLOW_PUBLIC_ACCESS ],    
-        self::POST => [ self::DISALLOW_PUBLIC_ACCESS ],    
-        self::PUT => [ self::DISALLOW_PUBLIC_ACCESS ],    
-        self::DELETE => [ self::DISALLOW_PUBLIC_ACCESS ],    
+        self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
+            self::PREPROCESS => [ 
+                [self::class => 'disallowPublicAccess', self::class],
+            ]
+        ],
+        self::GET => [ 
+            self::PREPROCESS => [ 
+                [self::class => 'disallowPublicAccess', self::class],
+            ]
+        ],    
+        self::POST => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
+        self::PUT => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
+        self::DELETE => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],
+        self::REST_REQUEST_FINNISH_CALLBACKS => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]]    
     ]; 
    
     /**
@@ -232,16 +242,13 @@ class Carbon_User_Followers extends Rest implements iRestSinglePrimaryKey
      * the RestBuilder program.
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
-    CREATE TABLE `carbon_user_followers` (
-  `follower_table_id` binary(16) NOT NULL,
-  `follows_user_id` binary(16) NOT NULL,
-  `user_id` binary(16) NOT NULL,
-  PRIMARY KEY (`follower_table_id`),
-  KEY `followers_entity_entity_pk_fk` (`follows_user_id`),
-  KEY `followers_entity_entity_followers_pk_fk` (`user_id`),
-  CONSTRAINT `carbon_user_followers_carbons_entity_pk_fk` FOREIGN KEY (`follower_table_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `followers_entity_entity_follows_pk_fk` FOREIGN KEY (`follows_user_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `followers_entity_followers_pk_fk` FOREIGN KEY (`user_id`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+    CREATE TABLE `carbon_group_references` (
+  `group_id` binary(16) DEFAULT NULL,
+  `allowed_to_grant_group_id` binary(16) DEFAULT NULL,
+  KEY `carbon_group_references_carbons_entity_pk_fk` (`group_id`),
+  KEY `carbon_group_references_carbons_entity_pk_fk_2` (`allowed_to_grant_group_id`),
+  CONSTRAINT `carbon_group_references_carbons_entity_pk_fk` FOREIGN KEY (`group_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `carbon_group_references_carbons_entity_pk_fk_2` FOREIGN KEY (`allowed_to_grant_group_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 MYSQL;
    
@@ -331,20 +338,19 @@ MYSQL;
     *
     *
     * @param array $return
-    * @param string|null $primary
     * @param array $argv
     * @noinspection DuplicatedCode - possible as this is generated
     * @generated
     * @throws PublicAlert|PDOException|JsonException
     * @return bool
     */
-    public static function Get(array &$return, string $primary = null, array $argv = []): bool
+    public static function Get(array &$return, array $argv = []): bool
     {
-        self::startRest(self::GET, $return, $argv ,$primary);
+        self::startRest(self::GET, $return, $argv );
 
         $pdo = self::database();
 
-        $sql = self::buildSelectQuery($primary, $argv, '', $pdo);
+        $sql = self::buildSelectQuery(null, $argv, '', $pdo);
         
         self::jsonSQLReporting(func_get_args(), $sql);
         
@@ -360,20 +366,10 @@ MYSQL;
         }
 
         $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        /**
-        *   The next part is so every response from the rest api
-        *   formats to a set of rows. Even if only one row is returned.
-        *   You must set the third parameter to true, otherwise '0' is
-        *   apparently in the self::PDO_VALIDATION
-        */
-
         
-        if ($primary !== null || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
+        if (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1) {
             $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
         }
-
-        
 
         self::postprocessRestRequest($return);
         
@@ -384,137 +380,130 @@ MYSQL;
 
     /**
      * @param array $data 
-     * @return bool|string|mixed
+     * @return bool|string
      * @generated
      * @throws PublicAlert|PDOException|JsonException
      */
-    public static function Post(array $data)
+    public static function Post(array $data = []): bool
     {   
         self::startRest(self::POST, [], $data);
     
         foreach ($data as $columnName => $postValue) {
-            if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
+            if (!array_key_exists($columnName, self::COLUMNS)) {
                 return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.");
             }
         } 
         
-        $sql = 'INSERT INTO carbon_user_followers (follower_table_id, follows_user_id, user_id) VALUES ( UNHEX(:follower_table_id), UNHEX(:follows_user_id), UNHEX(:user_id))';
+        $sql = 'INSERT INTO carbon_group_references (group_id, allowed_to_grant_group_id) VALUES ( UNHEX(:group_id), UNHEX(:allowed_to_grant_group_id))';
 
+        $pdo = self::database();
+        
+        if (!$pdo->inTransaction()) {
+            $pdo->beginTransaction();
+        }
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
         $stmt = self::database()->prepare($sql);
-        $follower_table_id = $id = $data['carbon_user_followers.follower_table_id'] ?? false;
-        if ($id === false) {
-            $follower_table_id = $id = self::beginTransaction(self::class, $data[self::DEPENDANT_ON_ENTITY] ?? null);
-        } else {
-            $ref='carbon_user_followers.follower_table_id';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::POST, $ref, $op, $follower_table_id)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_followers.follower_table_id\'.');
-            }            
-        }
-        $stmt->bindParam(':follower_table_id',$follower_table_id, PDO::PARAM_STR, 16);
         
-        if (!array_key_exists('carbon_user_followers.follows_user_id', $data)) {
-            return self::signalError('Required argument "carbon_user_followers.follows_user_id" is missing from the request.');
-        }
-        $follows_user_id = $data['carbon_user_followers.follows_user_id'];
-        $ref='carbon_user_followers.follows_user_id';
+        $group_id = $data['carbon_group_references.group_id'] ?? null;
+        $ref='carbon_group_references.group_id';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $follows_user_id)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_followers.follows_user_id\'.');
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $group_id, $group_id === null)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_group_references.group_id\'.');
         }
-        $stmt->bindParam(':follows_user_id',$follows_user_id, PDO::PARAM_STR, 16);
+        $stmt->bindParam(':group_id',$group_id, PDO::PARAM_STR, 16);
         
-        if (!array_key_exists('carbon_user_followers.user_id', $data)) {
-            return self::signalError('Required argument "carbon_user_followers.user_id" is missing from the request.');
-        }
-        $user_id = $data['carbon_user_followers.user_id'];
-        $ref='carbon_user_followers.user_id';
+        $allowed_to_grant_group_id = $data['carbon_group_references.allowed_to_grant_group_id'] ?? null;
+        $ref='carbon_group_references.allowed_to_grant_group_id';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $user_id)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_followers.user_id\'.');
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $allowed_to_grant_group_id, $allowed_to_grant_group_id === null)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_group_references.allowed_to_grant_group_id\'.');
         }
-        $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
+        $stmt->bindParam(':allowed_to_grant_group_id',$allowed_to_grant_group_id, PDO::PARAM_STR, 16);
         
         if (!$stmt->execute()) {
             self::completeRest();
             return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }
         
-        self::prepostprocessRestRequest($id);
-         
+        self::prepostprocessRestRequest();
+        
         if (self::$commit && !Database::commit()) {
-           return self::signalError('Failed to store commit transaction on table carbon_user_followers');
-        } 
-         
-        self::postprocessRestRequest($id); 
-         
+            return self::signalError('Failed to store commit transaction on table carbon_group_references');
+        }
+        
+        self::postprocessRestRequest();
+        
         self::completeRest();
         
-        return $id; 
-        
+        return true;  
     }
     
     /**
     * 
     * 
-    * Tables where primary keys exist must be updated by its primary key. 
-    * Column should be in a key value pair passed to $argv or optionally using syntax:
-    * $argv => [
+    *  Syntax should be as follows.
+    *  $argv = [
     *       Rest::UPDATE => [
     *              ...
+    *       ],
+    *       Rest::WHERE => [
+    *              ...
     *       ]
-    * ]
     * 
     * @param array $returnUpdated - will be merged with with array_merge, with a successful update. 
-    * @param string $primary
+    
     * @param array $argv 
     * @generated
     * @throws PublicAlert|PDOException|JsonException
     * @return bool - if execute fails, false will be returned and $returnUpdated = $stmt->errorInfo(); 
     */
-    public static function Put(array &$returnUpdated, string $primary, array $argv) : bool
+    public static function Put(array &$returnUpdated,  array $argv = []) : bool
     {
-        self::startRest(self::PUT, $returnUpdated, $argv, $primary);
+        self::startRest(self::PUT, $returnUpdated, $argv);
         
-        if ('' === $primary) {
-            return self::signalError('Restful tables which have a primary key must be updated by its primary key.');
+        $where = [];
+
+        if (array_key_exists(self::WHERE, $argv)) {
+            $where = $argv[self::WHERE];
+            unset($argv[self::WHERE]);
         }
-         
+        
         if (array_key_exists(self::UPDATE, $argv)) {
             $argv = $argv[self::UPDATE];
         }
-
-        $where = [self::PRIMARY => $primary];
         
+        if (false === self::$allowFullTableUpdates && empty($where)) {
+            return self::signalError('Restful tables which have no primary key must be updated using conditions given to $argv[self::WHERE] and values to be updated given to $argv[self::UPDATE]. No WHERE attribute given. To bypass this set `self::$allowFullTableUpdates = true;` during the PREPROCESS events, or just directly before this request.');
+        }
+        
+        if (empty($argv)) {
+            return self::signalError('Restful tables which have no primary key must be updated using conditions given to $argv[self::WHERE] and values to be updated given to $argv[self::UPDATE]. No UPDATE attribute given.');
+        }
         
         foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column $key, because it does not appear to exist.');
+                return self::signalError("Restful table could not update column $key, because it does not appear to exist. Please re-run RestBuilder if you believe this is incorrect.");
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_followers.\'.');
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_group_references.\'.');
             }
         }
         unset($value);
 
-        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_user_followers SET '; // intellij cant handle this otherwise
+        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_group_references SET '; // intellij cant handle this otherwise
 
         $set = '';
 
-        if (array_key_exists('carbon_user_followers.follower_table_id', $argv)) {
-            $set .= 'follower_table_id=UNHEX(:follower_table_id),';
+        if (array_key_exists('carbon_group_references.group_id', $argv)) {
+            $set .= 'group_id=UNHEX(:group_id),';
         }
-        if (array_key_exists('carbon_user_followers.follows_user_id', $argv)) {
-            $set .= 'follows_user_id=UNHEX(:follows_user_id),';
-        }
-        if (array_key_exists('carbon_user_followers.user_id', $argv)) {
-            $set .= 'user_id=UNHEX(:user_id),';
+        if (array_key_exists('carbon_group_references.allowed_to_grant_group_id', $argv)) {
+            $set .= 'allowed_to_grant_group_id=UNHEX(:allowed_to_grant_group_id),';
         }
         
         $sql .= substr($set, 0, -1);
@@ -525,40 +514,35 @@ MYSQL;
             $pdo->beginTransaction();
         }
 
-        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
-
+        if (false === self::$allowFullTableUpdates || !empty($where)) {
+            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
+        }
+        
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
         $stmt = $pdo->prepare($sql);
 
-        if (array_key_exists('carbon_user_followers.follower_table_id', $argv)) {
-            $follower_table_id = $argv['carbon_user_followers.follower_table_id'];
-            $ref = 'carbon_user_followers.follower_table_id';
+        if (array_key_exists('carbon_group_references.group_id', $argv)) { 
+            $group_id = $argv['carbon_group_references.group_id'];
+            $ref = 'carbon_group_references.group_id';
             $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $follower_table_id)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'follower_table_id\'.');
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $group_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'group_id\'.');
             }
-            $stmt->bindParam(':follower_table_id',$follower_table_id, PDO::PARAM_STR, 16);
-        }if (array_key_exists('carbon_user_followers.follows_user_id', $argv)) {
-            $follows_user_id = $argv['carbon_user_followers.follows_user_id'];
-            $ref = 'carbon_user_followers.follows_user_id';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $follows_user_id)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'follows_user_id\'.');
-            }
-            $stmt->bindParam(':follows_user_id',$follows_user_id, PDO::PARAM_STR, 16);
-        }if (array_key_exists('carbon_user_followers.user_id', $argv)) {
-            $user_id = $argv['carbon_user_followers.user_id'];
-            $ref = 'carbon_user_followers.user_id';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_id)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'user_id\'.');
-            }
-            $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
+            $stmt->bindParam(':group_id',$group_id, PDO::PARAM_STR, 16);
         }
-
+        if (array_key_exists('carbon_group_references.allowed_to_grant_group_id', $argv)) { 
+            $allowed_to_grant_group_id = $argv['carbon_group_references.allowed_to_grant_group_id'];
+            $ref = 'carbon_group_references.allowed_to_grant_group_id';
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $allowed_to_grant_group_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'allowed_to_grant_group_id\'.');
+            }
+            $stmt->bindParam(':allowed_to_grant_group_id',$allowed_to_grant_group_id, PDO::PARAM_STR, 16);
+        }
+        
         self::bind($stmt);
 
         if (!$stmt->execute()) {
@@ -572,7 +556,7 @@ MYSQL;
         
         $argv = array_combine(
             array_map(
-                static function($k) { return str_replace('carbon_user_followers.', '', $k); },
+                static fn($k) => str_replace('carbon_group_references.', '', $k),
                 array_keys($argv)
             ),
             array_values($argv)
@@ -583,7 +567,7 @@ MYSQL;
         self::prepostprocessRestRequest($returnUpdated);
         
         if (self::$commit && !Database::commit()) {
-            return self::signalError('Failed to store commit transaction on table carbon_user_followers');
+            return self::signalError('Failed to store commit transaction on table carbon_group_references');
         }
         
         self::postprocessRestRequest($returnUpdated);
@@ -595,40 +579,31 @@ MYSQL;
 
     /**
     * @param array $remove
-    * @param string|null $primary
     * @param array $argv
     * @generated
     * @noinspection DuplicatedCode
     * @throws PublicAlert|PDOException|JsonException
     * @return bool
     */
-    public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
+    public static function Delete(array &$remove, array $argv = []) : bool
     {
-        self::startRest(self::DELETE, $remove, $argv, $primary);
+        self::startRest(self::DELETE, $remove, $argv);
         
-        if (null !== $primary) {
-            return Carbons::Delete($remove, $primary, $argv);
-        }
-
-        /**
-         *   While useful, we've decided to disallow full
-         *   table deletions through the rest api. For the
-         *   n00bs and future self, "I got chu."
-         */
-        if (empty($argv)) {
-            return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
-        }
-        
-        $sql = 'DELETE c FROM carbons c 
-                JOIN carbon_user_followers on c.entity_pk = carbon_user_followers.follower_table_id';
-
         $pdo = self::database();
+        
+        $sql =  /** @lang MySQLFragment */ 'DELETE FROM carbon_group_references ';
+        
+        if (false === self::$allowFullTableDeletes && empty($argv)) {
+            return self::signalError('When deleting from tables with out a primary key additional arguments must be provided.');
+        } 
+        
+        if (!empty($argv)) {
+            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
+        }
         
         if (!$pdo->inTransaction()) {
             $pdo->beginTransaction();
         }
-
-        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
         
         self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -642,13 +617,13 @@ MYSQL;
             self::completeRest();
             return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }
-        
+
         $remove = [];
         
         self::prepostprocessRestRequest($remove);
         
         if (self::$commit && !Database::commit()) {
-           return self::signalError('Failed to store commit transaction on table carbon_user_followers');
+           return self::signalError('Failed to store commit transaction on table carbon_group_references');
         }
         
         self::postprocessRestRequest($remove);
@@ -657,5 +632,4 @@ MYSQL;
         
         return true;
     }
-    
 }

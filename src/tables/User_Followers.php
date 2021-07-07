@@ -8,6 +8,7 @@ use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Helpers\RestfulValidations;
 use CarbonPHP\Rest;
+use JsonException;
 use PDO;
 use PDOException;
 use function array_key_exists;
@@ -19,8 +20,8 @@ use function is_array;
 
 
 /**
- * 
- * Class Wp_Term_Taxonomy
+ *
+ * Class User_Followers
  * @package CarbonPHP\Tables
  * @note Note for convenience, a flag '-prefix' maybe passed to remove table prefixes.
  *  Use '-help' for a full list of options.
@@ -38,32 +39,28 @@ use function is_array;
  * When creating static member functions which require persistent variables, consider making them static members of that 
  *  static method.
  */
-class Wp_Term_Taxonomy extends Rest implements iRestSinglePrimaryKey
+class User_Followers extends Rest implements iRestSinglePrimaryKey
 {
     use RestfulValidations;
     
-    public const CLASS_NAME = 'Wp_Term_Taxonomy';
+    public const CLASS_NAME = 'User_Followers';
     public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
-    public const TABLE_NAME = 'wp_term_taxonomy';
-    public const TABLE_PREFIX = '';
-    
+    public const TABLE_NAME = 'carbon_user_followers';
+    public const TABLE_PREFIX = 'carbon_';
+    public const DIRECTORY = __DIR__ . DIRECTORY_SEPARATOR;
+
     /**
      * COLUMNS
-     * The columns below are a 1=1 mapping to the columns found in wp_term_taxonomy. 
-     * Changes, shuch as adding or removing a column, SHOULD be made first in the database. The RestBuilder program will 
-     * capture any changes made in MySQL and update this file auto-magically. 
+     * The columns below are a 1=1 mapping to the columns found in carbon_user_followers. 
+     * Changes, such as adding or removing a column, MAY be made first in the database. The ResitBuilder program will 
+     * capture any changes made in MySQL and update this file auto-magically. If you work in a team it is RECCOMENDED to
+     * progromattically make these changes using the REFRESH_SCHEMA constant below.
     **/
-    public const TERM_TAXONOMY_ID = 'wp_term_taxonomy.term_taxonomy_id'; 
+    public const FOLLOWER_TABLE_ID = 'carbon_user_followers.follower_table_id'; 
 
-    public const TERM_ID = 'wp_term_taxonomy.term_id'; 
+    public const FOLLOWS_USER_ID = 'carbon_user_followers.follows_user_id'; 
 
-    public const TAXONOMY = 'wp_term_taxonomy.taxonomy'; 
-
-    public const DESCRIPTION = 'wp_term_taxonomy.description'; 
-
-    public const PARENT = 'wp_term_taxonomy.parent'; 
-
-    public const COUNT = 'wp_term_taxonomy.count'; 
+    public const USER_ID = 'carbon_user_followers.user_id'; 
 
     /**
      * PRIMARY
@@ -71,21 +68,21 @@ class Wp_Term_Taxonomy extends Rest implements iRestSinglePrimaryKey
      * given composite primary keys. The existence and amount of primary keys of the will also determine the interface 
      * aka method signatures used.
     **/
-    public const PRIMARY = 'wp_term_taxonomy.term_taxonomy_id';
+    public const PRIMARY = 'carbon_user_followers.follower_table_id';
 
     /**
      * COLUMNS
-     * This is a convience constant for accessing your data after it has be returned from a rest operation. It is needed
-     * as Mysql will strip away the tablename we have explicitly provided to each column (to help with join statments).
+     * This is a convenience constant for accessing your data after it has be returned from a rest operation. It is needed
+     * as Mysql will strip away the table name we have explicitly provided to each column (to help with join statments).
      * Thus, accessing your return values might look something like:
      *      $return[self::COLUMNS[self::EXAMPLE_COLUMN_ONE]]
     **/ 
     public const COLUMNS = [
-        'wp_term_taxonomy.term_taxonomy_id' => 'term_taxonomy_id','wp_term_taxonomy.term_id' => 'term_id','wp_term_taxonomy.taxonomy' => 'taxonomy','wp_term_taxonomy.description' => 'description','wp_term_taxonomy.parent' => 'parent','wp_term_taxonomy.count' => 'count',
+        'carbon_user_followers.follower_table_id' => 'follower_table_id','carbon_user_followers.follows_user_id' => 'follows_user_id','carbon_user_followers.user_id' => 'user_id',
     ];
 
     public const PDO_VALIDATION = [
-        'wp_term_taxonomy.term_taxonomy_id' => ['bigint', 'PDO::PARAM_INT', ''],'wp_term_taxonomy.term_id' => ['bigint', 'PDO::PARAM_INT', ''],'wp_term_taxonomy.taxonomy' => ['varchar', 'PDO::PARAM_STR', '32'],'wp_term_taxonomy.description' => ['longtext', 'PDO::PARAM_STR', ''],'wp_term_taxonomy.parent' => ['bigint', 'PDO::PARAM_INT', ''],'wp_term_taxonomy.count' => ['bigint', 'PDO::PARAM_INT', ''],
+        'carbon_user_followers.follower_table_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_user_followers.follows_user_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_user_followers.user_id' => ['binary', PDO::PARAM_STR, '16'],
     ];
      
     /**
@@ -99,9 +96,9 @@ class Wp_Term_Taxonomy extends Rest implements iRestSinglePrimaryKey
      * Each directive MUST be designed to run multiple times without failure.
      */
     public const REFRESH_SCHEMA = [
-        [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
-                        PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS]
-    ]; 
+        [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::TABLE_PREFIX, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
+                        PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS, true]
+    ];
     
     /**
      * REGEX_VALIDATION
@@ -247,16 +244,16 @@ class Wp_Term_Taxonomy extends Rest implements iRestSinglePrimaryKey
      * the RestBuilder program.
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
-    CREATE TABLE `wp_term_taxonomy` (
-  `term_taxonomy_id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `term_id` bigint unsigned NOT NULL DEFAULT '0',
-  `taxonomy` varchar(32) COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT '',
-  `description` longtext COLLATE utf8mb4_unicode_520_ci NOT NULL,
-  `parent` bigint unsigned NOT NULL DEFAULT '0',
-  `count` bigint NOT NULL DEFAULT '0',
-  PRIMARY KEY (`term_taxonomy_id`),
-  UNIQUE KEY `term_id_taxonomy` (`term_id`,`taxonomy`),
-  KEY `taxonomy` (`taxonomy`)
+    CREATE TABLE `carbon_user_followers` (
+  `follower_table_id` binary(16) NOT NULL,
+  `follows_user_id` binary(16) NOT NULL,
+  `user_id` binary(16) NOT NULL,
+  PRIMARY KEY (`follower_table_id`),
+  KEY `followers_entity_entity_pk_fk` (`follows_user_id`),
+  KEY `followers_entity_entity_followers_pk_fk` (`user_id`),
+  CONSTRAINT `carbon_user_followers_carbons_entity_pk_fk` FOREIGN KEY (`follower_table_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `followers_entity_entity_follows_pk_fk` FOREIGN KEY (`follows_user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `followers_entity_followers_pk_fk` FOREIGN KEY (`user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 MYSQL;
    
@@ -375,20 +372,10 @@ MYSQL;
         }
 
         $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        /**
-        *   The next part is so every response from the rest api
-        *   formats to a set of rows. Even if only one row is returned.
-        *   You must set the third parameter to true, otherwise '0' is
-        *   apparently in the self::PDO_VALIDATION
-        */
-
         
-        if ($primary !== null || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
+        if ((null !== $primary && '' !== $primary) || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
             $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
         }
-
-        
 
         self::postprocessRestRequest($return);
         
@@ -403,89 +390,76 @@ MYSQL;
      * @generated
      * @throws PublicAlert|PDOException|JsonException
      */
-    public static function Post(array $data)
+    public static function Post(array $data = [])
     {   
         self::startRest(self::POST, [], $data);
     
         foreach ($data as $columnName => $postValue) {
-            if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
+            if (!array_key_exists($columnName, self::COLUMNS)) {
                 return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.");
             }
         } 
         
-        $sql = 'INSERT INTO wp_term_taxonomy (term_id, taxonomy, description, parent, count) VALUES ( :term_id, :taxonomy, :description, :parent, :count)';
+        $sql = 'INSERT INTO carbon_user_followers (follower_table_id, follows_user_id, user_id) VALUES ( UNHEX(:follower_table_id), UNHEX(:follows_user_id), UNHEX(:user_id))';
 
-        $pdo = self::database();
-        
-        if (!$pdo->inTransaction()) {
-            $pdo->beginTransaction();
-        }
 
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
-        $stmt = self::database()->prepare($sql);         
-        $term_id = $data['wp_term_taxonomy.term_id'] ?? '0';
-        $ref='wp_term_taxonomy.term_id';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $term_id, $term_id === '0')) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'wp_term_taxonomy.term_id\'.');
-        }
-        $stmt->bindValue(':term_id', $term_id, PDO::PARAM_INT);
+        $stmt = self::database()->prepare($sql);
         
-        $taxonomy = $data['wp_term_taxonomy.taxonomy'] ?? '';
-        $ref='wp_term_taxonomy.taxonomy';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $taxonomy, $taxonomy === '')) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'wp_term_taxonomy.taxonomy\'.');
+        $follower_table_id = $id = $data['carbon_user_followers.follower_table_id'] ?? false;
+        if ($id === false) {
+            $follower_table_id = $id = self::beginTransaction(self::class, $data[self::DEPENDANT_ON_ENTITY] ?? null);
+        } else {
+            $ref='carbon_user_followers.follower_table_id';
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::POST, $ref, $op, $follower_table_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_followers.follower_table_id\'.');
+            }            
         }
-        $stmt->bindParam(':taxonomy',$taxonomy, PDO::PARAM_STR, 32);
+        $stmt->bindParam(':follower_table_id',$follower_table_id, PDO::PARAM_STR, 16);
         
-        if (!array_key_exists('wp_term_taxonomy.description', $data)) {
-            return self::signalError('The column \'wp_term_taxonomy.description\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
-        } 
-        $ref='wp_term_taxonomy.description';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $data['description'])) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'wp_term_taxonomy.description\'.');
+        if (!array_key_exists('carbon_user_followers.follows_user_id', $data)) {
+            return self::signalError('Required argument "carbon_user_followers.follows_user_id" is missing from the request.');
         }
-        $stmt->bindValue(':description', $data['wp_term_taxonomy.description'], PDO::PARAM_STR);
-                 
-        $parent = $data['wp_term_taxonomy.parent'] ?? '0';
-        $ref='wp_term_taxonomy.parent';
+        $follows_user_id = $data['carbon_user_followers.follows_user_id'];
+        $ref='carbon_user_followers.follows_user_id';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $parent, $parent === '0')) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'wp_term_taxonomy.parent\'.');
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $follows_user_id)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_followers.follows_user_id\'.');
         }
-        $stmt->bindValue(':parent', $parent, PDO::PARAM_INT);
-                 
-        $count = $data['wp_term_taxonomy.count'] ?? '0';
-        $ref='wp_term_taxonomy.count';
+        $stmt->bindParam(':follows_user_id',$follows_user_id, PDO::PARAM_STR, 16);
+        
+        if (!array_key_exists('carbon_user_followers.user_id', $data)) {
+            return self::signalError('Required argument "carbon_user_followers.user_id" is missing from the request.');
+        }
+        $user_id = $data['carbon_user_followers.user_id'];
+        $ref='carbon_user_followers.user_id';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $count, $count === '0')) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'wp_term_taxonomy.count\'.');
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $user_id)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_followers.user_id\'.');
         }
-        $stmt->bindValue(':count', $count, PDO::PARAM_INT);
+        $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
         
         if (!$stmt->execute()) {
             self::completeRest();
             return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }
         
-        $id = $pdo->lastInsertId();
-        
         self::prepostprocessRestRequest($id);
-        
+         
         if (self::$commit && !Database::commit()) {
-            return self::signalError('Failed to store commit transaction on table wp_term_taxonomy');
-        }
-        
-        self::postprocessRestRequest($id);
-        
+           return self::signalError('Failed to store commit transaction on table carbon_user_followers');
+        } 
+         
+        self::postprocessRestRequest($id); 
+         
         self::completeRest();
         
-        return $id;  
+        return $id; 
+        
     }
     
     /**
@@ -493,66 +467,67 @@ MYSQL;
     * 
     * Tables where primary keys exist must be updated by its primary key. 
     * Column should be in a key value pair passed to $argv or optionally using syntax:
-    * $argv => [
+    * $argv = [
     *       Rest::UPDATE => [
     *              ...
     *       ]
     * ]
     * 
     * @param array $returnUpdated - will be merged with with array_merge, with a successful update. 
-    * @param string $primary
+    * @param string|null $primary
     * @param array $argv 
     * @generated
     * @throws PublicAlert|PDOException|JsonException
     * @return bool - if execute fails, false will be returned and $returnUpdated = $stmt->errorInfo(); 
     */
-    public static function Put(array &$returnUpdated, string $primary, array $argv) : bool
+    public static function Put(array &$returnUpdated, string $primary = null, array $argv = []) : bool
     {
         self::startRest(self::PUT, $returnUpdated, $argv, $primary);
         
-        if ('' === $primary) {
-            return self::signalError('Restful tables which have a primary key must be updated by its primary key.');
+        $where = [];
+
+        if (array_key_exists(self::WHERE, $argv)) {
+            $where = $argv[self::WHERE];
+            unset($argv[self::WHERE]);
         }
-         
+        
         if (array_key_exists(self::UPDATE, $argv)) {
             $argv = $argv[self::UPDATE];
         }
-
-        $where = [self::PRIMARY => $primary];
         
+        $emptyPrimary = null === $primary || '' === $primary;
+        
+        if (false === self::$allowFullTableUpdates && $emptyPrimary) { 
+            return self::signalError('Restful tables which have a primary key must be updated by its primary key. To bypass this set you may set `self::$allowFullTableUpdates = true;` during the PREPROCESS events.');
+        }
+
+        if (!$emptyPrimary) {
+            $where[self::PRIMARY] = $primary;
+        }
         
         foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column $key, because it does not appear to exist.');
+                return self::signalError("Restful table could not update column $key, because it does not appear to exist. Please re-run RestBuilder if you believe this is incorrect.");
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'wp_term_taxonomy.\'.');
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_followers.\'.');
             }
         }
         unset($value);
 
-        $sql = /** @lang MySQLFragment */ 'UPDATE wp_term_taxonomy SET '; // intellij cant handle this otherwise
+        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_user_followers SET '; // intellij cant handle this otherwise
 
         $set = '';
 
-        if (array_key_exists('wp_term_taxonomy.term_taxonomy_id', $argv)) {
-            $set .= 'term_taxonomy_id=:term_taxonomy_id,';
+        if (array_key_exists('carbon_user_followers.follower_table_id', $argv)) {
+            $set .= 'follower_table_id=UNHEX(:follower_table_id),';
         }
-        if (array_key_exists('wp_term_taxonomy.term_id', $argv)) {
-            $set .= 'term_id=:term_id,';
+        if (array_key_exists('carbon_user_followers.follows_user_id', $argv)) {
+            $set .= 'follows_user_id=UNHEX(:follows_user_id),';
         }
-        if (array_key_exists('wp_term_taxonomy.taxonomy', $argv)) {
-            $set .= 'taxonomy=:taxonomy,';
-        }
-        if (array_key_exists('wp_term_taxonomy.description', $argv)) {
-            $set .= 'description=:description,';
-        }
-        if (array_key_exists('wp_term_taxonomy.parent', $argv)) {
-            $set .= 'parent=:parent,';
-        }
-        if (array_key_exists('wp_term_taxonomy.count', $argv)) {
-            $set .= 'count=:count,';
+        if (array_key_exists('carbon_user_followers.user_id', $argv)) {
+            $set .= 'user_id=UNHEX(:user_id),';
         }
         
         $sql .= substr($set, 0, -1);
@@ -563,34 +538,44 @@ MYSQL;
             $pdo->beginTransaction();
         }
 
-        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
-
+        if (false === self::$allowFullTableUpdates || !empty($where)) {
+            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
+        }
+        
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
         $stmt = $pdo->prepare($sql);
 
-        if (array_key_exists('wp_term_taxonomy.term_taxonomy_id', $argv)) {
-            $stmt->bindValue(':term_taxonomy_id',$argv['wp_term_taxonomy.term_taxonomy_id'], PDO::PARAM_INT);
-}if (array_key_exists('wp_term_taxonomy.term_id', $argv)) {
-            $stmt->bindValue(':term_id',$argv['wp_term_taxonomy.term_id'], PDO::PARAM_INT);
-}if (array_key_exists('wp_term_taxonomy.taxonomy', $argv)) {
-            $taxonomy = $argv['wp_term_taxonomy.taxonomy'];
-            $ref = 'wp_term_taxonomy.taxonomy';
+        if (array_key_exists('carbon_user_followers.follower_table_id', $argv)) { 
+            $follower_table_id = $argv['carbon_user_followers.follower_table_id'];
+            $ref = 'carbon_user_followers.follower_table_id';
             $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $taxonomy)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'taxonomy\'.');
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $follower_table_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'follower_table_id\'.');
             }
-            $stmt->bindParam(':taxonomy',$taxonomy, PDO::PARAM_STR, 32);
-        }if (array_key_exists('wp_term_taxonomy.description', $argv)) {
-            $stmt->bindValue(':description',$argv['wp_term_taxonomy.description'], PDO::PARAM_STR);
-}if (array_key_exists('wp_term_taxonomy.parent', $argv)) {
-            $stmt->bindValue(':parent',$argv['wp_term_taxonomy.parent'], PDO::PARAM_INT);
-}if (array_key_exists('wp_term_taxonomy.count', $argv)) {
-            $stmt->bindValue(':count',$argv['wp_term_taxonomy.count'], PDO::PARAM_INT);
-}
-
+            $stmt->bindParam(':follower_table_id',$follower_table_id, PDO::PARAM_STR, 16);
+        }
+        if (array_key_exists('carbon_user_followers.follows_user_id', $argv)) { 
+            $follows_user_id = $argv['carbon_user_followers.follows_user_id'];
+            $ref = 'carbon_user_followers.follows_user_id';
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $follows_user_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'follows_user_id\'.');
+            }
+            $stmt->bindParam(':follows_user_id',$follows_user_id, PDO::PARAM_STR, 16);
+        }
+        if (array_key_exists('carbon_user_followers.user_id', $argv)) { 
+            $user_id = $argv['carbon_user_followers.user_id'];
+            $ref = 'carbon_user_followers.user_id';
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'user_id\'.');
+            }
+            $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
+        }
+        
         self::bind($stmt);
 
         if (!$stmt->execute()) {
@@ -604,7 +589,7 @@ MYSQL;
         
         $argv = array_combine(
             array_map(
-                static function($k) { return str_replace('wp_term_taxonomy.', '', $k); },
+                static fn($k) => str_replace('carbon_user_followers.', '', $k),
                 array_keys($argv)
             ),
             array_values($argv)
@@ -615,7 +600,7 @@ MYSQL;
         self::prepostprocessRestRequest($returnUpdated);
         
         if (self::$commit && !Database::commit()) {
-            return self::signalError('Failed to store commit transaction on table wp_term_taxonomy');
+            return self::signalError('Failed to store commit transaction on table carbon_user_followers');
         }
         
         self::postprocessRestRequest($returnUpdated);
@@ -638,41 +623,30 @@ MYSQL;
     {
         self::startRest(self::DELETE, $remove, $argv, $primary);
         
-        /** @noinspection SqlWithoutWhere
-         * @noinspection UnknownInspectionInspection - intellij is funny sometimes.
-         */
-        $sql = 'DELETE FROM wp_term_taxonomy ';
-
         $pdo = self::database();
+        
+        $emptyPrimary = null === $primary || '' === $primary;
+        
+        if (!$emptyPrimary) {
+            return Carbons::Delete($remove, $primary, $argv);
+        }
+
+        if (false === self::$allowFullTableDeletes && empty($argv)) {
+            return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
+        }
+        
+        $sql = 'DELETE c FROM carbon_carbons c 
+                JOIN carbon_user_followers on c.entity_pk = carbon_user_followers.follower_table_id';
+
+        
+        if (false === self::$allowFullTableDeletes || !empty($argv)) {
+            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
+        }
         
         if (!$pdo->inTransaction()) {
             $pdo->beginTransaction();
         }
         
-        
-        if (null === $primary) {
-           /**
-            *   While useful, we've decided to disallow full
-            *   table deletions through the rest api. For the
-            *   n00bs and future self, "I got chu."
-            */
-            if (empty($argv)) {
-                return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
-            }
-            $argv[self::PRIMARY] = $primary;
-            
-            $where = self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
-            
-            if (empty($where)) {
-                return self::signalError('The where condition provided appears invalid.');
-            }
-
-            $sql .= ' WHERE ' . $where;
-        } else {
-            $sql .= ' WHERE  term_taxonomy_id='.self::addInjection($primary, $pdo).'';
-        }
-
-
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
@@ -691,7 +665,7 @@ MYSQL;
         self::prepostprocessRestRequest($remove);
         
         if (self::$commit && !Database::commit()) {
-           return self::signalError('Failed to store commit transaction on table wp_term_taxonomy');
+           return self::signalError('Failed to store commit transaction on table carbon_user_followers');
         }
         
         self::postprocessRestRequest($remove);
@@ -700,5 +674,4 @@ MYSQL;
         
         return true;
     }
-    
 }

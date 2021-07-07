@@ -289,7 +289,7 @@ FOOT;
 
         if ($refresh && !$cli) {
             print '<br><br><h2>Refreshing in 6 seconds</h2><script>let t1 = window.setTimeout(function(){ window.location.href = \'' . CarbonPHP::$site . '\'; },6000);</script>';
-            exit('Database had an unexpected refresh.');
+            exit(0);
         }
 
         if (CarbonPHP::$cli) {
@@ -363,7 +363,7 @@ FOOT;
         $return = $lambda();
 
         if (!is_bool($return)) {
-            throw new Error('The return type of the lambda supplied should be a boolean');
+            throw new PublicAlert('The return type of the lambda supplied should be a boolean');
         }
 
         return $return;
@@ -429,12 +429,18 @@ FOOT;
     public static function new_entity(string $tag_id, string $dependant = null): string
     {
         $count = 0;
+
+        $carbons = Rest::getDynamicRestClass(Carbons::class);
+
         do {
             $count++;
-            $id = Carbons::Post([
-                Carbons::ENTITY_TAG => $tag_id,
-                Carbons::ENTITY_FK => $dependant
+
+            /** @noinspection PhpUndefinedMethodInspection - intellij is not good at php static refs */
+            $id = $carbons::Post([
+                $carbons::ENTITY_TAG => $tag_id,
+                $carbons::ENTITY_FK => $dependant
             ]);
+
         } while ($id === false && $count < 4);  // todo - why four?
 
         if ($id === false) {
@@ -455,7 +461,9 @@ FOOT;
     public static function remove_entity($id): bool
     {
         $ref = [];
-        return Carbons::Delete($ref, $id, []); //Database::database()->prepare('DELETE FROM carbon WHERE entity_pk = ?')->execute([$id]);
+        $carbons = Rest::getDynamicRestClass(Carbons::class);
+        /** @noinspection PhpUndefinedMethodInspection */
+        return $carbons::Delete($ref, $id, []); //Database::database()->prepare('DELETE FROM carbon WHERE entity_pk = ?')->execute([$id]);
     }
 
 
@@ -615,6 +623,21 @@ FOOT;
         }
     }
 
+
+    public static function buildCarbonPHP() : void {
+        self::refreshDatabase(CarbonPHP::CARBON_ROOT . DS . 'tables' . DS);
+    }
+
+
+    /**
+     * This is not implemeted in the wild rn
+     *
+     *
+     * to be proficient it needs to use dynamically the configuration passed to carbonphp
+     *
+     * @param string $tableDirectory
+     * @param bool|null $cli
+     */
     public static function refreshDatabase(string $tableDirectory = '', bool $cli = null): void
     {
         if (null === $cli) {
@@ -623,17 +646,17 @@ FOOT;
 
         $autoTarget = static function () use (&$tableDirectory) {
             $composerJson = self::getComposerConfig();
-            $tableDirectory = $composerJson['autoload']['psr-4']["Tables\\"] ?? false;
+            $tableNamespace = CarbonPHP::$configuration[CarbonPHP::REST][CarbonPHP::NAMESPACE] ??= "Tables\\";
+            $tableDirectory = $composerJson['autoload']['psr-4'][$tableNamespace] ?? false;
             if (false === $tableDirectory) {
-                throw new PublicAlert('Failed to parse composer json for ["autoload"]["psr-4"]["Tables\\"]. You
-                    can use ');
+                throw new PublicAlert('Failed to parse composer json for ["autoload"]["psr-4"]["' . $tableNamespace .'"].');
             }
             $tableDirectory = CarbonPHP::$app_root . $tableDirectory;
         };
 
         try {
             if (CarbonPHP::$carbon_is_root) {
-                $tableDirectory = CarbonPHP::CARBON_ROOT . 'tables/';
+                $tableDirectory = CarbonPHP::CARBON_ROOT . 'tables/'; // todo - use config array to set this
             } elseif ($tableDirectory === '') {
                 $autoTarget();
             }
@@ -643,19 +666,25 @@ FOOT;
             } else {
                 print '<html><head><title>(Setup || Rebuild) Database</title></head><body><h1>REFRESHING SYSTEM</h1>' . PHP_EOL;
             }
+
+            // ADVANCED REST REBUILD
+
             $restful = glob($tableDirectory . '*.php');
 
             $classNamespace = '';
+
             foreach ($restful as $filename) {
                 $fileAsString = file_get_contents($filename);
                 $matches = [];
                 if (!preg_match('#public const CLASS_NAMESPACE\s?=\s?\'(.*)\';#i', $fileAsString, $matches)) {
                     continue;
                 }
+
                 if (array_key_exists(1, $matches)) {
                     $classNamespace = $matches[1];
                     break;
                 }
+
             }
 
             if (empty($classNamespace)) {
@@ -724,6 +753,7 @@ FOOT;
         $existed = self::fetch("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
             WHERE table_name = '$table_name' 
               AND column_name = '$column'");
+
         // If not exists
         if ([] === $existed) {
             $status = self::execute($sql);
@@ -744,13 +774,27 @@ FOOT;
         }
     }
 
+
+    public static function addTablePrefix(string $table_name, string $table_prefix, string &$sql) : void {
+        $prefix = CarbonPHP::$configuration[CarbonPHP::REST][CarbonPHP::TABLE_PREFIX] ?? '';
+
+        if ($prefix === '' || $prefix === $table_prefix || $prefix === Carbons::TABLE_PREFIX) {
+            return;
+        }
+
+        $sql = preg_replace("#CREATE TABLE `$table_name`#", 'CREATE TABLE ' . $prefix . $table_name, $sql);
+    }
+
+
     /**
      * @param string $table_name
+     * @param string $table_prefix
      * @param string $sql
-     * @param bool $forceEngineAndCharset - this will force the table to generate with InnoDB and utf8mb4 for the charset
+     * @param bool $carbonTable
      * @return bool|null
+     * @throws PublicAlert
      */
-    public static function tableExistsOrExecuteSQL(string $table_name, string $sql, bool $forceEngineAndCharset = true): ?bool
+    public static function tableExistsOrExecuteSQL(string $table_name, string $table_prefix, string $sql, bool $carbonTable = false): ?bool
     {
         // Check if exist the column named image
         $result = self::fetch("SELECT * 
@@ -760,15 +804,22 @@ FOOT;
                         LIMIT 1;");
 
         if ([] === $result) {
-            self::colorCode("Attempting to update table ($table_name).");
+            self::colorCode("Attempting to create table ($table_name).");
+
+            if ($carbonTable) {
+                self::addTablePrefix($table_name, $table_prefix, $sql);
+            }
+
             if (!self::execute($sql)) {
                 throw new PublicAlert('Failed to update table :: ' . $table_name);
             }
+
             if (CarbonPHP::$cli) {
                 self::colorCode('Table `' . $table_name . '` Created');
             } else {
                 print '<br><p style="color: green">Table `' . $table_name . '` Created</p>';
             }
+
         } else if (CarbonPHP::$cli) {
             self::colorCode('Table `' . $table_name . '` already exists');
         } else {

@@ -8,6 +8,7 @@ use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Helpers\RestfulValidations;
 use CarbonPHP\Rest;
+use JsonException;
 use PDO;
 use PDOException;
 use function array_key_exists;
@@ -19,8 +20,8 @@ use function is_array;
 
 
 /**
- * 
- * Class Wp_Usermeta
+ *
+ * Class User_Sessions
  * @package CarbonPHP\Tables
  * @note Note for convenience, a flag '-prefix' maybe passed to remove table prefixes.
  *  Use '-help' for a full list of options.
@@ -38,28 +39,34 @@ use function is_array;
  * When creating static member functions which require persistent variables, consider making them static members of that 
  *  static method.
  */
-class Wp_Usermeta extends Rest implements iRestSinglePrimaryKey
+class User_Sessions extends Rest implements iRestSinglePrimaryKey
 {
     use RestfulValidations;
     
-    public const CLASS_NAME = 'Wp_Usermeta';
+    public const CLASS_NAME = 'User_Sessions';
     public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
-    public const TABLE_NAME = 'wp_usermeta';
-    public const TABLE_PREFIX = '';
-    
+    public const TABLE_NAME = 'carbon_user_sessions';
+    public const TABLE_PREFIX = 'carbon_';
+    public const DIRECTORY = __DIR__ . DIRECTORY_SEPARATOR;
+
     /**
      * COLUMNS
-     * The columns below are a 1=1 mapping to the columns found in wp_usermeta. 
-     * Changes, shuch as adding or removing a column, SHOULD be made first in the database. The RestBuilder program will 
-     * capture any changes made in MySQL and update this file auto-magically. 
+     * The columns below are a 1=1 mapping to the columns found in carbon_user_sessions. 
+     * Changes, such as adding or removing a column, MAY be made first in the database. The ResitBuilder program will 
+     * capture any changes made in MySQL and update this file auto-magically. If you work in a team it is RECCOMENDED to
+     * progromattically make these changes using the REFRESH_SCHEMA constant below.
     **/
-    public const UMETA_ID = 'wp_usermeta.umeta_id'; 
+    public const USER_ID = 'carbon_user_sessions.user_id'; 
 
-    public const USER_ID = 'wp_usermeta.user_id'; 
+    public const USER_IP = 'carbon_user_sessions.user_ip'; 
 
-    public const META_KEY = 'wp_usermeta.meta_key'; 
+    public const SESSION_ID = 'carbon_user_sessions.session_id'; 
 
-    public const META_VALUE = 'wp_usermeta.meta_value'; 
+    public const SESSION_EXPIRES = 'carbon_user_sessions.session_expires'; 
+
+    public const SESSION_DATA = 'carbon_user_sessions.session_data'; 
+
+    public const USER_ONLINE_STATUS = 'carbon_user_sessions.user_online_status'; 
 
     /**
      * PRIMARY
@@ -67,21 +74,21 @@ class Wp_Usermeta extends Rest implements iRestSinglePrimaryKey
      * given composite primary keys. The existence and amount of primary keys of the will also determine the interface 
      * aka method signatures used.
     **/
-    public const PRIMARY = 'wp_usermeta.umeta_id';
+    public const PRIMARY = 'carbon_user_sessions.session_id';
 
     /**
      * COLUMNS
-     * This is a convience constant for accessing your data after it has be returned from a rest operation. It is needed
-     * as Mysql will strip away the tablename we have explicitly provided to each column (to help with join statments).
+     * This is a convenience constant for accessing your data after it has be returned from a rest operation. It is needed
+     * as Mysql will strip away the table name we have explicitly provided to each column (to help with join statments).
      * Thus, accessing your return values might look something like:
      *      $return[self::COLUMNS[self::EXAMPLE_COLUMN_ONE]]
     **/ 
     public const COLUMNS = [
-        'wp_usermeta.umeta_id' => 'umeta_id','wp_usermeta.user_id' => 'user_id','wp_usermeta.meta_key' => 'meta_key','wp_usermeta.meta_value' => 'meta_value',
+        'carbon_user_sessions.user_id' => 'user_id','carbon_user_sessions.user_ip' => 'user_ip','carbon_user_sessions.session_id' => 'session_id','carbon_user_sessions.session_expires' => 'session_expires','carbon_user_sessions.session_data' => 'session_data','carbon_user_sessions.user_online_status' => 'user_online_status',
     ];
 
     public const PDO_VALIDATION = [
-        'wp_usermeta.umeta_id' => ['bigint', 'PDO::PARAM_INT', ''],'wp_usermeta.user_id' => ['bigint', 'PDO::PARAM_INT', ''],'wp_usermeta.meta_key' => ['varchar', 'PDO::PARAM_STR', '255'],'wp_usermeta.meta_value' => ['longtext', 'PDO::PARAM_STR', ''],
+        'carbon_user_sessions.user_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_user_sessions.user_ip' => ['binary', PDO::PARAM_STR, '16'],'carbon_user_sessions.session_id' => ['varchar', PDO::PARAM_STR, '255'],'carbon_user_sessions.session_expires' => ['datetime', PDO::PARAM_STR, ''],'carbon_user_sessions.session_data' => ['text,', PDO::PARAM_STR, ''],'carbon_user_sessions.user_online_status' => ['tinyint', PDO::PARAM_INT, '1'],
     ];
      
     /**
@@ -95,9 +102,9 @@ class Wp_Usermeta extends Rest implements iRestSinglePrimaryKey
      * Each directive MUST be designed to run multiple times without failure.
      */
     public const REFRESH_SCHEMA = [
-        [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
-                        PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS]
-    ]; 
+        [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::TABLE_PREFIX, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
+                        PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS, true]
+    ];
     
     /**
      * REGEX_VALIDATION
@@ -243,14 +250,14 @@ class Wp_Usermeta extends Rest implements iRestSinglePrimaryKey
      * the RestBuilder program.
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
-    CREATE TABLE `wp_usermeta` (
-  `umeta_id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `user_id` bigint unsigned NOT NULL DEFAULT '0',
-  `meta_key` varchar(255) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `meta_value` longtext COLLATE utf8mb4_unicode_520_ci,
-  PRIMARY KEY (`umeta_id`),
-  KEY `user_id` (`user_id`),
-  KEY `meta_key` (`meta_key`(191))
+    CREATE TABLE `carbon_user_sessions` (
+  `user_id` binary(16) NOT NULL,
+  `user_ip` binary(16) DEFAULT NULL,
+  `session_id` varchar(255) NOT NULL,
+  `session_expires` datetime NOT NULL,
+  `session_data` text,
+  `user_online_status` tinyint(1) DEFAULT '1',
+  PRIMARY KEY (`session_id`)
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 MYSQL;
    
@@ -369,20 +376,10 @@ MYSQL;
         }
 
         $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        /**
-        *   The next part is so every response from the rest api
-        *   formats to a set of rows. Even if only one row is returned.
-        *   You must set the third parameter to true, otherwise '0' is
-        *   apparently in the self::PDO_VALIDATION
-        */
-
         
-        if ($primary !== null || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
+        if ((null !== $primary && '' !== $primary) || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
             $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
         }
-
-        
 
         self::postprocessRestRequest($return);
         
@@ -397,17 +394,17 @@ MYSQL;
      * @generated
      * @throws PublicAlert|PDOException|JsonException
      */
-    public static function Post(array $data)
+    public static function Post(array $data = [])
     {   
         self::startRest(self::POST, [], $data);
     
         foreach ($data as $columnName => $postValue) {
-            if (!array_key_exists($columnName, self::PDO_VALIDATION)) {
+            if (!array_key_exists($columnName, self::COLUMNS)) {
                 return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.");
             }
         } 
         
-        $sql = 'INSERT INTO wp_usermeta (user_id, meta_key, meta_value) VALUES ( :user_id, :meta_key, :meta_value)';
+        $sql = 'INSERT INTO carbon_user_sessions (user_id, user_ip, session_id, session_expires, session_data, user_online_status) VALUES ( UNHEX(:user_id), UNHEX(:user_ip), :session_id, :session_expires, :session_data, :user_online_status)';
 
         $pdo = self::database();
         
@@ -419,51 +416,82 @@ MYSQL;
 
         self::postpreprocessRestRequest($sql);
 
-        $stmt = self::database()->prepare($sql);         
-        $user_id = $data['wp_usermeta.user_id'] ?? '0';
-        $ref='wp_usermeta.user_id';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $user_id, $user_id === '0')) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'wp_usermeta.user_id\'.');
-        }
-        $stmt->bindValue(':user_id', $user_id, PDO::PARAM_INT);
+        $stmt = self::database()->prepare($sql);
         
-        $meta_key = $data['wp_usermeta.meta_key'] ?? null;
-        $ref='wp_usermeta.meta_key';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $meta_key, $meta_key === null)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'wp_usermeta.meta_key\'.');
+        if (!array_key_exists('carbon_user_sessions.user_id', $data)) {
+            return self::signalError('Required argument "carbon_user_sessions.user_id" is missing from the request.');
         }
-        $stmt->bindParam(':meta_key',$meta_key, PDO::PARAM_STR, 255);
+        $user_id = $data['carbon_user_sessions.user_id'];
+        $ref='carbon_user_sessions.user_id';
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $user_id)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.user_id\'.');
+        }
+        $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
         
-        if (!array_key_exists('wp_usermeta.meta_value', $data)) {
-            return self::signalError('The column \'wp_usermeta.meta_value\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
+        $user_ip = $data['carbon_user_sessions.user_ip'] ?? null;
+        $ref='carbon_user_sessions.user_ip';
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $user_ip, $user_ip === null)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.user_ip\'.');
+        }
+        $stmt->bindParam(':user_ip',$user_ip, PDO::PARAM_STR, 16);
+        
+        if (!array_key_exists('carbon_user_sessions.session_id', $data)) {
+            return self::signalError('Required argument "carbon_user_sessions.session_id" is missing from the request.');
+        }
+        $session_id = $data['carbon_user_sessions.session_id'];
+        $ref='carbon_user_sessions.session_id';
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $session_id)) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.session_id\'.');
+        }
+        $stmt->bindParam(':session_id',$session_id, PDO::PARAM_STR, 255);
+        
+        if (!array_key_exists('carbon_user_sessions.session_expires', $data)) {
+            return self::signalError('The column \'carbon_user_sessions.session_expires\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
         } 
-        $ref='wp_usermeta.meta_value';
+        $ref='carbon_user_sessions.session_expires';
         $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $data['meta_value'])) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'wp_usermeta.meta_value\'.');
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $data['session_expires'])) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.session_expires\'.');
         }
-        $stmt->bindValue(':meta_value', $data['wp_usermeta.meta_value'], PDO::PARAM_STR);
+        $stmt->bindValue(':session_expires', $data['carbon_user_sessions.session_expires'], PDO::PARAM_STR);
+        
+        if (!array_key_exists('carbon_user_sessions.session_data', $data)) {
+            return self::signalError('The column \'carbon_user_sessions.session_data\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
+        } 
+        $ref='carbon_user_sessions.session_data';
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $data['session_data'])) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.session_data\'.');
+        }
+        $stmt->bindValue(':session_data', $data['carbon_user_sessions.session_data'], PDO::PARAM_STR);
+        
+        $user_online_status = $data['carbon_user_sessions.user_online_status'] ?? '1';
+        $ref='carbon_user_sessions.user_online_status';
+        $op = self::EQUAL;
+        if (!self::validateInternalColumn(self::POST, $ref, $op, $user_online_status, $user_online_status === '1')) {
+            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.user_online_status\'.');
+        }
+        $stmt->bindParam(':user_online_status',$user_online_status, PDO::PARAM_INT, 1);
         
         if (!$stmt->execute()) {
             self::completeRest();
             return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
         }
         
-        $id = $pdo->lastInsertId();
-        
-        self::prepostprocessRestRequest($id);
+        self::prepostprocessRestRequest();
         
         if (self::$commit && !Database::commit()) {
-            return self::signalError('Failed to store commit transaction on table wp_usermeta');
+            return self::signalError('Failed to store commit transaction on table carbon_user_sessions');
         }
         
-        self::postprocessRestRequest($id);
+        self::postprocessRestRequest();
         
         self::completeRest();
         
-        return $id;  
+        return true;  
     }
     
     /**
@@ -471,60 +499,76 @@ MYSQL;
     * 
     * Tables where primary keys exist must be updated by its primary key. 
     * Column should be in a key value pair passed to $argv or optionally using syntax:
-    * $argv => [
+    * $argv = [
     *       Rest::UPDATE => [
     *              ...
     *       ]
     * ]
     * 
     * @param array $returnUpdated - will be merged with with array_merge, with a successful update. 
-    * @param string $primary
+    * @param string|null $primary
     * @param array $argv 
     * @generated
     * @throws PublicAlert|PDOException|JsonException
     * @return bool - if execute fails, false will be returned and $returnUpdated = $stmt->errorInfo(); 
     */
-    public static function Put(array &$returnUpdated, string $primary, array $argv) : bool
+    public static function Put(array &$returnUpdated, string $primary = null, array $argv = []) : bool
     {
         self::startRest(self::PUT, $returnUpdated, $argv, $primary);
         
-        if ('' === $primary) {
-            return self::signalError('Restful tables which have a primary key must be updated by its primary key.');
+        $where = [];
+
+        if (array_key_exists(self::WHERE, $argv)) {
+            $where = $argv[self::WHERE];
+            unset($argv[self::WHERE]);
         }
-         
+        
         if (array_key_exists(self::UPDATE, $argv)) {
             $argv = $argv[self::UPDATE];
         }
-
-        $where = [self::PRIMARY => $primary];
         
+        $emptyPrimary = null === $primary || '' === $primary;
+        
+        if (false === self::$allowFullTableUpdates && $emptyPrimary) { 
+            return self::signalError('Restful tables which have a primary key must be updated by its primary key. To bypass this set you may set `self::$allowFullTableUpdates = true;` during the PREPROCESS events.');
+        }
+
+        if (!$emptyPrimary) {
+            $where[self::PRIMARY] = $primary;
+        }
         
         foreach ($argv as $key => &$value) {
             if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError('Restful table could not update column $key, because it does not appear to exist.');
+                return self::signalError("Restful table could not update column $key, because it does not appear to exist. Please re-run RestBuilder if you believe this is incorrect.");
             }
             $op = self::EQUAL;
             if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'wp_usermeta.\'.');
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_user_sessions.\'.');
             }
         }
         unset($value);
 
-        $sql = /** @lang MySQLFragment */ 'UPDATE wp_usermeta SET '; // intellij cant handle this otherwise
+        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_user_sessions SET '; // intellij cant handle this otherwise
 
         $set = '';
 
-        if (array_key_exists('wp_usermeta.umeta_id', $argv)) {
-            $set .= 'umeta_id=:umeta_id,';
+        if (array_key_exists('carbon_user_sessions.user_id', $argv)) {
+            $set .= 'user_id=UNHEX(:user_id),';
         }
-        if (array_key_exists('wp_usermeta.user_id', $argv)) {
-            $set .= 'user_id=:user_id,';
+        if (array_key_exists('carbon_user_sessions.user_ip', $argv)) {
+            $set .= 'user_ip=UNHEX(:user_ip),';
         }
-        if (array_key_exists('wp_usermeta.meta_key', $argv)) {
-            $set .= 'meta_key=:meta_key,';
+        if (array_key_exists('carbon_user_sessions.session_id', $argv)) {
+            $set .= 'session_id=:session_id,';
         }
-        if (array_key_exists('wp_usermeta.meta_value', $argv)) {
-            $set .= 'meta_value=:meta_value,';
+        if (array_key_exists('carbon_user_sessions.session_expires', $argv)) {
+            $set .= 'session_expires=:session_expires,';
+        }
+        if (array_key_exists('carbon_user_sessions.session_data', $argv)) {
+            $set .= 'session_data=:session_data,';
+        }
+        if (array_key_exists('carbon_user_sessions.user_online_status', $argv)) {
+            $set .= 'user_online_status=:user_online_status,';
         }
         
         $sql .= substr($set, 0, -1);
@@ -535,30 +579,59 @@ MYSQL;
             $pdo->beginTransaction();
         }
 
-        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
-
+        if (false === self::$allowFullTableUpdates || !empty($where)) {
+            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
+        }
+        
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
 
         $stmt = $pdo->prepare($sql);
 
-        if (array_key_exists('wp_usermeta.umeta_id', $argv)) {
-            $stmt->bindValue(':umeta_id',$argv['wp_usermeta.umeta_id'], PDO::PARAM_INT);
-}if (array_key_exists('wp_usermeta.user_id', $argv)) {
-            $stmt->bindValue(':user_id',$argv['wp_usermeta.user_id'], PDO::PARAM_INT);
-}if (array_key_exists('wp_usermeta.meta_key', $argv)) {
-            $meta_key = $argv['wp_usermeta.meta_key'];
-            $ref = 'wp_usermeta.meta_key';
+        if (array_key_exists('carbon_user_sessions.user_id', $argv)) { 
+            $user_id = $argv['carbon_user_sessions.user_id'];
+            $ref = 'carbon_user_sessions.user_id';
             $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $meta_key)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'meta_key\'.');
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'user_id\'.');
             }
-            $stmt->bindParam(':meta_key',$meta_key, PDO::PARAM_STR, 255);
-        }if (array_key_exists('wp_usermeta.meta_value', $argv)) {
-            $stmt->bindValue(':meta_value',$argv['wp_usermeta.meta_value'], PDO::PARAM_STR);
-}
-
+            $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
+        }
+        if (array_key_exists('carbon_user_sessions.user_ip', $argv)) { 
+            $user_ip = $argv['carbon_user_sessions.user_ip'];
+            $ref = 'carbon_user_sessions.user_ip';
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_ip)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'user_ip\'.');
+            }
+            $stmt->bindParam(':user_ip',$user_ip, PDO::PARAM_STR, 16);
+        }
+        if (array_key_exists('carbon_user_sessions.session_id', $argv)) { 
+            $session_id = $argv['carbon_user_sessions.session_id'];
+            $ref = 'carbon_user_sessions.session_id';
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $session_id)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'session_id\'.');
+            }
+            $stmt->bindParam(':session_id',$session_id, PDO::PARAM_STR, 255);
+        }
+        if (array_key_exists('carbon_user_sessions.session_expires', $argv)) { 
+            $stmt->bindValue(':session_expires',$argv['carbon_user_sessions.session_expires'], PDO::PARAM_STR);
+        }
+        if (array_key_exists('carbon_user_sessions.session_data', $argv)) { 
+            $stmt->bindValue(':session_data',$argv['carbon_user_sessions.session_data'], PDO::PARAM_STR);
+        }
+        if (array_key_exists('carbon_user_sessions.user_online_status', $argv)) { 
+            $user_online_status = $argv['carbon_user_sessions.user_online_status'];
+            $ref = 'carbon_user_sessions.user_online_status';
+            $op = self::EQUAL;
+            if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_online_status)) {
+                return self::signalError('Your custom restful api validations caused the request to fail on column \'user_online_status\'.');
+            }
+            $stmt->bindParam(':user_online_status',$user_online_status, PDO::PARAM_INT, 1);
+        }
+        
         self::bind($stmt);
 
         if (!$stmt->execute()) {
@@ -572,7 +645,7 @@ MYSQL;
         
         $argv = array_combine(
             array_map(
-                static function($k) { return str_replace('wp_usermeta.', '', $k); },
+                static fn($k) => str_replace('carbon_user_sessions.', '', $k),
                 array_keys($argv)
             ),
             array_values($argv)
@@ -583,7 +656,7 @@ MYSQL;
         self::prepostprocessRestRequest($returnUpdated);
         
         if (self::$commit && !Database::commit()) {
-            return self::signalError('Failed to store commit transaction on table wp_usermeta');
+            return self::signalError('Failed to store commit transaction on table carbon_user_sessions');
         }
         
         self::postprocessRestRequest($returnUpdated);
@@ -606,41 +679,36 @@ MYSQL;
     {
         self::startRest(self::DELETE, $remove, $argv, $primary);
         
-        /** @noinspection SqlWithoutWhere
-         * @noinspection UnknownInspectionInspection - intellij is funny sometimes.
-         */
-        $sql = 'DELETE FROM wp_usermeta ';
-
         $pdo = self::database();
+        
+        $emptyPrimary = null === $primary || '' === $primary;
+        
+        $sql =  /** @lang MySQLFragment */ 'DELETE FROM carbon_user_sessions ';
+        
+        if (false === self::$allowFullTableDeletes && $emptyPrimary && empty($argv)) {
+            return self::signalError('When deleting from restful tables a primary key or where query must be provided. This can be disabled by setting `self::$allowFullTableDeletes = true;` during the PREPROCESS events, or just directly before this request.');
+        }
+        
+        if (!$emptyPrimary) {
+            $argv[self::PRIMARY] = $primary;
+        }
+        
+        $where = self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
+        
+        $emptyWhere = empty($where);
+        
+        if ($emptyWhere && false === self::$allowFullTableDeletes) {
+            return self::signalError('The where condition provided appears invalid.');
+        }
+
+        if (!$emptyWhere) {
+            $sql .= ' WHERE ' . $where;
+        }
         
         if (!$pdo->inTransaction()) {
             $pdo->beginTransaction();
         }
         
-        
-        if (null === $primary) {
-           /**
-            *   While useful, we've decided to disallow full
-            *   table deletions through the rest api. For the
-            *   n00bs and future self, "I got chu."
-            */
-            if (empty($argv)) {
-                return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
-            }
-            $argv[self::PRIMARY] = $primary;
-            
-            $where = self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
-            
-            if (empty($where)) {
-                return self::signalError('The where condition provided appears invalid.');
-            }
-
-            $sql .= ' WHERE ' . $where;
-        } else {
-            $sql .= ' WHERE  umeta_id='.self::addInjection($primary, $pdo).'';
-        }
-
-
         self::jsonSQLReporting(func_get_args(), $sql);
 
         self::postpreprocessRestRequest($sql);
@@ -659,7 +727,7 @@ MYSQL;
         self::prepostprocessRestRequest($remove);
         
         if (self::$commit && !Database::commit()) {
-           return self::signalError('Failed to store commit transaction on table wp_usermeta');
+           return self::signalError('Failed to store commit transaction on table carbon_user_sessions');
         }
         
         self::postprocessRestRequest($remove);
@@ -668,5 +736,4 @@ MYSQL;
         
         return true;
     }
-    
 }

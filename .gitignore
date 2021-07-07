@@ -13,6 +13,7 @@ config/buildDatabase.php
 /mysqldump.cnf
 /mysqldump_data.sql
 /mysqldump.sql
+/triggers.sql
 /scratch/
 /.htaccess
 /junit.xml
@@ -41,3 +42,9 @@ readme.html
 /wp-*.php
 /xmlrpc.php
 license.txt
+
+
+# wp rest tables
+src/tables/Wp_*
+
+

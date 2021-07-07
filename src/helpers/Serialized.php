@@ -15,6 +15,8 @@ namespace CarbonPHP\Helpers;
 
 use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Interfaces\iColorCode;
+use CarbonPHP\Programs\ColorCode;
 
 abstract class Serialized
 {
@@ -23,7 +25,11 @@ abstract class Serialized
      * @var array $sessionVar is an array who's values equal variables
      * names in the global scope.
      */
-    private static $sessionVar;
+    private static array $sessionVar = [];
+
+    private const NOT_STRING_ERROR = 'All values passed to the Session::start() method must be strings.';
+
+    private static bool $base64 = true;
 
     /** Variables given will be cached between requests.
      * Variables should be provided as string names referencing
@@ -32,24 +38,34 @@ abstract class Serialized
      */
     public static function start(...$argv): void
     {
-        //TODO - make base64 optional
         self::$sessionVar = $argv;
         foreach (self::$sessionVar as $value) {
-            $GLOBALS[$value] = $_SESSION[__CLASS__][$value] ??= null;
-            #self::is_serialized( base64_decode(  $_SESSION[__CLASS__][$value] ), $GLOBALS[$value] );
+            if (!is_string($value)) {
+                throw new PublicAlert(self::NOT_STRING_ERROR);
+            }
+            if (self::$base64) {
+                self::is_serialized( base64_decode(  $_SESSION[__CLASS__][$value] ??= null), $GLOBALS[$value] );
+            } else {
+                $GLOBALS[$value] = $_SESSION[__CLASS__][$value] ??= null;
+            }
         }
 
         // You CAN register multiple shutdown functions
         register_shutdown_function(static function () use ($argv) {
             $last_error = error_get_last();
             if (($last_error['type'] ?? false) && $last_error['type'] === E_ERROR) {
-                ErrorCatcher::generateLog();
                 throw new PublicAlert(['register_shutdown_function captured an error', $last_error]);
             }
             foreach ($argv as $value) {
+                if (!is_string($value)) {
+                    throw new PublicAlert(self::NOT_STRING_ERROR);
+                }
                 if (isset($GLOBALS[$value])) {
-                    $_SESSION[__CLASS__][$value] = $GLOBALS[$value] ??= null;
-                    #$_SESSION[__CLASS__][$value] = base64_encode( serialize( $GLOBALS[$value] ) );
+                    if (self::$base64) {
+                        $_SESSION[__CLASS__][$value] = base64_encode( serialize( $GLOBALS[$value] ) );
+                    } else {
+                        $_SESSION[__CLASS__][$value] = $GLOBALS[$value] ??= null;
+                    }
                 }
             }
         });
@@ -92,6 +108,7 @@ abstract class Serialized
      * @param mixed $result Result of unserialize() of the $value
      * @return        boolean            True if $value is serialized data, otherwise false
      * @author        Chris Smith <code+php@chris.cs278.org>
+     * @auther        Richard Miles, modified for carbonPHP and php ^8
      * @copyright    Copyright (c) 2009 Chris Smith (http://www.cs278.org/)
      * @license        http://sam.zoy.org/wtfpl/ WTFPL
      */
@@ -159,9 +176,14 @@ abstract class Serialized
                 return false;
         }
 
-        if (($result = @unserialize($value, true)) === false) {
-            $result = null;
-            return false;
+        try {
+            /** @noinspection UnserializeExploitsInspection */
+            if (($result = unserialize($value, true)) === false) {
+                $result = null;
+                return false;
+            }
+        } catch (\Throwable $e) {
+            ErrorCatcher::generateBrowserReportFromError($e);
         }
         return true;
     }

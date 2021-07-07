@@ -51,6 +51,63 @@ class CarbonPHP
     public static ?Application $application = null;
     public static bool $setupComplete = false;
 
+    // CarbonPHP Configuration Keys
+    public const DATABASE = 'DATABASE';
+    public const DB_HOST = 'DB_HOST';
+    public const DB_PORT = 'DB_PORT';
+    public const DB_NAME = 'DB_NAME';
+    public const DB_USER = 'DB_USER';
+    public const DB_PASS = 'DB_PASS';
+    public const REBUILD = 'REBUILD';
+
+    public const REST = 'REST';
+    public const NAMESPACE = 'NAMESPACE';
+    public const TABLE_PREFIX = 'TABLE_PREFIX';
+
+    public const SITE = 'SITE';
+    public const URL = 'URL';
+    public const ROOT = 'ROOT';
+    public const CACHE_CONTROL = 'CACHE_CONTROL';
+    public const CONFIG = 'CONFIG';
+    public const TIMEZONE = 'TIMEZONE';
+    public const TITLE = 'TITLE';
+    public const VERSION = 'VERSION';
+    public const SEND_EMAIL = 'SEND_EMAIL';
+    public const REPLY_EMAIL = 'REPLY_EMAIL';
+    public const HTTP = 'HTTP';
+    public const IP_TEST = 'IP_TEST';
+
+    public const SESSION = 'SESSION';
+    public const REMOTE = 'REMOTE';
+    public const SERIALIZE = 'SERIALIZE';   // accepts an array of values todo - doc
+    public const CALLBACK = 'CALLBACK';
+    public const PATH = 'PATH';
+
+    public const SOCKET = 'SOCKET';
+    public const WEBSOCKETD = 'WEBSOCKETD';
+    public const PORT = 'PORT';
+    public const DEV = 'DEV';
+    public const SSL = 'SSL';
+    public const KEY = 'KEY';
+    public const CERT = 'CERT';
+
+    public const ERROR = 'ERROR';
+    public const LOCATION = 'LOCATION';
+    public const LEVEL = 'LEVEL';
+    public const STORE = 'STORE';
+    public const SHOW = 'SHOW';
+    public const FULL = 'FULL';
+
+    public const VIEW = 'VIEW';
+    public const WRAPPER = 'WRAPPER';
+    public const MINIFY = 'MINIFY';
+    public const CSS = 'CSS';
+    public const JS = 'JS';
+    public const OUT = 'OUT';
+
+    public const AUTOLOAD = 'AUTOLOAD';
+
+
     // Application invocation method
     public static bool $is_running_production = false;
     public static bool $app_local = false;
@@ -112,6 +169,13 @@ class CarbonPHP
     public static function getApplication(): Application
     {
         return self::$application;
+    }
+
+
+    public static function isCarbonPHPDocumentation() : bool
+    {
+        static $cache;
+        return $cache ??= self::$app_root . 'src' . DS === self::CARBON_ROOT;
     }
 
     /**
@@ -182,7 +246,7 @@ class CarbonPHP
         $application = self::getApplication();
 
         if ($uri === '') {
-            Session::update(false);       // Check wrapper / session callback
+            Session::update();       // Check wrapper / session callback
             $uri = $application->uri;
         } else if ($uri === '/') {
             return self::resetApplication();
@@ -213,7 +277,7 @@ class CarbonPHP
         }
 
         if ($configuration instanceof iConfig) {
-            self::$configuration = $config = $configuration !== null ? $configuration::configuration() : [];
+            self::$configuration = $config = $configuration::configuration();
             if ($configuration instanceof Application) {
                 self::$application = $configuration;
             }
@@ -337,59 +401,58 @@ class CarbonPHP
 
             #################  DATABASE  ########################
             if ($config['DATABASE'] ?? false) {
-                Database::$username = $config['DATABASE']['DB_USER'] ?? '';
-                Database::$password = $config['DATABASE']['DB_PASS'] ?? '';
-                Database::$name = $config['DATABASE']['DB_NAME'] ?? '';
-                Database::$port = $config['DATABASE']['DB_PORT'] ?? '';
-                Database::$host = $config['DATABASE']['DB_HOST'] ?? '';
-                Database::$setup = $config['DATABASE']['DB_BUILD'] ?? '';
-                Database::$dsn = 'mysql:host=' . Database::$host . ';dbname=' . Database::$name .
-                    (!empty(Database::$port)? ';port=' . Database::$port : '');
+                Database::$username = $config[self::DATABASE][self::DB_USER] ?? '';
+                Database::$password = $config[self::DATABASE][self::DB_PASS] ?? '';
+                Database::$name = $config[self::DATABASE][self::DB_NAME] ?? '';
+                Database::$port = $config[self::DATABASE][self::DB_PORT] ?? '';
+                Database::$host = $config[self::DATABASE][self::DB_HOST] ?? '';
+                Database::$dsn = 'mysql:host=' . Database::$host . ';dbname=' . Database::$name
+                    . (!empty(Database::$port)? ';port=' . Database::$port : '');
                 Database::$initialized = true;
             }
 
             #######################   VIEW      ######################
-            self::$app_view = $config['VIEW']['VIEW'] ?? DS;         // Public Folder
+            self::$app_view = $config[self::VIEW][self::VIEW] ?? DS;         // Public Folder
 
-            View::$wrapper = self::$app_root . self::$app_view . ($config['VIEW']['WRAPPER'] ?? '');
+            View::$wrapper = self::$app_root . self::$app_view . ($config[self::VIEW][self::WRAPPER] ?? '');
 
             ####################  GENERAL CONF  ######################
-            error_reporting($config['ERROR']['LEVEL'] ?? E_ALL | E_STRICT);
+            error_reporting($config[self::ERROR][self::LEVEL] ?? E_ALL | E_STRICT);
 
-            ini_set('display_errors', $config['ERROR']['SHOW'] ?? true);
+            ini_set('display_errors', $config[self::ERROR][self::SHOW] ?? true);
 
-            date_default_timezone_set($config['SITE']['TIMEZONE'] ?? 'America/Chicago');
+            date_default_timezone_set($config[self::SITE][self::TIMEZONE] ?? 'America/Chicago');
 
-            self::$reports = $config['ERROR']['LOCATION'] ?? '';
+            self::$reports = $config[self::ERROR][self::LOCATION] ?? '';
 
             #####################   AUTOLOAD    #######################
-            // it may serve pompous to dynamically load namespaces on call time
-            // this however is not recommended if avoidable by using composer.
-            if ($config['AUTOLOAD'] ?? false) {
+            // it may serve to dynamically load namespaces on call time
+            // this however is not recommended and is avoidable by using composer.
+            if ($config[self::AUTOLOAD] ?? false) {
                 $PSR4 = new Autoload();
-                if (is_array($config['AUTOLOAD'] ?? false)) {
-                    foreach ($config['AUTOLOAD'] as $name => $path) {
+                if (is_array($config[self::AUTOLOAD] ?? false)) {
+                    foreach ($config[self::AUTOLOAD] as $name => $path) {
                         $PSR4->addNamespace($name, $path);
                     }
                 }
             }
 
             #####################   ERRORS + Warnings + Alerts    #######################
-            if ($config['ERROR'] ??= false) {
+            if ($config[self::ERROR] ??= false) {
                 ErrorCatcher::$defaultLocation = self::$reports . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
-                ErrorCatcher::$printToScreen = $config['ERROR']['SHOW'] ?? ErrorCatcher::$printToScreen;
-                ErrorCatcher::$storeReport = $config['ERROR']['STORE'] ?? ErrorCatcher::$storeReport;
-                ErrorCatcher::$level = $config['ERROR']['LEVEL'] ??  ErrorCatcher::$level;
+                ErrorCatcher::$printToScreen = $config[self::ERROR][self::SHOW] ?? ErrorCatcher::$printToScreen;
+                ErrorCatcher::$storeReport = $config[self::ERROR][self::STORE] ?? ErrorCatcher::$storeReport;
+                ErrorCatcher::$level = $config[self::ERROR][self::LEVEL] ??  ErrorCatcher::$level;
                 ErrorCatcher::start();
             }
 
 
             #################  SITE  ########################
             if ($config['SITE'] ?? false) {
-                self::$site_title ??= $config['SITE']['TITLE'] ?? 'CarbonPHP [C6]';
-                self::$site_version ??= $config['SITE']['VERSION'] ?? PHP_VERSION;                // printed in the footer
-                self::$system_email ??= $config['SEND_EMAIL'] ?? '';                               // server email system
-                self::$reply_email ??= $config['REPLY_EMAIL'] ?? '';                               // I give you options :P
+                self::$site_title ??= $config[self::SITE][self::TITLE] ?? 'CarbonPHP [C6]';
+                self::$site_version ??= $config[self::SITE][self::VERSION] ?? PHP_VERSION;                // printed in the footer
+                self::$system_email ??= $config[self::SEND_EMAIL] ?? '';                               // server email system
+                self::$reply_email ??= $config[self::REPLY_EMAIL] ?? '';                               // I give you options :P
             }
 
             if (self::$cli && !self::$test && !self::$safelyExit) {
@@ -399,7 +462,7 @@ class CarbonPHP
             }
 
             ##################  VALIDATE URL / URI ##################
-            if (!self::$cli && (false !== ($config['SITE']['IP_TEST'] ?? true))) {
+            if (!self::$cli && (false !== ($config[self::SITE][self::IP_TEST] ?? true))) {
                 self::IP_FILTER();
             }
 
@@ -451,7 +514,7 @@ class CarbonPHP
                 self::$https or self::$ajax or self::$http = true;
             }
             // PHPUnit testing should not exit on explicit http(s) requests
-            if (!self::$test && self::$http && !($config['SITE']['HTTP'] ?? true)) {
+            if (!self::$test && self::$http && !($config[self::SITE][self::HTTP] ?? true)) {
                 if (headers_sent()) {
                     print '<h1>Failed to switch to https, headers already sent! Please contact the server administrator.</h1>';
                 } else {
@@ -461,24 +524,24 @@ class CarbonPHP
             }
 
             ########################  Session Management ######################
-            if ($config['SESSION'] ?? true) {
-                if ($config['SESSION']['PATH'] ?? false) {
-                    session_save_path($config['SESSION']['PATH'] ?? '');   // Manually Set where the Users Session Data is stored
+            if ($config[self::SESSION] ?? true) {
+                if ($config[self::SESSION][self::PATH] ?? false) {
+                    session_save_path($config[self::SESSION][self::PATH] ?? '');   // Manually Set where the Users Session Data is stored
                 }
 
                 // this start a session in every possible runtime except WebSocket::$minimiseResources
-                new Session(self::$user_ip, $config['SESSION']['REMOTE'] ?? false);
+                new Session(self::$user_ip, $config[self::SESSION][self::REMOTE] ?? false);
 
-                $config['ERROR'] and
+                $config[self::ERROR] and
                 ErrorCatcher::$defaultLocation = self::$reports . 'Log_' . ($_SESSION['id'] ?? 'WebSocket') . '_' . time() . '.log';
 
-                if (is_callable($config['SESSION']['CALLBACK'] ?? null)) {
-                    Session::updateCallback($config['SESSION']['CALLBACK']); // Pull From Database, manage socket ip
+                if (is_callable($config[self::SESSION][self::CALLBACK] ?? null)) {
+                    Session::updateCallback($config[self::SESSION][self::CALLBACK]); // Pull From Database, manage socket ip
                 }
             }
 
-            if (!self::$cli && is_array($config['SESSION']['SERIALIZE'] ?? false)) {
-                forward_static_call_array([Serialized::class, 'start'], $config['SESSION']['SERIALIZE']);    // Pull theses from session, and store on shutdown
+            if (!self::$cli && is_array($config[self::SESSION][self::SERIALIZE] ?? false)) {
+                forward_static_call_array([Serialized::class, 'start'], $config[self::SESSION][self::SERIALIZE]);    // Pull theses from session, and store on shutdown
             }
 
             self::$setupComplete = true;

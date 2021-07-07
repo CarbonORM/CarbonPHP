@@ -11,7 +11,7 @@ declare(strict_types=1);
 namespace Tests;
 
 use CarbonPHP\Error\PublicAlert;
-use CarbonPHP\Tables\Carbon_Users as Users;
+use CarbonPHP\Tables\Users;
 use CarbonPHP\Database;
 
 /**

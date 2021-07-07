@@ -9,7 +9,9 @@ use CarbonPHP\Database;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Programs\Background;
 use CarbonPHP\Programs\ColorCode;
-use CarbonPHP\Tables\Carbon_Reports;
+use CarbonPHP\Rest;
+use CarbonPHP\Tables\Carbons;
+use CarbonPHP\Tables\Reports;
 use ReflectionException;
 use ReflectionMethod;
 use Throwable;
@@ -138,6 +140,7 @@ END;
     }
 
     /**
+     * This terminates!
      * @param Throwable $throwable
      */
     public static function generateBrowserReportFromError(Throwable $throwable): void
@@ -146,6 +149,7 @@ END;
     }
 
     /**
+     * This terminates!
      * @param array $errorForTemplate
      */
     public static function generateBrowserReport(array $errorForTemplate): void
@@ -428,12 +432,14 @@ END;
         if (self::$storeReport === true || self::$storeReport === 'database') {
             if (Database::$initialized) {
                 try {
-                    if (!Carbon_Reports::Post([
-                        Carbon_Reports::LOG_LEVEL => $level,
-                        Carbon_Reports::REPORT => $cliOutput,
-                        Carbon_Reports::CALL_TRACE => $trace
+                    $reports = Rest::getDynamicRestClass(Reports::class);
+
+                    if (!$reports::Post([
+                        $reports::LOG_LEVEL => $level,
+                        $reports::REPORT => $cliOutput,
+                        $reports::CALL_TRACE => $trace
                     ])) {
-                        error_log($message = 'Failed storing log in database. The restful Carbon_Reports table returned false.');
+                        error_log($message = 'Failed storing log in database. The restful Reports table returned false.');
                         $browserOutput['[C6] ISSUE'] = $message;
                         die(1);
                     }
