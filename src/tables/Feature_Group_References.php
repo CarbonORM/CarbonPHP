@@ -52,8 +52,9 @@ class Feature_Group_References extends Rest implements iRestNoPrimaryKey
     /**
      * COLUMNS
      * The columns below are a 1=1 mapping to the columns found in carbon_feature_group_references. 
-     * Changes, shuch as adding or removing a column, SHOULD be made first in the database. The ResitBuilder program will 
-     * capture any changes made in MySQL and update this file auto-magically.
+     * Changes, such as adding or removing a column, MAY be made first in the database. The ResitBuilder program will 
+     * capture any changes made in MySQL and update this file auto-magically. If you work in a team it is RECCOMENDED to
+     * progromattically make these changes using the REFRESH_SCHEMA constant below.
     **/
     public const FEATURE_ENTITY_ID = 'carbon_feature_group_references.feature_entity_id'; 
 

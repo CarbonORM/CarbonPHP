@@ -11,7 +11,6 @@ use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
 use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Programs\ColorCode;
-use CarbonPHP\Tables\Carbons;
 use PDO;
 use PDOStatement;
 
@@ -136,13 +135,26 @@ abstract class Rest extends Database
 
         $namespace = CarbonPHP::$configuration[CarbonPHP::REST][CarbonPHP::NAMESPACE] ?? '';
 
-        $carbons = $namespace . $fullyQualifiedRestClassName::TABLE_NAME;        //  we're using table name and not class name as any different prefix, even a subset of the original, will be appended
+        $custom_prefix_carbon_table = $namespace . $fullyQualifiedRestClassName::TABLE_NAME;        //  we're using table name and not class name as any different prefix, even a subset of the original, will be appended
 
-        if (!class_exists($carbons)) {
-            throw new PublicAlert("Could not find the required class ($carbons) in the user defined namespace ($namespace). This is required because a custom table prefix ($prefix) has been detected.");
+        if (!class_exists($custom_prefix_carbon_table)) {
+            throw new PublicAlert("Could not find the required class ($custom_prefix_carbon_table) in the user defined namespace ($namespace). This is required because a custom table prefix ($prefix) has been detected.");
         }
 
-        return $carbons;
+        if (in_array(iRestSinglePrimaryKey::class, class_implements($fullyQualifiedRestClassName), true)) {
+            if (!in_array(iRestSinglePrimaryKey::class, class_implements($custom_prefix_carbon_table), true)) {
+                throw new PublicAlert("Your implementation ($custom_prefix_carbon_table) of ($fullyQualifiedRestClassName) should implement " . iRestSinglePrimaryKey::class . '. You should rerun RestBuilder.');
+            }
+        } else if (in_array(iRestNoPrimaryKey::class, class_implements($fullyQualifiedRestClassName), true)) {
+            if (!in_array(iRestNoPrimaryKey::class, class_implements($custom_prefix_carbon_table), true)) {
+                throw new PublicAlert("Your implementation ($custom_prefix_carbon_table) of ($fullyQualifiedRestClassName) should implement " . iRestNoPrimaryKey::class . '. You should rerun RestBuilder.');
+            }
+        } else if (in_array(iRestMultiplePrimaryKeys::class, class_implements($fullyQualifiedRestClassName), true)
+                    && !in_array(iRestMultiplePrimaryKeys::class, class_implements($custom_prefix_carbon_table), true)) {
+            throw new PublicAlert("Your implementation ($custom_prefix_carbon_table) of ($fullyQualifiedRestClassName) should implement " . iRestMultiplePrimaryKeys::class . '. You should rerun RestBuilder.');
+        }
+
+        return $custom_prefix_carbon_table;
     }
 
 

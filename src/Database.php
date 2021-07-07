@@ -432,10 +432,6 @@ FOOT;
 
         $carbons = Rest::getDynamicRestClass(Carbons::class);
 
-        if (!in_array(iRestSinglePrimaryKey::class, class_implements($carbons), true)) {
-            throw new PublicAlert('The carbon_carbons class should implement ' . iRestSinglePrimaryKey::class);
-        }
-
         do {
             $count++;
 

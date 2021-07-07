@@ -52,8 +52,9 @@ class User_Followers extends Rest implements iRestSinglePrimaryKey
     /**
      * COLUMNS
      * The columns below are a 1=1 mapping to the columns found in carbon_user_followers. 
-     * Changes, shuch as adding or removing a column, SHOULD be made first in the database. The ResitBuilder program will 
-     * capture any changes made in MySQL and update this file auto-magically.
+     * Changes, such as adding or removing a column, MAY be made first in the database. The ResitBuilder program will 
+     * capture any changes made in MySQL and update this file auto-magically. If you work in a team it is RECCOMENDED to
+     * progromattically make these changes using the REFRESH_SCHEMA constant below.
     **/
     public const FOLLOWER_TABLE_ID = 'carbon_user_followers.follower_table_id'; 
 
