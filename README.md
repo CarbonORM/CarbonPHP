@@ -65,7 +65,7 @@ We recommend that each request use the MVC structure, Pure ORM callback(s), or a
 The controller must validate all input data and return the variable(s) needed for the model to manipulate. 
 This is a sample from the code library which backbones all mvc requests.
 
-
+```php
     /**Stands for Controller -> Model .
      *
      * This will run the controller/$class.$method().
@@ -112,6 +112,7 @@ This is a sample from the code library which backbones all mvc requests.
             return $argv;
         };
     }
+```
 
 ### RESTFUL ORM
 CarbonPHP's largest feature is the MySQL ORM. By running a customizable CLI command our program 
@@ -119,6 +120,7 @@ will analyze your database schema and generate powerful classes used to manipula
 may be used in conjunction for an incredibly pleasing RESTFUL semantics structure. Below are examples for using the REST 
 ORM. You can [see the generated source here](https://github.com/RichardTMiles/CarbonPHP/blob/master/src/tables/Carbon_Users.php).
 
+```php
     $id = Users::Post([
             Users::USER_TYPE => 'Athlete',
             Users::USER_IP => '127.0.0.1',
@@ -131,9 +133,11 @@ ORM. You can [see the generated source here](https://github.com/RichardTMiles/Ca
             Users::USER_LAST_NAME => 'Miles',
             Users::USER_GENDER => 'Male'
         ]);
+```
 
 Joining across multiple tables. 
 
+```php
     Users::Get($user, $uid, [
             Users::SELECT => [
                 Users::USER_USERNAME,
@@ -154,11 +158,12 @@ Joining across multiple tables.
                 Users::ORDER => [Users::USER_USERNAME => Users::ASC]
             ]
         ]);
-
+```
 
 Using the ORM from the Frontend. This example showcases multiple table joins, as well as the use of aggregate function(s) 
 GROUP_CONCAT.
 
+```typescript
     const { axios } = this.props;
 
     axios.get('/rest/' + C6.carbon_users.TABLE_NAME, {
@@ -196,15 +201,14 @@ GROUP_CONCAT.
         }
       }
     }).then(response => this.setState({ users: (response.data.rest || []) }));
-
+```
 
 
 # Builtin Command Line Interface
 
 Much like laravel's artisan, any file that invokes CarbonPHP from the command line will execute the CLI Interface. I plan to make a system in place for user commands in Beta. See all available commands with:
 
-    php index.php
-
+    php index.php help
 
 ## Support
 

@@ -334,8 +334,6 @@ END;
      * @param array $browserOutput
      * @param string $color
      * @return array
-     * @deprecated use generateCustomLogArrayFromThrowable
-     *             or  generateBrowserReportFromError which will kill execution
      */
     public static function generateLog(Throwable $e = null, string $level = null, array &$browserOutput = [], string $color = iColorCode::RED): array
     {
