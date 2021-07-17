@@ -105,6 +105,10 @@ IDENTIFIED;
             exit('Failed to store file contents mysql.cnf in ' . CarbonPHP::$app_root);
         }
 
+        if (!chmod(CarbonPHP::$app_root . 'mysql.cnf', 0750)) {
+            ColorCode::colorCode('The chmod(\'' . CarbonPHP::$app_root . 'mysql.cnf\', 0750); has failed. This isn\'t always an issue. Moving on. Cross your fingers.', iColorCode::YELLOW);
+        }
+
         return self::$mysql = CarbonPHP::$app_root . 'mysql.cnf';
     }
 
