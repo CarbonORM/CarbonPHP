@@ -24,7 +24,7 @@ trait Background
         return $pid[0] ?? 'Failed to execute cmd!';
     }
 
-    public static function executeAndCheckStatus($command): void
+    public static function executeAndCheckStatus($command, $exitOnFailure = true): void
     {
         $output = [];
         $return_var = null;
@@ -34,7 +34,9 @@ trait Background
             ColorCode::colorCode("The command >>  $command \n\t returned with a status code (" . $return_var . '). Expecting 0 for success.', iColorCode::RED);
             $output = implode(PHP_EOL, $output);
             ColorCode::colorCode("\n\n\tCommand output::\n\n $output \n\n", iColorCode::RED);
-            exit($return_var);
+            if ($exitOnFailure) {
+                exit($return_var);
+            }
         }
     }
 }
