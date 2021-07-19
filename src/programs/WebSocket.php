@@ -229,12 +229,12 @@ class WebSocket extends Request implements iCommand
         $this->serveSingleUserOnSingleThread();   // child thread will fall here and not stop until socket users disconnects
     }
 
-    public function sendToResource(string $data, &$connection, $opCode = self::TEXT): bool
+    public static function sendToResource(string $data, &$connection, $opCode = self::TEXT): bool
     {
         return 0 <= @fwrite($connection, self::encode($data, $opCode));
     }
 
-    public static function sendToAllExternalResources(string $data, $opCode = self::TEXT)
+    public static function sendToAllExternalResources(string $data, $opCode = self::TEXT) : void
     {
         foreach (self::$userResourceConnections as $resourceConnection) {
             if (is_resource($resourceConnection)) {
