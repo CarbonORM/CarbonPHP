@@ -1045,25 +1045,58 @@ export const convertForRequestBody = function(restfulObject: RestTableInterfaces
                     "
 
 const C6 = {
-
-    SELECT: '" . Rest::SELECT . "',
-    UPDATE: '" . Rest::UPDATE . "',
-    WHERE: '" . Rest::WHERE . "',
-    LIMIT: '" . Rest::LIMIT . "',
-    PAGINATION: '" . Rest::PAGINATION . "',
-    ORDER: '" . Rest::ORDER . "',
-    DESC: '" . Rest::DESC . "',
+    
+    // try to 1=1 match the Rest abstract class
+    AS: '" . Rest::AS . "',
     ASC: '" . Rest::ASC . "',
-    JOIN: '" . Rest::JOIN . "',
-    INNER: '" . Rest::INNER . "',
-    LEFT: '" . Rest::LEFT . "',
-    RIGHT: '" . Rest::RIGHT . "',
-    DISTINCT: '" . Rest::DISTINCT . "',
     COUNT: '" . Rest::COUNT . "',
-    SUM: '" . Rest::SUM . "',
+    CURRENT_TIMESTAMP: '" . Rest::CURRENT_TIMESTAMP . "',
+    DESC: '" . Rest::DESC . "',
+    DISTINCT: '" . Rest::DISTINCT . "',
+    EQUAL: '" . Rest::EQUAL . "',
+    EQUAL_NULL_SAFE: '" . Rest::EQUAL_NULL_SAFE . "',
+    FULL_OUTER: '" . Rest::FULL_OUTER . "',
+    GREATER_THAN: '" . Rest::GREATER_THAN . "',
+    GROUP_CONCAT: '" . Rest::GROUP_CONCAT . "',
+    GREATER_THAN_OR_EQUAL_TO: '" . Rest::GREATER_THAN_OR_EQUAL_TO . "',
+    INNER: '" . Rest::INNER . "',
+    JOIN: '" . Rest::JOIN . "',
+    LEFT: '" . Rest::LEFT . "',
+    LEFT_OUTER: '" . Rest::LEFT_OUTER . "',
+    LESS_THAN: '" . Rest::LESS_THAN . "',
+    LESS_THAN_OR_EQUAL_TO: '" . Rest::LESS_THAN_OR_EQUAL_TO . "',
+    LIKE: '" . Rest::LIKE . "',
+    LIMIT: '" . Rest::LIMIT . "',
     MIN: '" . Rest::MIN . "',
     MAX: '" . Rest::MAX . "',
-    GROUP_CONCAT: '" . Rest::GROUP_CONCAT . "',
+    NOW: '" . Rest::NOW . "',
+    NOT_EQUAL: '" . Rest::NOT_EQUAL . "',
+    ORDER: '" . Rest::ORDER . "',
+    PAGE: '" . Rest::PAGE . "',
+    PAGINATION: '" . Rest::PAGINATION . "',
+    RIGHT_OUTER: '" . Rest::RIGHT_OUTER . "',
+    SELECT: '" . Rest::SELECT . "',
+    SUM: '" . Rest::SUM . "',
+    TRANSACTION_TIMESTAMP: '" . Rest::TRANSACTION_TIMESTAMP . "',
+    UPDATE: '" . Rest::UPDATE . "',
+    UNHEX: '" . Rest::UNHEX . "',
+    WHERE: '" . Rest::WHERE . "',
+    
+    // carbon identifiers
+    DEPENDANT_ON_ENTITY: '" . Rest::DEPENDANT_ON_ENTITY . "',
+   
+    // PHP validation
+    OPTIONS: '" . Rest::OPTIONS . "',
+    GET: '" . Rest::GET . "',
+    POST: '" . Rest::POST . "',
+    PUT: '" . Rest::PUT . "',
+    DELETE: '" . Rest::DELETE . "',
+    REST_REQUEST_PREPROCESS_CALLBACKS: '" . Rest::REST_REQUEST_PREPROCESS_CALLBACKS . "',
+    PREPROCESS: '" . Rest::PREPROCESS . "',
+    REST_REQUEST_FINNISH_CALLBACKS: '" . Rest::REST_REQUEST_FINNISH_CALLBACKS . "',
+    FINISH: '" . Rest::FINISH . "',
+    VALIDATE_C6_ENTITY_ID_REGEX: '" . Rest::VALIDATE_C6_ENTITY_ID_REGEX . "',
+
     
     $references_tsx
     

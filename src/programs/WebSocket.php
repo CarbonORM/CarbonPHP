@@ -5,10 +5,12 @@ use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
 use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Helpers\Pipe;
+use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
 use CarbonPHP\Request;
 use CarbonPHP\Route;
 use CarbonPHP\Session;
+use function chr;
 use function in_array;
 use function is_resource;
 use function ord;
@@ -88,6 +90,7 @@ class WebSocket extends Request implements iCommand
 
     protected static array $applicationConfiguration = [];
 
+    /** @noinspection PhpComposerExtensionStubsInspection */
     public function __construct($config)
     {
         [$config, $argv] = $config;
@@ -120,6 +123,7 @@ class WebSocket extends Request implements iCommand
             pcntl_signal(SIGTERM, $signal); // Termination ('kill' was called')
             pcntl_signal(SIGHUP, $signal);  // Terminal log-out
             pcntl_signal(SIGINT, $signal);  // Interrupted ( Ctrl-C is pressed)
+            pcntl_signal(SIGCHLD, SIG_IGN);  // Interrupted ( Ctrl-C is pressed)
         } else {
             self::colorCode("\nCarbonPHP Websockets require the PCNTL library. See CarbonPHP.com for more Documentation\n", 'red');
             exit(1);
@@ -376,7 +380,7 @@ class WebSocket extends Request implements iCommand
                     your sockets application is in cached state and must be restart the socket server to see changes.";
                 }
             }
-            $this->sendToResource($buff, $connection);
+            self::sendToResource($buff, $connection);
             exit(0); // 0 = success
         }
     }
@@ -420,7 +424,7 @@ class WebSocket extends Request implements iCommand
                     break;
                 }
                 if ($information['user_socket'] === $connection) {
-                    self::colorCode('Socket Closed.', 'red');
+                    self::colorCode('Socket Closed.', iColorCode::RED);
                     $pipeToDeleteKey = array_search($information['user_pipe'], $allConnectedResources, true);
 
                     if (!is_resource($WebsocketToPipeRelations[$key]['user_pipe'])) {
@@ -580,7 +584,7 @@ class WebSocket extends Request implements iCommand
                         break;
 
                     case self::PING :
-                        $this->sendToResource('', $connection, self::PONG);
+                        self::sendToResource('', $connection, self::PONG);
                         break;
 
                     case self::TEXT:
@@ -724,7 +728,7 @@ class WebSocket extends Request implements iCommand
                         break;
                     case self::PING:
                         self::colorCode('PING', 'blue');
-                        $this->sendToResource('', $connection, self::PONG);
+                        self::sendToResource('', $connection, self::PONG);
                         break;
                     case self::TEXT:
                         self::colorCode('TEXT', 'blue');
@@ -791,13 +795,13 @@ class WebSocket extends Request implements iCommand
         $rsv3 = 0x0;
         $message = json_encode($message);
         $length = strlen($message);
-        $out = \chr((0x1 << 7) | ($rsv1 << 6) | ($rsv2 << 5) | ($rsv3 << 4) | $opCode);
+        $out = chr((0x1 << 7) | ($rsv1 << 6) | ($rsv2 << 5) | ($rsv3 << 4) | $opCode);
         if (0xffff < $length) {
-            $out .= \chr(0x7f) . pack('NN', 0, $length);
+            $out .= chr(0x7f) . pack('NN', 0, $length);
         } elseif (0x7d < $length) {
-            $out .= \chr(0x7e) . pack('n', $length);
+            $out .= chr(0x7e) . pack('n', $length);
         } else {
-            $out .= \chr($length);
+            $out .= chr($length);
         }
         return $out . $message;
     }

@@ -18,51 +18,48 @@ abstract class Rest extends Database
 {
 
     # restful identifiers
-    public const SELECT = 'select';
-    public const UPDATE = 'update';
-    public const WHERE = 'where';
-    public const JOIN = 'join';
-    public const INNER = 'inner';
-    public const LEFT = 'left';
-    public const RIGHT = 'right';
-    public const DISTINCT = 'distinct';
-    public const FULL_OUTER = 'full outer';
-    public const LEFT_OUTER = 'left outer';
-    public const RIGHT_OUTER = 'right outer';
-    public const COUNT = 'count';
     public const AS = 'as';
-    public const SUM = 'sum';
-    public const MIN = 'min';
-    public const MAX = 'max';
-    public const HEX = 'hex';
-    public const UNHEX = 'unhex';
-    public const GROUP_CONCAT = 'GROUP_CONCAT';
-    public const GREATER_THAN = '>';
-    public const LESS_THAN = '<';
-    public const GREATER_THAN_OR_EQUAL_TO = '>=';
-    public const LESS_THAN_OR_EQUAL_TO = '<=';
-    public const NOT_EQUAL = '<>';
+    public const ASC = ' ASC';
+    public const COUNT = 'count';
+    public const CURRENT_TIMESTAMP = ' CURRENT_TIMESTAMP ';
+    public const DESC = ' DESC'; // not case sensitive but helpful for reporting to remain uppercase
+    public const DISTINCT = 'distinct';
     public const EQUAL = '=';
     public const EQUAL_NULL_SAFE = '<=>';
+    public const FULL_OUTER = 'full outer';
+    public const GREATER_THAN = '>';
+    public const GROUP_CONCAT = 'GROUP_CONCAT';
+    public const GREATER_THAN_OR_EQUAL_TO = '>=';
+    public const HEX = 'hex';
+    public const INNER = 'inner';
+    public const JOIN = 'join';
+    public const LEFT = 'left';
+    public const LEFT_OUTER = 'left outer';
+    public const LESS_THAN = '<';
+    public const LESS_THAN_OR_EQUAL_TO = '<=';
     public const LIKE = ' LIKE ';
-    public const CURRENT_TIMESTAMP = ' CURRENT_TIMESTAMP ';
+    public const LIMIT = 'limit';
+    public const MIN = 'min';
+    public const MAX = 'max';
     public const NOW = ' NOW() ';
+    public const NOT_EQUAL = '<>';
+    public const ORDER = 'order';
+    public const PAGE = 'page';
+    public const PAGINATION = 'pagination';
+    public const RIGHT = 'right';
+    public const RIGHT_OUTER = 'right outer';
+    public const SELECT = 'select';
+    public const SUM = 'sum';
     public const TRANSACTION_TIMESTAMP = ' TRANSACTION_TIMESTAMP ';
+    public const UPDATE = 'update';
+    public const UNHEX = 'unhex';
+    public const WHERE = 'where';
 
     # carbon identifiers
     public const DEPENDANT_ON_ENTITY = 'DEPENDANT_ON_ENTITY';
 
-    # SQL helpful constants
-    public const DESC = ' DESC'; // not case sensitive but helpful for reporting to remain uppercase
-    public const ASC = ' ASC';
-
-    # PAGINATION properties
-    public const PAGINATION = 'pagination';
-    public const ORDER = 'order';
-    public const LIMIT = 'limit';
-    public const PAGE = 'page';
-
     # PHP validation methods
+    public const OPTIONS = 'OPTIONS';   // this is case sensitive dont touch
     public const GET = 'GET';   // this is case sensitive dont touch
     public const POST = 'POST';
     public const PUT = 'PUT';
@@ -72,11 +69,7 @@ abstract class Rest extends Database
     public const REST_REQUEST_FINNISH_CALLBACKS = 'FINISH';
     public const FINISH = self::REST_REQUEST_FINNISH_CALLBACKS;
     public const VALIDATE_C6_ENTITY_ID_REGEX = '#^' . Route::MATCH_C6_ENTITY_ID_REGEX . '$#';
-
-    // todo verify __CLASS__
     public const DISALLOW_PUBLIC_ACCESS = [self::class => 'disallowPublicAccess'];
-
-    #
     public static array $activeQueryStates = [];
     public static ?string $REST_REQUEST_METHOD = null;
 
@@ -150,7 +143,7 @@ abstract class Rest extends Database
                 throw new PublicAlert("Your implementation ($custom_prefix_carbon_table) of ($fullyQualifiedRestClassName) should implement " . iRestNoPrimaryKey::class . '. You should rerun RestBuilder.');
             }
         } else if (in_array(iRestMultiplePrimaryKeys::class, class_implements($fullyQualifiedRestClassName), true)
-                    && !in_array(iRestMultiplePrimaryKeys::class, class_implements($custom_prefix_carbon_table), true)) {
+            && !in_array(iRestMultiplePrimaryKeys::class, class_implements($custom_prefix_carbon_table), true)) {
             throw new PublicAlert("Your implementation ($custom_prefix_carbon_table) of ($fullyQualifiedRestClassName) should implement " . iRestMultiplePrimaryKeys::class . '. You should rerun RestBuilder.');
         }
 
@@ -513,35 +506,50 @@ abstract class Rest extends Database
 
             switch ($method) {
                 case self::GET:
-
                     if (array_key_exists(0, $_GET)) {
-                        $_GET = json_decode(stripcslashes($_GET[0]), true, JSON_THROW_ON_ERROR);    // which is why this is here
+                        if (ctype_xdigit($_GET[0])) {
+                            $_GET[0] = pack('H*', $_GET[0]);
+                        }
+
+                        $_GET = json_decode(stripcslashes($_GET[0]), true, JSON_THROW_ON_ERROR);
+
                         if (null === $_GET) {
                             throw new PublicAlert('Json decoding of $_GET[0] returned null. Please attempt serializing another way.');
                         }
                     } else {
-                        array_key_exists(self::SELECT, $_GET) and $_GET[self::SELECT] = json_decode($_GET[self::SELECT], true);
-                        array_key_exists(self::JOIN, $_GET) and $_GET[self::JOIN] = json_decode($_GET[self::JOIN], true);
-                        array_key_exists(self::WHERE, $_GET) and $_GET[self::WHERE] = json_decode($_GET[self::WHERE], true);
-                        array_key_exists(self::PAGINATION, $_GET) and $_GET[self::PAGINATION] = json_decode($_GET[self::PAGINATION], true);
+                        if (array_key_exists(self::SELECT, $_GET) && is_string($_GET[self::SELECT])) {
+                            $_GET[self::SELECT] = json_decode($_GET[self::SELECT], true);
+                        }
+                        if (array_key_exists(self::JOIN, $_GET) && is_string($_GET[self::JOIN])) {
+                            $_GET[self::JOIN] = json_decode($_GET[self::JOIN], true);
+                        }
+                        if (array_key_exists(self::WHERE, $_GET) && is_string($_GET[self::WHERE])) {
+                            $_GET[self::WHERE] = json_decode($_GET[self::WHERE], true);
+                        }
+                        if (array_key_exists(self::PAGINATION, $_GET) && is_string($_GET[self::PAGINATION])) {
+                            $_GET[self::PAGINATION] = json_decode($_GET[self::PAGINATION], true);
+                        }
                     }
                     $args = $_GET;
                     break;
                 case self::PUT:
                     if ($primary === null) {
-                        throw new PublicAlert('Updating restful records requires a primary key.');
+                        throw new PublicAlert('Updating restful records requires a primary key.'); // todo - add updates optional primary bool
                     }
+                case self::OPTIONS:
+                    $_SERVER['REQUEST_METHOD'] = self::GET;
                 case self::POST:
                 case self::DELETE:
                     $args = $_POST;
                     break;
                 default:
-                    throw new PublicAlert('The REQUEST_METHOD is not RESTFUL. Method must be either \'POST\', \'PUT\', \'GET\', or \'DELETE\'.');
+                    throw new PublicAlert('The REQUEST_METHOD is not RESTFUL. Method must be either \'POST\', \'PUT\', \'GET\', or \'DELETE\'. The \'OPTIONS\' method may be used in substation for the \'GET\' request which better enables and speeds up advanced queries.');
             }
 
             $methodCase = ucfirst(strtolower($_SERVER['REQUEST_METHOD']));  // this is to match actual method spelling
 
             switch ($method) {
+                case self::OPTIONS:
                 case self::PUT:
                 case self::DELETE:
                 case self::GET:
