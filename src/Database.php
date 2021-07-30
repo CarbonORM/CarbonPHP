@@ -45,6 +45,8 @@ class Database
 {
     use ColorCode, Composer;
 
+    private static array $pdo_options;
+
     /**
      * @var bool - error catcher needs to initialize quickly,
      * and can relies on a data connection which may not be set here at the moment of its own initialization
@@ -123,19 +125,20 @@ FOOT;
             self::$database->prepare('SELECT 1')->execute();     // This has had a history of causing spotty error.. if this is the location of your error, you should keep looking...
             error_reporting($oldLevel);
             return static::$database;                       // Why should this work again?
-        } catch (Error | Exception | PDOException $e) {// added for socket support
-            self::colorCode('Attempting to reset the database. Possible disconnect.', iColorCode::RED);
+        } catch (Throwable $e) {// added for socket support
+            ErrorCatcher::generateLog($e);
+            self::colorCode('Attempting to reset the database. Possible disconnect.', iColorCode::BACKGROUND_YELLOW);
             error_reporting($oldLevel);
             return static::reset();
         }
     }
 
-    public static function TryCatch(callable $closure) // TODO - carbon reporting on errors.. probably in 5.*
+    public static function TryCatchPDOException(callable $closure) // TODO - carbon reporting on errors.. probably in 5.*
     {
         try {
             return $closure();
         } catch (PDOException $e) {
-
+            $error_array = ErrorCatcher::generateLog($e);
             switch ($e->getCode()) {        // Database has not been created
                 case 1049:
                     $query = explode(';', static::$dsn);    // I programmatically put it there which is why..
@@ -149,38 +152,43 @@ FOOT;
 
                     try {
                         // https://www.php.net/manual/en/pdo.setattribute.php
-                        static::$database = new PDO($query[0], static::$username, static::$password,
-                            [
-                                PDO::ATTR_PERSISTENT => CarbonPHP::$cli,                // only in cli (including websockets)
-                                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                                PDO::MYSQL_ATTR_FOUND_ROWS => true,
-                                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                                PDO::ATTR_CASE => PDO::CASE_NATURAL,
-                                PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL
-                            ]);
+                        static::$database = new PDO(
+                            $query[0],
+                            static::$username,
+                            static::$password,
+                            self::getPdoOptions());
 
-                    } catch (PDOException $e) {
+                    } catch (Throwable $e) {
+                        
+                        $error_array_two = ErrorCatcher::generateLog($e);
+                        
                         if ($e->getCode() === 1049) {
-                            print '<h1>Auto Setup Failed!</h1><h3>Your database DSN may be slightly malformed.</h3>';
-                            print '<p>CarbonPHP requires the host come before the database in your DNS.</p>';
-                            print '<p>It should follow the following format "mysql:host=127.0.0.1;dbname=C6".</p>';
+                            $error_array_two[] = '<h1>Auto Setup Failed!</h1><h3>Your database DSN may be slightly malformed.</h3>';
+                            $error_array_two[] =  '<p>CarbonPHP requires the host come before the database in your DNS.</p>';
+                            $error_array_two[] =  '<p>It should follow the following format "mysql:host=127.0.0.1;dbname=C6".</p>';
                         }
-                        /** @noinspection ForgottenDebugOutputInspection */
-                        var_dump($e->getMessage());
-                        exit($e->getMessage());
+                        
+                        ErrorCatcher::generateBrowserReport($error_array_two);  // this terminates
                     }
 
                     $stmt = "CREATE DATABASE $db_name;";
 
+                    $db = static::$database;
+
                     if (!$db->prepare($stmt)->execute()) {
-                        print '<h1>Failed to insert database. See CarbonPHP.com for documentation.</h1>' and die;
+                        $error_array[] = '<h1>Failed to insert database. See CarbonPHP.com for documentation.</h1>';
+                        
+                        ErrorCatcher::generateBrowserReport($error_array);  // this terminates
                     } else {
                         $db->exec("use $db_name");
+                        
                         static::setUp(!CarbonPHP::$cli, CarbonPHP::$cli);
                     }
+                    
                     break;
                 case '42S02':
                     /** @noinspection ForgottenDebugOutputInspection */
+                    ErrorCatcher::generateBrowserReportFromError($error_array);
                     var_dump($e->getMessage());
 
                     print $e->getMessage() . PHP_EOL . '<br />';
@@ -226,17 +234,21 @@ FOOT;
 
         do {
             try {
-                return self::TryCatch(
+                return self::TryCatchPDOException(
                     static function () use ($prep) {
                         // @link https://stackoverflow.com/questions/10522520/pdo-were-rows-affected-during-execute-statement
-                        return $prep(@new PDO(static::$dsn, static::$username, static::$password, array(PDO::MYSQL_ATTR_FOUND_ROWS => true)));
+                        return $prep(new PDO(
+                            static::$dsn, 
+                            static::$username, 
+                            static::$password, 
+                            self::getPdoOptions()));
                     });
             } catch (Throwable $e) {
                 $attempts++;
             }
         } while ($attempts < 3);
 
-        ColorCode::colorCode('Failed to connect to database.', 'red');
+        ColorCode::colorCode('Failed to connect to database.', iColorCode::RED);
 
         ErrorCatcher::generateLog($e);
 
@@ -367,6 +379,29 @@ FOOT;
         }
 
         return $return;
+    }
+
+    /**
+     * @return array
+     */
+    public static function getPdoOptions(): array
+    {
+        return self::$pdo_options ??= [
+            PDO::ATTR_PERSISTENT => CarbonPHP::$cli,                // only in cli (including websockets)
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::MYSQL_ATTR_FOUND_ROWS => true,
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_CASE => PDO::CASE_NATURAL,
+            PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL
+        ];
+    }
+
+    /**
+     * @param array $pdo_options
+     */
+    public static function setPdoOptions(array $pdo_options): void
+    {
+        self::$pdo_options = $pdo_options;
     }
 
     /** Based off the pdo.beginTransaction() method

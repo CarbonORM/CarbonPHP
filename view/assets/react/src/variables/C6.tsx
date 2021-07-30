@@ -2,24 +2,59 @@
 
 export const C6 = {
 
-    SELECT: 'select',
-    UPDATE: 'update',
-    WHERE: 'where',
-    LIMIT: 'limit',
-    PAGINATION: 'pagination',
-    ORDER: 'order',
-    DESC: ' DESC',
+
+    // try to 1=1 match the Rest abstract class
+    AS: 'as',
     ASC: ' ASC',
-    JOIN: 'join',
-    INNER: 'inner',
-    LEFT: 'left',
-    RIGHT: 'right',
-    DISTINCT: 'distinct',
     COUNT: 'count',
-    SUM: 'sum',
+    CURRENT_TIMESTAMP: ' CURRENT_TIMESTAMP ',
+    DESC: ' DESC',
+    DISTINCT: 'distinct',
+    EQUAL: '=',
+    EQUAL_NULL_SAFE: '<=>',
+    FULL_OUTER: 'full outer',
+    GREATER_THAN: '>',
+    GROUP_CONCAT: 'GROUP_CONCAT',
+    GREATER_THAN_OR_EQUAL_TO: '>=',
+    INNER: 'inner',
+    JOIN: 'join',
+    LEFT: 'left',
+    LEFT_OUTER: 'left outer',
+    LESS_THAN: '<',
+    LESS_THAN_OR_EQUAL_TO: '<=',
+    LIKE: ' LIKE ',
+    LIMIT: 'limit',
     MIN: 'min',
     MAX: 'max',
-    GROUP_CONCAT: 'GROUP_CONCAT',
+    NOW: ' NOW() ',
+    NOT_EQUAL: '<>',
+    ORDER: 'order',
+    PAGE: 'page',
+    PAGINATION: 'pagination',
+    RIGHT_OUTER: 'right outer',
+    SELECT: 'select',
+    SUM: 'sum',
+    TRANSACTION_TIMESTAMP: ' TRANSACTION_TIMESTAMP ',
+    UPDATE: 'update',
+    UNHEX: 'unhex',
+    WHERE: 'where',
+    
+    // carbon identifiers
+    DEPENDANT_ON_ENTITY: 'DEPENDANT_ON_ENTITY',
+   
+    // PHP validation
+    OPTIONS: 'OPTIONS',
+    GET: 'GET',
+    POST: 'POST',
+    PUT: 'PUT',
+    DELETE: 'DELETE',
+    REST_REQUEST_PREPROCESS_CALLBACKS: 'PREPROCESS',
+    PREPROCESS: 'PREPROCESS',
+    REST_REQUEST_FINNISH_CALLBACKS: 'FINISH',
+    FINISH: 'FINISH',
+    VALIDATE_C6_ENTITY_ID_REGEX: '#^([a-fA-F0-9]{20,35})$#',
+
+    
     
     
 

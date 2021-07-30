@@ -10,8 +10,9 @@ use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Programs\Background;
 use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Rest;
-use CarbonPHP\Tables\Carbons;
 use CarbonPHP\Tables\Reports;
+use Error;
+use PHPMailer\PHPMailer\Exception;
 use ReflectionException;
 use ReflectionMethod;
 use Throwable;
@@ -141,9 +142,27 @@ END;
 
     /**
      * This terminates!
+     * @param Error $throwable
+     */
+    public static function generateBrowserReportFromError(Error $throwable): void
+    {
+        self::generateBrowserReport(self::generateLog($throwable));
+    }
+
+    /**
+     * This terminates!
      * @param Throwable $throwable
      */
-    public static function generateBrowserReportFromError(Throwable $throwable): void
+    public static function generateBrowserReportFromThrowable(Throwable $throwable): void
+    {
+        self::generateBrowserReport(self::generateLog($throwable));
+    }
+
+    /**
+     * This terminates!
+     * @param Exception $throwable
+     */
+    public static function generateBrowserReportFromException(Exception $throwable): void
     {
         self::generateBrowserReport(self::generateLog($throwable));
     }
@@ -238,14 +257,20 @@ END;
             switch ($errorLevel) {
                 case E_USER_ERROR:
                     $fatalError = true;
+
                     self::colorCode('E_USER_ERROR caught', 'true');
+
                     $browserOutput["USER ERROR [$errorLevel]"] = $errorString;
+
                     $browserOutput['FATAL ERROR'] = "Fatal error on line $errorLine in file $errorFile";
+
                     $browserOutput['PHP'] = PHP_VERSION . ' (' . PHP_OS . ')';
+
                     break;
                 case E_USER_WARNING:
                     // TODO - not report in app local?
                     $browserOutput["WARNING [$errorLevel]"] = $errorString;
+
                     break;
                 case E_USER_NOTICE:
                     $browserOutput["NOTICE [$errorLevel]"] = $errorString;
@@ -256,6 +281,7 @@ END;
             }
 
             $browserOutput['FILE'] = $errorFile;
+
             $browserOutput['LINE'] = (string)$errorLine;
 
             self::generateLog(null, 'log', $browserOutput);
@@ -301,6 +327,7 @@ END;
         // the return hint on set_error_handler is incorrect as array may also be returned.
         // @link https://www.php.net/manual/en/function.set-error-handler.php
         self::$old_error_handler = set_error_handler($error_handler);
+
         self::$old_exception_handler = set_exception_handler($exception_handler);   // takes one argument
 
         return self::$old_error_level;
@@ -309,7 +336,9 @@ END;
     // The following two should be of type   ?Closure|array
     // @link https://www.php.net/manual/en/function.set-error-handler.php
     public static $old_error_handler = null;
+
     public static $old_exception_handler = null;
+
     public static ?int $old_error_level = null;
 
 
@@ -321,10 +350,15 @@ END;
             trigger_error('Looks like you are trying to run ErrorCatcher::stop() before running start. This is not supported.', E_USER_WARNING);
             return;
         }
+
         error_reporting(self::$old_error_level);
+
         $error_handler = self::$old_error_handler;
+
         $exception_handler = self::$old_exception_handler;
+
         set_error_handler($error_handler);
+
         set_exception_handler($exception_handler);   // takes one argument
     }
 
