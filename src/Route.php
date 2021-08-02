@@ -74,14 +74,18 @@ abstract class Route
             if (CarbonPHP::$safelyExit || self::$matched || CarbonPHP::$cli || CarbonPHP::$test) {
                 return;
             }
+
             if (CarbonPHP::$socket) {
                 print 'Socket Left Route Class Un-Matched' . PHP_EOL;
                 exit(1);
             }
+
             self::$matched = true;
+
             $this->defaultRoute();
+
         } catch (Throwable $e) {
-            ErrorCatcher::generateBrowserReportFromError($e);
+            ErrorCatcher::generateBrowserReportFromThrowable($e);
         }
     }
 
@@ -94,14 +98,19 @@ abstract class Route
     public function __construct(callable $structure = null)
     {
         $this->closure = $structure;
+
         // This check allows Route to be independent of Carbon/Application, but benefit if we've already initiated
         if (isset(CarbonPHP::$uri) && !CarbonPHP::$socket) {
             $this->uri = CarbonPHP::$uri;
+
             $this->uriExplode = explode('/', trim(CarbonPHP::$uri, '/'));
+
             $this->uriLength = count($this->uriExplode);
         } else {
             $this->uri = trim(urldecode(parse_url(trim(preg_replace('/\s+/', ' ', $_SERVER['REQUEST_URI'] ?? '')), PHP_URL_PATH)));
+
             $this->uriExplode = explode('/', $this->uri,);
+
             $this->uriLength = substr_count($this->uri, '/') + 1; // I need the exploded string
         }
     }
@@ -112,8 +121,11 @@ abstract class Route
     public function changeURI(string $uri): void
     {
         $this->uri = $uri = trim($uri, '/');
+
         $this->uriExplode = explode('/', $uri);
+
         $this->uriLength = substr_count($uri, '/') + 1;
+
         self::$matched = false;
     }
 

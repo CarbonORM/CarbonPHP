@@ -475,6 +475,8 @@ MYSQL;
     {
         self::startRest(self::PUT, $returnUpdated, $argv, $primary);
         
+        $replace = false;
+        
         $where = [];
 
         if (array_key_exists(self::WHERE, $argv)) {
@@ -482,13 +484,16 @@ MYSQL;
             unset($argv[self::WHERE]);
         }
         
-        if (array_key_exists(self::UPDATE, $argv)) {
+        if (array_key_exists(self::REPLACE, $argv)) {
+            $replace = true;
+            $argv = $argv[self::REPLACE];
+        } else if (array_key_exists(self::UPDATE, $argv)) {
             $argv = $argv[self::UPDATE];
         }
         
         $emptyPrimary = null === $primary || '' === $primary;
         
-        if (false === self::$allowFullTableUpdates && $emptyPrimary) { 
+        if (false === $replace && false === self::$allowFullTableUpdates && $emptyPrimary) { 
             return self::signalError('Restful tables which have a primary key must be updated by its primary key. To bypass this set you may set `self::$allowFullTableUpdates = true;` during the PREPROCESS events.');
         }
 
@@ -507,7 +512,7 @@ MYSQL;
         }
         unset($value);
 
-        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_features SET '; // intellij cant handle this otherwise
+        $sql = /** @lang MySQLFragment */ ($replace ? self::REPLACE : self::UPDATE) . ' carbon_features SET '; // intellij cant handle this otherwise
 
         $set = '';
 
@@ -529,7 +534,7 @@ MYSQL;
             $pdo->beginTransaction();
         }
 
-        if (false === self::$allowFullTableUpdates || !empty($where)) {
+        if (false === $replace && (false === self::$allowFullTableUpdates || !empty($where))) {
             $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
         }
         

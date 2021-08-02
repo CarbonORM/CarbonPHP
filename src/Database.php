@@ -133,7 +133,11 @@ FOOT;
         }
     }
 
-    public static function TryCatchPDOException(callable $closure) // TODO - carbon reporting on errors.. probably in 5.*
+    /**
+     * @param callable $closure
+     * @return mixed
+     */
+    public static function TryCatchPDOException(callable $closure)
     {
         try {
             return $closure();
@@ -187,23 +191,20 @@ FOOT;
                     
                     break;
                 case '42S02':
-                    /** @noinspection ForgottenDebugOutputInspection */
-                    ErrorCatcher::generateBrowserReportFromError($error_array);
-                    var_dump($e->getMessage());
-
-                    print $e->getMessage() . PHP_EOL . '<br />';
+                    ErrorCatcher::generateBrowserReport($error_array);
 
                     static::setUp(!CarbonPHP::$cli, CarbonPHP::$cli);
 
                     break;
                 default:
                     if (empty(static::$username)) {
-                        print '<h2>You must set a database user name. See CarbonPHP.com for documentation</h2>';
+                        $error_array[] =  '<h2>You must set a database user name. See CarbonPHP.com for documentation</h2>';
                     }
                     if (empty(static::$password)) {
-                        print '<h2>You may need to set a database password. See CarbonPHP.com for documentation</h2>';
+                        $error_array[] =  '<h2>You may need to set a database password. See CarbonPHP.com for documentation</h2>';
                     }
-                    print $e->getMessage() . '<br>';    // This may print twice if a try catch block is active.
+
+                    ErrorCatcher::generateBrowserReport($error_array);
 
                     exit($e->getMessage());                            // but don't fear, die does work.
             }
@@ -339,11 +340,7 @@ FOOT;
                 }
             }
         } catch (PDOException $e) {                     // todo - think about this more
-            ErrorCatcher::generateBrowserReportFromError($e);
-        } finally {
-            if (null !== $errorMessage) {
-                PublicAlert::danger($errorMessage);
-            }
+            ErrorCatcher::generateBrowserReportFromThrowable($e);
         }
         return false;
     }
@@ -465,7 +462,7 @@ FOOT;
     {
         $count = 0;
 
-        $carbons = Rest::getDynamicRestClass(Carbons::class);
+        $carbons = Rest::getDynamicRestClass(Carbons::class, iRestSinglePrimaryKey::class);
 
         do {
             $count++;

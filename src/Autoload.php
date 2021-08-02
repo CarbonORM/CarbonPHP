@@ -46,6 +46,9 @@ namespace CarbonPHP;
  *
  *      <?php
  *      new \Foo\Bar\Qux\QuuxTest;
+ *
+ *
+ * @deprecated Composer autoload is the industry standard.
  */
 class Autoload
 {

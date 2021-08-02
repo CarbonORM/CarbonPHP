@@ -37,7 +37,7 @@ import FileStructure from "./FileStructure";
 import AccessControl from "../../AccessControl/AccessControl";
 import swal from '@sweetalert/with-react';
 import Button from "../../../components/CustomButtons/Button";
-import {C6, iCarbon_Features, iCarbon_Groups, iCarbon_Users} from "../../../variables/C6";
+import {C6, iFeatures, iGroups, iUsers} from "../../../variables/C6";
 
 
 const HelloWorld = raw("../../../assets/examples/HelloWorld.php");
@@ -56,7 +56,7 @@ const restTest = raw("../../../../../../../tests/feature/RestTest.php");
 const restUserTest = raw("../../../../../../../tests/feature/UserTest.php");
 const iRest = raw("../../../../../../../src/interfaces/iRest.php");
 const iRestfulReferences = raw("../../../../../../../src/interfaces/iRestfulReferences.php");
-const CarbonUsersTable = raw("../../../../../../../src/tables/Carbon_Users.php");
+const CarbonUsersTable = raw("../../../../../../../src/tables/Users.php");
 const forksCode = raw("../../../../../../../src/helpers/Fork.php");
 const websocketCode = raw("../../../../../../../src/programs/WebSocket.php");
 
@@ -74,7 +74,7 @@ const AutoLoadingLoop = `#####################   AUTOLOAD    ###################
 
 const JS_ORM_EXAMPLE_1 = `# React Code
 <Button color="info" round onClick={() => {
-  axios.get('/rest/' + C6.carbon_features.TABLE_NAME)
+  axios.get('/rest/' + C6.features.TABLE_NAME)
     .then(response => this.setState({ features: (response.data.rest || []) }));
 }}>
   Example #1
@@ -82,27 +82,27 @@ const JS_ORM_EXAMPLE_1 = `# React Code
 const JS_ORM_EXAMPLE_2 = `# React Code
 <Button color="info" round onClick={() => {
   // noinspection DuplicatedCode
-  axios.get('/rest/' + C6.carbon_groups.TABLE_NAME, {
+  axios.get('/rest/' + C6.groups.TABLE_NAME, {
     params: {
       [C6.SELECT]: [
-        C6.carbon_groups.ENTITY_ID,
-        C6.carbon_groups.GROUP_NAME,
-        [C6.GROUP_CONCAT, C6.carbon_features.FEATURE_CODE],
-        [C6.GROUP_CONCAT, C6.carbon_group_references.ALLOWED_TO_GRANT_GROUP_ID]
+        C6.groups.ENTITY_ID,
+        C6.groups.GROUP_NAME,
+        [C6.GROUP_CONCAT, C6.features.FEATURE_CODE],
+        [C6.GROUP_CONCAT, C6.group_references.ALLOWED_TO_GRANT_GROUP_ID]
       ],
       [C6.JOIN]: {
         [C6.LEFT]: {
-          [C6.carbon_group_references.TABLE_NAME]: [
-            C6.carbon_group_references.GROUP_ID,
-            C6.carbon_groups.ENTITY_ID
+          [C6.group_references.TABLE_NAME]: [
+            C6.group_references.GROUP_ID,
+            C6.groups.ENTITY_ID
           ],
-          [C6.carbon_feature_group_references.TABLE_NAME]: [
-            C6.carbon_groups.ENTITY_ID,
-            C6.carbon_feature_group_references.GROUP_ENTITY_ID
+          [C6.feature_group_references.TABLE_NAME]: [
+            C6.groups.ENTITY_ID,
+            C6.feature_group_references.GROUP_ENTITY_ID
           ],
-          [C6.carbon_features.TABLE_NAME]: [
-            C6.carbon_features.FEATURE_ENTITY_ID,
-            C6.carbon_feature_group_references.FEATURE_ENTITY_ID
+          [C6.features.TABLE_NAME]: [
+            C6.features.FEATURE_ENTITY_ID,
+            C6.feature_group_references.FEATURE_ENTITY_ID
           ]
         }
       },
@@ -114,36 +114,37 @@ const JS_ORM_EXAMPLE_2 = `# React Code
 }}>
   Example #2
 </Button>`;
+
 const JS_ORM_EXAMPLE_3 = `# React Code
 <Button color="info" round onClick={() => {
   // noinspection DuplicatedCode
-  axios.get('/rest/' + C6.carbon_users.TABLE_NAME, {
+  axios.get('/rest/' + C6.users.TABLE_NAME, {
     params: {
       [C6.SELECT]: [
-        C6.carbon_users.USER_USERNAME,
-        C6.carbon_users.USER_FIRST_NAME,
-        C6.carbon_users.USER_LAST_NAME,
-        C6.carbon_users.USER_ID,
-        [C6.GROUP_CONCAT, C6.carbon_features.FEATURE_CODE],
-        [C6.GROUP_CONCAT, C6.carbon_groups.GROUP_NAME]
+        C6.users.USER_USERNAME,
+        C6.users.USER_FIRST_NAME,
+        C6.users.USER_LAST_NAME,
+        C6.users.USER_ID,
+        [C6.GROUP_CONCAT, C6.features.FEATURE_CODE],
+        [C6.GROUP_CONCAT, C6.groups.GROUP_NAME]
       ],
       [C6.JOIN]: {
         [C6.LEFT]: {
-          [C6.carbon_user_groups.TABLE_NAME]: [
-            C6.carbon_users.USER_ID,
-            C6.carbon_user_groups.USER_ID
+          [C6.user_groups.TABLE_NAME]: [
+            C6.users.USER_ID,
+            C6.user_groups.USER_ID
           ],
-          [C6.carbon_groups.TABLE_NAME]: [
-            C6.carbon_user_groups.GROUP_ID,
-            C6.carbon_groups.ENTITY_ID
+          [C6.groups.TABLE_NAME]: [
+            C6.user_groups.GROUP_ID,
+            C6.groups.ENTITY_ID
           ],
-          [C6.carbon_feature_group_references.TABLE_NAME]: [
-            C6.carbon_groups.ENTITY_ID,
-            C6.carbon_feature_group_references.GROUP_ENTITY_ID
+          [C6.feature_group_references.TABLE_NAME]: [
+            C6.groups.ENTITY_ID,
+            C6.feature_group_references.GROUP_ENTITY_ID
           ],
-          [C6.carbon_features.TABLE_NAME]: [
-            C6.carbon_features.FEATURE_ENTITY_ID,
-            C6.carbon_feature_group_references.FEATURE_ENTITY_ID
+          [C6.features.TABLE_NAME]: [
+            C6.features.FEATURE_ENTITY_ID,
+            C6.feature_group_references.FEATURE_ENTITY_ID
           ]
         }
       },
@@ -163,18 +164,18 @@ interface iCarbonPHP extends WithStyles<typeof dashboardStyle> {
   codeBlock: (markdown: String, highlight ?: String, language ?: String, dark ?: boolean) => any;
 }
 
-interface UserAccessControl extends iCarbon_Users {
+interface UserAccessControl extends iUsers {
   group_name?: string,
   feature_code?: string
 }
 
-interface iGroupFeatures extends iCarbon_Groups, iCarbon_Features {
+interface iGroupFeatures extends iGroups, iFeatures {
   allowed_to_grant_group_id?: string;
 }
 
 class CarbonPHP extends React.Component<iCarbonPHP, {
   users?: Array<UserAccessControl>,
-  features?: Array<iCarbon_Features>,
+  features?: Array<iFeatures>,
   groups?: Array<iGroupFeatures>,
   exampleCode: string,
   jsonStringOutput: string,
@@ -776,7 +777,7 @@ class CarbonPHP extends React.Component<iCarbonPHP, {
                       <br/>
                       <br/>
                       <Button color="info" round onClick={() => {
-                        axios.get('/rest/' + C6.carbon_features.TABLE_NAME)
+                        axios.get('/rest/' + C6.features.TABLE_NAME)
                           .then(response => this.setState({
                             features: (response.data.rest || []),
                             exampleCode: JS_ORM_EXAMPLE_1,
@@ -787,27 +788,27 @@ class CarbonPHP extends React.Component<iCarbonPHP, {
                       </Button>
                       <Button color="info" round onClick={() => {
                         // noinspection DuplicatedCode
-                        axios.get('/rest/' + C6.carbon_groups.TABLE_NAME, {
+                        axios.get('/rest/' + C6.groups.TABLE_NAME, {
                           params: {
                             [C6.SELECT]: [
-                              C6.carbon_groups.ENTITY_ID,
-                              C6.carbon_groups.GROUP_NAME,
-                              [C6.GROUP_CONCAT, C6.carbon_features.FEATURE_CODE],
-                              [C6.GROUP_CONCAT, C6.carbon_group_references.ALLOWED_TO_GRANT_GROUP_ID]
+                              C6.groups.ENTITY_ID,
+                              C6.groups.GROUP_NAME,
+                              [C6.GROUP_CONCAT, C6.features.FEATURE_CODE],
+                              [C6.GROUP_CONCAT, C6.group_references.ALLOWED_TO_GRANT_GROUP_ID]
                             ],
                             [C6.JOIN]: {
                               [C6.LEFT]: {
-                                [C6.carbon_group_references.TABLE_NAME]: [
-                                  C6.carbon_group_references.GROUP_ID,
-                                  C6.carbon_groups.ENTITY_ID
+                                [C6.group_references.TABLE_NAME]: [
+                                  C6.group_references.GROUP_ID,
+                                  C6.groups.ENTITY_ID
                                 ],
-                                [C6.carbon_feature_group_references.TABLE_NAME]: [
-                                  C6.carbon_groups.ENTITY_ID,
-                                  C6.carbon_feature_group_references.GROUP_ENTITY_ID
+                                [C6.feature_group_references.TABLE_NAME]: [
+                                  C6.groups.ENTITY_ID,
+                                  C6.feature_group_references.GROUP_ENTITY_ID
                                 ],
-                                [C6.carbon_features.TABLE_NAME]: [
-                                  C6.carbon_features.FEATURE_ENTITY_ID,
-                                  C6.carbon_feature_group_references.FEATURE_ENTITY_ID
+                                [C6.features.TABLE_NAME]: [
+                                  C6.features.FEATURE_ENTITY_ID,
+                                  C6.feature_group_references.FEATURE_ENTITY_ID
                                 ]
                               }
                             },
@@ -825,33 +826,33 @@ class CarbonPHP extends React.Component<iCarbonPHP, {
                       </Button>
                       <Button color="info" round onClick={() => {
                         // noinspection DuplicatedCode
-                        axios.get('/rest/' + C6.carbon_users.TABLE_NAME, {
+                        axios.get('/rest/' + C6.users.TABLE_NAME, {
                           params: {
                             [C6.SELECT]: [
-                              C6.carbon_users.USER_USERNAME,
-                              C6.carbon_users.USER_FIRST_NAME,
-                              C6.carbon_users.USER_LAST_NAME,
-                              C6.carbon_users.USER_ID,
-                              [C6.GROUP_CONCAT, C6.carbon_features.FEATURE_CODE],
-                              [C6.GROUP_CONCAT, C6.carbon_groups.GROUP_NAME]
+                              C6.users.USER_USERNAME,
+                              C6.users.USER_FIRST_NAME,
+                              C6.users.USER_LAST_NAME,
+                              C6.users.USER_ID,
+                              [C6.GROUP_CONCAT, C6.features.FEATURE_CODE],
+                              [C6.GROUP_CONCAT, C6.groups.GROUP_NAME]
                             ],
                             [C6.JOIN]: {
                               [C6.LEFT]: {
-                                [C6.carbon_user_groups.TABLE_NAME]: [
-                                  C6.carbon_users.USER_ID,
-                                  C6.carbon_user_groups.USER_ID
+                                [C6.user_groups.TABLE_NAME]: [
+                                  C6.users.USER_ID,
+                                  C6.user_groups.USER_ID
                                 ],
-                                [C6.carbon_groups.TABLE_NAME]: [
-                                  C6.carbon_user_groups.GROUP_ID,
-                                  C6.carbon_groups.ENTITY_ID
+                                [C6.groups.TABLE_NAME]: [
+                                  C6.user_groups.GROUP_ID,
+                                  C6.groups.ENTITY_ID
                                 ],
-                                [C6.carbon_feature_group_references.TABLE_NAME]: [
-                                  C6.carbon_groups.ENTITY_ID,
-                                  C6.carbon_feature_group_references.GROUP_ENTITY_ID
+                                [C6.feature_group_references.TABLE_NAME]: [
+                                  C6.groups.ENTITY_ID,
+                                  C6.feature_group_references.GROUP_ENTITY_ID
                                 ],
-                                [C6.carbon_features.TABLE_NAME]: [
-                                  C6.carbon_features.FEATURE_ENTITY_ID,
-                                  C6.carbon_feature_group_references.FEATURE_ENTITY_ID
+                                [C6.features.TABLE_NAME]: [
+                                  C6.features.FEATURE_ENTITY_ID,
+                                  C6.feature_group_references.FEATURE_ENTITY_ID
                                 ]
                               }
                             },

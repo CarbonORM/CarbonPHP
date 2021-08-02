@@ -1,4 +1,5 @@
-<?php
+<?php /** @noinspection PhpMissingParamTypeInspection */
+
 /**
  * Created by IntelliJ IDEA.
  * User: Miles
@@ -18,6 +19,7 @@ namespace CarbonPHP;
 use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Helpers\Serialized;
+use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Programs\Background;
 use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Programs\WebSocket;
@@ -38,6 +40,9 @@ class Session implements SessionHandlerInterface
 
 
     protected static ?Session $singleton = null;
+
+    protected static ?iRestSinglePrimaryKey $session_table = null;
+
     /**
      * @var null|string - if we need to close or pause the session in the middle of execution,
      * this will persistently hold our session_id.
@@ -68,7 +73,7 @@ class Session implements SessionHandlerInterface
         if (!$count) {
             $count = true;
 
-            self::$singleton = $this;
+            self::$singleton = $this;   // I want the destructor to happen at the end of the process life
 
             session_write_close(); //cancel the session's auto start, important
 
@@ -77,6 +82,7 @@ class Session implements SessionHandlerInterface
             if ($dbStore && !headers_sent()) {
                 /** @noinspection PhpExpressionResultUnusedInspection */
                 ini_set('session.gc_probability', 1);  // Clear any lingering session data in default locations
+
                 if (!session_set_save_handler($this, false)) {           // set this class as the session handler
                     throw new PublicAlert('Session failed to store remotely');
                 }
@@ -98,7 +104,7 @@ class Session implements SessionHandlerInterface
             $_SESSION['id'] = array_key_exists('id', $_SESSION ??= []) ? $_SESSION['id'] : false;
 
         } catch (Throwable $e) {
-            ErrorCatcher::generateBrowserReportFromError($e); // This terminates!
+            ErrorCatcher::generateBrowserReportFromThrowable($e); // This terminates!
         }
     }
 
@@ -123,8 +129,11 @@ class Session implements SessionHandlerInterface
         if ($session_id !== null) {
             static::$session_id = $session_id;
         }
+
         session_id(static::$session_id);
+
         session_start();
+
         return self::$singleton;
     }
 
@@ -146,7 +155,9 @@ class Session implements SessionHandlerInterface
     public static function update($clear = false): void
     {
         global $user;
+
         static $count = 0;
+
         $count++;
 
         $_SESSION['id'] ??= false;
@@ -178,9 +189,11 @@ class Session implements SessionHandlerInterface
             /** @noinspection OnlyWritesOnParameterInspection */
             ($lambda = self::$callback)($clear);    // you must have callable in a variable in fn scope
         }
+
         if (!defined('X_PJAX_VERSION')) {
             define('X_PJAX_VERSION', $_SESSION['X_PJAX_Version']);
         }
+
         Request::sendHeaders();  // Send any stored headers
     }
 
@@ -190,8 +203,9 @@ class Session implements SessionHandlerInterface
      */
     public static function clear(): void
     {
+        $session_class_name = Rest::getDynamicRestClass(Sessions::class);
 
-        $session = Rest::getDynamicRestClass(Sessions::class);
+        self::$session_table ??= new $session_class_name;
 
         try {
             $id = session_id();
@@ -200,13 +214,12 @@ class Session implements SessionHandlerInterface
 
             session_write_close();
 
-            /** @noinspection PhpUndefinedMethodInspection */
-            $session::Delete($_SESSION, $id, []);
+            self::$session_table::Delete($_SESSION, $id, []);
 
             session_start();
 
         } catch (PDOException $e) {
-            ErrorCatcher::generateBrowserReportFromError($e);   // this terminates!
+            ErrorCatcher::generateBrowserReportFromThrowable($e);   // this terminates!
         }
     }
 
@@ -231,6 +244,7 @@ class Session implements SessionHandlerInterface
 
         if (false === @preg_match('#PHPSESSID=([^;\s]+)#', $_SERVER['HTTP_COOKIE'], $array, PREG_OFFSET_CAPTURE)) {
             self::colorCode('Failed to verify socket IP address.', 'red');
+
             return false;
         }
 
@@ -240,6 +254,7 @@ class Session implements SessionHandlerInterface
 
         if (false === $session_id) {
             self::colorCode("\nCould not parse session id\n", 'red');
+
             return false;
         }
 
@@ -267,6 +282,21 @@ class Session implements SessionHandlerInterface
         return true;
     }
 
+    /**
+     * @return iRestSinglePrimaryKey|null
+     */
+    public static function getSessionTable(): iRestSinglePrimaryKey
+    {
+        if (null === self::$session_table) {
+
+            $table_name = Rest::getDynamicRestClass(Sessions::class);    // all because custom prefixes and callbacks exist
+
+            self::$session_table = new $table_name; // This is only for referencing and is not actually needed in an instance.
+        }
+
+        return self::$session_table;
+    }
+
     /** This is required for the session save handler interface.
      *  Do no change.
      *
@@ -276,17 +306,12 @@ class Session implements SessionHandlerInterface
      */
     public function open($savePath, $sessionName): bool
     {
-        $session = Rest::getDynamicRestClass(Sessions::class);
 
-        try {
-            Database::database()->prepare('SELECT count(*) FROM ' . $session::TABLE_NAME . ' LIMIT 1')->execute();
-        } catch (PDOException $e) {
-            if ($e->getCode()) {
-                print "<h1>Setting up database {$e->getCode()}</h1>";
-                Database::setUp();
-                exit(1);
-            }
-        }
+        Database::TryCatchPDOException(
+            fn() => Database::database()
+                ->prepare('SELECT count(*) FROM ' . self::getSessionTable()::TABLE_NAME . ' LIMIT 1')
+                ->execute());
+
         return true;
     }
 
@@ -294,7 +319,9 @@ class Session implements SessionHandlerInterface
     public static function writeCloseClean(): void
     {
         session_write_close();
+
         self::$session_id = null;
+
         self::$user_id = null;
     }
 
@@ -310,14 +337,24 @@ class Session implements SessionHandlerInterface
     /** read
      * @param string $id
      * @return string
+     * @
      */
     public function read($id): string
     {
-        $session = Rest::getDynamicRestClass(Sessions::class);
-        // TODO - if ip has changed and session id hasn't invalidated // assume man in the middle not cell phone tower change
-        $stmt = Database::database()->prepare('SELECT ' . $session::SESSION_DATA . ' FROM ' . $session::TABLE_NAME . ' WHERE ' . $session::SESSION_ID . ' = ?');
-        $stmt->execute([$id]);
-        return $stmt->fetchColumn() ?: '';
+        try {
+            $session_table_row = [];
+
+            return self::getSessionTable()::Get($session_table_row, $id, [
+                Sessions::SELECT => [
+                    Sessions::SESSION_DATA
+                ]
+            ]);
+
+        } catch (Throwable $e) {
+            ErrorCatcher::generateBrowserReportFromThrowable($e);
+        }
+
+        return false;
     }
 
     /** This function should never be called by you directly. It can be invoked using
@@ -328,38 +365,54 @@ class Session implements SessionHandlerInterface
      */
     public function write($id, $data): bool
     {
-        $db = Database::database();
-        $session = Rest::getDynamicRestClass(Sessions::class);
         if (empty(self::$user_id)) {
             self::$user_id = $_SESSION['id'] ??= false;
         }
-        $NewDateTime = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . ' + 1 d,lay'));  // so from time of last write and whenever the gc_collector hits
+
+        $newDateTime = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . ' + 1 d,lay'));  // so from time of last write and whenever the gc_collector hits
 
         try {
-            $db->prepare('REPLACE INTO ' . $session::TABLE_NAME . ' SET ' . $session::SESSION_ID . ' = ?, ' . $session::USER_ID . ' = UNHEX(?), ' . $session::USER_IP . ' = ?,  ' . $session::SESSION_EXPIRES . ' = ?, ' . $session::SESSION_DATA . ' = ?')->execute([
-                $id,
-                static::$user_id,
-                CarbonPHP::$server_ip,
-                $NewDateTime,
-                $data
+            $session_table_row = [];
+
+            return self::getSessionTable()::Put($session_table_row, null, [
+                Sessions::REPLACE => [
+                    Sessions::SESSION_ID => $id,
+                    Sessions::USER_ID => static::$user_id,
+                    Sessions::USER_IP => CarbonPHP::$server_ip,
+                    Sessions::SESSION_EXPIRES => $newDateTime,
+                    Sessions::SESSION_DATA => $data
+                ]
             ]);
-        } catch (PDOException $e) {
-            sortDump($e); // todo - error catching
+
+        } catch (Throwable $e) {
+            ErrorCatcher::generateBrowserReportFromThrowable($e);
         }
-        return true;
+        return false;
     }
 
     /** This method can be run explicit or through
      *      session_destroy()
-     * @param string $id
+     * @param $session_id
      * @return bool
      */
-    public function destroy($id): bool
+    public function destroy($session_id): bool
     {
-        $db = Database::database();
-        $session = Rest::getDynamicRestClass(Sessions::class);
-        return $db->prepare('DELETE FROM ' . $session::TABLE_NAME . ' WHERE ' . $session::USER_ID . ' = UNHEX(?) OR ' . $session::SESSION_ID . ' = ?')->execute([self::$user_id, $id]) ?
-            true : false;
+        try {
+            $session_table_row = [];
+
+            return self::getSessionTable()::Delete($session_table_row, $session_id, [
+                Sessions::WHERE => [
+                    [
+                        Sessions::USER_ID => self::$user_id,
+                        Sessions::SESSION_ID => $session_id
+                    ]
+                ]
+            ]);
+
+        } catch (Throwable $e) {
+            ErrorCatcher::generateBrowserReportFromThrowable($e);
+        }
+        return false;
     }
 
     /** This is our garbage collector. If a session is expired attempt to remove it.

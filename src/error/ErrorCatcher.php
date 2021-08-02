@@ -51,6 +51,190 @@ class ErrorCatcher
 
     public static bool $attemptRestartAfterError = false;
 
+    public static string $errorTemplate = <<<DEVOPS
+            <html lang="en">
+            <head>
+            <style>
+            @import url("https://fonts.googleapis.com/css?family=Share+Tech+Mono|Montserrat:700");
+            
+            * {
+                margin: 0;
+                padding: 0;
+                border: 0;
+                font-size: 100%;
+                vertical-align: baseline;
+                box-sizing: border-box;
+                color: inherit;
+            }
+            
+            html { 
+              background: url("{{carbon_public_root}}/view/assets/img/Carbon-teal.png") no-repeat center center fixed; 
+              -webkit-background-size: cover;
+              -moz-background-size: cover;
+              -o-background-size: cover;
+              background-size: cover;
+            }
+            
+            body {
+                height: 100vh;
+            }
+            
+            h1 {
+                font-size: 45vw;
+                text-align: center;
+                position: fixed;
+                width: 100vw;
+                z-index: 1;
+                color: #ffffff26;
+                text-shadow: 0 0 50px rgba(0, 0, 0, 0.07);
+                top: 50%;
+                transform: translateY(-50%);
+                font-family: "Montserrat", monospace;
+            }
+            
+            div {
+                background-color: rgba(1,1,1,0.9);
+                width: 70vw;
+                overflow: scroll;
+                max-height: 80%;
+                position: relative;
+                top: 50%;
+                transform: translateY(-50%);
+                margin: 0 auto;
+                padding: 30px 30px 10px;
+                box-shadow: 0 0 150px -20px rgba(0, 0, 0, 0.5);
+                z-index: 3;
+            }
+            
+            P {
+                font-family: "Share Tech Mono", monospace;
+                color: #f5f5f5;
+                margin: 0 0 20px;
+                font-size: 17px;
+                line-height: 1.2;
+            }
+            
+            span {
+                color: #f0c674;
+            }
+            
+            i {
+                color: #8abeb7;
+            }
+            
+            div a {
+                text-decoration: none;
+            }
+            
+            b {
+                color: #81a2be;
+            }
+            
+            a.avatar {
+                position: fixed;
+                bottom: 15px;
+                right: -100px;
+                animation: slide 0.5s 4.5s forwards;
+                display: block;
+                z-index: 4
+            }
+            
+            a.avatar img {
+                border-radius: 100%;
+                width: 44px;
+                border: 2px solid white;
+            }
+            
+            @keyframes slide {
+                from {
+                    right: -100px;
+                    transform: rotate(360deg);
+                    opacity: 0;
+                }
+                to {
+                    right: 15px;
+                    transform: rotate(0deg);
+                    opacity: 1;
+                }
+            }
+            
+            pre {
+              background-color:rgba(18,18,18,0.9);
+              max-height: 30%;
+              overflow:scroll;
+              margin:0 0 1em;
+              padding:.5em 1em;
+            }
+            
+            ::-webkit-scrollbar {
+              -webkit-appearance: none;
+              width: 10px;
+            }
+            
+            ::-webkit-scrollbar-thumb {
+              border-radius: 5px;
+              background-color: rgba(0,255,252,0.5);
+              -webkit-box-shadow: 0 0 1px rgba(0,255,252,0.5);
+            }
+            
+            pre code,
+            pre .line-number {
+              /* Ukuran line-height antara teks di dalam tag <code> dan <span class="line-number"> harus sama! */
+              font:normal normal 12px/14px "Courier New",Courier,Monospace;
+              color:black;
+              display:block;
+            }
+            
+            pre .line-number {
+              float:left;
+              margin:0 1em 0 -1em;
+              border-right:1px solid;
+              text-align:right;
+            }
+            
+            pre .line-number span {
+              display:block;
+              padding:0 .5em 0 1em;
+            }
+            
+            pre .cl {
+              display:block;
+              clear:both;
+            }
+            </style>
+            <script src="{{carbon_public_root}}/node_modules/jquery/dist/jquery.slim.min.js"></script>
+            <script src="{{carbon_public_root}}/node_modules/jquery-backstretch/jquery.backstretch.min.js"></script>
+            <script>
+            (function() {
+                var pre = document.getElementsByTagName('pre'),
+                    pl = pre.length;
+                for (var i = 0; i < pl; i++) {
+                    pre[i].innerHTML = '<span class="line-number"></span>' + pre[i].innerHTML + '<span class="cl"></span>';
+                   
+                    let regExp = /\\n /;
+                    
+                    var num = pre[i].innerHTML.split(regExp).length;
+                    for (var j = 0; j < num; j++) {
+                        var line_num = pre[i].getElementsByTagName('span')[0];
+                        line_num.innerHTML += '<span>' + (j + 1) + '</span>';
+                    }
+                }
+            })();
+            </script>
+            </head>
+            <body>
+            <h1>{{{code}}}</h1>
+            <div>
+            <p>> <span>HTTP RESPONSE</span>: "<i>HTTP {{{code}}} {{{statusText}}}</i>"</p>
+            <p>> <span>{{{actual_message}}}}</span>: "<i>{{{actual_message_body}}}</i>"</p>
+            {{{cleanErrorReport}}}
+            </div>
+            </div>
+            <a class="avatar" href="/" title="Go Home"><img src="{{carbon_public_root}}/view/assets/img/Carbon-white.png"/></a>
+            </body>
+            </html>
+            DEVOPS;
+
     /**
      * @var int to be used with error_reporting()
      * @link http://php.net/manual/en/function.error-reporting.php
@@ -179,6 +363,14 @@ END;
         $code = ($errorForTemplate['CODE'] === '0') ? 500 : $errorForTemplate['CODE'];
 
         if (CarbonPHP::$app_local) {
+            if (is_string($code)) {
+                if (is_numeric($code)) {
+                    $code = (int)$code;
+                } else {
+                    $code = 500;
+                }
+            }
+
             self::errorTemplate($errorForTemplate, $code);
         }
 
@@ -191,8 +383,11 @@ END;
         // which breaks the recursive check ?? or does it,
         // we would still need to make it to the view
         // so it only break when we reach the view? todo - test? -- found error in wp finally, we need a default route check here.. or at least a .... startapplication check application === null? __destruct check
+
         if (CarbonPHP::$application !== null && self::$attemptRestartAfterError && $count === 1) {
+
             CarbonPHP::resetApplication();  // we're in prod and we want to recover gracefully...
+
             exit(1);
         }
 
@@ -438,6 +633,7 @@ END;
             }
             $browserOutput['[C6] CARBONPHP'] = 'ErrorCatcher::generateLog';
             $browserOutput['TRACE'] = "<pre>$trace</pre>";
+            $browserOutput['$GLOBALS[\'json\']'] = '<pre>'. json_encode($GLOBALS['json'], JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT). '</pre>';
         }
 
         if (self::$storeReport === true || self::$storeReport === 'file') {
@@ -549,7 +745,6 @@ END;
      */
     private static function errorTemplate(array $message, int $code = 200): string
     {
-        CarbonPHP::$safelyExit = true;  // we're steeling the output entirely
 
         $cleanErrorReport = '';
 
@@ -573,10 +768,10 @@ END;
 
             foreach ($message as $left => $right) {
                 if (!(is_string($left) && is_string($right))) {
-                    sortDump($message);                      //  todo - we can do better
+                    $left = json_encode($left, JSON_THROW_ON_ERROR);                      //  todo - we can do better
                 }
 
-                $cleanErrorReport .= $left === 'TRACE' ?
+                $cleanErrorReport .= $left === 'TRACE' || $left === '$GLOBALS[\'json\']' ?
                     <<<DESCRIPTION
 <p>> <span>$left</span>: <i>$right</i></p>
 
@@ -611,196 +806,20 @@ DESCRIPTION;
             header('Content-Type:text/html', true, $code);
         }
 
-        /** @noinspection CssUnknownTarget */
-        print /** @lang HTML */
-            <<<DEVOPS
-            <html lang="en">
-            <head>
-            <style>
-            @import url("https://fonts.googleapis.com/css?family=Share+Tech+Mono|Montserrat:700");
-            
-            * {
-                margin: 0;
-                padding: 0;
-                border: 0;
-                font-size: 100%;
-                vertical-align: baseline;
-                box-sizing: border-box;
-                color: inherit;
-            }
-            
-            html { 
-              background: url("$public_root/view/assets/img/Carbon-teal.png") no-repeat center center fixed; 
-              -webkit-background-size: cover;
-              -moz-background-size: cover;
-              -o-background-size: cover;
-              background-size: cover;
-            }
-            
-            body {
-                height: 100vh;
-            }
-            
-            h1 {
-                font-size: 45vw;
-                text-align: center;
-                position: fixed;
-                width: 100vw;
-                z-index: 1;
-                color: #ffffff26;
-                text-shadow: 0 0 50px rgba(0, 0, 0, 0.07);
-                top: 50%;
-                transform: translateY(-50%);
-                font-family: "Montserrat", monospace;
-            }
-            
-            div {
-                background-color: rgba(1,1,1,0.9);
-                width: 70vw;
-                overflow: scroll;
-                max-height: 80%;
-                position: relative;
-                top: 50%;
-                transform: translateY(-50%);
-                margin: 0 auto;
-                padding: 30px 30px 10px;
-                box-shadow: 0 0 150px -20px rgba(0, 0, 0, 0.5);
-                z-index: 3;
-            }
-            
-            P {
-                font-family: "Share Tech Mono", monospace;
-                color: #f5f5f5;
-                margin: 0 0 20px;
-                font-size: 17px;
-                line-height: 1.2;
-            }
-            
-            span {
-                color: #f0c674;
-            }
-            
-            i {
-                color: #8abeb7;
-            }
-            
-            div a {
-                text-decoration: none;
-            }
-            
-            b {
-                color: #81a2be;
-            }
-            
-            a.avatar {
-                position: fixed;
-                bottom: 15px;
-                right: -100px;
-                animation: slide 0.5s 4.5s forwards;
-                display: block;
-                z-index: 4
-            }
-            
-            a.avatar img {
-                border-radius: 100%;
-                width: 44px;
-                border: 2px solid white;
-            }
-            
-            @keyframes slide {
-                from {
-                    right: -100px;
-                    transform: rotate(360deg);
-                    opacity: 0;
-                }
-                to {
-                    right: 15px;
-                    transform: rotate(0deg);
-                    opacity: 1;
-                }
-            }
-            
-            pre {
-              background-color:rgba(18,18,18,0.9);
-              max-height: 30%;
-              overflow:scroll;
-              margin:0 0 1em;
-              padding:.5em 1em;
-            }
-            
-            ::-webkit-scrollbar {
-              -webkit-appearance: none;
-              width: 10px;
-            }
-            
-            ::-webkit-scrollbar-thumb {
-              border-radius: 5px;
-              background-color: rgba(0,255,252,0.5);
-              -webkit-box-shadow: 0 0 1px rgba(0,255,252,0.5);
-            }
-            
-            pre code,
-            pre .line-number {
-              /* Ukuran line-height antara teks di dalam tag <code> dan <span class="line-number"> harus sama! */
-              font:normal normal 12px/14px "Courier New",Courier,Monospace;
-              color:black;
-              display:block;
-            }
-            
-            pre .line-number {
-              float:left;
-              margin:0 1em 0 -1em;
-              border-right:1px solid;
-              text-align:right;
-            }
-            
-            pre .line-number span {
-              display:block;
-              padding:0 .5em 0 1em;
-            }
-            
-            pre .cl {
-              display:block;
-              clear:both;
-            }
-            </style>
-            <script src="$public_root/node_modules/jquery/dist/jquery.slim.min.js"></script>
-            <script src="$public_root/node_modules/jquery-backstretch/jquery.backstretch.min.js"></script>
-            <script>
-            (function() {
-                var pre = document.getElementsByTagName('pre'),
-                    pl = pre.length;
-                for (var i = 0; i < pl; i++) {
-                    pre[i].innerHTML = '<span class="line-number"></span>' + pre[i].innerHTML + '<span class="cl"></span>';
-                   
-                    let regExp = /\\n /;
-                    
-                    var num = pre[i].innerHTML.split(regExp).length;
-                    for (var j = 0; j < num; j++) {
-                        var line_num = pre[i].getElementsByTagName('span')[0];
-                        line_num.innerHTML += '<span>' + (j + 1) + '</span>';
-                    }
-                }
-            })();
-            </script>
-            </head>
-            <body>
-            <h1>$code</h1>
-            <div>
-            <p>> <span>HTTP RESPONSE</span>: "<i>HTTP $code $statusText</i>"</p>
-            <p>> <span>{$actual_message}</span>: "<i>{$message[$actual_message]}</i>"</p>
-            $cleanErrorReport
-            </div>
-            </div>
-            <a class="avatar" href="/" title="Go Home"><img src="$public_root/view/assets/img/Carbon-white.png"/></a>
-            </body>
-            </html>
-            DEVOPS;
+        print (new \Mustache_Engine())->render(self::$errorTemplate, [
+            'carbon_public_root' => $public_root,
+            'public_root' => trim(CarbonPHP::$public_root ?? '', '/'),
+            'code' => $code,
+            'statusText' => $statusText,
+            'actual_message' => $actual_message,
+            'actual_message_body' => $message[$actual_message],
+            'cleanErrorReport' => $cleanErrorReport
+        ]);
 
         exit(1);
     }
 
-    private static function statusText(int $code = 0): ?string
+    public static function statusText(int $code = 0): ?string
     {
         // List of HTTP status codes.
         return [

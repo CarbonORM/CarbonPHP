@@ -478,6 +478,8 @@ MYSQL;
     {
         self::startRest(self::PUT, $returnUpdated, $argv);
         
+        $replace = false;
+        
         $where = [];
 
         if (array_key_exists(self::WHERE, $argv)) {
@@ -485,7 +487,10 @@ MYSQL;
             unset($argv[self::WHERE]);
         }
         
-        if (array_key_exists(self::UPDATE, $argv)) {
+        if (array_key_exists(self::REPLACE, $argv)) {
+            $replace = true;
+            $argv = $argv[self::REPLACE];
+        } else if (array_key_exists(self::UPDATE, $argv)) {
             $argv = $argv[self::UPDATE];
         }
         
@@ -508,7 +513,7 @@ MYSQL;
         }
         unset($value);
 
-        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_location_references SET '; // intellij cant handle this otherwise
+        $sql = /** @lang MySQLFragment */ ($replace ? self::REPLACE : self::UPDATE) . ' carbon_location_references SET '; // intellij cant handle this otherwise
 
         $set = '';
 
@@ -530,7 +535,7 @@ MYSQL;
             $pdo->beginTransaction();
         }
 
-        if (false === self::$allowFullTableUpdates || !empty($where)) {
+        if (false === $replace && (false === self::$allowFullTableUpdates || !empty($where))) {
             $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
         }
         

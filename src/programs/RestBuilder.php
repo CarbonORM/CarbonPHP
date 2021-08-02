@@ -1036,6 +1036,7 @@ export const C6 = {
     GET: '" . Rest::GET . "',
     POST: '" . Rest::POST . "',
     PUT: '" . Rest::PUT . "',
+    REPLACE: '" . Rest::REPLACE . "',
     DELETE: '" . Rest::DELETE . "',
     REST_REQUEST_PREPROCESS_CALLBACKS: '" . Rest::REST_REQUEST_PREPROCESS_CALLBACKS . "',
     PREPROCESS: '" . Rest::PREPROCESS . "',
@@ -1125,6 +1126,7 @@ const C6 = {
     GET: '" . Rest::GET . "',
     POST: '" . Rest::POST . "',
     PUT: '" . Rest::PUT . "',
+    REPLACE: '" . Rest::REPLACE . "',
     DELETE: '" . Rest::DELETE . "',
     REST_REQUEST_PREPROCESS_CALLBACKS: '" . Rest::REST_REQUEST_PREPROCESS_CALLBACKS . "',
     PREPROCESS: '" . Rest::PREPROCESS . "',
@@ -1227,7 +1229,7 @@ const convertForRequestBody = function(restfulObject, tableName) {
                         
                         END
                     : <<<END
-                        SET history_data = CONCAT(history_data,'"$column":"', COALESCE($op.$column,''), '",');
+                        SET history_data = CONCAT(history_data,'"$column":"', JSON_QUOTE(COALESCE($op.$column,'')), '",');
                         
                         END;
             }
@@ -1981,6 +1983,8 @@ MYSQL;
     {
         self::startRest(self::PUT, \$returnUpdated, \$argv{{#primaryExists}}, \$primary{{/primaryExists}});
         
+        \$replace = false;
+        
         \$where = [];
 
         if (array_key_exists(self::WHERE, \$argv)) {
@@ -1988,13 +1992,16 @@ MYSQL;
             unset(\$argv[self::WHERE]);
         }
         
-        if (array_key_exists(self::UPDATE, \$argv)) {
+        if (array_key_exists(self::REPLACE, \$argv)) {
+            \$replace = true;
+            \$argv = \$argv[self::REPLACE];
+        } else if (array_key_exists(self::UPDATE, \$argv)) {
             \$argv = \$argv[self::UPDATE];
         }{{#primaryExists}}
         
         \$emptyPrimary = null === \$primary || {{^multiplePrimary}}''{{/multiplePrimary}}{{#multiplePrimary}}[]{{/multiplePrimary}} === \$primary;
         
-        if (false === self::\$allowFullTableUpdates && \$emptyPrimary) { 
+        if (false === \$replace && false === self::\$allowFullTableUpdates && \$emptyPrimary) { 
             return self::signalError('Restful tables which have a primary key must be updated by its primary key. To bypass this set you may set `self::\$allowFullTableUpdates = true;` during the PREPROCESS events.');
         }
         {{#multiplePrimary}}
@@ -2028,7 +2035,7 @@ MYSQL;
         }
         unset(\$value);
 
-        \$sql = /** @lang MySQLFragment */ 'UPDATE {{^carbon_namespace}}{{#QueryWithDatabaseName}}{{database}}.{{/QueryWithDatabaseName}}{{/carbon_namespace}}{{TableName}} SET '; // intellij cant handle this otherwise
+        \$sql = /** @lang MySQLFragment */ (\$replace ? self::REPLACE : self::UPDATE) . ' {{^carbon_namespace}}{{#QueryWithDatabaseName}}{{database}}.{{/QueryWithDatabaseName}}{{/carbon_namespace}}{{TableName}} SET '; // intellij cant handle this otherwise
 
         \$set = '';
 
@@ -2046,7 +2053,7 @@ MYSQL;
             \$pdo->beginTransaction();
         }
 
-        if (false === self::\$allowFullTableUpdates || !empty(\$where)) {
+        if (false === \$replace && (false === self::\$allowFullTableUpdates || !empty(\$where))) {
             \$sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, \$where, \$pdo);
         }{{#json}}
         

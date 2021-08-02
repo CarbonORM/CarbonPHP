@@ -90,7 +90,7 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
     ];
 
     public const PDO_VALIDATION = [
-        'carbon_history_logs.history_uuid' => ['binary', PDO::PARAM_STR, '16'],'carbon_history_logs.history_table' => ['varchar', PDO::PARAM_STR, '255'],'carbon_history_logs.history_type' => ['varchar', PDO::PARAM_STR, '20'],'carbon_history_logs.history_data' => ['json', PDO::PARAM_STR, ''],'carbon_history_logs.history_original_query' => ['varchar', PDO::PARAM_STR, '1024'],'carbon_history_logs.history_primary' => ['json', PDO::PARAM_STR, ''],'carbon_history_logs.history_time' => ['datetime', PDO::PARAM_STR, ''],
+        'carbon_history_logs.history_uuid' => ['binary', PDO::PARAM_STR, '16'],'carbon_history_logs.history_table' => ['varchar', PDO::PARAM_STR, '255'],'carbon_history_logs.history_type' => ['varchar', PDO::PARAM_STR, '20'],'carbon_history_logs.history_data' => ['longtext,', PDO::PARAM_STR, ''],'carbon_history_logs.history_original_query' => ['varchar', PDO::PARAM_STR, '1024'],'carbon_history_logs.history_primary' => ['json', PDO::PARAM_STR, ''],'carbon_history_logs.history_time' => ['datetime', PDO::PARAM_STR, ''],
     ];
      
     /**
@@ -247,7 +247,7 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
   `history_uuid` binary(16) NOT NULL,
   `history_table` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `history_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `history_data` json DEFAULT NULL,
+  `history_data` longtext,
   `history_original_query` varchar(1024) DEFAULT NULL,
   `history_primary` json DEFAULT NULL,
   `history_time` datetime DEFAULT CURRENT_TIMESTAMP
@@ -373,10 +373,6 @@ MYSQL;
             $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
         }
         
-        if (array_key_exists('history_data', $return)) {
-                $return['history_data'] = json_decode($return['history_data'], true);
-        }
-        
         if (array_key_exists('history_primary', $return)) {
                 $return['history_primary'] = json_decode($return['history_primary'], true);
         }
@@ -447,16 +443,13 @@ MYSQL;
         
         if (!array_key_exists('carbon_history_logs.history_data', $data)) {
             return self::signalError('The column \'carbon_history_logs.history_data\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
-        }
-        $ref = 'carbon_history_logs.history_data';
+        } 
+        $ref='carbon_history_logs.history_data';
         $op = self::EQUAL;
         if (!self::validateInternalColumn(self::POST, $ref, $op, $data['history_data'])) {
             return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_history_logs.history_data\'.');
         }
-        if (!is_string($history_data = $data['carbon_history_logs.history_data']) && false === $history_data = json_encode($history_data)) {
-            return self::signalError('The column \'carbon_history_logs.history_data\' failed to be json encoded.');
-        }
-        $stmt->bindValue(':history_data', $history_data, PDO::PARAM_STR);
+        $stmt->bindValue(':history_data', $data['carbon_history_logs.history_data'], PDO::PARAM_STR);
         
         $history_original_query = $data['carbon_history_logs.history_original_query'] ?? null;
         $ref='carbon_history_logs.history_original_query';
@@ -524,6 +517,8 @@ MYSQL;
     {
         self::startRest(self::PUT, $returnUpdated, $argv);
         
+        $replace = false;
+        
         $where = [];
 
         if (array_key_exists(self::WHERE, $argv)) {
@@ -531,7 +526,10 @@ MYSQL;
             unset($argv[self::WHERE]);
         }
         
-        if (array_key_exists(self::UPDATE, $argv)) {
+        if (array_key_exists(self::REPLACE, $argv)) {
+            $replace = true;
+            $argv = $argv[self::REPLACE];
+        } else if (array_key_exists(self::UPDATE, $argv)) {
             $argv = $argv[self::UPDATE];
         }
         
@@ -554,7 +552,7 @@ MYSQL;
         }
         unset($value);
 
-        $sql = /** @lang MySQLFragment */ 'UPDATE carbon_history_logs SET '; // intellij cant handle this otherwise
+        $sql = /** @lang MySQLFragment */ ($replace ? self::REPLACE : self::UPDATE) . ' carbon_history_logs SET '; // intellij cant handle this otherwise
 
         $set = '';
 
@@ -588,7 +586,7 @@ MYSQL;
             $pdo->beginTransaction();
         }
 
-        if (false === self::$allowFullTableUpdates || !empty($where)) {
+        if (false === $replace && (false === self::$allowFullTableUpdates || !empty($where))) {
             $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
         }
         
@@ -626,7 +624,7 @@ MYSQL;
             $stmt->bindParam(':history_type',$history_type, PDO::PARAM_STR, 20);
         }
         if (array_key_exists('carbon_history_logs.history_data', $argv)) { 
-            $stmt->bindValue(':history_data',json_encode($argv['carbon_history_logs.history_data']), PDO::PARAM_STR);
+            $stmt->bindValue(':history_data',$argv['carbon_history_logs.history_data'], PDO::PARAM_STR);
         }
         if (array_key_exists('carbon_history_logs.history_original_query', $argv)) { 
             $history_original_query = $argv['carbon_history_logs.history_original_query'];
