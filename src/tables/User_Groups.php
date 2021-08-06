@@ -1,4 +1,4 @@
-<?php /** @noinspection DuplicatedCode */
+<?php
 
 namespace CarbonPHP\Tables;
 
@@ -378,7 +378,6 @@ MYSQL;
     *
     * @param array $return
     * @param array $argv
-    * @noinspection DuplicatedCode - possible as this is generated
     * @generated
     * @throws PublicAlert|PDOException|JsonException
     * @return bool
@@ -427,7 +426,6 @@ MYSQL;
     * @param array $remove
     * @param array $argv
     * @generated
-    * @noinspection DuplicatedCode
     * @throws PublicAlert|PDOException|JsonException
     * @return bool
     */

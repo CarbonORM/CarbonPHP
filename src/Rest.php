@@ -1494,11 +1494,17 @@ abstract class Rest extends Database
                     /**
                      * @todo - hex / unhex length conversion on any binary data
                      * @link https://stackoverflow.com/questions/28251144/inserting-and-selecting-uuids-as-binary16
+                     * @link https://www.php.net/ChangeLog-8.php
+                     * @notice PDO type validation has a bug until 8
                     **/
                     if (static::CARBON_CARBONS_PRIMARY_KEY) {
-                        $maxLength = '36';
+
+                        $maxLength = 16;
+
                     } else {
-                        $maxLength = $info[self::MAX_LENGTH] === '' ? null : $info[self::MAX_LENGTH];
+
+                        $maxLength = $info[self::MAX_LENGTH] === '' ? null : (int) $info[self::MAX_LENGTH];
+
                     }
 
                     $stmt->bindParam(":$shortName", $data[$fullName], $info[self::PDO_TYPE],

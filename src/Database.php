@@ -775,49 +775,80 @@ FOOT;
      */
     public static function refreshDatabase(string $tableDirectory = '', bool $cli = null): void
     {
+
         if (null === $cli) {
+
             $cli = CarbonPHP::$cli;
+
         }
 
         $autoTarget = static function () use (&$tableDirectory) {
+
             $composerJson = self::getComposerConfig();
+
             $tableNamespace = CarbonPHP::$configuration[CarbonPHP::REST][CarbonPHP::NAMESPACE] ??= "Tables\\";
+
             $tableDirectory = $composerJson['autoload']['psr-4'][$tableNamespace] ?? false;
+
             if (false === $tableDirectory) {
+
                 throw new PublicAlert('Failed to parse composer json for ["autoload"]["psr-4"]["' . $tableNamespace . '"].');
+
             }
+
             $tableDirectory = CarbonPHP::$app_root . $tableDirectory;
+
         };
 
         try {
+
             if (CarbonPHP::$carbon_is_root) {
+
                 $tableDirectory = CarbonPHP::CARBON_ROOT . 'tables/'; // todo - use config array to set this
+
             } elseif ($tableDirectory === '') {
+
                 $autoTarget();
+
             }
 
             if ($cli) {
+
                 self::colorCode('(Setup || Rebuild) Database');
+
             } else {
+
                 print '<html><head><title>(Setup || Rebuild) Database</title></head><body><h1>REFRESHING SYSTEM</h1>' . PHP_EOL;
+
             }
 
             if ($tableDirectory !== Carbons::DIRECTORY) {
+
                 self::scanAndRunRefreshDatabase(Carbons::DIRECTORY);
+
             }
 
             // ADVANCED REST REBUILD
             self::scanAndRunRefreshDatabase($tableDirectory);
 
         } catch (Throwable $e) {
+
             if ($cli) {
+
                 ColorCode::colorCode('The refreshDatabase method failed.', iColorCode::BACKGROUND_RED);
+
             } else {
+
                 print '<h2>The refreshDatabase method failed.</h2>';
+
             }
+
             ErrorCatcher::generateLog($e);
+
             exit(1);
+
         }
+
     }
 
     public static function columnExistsOrExecuteSQL(string $column, string $table_name, string $sql): void
@@ -857,6 +888,8 @@ FOOT;
         }
 
         $sql = preg_replace("#CREATE TABLE `$table_name`#", 'CREATE TABLE ' . $prefix . $table_name, $sql);
+
+        $sql = preg_replace("#REFERENCES `carbon_#", 'REFERENCES `'. $prefix .'carbon_', $sql);
 
         $table_name = $prefix . $table_name;
     }
