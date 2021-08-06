@@ -17,6 +17,10 @@ use Mustache_Exception_InvalidArgumentException;
 abstract class Application extends Route
 {
 
+    private static string $CONTROLLER_NAMESPACE = 'Controller\\';
+
+    private static string $MODEL_NAMESPACE = 'Model\\';
+
     /**
      * This functions should change the $matched property in the extended Route class to true.
      * public bool $matched = false;
@@ -40,11 +44,16 @@ abstract class Application extends Route
 
     public function fullPage(): callable
     {
+
         return static function (string $file) {
+
             self::$matched = true;
+
             /** @noinspection PhpIncludeInspection */
             return include CarbonPHP::$app_root . CarbonPHP::$app_view . $file;
+
         };
+
     }
 
     public function wrap(): callable
@@ -55,13 +64,14 @@ abstract class Application extends Route
          * @throws Mustache_Exception_InvalidArgumentException
          */
         return static function (string $file): bool {
-            self::$matched = true;
-            return View::content(CarbonPHP::$app_view . $file, CarbonPHP::$app_root);
-        };
-    }
 
-    private static string $CONTROLLER_NAMESPACE = 'Controller\\';
-    private static string $MODEL_NAMESPACE = 'Model\\';
+            self::$matched = true;
+
+            return View::content(CarbonPHP::$app_view . $file, CarbonPHP::$app_root);
+
+        };
+
+    }
 
     /**Stands for Controller -> Model .
      *
@@ -78,17 +88,22 @@ abstract class Application extends Route
      */
     public static function CM(string $class, string &$method, array &$argv = []): callable
     {
+
         $class = ucfirst(strtolower($class));   // Prevent malformed class names
+
         $method = strtolower($method);          // Prevent malformed method names
 
         $controller = self::$CONTROLLER_NAMESPACE . $class;     // add namespace for autoloader
+
         $model = self::$MODEL_NAMESPACE . $class;
 
         return static function () use ($controller, $model, $method, $argv) {
 
             // Make sure our Controller exists
             if (!class_exists($controller)) {
-                throw new Error("Invalid Controller ({$controller}) Passed to MVC. Please ensure your namespace mappings are correct!");
+
+                throw new PublicAlert("Invalid Controller ({$controller}) Passed to MVC. Please ensure your namespace mappings are correct!");
+
             }
 
             $argv = \call_user_func_array([new $controller, $method], $argv);
@@ -134,7 +149,9 @@ abstract class Application extends Route
 
     public static function ControllerModelView(string $class, string $method, array &$argv = []): bool
     {
+
         self::$CLASS = $class;
+
         self::$METHOD = $method;
 
         $recurse = self::$STACK_COUNT; // where we're at now
@@ -144,19 +161,25 @@ abstract class Application extends Route
 
         // make a call which may recurse
         if (false === ErrorCatcher::catchErrors(static::CM($class, $method, $argv))()) {  // Controller -> Model
+
             return false;
+
         }
 
         // This is so we can clear our stack quickly if recursively called, which helps with error reporting
         if ($recurse !== 0) {
+
             return true;
+
         }
 
         // try to find the file
         $file = CarbonPHP::$app_view . strtolower(self::$CLASS) . '/' . strtolower(self::$METHOD);
 
         if (!file_exists(CarbonPHP::$app_root . $file . ($ext = '.php')) && !file_exists(CarbonPHP::$app_root . $file . ($ext = '.hbs'))) {
+
             $ext = '';
+
         }
 
         // tell the view to send this file
@@ -165,21 +188,34 @@ abstract class Application extends Route
 
     public static function MVC(string $controllerNamespace = null, string $modelNamespace = null): callable
     {
+
         if ($controllerNamespace !== null) {
+
             self::$CONTROLLER_NAMESPACE = $controllerNamespace;
+
         }
+
         if ($modelNamespace !== null) {
+
             self::$MODEL_NAMESPACE = $modelNamespace;
+
         }
+
         return static function (string $class, string $method, array &$argv = []) {
+
             self::$matched = true;
+
             return self::ControllerModelView($class, $method, $argv);
+
         };
+
     }
 
     public static function JSON($selector = '#pjax-content'): callable
     {
+
         return static function ($class, $method, $argv) use ($selector) {
+
             global $alert, $json;
 
             self::$matched = true;
@@ -212,8 +248,11 @@ abstract class Application extends Route
             header('Content-Type: application/json', true, 200); // Send as JSON
 
             if (false === $json = json_encode($json)) {
+
                 PublicAlert::danger('Json Failed to encode, this may occur when trying to encode binary content.');
+
                 $json = json_encode($json); // todo - why did we retry?
+
             }
 
             CarbonPHP::$socket and $json = PHP_EOL . $json . PHP_EOL;

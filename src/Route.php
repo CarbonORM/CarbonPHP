@@ -90,7 +90,7 @@ abstract class Route
             $this->defaultRoute();
 
         } catch (Throwable $e) {
-            ErrorCatcher::generateBrowserReportFromThrowable($e);
+            ErrorCatcher::generateBrowserReportFromThrowableAndExit($e);
         }
     }
 

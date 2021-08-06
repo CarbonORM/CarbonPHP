@@ -14,7 +14,6 @@ use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Programs\Composer;
 use CarbonPHP\Tables\Carbons;
-use Error;
 use Exception;
 use PDO;
 use PDOException;
@@ -185,18 +184,18 @@ FOOT;
                             self::getPdoOptions());
 
                     } catch (Throwable $e) {
-                        
+
                         $error_array_two = ErrorCatcher::generateLog($e);
-                        
+
                         if ($e->getCode() === 1049) {
 
                             $error_array_two[] = '<h1>Auto Setup Failed!</h1><h3>Your database DSN may be slightly malformed.</h3>';
 
-                            $error_array_two[] =  '<p>CarbonPHP requires the host come before the database in your DNS.</p>';
+                            $error_array_two[] = '<p>CarbonPHP requires the host come before the database in your DNS.</p>';
 
-                            $error_array_two[] =  '<p>It should follow the following format "mysql:host=127.0.0.1;dbname=C6".</p>';
+                            $error_array_two[] = '<p>It should follow the following format "mysql:host=127.0.0.1;dbname=C6".</p>';
                         }
-                        
+
                         ErrorCatcher::generateBrowserReport($error_array_two);  // this terminates
                     }
 
@@ -207,7 +206,7 @@ FOOT;
                     if (!$db->prepare($stmt)->execute()) {
 
                         $error_array[] = '<h1>Failed to insert database. See CarbonPHP.com for documentation.</h1>';
-                        
+
                         ErrorCatcher::generateBrowserReport($error_array);  // this terminates
 
                     } else {
@@ -217,20 +216,22 @@ FOOT;
                         static::setUp(!CarbonPHP::$cli, CarbonPHP::$cli);
 
                     }
-                    
+
                     break;
+
                 case '42S02':
                     ErrorCatcher::generateBrowserReport($error_array);
 
                     static::setUp(!CarbonPHP::$cli, CarbonPHP::$cli);
 
                     break;
+
                 default:
                     if (empty(static::$username)) {
-                        $error_array[] =  '<h2>You must set a database user name. See CarbonPHP.com for documentation</h2>';
+                        $error_array[] = '<h2>You must set a database user name. See CarbonPHP.com for documentation</h2>';
                     }
                     if (empty(static::$password)) {
-                        $error_array[] =  '<h2>You may need to set a database password. See CarbonPHP.com for documentation</h2>';
+                        $error_array[] = '<h2>You may need to set a database password. See CarbonPHP.com for documentation</h2>';
                     }
 
                     ErrorCatcher::generateBrowserReport($error_array);
@@ -268,9 +269,9 @@ FOOT;
                     static function () use ($prep) {
                         // @link https://stackoverflow.com/questions/10522520/pdo-were-rows-affected-during-execute-statement
                         return $prep(new PDO(
-                            static::$dsn, 
-                            static::$username, 
-                            static::$password, 
+                            static::$dsn,
+                            static::$username,
+                            static::$password,
                             self::getPdoOptions()));
                     });
             } catch (Throwable $e) {
@@ -369,7 +370,7 @@ FOOT;
                 }
             }
         } catch (PDOException $e) {                     // todo - think about this more
-            ErrorCatcher::generateBrowserReportFromThrowable($e);
+            ErrorCatcher::generateBrowserReportFromThrowableAndExit($e);
         }
         return false;
     }

@@ -1443,7 +1443,7 @@ export interface  i{{ucEachTableName}}{
         $staticNamespaces = implode(PHP_EOL, $staticNamespaces);
 
         return /** @lang Handlebars */ <<<STRING
-<?php /** @noinspection DuplicatedCode */
+<?php
 
 namespace {{namespace}};
 
@@ -1808,7 +1808,6 @@ MYSQL;
     * @param array \$return{{#primaryExists}}
     * @param {{#multiplePrimary}}array{{/multiplePrimary}}{{^multiplePrimary}}string{{/multiplePrimary}}|null \$primary{{/primaryExists}}
     * @param array \$argv
-    * @noinspection DuplicatedCode - possible as this is generated
     * @generated
     * @throws PublicAlert|PDOException|JsonException
     * @return bool
@@ -1866,7 +1865,6 @@ MYSQL;
     * @param {{#multiplePrimary}}array{{/multiplePrimary}}{{^multiplePrimary}}string{{/multiplePrimary}}|null \$primary{{/primaryExists}}
     * @param array \$argv
     * @generated
-    * @noinspection DuplicatedCode
     * @throws PublicAlert|PDOException|JsonException
     * @return bool
     */

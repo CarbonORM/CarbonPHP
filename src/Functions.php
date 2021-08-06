@@ -152,9 +152,20 @@ namespace {                                     // This runs the following code 
      */
     function dump(...$argv)
     {
-        CarbonPHP::$cli or print '<pre>';
-        var_dump(\count($argv) === 1 ? array_shift($argv) : $argv);
-        CarbonPHP::$cli or print '</pre>';
+        if (CarbonPHP::$cli) {
+
+            print '<pre>';
+
+        }
+
+        var_dump(count($argv) === 1 ? array_shift($argv) : $argv);
+
+        if (CarbonPHP::$cli) {
+
+            print '</pre>';
+
+        }
+
     }
 
     /** This is dump()'s big brother, a better dump per say.
@@ -192,29 +203,53 @@ namespace {                                     // This runs the following code 
 
         // Generate Report -- keep in mind were in a buffer here
         $output = static function (bool $cli) use ($mixed, $fullReport, $backtrace) : string {
+
             ob_start();
+
             print $cli ? PHP_EOL . PHP_EOL : '<br>';
+
             print $cli ? 'SortDump Called With (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)) From' : '################### SortDump Called With (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)) From ################';
+
             print $cli ? PHP_EOL . PHP_EOL : '<br><pre>';
+
             var_dump($backtrace ?? $backtrace[0]);
+
             print $cli ? PHP_EOL . PHP_EOL : '<br></pre>';
+
             print '####################### VAR DUMP ########################';
+
             print $cli ? PHP_EOL . PHP_EOL : '<br><pre>';
+
             var_dump($mixed);
+
             print $cli ? PHP_EOL : '<br>';
+
             print '#########################################################';
+
             if ($fullReport) {
+
                 print '####################### MIXED DUMP ########################';
+
                 $mixed = (\is_array($mixed) && \count($mixed) === 1 ? array_pop($mixed) : $mixed);
+
                 print $cli ? PHP_EOL . PHP_EOL : '<br><pre>';
+
                 debug_zval_dump($mixed ?: $GLOBALS);
+
                 print $cli ? PHP_EOL . PHP_EOL : '</pre><br><br>';
+
                 echo "\n####################### BACK TRACE ########################\n\n<br><pre>";
+
                 print $cli ? PHP_EOL . PHP_EOL : '<br><pre>';
+
                 var_dump(debug_backtrace());
+
                 print $cli ? PHP_EOL : '</pre>';
+
             }
+
             return ob_get_clean();
+
         };
 
         // TODO - re-create a store to file configuration option
@@ -222,24 +257,41 @@ namespace {                                     // This runs the following code 
         #Files::storeContent($file, $report);
 
         if (CarbonPHP::$cli) {
+
             $report = $output(true);
+
             if ($die) {
+
                 CarbonPHP::$test = false;   // this will ensure default out of this fn goes to std_error
+
                 ColorCode::colorCode($output(true) . PHP_EOL, 'blue');
+
                 die(1);
+
             }
+
             ColorCode::colorCode($report . PHP_EOL, 'red');
+
         } else if (!$die && CarbonPHP::$ajax) {                                     // TODO - This was for json compatibility, no idea if it is ever used
+
             $report = $output(true);
+
             View::$bufferedContent = base64_encode($report);
+
         } else {
+
             print $report = $output(false);
+
             ColorCode::colorCode($output(true) . PHP_EOL, 'red');
+
         }
 
         if ($die) {
+
             exit(1);
+
         }
+
     }
 
     /**
@@ -273,26 +325,43 @@ namespace {                                     // This runs the following code 
      */
     function array_merge_recursive_distinct()
     {
+
         $arrays = func_get_args();
+
         if (count($arrays) < 2) {
+
             if ($arrays === []) {
+
                 return [];
+
             }
+
             return $arrays[0];
+
         }
 
         $merged = array_shift($arrays);
 
         foreach ($arrays as $array) {
+
             foreach ($array as $key => $value) {
+
                 if (is_array($value) && (isset($merged[$key]) && is_array($merged[$key]))) {
+
                     $merged[$key] = array_merge_recursive_distinct($merged[$key], $value);
+
                 } else {
+
                     $merged[$key] = $value;
+
                 }
+
             }
+
         }
+
         return $merged;
+
     }
 
     /**
@@ -303,8 +372,11 @@ namespace {                                     // This runs the following code 
      */
     function errorLevelToString(int $errorLevel = null, $separator = ' & '): string
     {
+
         if (null === $errorLevel) {
+
             $errorLevel = error_reporting();
+
         }
 
         $errorLevels = array(
@@ -324,12 +396,19 @@ namespace {                                     // This runs the following code 
             E_PARSE => 'E_PARSE',
             E_WARNING => 'E_WARNING',
             E_ERROR => 'E_ERROR');
+
         $result = '';
+
         foreach($errorLevels as $number => $name)
         {
+
             if (($errorLevel & $number) === $number) {
                 $result .= ($result !== '' ? $separator : '').$name; }
+
         }
+
         return $result;
+
     }
+
 }

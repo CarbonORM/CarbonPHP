@@ -23,8 +23,11 @@ trait RestfulValidations
      */
     public static function validateUnique(string $columnValue, string $className, string $columnName): void
     {
+
         if (!class_exists($className)) {
+
             throw new PublicAlert('Rest validation error. Parameters given to validate unique incorrect.');
+
         }
 
         $return = [];

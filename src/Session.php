@@ -104,7 +104,7 @@ class Session implements SessionHandlerInterface
             $_SESSION['id'] = array_key_exists('id', $_SESSION ??= []) ? $_SESSION['id'] : false;
 
         } catch (Throwable $e) {
-            ErrorCatcher::generateBrowserReportFromThrowable($e); // This terminates!
+            ErrorCatcher::generateBrowserReportFromThrowableAndExit($e); // This terminates!
         }
     }
 
@@ -115,7 +115,9 @@ class Session implements SessionHandlerInterface
     public static function pause(): void
     {
         static::$session_id = session_id();
+
         session_write_close();
+
     }
 
     /**
@@ -126,6 +128,7 @@ class Session implements SessionHandlerInterface
      */
     public static function resume(string $session_id = null): self
     {
+
         if ($session_id !== null) {
             static::$session_id = $session_id;
         }
@@ -135,6 +138,7 @@ class Session implements SessionHandlerInterface
         session_start();
 
         return self::$singleton;
+
     }
 
 
@@ -144,7 +148,9 @@ class Session implements SessionHandlerInterface
      */
     public static function updateCallback(callable $lambda = null): void
     {
+
         self::$callback = $lambda;
+
     }
 
     /**
@@ -163,19 +169,27 @@ class Session implements SessionHandlerInterface
         $_SESSION['id'] ??= false;
 
         if ($clear || !$_SESSION['id']) {
+
             Serialized::clear();
+
         }
 
         if (!is_array($user)) {
+
             $user = array();
+
         }
 
         if (static::$user_id = $_SESSION['id']) {
+
             $_SESSION['X_PJAX_Version'] = 'v' . CarbonPHP::$site_version . 'u' . $_SESSION['id'];
+
         } // force reload occurs when X_PJAX_Version changes between requests
 
         if (!isset($_SESSION['X_PJAX_Version'])) {
+
             $_SESSION['X_PJAX_Version'] = CarbonPHP::$site_version;     // static::$user_id, keep this static
+
         }
 
         Request::setHeader('X-PJAX-Version: ' . $_SESSION['X_PJAX_Version']);
@@ -187,14 +201,19 @@ class Session implements SessionHandlerInterface
 
         if (is_callable(self::$callback)) {
             /** @noinspection OnlyWritesOnParameterInspection */
+
             ($lambda = self::$callback)($clear);    // you must have callable in a variable in fn scope
+
         }
 
         if (!defined('X_PJAX_VERSION')) {
+
             define('X_PJAX_VERSION', $_SESSION['X_PJAX_Version']);
+
         }
 
         Request::sendHeaders();  // Send any stored headers
+
     }
 
     /**
@@ -203,11 +222,13 @@ class Session implements SessionHandlerInterface
      */
     public static function clear(): void
     {
+
         $session_class_name = Rest::getDynamicRestClass(Sessions::class);
 
         self::$session_table ??= new $session_class_name;
 
         try {
+
             $id = session_id();
 
             $_SESSION = array();
@@ -219,8 +240,11 @@ class Session implements SessionHandlerInterface
             session_start();
 
         } catch (PDOException $e) {
-            ErrorCatcher::generateBrowserReportFromThrowable($e);   // this terminates!
+
+            ErrorCatcher::generateBrowserReportFromThrowableAndExitAndExit($e);   // this terminates!
+
         }
+
     }
 
     /** This function was created to make sure all socket request come from
@@ -291,7 +315,7 @@ class Session implements SessionHandlerInterface
 
             $table_name = Rest::getDynamicRestClass(Sessions::class);    // all because custom prefixes and callbacks exist
 
-            self::$session_table = new $table_name; // This is only for referencing and is not actually needed in an instance.
+            self::$session_table = new $table_name; // This is only for referencing and is not actually needed as an instance.
         }
 
         return self::$session_table;
@@ -351,7 +375,7 @@ class Session implements SessionHandlerInterface
             ]);
 
         } catch (Throwable $e) {
-            ErrorCatcher::generateBrowserReportFromThrowable($e);
+            ErrorCatcher::generateBrowserReportFromThrowableAndExit($e);
         }
 
         return false;
@@ -385,7 +409,7 @@ class Session implements SessionHandlerInterface
             ]);
 
         } catch (Throwable $e) {
-            ErrorCatcher::generateBrowserReportFromThrowable($e);
+            ErrorCatcher::generateBrowserReportFromThrowableAndExit($e);
         }
         return false;
     }
@@ -410,8 +434,11 @@ class Session implements SessionHandlerInterface
             ]);
 
         } catch (Throwable $e) {
-            ErrorCatcher::generateBrowserReportFromThrowable($e);
+
+            ErrorCatcher::generateBrowserReportFromThrowableAndExit($e);
+
         }
+
         return false;
     }
 
@@ -423,9 +450,14 @@ class Session implements SessionHandlerInterface
      */
     public function gc($maxLife): bool
     {
+
         $db = Database::database();
+
         $session = Rest::getDynamicRestClass(Sessions::class);
-        return $db->prepare('DELETE FROM ' . $session::TABLE_NAME . ' WHERE (UNIX_TIMESTAMP(' . $session::SESSION_EXPIRES . ') + ? ) < UNIX_TIMESTAMP(?)')->execute([$maxLife, date('Y-m-d H:i:s')]) ?
-            true : false;
+
+        return $db->prepare('DELETE FROM ' . $session::TABLE_NAME . ' WHERE (UNIX_TIMESTAMP(' . $session::SESSION_EXPIRES . ') + ? ) < UNIX_TIMESTAMP(?)')->execute([$maxLife, date('Y-m-d H:i:s')])
+            ? true : false;
+
     }
+
 }

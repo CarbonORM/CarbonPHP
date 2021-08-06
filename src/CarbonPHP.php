@@ -60,10 +60,12 @@ class CarbonPHP
     public const DB_PASS = 'DB_PASS';
     public const REBUILD = 'REBUILD';
 
+    // todo - transfer all cli options to the config
     public const REST = 'REST';
     public const NAMESPACE = 'NAMESPACE';
     public const TABLE_PREFIX = 'TABLE_PREFIX';
 
+    // Site Config
     public const SITE = 'SITE';
     public const URL = 'URL';
     public const ROOT = 'ROOT';
@@ -77,12 +79,14 @@ class CarbonPHP
     public const HTTP = 'HTTP';
     public const IP_TEST = 'IP_TEST';
 
+    // Session Mgmt
     public const SESSION = 'SESSION';
     public const REMOTE = 'REMOTE';
     public const SERIALIZE = 'SERIALIZE';   // accepts an array of values todo - doc
     public const CALLBACK = 'CALLBACK';
     public const PATH = 'PATH';
 
+    // Web Socket (Secure* see carbonphp.com)
     public const SOCKET = 'SOCKET';
     public const WEBSOCKETD = 'WEBSOCKETD';
     public const PORT = 'PORT';
@@ -91,6 +95,7 @@ class CarbonPHP
     public const KEY = 'KEY';
     public const CERT = 'CERT';
 
+    // Error Catcher
     public const ERROR = 'ERROR';
     public const LOCATION = 'LOCATION';
     public const LEVEL = 'LEVEL';
@@ -98,6 +103,7 @@ class CarbonPHP
     public const SHOW = 'SHOW';
     public const FULL = 'FULL';
 
+    // Default View info for Mvc
     public const VIEW = 'VIEW';
     public const WRAPPER = 'WRAPPER';
     public const MINIFY = 'MINIFY';
@@ -105,8 +111,8 @@ class CarbonPHP
     public const JS = 'JS';
     public const OUT = 'OUT';
 
+    // Auto load is deprecated
     public const AUTOLOAD = 'AUTOLOAD';
-
 
     // Application invocation method
     public static bool $is_running_production = false;
@@ -127,7 +133,6 @@ class CarbonPHP
     public static string $site;         // $url . '/'
     public static string $protocol;     // http , ws , wss , https
 
-
     // Don't run the application on invocation
     public static bool $safelyExit = false;
 
@@ -136,7 +141,6 @@ class CarbonPHP
     public static string $site_version;
     public static string $system_email;
     public static string $reply_email;
-
 
     /**
      * CarbonPHP constructor.
@@ -172,10 +176,13 @@ class CarbonPHP
     }
 
 
-    public static function isCarbonPHPDocumentation() : bool
+    public static function isCarbonPHPDocumentation(): bool
     {
+
         static $cache;
+
         return $cache ??= self::$app_root . 'src' . DS === self::CARBON_ROOT;
+
     }
 
     /**
@@ -184,54 +191,87 @@ class CarbonPHP
      */
     public static function run($application = null): bool
     {
+
         if (!self::$safelyExit) {
+
             self::$socket = false;
+
         }
 
         if (empty(self::$application)) {
+
             if (empty($application)) {
+
                 if (!empty(self::$not_invoked_application)) {
+
                     $application = self::$not_invoked_application;
+
                     self::setApplication(new $application);
+
                 }
                 // we're not required to pass any arguments so this is essentially a break stmt
                 // this also works as the condition to move to cli
             } else if ($application instanceof Application) {
+
                 self::setApplication($application);
+
             } else if (class_exists($application)) {
+
                 self::setApplication(new $application);
+
             } else if (!self::$safelyExit) {
+
                 print 'Your trying to run CarbonPHP without a valid Application configured. '
                     . 'Argument passed to the static run method or _invoke should be a reference to a child of the abstract Application class. '
                     . 'This could be a fully qualified namespace or an instantiated object.'
                     . 'If no argument is supplied the configuration passed to the constructor, which implements iConfig, must also extend the Application class.';
+
                 return self::$safelyExit = true;
+
             }
+
         }
 
         if (self::$safelyExit) {
+
             if (self::$cli && !self::$test && self::$commandLineInterface !== null) {
+
                 self::$safelyExit = true;
+
                 $cli = self::$commandLineInterface;
+
                 $cli->run($_SERVER['argv'] ?? ['index.php', null]);
+
                 $cli->cleanUp();
+
             }
+
             return true;
+
         }
 
         return self::startApplication() !== false; // startApplication can return null which is not allowed here
+
     }
 
     public static function resetApplication(): bool
     {
         $_POST = [];
+
         Session::update(true);        // Check wrapper / session callback
+
         View::$forceWrapper = true;
+
         Request::changeURI('/');
+
         $application = self::getApplication();
+
         $application::$matched = true;
+
         $application->defaultRoute();
+
         return true;
+
     }
 
     /** Start application will start a bootstrap file passed to it. It will
@@ -246,15 +286,25 @@ class CarbonPHP
         $application = self::getApplication();
 
         if ($uri === '') {
+
             Session::update();       // Check wrapper / session callback
+
             $uri = $application->uri;
+
         } else if ($uri === '/') {
+
             return self::resetApplication();
+
         } else {
+
             Session::update(true);
+
             Request::changeURI($uri);           // So the browser will update PJAX
+
             $application->changeURI($uri);      // So our routing file knows what to match
+
             $_POST = [];
+
         }
 
         $application::$matched = false;          // We can assume your in need of route matching again
@@ -338,12 +388,16 @@ class CarbonPHP
     public static function make($configuration = null, string $app_root = null): void
     {
         try {
-            defined('DS') OR define('DS', DIRECTORY_SEPARATOR);
+            defined('DS') or define('DS', DIRECTORY_SEPARATOR);
 
             if ($app_root !== null) {
+
                 self::$app_root = rtrim($app_root, DS) . DS;    // an extra check
+
             } else {
+
                 self::$app_root = dirname(self::CARBON_ROOT) . DS;
+
             }
 
             /*
@@ -355,21 +409,33 @@ class CarbonPHP
              * @link https://www.php.net/manual/en/function.chdir.php
              */
             if (getcwd() !== self::$app_root && !chdir(self::$app_root)) {
+
                 self::colorCode("\nCould not change current working directory from " . getcwd() . " to " . self::$app_root . ".\n\n", 'red', true);
+
             }
 
             // todo - we're using this as a uri and it could have directory separator in the wrong direction
             if (self::$app_root . 'src' . DS === self::CARBON_ROOT) {
+
                 self::$carbon_is_root = true;
+
                 self::$public_carbon_root = '';
+
             } elseif (strpos(dirname(self::CARBON_ROOT), self::$app_root) === 0) {
+
                 self::$public_carbon_root = rtrim(substr_replace(dirname(self::CARBON_ROOT), '', 0, strlen(self::$app_root)), DS);
+
             } else {
+
                 if (!self::$test) {
+
                     self::colorCode('The composer directory ie C6 should be in a child directory of the application root (' . self::$app_root . '). Currently set to :: ' . self::$app_root . "\n
                         Continuing gracefully, but some features may not work as expected.\n", iColorCode::RED);
+
                 }
+
                 self::$public_carbon_root = '//carbonphp.com';
+
             }
 
             ####################  CLI is not the CLI server
@@ -381,7 +447,9 @@ class CarbonPHP
             self::$app_root ??= self::CARBON_ROOT;
 
             if ($ip = filter_var($_SERVER['REMOTE_ADDR'] ??= '127.0.0.1', FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+
                 self::$server_ip = $ip;
+
             }
 
             ####################  Did we use >> php -S localhost:8080 index.php
@@ -393,8 +461,11 @@ class CarbonPHP
             ################  Helpful Global Functions ####################
             if (!file_exists(__DIR__ . DS . 'Functions.php')
                 || !include __DIR__ . DS . 'Functions.php') {
+
                 print PHP_EOL . 'Your instance of CarbonPHP appears corrupt. Please see CarbonPHP.com for Documentation' . PHP_EOL;
+
                 die(1);
+
             }
 
             $config = self::parseConfiguration($configuration);
@@ -407,7 +478,7 @@ class CarbonPHP
                 Database::$port = $config[self::DATABASE][self::DB_PORT] ?? '';
                 Database::$host = $config[self::DATABASE][self::DB_HOST] ?? '';
                 Database::$dsn = 'mysql:host=' . Database::$host . ';dbname=' . Database::$name
-                    . (!empty(Database::$port)? ';port=' . Database::$port : '');
+                    . (!empty(Database::$port) ? ';port=' . Database::$port : '');
                 Database::$initialized = true;
             }
 
@@ -439,45 +510,65 @@ class CarbonPHP
 
             #####################   ERRORS + Warnings + Alerts    #######################
             if ($config[self::ERROR] ??= false) {
+
                 ErrorCatcher::$defaultLocation = self::$reports . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
+
                 ErrorCatcher::$printToScreen = $config[self::ERROR][self::SHOW] ?? ErrorCatcher::$printToScreen;
+
                 ErrorCatcher::$storeReport = $config[self::ERROR][self::STORE] ?? ErrorCatcher::$storeReport;
-                ErrorCatcher::$level = $config[self::ERROR][self::LEVEL] ??  ErrorCatcher::$level;
+
+                ErrorCatcher::$level = $config[self::ERROR][self::LEVEL] ?? ErrorCatcher::$level;
+
                 ErrorCatcher::start();
+
             }
 
 
             #################  SITE  ########################
             if ($config['SITE'] ?? false) {
+
                 self::$site_title ??= $config[self::SITE][self::TITLE] ?? 'CarbonPHP [C6]';
+
                 self::$site_version ??= $config[self::SITE][self::VERSION] ?? PHP_VERSION;                // printed in the footer
+
                 self::$system_email ??= $config[self::SEND_EMAIL] ?? '';                               // server email system
+
                 self::$reply_email ??= $config[self::REPLY_EMAIL] ?? '';                               // I give you options :P
+
             }
 
             if (self::$cli && !self::$test && !self::$safelyExit) {
+
                 self::$safelyExit = true;
+
                 self::$commandLineInterface =
                     new CLI([self::$configuration, $_SERVER['argv'] ?? ['index.php', null]]);
+
             }
 
             ##################  VALIDATE URL / URI ##################
             if (!self::$cli && (false !== ($config[self::SITE][self::IP_TEST] ?? true))) {
+
                 self::IP_FILTER();
+
             }
 
             self::$uri ??= trim(urldecode(parse_url(trim(preg_replace('/\s+/', ' ', $_SERVER['REQUEST_URI'] ?? '')), PHP_URL_PATH)), '/');
 
             switch ($_SERVER['SERVER_PORT'] ??= 80) {
+
                 default:
                 case 80:
                     self::$protocol = 'http://';
                     break;
+
                 case 443:
                     self::$protocol = 'https://';
                     break;
+
                 case WebSocket::$port:
                     self::$protocol = 'wss://';    // todo - ws vs wss
+
             }
 
             $_SERVER['SERVER_NAME'] ??= self::$server_ip;
@@ -487,6 +578,7 @@ class CarbonPHP
             self::$site = self::$url . '/';
 
             if (!self::$cli) {
+
                 self::URI_FILTER($config['SITE']['URL'] ?? '', $config['SITE']['CACHE_CONTROL'] ?? []);
 
                 #######################   Pjax Ajax Refresh   ######################
@@ -496,11 +588,17 @@ class CarbonPHP
                 self::$pjax = (isset($headers['X-PJAX']) || isset($_GET['_pjax']) || ($_SERVER['HTTP_X_PJAX'] ?? false));
 
                 if ($_SERVER['REQUEST_METHOD'] !== 'GET' && empty($_POST)) {
+
                     # try to json decode. Json payloads ar sent to the input stream
                     $_POST = json_decode(file_get_contents('php://input'), true);
+
                     if ($_POST === null) {
+
                         $_POST = [];
+
+
                     }
+
                 }
 
                 // (PJAX == true) return required, else (!PJAX && AJAX) return optional (socket valid)
@@ -547,7 +645,7 @@ class CarbonPHP
             self::$setupComplete = true;
 
         } catch (Throwable $e) {
-            ErrorCatcher::generateBrowserReportFromThrowable($e);   // this will exit if executed
+            ErrorCatcher::generateBrowserReportFromThrowableAndExit($e);   // this will exit if executed
         }
     }
 
@@ -569,10 +667,10 @@ class CarbonPHP
      * If the url is not equal to the server url, and we are not
      * on a local development server, then Redirect to url provided.
      *
-     * @todo recursion checking
-     *
      * @param array|null $cacheControl
      * @return bool
+     * @todo recursion checking
+     *
      */
     private static function URI_FILTER(string $URL = '', array $cacheControl = []): bool
     {

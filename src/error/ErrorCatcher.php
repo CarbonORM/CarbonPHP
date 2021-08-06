@@ -401,7 +401,9 @@ class ErrorCatcher
         static $count = 0, $error_page = '';
 
         if (1 < $count++) {
+
             $errorForTemplate['DANGER'] = 'A possible recursive error has occurred in (or at least affecting) your $app->defaultRoute();';
+
         }
 
         $errorForTemplate['CODE'] ??= '0';
@@ -434,6 +436,7 @@ class ErrorCatcher
             print $error_page;
 
             self::closeStdoutStderrAndExit(1);
+
         }
 
         // this causes this ::  View::$forceWrapper = true;
@@ -446,8 +449,8 @@ class ErrorCatcher
             CarbonPHP::resetApplication();  // we're in prod and we want to recover gracefully...
 
             self::closeStdoutStderrAndExit(1);
-        }
 
+        }
 
         print $error_page;
 
@@ -465,7 +468,9 @@ class ErrorCatcher
         self::$old_error_level = error_reporting(self::$level);
 
         if (CarbonPHP::$test) {
+
             return self::$old_error_level;
+
         }
 
         /**
@@ -491,9 +496,13 @@ class ErrorCatcher
          * @link https://www.php.net/manual/en/function.set-error-handler.php
          */
         $error_handler = static function (int $errorLevel, string $errorString, string $errorFile, int $errorLine) {
+
             static $errorsHandled = 0;
+
             static $fatalError = false;
+
             $errorsHandled++;
+
             $browserOutput = [];
 
             // refer to link on this one
@@ -504,7 +513,9 @@ class ErrorCatcher
             }*/
 
             switch ($errorLevel) {
+
                 case E_USER_ERROR:
+
                     $fatalError = true;
 
                     self::colorCode('E_USER_ERROR caught', 'true');
@@ -516,17 +527,20 @@ class ErrorCatcher
                     $browserOutput['PHP'] = PHP_VERSION . ' (' . PHP_OS . ')';
 
                     break;
+
                 case E_USER_WARNING:
 
                     // TODO - not report in app local?
                     $browserOutput["WARNING [$errorLevel]"] = $errorString;
 
                     break;
+
                 case E_USER_NOTICE:
 
                     $browserOutput["NOTICE [$errorLevel]"] = $errorString;
 
                     break;
+
                 default:
 
                     $browserOutput["Unknown error type: [$errorLevel]"] = $errorString;
@@ -598,10 +612,12 @@ class ErrorCatcher
         self::$old_exception_handler = set_exception_handler($exception_handler);   // takes one argument
 
         return self::$old_error_level;
+
     }
 
     public static function stop(bool $ignoreRedundantStops = false): void
     {
+
         if (false === $ignoreRedundantStops && self::$old_error_level === null) {
             /** trigger_error is just a warning here
              * @link https://www.php.net/manual/en/language.exceptions.php
@@ -636,7 +652,7 @@ class ErrorCatcher
 
         }
 
-        ErrorCatcher::generateBrowserReportFromThrowable($e);
+        ErrorCatcher::generateBrowserReportFromThrowableAndExit($e);
     }
 
     /**

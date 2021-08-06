@@ -183,8 +183,12 @@ abstract class Serialized
                 return false;
             }
         } catch (\Throwable $e) {
-            ErrorCatcher::generateBrowserReportFromError($e);
+
+            ErrorCatcher::generateBrowserReportFromThrowableAndExit($e);
+
         }
+
         return true;
+
     }
 }
