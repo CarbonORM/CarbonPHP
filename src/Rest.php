@@ -1248,7 +1248,7 @@ abstract class Rest extends Database
 
             foreach ($argv as $key => &$value) {
 
-                if (!array_key_exists($key, static::PDO_VALIDATION)) {
+                if (false === array_key_exists($key, self::$compiled_PDO_validations)) {
 
                     return self::signalError("Restful table could not update column $key, because it does not appear to exist. Please re-run RestBuilder if you believe this is incorrect.");
 
@@ -1275,7 +1275,7 @@ abstract class Rest extends Database
             foreach ($argv as $fullName => $value) {
                 $shortName = static::COLUMNS[$fullName];
                 $set .= "$fullName=" .
-                    (static::PDO_VALIDATION[$fullName][self::MYSQL_TYPE] === 'binary'
+                    ('binary' === self::$compiled_PDO_validations[$fullName][self::MYSQL_TYPE]
                         ? "UNHEX(:$shortName),"
                         : ":$shortName,");
 
@@ -1333,7 +1333,7 @@ abstract class Rest extends Database
                             ? json_encode($argv[$fullName])
                             : $argv[$fullName];
 
-                        $stmt->bindValue(":$shortName", $value, static::PDO_VALIDATION[$fullName][1]);
+                        $stmt->bindValue(":$shortName", $value, static::PDO_VALIDATION[$fullName][self::PDO_TYPE]);
 
                     } else {
 
@@ -1552,13 +1552,13 @@ abstract class Rest extends Database
 
                     }
 
-                    if (false === self::validateInternalColumn(self::POST, $fullName, $op, $data[$fullName], $data[$fullName] === $info[self::DEFAULT_POST_VALUE])) {
+                    if (false === self::validateInternalColumn(self::POST, $fullName, $op, $data[$fullName], array_key_exists(self::DEFAULT_POST_VALUE, $info) ? $data[$fullName] === $info[self::DEFAULT_POST_VALUE] : false)) {
 
                         return self::signalError("Your custom restful api validations caused the request to fail on required column '$fullName'.");
 
                     }
 
-                    $stmt->bindParam(":$shortName", $data[$fullName], $info[self::PDO_TYPE], $info[self::MAX_LENGTH] === '' ? null : $info[self::MAX_LENGTH]);
+                    $stmt->bindParam(":$shortName", $data[$fullName], $info[self::PDO_TYPE], $info[self::MAX_LENGTH] === '' ? null : (int) $info[self::MAX_LENGTH]);
 
                 }
                 // end foreach bind

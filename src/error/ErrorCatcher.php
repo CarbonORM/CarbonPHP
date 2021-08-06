@@ -732,8 +732,11 @@ class ErrorCatcher
 
         }
 
-        $cliOutput .= $trace;
-
+        if (is_string($trace)) {
+            $cliOutput .= $trace;
+        } else {
+            $cliOutput .= json_encode($trace, JSON_PRETTY_PRINT) ?: serialize($trace);
+        }
 
         if (CarbonPHP::$app_local || self::$printToScreen) { // todo - what the fuck is this supposed to do?
 
