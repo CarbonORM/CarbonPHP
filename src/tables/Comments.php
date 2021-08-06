@@ -44,17 +44,35 @@ class Comments extends Rest implements iRestSinglePrimaryKey
     use RestfulValidations;
     
     public const CLASS_NAME = 'Comments';
+    
     public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
+    
     public const TABLE_NAME = 'carbon_comments';
+    
     public const TABLE_PREFIX = 'carbon_';
+    
     public const DIRECTORY = __DIR__ . DIRECTORY_SEPARATOR;
+    
+    public const QUERY_WITH_DATABASE = true;
+    
+    public const DATABASE = 'CarbonPHP';
+    
+    public const JSON_COLUMNS = [];
+    
+    public const TABLE_CONSTRAINTS = [
+        'comment_id'=>'carbon_carbons.entity_pk',
+    
+        'parent_id'=>'carbon_carbons.entity_pk',
+    
+        'user_id'=>'carbon_carbons.entity_pk',
+    ];
 
     /**
      * COLUMNS
      * The columns below are a 1=1 mapping to the columns found in carbon_comments. 
      * Changes, such as adding or removing a column, MAY be made first in the database. The ResitBuilder program will 
      * capture any changes made in MySQL and update this file auto-magically. If you work in a team it is RECCOMENDED to
-     * progromattically make these changes using the REFRESH_SCHEMA constant below.
+     * programmatically make these changes using the REFRESH_SCHEMA constant below.
     **/
     public const PARENT_ID = 'carbon_comments.parent_id'; 
 
@@ -73,6 +91,23 @@ class Comments extends Rest implements iRestSinglePrimaryKey
     public const PRIMARY = 'carbon_comments.comment_id';
 
     /**
+     * AUTO_INCREMENT_PRIMARY_KEY
+     * Post requests will return the new primary key.
+     * Caution: auto incrementing columns are considered bad practice in MySQL Sharded system. This is an
+     * advanced configuration, so if you don't know what it means you can probably ignore this. CarbonPHP is designed to
+     * manage your primary keys through a mysql generated UUID entity system. Consider turning your primary keys into 
+     * foreign keys which reference $prefix . 'carbon_carbons.entity_pk'. More on why this is effective at 
+     * @link https://www.carbonPHP.com
+    **/
+    public const AUTO_INCREMENT_PRIMARY_KEY = false;
+        
+    /**
+     * CARBON_CARBONS_PRIMARY_KEY
+     * does your table reference $prefix . 'carbon_carbons.entity_pk'
+    **/
+    public const CARBON_CARBONS_PRIMARY_KEY = true;
+    
+    /**
      * COLUMNS
      * This is a convenience constant for accessing your data after it has be returned from a rest operation. It is needed
      * as Mysql will strip away the table name we have explicitly provided to each column (to help with join statments).
@@ -80,11 +115,21 @@ class Comments extends Rest implements iRestSinglePrimaryKey
      *      $return[self::COLUMNS[self::EXAMPLE_COLUMN_ONE]]
     **/ 
     public const COLUMNS = [
-        'carbon_comments.parent_id' => 'parent_id','carbon_comments.comment_id' => 'comment_id','carbon_comments.user_id' => 'user_id','carbon_comments.comment' => 'comment',
+        self::PARENT_ID => 'parent_id',
+        self::COMMENT_ID => 'comment_id',
+        self::USER_ID => 'user_id',
+        self::COMMENT => 'comment',
     ];
-
+    
+    /**
+     * PDO_VALIDATION
+     * This is automatically generated. Modify your mysql table directly and rerun RestBuilder to see changes.
+    **/
     public const PDO_VALIDATION = [
-        'carbon_comments.parent_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_comments.comment_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_comments.user_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_comments.comment' => ['blob', PDO::PARAM_STR, ''],
+        self::PARENT_ID => [self::MYSQL_TYPE => 'binary', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '16', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
+        self::COMMENT_ID => [self::MYSQL_TYPE => 'binary', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '16', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
+        self::USER_ID => [self::MYSQL_TYPE => 'binary', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '16', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
+        self::COMMENT => [self::MYSQL_TYPE => 'blob', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
     ];
      
     /**
@@ -355,36 +400,7 @@ MYSQL;
     */
     public static function Get(array &$return, string $primary = null, array $argv = []): bool
     {
-        self::startRest(self::GET, $return, $argv ,$primary);
-
-        $pdo = self::database();
-
-        $sql = self::buildSelectQuery($primary, $argv, '', $pdo);
-        
-        self::jsonSQLReporting(func_get_args(), $sql);
-        
-        self::postpreprocessRestRequest($sql);
-        
-        $stmt = $pdo->prepare($sql);
-
-        self::bind($stmt);
-
-        if (!$stmt->execute()) {
-            self::completeRest();
-            return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
-        }
-
-        $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        if ((null !== $primary && '' !== $primary) || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
-            $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
-        }
-
-        self::postprocessRestRequest($return);
-        
-        self::completeRest();
-        
-        return true;
+        return self::select($return, $argv, $primary === null ? null : [ self::PRIMARY => $primary ]);
     }
 
     /**
@@ -395,84 +411,7 @@ MYSQL;
      */
     public static function Post(array $data = [])
     {   
-        self::startRest(self::POST, [], $data);
-    
-        foreach ($data as $columnName => $postValue) {
-            if (!array_key_exists($columnName, self::COLUMNS)) {
-                return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.");
-            }
-        } 
-        
-        $sql = 'INSERT INTO carbon_comments (parent_id, comment_id, user_id, comment) VALUES ( UNHEX(:parent_id), UNHEX(:comment_id), UNHEX(:user_id), :comment)';
-
-
-        self::jsonSQLReporting(func_get_args(), $sql);
-
-        self::postpreprocessRestRequest($sql);
-
-        $stmt = self::database()->prepare($sql);
-        
-        if (!array_key_exists('carbon_comments.parent_id', $data)) {
-            return self::signalError('Required argument "carbon_comments.parent_id" is missing from the request.');
-        }
-        $parent_id = $data['carbon_comments.parent_id'];
-        $ref='carbon_comments.parent_id';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $parent_id)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_comments.parent_id\'.');
-        }
-        $stmt->bindParam(':parent_id',$parent_id, PDO::PARAM_STR, 16);
-        
-        $comment_id = $id = $data['carbon_comments.comment_id'] ?? false;
-        if ($id === false) {
-            $comment_id = $id = self::beginTransaction(self::class, $data[self::DEPENDANT_ON_ENTITY] ?? null);
-        } else {
-            $ref='carbon_comments.comment_id';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::POST, $ref, $op, $comment_id)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_comments.comment_id\'.');
-            }            
-        }
-        $stmt->bindParam(':comment_id',$comment_id, PDO::PARAM_STR, 16);
-        
-        if (!array_key_exists('carbon_comments.user_id', $data)) {
-            return self::signalError('Required argument "carbon_comments.user_id" is missing from the request.');
-        }
-        $user_id = $data['carbon_comments.user_id'];
-        $ref='carbon_comments.user_id';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $user_id)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_comments.user_id\'.');
-        }
-        $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
-        
-        if (!array_key_exists('carbon_comments.comment', $data)) {
-            return self::signalError('The column \'carbon_comments.comment\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
-        } 
-        $ref='carbon_comments.comment';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $data['comment'])) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_comments.comment\'.');
-        }
-        $stmt->bindValue(':comment', $data['carbon_comments.comment'], PDO::PARAM_STR);
-        
-        if (!$stmt->execute()) {
-            self::completeRest();
-            return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
-        }
-        
-        self::prepostprocessRestRequest($id);
-         
-        if (self::$commit && !Database::commit()) {
-           return self::signalError('Failed to store commit transaction on table carbon_comments');
-        } 
-         
-        self::postprocessRestRequest($id); 
-         
-        self::completeRest();
-        
-        return $id; 
-        
+        return self::insert($data);
     }
     
     /**
@@ -495,143 +434,7 @@ MYSQL;
     */
     public static function Put(array &$returnUpdated, string $primary = null, array $argv = []) : bool
     {
-        self::startRest(self::PUT, $returnUpdated, $argv, $primary);
-        
-        $replace = false;
-        
-        $where = [];
-
-        if (array_key_exists(self::WHERE, $argv)) {
-            $where = $argv[self::WHERE];
-            unset($argv[self::WHERE]);
-        }
-        
-        if (array_key_exists(self::REPLACE, $argv)) {
-            $replace = true;
-            $argv = $argv[self::REPLACE];
-        } else if (array_key_exists(self::UPDATE, $argv)) {
-            $argv = $argv[self::UPDATE];
-        }
-        
-        $emptyPrimary = null === $primary || '' === $primary;
-        
-        if (false === $replace && false === self::$allowFullTableUpdates && $emptyPrimary) { 
-            return self::signalError('Restful tables which have a primary key must be updated by its primary key. To bypass this set you may set `self::$allowFullTableUpdates = true;` during the PREPROCESS events.');
-        }
-
-        if (!$emptyPrimary) {
-            $where[self::PRIMARY] = $primary;
-        }
-        
-        foreach ($argv as $key => &$value) {
-            if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError("Restful table could not update column $key, because it does not appear to exist. Please re-run RestBuilder if you believe this is incorrect.");
-            }
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_comments.\'.');
-            }
-        }
-        unset($value);
-
-        $sql = /** @lang MySQLFragment */ ($replace ? self::REPLACE : self::UPDATE) . ' carbon_comments SET '; // intellij cant handle this otherwise
-
-        $set = '';
-
-        if (array_key_exists('carbon_comments.parent_id', $argv)) {
-            $set .= 'parent_id=UNHEX(:parent_id),';
-        }
-        if (array_key_exists('carbon_comments.comment_id', $argv)) {
-            $set .= 'comment_id=UNHEX(:comment_id),';
-        }
-        if (array_key_exists('carbon_comments.user_id', $argv)) {
-            $set .= 'user_id=UNHEX(:user_id),';
-        }
-        if (array_key_exists('carbon_comments.comment', $argv)) {
-            $set .= 'comment=:comment,';
-        }
-        
-        $sql .= substr($set, 0, -1);
-
-        $pdo = self::database();
-        
-        if (!$pdo->inTransaction()) {
-            $pdo->beginTransaction();
-        }
-
-        if (false === $replace && (false === self::$allowFullTableUpdates || !empty($where))) {
-            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
-        }
-        
-        self::jsonSQLReporting(func_get_args(), $sql);
-
-        self::postpreprocessRestRequest($sql);
-
-        $stmt = $pdo->prepare($sql);
-
-        if (array_key_exists('carbon_comments.parent_id', $argv)) { 
-            $parent_id = $argv['carbon_comments.parent_id'];
-            $ref = 'carbon_comments.parent_id';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $parent_id)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'parent_id\'.');
-            }
-            $stmt->bindParam(':parent_id',$parent_id, PDO::PARAM_STR, 16);
-        }
-        if (array_key_exists('carbon_comments.comment_id', $argv)) { 
-            $comment_id = $argv['carbon_comments.comment_id'];
-            $ref = 'carbon_comments.comment_id';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $comment_id)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'comment_id\'.');
-            }
-            $stmt->bindParam(':comment_id',$comment_id, PDO::PARAM_STR, 16);
-        }
-        if (array_key_exists('carbon_comments.user_id', $argv)) { 
-            $user_id = $argv['carbon_comments.user_id'];
-            $ref = 'carbon_comments.user_id';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $user_id)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'user_id\'.');
-            }
-            $stmt->bindParam(':user_id',$user_id, PDO::PARAM_STR, 16);
-        }
-        if (array_key_exists('carbon_comments.comment', $argv)) { 
-            $stmt->bindValue(':comment',$argv['carbon_comments.comment'], PDO::PARAM_STR);
-        }
-        
-        self::bind($stmt);
-
-        if (!$stmt->execute()) {
-            self::completeRest();
-            return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
-        }
-        
-        if (!$stmt->rowCount()) {
-            return self::signalError('Failed to find the target row.');
-        }
-        
-        $argv = array_combine(
-            array_map(
-                static fn($k) => str_replace('carbon_comments.', '', $k),
-                array_keys($argv)
-            ),
-            array_values($argv)
-        );
-
-        $returnUpdated = array_merge($returnUpdated, $argv);
-        
-        self::prepostprocessRestRequest($returnUpdated);
-        
-        if (self::$commit && !Database::commit()) {
-            return self::signalError('Failed to store commit transaction on table carbon_comments');
-        }
-        
-        self::postprocessRestRequest($returnUpdated);
-        
-        self::completeRest();
-        
-        return true;
+        return self::updateReplace($returnUpdated, $argv, $primary === null ? null : [ self::PRIMARY => $primary ]);
     }
 
     /**
@@ -645,57 +448,6 @@ MYSQL;
     */
     public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
     {
-        self::startRest(self::DELETE, $remove, $argv, $primary);
-        
-        $pdo = self::database();
-        
-        $emptyPrimary = null === $primary || '' === $primary;
-        
-        if (!$emptyPrimary) {
-            return Carbons::Delete($remove, $primary, $argv);
-        }
-
-        if (false === self::$allowFullTableDeletes && empty($argv)) {
-            return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
-        }
-        
-        $sql = 'DELETE c FROM carbon_carbons c 
-                JOIN carbon_comments on c.entity_pk = carbon_comments.comment_id';
-
-        
-        if (false === self::$allowFullTableDeletes || !empty($argv)) {
-            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
-        }
-        
-        if (!$pdo->inTransaction()) {
-            $pdo->beginTransaction();
-        }
-        
-        self::jsonSQLReporting(func_get_args(), $sql);
-
-        self::postpreprocessRestRequest($sql);
-
-        $stmt = $pdo->prepare($sql);
-
-        self::bind($stmt);
-
-        if (!$stmt->execute()) {
-            self::completeRest();
-            return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
-        }
-
-        $remove = [];
-        
-        self::prepostprocessRestRequest($remove);
-        
-        if (self::$commit && !Database::commit()) {
-           return self::signalError('Failed to store commit transaction on table carbon_comments');
-        }
-        
-        self::postprocessRestRequest($remove);
-        
-        self::completeRest();
-        
-        return true;
+        return self::remove($remove, $argv, $primary === null ? null : [ self::PRIMARY => $primary ]);
     }
 }

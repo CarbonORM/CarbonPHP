@@ -44,17 +44,33 @@ class Location_References extends Rest implements iRestNoPrimaryKey
     use RestfulValidations;
     
     public const CLASS_NAME = 'Location_References';
+    
     public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
+    
     public const TABLE_NAME = 'carbon_location_references';
+    
     public const TABLE_PREFIX = 'carbon_';
+    
     public const DIRECTORY = __DIR__ . DIRECTORY_SEPARATOR;
+    
+    public const QUERY_WITH_DATABASE = true;
+    
+    public const DATABASE = 'CarbonPHP';
+    
+    public const JSON_COLUMNS = [];
+    
+    public const TABLE_CONSTRAINTS = [
+        'entity_reference'=>'carbon_carbons.entity_pk',
+    
+        'location_reference'=>'carbon_carbons.entity_pk',
+    ];
 
     /**
      * COLUMNS
      * The columns below are a 1=1 mapping to the columns found in carbon_location_references. 
      * Changes, such as adding or removing a column, MAY be made first in the database. The ResitBuilder program will 
      * capture any changes made in MySQL and update this file auto-magically. If you work in a team it is RECCOMENDED to
-     * progromattically make these changes using the REFRESH_SCHEMA constant below.
+     * programmatically make these changes using the REFRESH_SCHEMA constant below.
     **/
     public const ENTITY_REFERENCE = 'carbon_location_references.entity_reference'; 
 
@@ -71,6 +87,23 @@ class Location_References extends Rest implements iRestNoPrimaryKey
     public const PRIMARY = null;
 
     /**
+     * AUTO_INCREMENT_PRIMARY_KEY
+     * Post requests will return the new primary key.
+     * Caution: auto incrementing columns are considered bad practice in MySQL Sharded system. This is an
+     * advanced configuration, so if you don't know what it means you can probably ignore this. CarbonPHP is designed to
+     * manage your primary keys through a mysql generated UUID entity system. Consider turning your primary keys into 
+     * foreign keys which reference $prefix . 'carbon_carbons.entity_pk'. More on why this is effective at 
+     * @link https://www.carbonPHP.com
+    **/
+    public const AUTO_INCREMENT_PRIMARY_KEY = false;
+        
+    /**
+     * CARBON_CARBONS_PRIMARY_KEY
+     * does your table reference $prefix . 'carbon_carbons.entity_pk'
+    **/
+    public const CARBON_CARBONS_PRIMARY_KEY = false;
+    
+    /**
      * COLUMNS
      * This is a convenience constant for accessing your data after it has be returned from a rest operation. It is needed
      * as Mysql will strip away the table name we have explicitly provided to each column (to help with join statments).
@@ -78,11 +111,19 @@ class Location_References extends Rest implements iRestNoPrimaryKey
      *      $return[self::COLUMNS[self::EXAMPLE_COLUMN_ONE]]
     **/ 
     public const COLUMNS = [
-        'carbon_location_references.entity_reference' => 'entity_reference','carbon_location_references.location_reference' => 'location_reference','carbon_location_references.location_time' => 'location_time',
+        self::ENTITY_REFERENCE => 'entity_reference',
+        self::LOCATION_REFERENCE => 'location_reference',
+        self::LOCATION_TIME => 'location_time',
     ];
-
+    
+    /**
+     * PDO_VALIDATION
+     * This is automatically generated. Modify your mysql table directly and rerun RestBuilder to see changes.
+    **/
     public const PDO_VALIDATION = [
-        'carbon_location_references.entity_reference' => ['binary', PDO::PARAM_STR, '16'],'carbon_location_references.location_reference' => ['binary', PDO::PARAM_STR, '16'],'carbon_location_references.location_time' => ['datetime', PDO::PARAM_STR, ''],
+        self::ENTITY_REFERENCE => [self::MYSQL_TYPE => 'binary', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '16', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
+        self::LOCATION_REFERENCE => [self::MYSQL_TYPE => 'binary', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '16', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
+        self::LOCATION_TIME => [self::MYSQL_TYPE => 'datetime', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => self::CURRENT_TIMESTAMP],
     ];
      
     /**
@@ -349,36 +390,7 @@ MYSQL;
     */
     public static function Get(array &$return, array $argv = []): bool
     {
-        self::startRest(self::GET, $return, $argv );
-
-        $pdo = self::database();
-
-        $sql = self::buildSelectQuery(null, $argv, '', $pdo);
-        
-        self::jsonSQLReporting(func_get_args(), $sql);
-        
-        self::postpreprocessRestRequest($sql);
-        
-        $stmt = $pdo->prepare($sql);
-
-        self::bind($stmt);
-
-        if (!$stmt->execute()) {
-            self::completeRest();
-            return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
-        }
-
-        $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        if (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1) {
-            $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
-        }
-
-        self::postprocessRestRequest($return);
-        
-        self::completeRest();
-        
-        return true;
+        return self::select($return, $argv);
     }
 
     /**
@@ -389,70 +401,7 @@ MYSQL;
      */
     public static function Post(array $data = []): bool
     {   
-        self::startRest(self::POST, [], $data);
-    
-        foreach ($data as $columnName => $postValue) {
-            if (!array_key_exists($columnName, self::COLUMNS)) {
-                return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.");
-            }
-        } 
-        
-        $sql = 'INSERT INTO carbon_location_references (entity_reference, location_reference) VALUES ( UNHEX(:entity_reference), UNHEX(:location_reference))';
-
-        $pdo = self::database();
-        
-        if (!$pdo->inTransaction()) {
-            $pdo->beginTransaction();
-        }
-
-        self::jsonSQLReporting(func_get_args(), $sql);
-
-        self::postpreprocessRestRequest($sql);
-
-        $stmt = self::database()->prepare($sql);
-        
-        if (!array_key_exists('carbon_location_references.entity_reference', $data)) {
-            return self::signalError('Required argument "carbon_location_references.entity_reference" is missing from the request.');
-        }
-        $entity_reference = $data['carbon_location_references.entity_reference'];
-        $ref='carbon_location_references.entity_reference';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $entity_reference)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_location_references.entity_reference\'.');
-        }
-        $stmt->bindParam(':entity_reference',$entity_reference, PDO::PARAM_STR, 16);
-        
-        if (!array_key_exists('carbon_location_references.location_reference', $data)) {
-            return self::signalError('Required argument "carbon_location_references.location_reference" is missing from the request.');
-        }
-        $location_reference = $data['carbon_location_references.location_reference'];
-        $ref='carbon_location_references.location_reference';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $location_reference)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_location_references.location_reference\'.');
-        }
-        $stmt->bindParam(':location_reference',$location_reference, PDO::PARAM_STR, 16);
-        
-        if (array_key_exists('carbon_location_references.location_time', $data)) {
-            return self::signalError('The column \'carbon_location_references.location_time\' is set to default to CURRENT_TIMESTAMP. The Rest API does not allow POST requests with columns explicitly set whose default is CURRENT_TIMESTAMP. You can remove to the default in MySQL or the column \'carbon_location_references.location_time\' from the request.');
-        }
-        
-        if (!$stmt->execute()) {
-            self::completeRest();
-            return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
-        }
-        
-        self::prepostprocessRestRequest();
-        
-        if (self::$commit && !Database::commit()) {
-            return self::signalError('Failed to store commit transaction on table carbon_location_references');
-        }
-        
-        self::postprocessRestRequest();
-        
-        self::completeRest();
-        
-        return true;  
+        return self::insert($data);
     }
     
     /**
@@ -476,129 +425,7 @@ MYSQL;
     */
     public static function Put(array &$returnUpdated,  array $argv = []) : bool
     {
-        self::startRest(self::PUT, $returnUpdated, $argv);
-        
-        $replace = false;
-        
-        $where = [];
-
-        if (array_key_exists(self::WHERE, $argv)) {
-            $where = $argv[self::WHERE];
-            unset($argv[self::WHERE]);
-        }
-        
-        if (array_key_exists(self::REPLACE, $argv)) {
-            $replace = true;
-            $argv = $argv[self::REPLACE];
-        } else if (array_key_exists(self::UPDATE, $argv)) {
-            $argv = $argv[self::UPDATE];
-        }
-        
-        if (false === self::$allowFullTableUpdates && empty($where)) {
-            return self::signalError('Restful tables which have no primary key must be updated using conditions given to $argv[self::WHERE] and values to be updated given to $argv[self::UPDATE]. No WHERE attribute given. To bypass this set `self::$allowFullTableUpdates = true;` during the PREPROCESS events, or just directly before this request.');
-        }
-        
-        if (empty($argv)) {
-            return self::signalError('Restful tables which have no primary key must be updated using conditions given to $argv[self::WHERE] and values to be updated given to $argv[self::UPDATE]. No UPDATE attribute given.');
-        }
-        
-        foreach ($argv as $key => &$value) {
-            if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError("Restful table could not update column $key, because it does not appear to exist. Please re-run RestBuilder if you believe this is incorrect.");
-            }
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_location_references.\'.');
-            }
-        }
-        unset($value);
-
-        $sql = /** @lang MySQLFragment */ ($replace ? self::REPLACE : self::UPDATE) . ' carbon_location_references SET '; // intellij cant handle this otherwise
-
-        $set = '';
-
-        if (array_key_exists('carbon_location_references.entity_reference', $argv)) {
-            $set .= 'entity_reference=UNHEX(:entity_reference),';
-        }
-        if (array_key_exists('carbon_location_references.location_reference', $argv)) {
-            $set .= 'location_reference=UNHEX(:location_reference),';
-        }
-        if (array_key_exists('carbon_location_references.location_time', $argv)) {
-            $set .= 'location_time=:location_time,';
-        }
-        
-        $sql .= substr($set, 0, -1);
-
-        $pdo = self::database();
-        
-        if (!$pdo->inTransaction()) {
-            $pdo->beginTransaction();
-        }
-
-        if (false === $replace && (false === self::$allowFullTableUpdates || !empty($where))) {
-            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
-        }
-        
-        self::jsonSQLReporting(func_get_args(), $sql);
-
-        self::postpreprocessRestRequest($sql);
-
-        $stmt = $pdo->prepare($sql);
-
-        if (array_key_exists('carbon_location_references.entity_reference', $argv)) { 
-            $entity_reference = $argv['carbon_location_references.entity_reference'];
-            $ref = 'carbon_location_references.entity_reference';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $entity_reference)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'entity_reference\'.');
-            }
-            $stmt->bindParam(':entity_reference',$entity_reference, PDO::PARAM_STR, 16);
-        }
-        if (array_key_exists('carbon_location_references.location_reference', $argv)) { 
-            $location_reference = $argv['carbon_location_references.location_reference'];
-            $ref = 'carbon_location_references.location_reference';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $location_reference)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'location_reference\'.');
-            }
-            $stmt->bindParam(':location_reference',$location_reference, PDO::PARAM_STR, 16);
-        }
-        if (array_key_exists('carbon_location_references.location_time', $argv)) { 
-            $stmt->bindValue(':location_time',$argv['carbon_location_references.location_time'], PDO::PARAM_STR);
-        }
-        
-        self::bind($stmt);
-
-        if (!$stmt->execute()) {
-            self::completeRest();
-            return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
-        }
-        
-        if (!$stmt->rowCount()) {
-            return self::signalError('Failed to find the target row.');
-        }
-        
-        $argv = array_combine(
-            array_map(
-                static fn($k) => str_replace('carbon_location_references.', '', $k),
-                array_keys($argv)
-            ),
-            array_values($argv)
-        );
-
-        $returnUpdated = array_merge($returnUpdated, $argv);
-        
-        self::prepostprocessRestRequest($returnUpdated);
-        
-        if (self::$commit && !Database::commit()) {
-            return self::signalError('Failed to store commit transaction on table carbon_location_references');
-        }
-        
-        self::postprocessRestRequest($returnUpdated);
-        
-        self::completeRest();
-        
-        return true;
+        return self::updateReplace($returnUpdated, $argv);
     }
 
     /**
@@ -611,49 +438,6 @@ MYSQL;
     */
     public static function Delete(array &$remove, array $argv = []) : bool
     {
-        self::startRest(self::DELETE, $remove, $argv);
-        
-        $pdo = self::database();
-        
-        $sql =  /** @lang MySQLFragment */ 'DELETE FROM carbon_location_references ';
-        
-        if (false === self::$allowFullTableDeletes && empty($argv)) {
-            return self::signalError('When deleting from tables with out a primary key additional arguments must be provided.');
-        } 
-        
-        if (!empty($argv)) {
-            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
-        }
-        
-        if (!$pdo->inTransaction()) {
-            $pdo->beginTransaction();
-        }
-        
-        self::jsonSQLReporting(func_get_args(), $sql);
-
-        self::postpreprocessRestRequest($sql);
-
-        $stmt = $pdo->prepare($sql);
-
-        self::bind($stmt);
-
-        if (!$stmt->execute()) {
-            self::completeRest();
-            return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
-        }
-
-        $remove = [];
-        
-        self::prepostprocessRestRequest($remove);
-        
-        if (self::$commit && !Database::commit()) {
-           return self::signalError('Failed to store commit transaction on table carbon_location_references');
-        }
-        
-        self::postprocessRestRequest($remove);
-        
-        self::completeRest();
-        
-        return true;
+        return self::remove($remove, $argv);
     }
 }

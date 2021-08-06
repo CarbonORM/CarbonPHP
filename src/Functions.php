@@ -24,14 +24,11 @@ namespace {                                     // This runs the following code 
     }
 
     /** Start application will start a bootstrap file passed to it. It will
-     * store that instance in a static variable and reuse it for the proccess life.
+     * store that instance in a static variable and reuse it for the process life.
      *
      * @param $reset
      * @return null|bool - if this is called recursively we want to make sure were not
      * returning true to a controller function, thus causing the model to run when unneeded.
-     * So yes this is a self-stupid check..............
-     * @link
-     *
      */
     function startApplication($reset = ''): ?bool
     {
@@ -71,6 +68,7 @@ namespace {                                     // This runs the following code 
      *
      * @param bool $fileExt
      * @return string -- the text highlighted and converted to html
+     * @noinspection PhpExpressionResultUnusedInspection
      */
     function highlight($argv, $fileExt = false): string
     {

@@ -11,9 +11,8 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use CarbonPHP\Database;
-use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Tables\Wp_Users;
-use PDOException;
 use Throwable;
 
 /**
@@ -86,8 +85,8 @@ final class RestWordpressTest extends Config
 
             return $primary;
 
-        } catch (PDOException | PublicAlert | Throwable $e) {
-            sortDump($e->getMessage());
+        } catch (Throwable $e) {
+            ErrorCatcher::generateLog($e);
             die(1);
         }
     }
@@ -96,9 +95,13 @@ final class RestWordpressTest extends Config
     public static function deleteUser(string $id) : bool {
         try {
             $ignore = [];
+
             return Wp_Users::Delete($ignore, $id);
-        } catch (PDOException | PublicAlert | Throwable $e) {
-            sortDump($e->getMessage());
+
+        } catch (Throwable $e) {
+
+            ErrorCatcher::generateLog($e);
+
             die(1);
         }
     }

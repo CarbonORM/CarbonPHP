@@ -44,17 +44,33 @@ class Groups extends Rest implements iRestSinglePrimaryKey
     use RestfulValidations;
     
     public const CLASS_NAME = 'Groups';
+    
     public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';
+    
     public const TABLE_NAME = 'carbon_groups';
+    
     public const TABLE_PREFIX = 'carbon_';
+    
     public const DIRECTORY = __DIR__ . DIRECTORY_SEPARATOR;
+    
+    public const QUERY_WITH_DATABASE = true;
+    
+    public const DATABASE = 'CarbonPHP';
+    
+    public const JSON_COLUMNS = [];
+    
+    public const TABLE_CONSTRAINTS = [
+        'entity_id'=>'carbon_carbons.entity_pk',
+    
+        'created_by'=>'carbon_carbons.entity_pk',
+    ];
 
     /**
      * COLUMNS
      * The columns below are a 1=1 mapping to the columns found in carbon_groups. 
      * Changes, such as adding or removing a column, MAY be made first in the database. The ResitBuilder program will 
      * capture any changes made in MySQL and update this file auto-magically. If you work in a team it is RECCOMENDED to
-     * progromattically make these changes using the REFRESH_SCHEMA constant below.
+     * programmatically make these changes using the REFRESH_SCHEMA constant below.
     **/
     public const GROUP_NAME = 'carbon_groups.group_name'; 
 
@@ -73,6 +89,23 @@ class Groups extends Rest implements iRestSinglePrimaryKey
     public const PRIMARY = 'carbon_groups.entity_id';
 
     /**
+     * AUTO_INCREMENT_PRIMARY_KEY
+     * Post requests will return the new primary key.
+     * Caution: auto incrementing columns are considered bad practice in MySQL Sharded system. This is an
+     * advanced configuration, so if you don't know what it means you can probably ignore this. CarbonPHP is designed to
+     * manage your primary keys through a mysql generated UUID entity system. Consider turning your primary keys into 
+     * foreign keys which reference $prefix . 'carbon_carbons.entity_pk'. More on why this is effective at 
+     * @link https://www.carbonPHP.com
+    **/
+    public const AUTO_INCREMENT_PRIMARY_KEY = false;
+        
+    /**
+     * CARBON_CARBONS_PRIMARY_KEY
+     * does your table reference $prefix . 'carbon_carbons.entity_pk'
+    **/
+    public const CARBON_CARBONS_PRIMARY_KEY = true;
+    
+    /**
      * COLUMNS
      * This is a convenience constant for accessing your data after it has be returned from a rest operation. It is needed
      * as Mysql will strip away the table name we have explicitly provided to each column (to help with join statments).
@@ -80,11 +113,21 @@ class Groups extends Rest implements iRestSinglePrimaryKey
      *      $return[self::COLUMNS[self::EXAMPLE_COLUMN_ONE]]
     **/ 
     public const COLUMNS = [
-        'carbon_groups.group_name' => 'group_name','carbon_groups.entity_id' => 'entity_id','carbon_groups.created_by' => 'created_by','carbon_groups.creation_date' => 'creation_date',
+        self::GROUP_NAME => 'group_name',
+        self::ENTITY_ID => 'entity_id',
+        self::CREATED_BY => 'created_by',
+        self::CREATION_DATE => 'creation_date',
     ];
-
+    
+    /**
+     * PDO_VALIDATION
+     * This is automatically generated. Modify your mysql table directly and rerun RestBuilder to see changes.
+    **/
     public const PDO_VALIDATION = [
-        'carbon_groups.group_name' => ['varchar', PDO::PARAM_STR, '20'],'carbon_groups.entity_id' => ['binary', PDO::PARAM_STR, '16'],'carbon_groups.created_by' => ['binary', PDO::PARAM_STR, '16'],'carbon_groups.creation_date' => ['datetime', PDO::PARAM_STR, ''],
+        self::GROUP_NAME => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '20', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
+        self::ENTITY_ID => [self::MYSQL_TYPE => 'binary', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '16', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
+        self::CREATED_BY => [self::MYSQL_TYPE => 'binary', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '16', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
+        self::CREATION_DATE => [self::MYSQL_TYPE => 'datetime', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => self::CURRENT_TIMESTAMP],
     ];
      
     /**
@@ -353,36 +396,7 @@ MYSQL;
     */
     public static function Get(array &$return, string $primary = null, array $argv = []): bool
     {
-        self::startRest(self::GET, $return, $argv ,$primary);
-
-        $pdo = self::database();
-
-        $sql = self::buildSelectQuery($primary, $argv, '', $pdo);
-        
-        self::jsonSQLReporting(func_get_args(), $sql);
-        
-        self::postpreprocessRestRequest($sql);
-        
-        $stmt = $pdo->prepare($sql);
-
-        self::bind($stmt);
-
-        if (!$stmt->execute()) {
-            self::completeRest();
-            return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
-        }
-
-        $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        if ((null !== $primary && '' !== $primary) || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
-            $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
-        }
-
-        self::postprocessRestRequest($return);
-        
-        self::completeRest();
-        
-        return true;
+        return self::select($return, $argv, $primary === null ? null : [ self::PRIMARY => $primary ]);
     }
 
     /**
@@ -393,78 +407,7 @@ MYSQL;
      */
     public static function Post(array $data = [])
     {   
-        self::startRest(self::POST, [], $data);
-    
-        foreach ($data as $columnName => $postValue) {
-            if (!array_key_exists($columnName, self::COLUMNS)) {
-                return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.");
-            }
-        } 
-        
-        $sql = 'INSERT INTO carbon_groups (group_name, entity_id, created_by) VALUES ( :group_name, UNHEX(:entity_id), UNHEX(:created_by))';
-
-
-        self::jsonSQLReporting(func_get_args(), $sql);
-
-        self::postpreprocessRestRequest($sql);
-
-        $stmt = self::database()->prepare($sql);
-        
-        if (!array_key_exists('carbon_groups.group_name', $data)) {
-            return self::signalError('Required argument "carbon_groups.group_name" is missing from the request.');
-        }
-        $group_name = $data['carbon_groups.group_name'];
-        $ref='carbon_groups.group_name';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $group_name)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_groups.group_name\'.');
-        }
-        $stmt->bindParam(':group_name',$group_name, PDO::PARAM_STR, 20);
-        
-        $entity_id = $id = $data['carbon_groups.entity_id'] ?? false;
-        if ($id === false) {
-            $entity_id = $id = self::beginTransaction(self::class, $data[self::DEPENDANT_ON_ENTITY] ?? null);
-        } else {
-            $ref='carbon_groups.entity_id';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::POST, $ref, $op, $entity_id)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_groups.entity_id\'.');
-            }            
-        }
-        $stmt->bindParam(':entity_id',$entity_id, PDO::PARAM_STR, 16);
-        
-        if (!array_key_exists('carbon_groups.created_by', $data)) {
-            return self::signalError('Required argument "carbon_groups.created_by" is missing from the request.');
-        }
-        $created_by = $data['carbon_groups.created_by'];
-        $ref='carbon_groups.created_by';
-        $op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, $ref, $op, $created_by)) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_groups.created_by\'.');
-        }
-        $stmt->bindParam(':created_by',$created_by, PDO::PARAM_STR, 16);
-        
-        if (array_key_exists('carbon_groups.creation_date', $data)) {
-            return self::signalError('The column \'carbon_groups.creation_date\' is set to default to CURRENT_TIMESTAMP. The Rest API does not allow POST requests with columns explicitly set whose default is CURRENT_TIMESTAMP. You can remove to the default in MySQL or the column \'carbon_groups.creation_date\' from the request.');
-        }
-        
-        if (!$stmt->execute()) {
-            self::completeRest();
-            return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
-        }
-        
-        self::prepostprocessRestRequest($id);
-         
-        if (self::$commit && !Database::commit()) {
-           return self::signalError('Failed to store commit transaction on table carbon_groups');
-        } 
-         
-        self::postprocessRestRequest($id); 
-         
-        self::completeRest();
-        
-        return $id; 
-        
+        return self::insert($data);
     }
     
     /**
@@ -487,143 +430,7 @@ MYSQL;
     */
     public static function Put(array &$returnUpdated, string $primary = null, array $argv = []) : bool
     {
-        self::startRest(self::PUT, $returnUpdated, $argv, $primary);
-        
-        $replace = false;
-        
-        $where = [];
-
-        if (array_key_exists(self::WHERE, $argv)) {
-            $where = $argv[self::WHERE];
-            unset($argv[self::WHERE]);
-        }
-        
-        if (array_key_exists(self::REPLACE, $argv)) {
-            $replace = true;
-            $argv = $argv[self::REPLACE];
-        } else if (array_key_exists(self::UPDATE, $argv)) {
-            $argv = $argv[self::UPDATE];
-        }
-        
-        $emptyPrimary = null === $primary || '' === $primary;
-        
-        if (false === $replace && false === self::$allowFullTableUpdates && $emptyPrimary) { 
-            return self::signalError('Restful tables which have a primary key must be updated by its primary key. To bypass this set you may set `self::$allowFullTableUpdates = true;` during the PREPROCESS events.');
-        }
-
-        if (!$emptyPrimary) {
-            $where[self::PRIMARY] = $primary;
-        }
-        
-        foreach ($argv as $key => &$value) {
-            if (!array_key_exists($key, self::PDO_VALIDATION)){
-                return self::signalError("Restful table could not update column $key, because it does not appear to exist. Please re-run RestBuilder if you believe this is incorrect.");
-            }
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $key, $op, $value)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'carbon_groups.\'.');
-            }
-        }
-        unset($value);
-
-        $sql = /** @lang MySQLFragment */ ($replace ? self::REPLACE : self::UPDATE) . ' carbon_groups SET '; // intellij cant handle this otherwise
-
-        $set = '';
-
-        if (array_key_exists('carbon_groups.group_name', $argv)) {
-            $set .= 'group_name=:group_name,';
-        }
-        if (array_key_exists('carbon_groups.entity_id', $argv)) {
-            $set .= 'entity_id=UNHEX(:entity_id),';
-        }
-        if (array_key_exists('carbon_groups.created_by', $argv)) {
-            $set .= 'created_by=UNHEX(:created_by),';
-        }
-        if (array_key_exists('carbon_groups.creation_date', $argv)) {
-            $set .= 'creation_date=:creation_date,';
-        }
-        
-        $sql .= substr($set, 0, -1);
-
-        $pdo = self::database();
-        
-        if (!$pdo->inTransaction()) {
-            $pdo->beginTransaction();
-        }
-
-        if (false === $replace && (false === self::$allowFullTableUpdates || !empty($where))) {
-            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
-        }
-        
-        self::jsonSQLReporting(func_get_args(), $sql);
-
-        self::postpreprocessRestRequest($sql);
-
-        $stmt = $pdo->prepare($sql);
-
-        if (array_key_exists('carbon_groups.group_name', $argv)) { 
-            $group_name = $argv['carbon_groups.group_name'];
-            $ref = 'carbon_groups.group_name';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $group_name)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'group_name\'.');
-            }
-            $stmt->bindParam(':group_name',$group_name, PDO::PARAM_STR, 20);
-        }
-        if (array_key_exists('carbon_groups.entity_id', $argv)) { 
-            $entity_id = $argv['carbon_groups.entity_id'];
-            $ref = 'carbon_groups.entity_id';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $entity_id)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'entity_id\'.');
-            }
-            $stmt->bindParam(':entity_id',$entity_id, PDO::PARAM_STR, 16);
-        }
-        if (array_key_exists('carbon_groups.created_by', $argv)) { 
-            $created_by = $argv['carbon_groups.created_by'];
-            $ref = 'carbon_groups.created_by';
-            $op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, $ref, $op, $created_by)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'created_by\'.');
-            }
-            $stmt->bindParam(':created_by',$created_by, PDO::PARAM_STR, 16);
-        }
-        if (array_key_exists('carbon_groups.creation_date', $argv)) { 
-            $stmt->bindValue(':creation_date',$argv['carbon_groups.creation_date'], PDO::PARAM_STR);
-        }
-        
-        self::bind($stmt);
-
-        if (!$stmt->execute()) {
-            self::completeRest();
-            return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
-        }
-        
-        if (!$stmt->rowCount()) {
-            return self::signalError('Failed to find the target row.');
-        }
-        
-        $argv = array_combine(
-            array_map(
-                static fn($k) => str_replace('carbon_groups.', '', $k),
-                array_keys($argv)
-            ),
-            array_values($argv)
-        );
-
-        $returnUpdated = array_merge($returnUpdated, $argv);
-        
-        self::prepostprocessRestRequest($returnUpdated);
-        
-        if (self::$commit && !Database::commit()) {
-            return self::signalError('Failed to store commit transaction on table carbon_groups');
-        }
-        
-        self::postprocessRestRequest($returnUpdated);
-        
-        self::completeRest();
-        
-        return true;
+        return self::updateReplace($returnUpdated, $argv, $primary === null ? null : [ self::PRIMARY => $primary ]);
     }
 
     /**
@@ -637,57 +444,6 @@ MYSQL;
     */
     public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
     {
-        self::startRest(self::DELETE, $remove, $argv, $primary);
-        
-        $pdo = self::database();
-        
-        $emptyPrimary = null === $primary || '' === $primary;
-        
-        if (!$emptyPrimary) {
-            return Carbons::Delete($remove, $primary, $argv);
-        }
-
-        if (false === self::$allowFullTableDeletes && empty($argv)) {
-            return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
-        }
-        
-        $sql = 'DELETE c FROM carbon_carbons c 
-                JOIN carbon_groups on c.entity_pk = carbon_groups.entity_id';
-
-        
-        if (false === self::$allowFullTableDeletes || !empty($argv)) {
-            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
-        }
-        
-        if (!$pdo->inTransaction()) {
-            $pdo->beginTransaction();
-        }
-        
-        self::jsonSQLReporting(func_get_args(), $sql);
-
-        self::postpreprocessRestRequest($sql);
-
-        $stmt = $pdo->prepare($sql);
-
-        self::bind($stmt);
-
-        if (!$stmt->execute()) {
-            self::completeRest();
-            return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
-        }
-
-        $remove = [];
-        
-        self::prepostprocessRestRequest($remove);
-        
-        if (self::$commit && !Database::commit()) {
-           return self::signalError('Failed to store commit transaction on table carbon_groups');
-        }
-        
-        self::postprocessRestRequest($remove);
-        
-        self::completeRest();
-        
-        return true;
+        return self::remove($remove, $argv, $primary === null ? null : [ self::PRIMARY => $primary ]);
     }
 }

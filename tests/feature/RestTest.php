@@ -60,11 +60,14 @@ final class RestTest extends Config
             'Failed to find key (' . $key . ') in table carbons. Check that post is committed.');
 
         if (!empty($store)) {
+
             self::assertTrue(
                 Carbons::Delete($store, $key, []),
                 'Rest api failed to remove the test key ' . $key
             );
+
         }
+
     }
 
 
@@ -75,8 +78,17 @@ final class RestTest extends Config
     {
         // Should return a unique hex id
         self::assertInternalType('string', $key = Carbons::Post([Carbons::ENTITY_TAG => self::class]));
+
         $ref = [];
-        self::assertTrue($key = Carbons::Delete($ref, $key));
+
+        self::assertTrue(Carbons::Delete($ref, $key));
+
+        self::assertEmpty($ref);
+
+        self::assertTrue(Carbons::Get($ref, $key));
+
+        self::assertEmpty($ref);
+
     }
 
 
@@ -87,7 +99,9 @@ final class RestTest extends Config
     {
         $return = [];
         self::assertTrue(Carbons::Get($return, $key = Carbons::Post([
+
             Carbons::ENTITY_TAG => self::class
+
         ])));
 
         self::assertInternalType('array', $return);
@@ -95,7 +109,9 @@ final class RestTest extends Config
         self::assertNotEmpty($return);
 
         self::assertArrayHasKey(Carbons::COLUMNS[Carbons::ENTITY_FK], $return);
+
         self::assertArrayHasKey(Carbons::COLUMNS[Carbons::ENTITY_TAG], $return);
+
         self::assertArrayHasKey(Carbons::COLUMNS[Carbons::ENTITY_PK], $return);
 
         $return = [];
@@ -111,7 +127,7 @@ final class RestTest extends Config
 
         self::assertNotEmpty($return);
 
-        Carbons::Delete($return, $key);
+        self::assertTrue(Carbons::Delete($return, $key));
 
         self::assertEmpty($return);
     }
@@ -402,7 +418,6 @@ final class RestTest extends Config
             ]
         ];
 
-
         $_SERVER['REQUEST_METHOD'] = 'GET';
 
         ob_start(null, 0, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
@@ -414,7 +429,6 @@ final class RestTest extends Config
         self::assertStringEndsWith('}', $out, 'Did not detect json output. OUTPUT :: ' . $out);
 
         self::assertNotEmpty($GLOBALS['json']['rest'], $out);
-
 
     }
 
@@ -478,14 +492,23 @@ final class RestTest extends Config
 
     public function testRestApiCanUpdateCarbonPrimaryKeysWithNoCollisions(): void
     {
+
         self::assertNotFalse($USER_ID_ONE = Carbons::Post([]));
+
         self::assertNotFalse($USER_ID_TWO = Carbons::Post([Carbons::ENTITY_FK => $USER_ID_ONE]));
+
         self::assertNotFalse($USER_ID_THREE = Carbons::Post([Carbons::ENTITY_FK => $USER_ID_TWO]));
+
         $returnUpdated = [];
+
         self::assertNotFalse(Carbons::Put($returnUpdated, $USER_ID_TWO, [Carbons::ENTITY_FK => $USER_ID_FOUR = Carbons::Post([])]));
+
         $return = [];
+
         self::assertTrue(Carbons::Get($return, $USER_ID_ONE, []));
+
         self::assertEmpty($return[Carbons::COLUMNS[Carbons::ENTITY_FK]]);
+
     }
 
     public function testRestApiCanUpdateNonCarbonPrimaryKeysWithNoCollisions(): void
@@ -555,7 +578,6 @@ final class RestTest extends Config
         // Should return a unique hex id
         self::assertTrue(History_Logs::Post([
             History_Logs::HISTORY_UUID => $UUID = Carbons::Post([]),
-            History_Logs::HISTORY_PRIMARY => '{}',
             History_Logs::HISTORY_TABLE => $condition,
             History_Logs::HISTORY_DATA => '{}',
         ]));
@@ -583,7 +605,7 @@ final class RestTest extends Config
             ]
         ]));
 
-        self::assertCount(7, $return);
+        self::assertCount(6, $return);
     }
 
     public function testRestApiCanUseJson(): void
@@ -596,9 +618,8 @@ final class RestTest extends Config
         ]));
 
         self::assertTrue(History_Logs::Post([
-            History_Logs::HISTORY_DATA => '{}',
+            History_Logs::HISTORY_DATA => [ 'Json' => 'is cool'],
             History_Logs::HISTORY_TABLE => $condition,
-            History_Logs::HISTORY_PRIMARY => '{}',
             History_Logs::HISTORY_UUID => $UUID = Carbons::Post([])
         ]));
 
@@ -606,7 +627,6 @@ final class RestTest extends Config
         // Should return a unique hex id
         self::assertTrue(History_Logs::Put($ignore, [
             Rest::UPDATE => [
-                History_Logs::HISTORY_PRIMARY => '{["8544e3d581ba11e8942cd89ef3fc55fb"]}',
                 History_Logs::HISTORY_UUID => '8544e3d581ba11e8942cd89ef3fc55fb',
             ],
             Rest::WHERE => [
@@ -629,7 +649,7 @@ final class RestTest extends Config
 
 
 
-        self::assertCount(7, $return);
+        self::assertCount(6, $return);
 
     }
 

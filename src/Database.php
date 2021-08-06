@@ -118,17 +118,29 @@ FOOT;
     public static function database(): PDO
     {
         if (null === self::$database) {
+
             return static::reset();
+
         }
+
         $oldLevel = error_reporting(0);
+
         try {
-            self::$database->prepare('SELECT 1')->execute();     // This has had a history of causing spotty error.. if this is the location of your error, you should keep looking...
+
+            self::$database->prepare('SELECT 1')->execute();
+
             error_reporting($oldLevel);
+
             return static::$database;                       // Why should this work again?
-        } catch (Throwable $e) {// added for socket support
+
+        } catch (Throwable $e) {                            // added for socket support
+
             ErrorCatcher::generateLog($e);
+
             self::colorCode('Attempting to reset the database. Possible disconnect.', iColorCode::BACKGROUND_YELLOW);
+
             error_reporting($oldLevel);
+
             return static::reset();
         }
     }
@@ -140,17 +152,27 @@ FOOT;
     public static function TryCatchPDOException(callable $closure)
     {
         try {
+
             return $closure();
+
         } catch (PDOException $e) {
+
             $error_array = ErrorCatcher::generateLog($e);
+
             switch ($e->getCode()) {        // Database has not been created
+
                 case 1049:
+
                     $query = explode(';', static::$dsn);    // I programmatically put it there which is why..
 
                     $db_name = explode('=', $query[1])[1];  // I dont validate with count on this
 
                     if (empty($db_name)) {
-                        print '<h1>Could not determine a database to create. See Carbonphp.com for documentation.</h1>';
+
+                        $error_array[] = 'Could not determine a database to create. See Carbonphp.com for documentation.';
+
+                        ErrorCatcher::generateBrowserReport($error_array);  // this terminates
+
                         exit(1);
                     }
 
@@ -167,8 +189,11 @@ FOOT;
                         $error_array_two = ErrorCatcher::generateLog($e);
                         
                         if ($e->getCode() === 1049) {
+
                             $error_array_two[] = '<h1>Auto Setup Failed!</h1><h3>Your database DSN may be slightly malformed.</h3>';
+
                             $error_array_two[] =  '<p>CarbonPHP requires the host come before the database in your DNS.</p>';
+
                             $error_array_two[] =  '<p>It should follow the following format "mysql:host=127.0.0.1;dbname=C6".</p>';
                         }
                         
@@ -180,13 +205,17 @@ FOOT;
                     $db = static::$database;
 
                     if (!$db->prepare($stmt)->execute()) {
+
                         $error_array[] = '<h1>Failed to insert database. See CarbonPHP.com for documentation.</h1>';
                         
                         ErrorCatcher::generateBrowserReport($error_array);  // this terminates
+
                     } else {
+
                         $db->exec("use $db_name");
-                        
+
                         static::setUp(!CarbonPHP::$cli, CarbonPHP::$cli);
+
                     }
                     
                     break;

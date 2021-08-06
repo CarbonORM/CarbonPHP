@@ -43,11 +43,19 @@ class ErrorCatcher
      */
     public static bool $storeReport = false;
 
-
     public static string $fileName = '';
+
     public static string $className = '';
+
     public static string $methodName = '';
 
+    // The following two should be of type   ?Closure|array
+    // @link https://www.php.net/manual/en/function.set-error-handler.php
+    public static $old_error_handler = null;
+
+    public static $old_exception_handler = null;
+
+    public static ?int $old_error_level = null;
 
     public static bool $attemptRestartAfterError = false;
 
@@ -249,25 +257,42 @@ class ErrorCatcher
     public static function catchErrors(callable $lambda): callable
     {
         return static function (...$argv) use ($lambda) {
+
             try {
+
                 ob_start(null, null, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
+
                 $argv = \call_user_func_array($lambda, $argv);
+
             } catch (Throwable $e) {
+
                 if (!$e instanceof PublicAlert) {
+
                     $message = 'Developers make mistakes, and you found a big one! We\'ve logged this event and will be investigating soon.';
+
                     if (CarbonPHP::$app_local) {
+
                         PublicAlert::info($message);
+
                         PublicAlert::danger(\get_class($e) . ' ' . $e->getMessage());
+
                     } else {
+
                         PublicAlert::danger($message);
                     }
 
                     try {
+
                         ErrorCatcher::generateLog($e);
+
                     } catch (Throwable $e) {
+
                         PublicAlert::danger('Error handling failed.');
+
                         print $e->getMessage();
+
                         PublicAlert::info(json_encode($e));
+
                     }
                 }
                 /** @noinspection CallableParameterUseCaseInTypeContextInspection */
@@ -282,10 +307,12 @@ class ErrorCatcher
                                 Don't slip up in your production code!
                                 <a href="http://carbonphp.com/">Note: All MVC routes are wrapped in this function. Output to the browser should be done within the view! Use this as a reporting tool only.</a>
                                 </div><div class="box"><div class="box-body">$out</div></div></div>
-END;
+                                END;
 
                 }
+
                 Database::verify('Check that all database commit chains have finished successfully. You may need to self::commit().');     // Check that all database commit chains have finished successfully, otherwise attempt to remove
+
                 return $argv;
             }
         };
@@ -333,11 +360,20 @@ END;
         self::generateBrowserReport(self::generateLog($throwable));
     }
 
+    public static function generateBrowserReportFromErrorAndExit(Error $throwable): void
+    {
+        self::generateBrowserReport(self::generateLog($throwable), true);
+    }
+
     /**
-     * This terminates!
      * @param Throwable $throwable
      */
-    public static function generateBrowserReportFromThrowable(Throwable $throwable): void
+    public static function generateBrowserReportFromThrowable(Throwable $throwable): string
+    {
+        return self::generateBrowserReport(self::generateLog($throwable), true);
+    }
+
+    public static function generateBrowserReportFromThrowableAndExit(Throwable $throwable): void
     {
         self::generateBrowserReport(self::generateLog($throwable));
     }
@@ -346,7 +382,12 @@ END;
      * This terminates!
      * @param Exception $throwable
      */
-    public static function generateBrowserReportFromException(Exception $throwable): void
+    public static function generateBrowserReportFromException(Exception $throwable): string
+    {
+        self::generateBrowserReport(self::generateLog($throwable), true);
+    }
+
+    public static function generateBrowserReportFromExceptionAndExit(Exception $throwable): void
     {
         self::generateBrowserReport(self::generateLog($throwable));
     }
@@ -355,28 +396,44 @@ END;
      * This terminates!
      * @param array $errorForTemplate
      */
-    public static function generateBrowserReport(array $errorForTemplate): void
+    public static function generateBrowserReport(array $errorForTemplate, bool $return = false): string
     {
-        static $count = 0;
-        $count++;
+        static $count = 0, $error_page = '';
+
+        if (1 < $count++) {
+            $errorForTemplate['DANGER'] = 'A possible recursive error has occurred in (or at least affecting) your $app->defaultRoute();';
+        }
+
         $errorForTemplate['CODE'] ??= '0';
+
         $code = ($errorForTemplate['CODE'] === '0') ? 500 : $errorForTemplate['CODE'];
 
-        if (CarbonPHP::$app_local) {
-            if (is_string($code)) {
-                if (is_numeric($code)) {
-                    $code = (int)$code;
-                } else {
-                    $code = 500;
-                }
+        if (is_string($code)) {
+
+            if (is_numeric($code)) {
+
+                $code = (int)$code;
+
+            } else {
+
+                $code = 500;
+
             }
 
-            self::errorTemplate($errorForTemplate, $code);
+        }
+
+        $error_page = self::errorTemplate($errorForTemplate, $code);
+
+        if ($return) {
+            return $error_page;
         }
 
         // try resetting to the default page if conditions correct, we've already generated a log and optionally printed
         if (CarbonPHP::$cli || CarbonPHP::$socket || !CarbonPHP::$setupComplete) {
-            die(1);
+
+            print $error_page;
+
+            self::closeStdoutStderrAndExit(1);
         }
 
         // this causes this ::  View::$forceWrapper = true;
@@ -388,16 +445,13 @@ END;
 
             CarbonPHP::resetApplication();  // we're in prod and we want to recover gracefully...
 
-            exit(1);
+            self::closeStdoutStderrAndExit(1);
         }
 
-        if ($count > 1) {
-            $errorForTemplate['DANGER'] = 'A possible recursive error has occurred in (or at least affecting) your $app->defaultRoute();';
-        }
 
-        self::errorTemplate($errorForTemplate, $code);
+        print $error_page;
 
-        exit(1);
+        self::closeStdoutStderrAndExit(1);
     }
 
     /**
@@ -463,15 +517,20 @@ END;
 
                     break;
                 case E_USER_WARNING:
+
                     // TODO - not report in app local?
                     $browserOutput["WARNING [$errorLevel]"] = $errorString;
 
                     break;
                 case E_USER_NOTICE:
+
                     $browserOutput["NOTICE [$errorLevel]"] = $errorString;
+
                     break;
                 default:
+
                     $browserOutput["Unknown error type: [$errorLevel]"] = $errorString;
+
                     break;
             }
 
@@ -482,20 +541,29 @@ END;
             self::generateLog(null, 'log', $browserOutput);
 
             if (!CarbonPHP::$cli) {
+
                 self::generateBrowserReport($browserOutput);
+
             }
 
             /* Don't execute PHP internal error handler */
             if (CarbonPHP::$socket) {
+
                 if ($fatalError) {
+
                     exit(1);
+
                 }
 
                 if ($errorsHandled < 3) {
+
                     return true;            // let php do there thing... todo test this
+
                 }
+
             }
-            exit(1);
+
+            self::closeStdoutStderrAndExit(1);
             # return false;  // todo this will continue execution
         };
 
@@ -514,9 +582,13 @@ END;
             $browserOutput['Exception Handler'] = 'CarbonPHP Generated This Report.';
 
             if (!CarbonPHP::$cli) {
+
                 self::generateBrowserReport($browserOutput); // this will die(1)
+
             }
+
             return false;
+
         };
 
         // the return hint on set_error_handler is incorrect as array may also be returned.
@@ -528,21 +600,15 @@ END;
         return self::$old_error_level;
     }
 
-    // The following two should be of type   ?Closure|array
-    // @link https://www.php.net/manual/en/function.set-error-handler.php
-    public static $old_error_handler = null;
-
-    public static $old_exception_handler = null;
-
-    public static ?int $old_error_level = null;
-
-
     public static function stop(bool $ignoreRedundantStops = false): void
     {
         if (false === $ignoreRedundantStops && self::$old_error_level === null) {
-            // @link https://www.php.net/manual/en/language.exceptions.php
-            // @link https://stackoverflow.com/questions/1095860/is-there-any-way-to-show-or-throw-a-php-warning
+            /** trigger_error is just a warning here
+             * @link https://www.php.net/manual/en/language.exceptions.php
+             * @link https://stackoverflow.com/questions/1095860/is-there-any-way-to-show-or-throw-a-php-warning
+             **/
             trigger_error('Looks like you are trying to run ErrorCatcher::stop() before running start. This is not supported.', E_USER_WARNING);
+
             return;
         }
 
@@ -557,6 +623,22 @@ END;
         set_exception_handler($exception_handler);   // takes one argument
     }
 
+    public static function safelyHandleThrowableAndExit(Throwable $e)
+    {
+
+        http_response_code(400);
+
+        if (CarbonPHP::$cli) {
+
+            ErrorCatcher::generateLog($e);
+
+            ErrorCatcher::closeStdoutStderrAndExit(1);
+
+        }
+
+        ErrorCatcher::generateBrowserReportFromThrowable($e);
+    }
+
     /**
      * @param Throwable|null $e
      * @param string|null $level
@@ -568,7 +650,6 @@ END;
     {
         return self::generateCustomLogArrayFromThrowable($e, $level, $browserOutput, $color);
     }
-
 
     /** Generate a full error log consisting of a stack trace and arguments to each function call
      *
@@ -602,64 +683,111 @@ END;
         $cliOutput = '';
 
         if ($e instanceof Throwable) {
-            $class = \get_class($e);
+
+            $class = get_class($e);
+
             $trace = self::generateCallTrace($e);
 
             $browserOutput[$class] = $e->getMessage();
 
             if (!$e instanceof PublicAlert) {
+
                 $cliOutput .= '(set_error_handler || set_exception_handler) caught this ( ' . $class . ' ) throwable. #Bubbled up#' . PHP_EOL;
+
             } else {
+
                 $cliOutput .= 'Public Alert Thrown!' . PHP_EOL;
+
                 $browserOutput['ERROR TYPE'] = 'A Public Alert Was Thrown!';
+
             }
 
             $cliOutput .= $e->getMessage() . PHP_EOL;
+
             $browserOutput['FILE'] = $e->getFile();
+
             $browserOutput['LINE'] = (string)$e->getLine();
+
             $browserOutput['CODE'] = (string)$e->getCode();
+
         } else {
+
             $trace = self::generateCallTrace(null);
+
         }
 
         $cliOutput .= $trace;
 
 
         if (CarbonPHP::$app_local || self::$printToScreen) { // todo - what the fuck is this supposed to do?
+
             if (self::$printToScreen) {
+
                 $browserOutput['ERROR LIKE THIS COULD SHOW IN PRODUCTION'] = 'Please be sure $config["ERROR"]["SHOW"] = (bool) is set to CarbonPHP::$app_local';
+
             } else {
+
                 $browserOutput['THIS WILL NOT BE REPORTED IN PRODUCTION'] = 'To debug an error in a production environment set the following configuration option to true :: $config["ERROR"]["SHOW"] = (bool)';
+
             }
+
             $browserOutput['[C6] CARBONPHP'] = 'ErrorCatcher::generateLog';
-            $browserOutput['TRACE'] = "<pre>$trace</pre>";
-            $browserOutput['$GLOBALS[\'json\']'] = '<pre>'. json_encode($GLOBALS['json'], JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT). '</pre>';
+
+            $pre = fn(string $code) => "<pre>$code</pre>";
+
+            $browserOutput['TRACE'] = CarbonPHP::$cli ? $trace : $pre($trace);
+
+            $json = $GLOBALS['json'] ??= [];
+
+            $browserOutput['$GLOBALS[\'json\']'] = CarbonPHP::$cli ? $json : $pre(json_encode($json, JSON_PRETTY_PRINT) ?: serialize($json));
+
         }
 
         if (self::$storeReport === true || self::$storeReport === 'file') {
+
             try {
+
                 if (!is_dir(CarbonPHP::$reports) && !mkdir($concurrentDirectory = CarbonPHP::$reports) && !is_dir($concurrentDirectory)) {
+
                     error_log($message = 'Failed storing to custom log. The directory could not be found or created :: ' . CarbonPHP::$reports);
+
                     $browserOutput['[C6] ISSUE'] = $message;
+
                 } else {
+
                     $file = fopen($fileName = CarbonPHP::$reports . 'Log_' . time() . '.log', 'ab');
+
                     if (!\is_resource($file)) {
+
                         error_log($message = 'Failed writing to log to file. The file could not opened :: ' . $fileName);
+
                         $browserOutput['[C6] ISSUE'] = $message;
+
                     } else if (!fwrite($file, $cliOutput)) {
+
                         error_log($message = 'Failed writing to log to file. The file could not be written to :: ' . $fileName);
+
                         $browserOutput['[C6] ISSUE'] = $message;
+
                     }
+
                     fclose($file);
+
                 }
+
             } catch (Throwable $e) {
+
             } finally {
+
             } // NO MATTER WHAT.. continue
         }
 
         if (self::$storeReport === true || self::$storeReport === 'database') {
+
             if (Database::$initialized) {
+
                 try {
+
                     $reports = Rest::getDynamicRestClass(Reports::class);
 
                     if (!$reports::Post([
@@ -667,22 +795,36 @@ END;
                         $reports::REPORT => $cliOutput,
                         $reports::CALL_TRACE => $trace
                     ])) {
+
                         error_log($message = 'Failed storing log in database. The restful Reports table returned false.');
+
                         $browserOutput['[C6] ISSUE'] = $message;
+
                         die(1);
+
                     }
+
                 } catch (PublicAlert $e) {
+
                     error_log($message = 'Failed storing log in database. The restful Carbon_Reports table through and error :: ' . $e->getMessage());
+
                     $browserOutput['[C6] ISSUE'] = $message;
+
                 }
+
             } else {
+
                 error_log($message = 'An error occurred before the database use initialized. This likely means you have no database configurations, or a general configuration issue issues occurred :: ' . $e->getMessage());
+
                 $browserOutput['[C6] ISSUE'] = $message;
+
                 $browserOutput['[C6] STORAGE ISSUE'] = 'The database was not initialized when the error occurred. Storage to the database was not possible.';
+
             }
+
         }
 
-        self::colorCode($message = implode(PHP_EOL, $browserOutput), $color);
+        self::colorCode($message = json_encode($browserOutput, JSON_PRETTY_PRINT), $color);
 
         return $browserOutput; // as array
     }
@@ -691,49 +833,112 @@ END;
      * reverse array to make steps line up chronologically
      * @link http://php.net/manual/en/function.debug-backtrace.php
      * @param Throwable $e
-     * @return string
+     * @return string|array
      */
-    public static function generateCallTrace(Throwable $e = null): string
+    public static function generateCallTrace(Throwable $e = null)
     {
         self::$methodName = self::$className = '';
 
-        ob_start(null, null, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);     // start a new buffer for saving errors
+        if (false === CarbonPHP::$cli) {
+            ob_start(null, null, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);     // start a new buffer for saving errors
+        }
+
         if (null === $e) {
+
             $e = new \Exception();
+
             $trace = explode("\n", $e->getTraceAsString());
+
             $args = array_reverse($e->getTrace());
+
             $trace = array_reverse($trace);
+
             array_shift($trace); // remove {main}
+
             array_pop($args); // remove call to this method
+
             array_pop($args); // remove call to this method
+
             array_pop($trace); // remove call to this method
+
             array_pop($trace); // remove call to this method
+
         } else {
+
             $trace = explode("\n", $e->getTraceAsString());
+
             $args = array_reverse($e->getTrace());
+
             $trace = array_reverse($trace);
+
             array_shift($trace);       // remove {main} now but will add back iff originated from main
+
         }
 
         $length = \count($trace);
+
         if ($length === 0) {
-            print "Found in :: \n\n\t" . $e->getTraceAsString();
+
+            $trace = "Found in :: \n\n\t" . $e->getTraceAsString();
+
+            $result[] = $trace;
+
         } else {
+
             $result = array();
+
             for ($i = 0; $i < $length; $i++) {
 
                 if ('{closure}' !== substr($args[$i]['function'], -9)) {
+
                     self::$className = $args[$i]['class'] ?? '';
+
                     self::$methodName = $args[$i]['function'] ?? '';
+
                 }
 
-                $result[] = ($i + 1) . ') ' . implode(' (', explode('(', substr($trace[$i], strpos($trace[$i], ' '))))
-                    . PHP_EOL . "\t\t\t\t" . (array_key_exists('args', $args[$i]) ? json_encode($args[$i]['args']) : '[]') . PHP_EOL;
+                $line_one = implode(' (', explode('(', substr($trace[$i], strpos($trace[$i], ' '))));
+
+                $line_one = explode(' ', $line_one);
+
+                // get line number
+                if (array_key_exists(1, $line_one) && is_string($line_one[1])) {
+
+                    $line_number = $line_one[1];
+
+
+                    print $line_number;
+
+                    if ('(' === $line_number[0] && ')' === $line_number[-1]){
+
+                        $line_one[0] .= $line_one[1];
+
+                        $line_one[1] = '';
+
+                    }
+
+                }
+
+                $line_one = ($i + 1) . ') ' . implode(' ', $line_one);
+
+                $line_two = '[]';
+
+                if (array_key_exists('args', $args[$i])) {
+
+                    $line_two = CarbonPHP::$cli
+                        ? $args[$i]['args']
+                        : json_encode($args[$i]['args'], JSON_PRETTY_PRINT);
+
+                }
+
+                $result[] = CarbonPHP::$cli ? [$line_one, $line_two] :
+                    $line_one . "\n\t\t\t\t" . $line_two . PHP_EOL;
+
             }
-            print "\n" . implode("\n", $result);
+
         }
 
-        return ob_get_clean();
+        return CarbonPHP::$cli ? $result : PHP_EOL . implode(PHP_EOL, $result);
     }
 
 
@@ -741,7 +946,6 @@ END;
      * @param array $message
      * @param int $code
      * @return string
-     * @throws PublicAlert
      */
     private static function errorTemplate(array $message, int $code = 200): string
     {
@@ -767,8 +971,13 @@ END;
             }
 
             foreach ($message as $left => $right) {
-                if (!(is_string($left) && is_string($right))) {
-                    $left = json_encode($left, JSON_THROW_ON_ERROR);                      //  todo - we can do better
+
+                if (!is_string($left)) {
+                    $left = json_encode($left, JSON_PRETTY_PRINT) ?: serialize($left);                      //  todo - we can do better
+                }
+
+                if (!is_string($right)) {
+                    $right = json_encode($right, JSON_PRETTY_PRINT) ?: serialize($left);                      //  todo - we can do better
                 }
 
                 $cleanErrorReport .= $left === 'TRACE' || $left === '$GLOBALS[\'json\']' ?
@@ -806,17 +1015,16 @@ DESCRIPTION;
             header('Content-Type:text/html', true, $code);
         }
 
-        print (new \Mustache_Engine())->render(self::$errorTemplate, [
+        return (new \Mustache_Engine())->render(self::$errorTemplate, [
             'carbon_public_root' => $public_root,
             'public_root' => trim(CarbonPHP::$public_root ?? '', '/'),
             'code' => $code,
             'statusText' => $statusText,
             'actual_message' => $actual_message,
             'actual_message_body' => $message[$actual_message],
-            'cleanErrorReport' => $cleanErrorReport
+            'cleanErrorReport' => $cleanErrorReport,
+            'json' => $GLOBALS['json'] ?? 'null'
         ]);
-
-        exit(1);
     }
 
     public static function statusText(int $code = 0): ?string
@@ -863,6 +1071,25 @@ DESCRIPTION;
                 505 => 'HTTP Version Not Supported'
             ][$code] ?? null;
     }
+
+    /**
+     * @param int|string|mixed $exitCode
+     */
+    public static function closeStdoutStderrAndExit($exitCode = 0): void
+    {
+        fclose(STDOUT);
+
+        fclose(STDERR);
+
+        ob_start();
+
+        ErrorCatcher::stop();
+
+        error_reporting(0);
+
+        exit($exitCode);
+    }
+
 }
 
 

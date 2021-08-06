@@ -174,6 +174,8 @@ final class UserTest extends Config
             ]
         ]);
 
-        self::assertEmpty($this->user);
+        self::assertEmpty($this->user, 'Failed asserting delete removed the user :: ' . json_encode($GLOBALS['json'] ?? [], JSON_PRETTY_PRINT));
+
     }
+
 }

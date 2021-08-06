@@ -4,40 +4,40 @@ export const C6 = {
 
 
     // try to 1=1 match the Rest abstract class
-    AS: 'as',
+    AS: 'AS',
     ASC: ' ASC',
-    COUNT: 'count',
+    COUNT: 'COUNT',
     CURRENT_TIMESTAMP: ' CURRENT_TIMESTAMP ',
     DESC: ' DESC',
-    DISTINCT: 'distinct',
+    DISTINCT: 'DISTINCT',
     EQUAL: '=',
     EQUAL_NULL_SAFE: '<=>',
-    FULL_OUTER: 'full outer',
+    FULL_OUTER: 'FULL OUTER',
     GREATER_THAN: '>',
     GROUP_CONCAT: 'GROUP_CONCAT',
     GREATER_THAN_OR_EQUAL_TO: '>=',
-    INNER: 'inner',
-    JOIN: 'join',
-    LEFT: 'left',
-    LEFT_OUTER: 'left outer',
+    INNER: 'INNER',
+    JOIN: 'JOIN',
+    LEFT: 'LEFT',
+    LEFT_OUTER: 'LEFT OUTER',
     LESS_THAN: '<',
     LESS_THAN_OR_EQUAL_TO: '<=',
     LIKE: ' LIKE ',
-    LIMIT: 'limit',
-    MIN: 'min',
-    MAX: 'max',
+    LIMIT: 'LIMIT',
+    MIN: 'MIN',
+    MAX: 'MAX',
     NOW: ' NOW() ',
     NOT_EQUAL: '<>',
-    ORDER: 'order',
-    PAGE: 'page',
-    PAGINATION: 'pagination',
-    RIGHT_OUTER: 'right outer',
-    SELECT: 'select',
-    SUM: 'sum',
+    ORDER: 'ORDER',
+    PAGE: 'PAGE',
+    PAGINATION: 'PAGINATION',
+    RIGHT_OUTER: 'RIGHT OUTER',
+    SELECT: 'SELECT',
+    SUM: 'SUM',
     TRANSACTION_TIMESTAMP: ' TRANSACTION_TIMESTAMP ',
-    UPDATE: 'update',
-    UNHEX: 'unhex',
-    WHERE: 'where',
+    UPDATE: 'UPDATE',
+    UNHEX: 'UNHEX',
+    WHERE: 'WHERE',
     
     // carbon identifiers
     DEPENDANT_ON_ENTITY: 'DEPENDANT_ON_ENTITY',
@@ -172,7 +172,6 @@ export const C6 = {
     HISTORY_TYPE: 'carbon_history_logs.history_type',
     HISTORY_DATA: 'carbon_history_logs.history_data',
     HISTORY_ORIGINAL_QUERY: 'carbon_history_logs.history_original_query',
-    HISTORY_PRIMARY: 'carbon_history_logs.history_primary',
     HISTORY_TIME: 'carbon_history_logs.history_time',
     PRIMARY: [
             ],
@@ -182,7 +181,6 @@ export const C6 = {
 'carbon_history_logs.history_type':'history_type',
 'carbon_history_logs.history_data':'history_data',
 'carbon_history_logs.history_original_query':'history_original_query',
-'carbon_history_logs.history_primary':'history_primary',
 'carbon_history_logs.history_time':'history_time',
     },
     REGEX_VALIDATION: {
@@ -860,7 +858,6 @@ export interface  iHistory_Logs{
 'history_type'?: string;
 'history_data'?: string;
 'history_original_query'?: string;
-'history_primary'?: string;
 'history_time'?: string;
 }
   
@@ -1160,7 +1157,6 @@ export const COLUMNS = {
 'carbon_history_logs.history_type':'history_type',
 'carbon_history_logs.history_data':'history_data',
 'carbon_history_logs.history_original_query':'history_original_query',
-'carbon_history_logs.history_primary':'history_primary',
 'carbon_history_logs.history_time':'history_time',
 
 'carbon_location_references.entity_reference':'entity_reference',

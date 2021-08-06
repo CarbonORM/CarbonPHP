@@ -654,20 +654,29 @@ END;
                         //  }
 
                         $foreign_key = trim($words_in_insert_stmt[4], '()`');
+
                         $references_table = trim($words_in_insert_stmt[6], '`');
+
                         $references_column = trim($words_in_insert_stmt[7], '()`,');
 
+                        $rest[$tableName]['CARBON_CARBONS_PRIMARY_KEY'] ??= false;
+
+                        $rest[$tableName]['CARBON_CARBONS_PRIMARY_KEY'] =
+                            $rest[$tableName]['CARBON_CARBONS_PRIMARY_KEY'] === true ?:
+                                ($references_table === 'carbon_carbons'
+                                    || $references_table === $prefix . 'carbon_carbons')
+                                && in_array($foreign_key, $primary, true)
+                                && 'entity_pk' === $references_column;
+
+                        $rest[$tableName]['TABLE_CONSTRAINTS'][] = [
+                            'key' => $foreign_key,
+                            'references' => $references_table . '.' . $references_column
+                        ];
 
                         if (($references_table === 'carbon_carbons'
                                 || $references_table === $prefix . 'carbon_carbons')
                             && in_array($foreign_key, $primary, true)) {
-
-
-
-
-                            $rest[$tableName]['carbon_table'] = $tableName !== 'carbon_carbons';
-
-
+                            $rest[$tableName]['carbon_table'] = $tableName !== 'carbon_carbons'; // todo -
                         }
 
                         // We need to catch circular dependencies as mysql dumps print schemas alphabetically
@@ -680,8 +689,8 @@ END;
                         $verbose and self::colorCode("\nreference found ::\t$tableName([$foreign_key => $references_column])\n", 'magenta');
 
                         $rest[$references_table]['dependencies'][] = [$tableName => [$foreign_key => $references_column]];
-                        break;
 
+                        break;
 
                     default:
 
@@ -693,6 +702,7 @@ END;
 
                             // Explode hold all information about column
                             $rest[$tableName]['explode'][$column]['name'] = $name;
+
                             $rest[$tableName]['explode'][$column]['caps'] = strtoupper($name);
 
                             $type = strtolower($words_in_insert_stmt[1]);
@@ -767,7 +777,9 @@ END;
                                     // if it doesnt start with '  as CURRENT_TIMESTAMP
                                 } else if ($words_in_insert_stmt[$key][0] !== '\'') {
                                     $default = rtrim($words_in_insert_stmt[$key], ',');
-                                } else { // the first index does start in ' and doesnt end in '
+                                } else {
+                                    // the first index does start in ' and doesnt end in '
+
                                     do {
                                         if ($key > 10) {
                                             ColorCode::colorCode('Failed to understand MySQLDump File. Printing line ::');
@@ -781,13 +793,16 @@ END;
                                     $default = trim($default, ', ');
                                 }
 
-
                                 if ($default === 'CURRENT_TIMESTAMP') {
+
                                     // Were going to skip columns with this set as the default value
                                     // Trying to insert this condition w/ PDO is problematic
                                     $skipping_col[] = $name;
+
                                     $rest[$tableName]['explode'][$column]['skip'] = true;
+
                                     $rest[$tableName]['explode'][$column]['CURRENT_TIMESTAMP'] = true;
+
                                 } else if (strpos($default, '\'') !== 0) {
                                     // We need to escape values for php
                                     $default = "'$default'";
@@ -799,15 +814,21 @@ END;
                             // As far as I can tell the AUTO_INCREMENT condition the last possible word in the query
                             $auto_inc = count($words_in_insert_stmt) - 1;
                             if (isset($words_in_insert_stmt[$auto_inc]) && $words_in_insert_stmt[$auto_inc] === 'AUTO_INCREMENT,') {
+
                                 $skipping_col[] = $name;
+
                                 $rest[$tableName]['explode'][$column]['skip'] = true;
+
                                 $rest[$tableName]['explode'][$column]['auto_increment'] = true;
+
                                 $verbose and self::colorCode("\tThe Table '$tableName' contains an AUTO_INCREMENT column. This is bad for scaling.
-                                                                        \tConsider switching to binary(16) and letting this rest API manage column uniqueness.\n", 'red');
+                                                                        \tConsider switching to binary(16) and letting this rest API manage column uniqueness.\n", iColorCode::RED);
                             }
 
                             $column++;
+
                         }
+
                         break;
 
                 }
@@ -825,28 +846,37 @@ END;
 
             $rest[$tableName]['multiplePrimary'] = 1 < count($rest[$tableName]['primary']);
 
-
             // Make sure we didn't specify a flag that could cause us to move on...
             if (empty($rest[$tableName]['primary'])) {
+
                 $verbose and self::colorCode("\n\nThe tables {$rest[$tableName]['TableName']} does not have a primary key.\n", iColorCode::YELLOW);
+
                 if ($primary_required) {
                     self::colorCode(" \tSkipping...\n ",);
                     continue;
                 }
+
             } else {
                 foreach ($rest[$tableName]['explode'] as &$value) {
+
                     if (in_array($value, [
                         'pageSize',
                         'pageNumber'
                     ])) {
+
                         self::colorCode($rest[$tableName]['TableName'] . " uses reserved C6 RESTFULL keywords as a column identifier => $value\n\tRest Failed", iColorCode::RED);
+
                         die(1);
                     }
 
                     if (false !== in_array($value['name'], $primary, true)) {
+
                         $value['primary'] = true;
+
                         if (isset($value['binary'])) {
+
                             $value['primary_binary'] = true;
+
                             $rest[$tableName]['binary_primary'] = true;
                         }
                     }
@@ -856,7 +886,9 @@ END;
 
             // Listed is located in our POST method
             $rest[$tableName]['listed'] = '';
+
             $rest[$tableName]['implode'] = $rest[$tableName]['columns'];
+
             // The final value of implode is only used in the POST method
             foreach ($rest[$tableName]['implode'] as $key => &$value) {
 
@@ -866,9 +898,13 @@ END;
                     $rest[$tableName]['listed'] .= $value . ', ';
 
                     if (in_array($value, $binary, true)) {
+
                         $value = ' UNHEX(:' . $value . ')';
+
                     } else {
+
                         $value = ' :' . $value;
+
                     }
                 } else {
                     // unset($value) when &$value failed when implode became a second
@@ -901,8 +937,11 @@ END;
 
         if ($react) {
             [$restAccessors, $interfaces] = $this->reactTemplate();
+
             $references_tsx = $interfaces_tsx = $global_column_tsx = '';
+
             $all_interface_types = [];
+
             foreach ($rest as $tableName => $parsed) {
 
                 if (empty($rest[$tableName]['explode'])) {
@@ -957,8 +996,11 @@ END;
                         };
 
                         foreach ($regex_validations as $columnName => $regex_validation) {
+
                             $regex_validation = $str_lreplace($regex_validation[0], '/', $regex_validation);
+
                             $regex_validation[0] = '/';
+
                             $parsed['regex_validation'][] = [
                                 'name' => $columnName,
                                 'validation' => $regex_validation
@@ -970,12 +1012,15 @@ END;
                 }
 
                 $references_tsx .= PHP_EOL . $mustache->render($restAccessors, $parsed);
+
                 $interfaces_tsx .= PHP_EOL . $mustache->render($interfaces, $parsed);
+
                 $global_column_tsx .= PHP_EOL . $mustache->render(/** @lang Handlebars */ "{{#explode}}'{{TableName}}.{{name}}':'{{name}}',\n    {{/explode}}", $parsed);
+
                 $all_interface_types[] = 'i' . $rest[$tableName]['ucEachTableName'];
+
                 $all_table_names_types[] = $rest[$tableName]['TableName'];
             }
-
 
             if (empty($all_interface_types) || empty($all_table_names_types)) {
                 self::colorCode('The value of $all_interface_types must not be empty. Rest Failed.', 'red');
@@ -1177,7 +1222,7 @@ const convertForRequestBody = function(restfulObject, tableName) {
          */
 
         if ($history_table_query) {
-            ColorCode::colorCode( "\tBuilding Triggers!");
+            ColorCode::colorCode("\tBuilding Triggers!");
             $triggers = '';
             foreach ($rest as $table) {
                 if ($table['TableName'] === $this->table_prefix . History_Logs::TABLE_NAME
@@ -1217,36 +1262,8 @@ const convertForRequestBody = function(restfulObject, tableName) {
      */
     public static function trigger($table, $columns, $binary, $dependencies, $primary): string
     {
-        // callback to create the json
-        $json_mysql = static function ($op = 'NEW') use ($columns, $binary) {
-
-            $mid = "SET history_data = '{';\n";
-
-            foreach ($columns as $column) {
-                $mid .= in_array($column, $binary, true)
-                    ? <<<END
-                        SET history_data = CONCAT(history_data,'"$column":"', HEX($op.$column), '",');
-                        
-                        END
-                    : <<<END
-                        SET history_data = CONCAT(history_data,'"$column":"', JSON_QUOTE(COALESCE($op.$column,'')), '",');
-                        
-                        END;
-            }
-
-            $mid .= <<<END
-                SET history_data = TRIM(TRAILING ',' FROM history_data);
-                SET history_data = CONCAT(history_data, '}');
-                
-                END;
-
-            return $mid;
-        };
-
         // sys_resource_creation_logs sys_resource_history_logs
-
-        $history_sql = static function ($operation_type = 'POST') use ($binary, $table, $primary)
-        {
+        $history_sql = static function ($operation_type = 'POST') use ($binary, $table, $columns,$primary) {
             $relative_time = 'OLD';
 
             switch ($operation_type) {
@@ -1256,40 +1273,34 @@ const convertForRequestBody = function(restfulObject, tableName) {
                     break;
             }
 
-            $query = "SET history_primary_data = '{';\n";
+            $query = '';
 
-            foreach ($primary as $primary_array) {
-
-                $column = $primary_array['name'] ?? null;
-
-                if (null === $column) {
-                    ColorCode::colorCode('Failed to parse a name from the primary key array while building triggers.');
-                }
+            foreach ($columns as $column) {
 
                 $query .= in_array($column, $binary, true)
                     ? <<<END
-                        SET history_primary_data = CONCAT(history_primary_data,'"$column":"', HEX($relative_time.$column), '",');
-                        
+
+                                                    '$column', HEX($relative_time.$column),
                         END
                     : <<<END
-                        SET history_primary_data = CONCAT(history_primary_data,'"$column":"', COALESCE($relative_time.$column,''), '",');
                         
+                                                    '$column', JSON_QUOTE(COALESCE($relative_time.$column,'')),
                         END;
             }
 
-            $query .= <<<END
-                
-                SET history_primary_data = TRIM(TRAILING ',' FROM history_primary_data);
-                SET history_primary_data = CONCAT(history_primary_data, '}');
-                
-                END;
+            $query = rtrim($query, ',');
+
 
             /** @noinspection SqlResolve */
-            $query .= "INSERT INTO carbon_history_logs (history_uuid, history_table, history_primary, history_type, history_data, history_original_query)
-                VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-','')), '$table', history_primary_data , '$operation_type', history_data, history_original_query);";
+            $query = "INSERT INTO carbon_history_logs (history_uuid, history_table, history_type, history_data, history_original_query)
+                VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-',''))
+                        , '$table'
+                        , '$operation_type'
+                        , history_data = JSON_OBJECT($query
+                        ), original_query);";
 
             return $query;
-            
+
         };
 
         $delete_children = static function () use ($dependencies) {
@@ -1299,7 +1310,9 @@ const convertForRequestBody = function(restfulObject, tableName) {
                     // todo - I have this feeling advanced relations don't work correctly
                     foreach ($array as $child => $relation) {
                         foreach ($relation as $c => $keys) {
-                            /** @noinspection SqlResolve */
+                            /** @noinspection SqlResolve
+                             * @noinspection UnknownInspectionInspection
+                             */
                             $sql .= "DELETE FROM $child WHERE $c = OLD.$keys;" . PHP_EOL;
                         }
                     }
@@ -1308,13 +1321,11 @@ const convertForRequestBody = function(restfulObject, tableName) {
             return $sql;
         };
 
-        return <<<TRIGGER
+        return (<<<TRIGGER
 DROP TRIGGER IF EXISTS `trigger_{$table}_b_d`;;
 CREATE TRIGGER `trigger_{$table}_b_d` BEFORE DELETE ON `$table` FOR EACH ROW
 BEGIN
 
-DECLARE history_data text;
-DECLARE history_primary_data text;
 DECLARE original_query text;
 
 SELECT argument INTO original_query 
@@ -1323,8 +1334,6 @@ SELECT argument INTO original_query
   order by event_time desc 
   limit 1;
 
-
-{$json_mysql('OLD')}
       -- Insert record into audit tables
 {$history_sql('DELETE')}
       -- Delete Children
@@ -1336,8 +1345,6 @@ DROP TRIGGER IF EXISTS `trigger_{$table}_a_u`;;
 CREATE TRIGGER `trigger_{$table}_a_u` AFTER UPDATE ON `$table` FOR EACH ROW
 BEGIN
 
-DECLARE history_data text;
-DECLARE history_primary_data text;
 DECLARE original_query text;
 
 SELECT argument INTO original_query 
@@ -1346,7 +1353,6 @@ SELECT argument INTO original_query
   order by event_time desc 
   limit 1;
 
-{$json_mysql()}
       -- Insert record into audit tables
 {$history_sql('PUT')}
 
@@ -1356,8 +1362,6 @@ DROP TRIGGER IF EXISTS `trigger_{$table}_a_i`;;
 CREATE TRIGGER `trigger_{$table}_a_i` AFTER INSERT ON `$table` FOR EACH ROW
 BEGIN
 
-DECLARE history_data text;
-DECLARE history_primary_data text;
 DECLARE original_query text;
 
 SELECT argument INTO original_query 
@@ -1366,13 +1370,12 @@ SELECT argument INTO original_query
   order by event_time desc 
   limit 1;
 
-{$json_mysql()}
       -- Insert record into audit tables
 {$history_sql('POST')}
 
 END;;
-TRIGGER;
-        
+TRIGGER);
+
     }
 
     /**
@@ -1475,17 +1478,31 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
     use RestfulValidations;
     
     public const CLASS_NAME = '{{ucEachTableName}}';
+    
     public const CLASS_NAMESPACE = '{{namespace}}\\\\';
+    
     public const TABLE_NAME = '{{TableName}}';
+    
     public const TABLE_PREFIX = {{#prefixReplaced}}'{{prefix}}'{{/prefixReplaced}}{{^prefixReplaced}}''{{/prefixReplaced}};
+    
     public const DIRECTORY = __DIR__ . DIRECTORY_SEPARATOR;
+    
+    public const QUERY_WITH_DATABASE = {{#QueryWithDatabaseName}}true{{/QueryWithDatabaseName}}{{^QueryWithDatabaseName}}false{{/QueryWithDatabaseName}};
+    
+    public const DATABASE = '{{#QueryWithDatabaseName}}{{database}}{{/QueryWithDatabaseName}}';
+    
+    public const JSON_COLUMNS = [{{#explode}}{{#json}}'{{name}}',{{/json}}{{/explode}}];
+    
+    public const TABLE_CONSTRAINTS = [{{#TABLE_CONSTRAINTS}}
+        '{{key}}'=>'{{references}}',
+    {{/TABLE_CONSTRAINTS}}];
 
     /**
      * COLUMNS
      * The columns below are a 1=1 mapping to the columns found in {{TableName}}. 
      * Changes, such as adding or removing a column, MAY be made first in the database. The ResitBuilder program will 
      * capture any changes made in MySQL and update this file auto-magically. If you work in a team it is RECCOMENDED to
-     * progromattically make these changes using the REFRESH_SCHEMA constant below.
+     * programmatically make these changes using the REFRESH_SCHEMA constant below.
     **/{{#explode}}
     public const {{caps}} = '{{TableName}}.{{name}}'; 
     {{/explode}}
@@ -1500,18 +1517,39 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
     ]{{/multiplePrimary}}{{^multiplePrimary}}{{#primary}}'{{TableName}}.{{name}}'{{/primary}}{{/multiplePrimary}}{{/primaryExists}};
 
     /**
+     * AUTO_INCREMENT_PRIMARY_KEY
+     * Post requests will return the new primary key.
+     * Caution: auto incrementing columns are considered bad practice in MySQL Sharded system. This is an
+     * advanced configuration, so if you don't know what it means you can probably ignore this. CarbonPHP is designed to
+     * manage your primary keys through a mysql generated UUID entity system. Consider turning your primary keys into 
+     * foreign keys which reference \$prefix . 'carbon_carbons.entity_pk'. More on why this is effective at 
+     * @link https://www.carbonPHP.com
+    **/
+    public const AUTO_INCREMENT_PRIMARY_KEY = {{#auto_increment_return_key}}true{{/auto_increment_return_key}}{{^auto_increment_return_key}}false{{/auto_increment_return_key}};
+        
+    /**
+     * CARBON_CARBONS_PRIMARY_KEY
+     * does your table reference \$prefix . 'carbon_carbons.entity_pk'
+    **/
+    public const CARBON_CARBONS_PRIMARY_KEY = {{#CARBON_CARBONS_PRIMARY_KEY}}true{{/CARBON_CARBONS_PRIMARY_KEY}}{{^CARBON_CARBONS_PRIMARY_KEY}}false{{/CARBON_CARBONS_PRIMARY_KEY}};
+    
+    /**
      * COLUMNS
      * This is a convenience constant for accessing your data after it has be returned from a rest operation. It is needed
      * as Mysql will strip away the table name we have explicitly provided to each column (to help with join statments).
      * Thus, accessing your return values might look something like:
      *      \$return[self::COLUMNS[self::EXAMPLE_COLUMN_ONE]]
     **/ 
-    public const COLUMNS = [
-        {{#explode}}'{{TableName}}.{{name}}' => '{{name}}',{{/explode}}
+    public const COLUMNS = [{{#explode}}
+        self::{{caps}} => '{{name}}',{{/explode}}
     ];
-
-    public const PDO_VALIDATION = [
-        {{#explode}}'{{TableName}}.{{name}}' => ['{{mysql_type}}', {{type}}, '{{length}}'],{{/explode}}
+    
+    /**
+     * PDO_VALIDATION
+     * This is automatically generated. Modify your mysql table directly and rerun RestBuilder to see changes.
+    **/
+    public const PDO_VALIDATION = [{{#explode}}
+        self::{{caps}} => [self::MYSQL_TYPE => '{{mysql_type}}', self::PDO_TYPE => {{type}}, self::MAX_LENGTH => '{{length}}', self::AUTO_INCREMENT => {{#auto_increment}}true{{/auto_increment}}{{^auto_increment}}false{{/auto_increment}}, self::SKIP_COLUMN_IN_POST => {{#skip}}true{{/skip}}{{^skip}}false{{/skip}}{{#default}}, self::DEFAULT_POST_VALUE => {{#CURRENT_TIMESTAMP}}self::CURRENT_TIMESTAMP{{/CURRENT_TIMESTAMP}}{{^CURRENT_TIMESTAMP}}{{{default}}}{{/CURRENT_TIMESTAMP}}{{/default}}],{{/explode}}
     ];
      
     /**
@@ -1777,44 +1815,7 @@ MYSQL;
     */
     public static function Get(array &\$return, {{#primaryExists}}{{#multiplePrimary}}array{{/multiplePrimary}}{{^multiplePrimary}}string{{/multiplePrimary}} \$primary = null, {{/primaryExists}}array \$argv = []): bool
     {
-        self::startRest(self::GET, \$return, \$argv {{#primaryExists}},\$primary{{/primaryExists}});
-
-        \$pdo = self::database();
-
-        \$sql = self::buildSelectQuery({{#primaryExists}}\$primary{{/primaryExists}}{{^primaryExists}}null{{/primaryExists}}, \$argv, {{^carbon_namespace}}{{#QueryWithDatabaseName}}'{{database}}'{{/QueryWithDatabaseName}}{{/carbon_namespace}}{{^QueryWithDatabaseName}}''{{/QueryWithDatabaseName}}{{#carbon_namespace}}''{{/carbon_namespace}}, \$pdo);{{#json}}
-        
-        self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
-        
-        self::postpreprocessRestRequest(\$sql);
-        
-        \$stmt = \$pdo->prepare(\$sql);
-
-        self::bind(\$stmt);
-
-        if (!\$stmt->execute()) {
-            self::completeRest();
-            return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode(\$stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
-        }
-
-        \$return = \$stmt->fetchAll(PDO::FETCH_ASSOC);{{#primaryExists}}{{#sql}}
-        
-        if ((null !== \$primary && {{^multiplePrimary}}''{{/multiplePrimary}}{{#multiplePrimary}}[]{{/multiplePrimary}} !== \$primary) || (isset(\$argv[self::PAGINATION][self::LIMIT]) && \$argv[self::PAGINATION][self::LIMIT] === 1 && count(\$return) === 1)) {
-            \$return = isset(\$return[0]) && is_array(\$return[0]) ? \$return[0] : \$return;
-        }{{/sql}}{{/primaryExists}}{{^primary}}
-        
-        if (isset(\$argv[self::PAGINATION][self::LIMIT]) && \$argv[self::PAGINATION][self::LIMIT] === 1 && count(\$return) === 1) {
-            \$return = isset(\$return[0]) && is_array(\$return[0]) ? \$return[0] : \$return;
-        }{{/primary}}{{#explode}}{{#json}}
-        
-        if (array_key_exists('{{name}}', \$return)) {
-                \$return['{{name}}'] = json_decode(\$return['{{name}}'], true);
-        }{{/json}}{{/explode}}
-
-        self::postprocessRestRequest(\$return);
-        
-        self::completeRest();
-        
-        return true;
+        return self::select(\$return, \$argv{{#primaryExists}}, {{#multiplePrimary}}\$primary{{/multiplePrimary}}{{^multiplePrimary}}\$primary === null ? null : [ self::PRIMARY => \$primary ]{{/multiplePrimary}}{{/primaryExists}});
     }
 
     /**
@@ -1825,131 +1826,7 @@ MYSQL;
      */
     public static function Post(array \$data = []){{^primaryExists}}: bool{{/primaryExists}}
     {   
-        self::startRest(self::POST, [], \$data);
-    
-        foreach (\$data as \$columnName => \$postValue) {
-            if (!array_key_exists(\$columnName, self::COLUMNS)) {
-                return self::signalError("Restful table could not post column \$columnName, because it does not appear to exist.");
-            }
-        } 
-        
-        \$sql = 'INSERT INTO {{^carbon_namespace}}{{#QueryWithDatabaseName}}{{database}}.{{/QueryWithDatabaseName}}{{/carbon_namespace}}{{TableName}} ({{listed}}) VALUES ({{{implode}}})';
-
-        {{^binary_primary}}
-        \$pdo = self::database();
-        
-        if (!\$pdo->inTransaction()) {
-            \$pdo->beginTransaction();
-        }
-        {{/binary_primary}}
-
-        {{#json}}self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
-
-        self::postpreprocessRestRequest(\$sql);
-
-        \$stmt = self::database()->prepare(\$sql);
-        {{#explode}}{{#primary_binary}}{{^carbon_table}}
-        \${{name}} = \$id = \$data['{{TableName}}.{{name}}'] ?? false;
-        if (\$id === false) {
-             \${{name}} = \$id = self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
-        } else {
-            \$ref='{{TableName}}.{{name}}';
-            \$op = self::EQUAL;
-            if (!self::validateInternalColumn(self::POST, \$ref, \$op, \${{name}})) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
-            }            
-        }
-        \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
-        {{/carbon_table}}{{#carbon_table}}
-        \${{name}} = \$id = \$data['{{TableName}}.{{name}}'] ?? false;
-        if (\$id === false) {
-            \${{name}} = \$id = self::beginTransaction(self::class, \$data[self::DEPENDANT_ON_ENTITY] ?? null);
-        } else {
-            \$ref='{{TableName}}.{{name}}';
-            \$op = self::EQUAL;
-            if (!self::validateInternalColumn(self::POST, \$ref, \$op, \${{name}})) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
-            }            
-        }
-        \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
-        {{/carbon_table}}{{/primary_binary}}{{^primary_binary}}{{#skip}}{{#CURRENT_TIMESTAMP}}
-        if (array_key_exists('{{TableName}}.{{name}}', \$data)) {
-            return self::signalError('The column \'{{TableName}}.{{name}}\' is set to default to CURRENT_TIMESTAMP. The Rest API does not allow POST requests with columns explicitly set whose default is CURRENT_TIMESTAMP. You can remove to the default in MySQL or the column \'{{TableName}}.{{name}}\' from the request.');
-        }
-        {{/CURRENT_TIMESTAMP}}{{/skip}}{{^skip}}{{^length}}{{#json}}
-        if (!array_key_exists('{{TableName}}.{{name}}', \$data)) {
-            return self::signalError('The column \'{{TableName}}.{{name}}\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
-        }
-        \$ref = '{{TableName}}.{{name}}';
-        \$op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, \$ref, \$op, \$data['{{name}}'])) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
-        }
-        if (!is_string(\${{name}} = \$data['{{TableName}}.{{name}}']) && false === \${{name}} = json_encode(\${{name}})) {
-            return self::signalError('The column \'{{TableName}}.{{name}}\' failed to be json encoded.');
-        }
-        \$stmt->bindValue(':{{name}}', \${{name}}, {{type}});
-        {{/json}}{{^json}}{{^default}}
-        if (!array_key_exists('{{TableName}}.{{name}}', \$data)) {
-            return self::signalError('The column \'{{TableName}}.{{name}}\' is set to not null and has no default value. It must exist in the request and was not found in the one sent.');
-        } 
-        \$ref='{{TableName}}.{{name}}';
-        \$op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, \$ref, \$op, \$data['{{name}}'])) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
-        }
-        \$stmt->bindValue(':{{name}}', \$data['{{TableName}}.{{name}}'], {{type}});
-        {{/default}}{{#default}}         
-        \${{name}} = \$data['{{TableName}}.{{name}}'] ?? {{default}};
-        \$ref='{{TableName}}.{{name}}';
-        \$op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, \$ref, \$op, \${{name}}, \${{name}} === {{{default}}})) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
-        }
-        \$stmt->bindValue(':{{name}}', \${{name}}, {{type}});
-        {{/default}}{{/json}}{{/length}}{{#length}}{{^default}}
-        if (!array_key_exists('{{TableName}}.{{name}}', \$data)) {
-            return self::signalError('Required argument "{{TableName}}.{{name}}" is missing from the request.');
-        }{{/default}}
-        \${{name}} = {{^default}}\$data['{{TableName}}.{{name}}'];{{/default}}{{#default}}\$data['{{TableName}}.{{name}}'] ?? {{{default}}};{{/default}}
-        \$ref='{{TableName}}.{{name}}';
-        \$op = self::EQUAL;
-        if (!self::validateInternalColumn(self::POST, \$ref, \$op, \${{name}}{{#default}}, \${{name}} === {{{default}}}{{/default}})) {
-            return self::signalError('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
-        }
-        \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});
-        {{/length}}{{/skip}}{{/primary_binary}}{{/explode}}
-        if (!\$stmt->execute()) {
-            self::completeRest();
-            return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode(\$stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
-        }{{#binary_primary}}
-        
-        self::prepostprocessRestRequest(\$id);
-         
-        if (self::\$commit && !Database::commit()) {
-           return self::signalError('Failed to store commit transaction on table {{TableName}}');
-        } 
-         
-        self::postprocessRestRequest(\$id); 
-         
-        self::completeRest();
-        
-        return \$id; 
-        {{/binary_primary}}{{^binary_primary}}{{#auto_increment_return_key}}
-        
-        \$id = \$pdo->lastInsertId();{{/auto_increment_return_key}}
-        
-        self::prepostprocessRestRequest({{#auto_increment_return_key}}\$id{{/auto_increment_return_key}});
-        
-        if (self::\$commit && !Database::commit()) {
-            return self::signalError('Failed to store commit transaction on table {{TableName}}');
-        }
-        
-        self::postprocessRestRequest({{#auto_increment_return_key}}\$id{{/auto_increment_return_key}});
-        
-        self::completeRest();
-        
-        return {{^auto_increment_return_key}}true{{/auto_increment_return_key}}{{#auto_increment_return_key}}\$id{{/auto_increment_return_key}};  {{/binary_primary}}
+        return self::insert(\$data);
     }
     
     /**
@@ -1981,133 +1858,7 @@ MYSQL;
     */
     public static function Put(array &\$returnUpdated, {{#primaryExists}}{{#multiplePrimary}}array{{/multiplePrimary}}{{^multiplePrimary}}string{{/multiplePrimary}} \$primary = null,{{/primaryExists}} array \$argv = []) : bool
     {
-        self::startRest(self::PUT, \$returnUpdated, \$argv{{#primaryExists}}, \$primary{{/primaryExists}});
-        
-        \$replace = false;
-        
-        \$where = [];
-
-        if (array_key_exists(self::WHERE, \$argv)) {
-            \$where = \$argv[self::WHERE];
-            unset(\$argv[self::WHERE]);
-        }
-        
-        if (array_key_exists(self::REPLACE, \$argv)) {
-            \$replace = true;
-            \$argv = \$argv[self::REPLACE];
-        } else if (array_key_exists(self::UPDATE, \$argv)) {
-            \$argv = \$argv[self::UPDATE];
-        }{{#primaryExists}}
-        
-        \$emptyPrimary = null === \$primary || {{^multiplePrimary}}''{{/multiplePrimary}}{{#multiplePrimary}}[]{{/multiplePrimary}} === \$primary;
-        
-        if (false === \$replace && false === self::\$allowFullTableUpdates && \$emptyPrimary) { 
-            return self::signalError('Restful tables which have a primary key must be updated by its primary key. To bypass this set you may set `self::\$allowFullTableUpdates = true;` during the PREPROCESS events.');
-        }
-        {{#multiplePrimary}}
-        if (false === self::\$allowFullTableUpdates || !\$emptyPrimary) {
-            if (count(array_intersect_key(\$primary, self::PRIMARY)) !== count(self::PRIMARY)) {
-                return self::signalError('You must provide all primary keys (' . implode(', ', self::PRIMARY) . ').');
-            }
-            \$where = array_merge(\$argv, \$primary);
-        }
-        {{/multiplePrimary}}{{^multiplePrimary}}
-        if (!\$emptyPrimary) {
-            \$where[self::PRIMARY] = \$primary;
-        }{{/multiplePrimary}}{{/primaryExists}}{{^primaryExists}}
-        
-        if (false === self::\$allowFullTableUpdates && empty(\$where)) {
-            return self::signalError('Restful tables which have no primary key must be updated using conditions given to \$argv[self::WHERE] and values to be updated given to \$argv[self::UPDATE]. No WHERE attribute given. To bypass this set `self::\$allowFullTableUpdates = true;` during the PREPROCESS events, or just directly before this request.');
-        }
-        
-        if (empty(\$argv)) {
-            return self::signalError('Restful tables which have no primary key must be updated using conditions given to \$argv[self::WHERE] and values to be updated given to \$argv[self::UPDATE]. No UPDATE attribute given.');
-        }{{/primaryExists}}
-        
-        foreach (\$argv as \$key => &\$value) {
-            if (!array_key_exists(\$key, self::PDO_VALIDATION)){
-                return self::signalError("Restful table could not update column \$key, because it does not appear to exist. Please re-run RestBuilder if you believe this is incorrect.");
-            }
-            \$op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, \$key, \$op, \$value)) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
-            }
-        }
-        unset(\$value);
-
-        \$sql = /** @lang MySQLFragment */ (\$replace ? self::REPLACE : self::UPDATE) . ' {{^carbon_namespace}}{{#QueryWithDatabaseName}}{{database}}.{{/QueryWithDatabaseName}}{{/carbon_namespace}}{{TableName}} SET '; // intellij cant handle this otherwise
-
-        \$set = '';
-
-        {{#explode}}
-        if (array_key_exists('{{TableName}}.{{name}}', \$argv)) {
-            \$set .= '{{name}}={{#binary}}UNHEX(:{{name}}){{/binary}}{{^binary}}:{{name}}{{/binary}},';
-        }
-        {{/explode}}
-        
-        \$sql .= substr(\$set, 0, -1);
-
-        \$pdo = self::database();
-        
-        if (!\$pdo->inTransaction()) {
-            \$pdo->beginTransaction();
-        }
-
-        if (false === \$replace && (false === self::\$allowFullTableUpdates || !empty(\$where))) {
-            \$sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, \$where, \$pdo);
-        }{{#json}}
-        
-        self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
-
-        self::postpreprocessRestRequest(\$sql);
-
-        \$stmt = \$pdo->prepare(\$sql);
-
-        {{#explode}}
-        if (array_key_exists('{{TableName}}.{{name}}', \$argv)) { {{^length}}
-            \$stmt->bindValue(':{{name}}',{{#json}}json_encode(\$argv['{{TableName}}.{{name}}']){{/json}}{{^json}}\$argv['{{TableName}}.{{name}}']{{/json}}, {{type}});{{/length}}{{#length}}
-            \${{name}} = \$argv['{{TableName}}.{{name}}'];
-            \$ref = '{{TableName}}.{{name}}';
-            \$op = self::EQUAL;
-            if (!self::validateInternalColumn(self::PUT, \$ref, \$op, \${{name}})) {
-                return self::signalError('Your custom restful api validations caused the request to fail on column \'{{name}}\'.');
-            }
-            \$stmt->bindParam(':{{name}}',\${{name}}, {{type}}, {{length}});{{/length}}
-        }
-        {{/explode}}
-        
-        self::bind(\$stmt);
-
-        if (!\$stmt->execute()) {
-            self::completeRest();
-            return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode(\$stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
-        }
-        
-        if (!\$stmt->rowCount()) {
-            return self::signalError('Failed to find the target row.');
-        }
-        
-        \$argv = array_combine(
-            array_map(
-                static fn(\$k) => str_replace('{{TableName}}.', '', \$k),
-                array_keys(\$argv)
-            ),
-            array_values(\$argv)
-        );
-
-        \$returnUpdated = array_merge(\$returnUpdated, \$argv);
-        
-        self::prepostprocessRestRequest(\$returnUpdated);
-        
-        if (self::\$commit && !Database::commit()) {
-            return self::signalError('Failed to store commit transaction on table {{TableName}}');
-        }
-        
-        self::postprocessRestRequest(\$returnUpdated);
-        
-        self::completeRest();
-        
-        return true;
+        return self::updateReplace(\$returnUpdated, \$argv{{#primaryExists}}, {{#multiplePrimary}}\$primary{{/multiplePrimary}}{{^multiplePrimary}}\$primary === null ? null : [ self::PRIMARY => \$primary ]{{/multiplePrimary}}{{/primaryExists}});
     }
 
     /**
@@ -2121,103 +1872,7 @@ MYSQL;
     */
     public static function Delete(array &\$remove, {{#primaryExists}}{{#multiplePrimary}}array{{/multiplePrimary}}{{^multiplePrimary}}string{{/multiplePrimary}} \$primary = null, {{/primaryExists}}array \$argv = []) : bool
     {
-        self::startRest(self::DELETE, \$remove, \$argv{{#primaryExists}}, \$primary{{/primaryExists}});
-        
-        \$pdo = self::database();{{#primaryExists}}
-        
-        \$emptyPrimary = null === \$primary || {{^multiplePrimary}}''{{/multiplePrimary}}{{#multiplePrimary}}[]{{/multiplePrimary}} === \$primary;{{/primaryExists}}{{#carbon_table}}
-        
-        if (!\$emptyPrimary) {
-            return Carbons::Delete(\$remove, \$primary, \$argv);
-        }
-
-        if (false === self::\$allowFullTableDeletes && empty(\$argv)) {
-            return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
-        }
-        
-        \$sql = 'DELETE c FROM {{^carbon_namespace}}{{#QueryWithDatabaseName}}{{database}}.{{/QueryWithDatabaseName}}{{/carbon_namespace}}carbon_carbons c 
-                JOIN {{^carbon_namespace}}{{#QueryWithDatabaseName}}{{database}}.{{/QueryWithDatabaseName}}{{/carbon_namespace}}{{TableName}} on c.entity_pk = {{#primary}}{{#name}}{{TableName}}.{{name}}{{/name}}{{/primary}}';
-
-        
-        if (false === self::\$allowFullTableDeletes || !empty(\$argv)) {
-            \$sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, \$argv, \$pdo);
-        }{{/carbon_table}}{{^carbon_table}}
-        
-        \$sql =  /** @lang MySQLFragment */ 'DELETE FROM {{^carbon_namespace}}{{#QueryWithDatabaseName}}{{database}}.{{/QueryWithDatabaseName}}{{/carbon_namespace}}{{TableName}} ';{{#primaryExists}}
-        
-        if (false === self::\$allowFullTableDeletes && \$emptyPrimary && empty(\$argv)) {
-            return self::signalError('When deleting from restful tables a primary key or where query must be provided. This can be disabled by setting `self::\$allowFullTableDeletes = true;` during the PREPROCESS events, or just directly before this request.');
-        }{{#multiplePrimary}}
-        
-        \$primaryIntersect = count(array_intersect_key(\$primary, self::PRIMARY));
-        
-        \$primaryCount = count(\$primary);
-        
-        if (\$primaryCount !== \$primaryIntersect) {
-            return self::signalError('The keys provided to table {{TableName}} was not a subset of (' . implode(', ', self::PRIMARY) . '). Only primary keys associated with the root table requested, thus not joined tables, are allowed.');
-        }
-        
-        if (false === self::\$allowFullTableDeletes && \$primaryIntersect !== count(self::PRIMARY)) {
-            return self::signalError('You must provide all primary keys (' . implode(', ', self::PRIMARY) . '). This can be disabled by setting `self::\$allowFullTableDeletes = true;` during the PREPROCESS events, or just directly before this request.');
-        }
-            
-        \$argv = array_merge(\$argv, \$primary);
-        {{/multiplePrimary}}{{^multiplePrimary}}
-        
-        if (!\$emptyPrimary) {
-            \$argv[self::PRIMARY] = \$primary;
-        }{{/multiplePrimary}}
-        
-        \$where = self::buildBooleanJoinConditions(self::DELETE, \$argv, \$pdo);
-        
-        \$emptyWhere = empty(\$where);
-        
-        if (\$emptyWhere && false === self::\$allowFullTableDeletes) {
-            return self::signalError('The where condition provided appears invalid.');
-        }
-
-        if (!\$emptyWhere) {
-            \$sql .= ' WHERE ' . \$where;
-        }{{/primaryExists}}{{^primaryExists}}
-        
-        if (false === self::\$allowFullTableDeletes && empty(\$argv)) {
-            return self::signalError('When deleting from tables with out a primary key additional arguments must be provided.');
-        } 
-        
-        if (!empty(\$argv)) {
-            \$sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, \$argv, \$pdo);
-        }{{/primaryExists}}{{/carbon_table}}
-        
-        if (!\$pdo->inTransaction()) {
-            \$pdo->beginTransaction();
-        }{{#json}}
-        
-        self::jsonSQLReporting(func_get_args(), \$sql);{{/json}}
-
-        self::postpreprocessRestRequest(\$sql);
-
-        \$stmt = \$pdo->prepare(\$sql);
-
-        self::bind(\$stmt);
-
-        if (!\$stmt->execute()) {
-            self::completeRest();
-            return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode(\$stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
-        }
-
-        \$remove = [];
-        
-        self::prepostprocessRestRequest(\$remove);
-        
-        if (self::\$commit && !Database::commit()) {
-           return self::signalError('Failed to store commit transaction on table {{TableName}}');
-        }
-        
-        self::postprocessRestRequest(\$remove);
-        
-        self::completeRest();
-        
-        return true;
+        return self::remove(\$remove, \$argv{{#primaryExists}}, {{#multiplePrimary}}\$primary{{/multiplePrimary}}{{^multiplePrimary}}\$primary === null ? null : [ self::PRIMARY => \$primary ]{{/multiplePrimary}}{{/primaryExists}});
     }
 }
 
