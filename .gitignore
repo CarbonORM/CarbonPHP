@@ -46,5 +46,5 @@ license.txt
 
 # wp rest tables
 src/tables/Wp_*
-
+src/tables/interfaces/iWp_*
 

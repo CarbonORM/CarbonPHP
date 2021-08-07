@@ -733,9 +733,23 @@ class ErrorCatcher
         }
 
         if (is_string($trace)) {
+
             $cliOutput .= $trace;
+
         } else {
-            $cliOutput .= json_encode($trace, JSON_PRETTY_PRINT) ?: serialize($trace);
+
+            try {
+
+                $cliOutput .= json_encode($trace, JSON_PRETTY_PRINT) ?: serialize($trace);
+
+            } catch (Throwable $e) {
+
+                ColorCode::colorCode('The trace failed to be json_encoded or serialized. Attempting print_r.', iColorCode::RED);
+
+            }
+
+            $cliOutput .= print_r($trace, true);
+
         }
 
         if (CarbonPHP::$app_local || self::$printToScreen) { // todo - what the fuck is this supposed to do?
@@ -803,7 +817,7 @@ class ErrorCatcher
 
         if (self::$storeReport === true || self::$storeReport === 'database') {
 
-            if (Database::$initialized) {
+            if (Database::$carbonDatabaseInitialized) {
 
                 try {
 

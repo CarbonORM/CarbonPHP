@@ -81,6 +81,32 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
     public const HISTORY_TIME = 'carbon_history_logs.history_time'; 
 
     /**
+     * COLUMNS
+     * Interfacing with the restful return can be done using objects which allow your editor to smartly type fields.
+     * The referenced return &$return from any Rest::Get method can be directly passed back into its calling classes 
+     *  constructor. One might use these fields below with the following ::
+     *
+     *    public History_Logs $carbon_history_logs;
+     *
+     * The definition above can be defined with the following ::
+     *
+     *    $carbon_history_logs = new History_Logs($return);
+     *
+     * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
+    **/
+    public string $history_uuid;
+
+    public string $history_table;
+
+    public string $history_type;
+
+    public array $history_data;
+
+    public string $history_original_query;
+
+    public string $history_time;
+    
+    /**
      * PRIMARY
      * This could be null for tables without primary key(s), a string for tables with a single primary key, or an array 
      * given composite primary keys. The existence and amount of primary keys of the will also determine the interface 

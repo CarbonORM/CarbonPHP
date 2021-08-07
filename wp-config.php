@@ -34,16 +34,16 @@ if (false === (include __DIR__ . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPA
 /** @noinspection PhpUnhandledExceptionInspection */
 CarbonPHP::make(Documentation::class, ABSPATH);
 
-define( 'DB_NAME', Database::$name );
+define( 'DB_NAME', Database::$carbonDatabaseName );
 
 /** MySQL database username */
-define( 'DB_USER', Database::$username );
+define( 'DB_USER', Database::$carbonDatabaseUsername );
 
 /** MySQL database password */
-define( 'DB_PASSWORD', Database::$password );
+define( 'DB_PASSWORD', Database::$carbonDatabasePassword );
 
 /** MySQL hostname */
-define( 'DB_HOST', Database::$host );
+define( 'DB_HOST', Database::$carbonDatabaseHost );
 
 /** Database Charset to use in creating database tables. */
 define( 'DB_CHARSET', 'utf8' );

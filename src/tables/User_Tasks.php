@@ -92,6 +92,36 @@ class User_Tasks extends Rest implements iRestSinglePrimaryKey
     public const END_DATE = 'carbon_user_tasks.end_date'; 
 
     /**
+     * COLUMNS
+     * Interfacing with the restful return can be done using objects which allow your editor to smartly type fields.
+     * The referenced return &$return from any Rest::Get method can be directly passed back into its calling classes 
+     *  constructor. One might use these fields below with the following ::
+     *
+     *    public User_Tasks $carbon_user_tasks;
+     *
+     * The definition above can be defined with the following ::
+     *
+     *    $carbon_user_tasks = new User_Tasks($return);
+     *
+     * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
+    **/
+    public string $task_id;
+
+    public string $user_id;
+
+    public string $from_id;
+
+    public string $task_name;
+
+    public string $task_description;
+
+    public string $percent_complete;
+
+    public string $start_date;
+
+    public string $end_date;
+    
+    /**
      * PRIMARY
      * This could be null for tables without primary key(s), a string for tables with a single primary key, or an array 
      * given composite primary keys. The existence and amount of primary keys of the will also determine the interface 

@@ -459,8 +459,8 @@ class CarbonPHP
             self::$composer_root = dirname(self::CARBON_ROOT, 2) . DS;
 
             ################  Helpful Global Functions ####################
-            if (!file_exists(__DIR__ . DS . 'Functions.php')
-                || !include __DIR__ . DS . 'Functions.php') {
+            if (false === file_exists(__DIR__ . DS . 'Functions.php')
+                || false === include __DIR__ . DS . 'Functions.php') {
 
                 print PHP_EOL . 'Your instance of CarbonPHP appears corrupt. Please see CarbonPHP.com for Documentation' . PHP_EOL;
 
@@ -472,14 +472,22 @@ class CarbonPHP
 
             #################  DATABASE  ########################
             if ($config['DATABASE'] ?? false) {
-                Database::$username = $config[self::DATABASE][self::DB_USER] ?? '';
-                Database::$password = $config[self::DATABASE][self::DB_PASS] ?? '';
-                Database::$name = $config[self::DATABASE][self::DB_NAME] ?? '';
-                Database::$port = $config[self::DATABASE][self::DB_PORT] ?? '';
-                Database::$host = $config[self::DATABASE][self::DB_HOST] ?? '';
-                Database::$dsn = 'mysql:host=' . Database::$host . ';dbname=' . Database::$name
-                    . (!empty(Database::$port) ? ';port=' . Database::$port : '');
-                Database::$initialized = true;
+
+                Database::$carbonDatabaseUsername = $config[self::DATABASE][self::DB_USER] ?? '';
+
+                Database::$carbonDatabasePassword = $config[self::DATABASE][self::DB_PASS] ?? '';
+
+                Database::$carbonDatabaseName = $config[self::DATABASE][self::DB_NAME] ?? '';
+
+                Database::$carbonDatabasePort = $config[self::DATABASE][self::DB_PORT] ?? '';
+
+                Database::$carbonDatabaseHost = $config[self::DATABASE][self::DB_HOST] ?? '';
+
+                Database::$carbonDatabaseDSN = 'mysql:host=' . Database::$carbonDatabaseHost . ';dbname=' . Database::$carbonDatabaseName
+                    . (!empty(Database::$carbonDatabasePort) ? ';port=' . Database::$carbonDatabasePort : '');
+
+                Database::$carbonDatabaseInitialized = true;
+
             }
 
             #######################   VIEW      ######################
@@ -495,18 +503,6 @@ class CarbonPHP
             date_default_timezone_set($config[self::SITE][self::TIMEZONE] ?? 'America/Chicago');
 
             self::$reports = $config[self::ERROR][self::LOCATION] ?? '';
-
-            #####################   AUTOLOAD    #######################
-            // it may serve to dynamically load namespaces on call time
-            // this however is not recommended and is avoidable by using composer.
-            if ($config[self::AUTOLOAD] ?? false) {
-                $PSR4 = new Autoload();
-                if (is_array($config[self::AUTOLOAD] ?? false)) {
-                    foreach ($config[self::AUTOLOAD] as $name => $path) {
-                        $PSR4->addNamespace($name, $path);
-                    }
-                }
-            }
 
             #####################   ERRORS + Warnings + Alerts    #######################
             if ($config[self::ERROR] ??= false) {

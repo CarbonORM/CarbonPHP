@@ -81,6 +81,32 @@ class User_Sessions extends Rest implements iRestSinglePrimaryKey
     public const USER_ONLINE_STATUS = 'carbon_user_sessions.user_online_status'; 
 
     /**
+     * COLUMNS
+     * Interfacing with the restful return can be done using objects which allow your editor to smartly type fields.
+     * The referenced return &$return from any Rest::Get method can be directly passed back into its calling classes 
+     *  constructor. One might use these fields below with the following ::
+     *
+     *    public User_Sessions $carbon_user_sessions;
+     *
+     * The definition above can be defined with the following ::
+     *
+     *    $carbon_user_sessions = new User_Sessions($return);
+     *
+     * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
+    **/
+    public string $user_id;
+
+    public string $user_ip;
+
+    public string $session_id;
+
+    public string $session_expires;
+
+    public string $session_data;
+
+    public string $user_online_status;
+    
+    /**
      * PRIMARY
      * This could be null for tables without primary key(s), a string for tables with a single primary key, or an array 
      * given composite primary keys. The existence and amount of primary keys of the will also determine the interface 

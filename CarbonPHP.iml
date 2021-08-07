@@ -13,6 +13,7 @@
       <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="false" packagePrefix="Tests\" />
       <sourceFolder url="file://$MODULE_DIR$/tests/browser" isTestSource="false" packagePrefix="Tests\Browser\" />
       <sourceFolder url="file://$MODULE_DIR$/tests/feature" isTestSource="false" packagePrefix="Tests\Feature\" />
+      <sourceFolder url="file://$MODULE_DIR$/src/tables/interfaces" isTestSource="false" packagePrefix="CarbonPHP\Tables\Interfaces\" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/seld/jsonlint" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/media-command" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/gettext/gettext" />

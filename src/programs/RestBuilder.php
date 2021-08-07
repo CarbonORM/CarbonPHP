@@ -395,49 +395,6 @@ END;
         // match all tables from a mysql dump
         preg_match_all('#CREATE\s+TABLE(.|\s)+?(?=ENGINE=)ENGINE=.+;#', self::$mysqldump, $matches);
 
-
-        // from version ^9.1 to ^9.2 a deprecation/update was made in an interface...
-        $dir = new DirectoryIterator($targetDir);
-        foreach ($dir as $fileinfo) {
-            if (!$fileinfo->isDot()) {
-                $filename = $fileinfo->getFilename();
-
-                $verbose and ColorCode::colorCode('Checking version information of ' . $targetDir . $filename, iColorCode::MAGENTA);
-
-                $text = file_get_contents($targetDir . $filename);
-
-                if (
-                    strpos($text, 'iRestMultiplePrimaryKeys') === false &&
-                    strpos($text, 'iRestNoPrimaryKey') === false &&
-                    strpos($text, 'iRestSinglePrimaryKey') === false
-                ) {
-                    continue;
-                }
-
-                $count = $count2 = $count3 = 0;
-
-                $text = preg_replace('#public static function Post\(array \$data\)#', 'public static function Post(array $data = [])', $text, 1, $count);
-                $text = preg_replace('#public static function Put\(array &\$returnUpdated, string \$primary, array \$argv\)#', 'public static function Put(array &$returnUpdated, string $primary = null, array $argv = [])', $text, 1, $count2);
-                $text = preg_replace('#public static function Put\(array &\$returnUpdated, array \$primary, array \$argv\)#', 'public static function Put(array &$returnUpdated, array $primary = null, array $argv = [])', $text, 1, $count2);
-                $text = preg_replace('#public static function Put\(array &\$returnUpdated, array \$argv\)#', 'public static function Put(array &$returnUpdated, array $argv = [])', $text, 1, $count3);
-                $count += $count2 + $count3;
-
-                if ($count === 0) {
-                    $verbose and ColorCode::colorCode('No breaking changes detected in ' . $targetDir . $filename, iColorCode::GREEN);
-                    continue;
-                }
-
-                ColorCode::colorCode('The file (' . $targetDir . $filename . ') was updated to handle the 9.1 - 9.2 interface deprecation.', iColorCode::CYAN);
-
-                if (false === file_put_contents($targetDir . $filename, $text)) { // if you run into this; I'm sorry, but I didn't have issues with it
-                    ColorCode::colorCode('A fatal error has occurred. Manually updating php code via text for interface changes failed. Refer to the code to fix this...', iColorCode::RED);
-                    die;
-                }
-            }
-        }
-        unset($text);
-
-
         // I just want the list of matches, nothing more.
         $matches = $matches[0];
 
@@ -448,10 +405,14 @@ END;
             }
 
             $createTableSQL = $table;
+
             // Separate each insert line by new line feed \n
             $table = explode(PHP_EOL, $table);
+
             $binary = $skipping_col = $primary = [];
+
             $tableName = '';
+
             $column = 0;
 
             // Every line in tables insert
@@ -494,36 +455,44 @@ END;
 
                         // 'only these tables' is specified in the command line arguments (via file or comma list)
                         if ($determineIfTableShouldBeSkipped($tableName) === true) {
+
                             $skipTable = true;
+
                             continue 2;
+
                         }
 
                         if (file_exists($validation = $targetDir . $etn . '.php')) {
+
                             $validation = file_get_contents($validation);
 
                             preg_match_all('#public const REGEX_VALIDATION\s?=\s? \[(.|\n)*?];(?=(\s|\n)+(public|protected|private|/\*))#', $validation, $matches);
 
                             if (isset($matches[0][0])) {
+
                                 $rest[$tableName]['regex_validation'] = $matches[0][0];
+
                             }
 
                             preg_match_all('#public const PHP_VALIDATION\s?=\s? \[(.|\n)*?];(?=(\s|\n)+(public|protected|private|/\*))#', $validation, $matches);
 
                             if (isset($matches[0][0])) {
+
                                 $rest[$tableName]['php_validation'] = $matches[0][0];
+
                             }
 
                             preg_match_all('#public const REFRESH_SCHEMA\s?=\s? \[(.|\n)*?];(?=(\s|\n)+(public|protected|private|/\*))#', $validation, $matches);
 
                             if (isset($matches[0][0])) {
+
                                 $rest[$tableName]['REFRESH_SCHEMA'] = $matches[0][0];
+
                             }
 
                             $restStaticNameSpaces = $this->restTemplateStaticNameSpace();
 
                             array_splice($restStaticNameSpaces, 2, 0, [
-                                'use CarbonPHP\Interfaces\iRest;',
-                                'use CarbonPHP\Interfaces\iRestfulReferences;',
                                 'use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;',
                                 'use CarbonPHP\Interfaces\iRestNoPrimaryKey;',
                                 'use CarbonPHP\Interfaces\iRestSinglePrimaryKey;'
@@ -926,6 +895,7 @@ END;
             $logClasses && print $rest[$tableName]['TableName'] . ', ';
 
             file_put_contents($targetDir . $rest[$tableName]['ucEachTableName'] . '.php', $mustache->render($this->restTemplate(), $rest[$tableName]));
+
         }
 
         foreach ($rest as $tableName => $parsed) {
@@ -1429,6 +1399,25 @@ export interface  i{{ucEachTableName}}{
         ];
     }
 
+    private function interfaceRestTemplate() {
+        return /** @lang Handlebars */ <<<STRING
+<?php
+
+namespace {{namespace}}\Interfaces;
+
+
+interface {{ucEachTableName}}
+{
+    
+    {{#explode}}
+    public static {{#json}}array{{/json}}{{^json}}string{{/json}} \${{name}};
+    {{/explode}}
+
+}
+STRING;
+
+    }
+
     private function restTemplate(): string
     {
         $staticNamespaces = $this->restTemplateStaticNameSpace();
@@ -1507,6 +1496,23 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
     public const {{caps}} = '{{TableName}}.{{name}}'; 
     {{/explode}}
 
+    /**
+     * COLUMNS
+     * Interfacing with the restful return can be done using objects which allow your editor to smartly type fields.
+     * The referenced return &\$return from any Rest::Get method can be directly passed back into its calling classes 
+     *  constructor. One might use these fields below with the following ::
+     *
+     *    public {{ucEachTableName}} \${{TableName}};
+     *
+     * The definition above can be defined with the following ::
+     *
+     *    \${{TableName}} = new {{ucEachTableName}}(\$return);
+     *
+     * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
+    **/{{#explode}}
+    public {{#json}}array{{/json}}{{^json}}string{{/json}} \${{name}};
+    {{/explode}}
+    
     /**
      * PRIMARY
      * This could be null for tables without primary key(s), a string for tables with a single primary key, or an array 

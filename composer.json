@@ -48,6 +48,7 @@
       "CarbonPHP\\Interfaces\\": "src/interfaces/",
       "CarbonPHP\\Programs\\": "src/programs/",
       "CarbonPHP\\Tables\\": "src/tables/",
+      "CarbonPHP\\Tables\\Interfaces\\": "src/tables/interfaces/",
       "CarbonPHP\\": "src/",
       "Tests\\Browser\\": "tests/browser/",
       "Tests\\Feature\\": "tests/feature/",

@@ -121,6 +121,32 @@ abstract class Rest extends Database
     public static bool $allowFullTableDeletes = false;
 
     /**
+     * Rest constructor. Avoid this if possible.
+     * This is complex, but if the value is modified in the original array it will be modified in the instantiated
+     *  object by reference. The call time is slightly slower but your server will thank you when you start editing these
+     *  values // recompiling to send. Really try to avoid looping through an array and using new. Refer to php manual
+     *  as to why arrays will help your dev.
+     * @link https://www.php.net/manual/en/features.gc.php
+     * @link https://gist.github.com/nikic/5015323 -> https://www.npopov.com/2014/12/22/PHPs-new-hashtable-implementation.html
+     * @param array $return
+     */
+    public function __construct(array &$return) {
+
+        if ([] === $return) {
+
+            return;
+
+        }
+
+        foreach ($return  as $key => &$value) {
+
+            $this->$key = $value;
+
+        }
+
+    }
+
+    /**
      * static::class ends up not working either because of how it is called.
      * @param $request
      * @param string|null $calledFrom
@@ -1339,7 +1365,7 @@ abstract class Rest extends Database
 
                         $stmt->bindParam(":$shortName", $argv[$fullName],
                             static::PDO_VALIDATION[$fullName][self::PDO_TYPE],
-                            (int)static::PDO_VALIDATION[$fullName][self::MAX_LENGTH]);
+                            (int) static::PDO_VALIDATION[$fullName][self::MAX_LENGTH]);
                     }
                 }
             }
