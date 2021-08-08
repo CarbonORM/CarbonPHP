@@ -3,7 +3,9 @@
 namespace CarbonPHP\Programs;
 
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Interfaces\iColorCode;
+use DropInGaming\DropVariables;
 
 trait ColorCode
 {
@@ -46,12 +48,42 @@ trait ColorCode
              * ini_set('error_log', $current);
              */
             print $colorCodex . PHP_EOL;
+
         } else {
+            $old_location = null;
+
+            if (ErrorCatcher::$defaultLocation !== null) {
+
+                $old_location = ini_set('error_log', ErrorCatcher::$defaultLocation);
+
+            }
+
             /** @noinspection ForgottenDebugOutputInspection */
             error_log($colorCodex);    // do not double quote args passed here
+
+            if (null !== $old_location) {
+
+                $colorCodex = sprintf($colors[$color], "The error_log location set ($old_location) did not match the CarbonPHP ColorCode enabled error log path ErrorCatcher::\$defaultLocation = (" . ErrorCatcher::$defaultLocation . ');. We\'ve temporarily logged to the ladder.', iColorCode::YELLOW);
+
+                /** @noinspection ForgottenDebugOutputInspection */
+                error_log($colorCodex);    // do not double quote args passed here
+
+                /** @noinspection PhpExpressionResultUnusedInspection */
+                ini_set('error_log', $old_location);
+
+                /** @noinspection ForgottenDebugOutputInspection */
+                error_log($colorCodex);    // do not double quote args passed here
+
+            }
+
         }
+
         if ($exit) {
+
             exit($message);
+
         }
+
     }
+
 }
