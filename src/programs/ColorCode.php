@@ -5,7 +5,6 @@ namespace CarbonPHP\Programs;
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Interfaces\iColorCode;
-use DropInGaming\DropVariables;
 
 trait ColorCode
 {
@@ -48,6 +47,7 @@ trait ColorCode
         $colorCodex = sprintf($colors[$color], $message);
 
         if (CarbonPHP::$test) {
+
             /**
              * The code below doesn't seem to hold. print is needed to pass tests
              * @link https://stackoverflow.com/questions/21784240/is-there-any-way-to-expect-output-to-error-log-in-phpunit-tests
@@ -94,6 +94,7 @@ trait ColorCode
                 error_log($colorCodex);    // do not double quote args passed here
 
             } else {
+
                 $additional = sprintf($colors[$color], "The error_log location set ($old_location) did not match the CarbonPHP ColorCode enabled error log path ErrorCatcher::\$defaultLocation = (" . ErrorCatcher::$defaultLocation . ');', iColorCode::YELLOW);
 
                 $colorCodex .= $additional; // for old log location
@@ -106,6 +107,7 @@ trait ColorCode
 
                 /** @noinspection ForgottenDebugOutputInspection */
                 error_log($colorCodex);    // do not double quote args passed here
+
             }
 
         }
