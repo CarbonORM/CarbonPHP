@@ -15,20 +15,13 @@ trait ColorCode
      * @param string $message
      * @param string $color
      * @param bool $exit
-     * @param int $priority
      * @link https://www.php.net/manual/en/function.syslog.php
      */
-    public static function colorCode(string $message, string $color = 'green', bool $exit = false, int $priority = LOG_INFO): void
+    public static function colorCode(string $message, string $color = 'green'): void
     {
         if (!self::$colorCodeBool) {
 
             print $message;
-
-            if ($exit) {
-
-                exit($message);
-
-            }
 
             return;
 
@@ -38,9 +31,9 @@ trait ColorCode
 
         if (is_string($color) && !array_key_exists($color, $colors)) {
 
-            self::colorCode("Color provided to color code ($color) is invalid, message caught '$message'", iColorCode::RED);
+            $message = "Color provided to color code ($color) is invalid, message caught '$message'";
 
-            return;
+            $color = iColorCode::RED;
 
         }
 
@@ -78,7 +71,7 @@ trait ColorCode
             case ErrorCatcher::$defaultLocation:
 
                 /** @noinspection PhpExpressionResultUnusedInspection */
-                ini_set('error_log', '');   // log to std out too
+                ini_set('error_log', '');   // default output // cli stdout
 
                 break;
 
@@ -94,20 +87,19 @@ trait ColorCode
                 /** @noinspection PhpExpressionResultUnusedInspection */
                 ini_set('error_log', ErrorCatcher::$defaultLocation);
 
+                /** @noinspection ForgottenDebugOutputInspection */
+                error_log($additional);    // do not double quote args passed here
+
+                /** @noinspection PhpExpressionResultUnusedInspection */
+                ini_set('error_log', '');           // default output // cli stdout
         }
 
 
         /** @noinspection ForgottenDebugOutputInspection */
         error_log($colorCodex);    // do not double quote args passed here
 
-        if ($exit) {
-
-            exit($message);
-
-        }
-
         /** @noinspection PhpExpressionResultUnusedInspection */
-        ini_set('error_log', $location);
+        ini_set('error_log', $location);    // back to what it was before this function
 
     }
 
