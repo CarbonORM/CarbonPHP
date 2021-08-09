@@ -24,6 +24,8 @@ class CLI implements iCommand
     private array $UserPrograms = [];
     private string $userProgramsDirectory = '';
 
+    public static $showEmptyCliWarning = true;
+
     private static ?iCommand $program;
 
     public function __construct(array $configuration)
@@ -45,14 +47,24 @@ class CLI implements iCommand
 
         // todo - document this // done for git actions // order matters
         if ($program === '--stdOut') {
+
             ColorCode::$colorCodeBool = false;
+
             $program = array_shift($argv);
+
         }
 
         if (empty($program)) {
-            self::colorCode('No command provided. Printing help.');
-            $this->usage();
+
+            if (self::$showEmptyCliWarning) {
+
+                self::colorCode('No command provided. Printing help.');
+
+                $this->usage();
+            }
+
             return;
+
         }
 
         $searchAndConstruct = static function ($array, bool $C6Internal = true) use ($program, $PHP, $argv) {
@@ -61,63 +73,96 @@ class CLI implements iCommand
 
                 // I prefer this loop so I catch
                 if (strtolower($program) !== strtolower($name)) {
+
                     continue;
+
                 }
 
                 // todo - custom namespaces?
                 $namespace = ($C6Internal ? "CarbonPHP\\" : '') . "Programs\\$name";
 
                 if (!class_exists($namespace)) {
+
                     self::colorCode("Failed to load the class ($namespace). Your namespace is probably incorrect.\n");
+
                     die("Failed to load the class ($namespace). Your namespace is probably incorrect.\n");
+
                 }
 
                 $imp = class_implements($namespace);
 
                 if (!array_key_exists(iCommand::class, $imp)) {
+
                     die('The program class "' . $namespace . '" should also implement iCommand ("'.iCommand::class.'"). ' . print_r($imp, true));
+
                 }
 
                 self::colorCode("\nConstructing Program >> $namespace", 'blue');
+
                 $cmd = new $namespace([$PHP, $argv]);
 
                 if ($cmd instanceof iCommand) { // only because my editor is dumb
+
                     self::$program = $cmd;
+
                 } else {
+
                     self::colorCode("\nA very unexpected error occurred. Your command doesn't implement iCommand?", iColorCode::RED);
+
                     exit(1);
+
                 }
+
                 return true;
+
             }
+
             return false;
+
         };
 
         // while way more likely to run a C6 program and not user defined, precedence says a user program should
         // overwrite a C6
         // If a user makes a program with a name C6 will later take, for example, backwards compatibility
         if ($searchAndConstruct($this->UserPrograms, false) ||
+
             $searchAndConstruct($this->C6Programs)) {
+
             return;
+
         }
 
         self::colorCode("Program not found in CarbonPHP. Use help to list all CarbonPHP programs. Safely moving on :: '$program'", iColorCode::YELLOW);
+
     }
 
     public function programList(): void
     {
+
         $clean = static function (&$program) {
+
             $program = basename($program, '.php');
+
         };
 
         if (!file_exists(CarbonPHP::$app_root . 'composer.json')) {
+
             self::colorCode("\tCouldn't find composer.json under the CarbonPHP::\$app_root ( " . CarbonPHP::$app_root . " ).\n\tLearn how to add cli programs at CarbonPHP.com", 'red');
+
         } else {
+
             $json = file_get_contents(CarbonPHP::$app_root . 'composer.json');
+
             $json = json_decode($json, true);
+
             if ($json === null) {
+
                 print "\n\tThe decoding of composer.json failed. Please make sure the file contains a valid json.\n\n";
+
                 return;
+
             }
+
             $this->userProgramsDirectory = $programDirectory = $json['autoload']['psr-4']["Programs\\"] ??= false;
 
             if (is_string(CarbonPHP::$app_root . $programDirectory)) {
@@ -125,9 +170,15 @@ class CLI implements iCommand
                 $programDirectory = CarbonPHP::$app_root . $programDirectory;
 
                 if (!is_dir($programDirectory)) {
-                    print "The directory defined for the Programs Namespace ($programDirectory) in composer.json does not exist.";
-                    exit(1);
+
+                    $message = "The directory defined for the Programs Namespace ($programDirectory) in composer.json does not exist.";
+
+                    self::colorCode( $message, iColorCode::RED);
+
+                    exit($message);
+
                 }
+
                 $userDefinedPrograms = scandir($programDirectory, null);
 
                 $userDefinedPrograms = array_diff(
@@ -144,7 +195,7 @@ class CLI implements iCommand
 
         // the following removes helper classes invalid responses and unfinished tools
         $program = array_diff(
-            scandir(CarbonPHP::CARBON_ROOT . 'programs', null),
+            scandir(CarbonPHP::CARBON_ROOT . 'programs'),
             array(
                 '.',
                 '..',

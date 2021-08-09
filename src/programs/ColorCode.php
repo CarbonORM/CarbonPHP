@@ -54,11 +54,16 @@ trait ColorCode
             return;
         }
 
-        $location = ini_get('error_log');
-
         /** @noinspection ForgottenDebugOutputInspection */
         error_log($colorCodex);    // do not double quote args passed here
 
+        if (null === ErrorCatcher::$defaultLocation || '' === ErrorCatcher::$defaultLocation) {
+
+            return;
+
+        }
+
+        $location = ini_get('error_log');
 
         switch ($location) {
             case '':
