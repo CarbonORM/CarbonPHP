@@ -307,7 +307,7 @@ class Session implements SessionHandlerInterface
     }
 
     /**
-     * @return iRestSinglePrimaryKey|null
+     * @return iRestSinglePrimaryKey
      */
     public static function getSessionTable(): iRestSinglePrimaryKey
     {
@@ -315,7 +315,8 @@ class Session implements SessionHandlerInterface
 
             $table_name = Rest::getDynamicRestClass(Sessions::class);    // all because custom prefixes and callbacks exist
 
-            self::$session_table = new $table_name; // This is only for referencing and is not actually needed as an instance.
+            self::$session_table = new $table_name(); // This is only for referencing and is not actually needed as an instance.
+
         }
 
         return self::$session_table;
@@ -368,9 +369,12 @@ class Session implements SessionHandlerInterface
         try {
             $session_table_row = [];
 
-            return self::getSessionTable()::Get($session_table_row, $id, [
+            $session_table = self::getSessionTable();
+
+            /** @noinspection PhpPossiblePolymorphicInvocationInspection */
+            return $session_table::Get($session_table_row, $id, [
                 Sessions::SELECT => [
-                    Sessions::SESSION_DATA
+                    $session_table::SESSION_DATA
                 ]
             ]);
 
@@ -398,13 +402,15 @@ class Session implements SessionHandlerInterface
         try {
             $session_table_row = [];
 
-            return self::getSessionTable()::Put($session_table_row, null, [
+            $session_table = self::getSessionTable();
+
+            return $session_table::Put($session_table_row, null, [
                 Sessions::REPLACE => [
-                    Sessions::SESSION_ID => $id,
-                    Sessions::USER_ID => static::$user_id,
-                    Sessions::USER_IP => CarbonPHP::$server_ip,
-                    Sessions::SESSION_EXPIRES => $newDateTime,
-                    Sessions::SESSION_DATA => $data
+                    $session_table::SESSION_ID => $id,
+                    $session_table::USER_ID => static::$user_id,
+                    $session_table::USER_IP => CarbonPHP::$server_ip,
+                    $session_table::SESSION_EXPIRES => $newDateTime,
+                    $session_table::SESSION_DATA => $data
                 ]
             ]);
 
@@ -424,11 +430,13 @@ class Session implements SessionHandlerInterface
         try {
             $session_table_row = [];
 
-            return self::getSessionTable()::Delete($session_table_row, $session_id, [
+            $session_table = self::getSessionTable();
+
+            return $session_table::Delete($session_table_row, $session_id, [
                 Sessions::WHERE => [
                     [
-                        Sessions::USER_ID => self::$user_id,
-                        Sessions::SESSION_ID => $session_id
+                        $session_table::USER_ID => self::$user_id,
+                        $session_table::SESSION_ID => $session_id
                     ]
                 ]
             ]);

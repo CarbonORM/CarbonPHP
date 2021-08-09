@@ -130,7 +130,7 @@ abstract class Rest extends Database
      * @link https://gist.github.com/nikic/5015323 -> https://www.npopov.com/2014/12/22/PHPs-new-hashtable-implementation.html
      * @param array $return
      */
-    public function __construct(array &$return) {
+    public function __construct(array &$return = []) {
 
         if ([] === $return) {
 
@@ -140,7 +140,7 @@ abstract class Rest extends Database
 
         foreach ($return  as $key => &$value) {
 
-            $this->$key = $value;
+            $this->$key = &$value;
 
         }
 
@@ -398,7 +398,8 @@ abstract class Rest extends Database
 
         }
 
-        return false;
+        throw new PublicAlert("The column value $column could not be found in (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
+
     }
 
     /**
@@ -1522,7 +1523,7 @@ abstract class Rest extends Database
                      * @link https://stackoverflow.com/questions/28251144/inserting-and-selecting-uuids-as-binary16
                      * @link https://www.php.net/ChangeLog-8.php
                      * @notice PDO type validation has a bug until 8
-                    **/
+                     **/
                     if (static::CARBON_CARBONS_PRIMARY_KEY) {
 
                         $maxLength = 16;

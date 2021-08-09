@@ -1110,9 +1110,17 @@ DESCRIPTION;
      */
     public static function closeStdoutStderrAndExit($exitCode = 0): void
     {
-        fclose(STDOUT);
+        if (defined('STDOUT')) {
 
-        fclose(STDERR);
+            fclose(STDOUT);
+
+        }
+
+        if (defined('STDERR')) {
+
+            fclose(STDERR);
+
+        }
 
         ob_start();
 
