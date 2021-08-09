@@ -58,44 +58,33 @@ trait ColorCode
              */
             print $colorCodex . PHP_EOL;
 
-        } else {
+            return;
+        }
 
-            $old_location = null;
+        $location = ini_get('error_log');
 
-            if (ErrorCatcher::$defaultLocation !== null) {
+        /** @noinspection ForgottenDebugOutputInspection */
+        error_log($colorCodex);    // do not double quote args passed here
 
-                $old_location = ini_set('error_log', ErrorCatcher::$defaultLocation);
 
-            }
-
-            /** @noinspection ForgottenDebugOutputInspection */
-            error_log($colorCodex);    // do not double quote args passed here
-
-            if (null !== $old_location || $old_location === ErrorCatcher::$defaultLocation) {
-
-                if ($exit) {
-
-                    exit($message);
-
-                }
-
-                return;
-
-            }
-
-            if ('' === $old_location) {
-
-                $colorCodex .= sprintf($colors[$color], "This has been logged to ErrorCatcher::\$defaultLocation = (" . ErrorCatcher::$defaultLocation . ');', iColorCode::YELLOW);
+        switch ($location) {
+            case '':
 
                 /** @noinspection PhpExpressionResultUnusedInspection */
-                ini_set('error_log', $old_location);
+                ini_set('error_log', ErrorCatcher::$defaultLocation); // log to file too
 
-                /** @noinspection ForgottenDebugOutputInspection */
-                error_log($colorCodex);    // do not double quote args passed here
+                break;
 
-            } else {
+            case ErrorCatcher::$defaultLocation:
 
-                $additional = sprintf($colors[$color], "The error_log location set ($old_location) did not match the CarbonPHP ColorCode enabled error log path ErrorCatcher::\$defaultLocation = (" . ErrorCatcher::$defaultLocation . ');', iColorCode::YELLOW);
+                /** @noinspection PhpExpressionResultUnusedInspection */
+                ini_set('error_log', '');   // log to std out too
+
+                break;
+
+            default:
+
+                $additional = sprintf($colors[$color], "The error_log location set ($location) did not match the CarbonPHP ColorCode enabled error log path ErrorCatcher::\$defaultLocation = (" . ErrorCatcher::$defaultLocation . '); or was not set to an empty string which enables cli output.', iColorCode::YELLOW);
 
                 $colorCodex .= $additional; // for old log location
 
@@ -103,21 +92,22 @@ trait ColorCode
                 error_log($additional);    // do not double quote args passed here
 
                 /** @noinspection PhpExpressionResultUnusedInspection */
-                ini_set('error_log', $old_location);
-
-                /** @noinspection ForgottenDebugOutputInspection */
-                error_log($colorCodex);    // do not double quote args passed here
-
-            }
+                ini_set('error_log', ErrorCatcher::$defaultLocation);
 
         }
 
+
+        /** @noinspection ForgottenDebugOutputInspection */
+        error_log($colorCodex);    // do not double quote args passed here
 
         if ($exit) {
 
             exit($message);
 
         }
+
+        /** @noinspection PhpExpressionResultUnusedInspection */
+        ini_set('error_log', $location);
 
     }
 
