@@ -155,9 +155,13 @@ abstract class Rest extends Database
      */
     public static function disallowPublicAccess($request, $calledFrom = null): void
     {
+
         if (self::$externalRestfulRequestsAPI && !CarbonPHP::$test) {
+
             throw new PublicAlert('Rest request denied by the PHP_VALIDATION\'s in the tables ORM. Remove DISALLOW_PUBLIC_ACCESS ' . (null !== $calledFrom ? ' from \'' . $calledFrom . '\'' : '') . ' to gain privileges.');
+
         }
+
     }
 
     public static function getDynamicRestClass(string $fullyQualifiedRestClassName, string $mustInterface = null): string
@@ -398,7 +402,7 @@ abstract class Rest extends Database
 
         }
 
-        throw new PublicAlert("The column value $column could not be found in (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
+        return false;
 
     }
 
@@ -916,7 +920,7 @@ abstract class Rest extends Database
 
         if (!self::validateInternalColumn(self::GET, $column, $aggregate)) {
 
-            throw new PublicAlert('Could not validate the column "' . $column . '" in the request.'); // todo html entities
+            throw new PublicAlert("The column value of ($column) caused validateInternalColumn to fail. Possible values include (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
 
         }
 
@@ -1285,7 +1289,7 @@ abstract class Rest extends Database
 
                 if (false === self::validateInternalColumn(self::PUT, $key, $op, $value)) {
 
-                    return self::signalError('Your custom restful api validations caused the request to fail on column \'{{TableName}}.{{name}}\'.');
+                    return self::signalError("Your custom restful api validations caused the request to fail on column ($key).");
 
                 }
             }
@@ -1350,7 +1354,7 @@ abstract class Rest extends Database
 
                     if (!self::validateInternalColumn(self::PUT, $fullName, $op, $value)) {
 
-                        return self::signalError("Your custom restful api validations caused the request to fail on column '$fullName'.");
+                        return self::signalError("Your custom restful api validations caused the request to fail on column ($fullName).");
 
                     }
 
@@ -1514,7 +1518,7 @@ abstract class Rest extends Database
 
                     } else if (false === self::validateInternalColumn(self::POST, $fullName, $op, $data[$fullName])) {
 
-                        return self::signalError("Your custom restful api validations for your primary key caused the request to fail on column '$fullName'.");
+                        throw new PublicAlert("The column value of ($fullName) caused custom restful api validations for your primary key to fail (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
 
                     }
 
@@ -1547,7 +1551,7 @@ abstract class Rest extends Database
 
                     if (!self::validateInternalColumn(self::POST, $fullName, $op, $data[$fullName])) {
 
-                        return self::signalError("Your custom restful api validations caused the request to fail on json column '$fullName'.");
+                        throw new PublicAlert("Your custom restful api validations caused the request to fail on json column ($fullName). Possible values include (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
 
                     }
 
@@ -1829,7 +1833,7 @@ abstract class Rest extends Database
 
                             if (!self::validateInternalColumn(self::GET, $item, $sort)) {
 
-                                throw new PublicAlert('Failed to validate order by column.');
+                                throw new PublicAlert("The column value ($item) caused your custom validations to fail. Possible values include (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
 
                             }
 
@@ -1953,7 +1957,8 @@ abstract class Rest extends Database
 
             }
 
-            throw new PublicAlert('Could not validate a column (' . $column . ') in the (SELECT) request.');
+            throw new PublicAlert("Could not validate a column ($column) in the (SELECT) request which caused your request to fail. Possible values include (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
+
         }
 
         /**
