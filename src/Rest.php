@@ -934,7 +934,7 @@ abstract class Rest extends Database
 
                 }
 
-                if (!$noHEX && self::$compiled_PDO_validations[$column][0] === 'binary') {
+                if (!$noHEX && self::$compiled_PDO_validations[$column][self::MYSQL_TYPE] === 'binary') {
 
                     $sql = "HEX($column) AS $name," . $sql;
 
@@ -950,7 +950,7 @@ abstract class Rest extends Database
 
             case self::GROUP_CONCAT:
 
-                if (!$noHEX && self::$compiled_PDO_validations[$column][0] === 'binary') {
+                if (!$noHEX && self::$compiled_PDO_validations[$column][self::MYSQL_TYPE] === 'binary') {
 
                     $sql = "GROUP_CONCAT(DISTINCT HEX($column) ORDER BY $column ASC SEPARATOR ',') AS " . self::$compiled_valid_columns[$column] . ', ' . $sql;
 
@@ -966,7 +966,7 @@ abstract class Rest extends Database
 
             case self::DISTINCT:
 
-                if (!$noHEX && self::$compiled_PDO_validations[$column][0] === 'binary') {
+                if (!$noHEX && self::$compiled_PDO_validations[$column][self::MYSQL_TYPE] === 'binary') {
 
                     $sql = "$aggregate HEX($column) as " . self::$compiled_valid_columns[$column] . ', ' . $sql;
 

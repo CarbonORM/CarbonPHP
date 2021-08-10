@@ -49,6 +49,7 @@ class Database
      * This bool will determine this use case.
      */
     public static bool $carbonDatabaseInitialized = false;
+
     /** Represents a connection between PHP and a database server.
      * @link http://php.net/manual/en/class.pdo.php
      * @var PDO|null $database // todo php 8.0
@@ -56,10 +57,15 @@ class Database
     private static ?PDO $database = null;
 
     public static string $carbonDatabaseUsername;
+
     public static string $carbonDatabasePassword;
+
     public static string $carbonDatabaseName;
+
     public static string $carbonDatabasePort;
+
     public static string $carbonDatabaseHost;
+
     /**
      * @var string $carbonDatabaseDSN holds the connection protocol
      * @link http://php.net/manual/en/pdo.construct.php

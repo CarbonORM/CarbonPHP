@@ -744,11 +744,15 @@ class ErrorCatcher
 
             } catch (Throwable $e) {
 
-                ColorCode::colorCode('The trace failed to be json_encoded or serialized. Attempting print_r.', iColorCode::RED);
+                ColorCode::colorCode('The trace failed to be json_encoded or serialized.', iColorCode::RED);
+
+                ColorCode::colorCode($e->getMessage(), iColorCode::RED);
+
+                $cliOutput .= print_r($trace, true);
+
+                sortDump($trace, true); // this will exit
 
             }
-
-            $cliOutput .= print_r($trace, true);
 
         }
 
@@ -824,10 +828,10 @@ class ErrorCatcher
                     $reports = Rest::getDynamicRestClass(Reports::class);
 
                     if (false === $reports::Post([
-                        $reports::LOG_LEVEL => $level,
-                        $reports::REPORT => $cliOutput,
-                        $reports::CALL_TRACE => $trace
-                    ])) {
+                            $reports::LOG_LEVEL => $level,
+                            $reports::REPORT => $cliOutput,
+                            $reports::CALL_TRACE => $trace
+                        ])) {
 
                         error_log($message = 'Failed storing log in database. The restful Reports table returned false.');
 
