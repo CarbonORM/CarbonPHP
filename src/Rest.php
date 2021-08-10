@@ -180,7 +180,7 @@ abstract class Rest extends Database
 
         $namespace = CarbonPHP::$configuration[CarbonPHP::REST][CarbonPHP::NAMESPACE] ?? '';
 
-        $custom_prefix_carbon_table = $namespace . $fullyQualifiedRestClassName::TABLE_NAME;        //  we're using table name and not class name as any different prefix, even a subset of the original, will be appended
+        $custom_prefix_carbon_table = $namespace . ucwords($fullyQualifiedRestClassName::TABLE_NAME, '_');        //  we're using table name and not class name as any different prefix, even a subset of the original, will be appended
 
         if (!class_exists($custom_prefix_carbon_table)) {
             throw new PublicAlert("Could not find the required class ($custom_prefix_carbon_table) in the user defined namespace ($namespace). This is required because a custom table prefix ($prefix) has been detected.");
@@ -206,7 +206,6 @@ abstract class Rest extends Database
 
         return $cache[$fullyQualifiedRestClassName] = $custom_prefix_carbon_table;
     }
-
 
     /**
      * @param string $message
