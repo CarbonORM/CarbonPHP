@@ -943,9 +943,6 @@ class ErrorCatcher
 
                     $line_number = $line_one[1];
 
-
-                    print $line_number;
-
                     if ('(' === $line_number[0] && ')' === $line_number[-1]){
 
                         $line_one[0] .= $line_one[1];
