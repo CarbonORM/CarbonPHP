@@ -1371,13 +1371,17 @@ abstract class Rest extends Database
                         $stmt->bindParam(":$shortName", $argv[$fullName],
                             static::PDO_VALIDATION[$fullName][self::PDO_TYPE],
                             (int) static::PDO_VALIDATION[$fullName][self::MAX_LENGTH]);
+
                     }
+
                 }
+
             }
+
 
             self::bind($stmt);
 
-            if (!$stmt->execute()) {
+            if (false === $stmt->execute()) {
 
                 self::completeRest();
 
@@ -1385,9 +1389,13 @@ abstract class Rest extends Database
 
             }
 
-            if (!$stmt->rowCount()) {
+            if (0 === $stmt->rowCount()) {
 
-                return self::signalError('CarbonPHP failed to find the target row during ('. $update_or_replace . ') on table (' . static::TABLE_NAME . ').');
+                return self::signalError('MySQL failed to find the target row during ('. $update_or_replace . ') on '
+                    . 'table (' . static::TABLE_NAME . ") while executing query ($stmt). By default CarbonPHP passes '
+                    . 'PDO::MYSQL_ATTR_FOUND_ROWS => true, to the PDO driver; aka return the number of found (matched) rows, '
+                    . 'not the number of changed rows. Thus; if you have not manually updated these options, your issue is '
+                    . 'the target row not existing.");
 
             }
 

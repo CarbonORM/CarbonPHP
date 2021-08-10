@@ -443,9 +443,13 @@ class CarbonPHP
             }
 
             ####################  CLI is not the CLI server
-            self::$cli = self::$test || PHP_SAPI === 'cli';
+            self::$cli = (self::$test || PHP_SAPI === 'cli');
 
-            self::$test and RestTest::setupServerVariables();
+            if (self::$test) {
+
+                RestTest::setupServerVariables();
+
+            }
 
             ####################  Define your own server root
             self::$app_root ??= self::CARBON_ROOT;
@@ -466,9 +470,9 @@ class CarbonPHP
             if (false === file_exists(__DIR__ . DS . 'Functions.php')
                 || false === include __DIR__ . DS . 'Functions.php') {
 
-                print PHP_EOL . 'Your instance of CarbonPHP appears corrupt. Please see CarbonPHP.com for Documentation' . PHP_EOL;
+                $message = PHP_EOL . 'Your instance of CarbonPHP appears corrupt. Please reinstall.' . PHP_EOL;
 
-                die(1);
+                die($message);
 
             }
 
@@ -487,8 +491,13 @@ class CarbonPHP
 
                 Database::$carbonDatabaseHost = $config[self::DATABASE][self::DB_HOST] ?? '';
 
-                Database::$carbonDatabaseDSN = 'mysql:host=' . Database::$carbonDatabaseHost . ';dbname=' . Database::$carbonDatabaseName
-                    . (!empty(Database::$carbonDatabasePort) ? ';port=' . Database::$carbonDatabasePort : '');
+                Database::$carbonDatabaseDSN = 'mysql:host='
+                    . Database::$carbonDatabaseHost
+                    . ';dbname='
+                    . Database::$carbonDatabaseName
+                    . (!empty(Database::$carbonDatabasePort)
+                        ? ';port=' . Database::$carbonDatabasePort
+                        : '');
 
                 Database::$carbonDatabaseInitialized = true;
 

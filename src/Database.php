@@ -450,13 +450,17 @@ FOOT;
         self::$carbonDatabaseEntityTransactionKeys = [];
 
         if ($lambda === null) {
+
             return true;
+
         }
 
         $return = $lambda();
 
         if (!is_bool($return)) {
-            throw new PublicAlert('The return type of the lambda supplied should be a boolean');
+
+            throw new PublicAlert('The return type of the lambda supplied should be a boolean.');
+
         }
 
         return $return;
@@ -470,7 +474,7 @@ FOOT;
         return self::$pdo_options ??= [
             PDO::ATTR_PERSISTENT => CarbonPHP::$cli,                // only in cli (including websockets)
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::MYSQL_ATTR_FOUND_ROWS => true,
+            PDO::MYSQL_ATTR_FOUND_ROWS => true,                     // Return the number of found (matched) rows, not the number of changed rows.
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_CASE => PDO::CASE_NATURAL,
             PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL
@@ -504,14 +508,20 @@ FOOT;
      */
     protected static function beginTransaction(string $tag_id, string $dependant = null)
     {
-        $db = self::database();
-        $key = self::new_entity($tag_id, $dependant);
-        if (!$db->inTransaction()) {
-            $db->beginTransaction();
-        }
-        return $key;
-    }
 
+        $db = self::database();
+
+        $key = self::new_entity($tag_id, $dependant);
+
+        if (!$db->inTransaction()) {
+
+            $db->beginTransaction();
+
+        }
+
+        return $key;
+
+    }
 
     /** http://php.net/manual/en/language.operators.bitwise.php
      * in actual system we will have to see what bit system we are using
