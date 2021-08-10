@@ -949,7 +949,9 @@ class ErrorCatcher
 
                 }
 
-                $line_one = ($i + 1) . ') ' . implode(' ', $line_one);
+                $call_number = $i + 1;
+
+                $line_one = $call_number. ') ' . implode(' ', $line_one);
 
                 $line_two = '[]';
 
@@ -961,8 +963,9 @@ class ErrorCatcher
 
                 }
 
-                $result[] = CarbonPHP::$cli ? [$line_one, $line_two] :
-                    $line_one . "\n\t\t\t\t" . $line_two . PHP_EOL;
+                $result[] = CarbonPHP::$cli
+                    ? ["TRACE $call_number" => $line_one, 'ARGUMENTS' => $line_two]
+                    : $line_one . "\n\t\t\t\t" . $line_two . PHP_EOL;
 
             }
 

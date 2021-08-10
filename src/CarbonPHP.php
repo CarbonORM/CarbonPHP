@@ -520,7 +520,7 @@ class CarbonPHP
             #####################   ERRORS + Warnings + Alerts    #######################
             if ($config[self::ERROR] ??= false) {
 
-                ErrorCatcher::$defaultLocation = self::$reports . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
+                ErrorCatcher::$defaultLocation ??= self::$reports . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
 
                 ErrorCatcher::$printToScreen = $config[self::ERROR][self::SHOW] ?? ErrorCatcher::$printToScreen;
 
@@ -638,9 +638,6 @@ class CarbonPHP
 
                 // this start a session in every possible runtime except WebSocket::$minimiseResources
                 new Session(self::$user_ip, $config[self::SESSION][self::REMOTE] ?? false);
-
-                $config[self::ERROR] and
-                ErrorCatcher::$defaultLocation = self::$reports . 'Log_' . ($_SESSION['id'] ?? 'WebSocket') . '_' . time() . '.log';
 
                 if (is_callable($config[self::SESSION][self::CALLBACK] ?? null)) {
                     Session::updateCallback($config[self::SESSION][self::CALLBACK]); // Pull From Database, manage socket ip
