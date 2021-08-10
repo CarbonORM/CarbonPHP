@@ -123,7 +123,7 @@ abstract class Route
     /**
      * @param string $uri
      */
-    public function changeURI(string $uri): void
+    public static function changeURI(string $uri): void
     {
         self::$uri = $uri = trim($uri, '/');
 

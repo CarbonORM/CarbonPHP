@@ -82,7 +82,7 @@ trait ColorCode
 
             default:
 
-                $additional = sprintf($colors[$color], "The error_log location set ($location) did not match the CarbonPHP ColorCode enabled error log path ErrorCatcher::\$defaultLocation = (" . ErrorCatcher::$defaultLocation . '); or was not set to an empty string which enables cli output.', iColorCode::YELLOW);
+                $additional = sprintf($colors[$color], "\n\nThe error_log location set ($location) did not match the CarbonPHP ColorCode enabled error log path ErrorCatcher::\$defaultLocation = (" . ErrorCatcher::$defaultLocation . "); or was not set to an empty string which enables cli output.\n\n", iColorCode::YELLOW);
 
                 $colorCodex .= $additional; // for old log location
 

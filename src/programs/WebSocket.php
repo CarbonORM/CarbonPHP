@@ -31,6 +31,10 @@ use function ord;
  *
  *
  * @package CarbonPHP\Programs
+ *
+ * @todo - implement https://hpbn.co/websocket/
+ * @link https://hpbn.co/websocket/
+ * @link https://tools.ietf.org/id/draft-abarth-thewebsocketprotocol-00.html
  */
 class WebSocket extends Request implements iCommand
 {
@@ -360,29 +364,51 @@ class WebSocket extends Request implements iCommand
      */
     public function forkStartApplication(string $uri, array $information, &$connection)
     {
-        /** @noinspection PhpUndefinedFunctionInspection */
+
+        /** @noinspection PhpComposerExtensionStubsInspection */
         if (pcntl_fork() === 0) {
+
             ob_start();
+
             if (!isset(CarbonPHP::$user_ip)) {
+
                 CarbonPHP::$user_ip = $information['ip'];
+
             }
+
             if (session_status() === PHP_SESSION_NONE) {
+
                 Session::resume($information['session_id']);
+
             }
+
             $_SERVER['REQUEST_URI'] = $uri;
+
             startApplication($uri);
+
             $buff = trim(ob_get_clean());
+
             if (empty($buff)) {
+
                 if (Route::$matched) {
+
                     $buff = 'A route was matched but did not signal any output to stdout.';
+
                 } else {
+
                     $buff = "No route was matched in the Application for startApplication(\$uri = $uri). Please remember 
                     your sockets application is in cached state and must be restart the socket server to see changes.";
+
                 }
+
             }
+
             self::sendToResource($buff, $connection);
+
             exit(0); // 0 = success
+
         }
+
     }
 
     public function readFromFifo(&$fifoFile, array $information)

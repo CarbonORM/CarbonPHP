@@ -289,7 +289,7 @@ class CarbonPHP
 
             Session::update();       // Check wrapper / session callback
 
-            $uri = $application->uri;
+            $uri = $application::$uri;
 
         } else if ($uri === '/') {
 
@@ -301,7 +301,7 @@ class CarbonPHP
 
             Request::changeURI($uri);           // So the browser will update PJAX
 
-            $application->changeURI($uri);      // So our routing file knows what to match
+            $application::changeURI($uri);      // So our routing file knows what to match
 
             $_POST = [];
 
@@ -410,7 +410,11 @@ class CarbonPHP
              */
             if (getcwd() !== self::$app_root && !chdir(self::$app_root)) {
 
-                self::colorCode("\nCould not change current working directory from " . getcwd() . " to " . self::$app_root . ".\n\n", 'red', true);
+                $message = "\nCould not change current working directory from " . getcwd() . " to " . self::$app_root . ".\n\n";
+
+                self::colorCode($message, iColorCode::RED);
+
+                exit($message);
 
             }
 

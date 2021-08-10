@@ -748,25 +748,21 @@ class ErrorCatcher
 
                 ColorCode::colorCode($e->getMessage(), iColorCode::RED);
 
+                ColorCode::colorCode('Attempting with print_r and sortDump...', iColorCode::RED);
+
                 $cliOutput .= print_r($trace, true);
 
-                sortDump($trace, true); // this will exit
+                ob_start(null, null, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
+
+                sortDump($trace, true, false);
+
+                $cliOutput .= ob_get_clean();
 
             }
 
         }
 
         if (CarbonPHP::$app_local || self::$printToScreen) { // todo - what the fuck is this supposed to do?
-
-            if (self::$printToScreen) {
-
-                $browserOutput['ERROR LIKE THIS COULD SHOW IN PRODUCTION'] = 'Please be sure $config["ERROR"]["SHOW"] = (bool) is set to CarbonPHP::$app_local';
-
-            } else {
-
-                $browserOutput['THIS WILL NOT BE REPORTED IN PRODUCTION'] = 'To debug an error in a production environment set the following configuration option to true :: $config["ERROR"]["SHOW"] = (bool)';
-
-            }
 
             $browserOutput['[C6] CARBONPHP'] = 'ErrorCatcher::generateLog';
 

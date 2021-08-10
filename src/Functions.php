@@ -204,7 +204,7 @@ namespace {                                     // This runs the following code 
         // Generate Report -- keep in mind were in a buffer here
         $output = static function (bool $cli) use ($mixed, $fullReport, $backtrace) : string {
 
-            ob_start();
+            ob_start(null, null, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
 
             print $cli ? PHP_EOL . PHP_EOL : '<br>';
 
