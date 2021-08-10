@@ -1304,7 +1304,9 @@ abstract class Rest extends Database
             $set = '';
 
             foreach ($argv as $fullName => $value) {
+
                 $shortName = static::COLUMNS[$fullName];
+
                 $set .= "$fullName=" .
                     ('binary' === self::$compiled_PDO_validations[$fullName][self::MYSQL_TYPE]
                         ? "UNHEX(:$shortName),"
@@ -1391,11 +1393,11 @@ abstract class Rest extends Database
 
             if (0 === $stmt->rowCount()) {
 
-                return self::signalError('MySQL failed to find the target row during ('. $update_or_replace . ') on '
-                    . 'table (' . static::TABLE_NAME . ") while executing query ($stmt). By default CarbonPHP passes '
+                return self::signalError("MySQL failed to find the target row during ($update_or_replace) on "
+                    . 'table (' . static::TABLE_NAME . ") while executing query ($sql). By default CarbonPHP passes "
                     . 'PDO::MYSQL_ATTR_FOUND_ROWS => true, to the PDO driver; aka return the number of found (matched) rows, '
                     . 'not the number of changed rows. Thus; if you have not manually updated these options, your issue is '
-                    . 'the target row not existing.");
+                    . 'the target row not existing.');
 
             }
 
@@ -1428,7 +1430,9 @@ abstract class Rest extends Database
             ErrorCatcher::safelyHandleThrowableAndExit($e);
 
         }
+
         return false;
+
     }
 
     /**
@@ -1521,7 +1525,7 @@ abstract class Rest extends Database
                     if ($data[$fullName] === false) {
 
                         $data[$fullName] = static::CARBON_CARBONS_PRIMARY_KEY
-                            ? self::beginTransaction(self::class, $data[self::DEPENDANT_ON_ENTITY] ?? null)
+                            ? self::beginTransaction(self::class, $data[self::DEPENDANT_ON_ENTITY] ?? null)     // clusters should really use this
                             : self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
 
                     } else if (false === self::validateInternalColumn(self::POST, $fullName, $op, $data[$fullName])) {
@@ -1531,20 +1535,13 @@ abstract class Rest extends Database
                     }
 
                     /**
+                     * I'm fairly confident the length attribute does nothing.
                      * @todo - hex / unhex length conversion on any binary data
                      * @link https://stackoverflow.com/questions/28251144/inserting-and-selecting-uuids-as-binary16
                      * @link https://www.php.net/ChangeLog-8.php
                      * @notice PDO type validation has a bug until 8
                      **/
-                    if (static::CARBON_CARBONS_PRIMARY_KEY) {
-
-                        $maxLength = 16;
-
-                    } else {
-
-                        $maxLength = $info[self::MAX_LENGTH] === '' ? null : (int) $info[self::MAX_LENGTH];
-
-                    }
+                    $maxLength = $info[self::MAX_LENGTH] === '' ? null : (int) $info[self::MAX_LENGTH];
 
                     $stmt->bindParam(":$shortName", $data[$fullName], $info[self::PDO_TYPE],
                         $maxLength);
@@ -1656,6 +1653,7 @@ abstract class Rest extends Database
             self::completeRest();
 
             return true;
+
         } catch (Throwable $e) {
 
             ErrorCatcher::safelyHandleThrowableAndExit($e);
