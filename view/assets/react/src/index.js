@@ -13,6 +13,8 @@ import "assets/css/material-dashboard-react.css?v=1.5.0";
 
 const hist = createBrowserHistory();
 
+const APP_ROOT = process.cwd();
+
 ReactDOM.render(
     <Router history={hist}>
         <Switch>

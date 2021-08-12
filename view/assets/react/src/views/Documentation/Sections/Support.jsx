@@ -17,6 +17,7 @@ class Template extends React.Component {
             <div className={classes.section}>
                 <div className={classes.container}>
                     <GridContainer justify="center">
+                        <GridItem xs={0} sm={0} md={2}> </GridItem>
                         <GridItem xs={12} sm={12} md={8}>
                             <h1>Support </h1>
                             <p>

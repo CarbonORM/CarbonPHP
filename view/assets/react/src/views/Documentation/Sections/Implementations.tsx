@@ -14,9 +14,7 @@ import landing from "assets/img/Carbon-teal.png";
 import profile from "assets/img/Carbon-green.png";
 import {WithStyles} from "@material-ui/styles";
 import {AxiosInstance} from "axios";
-import raw from "raw.macro";
-
-const gcpDeployment = raw("../../../../../../../src/programs/gcpDeployment.sh");
+import {CODE_EXAMPLES} from "Code"
 
 const gitCloneBlock = `git clone https://github.com/RichardTMiles/CarbonPHP.git
 php -r \\"copy('https://getcomposer.org/installer', 'composer-setup.php');\\"
@@ -154,7 +152,7 @@ class Implementations extends React.Component<iCarbonPHP, {
           {!this.state.showCode ? 'Show Google Compute Engine Deployment Script' : 'Hide Code'}
         </Button>
         <br/><br/>
-        {this.state.showCode ? this.props.codeBlock(gcpDeployment) : ''}
+        {this.state.showCode ? this.props.codeBlock(CODE_EXAMPLES.gcpDeployment) : ''}
       </GridItem>
     </GridContainer>
 

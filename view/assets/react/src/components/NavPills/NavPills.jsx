@@ -45,12 +45,17 @@ class NavPills extends React.Component {
       horizontal,
       alignCenter
     } = this.props;
+
+
     const flexContainerClasses = classNames({
       [classes.flexContainer]: true,
-      [classes.horizontalDisplay]: horizontal !== undefined
+      [classes.horizontalDisplay]: horizontal !== undefined,
     });
+
     const tabButtons = (
       <Tabs
+        scrollButtons
+        variant={'scrollable'}
         classes={{
           root: classes.root,
           fixed: classes.fixed,

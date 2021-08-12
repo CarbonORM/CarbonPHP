@@ -54,10 +54,11 @@ class SectionJavascript extends React.Component {
             <div className={classes.section}>
                 <div className={classes.container}>
                     <GridContainer justify="center">
-                        <div className={classes.title}>
-                            <h2>File Structure & System Architecture</h2>
-                        </div>
+                        <GridItem xs={0} sm={0} md={1}> </GridItem>
                         <GridItem xs={12} sm={12} md={8}>
+                            <div className={[classes.title, classes.textCenter]}>
+                                <h2>File Structure & System Architecture</h2>
+                            </div>
                             <p>
                                 The <a
                                 href="https://framework.zend.com/manual/1.10/en/project-structure.project.html"
