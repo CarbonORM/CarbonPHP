@@ -1154,15 +1154,11 @@ const C6 = {
     
 };
 
-export const PROCESS_CWD = process.cwd();
-
-export const DIRECTORY = __dirname;
-
-export const COLUMNS = {
+const COLUMNS = {
       $global_column_tsx
 };
 
-export const convertForRequestBody = function(restfulObject, tableName) {
+const convertForRequestBody = function(restfulObject, tableName) {
   let payload = {};
   Object.keys(restfulObject).map(value => {
     let exactReference = value.toUpperCase();
