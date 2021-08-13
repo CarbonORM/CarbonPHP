@@ -676,12 +676,11 @@ class WebSocket extends Request implements iCommand
 
             self::$userResourceConnections[] = &$connection;
 
-            /** @noinspection PhpUndefinedFunctionInspection */
             if (($pid = pcntl_fork()) > 0) {                     // if parent restart looking for incoming connections
                 continue;
             }
             if ($pid < 0) {
-                ErrorCatcher::generateCallTrace();             // log errors
+                ErrorCatcher::generateLog();             // log errors
             }
 
             [$this->user_ip, $this->user_port] = explode(':', $peerName);

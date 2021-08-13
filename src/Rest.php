@@ -158,7 +158,7 @@ abstract class Rest extends Database
 
         if (self::$externalRestfulRequestsAPI && !CarbonPHP::$test) {
 
-            throw new PublicAlert('Rest request denied by the PHP_VALIDATION\'s in the tables ORM. Remove DISALLOW_PUBLIC_ACCESS ' . (null !== $calledFrom ? ' from \'' . $calledFrom . '\'' : '') . ' to gain privileges.');
+            throw new PublicAlert('Rest request denied by the PHP_VALIDATION\'s in the tables ORM. Remove DISALLOW_PUBLIC_ACCESS ' . (null !== $calledFrom ? "from ($calledFrom) " : '') . 'to gain privileges.');
 
         }
 
@@ -169,13 +169,17 @@ abstract class Rest extends Database
         static $cache = [];
 
         if (array_key_exists($fullyQualifiedRestClassName, $cache)) {
+
             return $cache[$fullyQualifiedRestClassName];
+
         }
 
         $prefix = CarbonPHP::$configuration[CarbonPHP::REST][CarbonPHP::TABLE_PREFIX] ?? '';
 
         if ($fullyQualifiedRestClassName::TABLE_PREFIX === $prefix) {
+
             return $fullyQualifiedRestClassName;
+
         }
 
         $namespace = CarbonPHP::$configuration[CarbonPHP::REST][CarbonPHP::NAMESPACE] ?? '';
@@ -183,28 +187,46 @@ abstract class Rest extends Database
         $custom_prefix_carbon_table = $namespace . ucwords($fullyQualifiedRestClassName::TABLE_NAME, '_');        //  we're using table name and not class name as any different prefix, even a subset of the original, will be appended
 
         if (!class_exists($custom_prefix_carbon_table)) {
+
             throw new PublicAlert("Could not find the required class ($custom_prefix_carbon_table) in the user defined namespace ($namespace). This is required because a custom table prefix ($prefix) has been detected.");
+
         }
 
         if (($mustInterface === iRestSinglePrimaryKey::class || $mustInterface === null) && in_array(iRestSinglePrimaryKey::class, class_implements($fullyQualifiedRestClassName), true)) {
+
             if (!in_array(iRestSinglePrimaryKey::class, class_implements($custom_prefix_carbon_table), true)) {
+
                 throw new PublicAlert("Your implementation ($custom_prefix_carbon_table) of ($fullyQualifiedRestClassName) should implement " . iRestSinglePrimaryKey::class . '. You should rerun RestBuilder.');
+
             }
+
         } else if (($mustInterface === iRestNoPrimaryKey::class || $mustInterface === null) && in_array(iRestNoPrimaryKey::class, class_implements($fullyQualifiedRestClassName), true)) {
+
             if (!in_array(iRestNoPrimaryKey::class, class_implements($custom_prefix_carbon_table), true)) {
+
                 throw new PublicAlert("Your implementation ($custom_prefix_carbon_table) of ($fullyQualifiedRestClassName) should implement " . iRestNoPrimaryKey::class . '. You should rerun RestBuilder.');
+
             }
+
         } else if (($mustInterface === iRestMultiplePrimaryKeys::class || $mustInterface === null) && in_array(iRestMultiplePrimaryKeys::class, class_implements($fullyQualifiedRestClassName), true)
             && !in_array(iRestMultiplePrimaryKeys::class, class_implements($custom_prefix_carbon_table), true)) {
+
             throw new PublicAlert("Your implementation ($custom_prefix_carbon_table) of ($fullyQualifiedRestClassName) should implement " . iRestMultiplePrimaryKeys::class . '. You should rerun RestBuilder.');
+
         } else {
+
             if ($mustInterface === null) {
+
                 throw new PublicAlert("The table '$custom_prefix_carbon_table' we determined to be your implementation of '$fullyQualifiedRestClassName' failed to implement any of the correct interfaces.");
+
             }
+
             throw new PublicAlert("The table '$custom_prefix_carbon_table' we determined to be your implementation of '$fullyQualifiedRestClassName' failed to implement the required '$mustInterface'.");
+
         }
 
         return $cache[$fullyQualifiedRestClassName] = $custom_prefix_carbon_table;
+
     }
 
     /**
@@ -850,7 +872,7 @@ abstract class Rest extends Database
             }
         } catch (Throwable $e) {
 
-            ErrorCatcher::safelyHandleThrowableAndExit($e);
+            ErrorCatcher::generateLog($e);
 
         } finally {
 
@@ -1130,9 +1152,12 @@ abstract class Rest extends Database
             self::completeRest();
 
             return true;
+
         } catch (Throwable $e) {
 
-            ErrorCatcher::safelyHandleThrowableAndExit($e);
+            ErrorCatcher::generateLog($e);  // this will terminate
+
+            return false;
 
         }
 
@@ -1196,7 +1221,9 @@ abstract class Rest extends Database
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::safelyHandleThrowableAndExit($e);
+            ErrorCatcher::generateLog($e);
+
+            return false;
 
         }
 
@@ -1426,11 +1453,11 @@ abstract class Rest extends Database
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::safelyHandleThrowableAndExit($e);
+            ErrorCatcher::generateLog($e);
+
+            return false;
 
         }
-
-        return false;
 
     }
 
@@ -1655,11 +1682,11 @@ abstract class Rest extends Database
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::safelyHandleThrowableAndExit($e);
+            ErrorCatcher::generateLog($e);  // this terminates
+
+            return false; // this will never be reached.
 
         }
-
-        return false; // this will never be reached.
 
     }
 
@@ -1669,8 +1696,11 @@ abstract class Rest extends Database
         $prefix = CarbonPHP::$configuration[CarbonPHP::REST][CarbonPHP::TABLE_PREFIX] ?? '';
 
         if ($prefix !== $table_prefix) {
-            throw new PublicAlert("The tables prefix ($prefix) does not match the on found in your configuration.");
+
+            throw new PublicAlert("The tables prefix ($prefix) does not match the on ($table_prefix) found in your configuration.");
+
         }
+
     }
 
     /**
@@ -1708,8 +1738,11 @@ abstract class Rest extends Database
 
         // build join
         if (array_key_exists(self::JOIN, $argv) && !empty($argv[self::JOIN])) {
+
             if (!is_array($argv[self::JOIN])) {
+
                 throw new PublicAlert('The restful join field must be an array.');
+
             }
 
             foreach ($argv[self::JOIN] as $by => $tables) {

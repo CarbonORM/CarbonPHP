@@ -184,7 +184,7 @@ abstract class Serialized
             }
         } catch (\Throwable $e) {
 
-            ErrorCatcher::generateBrowserReportFromThrowableAndExit($e);
+            ErrorCatcher::generateLog($e);
 
         }
 

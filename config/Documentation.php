@@ -185,6 +185,7 @@ class Documentation extends Application implements iConfig
         self::getUser();
 
         if (Deployment::github($this)()) {
+
             return true;
         }
 
@@ -394,6 +395,8 @@ SOCKET;
             return true;
         }
 
+
+
         if (Rest::MatchRestfulRequests($this)()) {
             return true;
         }
@@ -414,6 +417,8 @@ SOCKET;
             })()) {
             return true;
         }
+
+
 
         $this->structure($this->wrap());
 
@@ -445,7 +450,7 @@ SOCKET;
             return true;
         }
 
-        if ($version = ($this->uriExplode[0] ?? false)) {
+        if ($version = (self::$uriExplode[0] ?? false)) {
             switch ($version) {
                 case '2.0':
                     self::$matched = true;

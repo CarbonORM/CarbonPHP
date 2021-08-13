@@ -651,7 +651,7 @@ class CarbonPHP
             self::$setupComplete = true;
 
         } catch (Throwable $e) {
-            ErrorCatcher::generateBrowserReportFromThrowableAndExit($e);   // this will exit if executed
+            ErrorCatcher::generateLog($e);   // this will exit if executed
         }
     }
 

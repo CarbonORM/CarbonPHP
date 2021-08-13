@@ -104,7 +104,7 @@ class Session implements SessionHandlerInterface
             $_SESSION['id'] = array_key_exists('id', $_SESSION ??= []) ? $_SESSION['id'] : false;
 
         } catch (Throwable $e) {
-            ErrorCatcher::generateBrowserReportFromThrowableAndExit($e); // This terminates!
+            ErrorCatcher::generateLog($e); // This terminates!
         }
     }
 
@@ -241,7 +241,7 @@ class Session implements SessionHandlerInterface
 
         } catch (PDOException $e) {
 
-            ErrorCatcher::generateBrowserReportFromThrowableAndExitAndExit($e);   // this terminates!
+            ErrorCatcher::generateLog($e);   // this terminates!
 
         }
 
@@ -379,7 +379,7 @@ class Session implements SessionHandlerInterface
             ]);
 
         } catch (Throwable $e) {
-            ErrorCatcher::generateBrowserReportFromThrowableAndExit($e);
+            ErrorCatcher::generateLog($e);
         }
 
         return false;
@@ -415,7 +415,7 @@ class Session implements SessionHandlerInterface
             ]);
 
         } catch (Throwable $e) {
-            ErrorCatcher::generateBrowserReportFromThrowableAndExit($e);
+            ErrorCatcher::generateLog($e);
         }
         return false;
     }
@@ -443,7 +443,7 @@ class Session implements SessionHandlerInterface
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateBrowserReportFromThrowableAndExit($e);
+            ErrorCatcher::generateLog($e);
 
         }
 

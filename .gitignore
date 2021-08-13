@@ -48,3 +48,4 @@ license.txt
 src/tables/Wp_*
 src/tables/interfaces/iWp_*
 
+/CarbonPHP

@@ -12,7 +12,7 @@ import exampleStyle from "assets/jss/material-kit-react/views/componentsSections
 
 import landing from "assets/img/Carbon-teal.png";
 import profile from "assets/img/Carbon-green.png";
-import {WithStyles} from "@material-ui/styles";
+import {WithStyles} from "@material-ui/core/styles";
 import {AxiosInstance} from "axios";
 import {CODE_EXAMPLES} from "Code"
 

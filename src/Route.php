@@ -90,7 +90,7 @@ abstract class Route
             $this->defaultRoute();
 
         } catch (Throwable $e) {
-            ErrorCatcher::generateBrowserReportFromThrowableAndExit($e);
+            ErrorCatcher::generateLog($e);
         }
     }
 
@@ -170,11 +170,17 @@ abstract class Route
         $matches = [];
 
         try {
-            if (1 > @preg_match_all($regexToMatch, self::$uri, $matches, PREG_SET_ORDER)) {  // can return 0 or false
+
+            if (1 > preg_match_all($regexToMatch, self::$uri, $matches, PREG_SET_ORDER)) {  // can return 0 or false
+
                 return $this;
+
             }
+
         } catch (Throwable $exception) {
+
             throw new PublicAlert('The following regex failed :: ' . $regexToMatch);
+
         }
 
         self::$matched = true;

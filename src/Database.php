@@ -159,7 +159,9 @@ FOOT;
 
         } catch (PDOException $e) {
 
-            $error_array = ErrorCatcher::generateLog($e);
+            $error_array = ErrorCatcher::generateLog($e, true);
+
+            $error_array = $error_array[ErrorCatcher::LOG_ARRAY];
 
             switch ($e->getCode()) {        // Database has not been created
 
@@ -173,9 +175,8 @@ FOOT;
 
                         $error_array[] = 'Could not determine a database to create. See Carbonphp.com for documentation.';
 
-                        ErrorCatcher::generateBrowserReport($error_array);  // this terminates
+                        ErrorCatcher::generateBrowserReport($error_array);  // this terminates by default
 
-                        exit(1);
                     }
 
                     try {
@@ -200,6 +201,7 @@ FOOT;
                         }
 
                         ErrorCatcher::generateBrowserReport($error_array_two);  // this terminates
+
                     }
 
                     $stmt = "CREATE DATABASE $db_name;";
@@ -223,6 +225,7 @@ FOOT;
                     break;
 
                 case '42S02':
+
                     ErrorCatcher::generateBrowserReport($error_array);
 
                     static::setUp(!CarbonPHP::$cli, CarbonPHP::$cli);
@@ -230,18 +233,23 @@ FOOT;
                     break;
 
                 default:
+
                     if (empty(static::$carbonDatabaseUsername)) {
+
                         $error_array[] = '<h2>You must set a database user name. See CarbonPHP.com for documentation</h2>';
                     }
                     if (empty(static::$carbonDatabasePassword)) {
+
                         $error_array[] = '<h2>You may need to set a database password. See CarbonPHP.com for documentation</h2>';
+
                     }
 
                     ErrorCatcher::generateBrowserReport($error_array);
 
-                    exit($e->getMessage());                            // but don't fear, die does work.
             }
+
         }
+
     }
 
 
@@ -301,7 +309,7 @@ FOOT;
 
         } else {
 
-            ErrorCatcher::generateBrowserReportFromThrowableAndExit($e);
+            ErrorCatcher::generateLog($e);
 
         }
 
@@ -424,7 +432,7 @@ FOOT;
                 }
             }
         } catch (PDOException $e) {                     // todo - think about this more
-            ErrorCatcher::generateBrowserReportFromThrowableAndExit($e);
+            ErrorCatcher::generateLog($e);
         }
         return false;
     }

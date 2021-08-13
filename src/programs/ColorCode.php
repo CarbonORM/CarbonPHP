@@ -17,7 +17,7 @@ trait ColorCode
      * @param bool $exit
      * @link https://www.php.net/manual/en/function.syslog.php
      */
-    public static function colorCode(string $message, string $color = 'green'): void
+    public static function colorCode(string $message, string $color = iColorCode::GREEN): void
     {
         if (!self::$colorCodeBool) {
 
