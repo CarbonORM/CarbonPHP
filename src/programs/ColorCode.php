@@ -19,7 +19,7 @@ trait ColorCode
      */
     public static function colorCode(string $message, string $color = iColorCode::GREEN): void
     {
-        if (!self::$colorCodeBool) {
+        if (false === self::$colorCodeBool) {
 
             print $message;
 
@@ -37,7 +37,7 @@ trait ColorCode
 
         }
 
-        $colorCodex = sprintf($colors[$color], $message);
+        $message = sprintf($colors[$color], $message);
 
         if (CarbonPHP::$test) {
 
@@ -49,13 +49,13 @@ trait ColorCode
              * error_log($colorCodex);
              * ini_set('error_log', $current);
              */
-            print $colorCodex . PHP_EOL;
+            print $message . PHP_EOL;
 
             return;
         }
 
         /** @noinspection ForgottenDebugOutputInspection */
-        error_log($colorCodex);    // do not double quote args passed here
+        error_log($message);    // do not double quote args passed here
 
         if (null === ErrorCatcher::$defaultLocation || '' === ErrorCatcher::$defaultLocation) {
 
@@ -65,9 +65,14 @@ trait ColorCode
 
         $location = ini_get('error_log');
 
+        if (false === touch(ErrorCatcher::$defaultLocation)) {
+
+            $message .= "\n\nThe error log path (" . ErrorCatcher::$defaultLocation . ') might not exist on the system. Please create any nessicary directories to store logs correctly!' . PHP_EOL;
+
+        }
+
         switch ($location) {
             case '':
-
                 /** @noinspection PhpExpressionResultUnusedInspection */
                 ini_set('error_log', ErrorCatcher::$defaultLocation); // log to file too
 
@@ -84,16 +89,16 @@ trait ColorCode
 
                 $additional = sprintf($colors[$color], "\n\nThe error_log location set ($location) did not match the CarbonPHP ColorCode enabled error log path ErrorCatcher::\$defaultLocation = (" . ErrorCatcher::$defaultLocation . "); or was not set to an empty string which enables cli output.\n\n", iColorCode::YELLOW);
 
-                $colorCodex .= $additional; // for old log location
-
                 /** @noinspection ForgottenDebugOutputInspection */
                 error_log($additional);    // do not double quote args passed here
+
+                $message .= $additional; // for old log location
 
                 /** @noinspection PhpExpressionResultUnusedInspection */
                 ini_set('error_log', ErrorCatcher::$defaultLocation);
 
                 /** @noinspection ForgottenDebugOutputInspection */
-                error_log($colorCodex);    // do not double quote args passed here
+                error_log($message);    // do not double quote args passed here
 
                 /** @noinspection PhpExpressionResultUnusedInspection */
                 ini_set('error_log', '');           // default output // cli stdout
@@ -101,7 +106,7 @@ trait ColorCode
 
 
         /** @noinspection ForgottenDebugOutputInspection */
-        error_log($colorCodex);    // do not double quote args passed here
+        error_log($message);    // do not double quote args passed here
 
         /** @noinspection PhpExpressionResultUnusedInspection */
         ini_set('error_log', $location);    // back to what it was before this function
