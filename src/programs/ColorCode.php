@@ -93,7 +93,7 @@ trait ColorCode
                 ini_set('error_log', ErrorCatcher::$defaultLocation);
 
                 /** @noinspection ForgottenDebugOutputInspection */
-                error_log($additional);    // do not double quote args passed here
+                error_log($colorCodex);    // do not double quote args passed here
 
                 /** @noinspection PhpExpressionResultUnusedInspection */
                 ini_set('error_log', '');           // default output // cli stdout

@@ -189,13 +189,15 @@ class Documentation extends Application implements iConfig
             return true;
         }
 
-        if (CarbonPHP::$socket && $this->regexMatch('#echo/([a-z0-9]+)#i',
+        if (CarbonPHP::$socket
+            && $this->regexMatch('#echo/([a-z0-9]+)#i',
                 static function ($echo) use ($uri) {
                     WebSocket::sendToAllExternalResources("Echo Server On URI ($uri) :: \$echo = $echo");
-                })()) {
-            return true;
-        }
+        })()) {
 
+            return true;
+
+        }
 
         if ($this->regexMatch('#(!?ws|wss)#i', static function () {
             self::$matched = true;
@@ -207,7 +209,6 @@ class Documentation extends Application implements iConfig
             $session_id = session_id();
 
             print <<<SOCKET
-
 
 <!DOCTYPE html>
 <html>
@@ -308,7 +309,8 @@ $(document).ready(function () {
        
       let myMessage = $('#message').val();  //get message text
         
-      if (myMessage === "") { //emtpy message?
+      if (myMessage === "") { 
+        //empty message?
         alert("Enter Some message Please!");
         return;
       }
@@ -318,6 +320,7 @@ $(document).ready(function () {
         message: myMessage,
         color: '$colours[$user_colour]'
       };
+      
       //convert and send data to server
       websocket.send(JSON.stringify(msg));
       websocket.send(JSON.stringify(myMessage));
@@ -567,7 +570,7 @@ SOCKET;
                 CarbonPHP::TABLE_PREFIX => 'carbon_' // Carbons::TABLE_PREFIX
             ],
             CarbonPHP::DATABASE => [
-                CarbonPHP::DB_HOST => CarbonPHP::$app_local ? '127.0.0.1' : '35.224.229.250',                        // IP
+                CarbonPHP::DB_HOST => CarbonPHP::$app_local ? '127.0.0.1' : '35.224.229.250',
                 CarbonPHP::DB_PORT => '3306',
                 CarbonPHP::DB_NAME => 'CarbonPHP',                       // Schema
                 CarbonPHP::DB_USER => 'root',                            // User

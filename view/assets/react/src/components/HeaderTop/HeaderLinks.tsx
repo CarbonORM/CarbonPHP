@@ -8,15 +8,12 @@ import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import Tooltip from "@material-ui/core/Tooltip";
 // @material-ui/icons
-import {Add, Apps, CloudDownload, Remove} from "@material-ui/icons";
+import {Add, Apps, CloudDownload, NightsStay, Remove, WbSunny} from "@material-ui/icons";
 // core components
 import CustomDropdown from "components/CustomDropdown/CustomDropdown.jsx";
 import Button from "components/CustomButtons/Button.jsx";
 
 import headerLinksStyle from "assets/jss/material-kit-react/components/headerLinksStyle.jsx";
-
-import context from "variables/carbonphp";
-
 
 class HeaderLinks extends React.Component<any, any> {
   constructor(props) {
@@ -56,6 +53,7 @@ class HeaderLinks extends React.Component<any, any> {
             color="transparent"
             target="_blank"
             className={classes.navLink}
+            style={{ color: (this.props.darkMode ?  "white" : "black") }}
           >
             <Add className={classes.icons}/>
           </Button>
@@ -66,8 +64,23 @@ class HeaderLinks extends React.Component<any, any> {
             color="transparent"
             target="_blank"
             className={classes.navLink}
+            style={{ color: (this.props.darkMode ?  "white" : "black") }}
           >
             <Remove className={classes.icons}/>
+          </Button>
+        </ListItem>
+        <ListItem className={classes.listItem}>
+          <Button
+            onClick={() => this.props.switchDarkAndLightTheme()}
+            color="transparent"
+            target="_blank"
+            className={classes.navLink}
+            style={{ color: (this.props.darkMode ?  "white" : "black") }}
+          >
+            {this.props.darkMode
+              ? <><WbSunny className={classes.icons}/></>
+              : <><NightsStay className={classes.icons}/></>
+            }
           </Button>
         </ListItem>
         <ListItem className={classes.listItem}>
@@ -78,24 +91,12 @@ class HeaderLinks extends React.Component<any, any> {
               className: classes.navLink,
               color: "transparent"
             }}
+            darkMode={this.props.darkMode}
             buttonIcon={Apps}
             dropdownList={[
-              <Link to="/8.2" className={classes.dropdownLink}>
-                Version 8.^
+              <Link to="/10" className={classes.dropdownLink}>
+                Version 10
               </Link>,
-              <a
-                href={context.contextHost + "/6.0"}
-                className={classes.dropdownLink}
-              >
-                Version 6.^
-              </a>,
-              <a
-                href={context.contextHost + "/2.0"}
-                target="_blank"
-                className={classes.dropdownLink}
-              >
-                Version 2.^
-              </a>
             ]}
           />
         </ListItem>
@@ -103,18 +104,20 @@ class HeaderLinks extends React.Component<any, any> {
           <CustomDropdown
             noLiPadding
             buttonText="UI"
+            buttonText="UI"
             buttonProps={{
               className: classes.navLink,
               color: "transparent"
             }}
+            darkMode={this.props.darkMode}
             buttonIcon={Apps}
             dropdownList={[
-              <Link to="/6.0/UI/Material-Kit"
+              <Link to="/UI/Material-Kit"
                     target="_blank"
                     className={classes.dropdownLink}>
                 Material Kit
               </Link>,
-              <Link to="/6.0/UI/Material-Dashboard"
+              <Link to="/UI/Material-Dashboard"
                     target="_blank"
                     className={classes.dropdownLink}>
                 Material Dashboard
@@ -134,45 +137,11 @@ class HeaderLinks extends React.Component<any, any> {
             color="transparent"
             target="_blank"
             className={classes.navLink}
+            style={{ color: (this.props.darkMode ?  "white" : "black") }}
           >
             <CloudDownload className={classes.icons}/> GitHub
           </Button>
         </ListItem>
-        <ListItem className={classes.listItem}>
-          <Tooltip
-            id="instagram-twitter"
-            title="Follow us on twitter"
-            placement={window.innerWidth > 959 ? "top" : "left"}
-            classes={{ tooltip: classes.tooltip }}
-          >
-            <Button
-              href="https://twitter.com/rootPrerogative"
-              target="_blank"
-              color="transparent"
-              className={classes.navLink}
-            >
-              <i className={classes.socialIcons + " fab fa-twitter"}/> Twitter
-            </Button>
-          </Tooltip>
-        </ListItem>
-        <ListItem className={classes.listItem}>
-          <Tooltip
-            id="instagram-facebook"
-            title="Follow us on facebook"
-            placement={window.innerWidth > 959 ? "top" : "left"}
-            classes={{ tooltip: classes.tooltip }}
-          >
-            <Button
-              color="transparent"
-              href="https://www.facebook.com/wookieetyler"
-              target="_blank"
-              className={classes.navLink}
-            >
-              <i className={classes.socialIcons + " fab fa-facebook"}/> Facebook
-            </Button>
-          </Tooltip>
-        </ListItem>
-
       </List>
     );
   }

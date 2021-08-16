@@ -18,6 +18,7 @@ class bootstrap extends React.Component<any, {
   alert?: boolean,
   operationActive: boolean,
   isLoaded: boolean,
+  darkMode: boolean,
   alertsWaiting: Array<any>
 }> {
   constructor(props) {
@@ -29,8 +30,11 @@ class bootstrap extends React.Component<any, {
       alert: false,
       operationActive: false,
       isLoaded: false,
-      alertsWaiting: []
+      alertsWaiting: [],
+      darkMode: true,
     };
+
+    this.switchDarkAndLightTheme = this.switchDarkAndLightTheme.bind(this);
     this.handleResponseCodes = this.handleResponseCodes.bind(this);
     this.authenticate = this.authenticate.bind(this);
     this.subRoutingSwitch = this.subRoutingSwitch.bind(this);
@@ -49,6 +53,11 @@ class bootstrap extends React.Component<any, {
     />
   };
 
+  switchDarkAndLightTheme = () => {
+    this.setState({
+      darkMode: !this.state.darkMode
+    });
+  };
 
   semaphoreLock = <T extends React.Component>(context ?: T): Function =>
     (callback: Function, localLock: boolean = false): Function => (opt ?: any): boolean => {
@@ -359,6 +368,8 @@ class bootstrap extends React.Component<any, {
             path="/"
             render={props => (authenticated ?
                 <Private
+                  darkMode={this.state.darkMode}
+                  switchDarkAndLightTheme={this.switchDarkAndLightTheme}
                   codeBlock={this.codeBlock}
                   axios={this.state.axios}
                   subRoutingSwitch={this.subRoutingSwitch}
@@ -370,6 +381,8 @@ class bootstrap extends React.Component<any, {
                   {...props}
                 /> :
                 <Public
+                  darkMode={this.state.darkMode}
+                  switchDarkAndLightTheme={this.switchDarkAndLightTheme}
                   codeBlock={this.codeBlock}
                   axios={this.state.axios}
                   subRoutingSwitch={this.subRoutingSwitch}

@@ -43,7 +43,8 @@ class NavPills extends React.Component {
       direction,
       color,
       horizontal,
-      alignCenter
+      alignCenter,
+      scrollButtons
     } = this.props;
 
 
@@ -54,7 +55,7 @@ class NavPills extends React.Component {
 
     const tabButtons = (
       <Tabs
-        scrollButtons
+        scrollButtons={scrollButtons}
         variant={'scrollable'}
         classes={{
           root: classes.root,
@@ -83,8 +84,6 @@ class NavPills extends React.Component {
               {...icon}
               classes={{
                 root: pillsClasses,
-                labelContainer: classes.labelContainer,
-                label: classes.label,
                 selected: classes[color]
               }}
             />
@@ -119,20 +118,22 @@ class NavPills extends React.Component {
         <GridItem {...horizontal.contentGrid}>{tabContent}</GridItem>
       </GridContainer>
     ) : (
-      <div>
+      <>
         {tabButtons}
         {tabContent}
-      </div>
+      </>
     );
   }
 }
 
 NavPills.defaultProps = {
   active: 0,
-  color: "primary"
+  color: "primary",
+  scrollButtons: 'auto'
 };
 
 NavPills.propTypes = {
+  scrollButtons: PropTypes.oneOf(['auto', 'desktop', 'on', 'off']),
   classes: PropTypes.object.isRequired,
   // index of the default active pill
   active: PropTypes.number,

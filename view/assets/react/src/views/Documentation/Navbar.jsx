@@ -39,7 +39,7 @@ class Navbar extends React.Component {
                                     left
                                     key={key}
                                     caret={true}
-                                    hoverColor="black"
+                                    hoverColor="info"
                                     dropdownHeader={o.name}
                                     buttonText={o.name}
                                     buttonProps={{
@@ -69,6 +69,7 @@ class Navbar extends React.Component {
             <div className={classes.section}>
                 <div className={classes.container}>
                     <HeaderTop
+                        darkMode={this.props.darkMode}
                         brand={brand ? brand : "Documentation"}
                         color={color ? color : "dark"}
                         rightLinks={

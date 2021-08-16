@@ -97,6 +97,7 @@ class CustomDropdown extends React.Component {
               this.anchorEl = node;
             }}
             onClick={this.handleClick}
+            style={{ color: (this.props.darkMode ?  "white" : "black") }}
           >
             {icon}
             {buttonText !== undefined ? buttonText : null}
@@ -176,6 +177,7 @@ CustomDropdown.defaultProps = {
 };
 
 CustomDropdown.propTypes = {
+  darkMode: PropTypes.bool,
   classes: PropTypes.object.isRequired,
   hoverColor: PropTypes.oneOf([
     "black",

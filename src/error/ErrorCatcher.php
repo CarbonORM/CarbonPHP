@@ -825,7 +825,7 @@ class ErrorCatcher
 
                 } else {
 
-                    print $html_error_log;
+                    print $html_error_log;  // todo - we are cli and were printing the html log?  CarbonPHP::$cli
 
                 }
 

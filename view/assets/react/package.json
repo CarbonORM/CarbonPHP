@@ -4,7 +4,7 @@
   "description": "CarbonPHP Documentation. Material Dashboard React. Coded by Creative Tim and Richard Miles.",
   "private": false,
   "main": "src/index.js",
-  "homepage": "http://dev.carbonphp.com/82/#/8.2",
+  "homepage": "http://dev.carbonphp.com/10/#/",
   "dependencies": {
     "@material-ui/core": "4.12.3",
     "@material-ui/icons": "4.9.1",

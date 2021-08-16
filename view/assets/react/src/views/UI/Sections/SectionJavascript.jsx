@@ -170,7 +170,7 @@ class SectionJavascript extends React.Component {
                 <h3>Popovers</h3>
               </div>
               <Button
-                buttonRef={node => {
+                ref={node => {
                   this.anchorElLeft = node;
                 }}
                 onClick={() => this.handleClickButton("openLeft")}
@@ -201,7 +201,7 @@ class SectionJavascript extends React.Component {
                 </div>
               </Popover>
               <Button
-                buttonRef={node => {
+                ref={node => {
                   this.anchorElTop = node;
                 }}
                 onClick={() => this.handleClickButton("openTop")}
@@ -231,7 +231,7 @@ class SectionJavascript extends React.Component {
                 </div>
               </Popover>
               <Button
-                buttonRef={node => {
+                ref={node => {
                   this.anchorElBottom = node;
                 }}
                 onClick={() => this.handleClickButton("openBottom")}
@@ -261,7 +261,7 @@ class SectionJavascript extends React.Component {
                 </div>
               </Popover>
               <Button
-                buttonRef={node => {
+                ref={node => {
                   this.anchorElRight = node;
                 }}
                 onClick={() => this.handleClickButton("openRight")}

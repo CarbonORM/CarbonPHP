@@ -40,13 +40,16 @@ class Documentation extends React.Component {
     this.state = {
       isLoaded: false,
     }
+
+
   }
 
   componentDidMount() {
     this.setState({
-      isLoaded: true
+      isLoaded: true,
     });
   }
+
 
   render() {
 
@@ -91,7 +94,7 @@ class Documentation extends React.Component {
       },
       {
         redirect: true,
-        path: "/5.0",
+        path: "/" + documentationVersion,
         pathTo: "/" + documentationVersion + "/Documentation/CarbonPHP",
         name: "Examples"
       },
@@ -109,29 +112,34 @@ class Documentation extends React.Component {
       }
     ];
 
-
-    // transparent here seems to work 50% the time, replace with dark if trouble persists
+    // todo - if we were to merge versionia PHP ^7.4 application tool kit & frameworkng with code it would be here {this.props.subRoutingSwitch(publicDocumentationRoutes, rest)}
     return (
-      <div>
+      <>
         <HeaderTop
+          darkMode={this.props.darkMode}
           brand="CarbonPHP.com"
-          rightLinks={<HeaderLinks/>}
+          rightLinks={<HeaderLinks
+            darkMode={this.props.darkMode}
+            switchDarkAndLightTheme={this.props.switchDarkAndLightTheme}
+          />}
           fixed
-          color="transparent"
+          color={window.pageYOffset < 400 ? "transparent" : (this.props.darkMode ? "transparent" : "info")}
           changeColorOnScroll={{
             height: 400,
-            color: "dark"
+            color: this.props.darkMode ? "dark" : "info"
           }}
           {...rest}
         />
-        <Parallax image={"/view/assets/img/Carbon-teal-180.png"}>
+        <Parallax
+          image={this.props.darkMode ? "/view/assets/img/Carbon-teal-180.png" : "/view/assets/img/Full-Carbon-Teal-White.jpg"}>
           <div className={classes.container}>
             <GridContainer>
               <GridItem>
                 <div className={classes.brand}>
-                  <h1 className={classes.title}>CarbonPHP [C6]</h1>
-                  <h3 className={classes.subtitle}>
-                    Build full scale applications.
+                  <h1 className={classes.title} style={{ color: (this.props.darkMode ? "white" : "black") }}>CarbonPHP
+                    [C6]</h1>
+                  <h3 className={classes.subtitle} style={{ color: (this.props.darkMode ? "white" : "black") }}>
+                    A PHP 7.4.* Library
                   </h3>
                 </div>
               </GridItem>
@@ -140,15 +148,29 @@ class Documentation extends React.Component {
         </Parallax>
         <div>
           <div>
-            <Navbar className={classNames(classes.main, classes.mainRaised)}
-                    routes={publicDocumentationRoutes}/>
-            <div className={classNames(classes.main, classes.mainRaised)}>
+
+            <Navbar
+              color={this.props.darkMode ?  "dark" : "info"}
+              darkMode={this.props.darkMode}
+              className={classNames(classes.main, classes.mainRaised)}
+              routes={publicDocumentationRoutes}/>
+
+            <div className={classNames(classes.main, classes.mainRaised)}  style={
+              {
+                backgroundColor: (this.props.darkMode ?  "black" : "white"),
+                color: (this.props.darkMode ?  "white" : "black"),
+                fontSize: "+1.2em",
+                lineHeight: "+1.8em"
+              }
+            }>
               {this.props.subRoutingSwitch(publicDocumentationRoutes, rest)}
             </div>
+
           </div>
+
         </div>
         <Footer fluid/>
-      </div>
+      </>
     );
   }
 }

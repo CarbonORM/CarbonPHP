@@ -65,7 +65,8 @@ class HeaderTop extends React.Component {
       leftLinks,
       brand,
       fixed,
-      absolute
+      absolute,
+      darkMode
     } = this.props;
     const appBarClasses = classNames({
       [classes.appBar]: true,
@@ -73,7 +74,7 @@ class HeaderTop extends React.Component {
       [classes.absolute]: absolute,
       [classes.fixed]: fixed
     });
-    const brandComponent = <Button className={classes.title}>{brand}</Button>;
+    const brandComponent = <Button className={classes.title} style={{ color: (darkMode ?  "white" : "black") }}>{brand}</Button>;
     return (
       <AppBar className={appBarClasses}>
         <Toolbar className={classes.container}>
@@ -126,6 +127,7 @@ HeaderTop.defaultProp = {
 };
 
 HeaderTop.propTypes = {
+  darkMode: PropTypes.bool,
   classes: PropTypes.object.isRequired,
   color: PropTypes.oneOf([
     "primary",
