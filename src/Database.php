@@ -947,11 +947,6 @@ FOOT;
 
 
     /**
-     * This is not implemeted in the wild rn
-     *
-     *
-     * to be proficient it needs to use dynamically the configuration passed to carbonphp
-     *
      * @param string $tableDirectory
      * @param bool|null $cli
      */
@@ -1000,7 +995,7 @@ FOOT;
 
             } else {
 
-                print '<html><head><title>(Setup || Rebuild) Database</title></head><body><h1>REFRESHING SYSTEM</h1>' . PHP_EOL;
+                print '<html lang="en"><head><title>(Setup || Rebuild) Database</title></head><body><h1>REFRESHING SYSTEM</h1>' . PHP_EOL;
 
             }
 
