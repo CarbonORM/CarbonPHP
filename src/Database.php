@@ -1058,7 +1058,7 @@ FOOT;
 
         }
 
-        $sql = preg_replace('#`(' . Carbons::TABLE_PREFIX . '[^`]*)`#is', '`' . $prefix . '$1', $sql);
+        $sql = preg_replace('#(' . Carbons::TABLE_PREFIX . '[^\s]*)`#is', '`' . $prefix . '$1', $sql);
 
         $table_name = $prefix . $table_name;
 

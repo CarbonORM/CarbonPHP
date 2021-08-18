@@ -483,7 +483,7 @@ class Users extends Rest implements iRestSinglePrimaryKey
   `user_rank` int DEFAULT '0',
   `user_email` varchar(50) NOT NULL,
   `user_email_code` varchar(225) DEFAULT NULL,
-  `user_email_confirmed` tinyint(1) DEFAULT '0' COMMENT 'need to change to enums, but no support in rest yet  ',
+  `user_email_confirmed` tinyint(1) DEFAULT '0' COMMENT 'need to change to enums, but no support in rest yet',
   `user_generated_string` varchar(200) DEFAULT NULL,
   `user_membership` int DEFAULT '0',
   `user_deactivated` tinyint(1) DEFAULT '0',
