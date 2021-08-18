@@ -319,8 +319,6 @@ class Users extends Rest implements iRestSinglePrimaryKey
             self::TABLE_PREFIX
         ]
     ];
-
-
     
     /**
      * REGEX_VALIDATION

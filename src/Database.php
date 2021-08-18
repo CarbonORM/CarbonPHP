@@ -1022,10 +1022,9 @@ FOOT;
 
             ErrorCatcher::generateLog($e);
 
-            exit(1);
+            exit(1);        // exit 1 is phpunit // composer scripts safe to === error
 
         }
-
 
     }
 
@@ -1038,22 +1037,11 @@ FOOT;
 
         // If not exists
         if ([] === $existed) {
-            $status = self::execute($sql);
-            // a switch doesn't work here because it doesn't do ===, only == and null == false
-            if ($status === null) {
-                if (CarbonPHP::$cli) {
-                    self::colorCode('Table `' . $table_name . '` already exists');
-                } else {
-                    print '<br>Table `' . $table_name . '` already exists';
-                }
-            } else if ($status === false) {
-                throw new PublicAlert('Failed to update table :: ' . $table_name);
-            } else if (CarbonPHP::$cli) {
-                self::colorCode('Table `' . $table_name . '` Created');
-            } else {
-                print '<br><p style="color: green">Table `' . $table_name . '` Created</p>';
-            }
+
+            self::execute($sql);
+
         }
+
     }
 
 
