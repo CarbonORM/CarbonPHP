@@ -115,6 +115,7 @@ abstract class Rest extends Database
     public static bool $allowInternalMysqlFunctions = true;
     public static bool $allowSubSelectQueries = false;
     public static bool $externalRestfulRequestsAPI = false;
+    public static bool $jsonReport = true;
 
     // False for external and internal requests by default. If a primary key exists you should always attempt to use it.
     public static bool $allowFullTableUpdates = false;
@@ -130,7 +131,8 @@ abstract class Rest extends Database
      * @link https://gist.github.com/nikic/5015323 -> https://www.npopov.com/2014/12/22/PHPs-new-hashtable-implementation.html
      * @param array $return
      */
-    public function __construct(array &$return = []) {
+    public function __construct(array &$return = [])
+    {
 
         if ([] === $return) {
 
@@ -138,7 +140,7 @@ abstract class Rest extends Database
 
         }
 
-        foreach ($return  as $key => &$value) {
+        foreach ($return as $key => &$value) {
 
             $this->$key = &$value;
 
@@ -1398,7 +1400,7 @@ abstract class Rest extends Database
 
                         $stmt->bindParam(":$shortName", $argv[$fullName],
                             static::PDO_VALIDATION[$fullName][self::PDO_TYPE],
-                            (int) static::PDO_VALIDATION[$fullName][self::MAX_LENGTH]);
+                            (int)static::PDO_VALIDATION[$fullName][self::MAX_LENGTH]);
 
                     }
 
@@ -1495,7 +1497,7 @@ abstract class Rest extends Database
 
             $keys = rtrim($keys, ', ');
 
-            $pdo_values = rtrim( $pdo_values, ', ');
+            $pdo_values = rtrim($pdo_values, ', ');
 
             $sql = self::INSERT . ' INTO '
                 . (static::QUERY_WITH_DATABASE ? static::DATABASE . '.' : '')
@@ -1567,7 +1569,7 @@ abstract class Rest extends Database
                      * @link https://www.php.net/ChangeLog-8.php
                      * @notice PDO type validation has a bug until 8
                      **/
-                    $maxLength = $info[self::MAX_LENGTH] === '' ? null : (int) $info[self::MAX_LENGTH];
+                    $maxLength = $info[self::MAX_LENGTH] === '' ? null : (int)$info[self::MAX_LENGTH];
 
                     $stmt->bindParam(":$shortName", $data[$fullName], $info[self::PDO_TYPE],
                         $maxLength);
@@ -1626,7 +1628,7 @@ abstract class Rest extends Database
 
                     }
 
-                    $stmt->bindParam(":$shortName", $data[$fullName], $info[self::PDO_TYPE], $info[self::MAX_LENGTH] === '' ? null : (int) $info[self::MAX_LENGTH]);
+                    $stmt->bindParam(":$shortName", $data[$fullName], $info[self::PDO_TYPE], $info[self::MAX_LENGTH] === '' ? null : (int)$info[self::MAX_LENGTH]);
 
                 }
                 // end foreach bind
@@ -1977,7 +1979,7 @@ abstract class Rest extends Database
 
             }
 
-            if (self::validateInternalColumn(self::GET,$column)) {
+            if (self::validateInternalColumn(self::GET, $column)) {
 
                 $group[] = $column;
 
@@ -2303,6 +2305,7 @@ abstract class Rest extends Database
         } // end foreach
 
         return preg_replace("/\s$booleanOperator\s?$/", '', $sql) . ')';
+
     }
 
 
@@ -2313,16 +2316,31 @@ abstract class Rest extends Database
     public static function jsonSQLReporting($argv, $sql): void
     {
         global $json;
+
+
+        if (false === self::$jsonReport) {
+
+            return;
+
+        }
+
         if (!is_array($json)) {
+
             $json = [];
+
         }
+
         if (!isset($json['sql'])) {
+
             $json['sql'] = [];
+
         }
+
         $json['sql'][] = [
             $argv,
             $sql
         ];
+
     }
 
     /**

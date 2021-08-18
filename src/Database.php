@@ -863,15 +863,18 @@ FOOT;
             exit(1);
         }
 
-        $foundError = false;
-
         $regex = '#CREATE\s+TABLE(.|\s)+?(?=ENGINE=)#';
 
 
         foreach ($validate as $fullyQualifiedClassName => $preUpdateSQL) {
 
-            $tableName = $fullyQualifiedClassName::TABLE_NAME;
+            if (defined($table::VALIDATE_AFTER_REBUILD) && false === $table::VALIDATE_AFTER_REBUILD) {
 
+                continue;
+
+            }
+
+            $tableName = $fullyQualifiedClassName::TABLE_NAME;
 
             $matches = [];
 
@@ -893,12 +896,9 @@ FOOT;
 
             }
 
-
             self::addTablePrefix($tableName, $table::TABLE_PREFIX, $preUpdateSQL);
 
-
             $table_regex = "#CREATE\s+TABLE\s`$tableName`(.|\s)+?(?=ENGINE=)#";
-
 
             if (null === $preUpdateSQL || false === preg_match_all($table_regex, $mysqldump, $matches)) {
 
@@ -920,12 +920,10 @@ FOOT;
 
             $preUpdateSQL = trim($preUpdateSQL);
 
-            $postUpdateSQL = trim(str_replace("\\n","\n",$postUpdateSQL));
+            $postUpdateSQL = trim(str_replace("\\n", "\n", $postUpdateSQL));
 
             // safe compare multibyte strings
             if ($preUpdateSQL !== $postUpdateSQL) {
-
-                $foundError = true;
 
                 ColorCode::colorCode('Oh No! After running the database updated it looks like the sql found in '
                     . "the mysql dump file did not match the expected. Please note the regex to match ($regex)."
@@ -939,11 +937,9 @@ FOOT;
 
                 exit(1);
 
-            } else {
-
-                ColorCode::colorCode("Table `$tableName` verified.");
-
             }
+
+            ColorCode::colorCode("Table `$tableName` verified.");
 
         }
 
