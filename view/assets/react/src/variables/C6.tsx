@@ -1,9 +1,7 @@
 
-export const PROCESS_CWD = process.cwd();
-
-export const DIRECTORY = __dirname;
 
 export const C6 = {
+
 
     // try to 1=1 match the Rest abstract class
     AS: 'AS',

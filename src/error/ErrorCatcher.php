@@ -11,8 +11,6 @@ use CarbonPHP\Programs\Background;
 use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Rest;
 use CarbonPHP\Tables\Reports;
-use DropInGaming\Bootstrap;
-use DropInGaming\DropVariables;
 use ReflectionException;
 use ReflectionMethod;
 use Throwable;
@@ -340,50 +338,6 @@ class ErrorCatcher
 
         }
 
-        $create_log = static function () use (&$message){
-
-
-            if (true === is_dir($directory)) {
-
-                $message .= "\n\nThe error log file (" . ErrorCatcher::$defaultLocation . ') might not exist on the system. We have failed to manually create this as well. Please create the file required to store logs correctly!' . PHP_EOL;
-
-            } elseif (mkdir($directory, 0744, true) && is_dir($directory)){
-
-                $message .= "\n\nThe folder path ($directory) did not exist. We have created it manually.\n\n";
-
-
-                try {
-
-
-
-                } catch (Throwable $e) {
-
-                    $message .=  $secondary_touch_error_message . PHP_EOL;
-
-                }
-
-            } else {
-
-                $message .= "\n\nThe error log folder path (" . ErrorCatcher::$defaultLocation . ') might not exist on the system. We have failed to manually create the folders as well. Please create the directories required to store logs correctly!' . PHP_EOL;
-
-            }
-
-        };
-
-        try {
-
-            if (false === touch(ErrorCatcher::$defaultLocation)) {
-
-                $create_log();
-
-            }
-
-        } catch (Throwable $e) {
-
-            $create_log();
-
-        }
-
     }
 
     public static function grabCodeSnippet(): string
@@ -543,38 +497,50 @@ class ErrorCatcher
                 return false;
             }*/
 
-            switch ($errorLevel) {
+            $browserOutput['PHP'] = PHP_VERSION . ' (' . PHP_OS . ')';
 
+            switch ($errorLevel) {
+                case E_ALL:
+                    $browserOutput['FATAL ERROR'] ??= 'E_ALL';
+                case E_ERROR:
+                    $browserOutput['FATAL ERROR'] ??= 'E_ERROR';
+                case E_RECOVERABLE_ERROR:
+                    $browserOutput['FATAL ERROR'] ??= 'E_RECOVERABLE_ERROR';
+                case E_PARSE:
+                    $browserOutput['FATAL ERROR'] ??= 'E_PARSE';
+                case E_STRICT:
+                    $browserOutput['FATAL ERROR'] ??= 'E_STRICT';
+                case E_DEPRECATED:
+                    $browserOutput['FATAL ERROR'] ??= 'E_DEPRECATED';
+                case E_COMPILE_ERROR:
+                    $browserOutput['FATAL ERROR'] ??= 'E_COMPILE_ERROR';
                 case E_USER_ERROR:
+                    $browserOutput['FATAL ERROR'] ??= 'E_USER_ERROR';
+                default:
+                    $browserOutput['FATAL ERROR'] ??= "Unknown error type ($errorLevel) with message ($errorString)";
 
                     $fatalError = true;
 
-                    self::colorCode('E_USER_ERROR caught', 'true');
-
-                    $browserOutput["USER ERROR [$errorLevel]"] = $errorString;
-
-                    $browserOutput['FATAL ERROR'] = "Fatal error on line $errorLine in file $errorFile";
-
-                    $browserOutput['PHP'] = PHP_VERSION . ' (' . PHP_OS . ')';
+                    $browserOutput["ERROR MESSAGE"] = $errorString;
 
                     break;
 
+                case E_WARNING:
+                    $browserOutput['RECOVERABLE WARNING'] ??= 'E_WARNING';
+                case E_NOTICE:
+                    $browserOutput['RECOVERABLE WARNING'] ??= 'E_NOTICE';
+                case E_CORE_WARNING:
+                    $browserOutput['RECOVERABLE WARNING'] ??= 'E_CORE_WARNING';
+                case E_COMPILE_WARNING:
+                    $browserOutput['RECOVERABLE WARNING'] ??= 'E_COMPILE_WARNING';
                 case E_USER_WARNING:
-
-                    // TODO - not report in app local?
-                    $browserOutput["WARNING [$errorLevel]"] = $errorString;
-
-                    break;
-
+                    $browserOutput['RECOVERABLE WARNING'] ??= 'E_USER_WARNING';
                 case E_USER_NOTICE:
+                    $browserOutput['RECOVERABLE WARNING'] ??= 'E_USER_NOTICE';
+                case E_USER_DEPRECATED:
+                    $browserOutput['RECOVERABLE WARNING'] ??= 'E_USER_DEPRECATED';
 
-                    $browserOutput["NOTICE [$errorLevel]"] = $errorString;
-
-                    break;
-
-                default:
-
-                    $browserOutput["Unknown error type: [$errorLevel]"] = $errorString;
+                    $browserOutput["WARNING MESSAGE"] = $errorString;
 
                     break;
             }
@@ -583,27 +549,10 @@ class ErrorCatcher
 
             $browserOutput['LINE'] = (string)$errorLine;
 
-            self::generateLog(null, false === $fatalError, 'log', $browserOutput);
+            self::generateLog(null, false === $fatalError, (string)$errorLevel, $browserOutput);
 
-            /* Don't execute PHP internal error handler */
-            if (CarbonPHP::$socket) {
+            return false;  // todo this will continue execution
 
-                if ($fatalError) {
-
-                    exit(1);
-
-                }
-
-                if ($errorsHandled < 3) {
-
-                    return true;            // let php do there thing... todo test this
-
-                }
-
-            }
-
-            self::closeStdoutStderrAndExit(1);
-            # return false;  // todo this will continue execution
         };
 
         /**
@@ -851,6 +800,8 @@ class ErrorCatcher
 
         }
 
+        $log_array['MESSAGE AGAIN'] = $log_array["WARNING MESSAGE"] ?? $log_array['ERROR MESSAGE'] ?? 'Oh no! It does not look like a message has been parsed. This is unexpected.';
+
         $message = json_encode($log_array, JSON_PRETTY_PRINT);
 
         self::colorCode($message, $color);
@@ -863,7 +814,7 @@ class ErrorCatcher
 
             $log_saved = true;
 
-            if (false === file_put_contents(DropVariables::$app_root . $log_file, $html_error_log)) {
+            if (false === file_put_contents(CarbonPHP::$app_root . $log_file, $html_error_log)) {
 
                 ColorCode::colorCode("Failed to store html log using file_put_contents. Arguments :: ($log_file) ($html_error_log);", iColorCode::RED);
 
