@@ -414,8 +414,15 @@ class ErrorCatcher
 
         }
 
+        if (CarbonPHP::$cli || CarbonPHP::$socket) {
+
+            self::closeStdoutStderrAndExit(1);
+
+        }
+
+
         // try resetting to the default page if conditions correct, we've already generated a log and optionally printed
-        if (CarbonPHP::$cli || CarbonPHP::$socket || !CarbonPHP::$setupComplete) {
+        if (!CarbonPHP::$setupComplete) {
 
             print $error_page;
 
@@ -849,7 +856,7 @@ class ErrorCatcher
 
             }
 
-            self::closeStdoutStderrAndExit($log_file);
+            self::closeStdoutStderrAndExit(1);
 
         }
 
@@ -1134,4 +1141,3 @@ DESCRIPTION;
     }
 
 }
-
