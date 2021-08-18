@@ -1115,5 +1115,14 @@ FOOT;
         }
         return null;
     }
+
+    protected static function addPrefixAndExecute($sql, $tableName, $tablePrefix) : array {
+
+        self::addTablePrefix($tableName, $tablePrefix, $sql);
+
+        return self::fetch($sql);
+
+    }
+
 } 
 

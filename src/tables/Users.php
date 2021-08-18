@@ -305,9 +305,22 @@ class Users extends Rest implements iRestSinglePrimaryKey
      * Each directive MUST be designed to run multiple times without failure.
      */
     public const REFRESH_SCHEMA = [
-        [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::TABLE_PREFIX, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
-                        PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS, true]
+        [
+            self::class => 'tableExistsOrExecuteSQL',
+            self::TABLE_NAME,
+            self::TABLE_PREFIX,
+            self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS . PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS,
+            true
+        ],
+        [
+            self::class => 'addPrefixAndExecute',
+            "alter table carbon_users modify user_email_confirmed tinyint(1) default 0 null comment 'need to change to enums, but no support in rest yet';",
+            self::TABLE_NAME,
+            self::TABLE_PREFIX
+        ]
     ];
+
+
     
     /**
      * REGEX_VALIDATION
