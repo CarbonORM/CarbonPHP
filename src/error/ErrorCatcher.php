@@ -800,7 +800,13 @@ class ErrorCatcher
 
         }
 
-        $log_array['MESSAGE AGAIN'] = $log_array["WARNING MESSAGE"] ?? $log_array['ERROR MESSAGE'] ?? 'Oh no! It does not look like a message has been parsed. This is unexpected.';
+        $messageRepeat = $log_array["WARNING MESSAGE"] ?? $log_array['ERROR MESSAGE'] ?? false;
+
+        if (false !== $messageRepeat) {
+
+            $log_array['MESSAGE AGAIN'] = $messageRepeat;
+
+        }
 
         $message = json_encode($log_array, JSON_PRETTY_PRINT);
 

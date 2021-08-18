@@ -925,11 +925,13 @@ FOOT;
             // safe compare multibyte strings
             if ($preUpdateSQL !== $postUpdateSQL) {
 
-                ColorCode::colorCode('Oh No! After running the database updated it looks like the sql found in '
-                    . "the mysql dump file did not match the expected. Please note the regex to match ($regex)."
-                    . " Any updates done to the database should be automated in the $tableName::REFRESH_SCHEMA[] definition. "
-                    . ' Documentation has been provided above this constant. If the new SQL appears correct you probably '
-                    . "just need to re-run the RestBuilder program. The offending SQL::\ns", iColorCode::RED);
+                ColorCode::colorCode('Oh No! After running the database updated it looks like the sql found in'
+                    . " the mysql dump file did not match the expected. Please note the regex to match ($regex)."
+                    . "Any updates done to the database should be automated in the $tableName::REFRESH_SCHEMA[] definition. "
+                    . "If this is not a table you manage, but rather 3rd-party generated, you should change ($tableName::VALIDATE_AFTER_REBUILD = false;) and re-try. "
+                    . 'To update your table using REFRESH_SCHEMA, please refer to the documentation that is been provided'
+                    . " above this constant in the php class for $tableName. If the new SQL appears correct you probably "
+                    . "just need to re-run the RestBuilder program (not the database rebuild program currently raising error). The offending SQL::\ns", iColorCode::RED);
 
                 ColorCode::colorCode("Expected :: $preUpdateSQL\n\n\n", iColorCode::YELLOW);
 
@@ -1047,18 +1049,19 @@ FOOT;
 
     public static function addTablePrefix(string &$table_name, string $table_prefix, string &$sql): void
     {
+
         $prefix = CarbonPHP::$configuration[CarbonPHP::REST][CarbonPHP::TABLE_PREFIX] ?? '';
 
         if ($prefix === '' || $prefix === $table_prefix || $prefix === Carbons::TABLE_PREFIX) {
+
             return;
+
         }
 
-        // the ` in the line below is needed as a regex is used to compare this updated string with the origional in the update process
-        $sql = preg_replace("#CREATE TABLE `$table_name`#", 'CREATE TABLE `' . $prefix . $table_name . '`', $sql);
-
-        $sql = preg_replace("#REFERENCES `carbon_#", 'REFERENCES `' . $prefix . 'carbon_', $sql);
+        $sql = preg_replace('#`(' . Carbons::TABLE_PREFIX . '[^`]*)`#is', '`' . $prefix . '$1', $sql);
 
         $table_name = $prefix . $table_name;
+
     }
 
 
@@ -1104,7 +1107,8 @@ FOOT;
         return null;
     }
 
-    protected static function addPrefixAndExecute($sql, $tableName, $tablePrefix) : array {
+    protected static function addPrefixAndExecute($sql, $tableName, $tablePrefix): array
+    {
 
         self::addTablePrefix($tableName, $tablePrefix, $sql);
 
