@@ -10,6 +10,7 @@ use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Programs\Composer;
+use CarbonPHP\Programs\MySQL;
 use CarbonPHP\Tables\Carbons;
 use Exception;
 use PDO;
@@ -789,6 +790,8 @@ FOOT;
                 This could mean no files in the directory provided are Restfully generated.");
         }
 
+        $validate = [];
+
         foreach ($restful as $file) {
 
             $className = ucwords(basename($file, '.php'), '_');
@@ -808,9 +811,7 @@ FOOT;
 
             $imp = array_map('strtolower', array_keys(class_implements($table)));
 
-            if (!in_array(strtolower(iRest::class), $imp, true)
-                && !in_array(strtolower(iRestfulReferences::class), $imp, true)
-                && !in_array(strtolower(iRestMultiplePrimaryKeys::class), $imp, true)
+            if (!in_array(strtolower(iRestMultiplePrimaryKeys::class), $imp, true)
                 && !in_array(strtolower(iRestSinglePrimaryKey::class), $imp, true)
                 && !in_array(strtolower(iRestNoPrimaryKey::class), $imp, true)
             ) {
@@ -818,21 +819,134 @@ FOOT;
             }
 
             if (defined("$table::REFRESH_SCHEMA")) {
+
                 self::runRefreshSchema($table::REFRESH_SCHEMA);
+
+            } else {
+
+                ColorCode::colorCode("The generated constant $table::REFRESH_SCHEMA does not exist. Rerun RestBuilder to repopulate.", iColorCode::YELLOW);
+
+                continue;
+
             }
+
+            $validate[$table] = $table::CREATE_TABLE_SQL;
 
             $db = self::database();
 
             if ($db->inTransaction()) {
-                self::colorCode('We are in a translation.', iColorCode::YELLOW);
+
+                self::colorCode('We are in a transaction.', iColorCode::YELLOW);
+
             }
 
             if (!self::commit()) {
+
                 self::colorCode('Failed to commit to database!', iColorCode::RED);
+
                 exit(1);
+
             }
 
         }
+
+        // Now Validate The Rest Tables Based on The MySQL Dump after update.
+        $mysqldump = MySQL::mysqldump(null);  // todo - make c6 argument
+
+        if (!file_exists($mysqldump)) {
+            print 'Could not load mysql dump file!' . PHP_EOL;
+            exit(1);
+        }
+
+        if (empty($mysqldump = file_get_contents($mysqldump))) {
+            print 'Contents of the mysql dump file appears empty. Build Failed!';
+            exit(1);
+        }
+
+        $foundError = false;
+
+        $regex = '#CREATE\s+TABLE(.|\s)+?(?=ENGINE=)#';
+
+
+        foreach ($validate as $fullyQualifiedClassName => $preUpdateSQL) {
+
+            $tableName = $fullyQualifiedClassName::TABLE_NAME;
+
+
+            $matches = [];
+
+            if (null === $preUpdateSQL || false === preg_match_all($regex, $preUpdateSQL, $matches)) {
+
+                ColorCode::colorCode('Verifying schema failed during preg_match_all for sql ' . $preUpdateSQL, iColorCode::RED);
+
+                return;
+
+            }
+
+            $preUpdateSQL = $matches[0][0] ?? false;
+
+            if (!$preUpdateSQL) {
+
+                ColorCode::colorCode("Regex failed to match a schema using preg_match_all('$regex', '$preUpdateSQL',...", iColorCode::RED);
+
+                return;
+
+            }
+
+
+            self::addTablePrefix($tableName, $table::TABLE_PREFIX, $preUpdateSQL);
+
+
+            $table_regex = "#CREATE\s+TABLE\s`$tableName`(.|\s)+?(?=ENGINE=)#";
+
+
+            if (null === $preUpdateSQL || false === preg_match_all($table_regex, $mysqldump, $matches)) {
+
+                ColorCode::colorCode('Verifying schema failed during preg_match_all on the ./mysqlDump.sql', iColorCode::RED);
+
+                return;
+
+            }
+
+            $postUpdateSQL = $matches[0][0] ?? false;
+
+            if (!$postUpdateSQL) {
+
+                ColorCode::colorCode("Regex failed to match a schema using preg_match_all('$table_regex', '$mysqldump',...", iColorCode::RED);
+
+                exit(1);
+
+            }
+
+            $preUpdateSQL = trim($preUpdateSQL);
+
+            $postUpdateSQL = trim(str_replace("\\n","\n",$postUpdateSQL));
+
+            // safe compare multibyte strings
+            if ($preUpdateSQL !== $postUpdateSQL) {
+
+                $foundError = true;
+
+                ColorCode::colorCode('Oh No! After running the database updated it looks like the sql found in '
+                    . "the mysql dump file did not match the expected. Please note the regex to match ($regex)."
+                    . " Any updates done to the database should be automated in the $tableName::REFRESH_SCHEMA[] definition. "
+                    . ' Documentation has been provided above this constant. If the new SQL appears correct you probably '
+                    . "just need to re-run the RestBuilder program. The offending SQL::\ns", iColorCode::RED);
+
+                ColorCode::colorCode("Expected :: $preUpdateSQL\n\n\n", iColorCode::YELLOW);
+
+                ColorCode::colorCode("GOT :: $postUpdateSQL\n\n", iColorCode::BLUE);
+
+                exit(1);
+
+            } else {
+
+                ColorCode::colorCode("Table `$tableName` verified.");
+
+            }
+
+        }
+
     }
 
 
@@ -921,6 +1035,7 @@ FOOT;
 
         }
 
+
     }
 
     public static function columnExistsOrExecuteSQL(string $column, string $table_name, string $sql): void
@@ -959,9 +1074,10 @@ FOOT;
             return;
         }
 
-        $sql = preg_replace("#CREATE TABLE `$table_name`#", 'CREATE TABLE ' . $prefix . $table_name, $sql);
+        // the ` in the line below is needed as a regex is used to compare this updated string with the origional in the update process
+        $sql = preg_replace("#CREATE TABLE `$table_name`#", 'CREATE TABLE `' . $prefix . $table_name . '`', $sql);
 
-        $sql = preg_replace("#REFERENCES `carbon_#", 'REFERENCES `'. $prefix .'carbon_', $sql);
+        $sql = preg_replace("#REFERENCES `carbon_#", 'REFERENCES `' . $prefix . 'carbon_', $sql);
 
         $table_name = $prefix . $table_name;
     }

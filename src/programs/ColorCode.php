@@ -5,6 +5,7 @@ namespace CarbonPHP\Programs;
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Interfaces\iColorCode;
+use Throwable;
 
 trait ColorCode
 {
@@ -65,32 +66,7 @@ trait ColorCode
 
         $location = ini_get('error_log');
 
-        if (false === touch(ErrorCatcher::$defaultLocation)) {
-
-            $directory = dirname(ErrorCatcher::$defaultLocation);
-
-            if (true === is_dir($directory)) {
-
-                $message .= "\n\nThe error log file (" . ErrorCatcher::$defaultLocation . ') might not exist on the system. We have failed to manually create this as well. Please create the file required to store logs correctly!' . PHP_EOL;
-
-            } elseif (mkdir($directory, 0744, true) && is_dir($directory)){
-
-                $message .= "\n\nThe folder path ($directory) did not exist. We have created it manually.\n\n";
-
-                /** @noinspection NotOptimalIfConditionsInspection */
-                if (false === touch(ErrorCatcher::$defaultLocation)) {
-
-                    $message .= "\n\nCould not create file (" . ErrorCatcher::$defaultLocation . ') as it does not exist on the system. All folders appear correct. Please create the directories required to store logs correctly!' . PHP_EOL;
-
-                }
-
-            } else {
-
-                $message .= "\n\nThe error log folder path (" . ErrorCatcher::$defaultLocation . ') might not exist on the system. We have failed to manually create the folders as well. Please create the directories required to store logs correctly!' . PHP_EOL;
-
-            }
-
-        }
+        ErrorCatcher::checkCreateLogFile($message);
 
         switch ($location) {
             case '':

@@ -324,6 +324,60 @@ class ErrorCatcher
         };
     }
 
+    public static function checkCreateLogFile(string &$message) : void {
+
+        $create_log = static function () use (&$message){
+
+            $directory = dirname(self::$defaultLocation);
+
+            if (true === is_dir($directory)) {
+
+                $message .= "\n\nThe error log file (" . ErrorCatcher::$defaultLocation . ') might not exist on the system. We have failed to manually create this as well. Please create the file required to store logs correctly!' . PHP_EOL;
+
+            } elseif (mkdir($directory, 0744, true) && is_dir($directory)){
+
+                $message .= "\n\nThe folder path ($directory) did not exist. We have created it manually.\n\n";
+
+                $secondary_touch_error_message = "\n\nCould not create file (" . ErrorCatcher::$defaultLocation . ') as it does not exist on the system. All folders appear correct. Please create the directories required to store logs correctly!' . PHP_EOL;
+
+                try {
+
+                    if (false === touch(ErrorCatcher::$defaultLocation)) {
+
+                        $message .=  $secondary_touch_error_message . PHP_EOL;
+
+                    }
+
+                } catch (Throwable $e) {
+
+                    $message .=  $secondary_touch_error_message . PHP_EOL;
+
+                }
+
+            } else {
+
+                $message .= "\n\nThe error log folder path (" . ErrorCatcher::$defaultLocation . ') might not exist on the system. We have failed to manually create the folders as well. Please create the directories required to store logs correctly!' . PHP_EOL;
+
+            }
+
+        };
+
+        try {
+
+            if (false === touch(ErrorCatcher::$defaultLocation)) {
+
+                $create_log();
+
+            }
+
+        } catch (Throwable $e) {
+
+            $create_log();
+
+        }
+
+    }
+
     public static function grabCodeSnippet(): string
     {
         if (self::$className === '' || self::$methodName === '') {
@@ -356,7 +410,6 @@ class ErrorCatcher
 
         return highlight($comment . PHP_EOL . implode(PHP_EOL, array_slice($source, $start_line, $length)), true);
     }
-
 
 
     /**
@@ -838,7 +891,7 @@ class ErrorCatcher
         return [
             self::LOG_ARRAY => $log_array,
             self::HTML_ERROR_PAGE => $html_error_log,
-            self::STORED_HTML_LOG_FILE_PATH => $log_file
+            self::STORED_HTML_LOG_FILE_PATH => $log_file ?? 'N/A'
         ];
 
     }
