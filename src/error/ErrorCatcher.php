@@ -326,9 +326,22 @@ class ErrorCatcher
 
     public static function checkCreateLogFile(string &$message) : void {
 
+        $directory = dirname(self::$defaultLocation);
+
+        if (false === is_dir($directory) && (false === mkdir($directory, 0755, true) || false === is_dir($directory))) {
+
+            throw new PublicAlert('The directory ('.$directory.') for ErrorCatcher::$defaultLocation (' . self::$defaultLocation . ') does not exist and could not be created');
+
+        }
+
+        if (false === touch(ErrorCatcher::$defaultLocation)) {
+
+            $message .= "\n\nCould not create file (" . ErrorCatcher::$defaultLocation . ') as it does not exist on the system. All folders appear correct. Please create the directories required to store logs correctly!' . PHP_EOL;
+
+        }
+
         $create_log = static function () use (&$message){
 
-            $directory = dirname(self::$defaultLocation);
 
             if (true === is_dir($directory)) {
 
@@ -338,15 +351,10 @@ class ErrorCatcher
 
                 $message .= "\n\nThe folder path ($directory) did not exist. We have created it manually.\n\n";
 
-                $secondary_touch_error_message = "\n\nCould not create file (" . ErrorCatcher::$defaultLocation . ') as it does not exist on the system. All folders appear correct. Please create the directories required to store logs correctly!' . PHP_EOL;
 
                 try {
 
-                    if (false === touch(ErrorCatcher::$defaultLocation)) {
 
-                        $message .=  $secondary_touch_error_message . PHP_EOL;
-
-                    }
 
                 } catch (Throwable $e) {
 
