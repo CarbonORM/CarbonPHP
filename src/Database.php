@@ -930,18 +930,18 @@ FOOT;
                     . "Any updates done to the database should be automated in the $tableName::REFRESH_SCHEMA[] definition. "
                     . "If this is not a table you manage, but rather 3rd-party generated, you should change ($tableName::VALIDATE_AFTER_REBUILD = false;) and re-try. "
                     . 'To update your table using REFRESH_SCHEMA, please refer to the documentation that is been provided'
-                    . " above this constant in the php class for $tableName. If the new SQL appears correct you probably "
-                    . "just need to re-run the RestBuilder program (not the database rebuild program currently raising error). The offending SQL::\ns", iColorCode::RED);
+                    . " above this constant in the php class for $tableName. If the new SQL appears correct you probably"
+                    . " just need to re-run the RestBuilder program (not the database rebuild program currently raising error). The offending SQL::\n", iColorCode::RED);
 
                 ColorCode::colorCode("Expected :: $preUpdateSQL\n\n\n", iColorCode::YELLOW);
 
-                ColorCode::colorCode("GOT :: $postUpdateSQL\n\n", iColorCode::BLUE);
+                ColorCode::colorCode("GOT :: $postUpdateSQL\n\n", iColorCode::BLUE);    // I want to bring your attention back to the red ^^ then down to blue
 
                 exit(1);
 
             }
 
-            ColorCode::colorCode("Table `$tableName` verified.");
+            ColorCode::colorCode("Table `$tableName` was verified.");
 
         }
 
