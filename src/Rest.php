@@ -1027,7 +1027,7 @@ abstract class Rest extends Database
 
     protected static function remove(array &$remove, array $argv, array $primary = null): bool
     {
-        try {
+        return self::TryCatchPDOException(static function () use (&$remove, $argv, $primary) {
 
             self::startRest(self::DELETE, $remove, $argv, $primary);
 
@@ -1155,20 +1155,13 @@ abstract class Rest extends Database
 
             return true;
 
-        } catch (Throwable $e) {
-
-            ErrorCatcher::generateLog($e);  // this will terminate
-
-            return false;
-
-        }
+        });
 
     }
 
     protected static function select(array &$return, array $argv, array $primary = null): bool
     {
-
-        try {
+        return self::TryCatchPDOException(static function () use (&$return, $argv, $primary) {
 
             self::startRest(self::GET, $return, $argv, $primary);
 
@@ -1221,19 +1214,13 @@ abstract class Rest extends Database
 
             return true;
 
-        } catch (Throwable $e) {
-
-            ErrorCatcher::generateLog($e);
-
-            return false;
-
-        }
+        });
 
     }
 
     protected static function updateReplace(array &$returnUpdated, array $argv = [], array $primary = null): bool
     {
-        try {
+        return self::TryCatchPDOException(static function () use (&$returnUpdated, $argv, $primary) {
 
             self::startRest(self::PUT, $returnUpdated, $argv, $primary);
 
@@ -1408,7 +1395,6 @@ abstract class Rest extends Database
 
             }
 
-
             self::bind($stmt);
 
             if (false === $stmt->execute()) {
@@ -1453,13 +1439,7 @@ abstract class Rest extends Database
 
             return true;
 
-        } catch (Throwable $e) {
-
-            ErrorCatcher::generateLog($e);
-
-            return false;
-
-        }
+        });
 
     }
 
@@ -1469,7 +1449,7 @@ abstract class Rest extends Database
      */
     protected static function insert(array $data = [])
     {
-        try {
+        return self::TryCatchPDOException(static function () use ($data) {
 
             self::startRest(self::POST, [], $data);
 
@@ -1682,13 +1662,7 @@ abstract class Rest extends Database
 
             return true;
 
-        } catch (Throwable $e) {
-
-            ErrorCatcher::generateLog($e);  // this terminates
-
-            return false; // this will never be reached.
-
-        }
+        });
 
     }
 

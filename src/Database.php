@@ -150,10 +150,12 @@ FOOT;
 
     /**
      * @param callable $closure
-     * @return mixed
+     * @return mixed|bool|string|object - the return of the passed callable
      */
     public static function TryCatchPDOException(callable $closure)
     {
+        static $inRefreshStack = null;
+
         try {
 
             return $closure();
@@ -164,7 +166,31 @@ FOOT;
 
             $error_array = $error_array[ErrorCatcher::LOG_ARRAY];
 
+            // todo - handle all pdo exceptions
             switch ($e->getCode()) {        // Database has not been created
+                case 'HY000':
+
+                    if ($inRefreshStack instanceof PDOException) {
+
+                        ColorCode::colorCode('A recursive error has been detected. C6 has detected the MySQL'
+                            . ' database in a broken pipe state. We have attempted to reset the database and rerun the'
+                            . ' query in question. This process then threw the exact same error. Please make sure no long'
+                            . ' running queries are being terminated by MySQL. If you have over ridden the driver settings '
+                            . ' and are in a long running process make sure PDO::ATTR_PERSISTENT => true is present. Finally,'
+                            . ' please make sure you are not manually terminating the connection. Attempting to parse error.', iColorCode::BACKGROUND_RED);
+
+                        ErrorCatcher::generateLog($e, true);
+
+                        ErrorCatcher::generateLog($inRefreshStack);
+
+                    }
+
+                    // todo - reset db --- how many time should we do this?  1 - 1000? Should we microtime in c6
+
+                    $inRefreshStack = $e;
+
+                    return self::TryCatchPDOException($closure()) and $inRefreshStack = null; // this operator is rarely used.
+                    // It means were returning the result of $closure() but also setting our persistent static variable
 
                 case 1049:
 
@@ -318,6 +344,28 @@ FOOT;
 
     }
 
+
+
+    public static function close() : void {
+
+        try {
+
+            self::$database->exec('KILL CONNECTION_ID();');
+
+        } catch (Throwable $e) {
+
+            ErrorCatcher::generateLog($e, true);
+
+            self::colorCode('You can probably ignore the error message above.', iColorCode::CYAN);
+
+        }
+
+    }
+
+
+
+
+
     /** Overwrite the current database. If nothing is given the
      * connection to the database will be closed
      * @param PDO|null $database
@@ -327,7 +375,7 @@ FOOT;
 
         if (null === $database && self::$database instanceof PDO) {
 
-            self::$database->exec('KILL CONNECTION_ID();');
+            self::close();
 
         }
 
