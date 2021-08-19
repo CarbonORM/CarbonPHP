@@ -868,7 +868,7 @@ FOOT;
 
         foreach ($validate as $fullyQualifiedClassName => $preUpdateSQL) {
 
-            if (defined($table::VALIDATE_AFTER_REBUILD) && false === $table::VALIDATE_AFTER_REBUILD) {
+            if (defined("$fullyQualifiedClassName::VALIDATE_AFTER_REBUILD") && false === $fullyQualifiedClassName::VALIDATE_AFTER_REBUILD) {
 
                 continue;
 
