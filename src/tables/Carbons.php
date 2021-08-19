@@ -161,7 +161,9 @@ class Carbons extends Rest implements iRestSinglePrimaryKey
      * Each directive MUST be designed to run multiple times without failure.
      */
     public const REFRESH_SCHEMA = [
-        [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::TABLE_PREFIX, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
+        [
+            self::class => 'tableExistsOrExecuteSQL',
+            self::TABLE_NAME, self::TABLE_PREFIX, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
                         PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS, true]
     ];
     
@@ -316,18 +318,9 @@ class Carbons extends Rest implements iRestSinglePrimaryKey
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 MYSQL;
    
-   
 
     
-    /**
-     * @deprecated Use the class constant CREATE_TABLE_SQL directly
-     * @return string
-     */
-    public static function createTableSQL() : string {
-        return self::CREATE_TABLE_SQL;
-    }
-    
-    /**
+   /**
     * Currently nested aggregation is not supported. It is recommended to avoid using 'AS' where possible. Sub-selects are 
     * allowed and do support 'as' aggregation. Refer to the static subSelect method parameters in the parent `Rest` class.
     * All supported aggregation is listed in the example below. Note while the WHERE and JOIN members are syntactically 

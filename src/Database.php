@@ -922,8 +922,16 @@ FOOT;
 
             $postUpdateSQL = trim(str_replace("\\n", "\n", $postUpdateSQL));
 
+            // the table definition maybe reordered and we just want to know whats dif
+
+            $preUpdateSQLArray = explode(PHP_EOL, $preUpdateSQL);
+
+            $postUpdateSQLArray = explode(PHP_EOL, $postUpdateSQL);
+
+            $changes = array_diff_key($preUpdateSQLArray, $postUpdateSQLArray);
+
             // safe compare multibyte strings
-            if ($preUpdateSQL !== $postUpdateSQL) {
+            if ([] !== $changes) {
 
                 ColorCode::colorCode('Oh No! After running the database updated it looks like the sql found in'
                     . " the mysql dump file did not match the expected. Please note the regex to match ($regex)."
@@ -933,9 +941,11 @@ FOOT;
                     . " above this constant in the php class for $tableName. If the new SQL appears correct you probably"
                     . " just need to re-run the RestBuilder program (not the database rebuild program currently raising error). The offending SQL::\n", iColorCode::RED);
 
-                ColorCode::colorCode("Expected :: $preUpdateSQL\n\n\n", iColorCode::YELLOW);
+                ColorCode::colorCode("Expected :: $preUpdateSQL\n\n", iColorCode::YELLOW);
 
                 ColorCode::colorCode("GOT :: $postUpdateSQL\n\n", iColorCode::BLUE);    // I want to bring your attention back to the red ^^ then down to blue
+
+                ColorCode::colorCode("Changes :: " . json_encode($changes, JSON_PRETTY_PRINT) . "\n\n", iColorCode::RED);
 
                 exit(1);
 
@@ -1052,13 +1062,13 @@ FOOT;
 
         $prefix = CarbonPHP::$configuration[CarbonPHP::REST][CarbonPHP::TABLE_PREFIX] ?? '';
 
-        if ($prefix === '' || $prefix === $table_prefix || $prefix === Carbons::TABLE_PREFIX) {
+        if ($prefix === '' || $prefix === $table_prefix) {
 
             return;
 
         }
 
-        $sql = preg_replace('#(' . Carbons::TABLE_PREFIX . '[^\s]*)`#is', '`' . $prefix . '$1', $sql);
+        $sql = preg_replace("#((?:$table_prefix)[^\s]*)#i", $prefix . '$1', $sql);
 
         $table_name = $prefix . $table_name;
 
@@ -1069,15 +1079,13 @@ FOOT;
      * @param string $table_name
      * @param string $table_prefix
      * @param string $sql
-     * @param bool $carbonTable
      * @return bool|null
      * @throws PublicAlert
      */
-    public static function tableExistsOrExecuteSQL(string $table_name, string $table_prefix, string $sql, bool $carbonTable = false): ?bool
+    public static function tableExistsOrExecuteSQL(string $table_name, string $table_prefix, string $sql): ?bool
     {
-        if ($carbonTable) {
-            self::addTablePrefix($table_name, $table_prefix, $sql);
-        }
+
+        self::addTablePrefix($table_name, $table_prefix, $sql);
 
         // Check if exist the column named image
         $result = self::fetch("SELECT * 
@@ -1087,24 +1095,36 @@ FOOT;
                         LIMIT 1;");
 
         if ([] === $result) {
+
             self::colorCode("Attempting to create table ($table_name).");
 
             if (!self::execute($sql)) {
+
                 throw new PublicAlert('Failed to update table :: ' . $table_name);
+
             }
 
             if (CarbonPHP::$cli) {
+
                 self::colorCode('Table `' . $table_name . '` Created');
+
             } else {
+
                 print '<br><p style="color: green">Table `' . $table_name . '` Created</p>';
+
             }
 
         } else if (CarbonPHP::$cli) {
+
             self::colorCode('Table `' . $table_name . '` already exists');
         } else {
+
             print '<br>Table `' . $table_name . '` already exists';
+
         }
+
         return null;
+
     }
 
     protected static function addPrefixAndExecute($sql, $tableName, $tablePrefix): array

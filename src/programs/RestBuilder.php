@@ -211,7 +211,10 @@ END;
                             case 'no':
                             case 'n':
                                 /** @noinspection PhpUnhandledExceptionInspection */
-                                self::colorCode('You may need to add more escaping "\\" depending on how may contexts the string goes through. We will try to fix over escaped namespaces.', 'red', true);
+                                self::colorCode('You may need to add more escaping "\\" depending on how may contexts the string goes through. We will try to fix over escaped namespaces.', iColorCode::RED);
+
+                                exit(1);
+
                         }
                     }
 
@@ -309,7 +312,7 @@ END;
                     break;
                 case '-cnf':
                     // path to an sql cnf pass file
-                    $this->buildCNF($argv[++$i]);
+                    self::buildCNF($argv[++$i]);
                     break;
                 case '-logClasses':
                     $logClasses = true;
@@ -1724,18 +1727,9 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
     {{createTableSQL}}
 MYSQL;
    
-   
 {{{custom_methods}}}
     
-    /**
-     * @deprecated Use the class constant CREATE_TABLE_SQL directly
-     * @return string
-     */
-    public static function createTableSQL() : string {
-        return self::CREATE_TABLE_SQL;
-    }
-    
-    /**
+   /**
     * Currently nested aggregation is not supported. It is recommended to avoid using 'AS' where possible. Sub-selects are 
     * allowed and do support 'as' aggregation. Refer to the static subSelect method parameters in the parent `Rest` class.
     * All supported aggregation is listed in the example below. Note while the WHERE and JOIN members are syntactically 

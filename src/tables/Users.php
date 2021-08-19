@@ -483,7 +483,7 @@ class Users extends Rest implements iRestSinglePrimaryKey
   `user_rank` int DEFAULT '0',
   `user_email` varchar(50) NOT NULL,
   `user_email_code` varchar(225) DEFAULT NULL,
-  `user_email_confirmed` tinyint(1) DEFAULT '0' COMMENT 'need to change to enums, but no support in rest yet',
+  `user_email_confirmed` tinyint(1) DEFAULT '0' COMMENT 'need to change to enums, but no support in rest yet  ',
   `user_generated_string` varchar(200) DEFAULT NULL,
   `user_membership` int DEFAULT '0',
   `user_deactivated` tinyint(1) DEFAULT '0',
@@ -500,18 +500,9 @@ class Users extends Rest implements iRestSinglePrimaryKey
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 MYSQL;
    
-   
 
     
-    /**
-     * @deprecated Use the class constant CREATE_TABLE_SQL directly
-     * @return string
-     */
-    public static function createTableSQL() : string {
-        return self::CREATE_TABLE_SQL;
-    }
-    
-    /**
+   /**
     * Currently nested aggregation is not supported. It is recommended to avoid using 'AS' where possible. Sub-selects are 
     * allowed and do support 'as' aggregation. Refer to the static subSelect method parameters in the parent `Rest` class.
     * All supported aggregation is listed in the example below. Note while the WHERE and JOIN members are syntactically 
