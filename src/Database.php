@@ -923,10 +923,9 @@ FOOT;
             $postUpdateSQL = trim(str_replace("\\n", "\n", $postUpdateSQL));
 
             // the table definition maybe reordered and we just want to know whats dif
+            $preUpdateSQLArray = array_map('trim',explode(PHP_EOL, $preUpdateSQL));
 
-            $preUpdateSQLArray = explode(PHP_EOL, $preUpdateSQL);
-
-            $postUpdateSQLArray = explode(PHP_EOL, $postUpdateSQL);
+            $postUpdateSQLArray = array_map('trim',explode(PHP_EOL, $postUpdateSQL));
 
             $changes = array_diff_key($preUpdateSQLArray, $postUpdateSQLArray);
 
