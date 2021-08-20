@@ -815,6 +815,8 @@ FOOT;
 
     public static function scanAndRunRefreshDatabase(string $tableDirectory): void
     {
+        ColorCode::colorCode("\n\nScanning and running refresh database using ('$tableDirectory' . '*.php')");
+        
         $restful = glob($tableDirectory . '*.php');
 
         $classNamespace = '';
@@ -898,8 +900,12 @@ FOOT;
 
         }
 
+        unlink(CarbonPHP::$app_root . 'mysqldump.sql'); // I dont care if this works
+        
         // Now Validate The Rest Tables Based on The MySQL Dump after update.
         $mysqldump = MySQL::mysqldump(null);  // todo - make c6 argument
+
+        sleep(1);   // wait for last command
 
         if (!file_exists($mysqldump)) {
             print 'Could not load mysql dump file!' . PHP_EOL;
