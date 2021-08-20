@@ -614,6 +614,9 @@ END;
                                 // otherwise just create the stmt normally
                                 $sql[] = ' ' . $key . '=\'.self::addInjection($primary, $pdo).\'';
                             }
+
+
+                            // if the user has duplicate constr (which is legal mysql) this will fail on some envs (redhat)
                             $rest[$tableName]['primary'][] = [
                                 'name' => $key,
                                 'binary' => in_array($key, $binary, true)

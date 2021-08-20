@@ -42,6 +42,9 @@ class ErrorCatcher
      * This value can be set using the ["ERROR"]["SHOW"] configuration option
      */
     public static bool $printToScreen = true;
+
+    public static bool $bypass_standard_PHP_error_handler = true;
+
     /**
      * @var bool
      */
@@ -486,6 +489,7 @@ class ErrorCatcher
          * @param int $errorLine
          * @return bool
          * @link https://www.php.net/manual/en/function.set-error-handler.php
+         * @link https://www.php.net/manual/en/function.set-exception-handler.phpd
          */
         $error_handler = static function (int $errorLevel, string $errorString, string $errorFile, int $errorLine) {
 
@@ -496,6 +500,9 @@ class ErrorCatcher
             $errorsHandled++;
 
             $browserOutput = [];
+
+
+            ColorCode::colorCode('The Global (set_error_handler || set_exception_handler) Handler has been invoked.', iColorCode::CYAN);
 
             // refer to link on this one
             /*if (!(error_reporting() & $errorLevel)) {
@@ -558,7 +565,7 @@ class ErrorCatcher
 
             self::generateLog(null, false === $fatalError, (string)$errorLevel, $browserOutput);
 
-            return false;  // todo this will continue execution
+            return self::$bypass_standard_PHP_error_handler;  // todo this will continue execution for set_error_handler
 
         };
 
@@ -574,7 +581,7 @@ class ErrorCatcher
 
             self::generateLog($exception, false, null, $browserOutput, iColorCode::YELLOW);
 
-            return false;
+            return false;   // php will exit after this
 
         };
 

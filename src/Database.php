@@ -170,6 +170,8 @@ FOOT;
             switch ($e->getCode()) {        // Database has not been created
                 case 'HY000':
 
+                    ColorCode::colorCode('Caught connection reset code (HY000)', iColorCode::BACKGROUND_MAGENTA);
+
                     if ($inRefreshStack instanceof PDOException) {
 
                         ColorCode::colorCode('A recursive error has been detected. C6 has detected the MySQL'
@@ -186,7 +188,6 @@ FOOT;
                     }
 
                     // todo - reset db --- how many time should we do this?  1 - 1000? Should we microtime in c6
-
                     $inRefreshStack = $e;
 
                     return self::TryCatchPDOException($closure()) and $inRefreshStack = null; // this operator is rarely used.
@@ -345,7 +346,6 @@ FOOT;
     }
 
 
-
     public static function close() : void {
 
         try {
@@ -356,15 +356,15 @@ FOOT;
 
             ErrorCatcher::generateLog($e, true);
 
-            self::colorCode('You can probably ignore the error message above.', iColorCode::CYAN);
+            self::colorCode('You can probably ignore the error message above.', iColorCode::BACKGROUND_CYAN);
+
+        } finally {
+
+            self::$database = null;
 
         }
 
     }
-
-
-
-
 
     /** Overwrite the current database. If nothing is given the
      * connection to the database will be closed
