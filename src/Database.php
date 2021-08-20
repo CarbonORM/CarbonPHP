@@ -190,7 +190,7 @@ FOOT;
                     // todo - reset db --- how many time should we do this?  1 - 1000? Should we microtime in c6
                     $inRefreshStack = $e;
 
-                    return self::TryCatchPDOException($closure()) and $inRefreshStack = null; // this operator is rarely used.
+                    return self::TryCatchPDOException($closure) and $inRefreshStack = null; // this operator is rarely used.
                     // It means were returning the result of $closure() but also setting our persistent static variable
 
                 case 1049:
