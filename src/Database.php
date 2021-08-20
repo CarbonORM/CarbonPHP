@@ -286,7 +286,7 @@ FOOT;
      */
     public static function reset(): PDO // built to help preserve database in sockets and forks
     {
-        self::$database = null;
+        self::close();
 
         $attempts = 0;
 
