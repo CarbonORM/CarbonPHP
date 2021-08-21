@@ -352,7 +352,11 @@ FOOT;
 
         try {
 
-            self::$database->exec('KILL CONNECTION_ID();');
+            if (self::$database instanceof PDO) {
+
+                self::$database->exec('KILL CONNECTION_ID();');
+
+            }
 
         } catch (Throwable $e) {
 

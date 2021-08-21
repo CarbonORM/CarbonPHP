@@ -94,6 +94,7 @@ class Session implements SessionHandlerInterface
         }
 
         try {
+
             // this should not throw an error.. but if it doesnt we will catch and die
             if (false === session_start()) {
                 throw new PublicAlert('CarbonPHP failed to start your session');
@@ -104,8 +105,11 @@ class Session implements SessionHandlerInterface
             $_SESSION['id'] = array_key_exists('id', $_SESSION ??= []) ? $_SESSION['id'] : false;
 
         } catch (Throwable $e) {
+
             ErrorCatcher::generateLog($e); // This terminates!
+
         }
+
     }
 
     /**
@@ -333,7 +337,7 @@ class Session implements SessionHandlerInterface
     {
 
         Database::TryCatchPDOException(
-            fn() => Database::database()
+            static fn() => Database::database()
                 ->prepare('SELECT count(*) FROM ' . self::getSessionTable()::TABLE_NAME . ' LIMIT 1')
                 ->execute());
 
@@ -367,22 +371,28 @@ class Session implements SessionHandlerInterface
     public function read($id): string
     {
         try {
+
             $session_table_row = [];
 
             $session_table = self::getSessionTable();
 
             /** @noinspection PhpPossiblePolymorphicInvocationInspection */
-            return $session_table::Get($session_table_row, $id, [
+            $session_table::Get($session_table_row, $id, [
                 Sessions::SELECT => [
                     $session_table::SESSION_DATA
                 ]
             ]);
 
+            return $session_table_row[$session_table::COLUMNS[$session_table::SESSION_DATA]];
+
         } catch (Throwable $e) {
+
             ErrorCatcher::generateLog($e);
+
         }
 
         return false;
+
     }
 
     /** This function should never be called by you directly. It can be invoked using
@@ -394,7 +404,9 @@ class Session implements SessionHandlerInterface
     public function write($id, $data): bool
     {
         if (empty(self::$user_id)) {
+
             self::$user_id = $_SESSION['id'] ??= false;
+
         }
 
         $newDateTime = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . ' + 1 d,lay'));  // so from time of last write and whenever the gc_collector hits

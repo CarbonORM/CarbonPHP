@@ -1027,194 +1027,210 @@ abstract class Rest extends Database
 
     protected static function remove(array &$remove, array $argv, array $primary = null): bool
     {
-        return self::TryCatchPDOException(static function () use (&$remove, $argv, $primary) {
+        try {
+            return self::TryCatchPDOException(static function () use (&$remove, $argv, $primary) {
 
-            self::startRest(self::DELETE, $remove, $argv, $primary);
+                self::startRest(self::DELETE, $remove, $argv, $primary);
 
-            $pdo = self::database();
+                $pdo = self::database();
 
-            $emptyPrimary = null === $primary || [] === $primary;
+                $emptyPrimary = null === $primary || [] === $primary;
 
-            if (static::CARBON_CARBONS_PRIMARY_KEY && false === $emptyPrimary) {
+                if (static::CARBON_CARBONS_PRIMARY_KEY && false === $emptyPrimary) {
 
-                $primary = is_string(static::PRIMARY)
-                    ? $primary[static::PRIMARY]
-                    : $primary;
+                    $primary = is_string(static::PRIMARY)
+                        ? $primary[static::PRIMARY]
+                        : $primary;
 
-                return Carbons::Delete($remove, $primary, $argv);
-            }
-
-            if (false === self::$allowFullTableDeletes && true === $emptyPrimary && array() === $argv) {
-
-                return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
-
-            }
-
-            $query_database_name = static::QUERY_WITH_DATABASE ? static::DATABASE . '.' : '';
-
-            $table_name = $query_database_name . static::TABLE_NAME;
-
-            if (static::CARBON_CARBONS_PRIMARY_KEY) {
-
-                if (is_array(static::PRIMARY)) {
-                    throw new PublicAlert('Tables which use carbon for indexes should not have composite primary keys.');
+                    return Carbons::Delete($remove, $primary, $argv);
                 }
 
-                $table_prefix = static::TABLE_PREFIX === Carbons::TABLE_PREFIX ? '' : static::TABLE_PREFIX;
+                if (false === self::$allowFullTableDeletes && true === $emptyPrimary && array() === $argv) {
 
-                $sql = self::DELETE . ' c FROM ' . $query_database_name . $table_prefix . 'carbon_carbons c 
+                    return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
+
+                }
+
+                $query_database_name = static::QUERY_WITH_DATABASE ? static::DATABASE . '.' : '';
+
+                $table_name = $query_database_name . static::TABLE_NAME;
+
+                if (static::CARBON_CARBONS_PRIMARY_KEY) {
+
+                    if (is_array(static::PRIMARY)) {
+                        throw new PublicAlert('Tables which use carbon for indexes should not have composite primary keys.');
+                    }
+
+                    $table_prefix = static::TABLE_PREFIX === Carbons::TABLE_PREFIX ? '' : static::TABLE_PREFIX;
+
+                    $sql = self::DELETE . ' c FROM ' . $query_database_name . $table_prefix . 'carbon_carbons c 
                 JOIN ' . $table_name . ' on c.entity_pk = ' . static::PRIMARY;
 
 
-                if (false === self::$allowFullTableDeletes || !empty($argv)) {
-                    $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
-                }
-
-            } else {
-
-                $sql = self::DELETE . ' FROM ' . $table_name;
-
-                if (false === self::$allowFullTableDeletes && $emptyPrimary && empty($argv)) {
-                    return self::signalError('When deleting from restful tables a primary key or where query must be provided. This can be disabled by setting `self::\$allowFullTableDeletes = true;` during the PREPROCESS events, or just directly before this request.');
-                }
-
-                if (is_array(static::PRIMARY)) {
-
-                    $primaryIntersect = count(array_intersect_key($primary, static::PRIMARY));
-
-                    $primaryCount = count($primary);
-
-                    if ($primaryCount !== $primaryIntersect) {
-                        return self::signalError('The keys provided to table ' . $table_name . ' was not a subset of (' . implode(', ', static::PRIMARY) . '). Only primary keys associated with the root table requested, thus not joined tables, are allowed.');
+                    if (false === self::$allowFullTableDeletes || !empty($argv)) {
+                        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
                     }
 
-                    if (false === self::$allowFullTableDeletes && $primaryIntersect !== count(static::PRIMARY)) {
+                } else {
 
-                        return self::signalError('You must provide all primary keys ('
-                            . implode(', ', static::PRIMARY)
-                            . '). This can be disabled by setting `self::\$allowFullTableDeletes = true;` during the PREPROCESS events, or just directly before this request.');
+                    $sql = self::DELETE . ' FROM ' . $table_name;
+
+                    if (false === self::$allowFullTableDeletes && $emptyPrimary && empty($argv)) {
+                        return self::signalError('When deleting from restful tables a primary key or where query must be provided. This can be disabled by setting `self::\$allowFullTableDeletes = true;` during the PREPROCESS events, or just directly before this request.');
+                    }
+
+                    if (is_array(static::PRIMARY)) {
+
+                        $primaryIntersect = count(array_intersect_key($primary, static::PRIMARY));
+
+                        $primaryCount = count($primary);
+
+                        if ($primaryCount !== $primaryIntersect) {
+                            return self::signalError('The keys provided to table ' . $table_name . ' was not a subset of (' . implode(', ', static::PRIMARY) . '). Only primary keys associated with the root table requested, thus not joined tables, are allowed.');
+                        }
+
+                        if (false === self::$allowFullTableDeletes && $primaryIntersect !== count(static::PRIMARY)) {
+
+                            return self::signalError('You must provide all primary keys ('
+                                . implode(', ', static::PRIMARY)
+                                . '). This can be disabled by setting `self::\$allowFullTableDeletes = true;` during the PREPROCESS events, or just directly before this request.');
+
+                        }
+
+                        $argv = array_merge($argv, $primary);
+
+                    } elseif (is_string(static::PRIMARY) && !$emptyPrimary) {
+
+                        $argv = array_merge($argv, $primary);
 
                     }
 
-                    $argv = array_merge($argv, $primary);
+                    $where = self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
 
-                } elseif (is_string(static::PRIMARY) && !$emptyPrimary) {
+                    $emptyWhere = empty($where);
 
-                    $argv = array_merge($argv, $primary);
+                    if ($emptyWhere && false === self::$allowFullTableDeletes) {
+                        return self::signalError('The where condition provided appears invalid.');
+                    }
+
+                    if (false === $emptyWhere) {
+                        $sql .= ' WHERE ' . $where;
+                    }
+                }
+
+                if (!$pdo->inTransaction()) {
+
+                    $pdo->beginTransaction();
 
                 }
 
-                $where = self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
+                self::jsonSQLReporting(func_get_args(), $sql);
 
-                $emptyWhere = empty($where);
+                self::postpreprocessRestRequest($sql);
 
-                if ($emptyWhere && false === self::$allowFullTableDeletes) {
-                    return self::signalError('The where condition provided appears invalid.');
+                $stmt = $pdo->prepare($sql);
+
+                self::bind($stmt);
+
+                if (!$stmt->execute()) {
+
+                    self::completeRest();
+
+                    return self::signalError('The REST generated PDOStatement failed to execute with error :: '
+                        . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
                 }
 
-                if (false === $emptyWhere) {
-                    $sql .= ' WHERE ' . $where;
+                $remove = [];
+
+                self::prepostprocessRestRequest($remove);
+
+                if (self::$commit && !Database::commit()) {
+
+                    return self::signalError('Failed to store commit transaction on table {{TableName}}');
+
                 }
-            }
 
-            if (!$pdo->inTransaction()) {
-
-                $pdo->beginTransaction();
-
-            }
-
-            self::jsonSQLReporting(func_get_args(), $sql);
-
-            self::postpreprocessRestRequest($sql);
-
-            $stmt = $pdo->prepare($sql);
-
-            self::bind($stmt);
-
-            if (!$stmt->execute()) {
+                self::postprocessRestRequest($remove);
 
                 self::completeRest();
 
-                return self::signalError('The REST generated PDOStatement failed to execute with error :: '
-                    . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
-            }
+                return true;
 
-            $remove = [];
+            });
+        } catch (Throwable $e) {
 
-            self::prepostprocessRestRequest($remove);
+            ErrorCatcher::generateLog($e);  // this terminates
 
-            if (self::$commit && !Database::commit()) {
+            return false; // this will never be reached.
 
-                return self::signalError('Failed to store commit transaction on table {{TableName}}');
-
-            }
-
-            self::postprocessRestRequest($remove);
-
-            self::completeRest();
-
-            return true;
-
-        });
+        }
 
     }
 
     protected static function select(array &$return, array $argv, array $primary = null): bool
     {
-        return self::TryCatchPDOException(static function () use (&$return, $argv, $primary) {
+        try {
+            return self::TryCatchPDOException(static function () use (&$return, $argv, $primary) {
 
-            self::startRest(self::GET, $return, $argv, $primary);
+                self::startRest(self::GET, $return, $argv, $primary);
 
-            $pdo = self::database();
+                $pdo = self::database();
 
-            $sql = self::buildSelectQuery($primary, $argv, static::QUERY_WITH_DATABASE ? static::DATABASE : '', $pdo);
+                $sql = self::buildSelectQuery($primary, $argv, static::QUERY_WITH_DATABASE ? static::DATABASE : '', $pdo);
 
-            self::jsonSQLReporting(func_get_args(), $sql);
+                self::jsonSQLReporting(func_get_args(), $sql);
 
-            self::postpreprocessRestRequest($sql);
+                self::postpreprocessRestRequest($sql);
 
-            $stmt = $pdo->prepare($sql);
+                $stmt = $pdo->prepare($sql);
 
-            self::bind($stmt);
+                self::bind($stmt);
 
-            if (!$stmt->execute()) {
+                if (!$stmt->execute()) {
+                    self::completeRest();
+                    return self::signalError('The REST generated PDOStatement failed to execute with error :: '
+                        . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
+                }
+
+                $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                if (is_array(static::PRIMARY)) {
+                    if ((null !== $primary && [] !== $primary)
+                        || (isset($argv[self::PAGINATION][self::LIMIT])
+                            && $argv[self::PAGINATION][self::LIMIT] === 1
+                            && count($return) === 1)) {
+                        $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
+                    }
+                } elseif (is_string(static::PRIMARY)) {
+                    if ((null !== $primary && '' !== $primary) || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
+                        $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
+                    }
+                } else {
+                    if (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1) {
+                        $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
+                    }
+                }
+
+                foreach (static::JSON_COLUMNS as $key) {
+                    if (array_key_exists($key, $return)) {
+                        $return[$key] = json_decode($return[$key], true);
+                    }
+                }
+
+                self::postprocessRestRequest($return);
+
                 self::completeRest();
-                return self::signalError('The REST generated PDOStatement failed to execute with error :: '
-                    . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
-            }
 
-            $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                return true;
 
-            if (is_array(static::PRIMARY)) {
-                if ((null !== $primary && [] !== $primary)
-                    || (isset($argv[self::PAGINATION][self::LIMIT])
-                        && $argv[self::PAGINATION][self::LIMIT] === 1
-                        && count($return) === 1)) {
-                    $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
-                }
-            } elseif (is_string(static::PRIMARY)) {
-                if ((null !== $primary && '' !== $primary) || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
-                    $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
-                }
-            } else {
-                if (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1) {
-                    $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
-                }
-            }
+            });
+        } catch (Throwable $e) {
 
-            foreach (static::JSON_COLUMNS as $key) {
-                if (array_key_exists($key, $return)) {
-                    $return[$key] = json_decode($return[$key], true);
-                }
-            }
+            ErrorCatcher::generateLog($e);  // this terminates
 
-            self::postprocessRestRequest($return);
+            return false; // this will never be reached.
 
-            self::completeRest();
-
-            return true;
-
-        });
+        }
 
     }
 
@@ -1449,220 +1465,228 @@ abstract class Rest extends Database
      */
     protected static function insert(array $data = [])
     {
-        return self::TryCatchPDOException(static function () use ($data) {
+        try {
+            return self::TryCatchPDOException(static function () use ($data) {
 
-            self::startRest(self::POST, [], $data);
+                self::startRest(self::POST, [], $data);
 
-            foreach ($data as $columnName => $postValue) {
-                if (!array_key_exists($columnName, static::COLUMNS)) {
-                    return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.");
-                }
-            }
-
-            $keys = $pdo_values = '';
-
-            foreach (static::COLUMNS as $fullName => $shortName) {
-
-                if (static::PDO_VALIDATION[$fullName][self::SKIP_COLUMN_IN_POST] ?? false) {
-
-                    continue;
-
+                foreach ($data as $columnName => $postValue) {
+                    if (!array_key_exists($columnName, static::COLUMNS)) {
+                        return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.");
+                    }
                 }
 
-                $keys .= "$shortName, ";
+                $keys = $pdo_values = '';
 
-                $pdo_values .= 'binary' === static::PDO_VALIDATION[$fullName][self::MYSQL_TYPE] ? "UNHEX(:$shortName), " : ":$shortName, ";
+                foreach (static::COLUMNS as $fullName => $shortName) {
 
-            }
+                    if (static::PDO_VALIDATION[$fullName][self::SKIP_COLUMN_IN_POST] ?? false) {
 
-            $keys = rtrim($keys, ', ');
-
-            $pdo_values = rtrim($pdo_values, ', ');
-
-            $sql = self::INSERT . ' INTO '
-                . (static::QUERY_WITH_DATABASE ? static::DATABASE . '.' : '')
-                . static::TABLE_NAME . " ($keys) VALUES ($pdo_values)";
-
-            $primaryBinary = is_string(static::PRIMARY) && 'binary' === static::PDO_VALIDATION[static::PRIMARY][self::MYSQL_TYPE] ?? false;
-
-            if ($primaryBinary) {
-
-                $pdo = self::database();
-
-                if (!$pdo->inTransaction()) {
-
-                    $pdo->beginTransaction();
-
-                }
-
-            }
-
-            self::jsonSQLReporting(func_get_args(), $sql);
-
-            self::postpreprocessRestRequest($sql);
-
-            $pdo ??= self::database();
-
-            $stmt = $pdo->prepare($sql);
-
-            $op = self::EQUAL;
-
-            foreach (static::PDO_VALIDATION as $fullName => $info) {
-
-                if ($info[self::SKIP_COLUMN_IN_POST] ?? false) {
-
-                    if (array_key_exists($fullName, $data)
-                        && self::CURRENT_TIMESTAMP === ($info[self::DEFAULT_POST_VALUE] ?? '')) {
-
-                        return self::signalError("The column $fullName is set to default to CURRENT_TIMESTAMP. The Rest API does not allow POST requests with columns explicitly set whose default is CURRENT_TIMESTAMP. You can remove to the default in MySQL or the column $fullName from the request.");
+                        continue;
 
                     }
 
-                    continue;
+                    $keys .= "$shortName, ";
+
+                    $pdo_values .= 'binary' === static::PDO_VALIDATION[$fullName][self::MYSQL_TYPE] ? "UNHEX(:$shortName), " : ":$shortName, ";
 
                 }
 
-                $shortName = static::COLUMNS[$fullName];
+                $keys = rtrim($keys, ', ');
 
-                if ($fullName === static::PRIMARY
-                    || (is_array(static::PRIMARY)
-                        && array_key_exists($fullName, static::PRIMARY))) {
+                $pdo_values = rtrim($pdo_values, ', ');
 
-                    $data[$fullName] ??= false;
+                $sql = self::INSERT . ' INTO '
+                    . (static::QUERY_WITH_DATABASE ? static::DATABASE . '.' : '')
+                    . static::TABLE_NAME . " ($keys) VALUES ($pdo_values)";
 
-                    if ($data[$fullName] === false) {
+                $primaryBinary = is_string(static::PRIMARY) && 'binary' === static::PDO_VALIDATION[static::PRIMARY][self::MYSQL_TYPE] ?? false;
 
-                        $data[$fullName] = static::CARBON_CARBONS_PRIMARY_KEY
-                            ? self::beginTransaction(self::class, $data[self::DEPENDANT_ON_ENTITY] ?? null)     // clusters should really use this
-                            : self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
+                if ($primaryBinary) {
 
-                    } else if (false === self::validateInternalColumn(self::POST, $fullName, $op, $data[$fullName])) {
+                    $pdo = self::database();
 
-                        throw new PublicAlert("The column value of ($fullName) caused custom restful api validations for your primary key to fail (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
+                    if (!$pdo->inTransaction()) {
 
-                    }
-
-                    /**
-                     * I'm fairly confident the length attribute does nothing.
-                     * @todo - hex / unhex length conversion on any binary data
-                     * @link https://stackoverflow.com/questions/28251144/inserting-and-selecting-uuids-as-binary16
-                     * @link https://www.php.net/ChangeLog-8.php
-                     * @notice PDO type validation has a bug until 8
-                     **/
-                    $maxLength = $info[self::MAX_LENGTH] === '' ? null : (int)$info[self::MAX_LENGTH];
-
-                    $stmt->bindParam(":$shortName", $data[$fullName], $info[self::PDO_TYPE],
-                        $maxLength);
-
-                } elseif ('json' === $info[self::MYSQL_TYPE]) {
-
-                    if (false === array_key_exists($fullName, $data)) {
-
-                        return self::signalError("The column $fullName is set to not null and has no default value. It must exist in the request and was not found in the one sent.");
+                        $pdo->beginTransaction();
 
                     }
 
-                    if (!self::validateInternalColumn(self::POST, $fullName, $op, $data[$fullName])) {
+                }
 
-                        throw new PublicAlert("Your custom restful api validations caused the request to fail on json column ($fullName). Possible values include (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
+                self::jsonSQLReporting(func_get_args(), $sql);
 
-                    }
+                self::postpreprocessRestRequest($sql);
 
-                    if (false === is_string($data[$fullName])) {
+                $pdo ??= self::database();
 
-                        $data[$fullName] = json_encode($data[$fullName]);
+                $stmt = $pdo->prepare($sql);
 
-                        if (false === $data[$fullName]) {
+                $op = self::EQUAL;
 
-                            return self::signalError("The column $fullName failed to be json encoded.");
+                foreach (static::PDO_VALIDATION as $fullName => $info) {
+
+                    if ($info[self::SKIP_COLUMN_IN_POST] ?? false) {
+
+                        if (array_key_exists($fullName, $data)
+                            && self::CURRENT_TIMESTAMP === ($info[self::DEFAULT_POST_VALUE] ?? '')) {
+
+                            return self::signalError("The column $fullName is set to default to CURRENT_TIMESTAMP. The Rest API does not allow POST requests with columns explicitly set whose default is CURRENT_TIMESTAMP. You can remove to the default in MySQL or the column $fullName from the request.");
 
                         }
 
-                    }
-
-                    $stmt->bindValue(":$shortName", $data[$fullName], $info[self::PDO_TYPE]);
-
-                } elseif (array_key_exists(self::DEFAULT_POST_VALUE, $info)) {
-
-                    $data[$fullName] ??= $info[self::DEFAULT_POST_VALUE];
-
-                    if (false === self::validateInternalColumn(self::POST, $fullName, $op, $data[$fullName], $data[$fullName] === $info[self::DEFAULT_POST_VALUE])) {
-
-                        return self::signalError("Your custom restful api validations caused the request to fail on column '$fullName'. (has default)");
+                        continue;
 
                     }
 
-                    $stmt->bindValue(":$shortName", $data[$fullName], $info[self::PDO_TYPE]);
+                    $shortName = static::COLUMNS[$fullName];
 
-                } else {
+                    if ($fullName === static::PRIMARY
+                        || (is_array(static::PRIMARY)
+                            && array_key_exists($fullName, static::PRIMARY))) {
 
-                    if (false === array_key_exists($fullName, $data)) {
+                        $data[$fullName] ??= false;
 
-                        return self::signalError("Required argument '$fullName' is missing from the request and has no default value.");
+                        if ($data[$fullName] === false) {
+
+                            $data[$fullName] = static::CARBON_CARBONS_PRIMARY_KEY
+                                ? self::beginTransaction(self::class, $data[self::DEPENDANT_ON_ENTITY] ?? null)     // clusters should really use this
+                                : self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
+
+                        } else if (false === self::validateInternalColumn(self::POST, $fullName, $op, $data[$fullName])) {
+
+                            throw new PublicAlert("The column value of ($fullName) caused custom restful api validations for your primary key to fail (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
+
+                        }
+
+                        /**
+                         * I'm fairly confident the length attribute does nothing.
+                         * @todo - hex / unhex length conversion on any binary data
+                         * @link https://stackoverflow.com/questions/28251144/inserting-and-selecting-uuids-as-binary16
+                         * @link https://www.php.net/ChangeLog-8.php
+                         * @notice PDO type validation has a bug until 8
+                         **/
+                        $maxLength = $info[self::MAX_LENGTH] === '' ? null : (int)$info[self::MAX_LENGTH];
+
+                        $stmt->bindParam(":$shortName", $data[$fullName], $info[self::PDO_TYPE],
+                            $maxLength);
+
+                    } elseif ('json' === $info[self::MYSQL_TYPE]) {
+
+                        if (false === array_key_exists($fullName, $data)) {
+
+                            return self::signalError("The column $fullName is set to not null and has no default value. It must exist in the request and was not found in the one sent.");
+
+                        }
+
+                        if (!self::validateInternalColumn(self::POST, $fullName, $op, $data[$fullName])) {
+
+                            throw new PublicAlert("Your custom restful api validations caused the request to fail on json column ($fullName). Possible values include (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
+
+                        }
+
+                        if (false === is_string($data[$fullName])) {
+
+                            $data[$fullName] = json_encode($data[$fullName]);
+
+                            if (false === $data[$fullName]) {
+
+                                return self::signalError("The column $fullName failed to be json encoded.");
+
+                            }
+
+                        }
+
+                        $stmt->bindValue(":$shortName", $data[$fullName], $info[self::PDO_TYPE]);
+
+                    } elseif (array_key_exists(self::DEFAULT_POST_VALUE, $info)) {
+
+                        $data[$fullName] ??= $info[self::DEFAULT_POST_VALUE];
+
+                        if (false === self::validateInternalColumn(self::POST, $fullName, $op, $data[$fullName], $data[$fullName] === $info[self::DEFAULT_POST_VALUE])) {
+
+                            return self::signalError("Your custom restful api validations caused the request to fail on column '$fullName'. (has default)");
+
+                        }
+
+                        $stmt->bindValue(":$shortName", $data[$fullName], $info[self::PDO_TYPE]);
+
+                    } else {
+
+                        if (false === array_key_exists($fullName, $data)) {
+
+                            return self::signalError("Required argument '$fullName' is missing from the request and has no default value.");
+
+                        }
+
+                        if (false === self::validateInternalColumn(self::POST, $fullName, $op, $data[$fullName], array_key_exists(self::DEFAULT_POST_VALUE, $info) ? $data[$fullName] === $info[self::DEFAULT_POST_VALUE] : false)) {
+
+                            return self::signalError("Your custom restful api validations caused the request to fail on required column '$fullName'.");
+
+                        }
+
+                        $stmt->bindParam(":$shortName", $data[$fullName], $info[self::PDO_TYPE], $info[self::MAX_LENGTH] === '' ? null : (int)$info[self::MAX_LENGTH]);
 
                     }
+                    // end foreach bind
+                }
 
-                    if (false === self::validateInternalColumn(self::POST, $fullName, $op, $data[$fullName], array_key_exists(self::DEFAULT_POST_VALUE, $info) ? $data[$fullName] === $info[self::DEFAULT_POST_VALUE] : false)) {
+                if (false === $stmt->execute()) {
 
-                        return self::signalError("Your custom restful api validations caused the request to fail on required column '$fullName'.");
+                    self::completeRest();
 
-                    }
-
-                    $stmt->bindParam(":$shortName", $data[$fullName], $info[self::PDO_TYPE], $info[self::MAX_LENGTH] === '' ? null : (int)$info[self::MAX_LENGTH]);
+                    return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
 
                 }
-                // end foreach bind
-            }
 
-            if (false === $stmt->execute()) {
+                if (static::AUTO_INCREMENT_PRIMARY_KEY || $primaryBinary) {
+
+                    /** @noinspection NotOptimalIfConditionsInspection */
+                    if (static::AUTO_INCREMENT_PRIMARY_KEY) {
+
+                        $id = $pdo->lastInsertId();
+
+                    }
+
+                    $id ??= $data[static::PRIMARY];
+
+                    self::prepostprocessRestRequest($id);
+
+                    if (self::$commit && !Database::commit()) {
+
+                        return self::signalError('Failed to store commit transaction on table ' . static::TABLE_NAME);
+
+                    }
+
+                    self::postprocessRestRequest($id);
+
+                    self::completeRest();
+
+                    return $id;
+                }
+
+                self::prepostprocessRestRequest();
+
+                if (self::$commit && false === Database::commit()) {
+
+                    return self::signalError('Failed to commit transaction on table ' . static::TABLE_NAME);
+
+                }
+
+                self::postprocessRestRequest();
 
                 self::completeRest();
 
-                return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
+                return true;
 
-            }
+            });
+        } catch (Throwable $e) {
 
-            if (static::AUTO_INCREMENT_PRIMARY_KEY || $primaryBinary) {
+            ErrorCatcher::generateLog($e);  // this terminates
 
-                /** @noinspection NotOptimalIfConditionsInspection */
-                if (static::AUTO_INCREMENT_PRIMARY_KEY) {
+            return false; // this will never be reached.
 
-                    $id = $pdo->lastInsertId();
-
-                }
-
-                $id ??= $data[static::PRIMARY];
-
-                self::prepostprocessRestRequest($id);
-
-                if (self::$commit && !Database::commit()) {
-
-                    return self::signalError('Failed to store commit transaction on table ' . static::TABLE_NAME);
-
-                }
-
-                self::postprocessRestRequest($id);
-
-                self::completeRest();
-
-                return $id;
-            }
-
-            self::prepostprocessRestRequest();
-
-            if (self::$commit && false === Database::commit()) {
-
-                return self::signalError('Failed to commit transaction on table ' . static::TABLE_NAME);
-
-            }
-
-            self::postprocessRestRequest();
-
-            self::completeRest();
-
-            return true;
-
-        });
+        }
 
     }
 
