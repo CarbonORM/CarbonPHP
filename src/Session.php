@@ -383,7 +383,7 @@ class Session implements SessionHandlerInterface
                 ]
             ]);
 
-            return $session_table_row[$session_table::COLUMNS[$session_table::SESSION_DATA]];
+            return $session_table_row[$session_table::COLUMNS[$session_table::SESSION_DATA]] ?? '';
 
         } catch (Throwable $e) {
 
