@@ -138,7 +138,7 @@ FOOT;
 
         } catch (Throwable $e) {                            // added for socket support
 
-            ErrorCatcher::generateLog($e);
+            ErrorCatcher::generateLog($e, true);
 
             self::colorCode('Attempting to reset the database. Possible disconnect.', iColorCode::BACKGROUND_YELLOW);
 
@@ -149,136 +149,119 @@ FOOT;
     }
 
     /**
-     * @param callable $closure
+     * @param PDOException $e
      * @return mixed|bool|string|object - the return of the passed callable
      */
-    public static function TryCatchPDOException(callable $closure)
+    public static function TryCatchPDOException(PDOException $e) : void
     {
-        static $inRefreshStack = null;
 
-        try {
+        $error_array = ErrorCatcher::generateLog($e, true);
 
-            return $closure();
+        $log_array = $error_array[ErrorCatcher::LOG_ARRAY];
 
-        } catch (PDOException $e) {
+        // todo - handle all pdo exceptions
+        switch ($e->getCode()) {        // Database has not been created
+            case 'HY000':
 
-            $error_array = ErrorCatcher::generateLog($e, true);
+                ColorCode::colorCode('Caught connection reset code (HY000)', iColorCode::BACKGROUND_MAGENTA);
 
-            $error_array = $error_array[ErrorCatcher::LOG_ARRAY];
+                ColorCode::colorCode('A recursive error has been detected. C6 has detected the MySQL'
+                    . ' database in a broken pipe state. We have attempted to reset the database and rerun the'
+                    . ' query in question. This process then threw the exact same error. Please make sure no long'
+                    . ' running queries are being terminated by MySQL. If you have over ridden the driver settings '
+                    . ' and are in a long running process make sure PDO::ATTR_PERSISTENT => true is present. Finally,'
+                    . ' please make sure you are not manually terminating the connection. Attempting to parse error.', iColorCode::BACKGROUND_RED);
 
-            // todo - handle all pdo exceptions
-            switch ($e->getCode()) {        // Database has not been created
-                case 'HY000':
+                self::reset();
 
-                    ColorCode::colorCode('Caught connection reset code (HY000)', iColorCode::BACKGROUND_MAGENTA);
+                return;
 
-                    if ($inRefreshStack instanceof PDOException) {
+            case 1049:
 
-                        ColorCode::colorCode('A recursive error has been detected. C6 has detected the MySQL'
-                            . ' database in a broken pipe state. We have attempted to reset the database and rerun the'
-                            . ' query in question. This process then threw the exact same error. Please make sure no long'
-                            . ' running queries are being terminated by MySQL. If you have over ridden the driver settings '
-                            . ' and are in a long running process make sure PDO::ATTR_PERSISTENT => true is present. Finally,'
-                            . ' please make sure you are not manually terminating the connection. Attempting to parse error.', iColorCode::BACKGROUND_RED);
+                $query = explode(';', static::$carbonDatabaseDSN);    // I programmatically put it there which is why..
 
-                        ErrorCatcher::generateLog($e, true);
+                $db_name = explode('=', $query[1])[1];  // I dont validate with count on this
 
-                        ErrorCatcher::generateLog($inRefreshStack);
+                if (empty($db_name)) {
 
-                    }
+                    $log_array[] = 'Could not determine a database to create. See Carbonphp.com for documentation.';
 
-                    // todo - reset db --- how many time should we do this?  1 - 1000? Should we microtime in c6
-                    $inRefreshStack = $e;
-
-                    self::reset();
-
-                    return self::TryCatchPDOException($closure) and $inRefreshStack = null; // this operator is rarely used.
-                    // It means were returning the result of $closure() but also setting our persistent static variable
-
-                case 1049:
-
-                    $query = explode(';', static::$carbonDatabaseDSN);    // I programmatically put it there which is why..
-
-                    $db_name = explode('=', $query[1])[1];  // I dont validate with count on this
-
-                    if (empty($db_name)) {
-
-                        $error_array[] = 'Could not determine a database to create. See Carbonphp.com for documentation.';
-
-                        ErrorCatcher::generateBrowserReport($error_array);  // this terminates by default
-
-                    }
-
-                    try {
-                        // https://www.php.net/manual/en/pdo.setattribute.php
-                        static::$database = new PDO(
-                            $query[0],
-                            static::$carbonDatabaseUsername,
-                            static::$carbonDatabasePassword,
-                            self::getPdoOptions());
-
-                    } catch (Throwable $e) {
-
-                        $error_array_two = ErrorCatcher::generateLog($e);
-
-                        if ($e->getCode() === 1049) {
-
-                            $error_array_two[] = '<h1>Auto Setup Failed!</h1><h3>Your database DSN may be slightly malformed.</h3>';
-
-                            $error_array_two[] = '<p>CarbonPHP requires the host come before the database in your DNS.</p>';
-
-                            $error_array_two[] = '<p>It should follow the following format "mysql:host=127.0.0.1;dbname=C6".</p>';
-                        }
-
-                        ErrorCatcher::generateBrowserReport($error_array_two);  // this terminates
-
-                    }
-
-                    $stmt = "CREATE DATABASE $db_name;";
-
-                    $db = static::$database;
-
-                    if (!$db->prepare($stmt)->execute()) {
-
-                        $error_array[] = '<h1>Failed to insert database. See CarbonPHP.com for documentation.</h1>';
-
-                        ErrorCatcher::generateBrowserReport($error_array);  // this terminates
-
-                    } else {
-
-                        $db->exec("use $db_name");
-
-                        static::setUp(!CarbonPHP::$cli, CarbonPHP::$cli);
-
-                    }
+                    print ErrorCatcher::generateBrowserReport($log_array); // this
 
                     break;
 
-                case '42S02':
+                }
 
-                    ErrorCatcher::generateBrowserReport($error_array);
+                try {
+                    // https://www.php.net/manual/en/pdo.setattribute.php
+                    static::$database = new PDO(
+                        $query[0],
+                        static::$carbonDatabaseUsername,
+                        static::$carbonDatabasePassword,
+                        self::getPdoOptions());
+
+                } catch (Throwable $e) {
+
+                    $error_array_two = ErrorCatcher::generateLog($e);
+
+                    if ($e->getCode() === 1049) {
+
+                        $error_array_two[] = '<h1>Auto Setup Failed!</h1><h3>Your database DSN may be slightly malformed.</h3>';
+
+                        $error_array_two[] = '<p>CarbonPHP requires the host come before the database in your DNS.</p>';
+
+                        $error_array_two[] = '<p>It should follow the following format "mysql:host=127.0.0.1;dbname=C6".</p>';
+                    }
+
+                    ErrorCatcher::generateBrowserReport($error_array_two);  // this terminates
+
+                }
+
+                $stmt = "CREATE DATABASE $db_name;";
+
+                $db = static::$database;
+
+                if (!$db->prepare($stmt)->execute()) {
+
+                    $log_array[] = '<h1>Failed to insert database. See CarbonPHP.com for documentation.</h1>';
+
+                    print ErrorCatcher::generateBrowserReport($log_array);  // this terminates
+
+                } else {
+
+                    $db->exec("use $db_name");
 
                     static::setUp(!CarbonPHP::$cli, CarbonPHP::$cli);
 
-                    break;
+                }
 
-                default:
+                break;
 
-                    if (empty(static::$carbonDatabaseUsername)) {
+            case '42S02':
 
-                        $error_array[] = '<h2>You must set a database user name. See CarbonPHP.com for documentation</h2>';
-                    }
-                    if (empty(static::$carbonDatabasePassword)) {
+                print ErrorCatcher::generateBrowserReport($log_array);
 
-                        $error_array[] = '<h2>You may need to set a database password. See CarbonPHP.com for documentation</h2>';
+                static::setUp(!CarbonPHP::$cli, CarbonPHP::$cli);
 
-                    }
+                break;
 
-                    ErrorCatcher::generateBrowserReport($error_array);
+            default:
 
-            }
+                if (empty(static::$carbonDatabaseUsername)) {
+
+                    $log_array[] = '<h2>You must set a database user name. See CarbonPHP.com for documentation</h2>';
+                }
+                if (empty(static::$carbonDatabasePassword)) {
+
+                    $log_array[] = '<h2>You may need to set a database password. See CarbonPHP.com for documentation</h2>';
+
+                }
+
+                print ErrorCatcher::generateBrowserReport($log_array);
 
         }
+
+        exit(1);
 
     }
 
@@ -288,7 +271,11 @@ FOOT;
      */
     public static function reset(): PDO // built to help preserve database in sockets and forks
     {
-        self::close();
+        if (null !== self::$database) {
+
+            self::close();
+
+        }
 
         $attempts = 0;
 
@@ -310,18 +297,24 @@ FOOT;
 
             try {
 
-                return self::TryCatchPDOException(
-
-                    static function () use ($prep) {
-                        // @link https://stackoverflow.com/questions/10522520/pdo-were-rows-affected-during-execute-statement
-                        return $prep(new PDO(
-                            static::$carbonDatabaseDSN,
-                            static::$carbonDatabaseUsername,
-                            static::$carbonDatabasePassword,
-                            self::getPdoOptions()));
-                    });
+                // @link https://stackoverflow.com/questions/10522520/pdo-were-rows-affected-during-execute-statement
+                return $prep(new PDO(
+                    static::$carbonDatabaseDSN,
+                    static::$carbonDatabaseUsername,
+                    static::$carbonDatabasePassword,
+                    self::getPdoOptions()));
 
             } catch (Throwable $e) {
+
+                if ($e instanceof PDOException) {
+
+                    self::TryCatchPDOException($e); // this might exit
+
+                } else {
+
+                    ErrorCatcher::generateLog($e);  // this will exit
+
+                }
 
                 $attempts++;
 
@@ -333,22 +326,15 @@ FOOT;
 
         ColorCode::colorCode($message, iColorCode::RED);
 
-        if (CarbonPHP::$cli) {
-
-            ErrorCatcher::generateLog($e);
-
-        } else {
-
-            ErrorCatcher::generateLog($e);
-
-        }
+        ErrorCatcher::generateLog($e);
 
         die(1);
 
     }
 
 
-    public static function close() : void {
+    public static function close(): void
+    {
 
         try {
 
@@ -360,9 +346,8 @@ FOOT;
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e, true);
-
-            self::colorCode('You can probably ignore the error message above.', iColorCode::BACKGROUND_CYAN);
+            // its common for pdo to throw an error here, we will silently ignore it
+            // running KILL CONNECTION_ID() will disconnect the resource before return thus error
 
         } finally {
 
@@ -468,28 +453,43 @@ FOOT;
      *
      * @link https://www.w3schools.com/sql/sql_primarykey.asp
      *
-     * @param string|null $errorMessage
      * @return bool
      * @throws PublicAlert
      */
-    public static function verify(string $errorMessage = null): bool
+    public static function verify(): bool
     {
+
         $pdo = self::database();
 
         if (!$pdo->inTransaction()) {        // We're verifying that we do not have an un finished transaction
+
             return true;
+
         }
+
         try {
+
             $pdo->rollBack();  // this transaction was started after our keys were inserted..
+
             if (!empty(self::$carbonDatabaseEntityTransactionKeys)) {
+
+
                 foreach (self::$carbonDatabaseEntityTransactionKeys as $key) {
+
                     static::remove_entity($key);
+
                 }
+
             }
-        } catch (PDOException $e) {                     // todo - think about this more
+
+        } catch (PDOException $e) {
+
             ErrorCatcher::generateLog($e);
+
         }
+
         return false;
+
     }
 
     /** Commit the current transaction to the database.
@@ -498,35 +498,19 @@ FOOT;
      * @return bool
      * @throws PublicAlert
      */
-    public static function commit(callable $lambda = null): bool
+    public static function commit(): bool
     {
+
         $db = self::database();
 
-        if (!$db->inTransaction()) {
-            return true;
-        }
-
-        if (!$db->commit()) {
-            return static::verify();
-        }
-
-        self::$carbonDatabaseEntityTransactionKeys = [];
-
-        if ($lambda === null) {
+        if (false === $db->inTransaction()) {
 
             return true;
 
         }
 
-        $return = $lambda();
+        return $db->commit() ?: static::verify();
 
-        if (!is_bool($return)) {
-
-            throw new PublicAlert('The return type of the lambda supplied should be a boolean.');
-
-        }
-
-        return $return;
     }
 
     /**
@@ -534,6 +518,7 @@ FOOT;
      */
     public static function getPdoOptions(): array
     {
+
         return self::$pdo_options ??= [
             PDO::ATTR_PERSISTENT => CarbonPHP::$cli,                // only in cli (including websockets)
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
@@ -542,6 +527,7 @@ FOOT;
             PDO::ATTR_CASE => PDO::CASE_NATURAL,
             PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL
         ];
+
     }
 
     /**
@@ -549,7 +535,9 @@ FOOT;
      */
     public static function setPdoOptions(array $pdo_options): void
     {
+
         self::$pdo_options = $pdo_options;
+
     }
 
     /** Based off the pdo.beginTransaction() method
@@ -622,6 +610,7 @@ FOOT;
         $carbons = Rest::getDynamicRestClass(Carbons::class, iRestSinglePrimaryKey::class);
 
         do {
+
             $count++;
 
             /** @noinspection PhpUndefinedMethodInspection - intellij is not good at php static refs */
@@ -760,18 +749,6 @@ FOOT;
         return $stmt->fetchAll();  // user obj
     }
 
-    /** Fetch a sql query and return results directly into the global scope
-     * @param string $sql
-     * @param $execute
-     */
-    protected static function fetch_to_global(string $sql, $execute): void
-    {
-        $stmt = self::database()->prepare($sql);
-        $stmt->setFetchMode(PDO::FETCH_CLASS, Globals::class);
-        $stmt->execute($execute);
-        $stmt->fetchAll();  // user obj
-    }
-
     /** Run an sql statement and return results as attributes of a stdClass
      * @param $object
      * @param $sql
@@ -812,41 +789,20 @@ FOOT;
         }
     }
 
-
     public static function buildCarbonPHP(): void
     {
         self::refreshDatabase(CarbonPHP::CARBON_ROOT . DS . 'tables' . DS);
     }
 
-
-    public static function scanAndRunRefreshDatabase(string $tableDirectory): void
+    public static function scanAnd(callable $callback): void
     {
-        ColorCode::colorCode("\n\nScanning and running refresh database using ('$tableDirectory' . '*.php')");
-        
+
+        $tableDirectory = Rest::autoTargetTableDirectory();
+
         $restful = glob($tableDirectory . '*.php');
 
-        $classNamespace = '';
+        $classNamespace = Rest::getRestNamespaceFromFileList($restful);
 
-        foreach ($restful as $filename) {
-            $fileAsString = file_get_contents($filename);
-            $matches = [];
-            if (!preg_match('#public const CLASS_NAMESPACE\s?=\s?\'(.*)\';#i', $fileAsString, $matches)) {
-                continue;
-            }
-
-            if (array_key_exists(1, $matches)) {
-                $classNamespace = $matches[1];
-                break;
-            }
-
-        }
-
-        if (empty($classNamespace)) {
-            throw new PublicAlert("Failed to parse class namespace from files in ($tableDirectory). 
-                This could mean no files in the directory provided are Restfully generated.");
-        }
-
-        $validate = [];
 
         foreach ($restful as $file) {
 
@@ -859,10 +815,14 @@ FOOT;
             }
 
             if (!is_subclass_of($table, Rest::class)) {
+
                 $restFullyQualifiedName = Rest::class;
+
                 self::colorCode("\n\nThe class '$table' does not implement $restFullyQualifiedName.
                         This would indicate a custom class in the table's namespaced directory. Please avoid doing this.\n", iColorCode::YELLOW);
+
                 continue;
+
             }
 
             $imp = array_map('strtolower', array_keys(class_implements($table)));
@@ -871,9 +831,24 @@ FOOT;
                 && !in_array(strtolower(iRestSinglePrimaryKey::class), $imp, true)
                 && !in_array(strtolower(iRestNoPrimaryKey::class), $imp, true)
             ) {
+
+                self::colorCode("The table ($table) did not interface the required (iRestMultiplePrimaryKeys, iRestSinglePrimaryKey, or iRestNoPrimaryKey). This is unexpected.", iColorCode::RED);
+
                 continue;
+
             }
 
+            $callback($table);
+        }
+    }
+
+    public static array $tablesToValidateAfterRefresh = [];
+
+    public static function scanAndRunRefreshDatabase(string $tableDirectory): void
+    {
+        ColorCode::colorCode("\n\nScanning and running refresh database using ('$tableDirectory' . '*.php')");
+
+        self::scanAnd(static function ($table): void {
             if (defined("$table::REFRESH_SCHEMA")) {
 
                 self::runRefreshSchema($table::REFRESH_SCHEMA);
@@ -882,11 +857,9 @@ FOOT;
 
                 ColorCode::colorCode("The generated constant $table::REFRESH_SCHEMA does not exist. Rerun RestBuilder to repopulate.", iColorCode::YELLOW);
 
-                continue;
-
             }
 
-            $validate[$table] = $table::CREATE_TABLE_SQL;
+            self::$tablesToValidateAfterRefresh[$table] = $table::CREATE_TABLE_SQL;
 
             $db = self::database();
 
@@ -903,11 +876,10 @@ FOOT;
                 exit(1);
 
             }
-
-        }
+        });
 
         unlink(CarbonPHP::$app_root . 'mysqldump.sql'); // I dont care if this works
-        
+
         // Now Validate The Rest Tables Based on The MySQL Dump after update.
         $mysqldump = MySQL::mysqldump(null);  // todo - make c6 argument
 
@@ -926,7 +898,7 @@ FOOT;
         $regex = '#CREATE\s+TABLE(.|\s)+?(?=ENGINE=)#';
 
 
-        foreach ($validate as $fullyQualifiedClassName => $preUpdateSQL) {
+        foreach (self::$tablesToValidateAfterRefresh as $fullyQualifiedClassName => $preUpdateSQL) {
 
             if (defined("$fullyQualifiedClassName::VALIDATE_AFTER_REBUILD") && false === $fullyQualifiedClassName::VALIDATE_AFTER_REBUILD) {
 
@@ -983,9 +955,9 @@ FOOT;
             $postUpdateSQL = trim(str_replace("\\n", "\n", $postUpdateSQL));
 
             // the table definition maybe reordered and we just want to know whats dif
-            $preUpdateSQLArray = array_map('trim',explode(PHP_EOL, $preUpdateSQL));
+            $preUpdateSQLArray = array_map('trim', explode(PHP_EOL, $preUpdateSQL));
 
-            $postUpdateSQLArray = array_map('trim',explode(PHP_EOL, $postUpdateSQL));
+            $postUpdateSQLArray = array_map('trim', explode(PHP_EOL, $postUpdateSQL));
 
             $changes = array_diff_key($preUpdateSQLArray, $postUpdateSQLArray);
 
@@ -1030,24 +1002,6 @@ FOOT;
 
         }
 
-        $autoTarget = static function () use (&$tableDirectory) {
-
-            $composerJson = self::getComposerConfig();
-
-            $tableNamespace = CarbonPHP::$configuration[CarbonPHP::REST][CarbonPHP::NAMESPACE] ??= "Tables\\";
-
-            $tableDirectory = $composerJson['autoload']['psr-4'][$tableNamespace] ?? false;
-
-            if (false === $tableDirectory) {
-
-                throw new PublicAlert('Failed to parse composer json for ["autoload"]["psr-4"]["' . $tableNamespace . '"].');
-
-            }
-
-            $tableDirectory = CarbonPHP::$app_root . $tableDirectory;
-
-        };
-
         try {
 
             if (CarbonPHP::$carbon_is_root) {
@@ -1056,7 +1010,7 @@ FOOT;
 
             } elseif ($tableDirectory === '') {
 
-                $autoTarget();
+                $tableDirectory = Rest::autoTargetTableDirectory();
 
             }
 

@@ -12,6 +12,7 @@
         <testsuite name="feature">
             <file>tests/feature/UserTest.php</file>
             <file>tests/feature/RestTest.php</file>
+            <file>tests/feature/ExternalRestTest.php</file>
             <file>tests/feature/WordpressTest.php</file>
             <file>tests/feature/RestWordpressTest.php</file>
         </testsuite>

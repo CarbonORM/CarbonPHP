@@ -1134,6 +1134,7 @@ const C6 = {
     LIMIT: '" . Rest::LIMIT . "',
     MIN: '" . Rest::MIN . "',
     MAX: '" . Rest::MAX . "',
+    NOT_LIKE: '" . Rest::NOT_LIKE . "',
     NOW: '" . Rest::NOW . "',
     NOT_EQUAL: '" . Rest::NOT_EQUAL . "',
     ORDER: '" . Rest::ORDER . "',

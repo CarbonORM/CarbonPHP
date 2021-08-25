@@ -6,7 +6,7 @@
  * Date: 7/27/17
  * Time: 10:26 PM
  *
- * This class is desigend to handle the session storage.
+ * This class is designed to handle the session storage.
  * http://php.net/manual/en/function.session-set-save-handler.php
  *
  * If true is passed to the second parameter of our constructor, our
@@ -38,7 +38,6 @@ class Session implements SessionHandlerInterface
 {
     use Background, ColorCode;
 
-
     protected static ?Session $singleton = null;
 
     protected static ?iRestSinglePrimaryKey $session_table = null;
@@ -68,9 +67,11 @@ class Session implements SessionHandlerInterface
      */
     public function __construct(string $ip = null, $dbStore = false)
     {
+
         static $count = false;
 
         if (!$count) {
+
             $count = true;
 
             self::$singleton = $this;   // I want the destructor to happen at the end of the process life
@@ -80,24 +81,33 @@ class Session implements SessionHandlerInterface
             headers_sent() or ini_set('session.use_strict_mode', 1);
 
             if ($dbStore && !headers_sent()) {
+
                 /** @noinspection PhpExpressionResultUnusedInspection */
                 ini_set('session.gc_probability', 1);  // Clear any lingering session data in default locations
 
                 if (!session_set_save_handler($this, false)) {           // set this class as the session handler
+
                     throw new PublicAlert('Session failed to store remotely');
+
                 }
+
             }
 
             if (CarbonPHP::$cli && (!CarbonPHP::$socket || WebSocket::$minimiseResources)) {
+
                 return;
+
             }
+
         }
 
         try {
 
             // this should not throw an error.. but if it doesnt we will catch and die
             if (false === session_start()) {
+
                 throw new PublicAlert('CarbonPHP failed to start your session');
+
             }
 
             static::$session_id = session_id();
@@ -134,7 +144,9 @@ class Session implements SessionHandlerInterface
     {
 
         if ($session_id !== null) {
-            static::$session_id = $session_id;
+
+           static::$session_id = $session_id;
+
         }
 
         session_id(static::$session_id);
@@ -164,6 +176,7 @@ class Session implements SessionHandlerInterface
      */
     public static function update($clear = false): void
     {
+
         global $user;
 
         static $count = 0;
@@ -227,11 +240,11 @@ class Session implements SessionHandlerInterface
     public static function clear(): void
     {
 
-        $session_class_name = Rest::getDynamicRestClass(Sessions::class);
-
-        self::$session_table ??= new $session_class_name;
-
         try {
+
+            $session_class_name = Rest::getDynamicRestClass(Sessions::class);
+
+            self::$session_table ??= new $session_class_name;
 
             $id = session_id();
 
@@ -239,11 +252,11 @@ class Session implements SessionHandlerInterface
 
             session_write_close();
 
-            self::$session_table::Delete($_SESSION, $id, []);
+            self::$session_table::Delete($_SESSION, $id, []);   // in theory this will not throw anything
 
             session_start();
 
-        } catch (PDOException $e) {
+        } catch (Throwable $e) {
 
             ErrorCatcher::generateLog($e);   // this terminates!
 
@@ -260,6 +273,7 @@ class Session implements SessionHandlerInterface
      */
     public static function verifySocket($ip): bool
     {
+
         self::colorCode('Verify Socket');
 
         if ($ip) {
@@ -299,8 +313,11 @@ class Session implements SessionHandlerInterface
         $session = $stmt->fetchColumn();
 
         if (!$session) {
+
             self::colorCode('BAD ADDRESS :: ' . $_SERVER['REMOTE_ADDR'] . "\n\n", 'red');
+
             return false;
+
         }
 
         self::$session_id = $session_id;    // this
@@ -315,6 +332,7 @@ class Session implements SessionHandlerInterface
      */
     public static function getSessionTable(): iRestSinglePrimaryKey
     {
+
         if (null === self::$session_table) {
 
             $table_name = Rest::getDynamicRestClass(Sessions::class);    // all because custom prefixes and callbacks exist
@@ -324,6 +342,7 @@ class Session implements SessionHandlerInterface
         }
 
         return self::$session_table;
+
     }
 
     /** This is required for the session save handler interface.
@@ -336,22 +355,40 @@ class Session implements SessionHandlerInterface
     public function open($savePath, $sessionName): bool
     {
 
-        Database::TryCatchPDOException(
-            static fn() => Database::database()
+        try {
+
+            return Database::database()
                 ->prepare('SELECT count(*) FROM ' . self::getSessionTable()::TABLE_NAME . ' LIMIT 1')
-                ->execute());
+                ->execute();
+
+        } catch (Throwable $e) {
+
+            if ($e instanceof PDOException) {
+
+                Database::TryCatchPDOException($e); // this will terminate 99% of the time
+
+            } else {
+
+                ErrorCatcher::generateLog($e); // this will terminate
+
+            }
+
+        }
 
         return true;
+
     }
 
 
     public static function writeCloseClean(): void
     {
+
         session_write_close();
 
         self::$session_id = null;
 
         self::$user_id = null;
+
     }
 
     /** Make user our session data gets stored in the db.
@@ -359,8 +396,11 @@ class Session implements SessionHandlerInterface
      */
     public function close(): bool
     {
+
         register_shutdown_function('session_write_close');
+
         return true;
+
     }
 
     /** read
@@ -370,28 +410,23 @@ class Session implements SessionHandlerInterface
      */
     public function read($id): string
     {
-        try {
 
-            $session_table_row = [];
+        $session_table_row = [];
 
-            $session_table = self::getSessionTable();
+        $session_table = self::getSessionTable();
 
-            /** @noinspection PhpPossiblePolymorphicInvocationInspection */
-            $session_table::Get($session_table_row, $id, [
-                Sessions::SELECT => [
-                    $session_table::SESSION_DATA
-                ]
-            ]);
+        /** @noinspection PhpPossiblePolymorphicInvocationInspection */
+        if (false === $session_table::Get($session_table_row, $id, [
+            Sessions::SELECT => [
+                $session_table::SESSION_DATA
+            ]
+        ])) {
 
-            return $session_table_row[$session_table::COLUMNS[$session_table::SESSION_DATA]] ?? '';
-
-        } catch (Throwable $e) {
-
-            ErrorCatcher::generateLog($e);
+            return false;
 
         }
 
-        return false;
+        return $session_table_row[$session_table::COLUMNS[$session_table::SESSION_DATA]] ?? '';
 
     }
 

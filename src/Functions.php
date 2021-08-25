@@ -194,7 +194,7 @@ namespace {                                     // This runs the following code 
      * @noinspection ForgottenDebugOutputInspection
      * @noinspection PhpExpressionResultUnusedInspection
      */
-    function sortDump($mixed, bool $fullReport = false, bool $die = true, int $debug_backtrace_limit = 2) : void
+    function sortDump($mixed, bool $fullReport = false, bool $die = true, int $debug_backtrace_limit = 3) : void
     {
         // Notify that sort dump was executed
         CarbonPHP::$cli or alert(__FUNCTION__);

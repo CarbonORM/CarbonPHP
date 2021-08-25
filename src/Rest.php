@@ -6,14 +6,13 @@ namespace CarbonPHP;
 use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iColorCode;
-use CarbonPHP\Interfaces\iRest;
-use CarbonPHP\Interfaces\iRestfulReferences;
 use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
 use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Tables\Carbons;
 use PDO;
+use PDOException;
 use PDOStatement;
 use Throwable;
 
@@ -22,10 +21,10 @@ abstract class Rest extends Database
 
     # mysql restful identifiers
     public const AS = 'AS';
-    public const ASC = ' ASC';
+    public const ASC = 'ASC';
     public const COUNT = 'COUNT';
-    public const CURRENT_TIMESTAMP = ' CURRENT_TIMESTAMP ';
-    public const DESC = ' DESC'; // not case sensitive but helpful for reporting to remain uppercase
+    public const CURRENT_TIMESTAMP = 'CURRENT_TIMESTAMP';
+    public const DESC = 'DESC'; // not case sensitive but helpful for reporting to remain uppercase
     public const DISTINCT = 'DISTINCT';
     public const EQUAL = '=';
     public const EQUAL_NULL_SAFE = '<=>';
@@ -41,7 +40,8 @@ abstract class Rest extends Database
     public const LEFT_OUTER = 'LEFT OUTER';
     public const LESS_THAN = '<';
     public const LESS_THAN_OR_EQUAL_TO = '<=';
-    public const LIKE = ' LIKE ';
+    public const LIKE = 'LIKE';
+    public const NOT_LIKE = 'NOT LIKE';
     public const LIMIT = 'LIMIT';
     public const MIN = 'MIN';
     public const MAX = 'MAX';
@@ -55,7 +55,7 @@ abstract class Rest extends Database
     public const RIGHT_OUTER = 'RIGHT OUTER';
     public const SELECT = 'SELECT';
     public const SUM = 'SUM';
-    public const TRANSACTION_TIMESTAMP = ' TRANSACTION_TIMESTAMP ';
+    public const TRANSACTION_TIMESTAMP = 'TRANSACTION_TIMESTAMP';
     public const UPDATE = 'UPDATE';
     public const UNHEX = 'UNHEX';
     public const WHERE = 'WHERE';
@@ -166,6 +166,26 @@ abstract class Rest extends Database
 
     }
 
+    public static function autoTargetTableDirectory(): string
+    {
+
+        $composerJson = self::getComposerConfig();
+
+        $tableNamespace = CarbonPHP::$configuration[CarbonPHP::REST][CarbonPHP::NAMESPACE] ??= "Tables\\";
+
+        $tableDirectory = $composerJson['autoload']['psr-4'][$tableNamespace] ?? false;
+
+        if (false === $tableDirectory) {
+
+            throw new PublicAlert('Failed to parse composer json for ["autoload"]["psr-4"]["' . $tableNamespace . '"].');
+
+        }
+
+        return CarbonPHP::$app_root . $tableDirectory;
+
+    }
+
+
     public static function getDynamicRestClass(string $fullyQualifiedRestClassName, string $mustInterface = null): string
     {
         static $cache = [];
@@ -230,6 +250,45 @@ abstract class Rest extends Database
         return $cache[$fullyQualifiedRestClassName] = $custom_prefix_carbon_table;
 
     }
+
+
+    public static function getRestNamespaceFromFileList(array $filePaths): string
+    {
+
+        foreach ($filePaths as $filename) {
+
+            $fileAsString = file_get_contents($filename);
+
+            $matches = [];
+
+            if (!preg_match('#public const CLASS_NAMESPACE\s?=\s?\'(.*)\';#i', $fileAsString, $matches)) {
+                continue;
+            }
+
+            if (array_key_exists(1, $matches)) {
+
+                $classNamespace = $matches[1];
+
+                break;
+
+            }
+
+        }
+
+        if (empty($classNamespace)) {
+
+            // filePaths should be from glob
+
+            $tableDirectory = dirname($filePaths[0]);
+
+            throw new PublicAlert("Failed to parse class namespace from files in ($tableDirectory). ");
+
+        }
+
+        return $classNamespace;
+
+    }
+
 
     /**
      * @param string $message
@@ -335,21 +394,24 @@ abstract class Rest extends Database
      * @return bool
      * @throws PublicAlert
      */
-    public static function validateInternalColumn(string $method, &$column, string &$operator = null, &$value = null, bool $default = false): bool
+    public static function validateInternalColumn(&$column, string &$operator = null, &$value = null, bool $default = false): bool
     {
-        $runCustomCallables = static function () use (&$column, &$operator, &$value, $method, $default): void {
+        $runCustomCallables = static function () use (&$column, &$operator, &$value, $default): void {
+
+            $method = Rest::$REST_REQUEST_METHOD;
 
             self::$VALIDATED_REST_COLUMNS[] = $column;  // to prevent recursion.
 
             if (null !== $value && $default === false) {
 
-                $equalsValidColumn = self::validateInternalColumn($method, $value, $column);
+                // this is just a test for the bool
+                $equalsValidColumn = self::validateInternalColumn($value, $column);
 
                 if (false === $equalsValidColumn
                     && array_key_exists($column, self::$compiled_regex_validations)
                     && 1 > preg_match_all(self::$compiled_regex_validations[$column], $value, $matches, PREG_SET_ORDER)) {  // can return 0 or false
 
-                    throw new PublicAlert("The column $column was set to be compared with a value who did not pass the regex test. Please check this value and try again.");
+                    throw new PublicAlert("The column ($column) was set to be compared with a value who did not pass the regex test. Please check this value and try again.");
 
                 }
                 // todo - add injection logic here // double down on aggregate placement (low priority as it's done elsewhere)
@@ -371,13 +433,20 @@ abstract class Rest extends Database
 
             // run validation on each condition
             if ((self::$compiled_PHP_validations[$column] ?? false) && is_array(self::$compiled_PHP_validations[$column])) {
+
                 if ($operator === null) {
                     self::runValidations(self::$compiled_PHP_validations[$column]);
+
                 } elseif ($operator === self::ASC || $operator === self::DESC) {
+
                     self::runValidations(self::$compiled_PHP_validations[$column], $operator);
+
                 } else {
+
                     self::runValidations(self::$compiled_PHP_validations[$column], $operator, $value);
+
                 }
+
             }
 
             // run validation on each condition
@@ -488,14 +557,13 @@ abstract class Rest extends Database
 
             $imp = array_map('strtolower', array_keys(class_implements($table)));
 
-            if (!in_array(strtolower(iRest::class), $imp, true)
-                && !in_array(strtolower(iRestfulReferences::class), $imp, true)
-                && !in_array(strtolower(iRestMultiplePrimaryKeys::class), $imp, true)
+            if (!in_array(strtolower(iRestMultiplePrimaryKeys::class), $imp, true)
                 && !in_array(strtolower(iRestSinglePrimaryKey::class), $imp, true)
                 && !in_array(strtolower(iRestNoPrimaryKey::class), $imp, true)
             ) {
 
-                $possibleImpl = implode('|', [iRest::class, iRestfulReferences::class, iRestMultiplePrimaryKeys::class, iRestSinglePrimaryKey::class, iRestNoPrimaryKey::class]);
+                $possibleImpl = implode('|', [
+                    iRestMultiplePrimaryKeys::class, iRestSinglePrimaryKey::class, iRestNoPrimaryKey::class]);
 
                 throw new PublicAlert("The table does not implement the correct interface. Requires ($possibleImpl). Try re-running the RestBuilder.");
 
@@ -933,7 +1001,7 @@ abstract class Rest extends Database
             self::UNHEX,
             self::DISTINCT,
             self::GROUP_CONCAT,
-            self::COUNT
+            self::COUNT,
         ], true)) {
 
             throw new PublicAlert('The aggregate method in the GET request must be one of the following: '
@@ -941,29 +1009,34 @@ abstract class Rest extends Database
 
         }
 
-        if (!self::validateInternalColumn(self::GET, $column, $aggregate)) {
+        if (false === self::validateInternalColumn($column, $aggregate)) {
 
             throw new PublicAlert("The column value of ($column) caused validateInternalColumn to fail. Possible values include (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
 
         }
 
-        switch ($aggregate) {
+        if (!empty($name)) {
 
+            $name = self::addInjection($name);
+
+        }
+
+        switch ($aggregate) {
             case self::AS:
 
-                if (empty($name) && is_string($name)) {
+                if (empty($name)) {
 
-                    throw new PublicAlert('The third argument provided to the AS select aggregate must not be empty and equal a string.');
+                    throw new PublicAlert("The third argument provided to the ($aggregate) select aggregate must not be empty and be a string.");
 
                 }
 
                 if (!$noHEX && self::$compiled_PDO_validations[$column][self::MYSQL_TYPE] === 'binary') {
 
-                    $sql = "HEX($column) AS $name," . $sql;
+                    $sql = "HEX($column) $aggregate $name," . $sql;
 
                 } else {
 
-                    $sql = "$column AS $name, " . $sql;
+                    $sql = "$column $aggregate $name, " . $sql;
 
                 }
 
@@ -973,13 +1046,19 @@ abstract class Rest extends Database
 
             case self::GROUP_CONCAT:
 
+                if (empty($name)) {
+
+                    $name = self::$compiled_valid_columns[$column];
+
+                }
+
                 if (!$noHEX && self::$compiled_PDO_validations[$column][self::MYSQL_TYPE] === 'binary') {
 
-                    $sql = "GROUP_CONCAT(DISTINCT HEX($column) ORDER BY $column ASC SEPARATOR ',') AS " . self::$compiled_valid_columns[$column] . ', ' . $sql;
+                    $sql = "GROUP_CONCAT(DISTINCT HEX($column) ORDER BY $column ASC SEPARATOR ',') AS $name, $sql";
 
                 } else {
 
-                    $sql = "GROUP_CONCAT(DISTINCT($column) ORDER BY $column ASC SEPARATOR ',') AS " . self::$compiled_valid_columns[$column] . ', ' . $sql;
+                    $sql = "GROUP_CONCAT(DISTINCT($column) ORDER BY $column ASC SEPARATOR ',') AS $name, $sql";
 
                 }
 
@@ -989,15 +1068,21 @@ abstract class Rest extends Database
 
             case self::DISTINCT:
 
+                if (empty($name)) {
+
+                    $name = self::$compiled_valid_columns[$column];
+
+                }
+
                 if (!$noHEX && self::$compiled_PDO_validations[$column][self::MYSQL_TYPE] === 'binary') {
 
-                    $sql = "$aggregate HEX($column) as " . self::$compiled_valid_columns[$column] . ', ' . $sql;
+                    $sql = "$aggregate HEX($column) AS $name, $sql";
 
                     $group[] = self::$compiled_valid_columns[$column];
 
                 } else {
 
-                    $sql = "$aggregate($column), $sql";
+                    $sql = "$aggregate($column) AS $name, $sql";
 
                     $group[] = $column;
 
@@ -1015,7 +1100,7 @@ abstract class Rest extends Database
 
                 } else {
 
-                    $sql .= "$aggregate($column) as $name";
+                    $sql .= "$aggregate($column) AS $name";
 
                 }
 
@@ -1027,8 +1112,10 @@ abstract class Rest extends Database
 
     protected static function remove(array &$remove, array $argv, array $primary = null): bool
     {
-        try {
-            return self::TryCatchPDOException(static function () use (&$remove, $argv, $primary) {
+
+        do {
+
+            try {
 
                 self::startRest(self::DELETE, $remove, $argv, $primary);
 
@@ -1063,12 +1150,10 @@ abstract class Rest extends Database
 
                     $table_prefix = static::TABLE_PREFIX === Carbons::TABLE_PREFIX ? '' : static::TABLE_PREFIX;
 
-                    $sql = self::DELETE . ' c FROM ' . $query_database_name . $table_prefix . 'carbon_carbons c 
-                JOIN ' . $table_name . ' on c.entity_pk = ' . static::PRIMARY;
-
+                    $sql = self::DELETE . ' c FROM ' . $query_database_name . $table_prefix . 'carbon_carbons c JOIN ' . $table_name . ' on c.entity_pk = ' . static::PRIMARY;
 
                     if (false === self::$allowFullTableDeletes || !empty($argv)) {
-                        $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
+                        $sql .= ' WHERE ' . self::buildBooleanJoinedConditions($argv, $pdo);
                     }
 
                 } else {
@@ -1097,7 +1182,7 @@ abstract class Rest extends Database
 
                         }
 
-                        $argv = array_merge($argv, $primary);
+                        $argv = array_merge($argv, $primary); // todo - this is a good point. were looping and running and array merge..
 
                     } elseif (is_string(static::PRIMARY) && !$emptyPrimary) {
 
@@ -1105,7 +1190,7 @@ abstract class Rest extends Database
 
                     }
 
-                    $where = self::buildBooleanJoinConditions(self::DELETE, $argv, $pdo);
+                    $where = self::buildBooleanJoinedConditions($argv, $pdo);
 
                     $emptyWhere = empty($where);
 
@@ -1138,6 +1223,7 @@ abstract class Rest extends Database
 
                     return self::signalError('The REST generated PDOStatement failed to execute with error :: '
                         . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
+
                 }
 
                 $remove = [];
@@ -1156,27 +1242,54 @@ abstract class Rest extends Database
 
                 return true;
 
-            });
-        } catch (Throwable $e) {
+            } catch (Throwable $e) {
+
+                self::handleRestException($e);
+
+            }
+
+            $tries ??= 0;   // dont make this static
+
+        } while (3 !== $tries++);
+
+        return false;
+
+    }
+
+    /**
+     * This will terminate 99% of the time, but the 1% it wasn't you need to rerun what you try caught
+     * as the error was just the database going away.
+     * @param Throwable $e
+     */
+    private static function handleRestException(Throwable $e): void
+    {
+
+        if ($e instanceof PDOException) {
+
+            Database::TryCatchPDOException($e);
+
+        } else {
 
             ErrorCatcher::generateLog($e);  // this terminates
-
-            return false; // this will never be reached.
 
         }
 
     }
 
+
     protected static function select(array &$return, array $argv, array $primary = null): bool
     {
-        try {
-            return self::TryCatchPDOException(static function () use (&$return, $argv, $primary) {
+
+        do {
+
+            try {
 
                 self::startRest(self::GET, $return, $argv, $primary);
 
                 $pdo = self::database();
 
                 $sql = self::buildSelectQuery($primary, $argv, static::QUERY_WITH_DATABASE ? static::DATABASE : '', $pdo);
+
 
                 self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -1186,10 +1299,14 @@ abstract class Rest extends Database
 
                 self::bind($stmt);
 
+
                 if (!$stmt->execute()) {
+
                     self::completeRest();
+
                     return self::signalError('The REST generated PDOStatement failed to execute with error :: '
                         . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
+
                 }
 
                 $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -1202,13 +1319,23 @@ abstract class Rest extends Database
                         $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
                     }
                 } elseif (is_string(static::PRIMARY)) {
+
                     if ((null !== $primary && '' !== $primary) || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
+
                         $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
+
                     }
+
                 } else {
-                    if (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1) {
+
+                    if (isset($argv[self::PAGINATION][self::LIMIT])
+                        && $argv[self::PAGINATION][self::LIMIT] === 1
+                        && count($return) === 1) {
+
                         $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
+
                     }
+
                 }
 
                 foreach (static::JSON_COLUMNS as $key) {
@@ -1219,243 +1346,260 @@ abstract class Rest extends Database
 
                 self::postprocessRestRequest($return);
 
+
                 self::completeRest();
 
                 return true;
 
-            });
-        } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);  // this terminates
+            } catch (Throwable $e) {
 
-            return false; // this will never be reached.
+                self::handleRestException($e);
 
-        }
+            }
+
+            $tries ??= 0;   // dont make this static
+
+        } while (3 !== $tries++);
+
+        return false;
 
     }
 
     protected static function updateReplace(array &$returnUpdated, array $argv = [], array $primary = null): bool
     {
-        return self::TryCatchPDOException(static function () use (&$returnUpdated, $argv, $primary) {
+        do {
 
-            self::startRest(self::PUT, $returnUpdated, $argv, $primary);
+            try {
 
-            $replace = false;
+                self::startRest(self::PUT, $returnUpdated, $argv, $primary);
 
-            $where = [];
+                $replace = false;
 
-            if (array_key_exists(self::WHERE, $argv)) {
+                $where = [];
 
-                $where = $argv[self::WHERE];
+                if (array_key_exists(self::WHERE, $argv)) {
 
-                unset($argv[self::WHERE]);
-            }
+                    $where = $argv[self::WHERE];
 
-            if (array_key_exists(self::REPLACE, $argv)) {
+                    unset($argv[self::WHERE]);
+                }
 
-                $replace = true;
+                if (array_key_exists(self::REPLACE, $argv)) {
 
-                $argv = $argv[self::REPLACE];
+                    $replace = true;
 
-            } else if (array_key_exists(self::UPDATE, $argv)) {
+                    $argv = $argv[self::REPLACE];
 
-                $argv = $argv[self::UPDATE];
+                } else if (array_key_exists(self::UPDATE, $argv)) {
 
-            }
-
-            if (null === static::PRIMARY) {
-
-                if (false === self::$allowFullTableUpdates && empty($where)) {
-
-                    return self::signalError('Restful tables which have no primary key must be updated using conditions given to \$argv[self::WHERE] and values to be updated given to \$argv[self::UPDATE]. No WHERE attribute given. To bypass this set `self::\$allowFullTableUpdates = true;` during the PREPROCESS events, or just directly before this request.');
+                    $argv = $argv[self::UPDATE];
 
                 }
 
-                if (empty($argv)) {
+                if (null === static::PRIMARY) {
 
-                    return self::signalError('Restful tables which have no primary key must be updated using conditions given to \$argv[self::WHERE] and values to be updated given to \$argv[self::UPDATE]. No UPDATE attribute given.');
+                    if (false === self::$allowFullTableUpdates && empty($where)) {
 
-                }
+                        return self::signalError('Restful tables which have no primary key must be updated using conditions given to \$argv[self::WHERE] and values to be updated given to \$argv[self::UPDATE]. No WHERE attribute given. To bypass this set `self::\$allowFullTableUpdates = true;` during the PREPROCESS events, or just directly before this request.');
 
-            } else {
+                    }
 
-                $emptyPrimary = null === $primary || [] === $primary;
+                    if (empty($argv)) {
 
-                if (false === $replace && false === self::$allowFullTableUpdates && $emptyPrimary) {
+                        return self::signalError('Restful tables which have no primary key must be updated using conditions given to \$argv[self::WHERE] and values to be updated given to \$argv[self::UPDATE]. No UPDATE attribute given.');
 
-                    return self::signalError('Restful tables which have a primary key must be updated by its primary key. To bypass this set you may set `self::\$allowFullTableUpdates = true;` during the PREPROCESS events.');
+                    }
 
-                }
+                } else {
 
-                if (is_array(static::PRIMARY)) {
+                    $emptyPrimary = null === $primary || [] === $primary;
 
-                    if (false === self::$allowFullTableUpdates || !$emptyPrimary) {
+                    if (false === $replace && false === self::$allowFullTableUpdates && $emptyPrimary) {
 
-                        if (count(array_intersect_key($primary, static::PRIMARY)) !== count(static::PRIMARY)) {
+                        return self::signalError('Restful tables which have a primary key must be updated by its primary key. To bypass this set you may set `self::\$allowFullTableUpdates = true;` during the PREPROCESS events.');
 
-                            return self::signalError('You must provide all primary keys (' . implode(', ', static::PRIMARY) . ').');
+                    }
+
+                    if (is_array(static::PRIMARY)) {
+
+                        if (false === self::$allowFullTableUpdates || !$emptyPrimary) {
+
+                            if (count(array_intersect_key($primary, static::PRIMARY)) !== count(static::PRIMARY)) {
+
+                                return self::signalError('You must provide all primary keys (' . implode(', ', static::PRIMARY) . ').');
+
+                            }
+
+                            $where = array_merge($argv, $primary);
 
                         }
 
-                        $where = array_merge($argv, $primary);
+                    } elseif (!$emptyPrimary) {
+
+                        $where = $primary;
 
                     }
-
-                } elseif (!$emptyPrimary) {
-
-                    $where = $primary;
-
-                }
-            }
-
-            foreach ($argv as $key => &$value) {
-
-                if (false === array_key_exists($key, self::$compiled_PDO_validations)) {
-
-                    return self::signalError("Restful table could not update column $key, because it does not appear to exist. Please re-run RestBuilder if you believe this is incorrect.");
-
                 }
 
-                $op = self::EQUAL;
+                foreach ($argv as $key => &$value) {
 
-                if (false === self::validateInternalColumn(self::PUT, $key, $op, $value)) {
+                    if (false === array_key_exists($key, self::$compiled_PDO_validations)) {
 
-                    return self::signalError("Your custom restful api validations caused the request to fail on column ($key).");
+                        return self::signalError("Restful table could not update column $key, because it does not appear to exist. Please re-run RestBuilder if you believe this is incorrect.");
 
-                }
-            }
-            unset($value);
-
-            $update_or_replace = $replace ? self::REPLACE : self::UPDATE;
-
-            $sql = $update_or_replace . ' '
-                . (static::QUERY_WITH_DATABASE ? static::DATABASE . '.' : '')
-                . static::TABLE_NAME . ' SET ';
-
-            $set = '';
-
-            foreach ($argv as $fullName => $value) {
-
-                $shortName = static::COLUMNS[$fullName];
-
-                $set .= "$fullName=" .
-                    ('binary' === self::$compiled_PDO_validations[$fullName][self::MYSQL_TYPE]
-                        ? "UNHEX(:$shortName),"
-                        : ":$shortName,");
-
-            }
-
-            $sql .= substr($set, 0, -1);
-
-            $pdo = self::database();
-
-            if (!$pdo->inTransaction()) {
-
-                $pdo->beginTransaction();
-
-            }
-
-            if (true === $replace) {
-
-                if (!empty($where)) {
-
-                    return self::signalError('Replace queries may not be given a where clause. Use Put instead.');
-
-                }
-
-            } else if (false === self::$allowFullTableUpdates || !empty($where)) {
-
-                if (empty($where)) {
-                    throw new PublicAlert('The where clause is required but has been detected as empty. Arguments were :: ' . json_encode(func_get_args(), JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
-                }
-
-                $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::PUT, $where, $pdo);
-
-            }
-
-            self::jsonSQLReporting(func_get_args(), $sql);
-
-            self::postpreprocessRestRequest($sql);
-
-            $stmt = $pdo->prepare($sql);
-
-            foreach (static::COLUMNS as $fullName => $shortName) {
-
-                if (array_key_exists($fullName, $argv)) {
+                    }
 
                     $op = self::EQUAL;
 
-                    if (!self::validateInternalColumn(self::PUT, $fullName, $op, $value)) {
+                    if (false === self::validateInternalColumn($key, $op, $value)) {
 
-                        return self::signalError("Your custom restful api validations caused the request to fail on column ($fullName).");
+                        return self::signalError("Your custom restful api validations caused the request to fail on column ($key).");
+
+                    }
+                }
+                unset($value);
+
+                $update_or_replace = $replace ? self::REPLACE : self::UPDATE;
+
+                $sql = $update_or_replace . ' '
+                    . (static::QUERY_WITH_DATABASE ? static::DATABASE . '.' : '')
+                    . static::TABLE_NAME . ' SET ';
+
+                $set = '';
+
+                foreach ($argv as $fullName => $value) {
+
+                    $shortName = static::COLUMNS[$fullName];
+
+                    $set .= "$fullName=" .
+                        ('binary' === self::$compiled_PDO_validations[$fullName][self::MYSQL_TYPE]
+                            ? "UNHEX(:$shortName),"
+                            : ":$shortName,");
+
+                }
+
+                $sql .= substr($set, 0, -1);
+
+                $pdo = self::database();
+
+                if (!$pdo->inTransaction()) {
+
+                    $pdo->beginTransaction();
+
+                }
+
+                if (true === $replace) {
+
+                    if (!empty($where)) {
+
+                        return self::signalError('Replace queries may not be given a where clause. Use Put instead.');
 
                     }
 
-                    if ('' === static::PDO_VALIDATION[$fullName][self::MAX_LENGTH]) { // does length exist
+                } else if (false === self::$allowFullTableUpdates || !empty($where)) {
 
-                        $value = static::PDO_VALIDATION[$fullName][self::MYSQL_TYPE] === 'json'
-                            ? json_encode($argv[$fullName])
-                            : $argv[$fullName];
+                    if (empty($where)) {
+                        throw new PublicAlert('The where clause is required but has been detected as empty. Arguments were :: ' . json_encode(func_get_args(), JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
+                    }
 
-                        $stmt->bindValue(":$shortName", $value, static::PDO_VALIDATION[$fullName][self::PDO_TYPE]);
+                    $sql .= ' WHERE ' . self::buildBooleanJoinedConditions($where, $pdo);
 
-                    } else {
+                }
 
-                        $stmt->bindParam(":$shortName", $argv[$fullName],
-                            static::PDO_VALIDATION[$fullName][self::PDO_TYPE],
-                            (int)static::PDO_VALIDATION[$fullName][self::MAX_LENGTH]);
+                self::jsonSQLReporting(func_get_args(), $sql);
+
+                self::postpreprocessRestRequest($sql);
+
+                $stmt = $pdo->prepare($sql);
+
+                foreach (static::COLUMNS as $fullName => $shortName) {
+
+                    if (array_key_exists($fullName, $argv)) {
+
+                        $op = self::EQUAL;
+
+                        if (false === self::validateInternalColumn($fullName, $op, $value)) {
+
+                            return self::signalError("Your custom restful api validations caused the request to fail on column ($fullName).");
+
+                        }
+
+                        if ('' === static::PDO_VALIDATION[$fullName][self::MAX_LENGTH]) { // does length exist
+
+                            $value = static::PDO_VALIDATION[$fullName][self::MYSQL_TYPE] === 'json'
+                                ? json_encode($argv[$fullName])
+                                : $argv[$fullName];
+
+                            $stmt->bindValue(":$shortName", $value, static::PDO_VALIDATION[$fullName][self::PDO_TYPE]);
+
+                        } else {
+
+                            $stmt->bindParam(":$shortName", $argv[$fullName],
+                                static::PDO_VALIDATION[$fullName][self::PDO_TYPE],
+                                (int)static::PDO_VALIDATION[$fullName][self::MAX_LENGTH]);
+
+                        }
 
                     }
 
                 }
 
-            }
+                self::bind($stmt);
 
-            self::bind($stmt);
+                if (false === $stmt->execute()) {
 
-            if (false === $stmt->execute()) {
+                    self::completeRest();
+
+                    return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
+
+                }
+
+                if (0 === $stmt->rowCount()) {
+
+                    return self::signalError("MySQL failed to find the target row during ($update_or_replace) on "
+                        . 'table (' . static::TABLE_NAME . ") while executing query ($sql). By default CarbonPHP passes "
+                        . 'PDO::MYSQL_ATTR_FOUND_ROWS => true, to the PDO driver; aka return the number of found (matched) rows, '
+                        . 'not the number of changed rows. Thus; if you have not manually updated these options, your issue is '
+                        . 'the target row not existing.');
+
+                }
+
+                $argv = array_combine(
+                    array_map(
+                        static fn($k) => str_replace(static::TABLE_NAME . '.', '', $k),
+                        array_keys($argv)
+                    ),
+                    array_values($argv)
+                );
+
+                $returnUpdated = array_merge($returnUpdated, $argv);
+
+                self::prepostprocessRestRequest($returnUpdated);
+
+                if (self::$commit && !Database::commit()) {
+
+                    return self::signalError('Failed to store commit transaction on table {{TableName}}');
+
+                }
+
+                self::postprocessRestRequest($returnUpdated);
 
                 self::completeRest();
 
-                return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
+                return true;
+
+            } catch (Throwable $e) {
+
+                self::handleRestException($e);
 
             }
 
-            if (0 === $stmt->rowCount()) {
+            $tries ??= 0;   // dont make this static
 
-                return self::signalError("MySQL failed to find the target row during ($update_or_replace) on "
-                    . 'table (' . static::TABLE_NAME . ") while executing query ($sql). By default CarbonPHP passes "
-                    . 'PDO::MYSQL_ATTR_FOUND_ROWS => true, to the PDO driver; aka return the number of found (matched) rows, '
-                    . 'not the number of changed rows. Thus; if you have not manually updated these options, your issue is '
-                    . 'the target row not existing.');
+        } while (3 !== $tries++);
 
-            }
-
-            $argv = array_combine(
-                array_map(
-                    static fn($k) => str_replace(static::TABLE_NAME . '.', '', $k),
-                    array_keys($argv)
-                ),
-                array_values($argv)
-            );
-
-            $returnUpdated = array_merge($returnUpdated, $argv);
-
-            self::prepostprocessRestRequest($returnUpdated);
-
-            if (self::$commit && !Database::commit()) {
-
-                return self::signalError('Failed to store commit transaction on table {{TableName}}');
-
-            }
-
-            self::postprocessRestRequest($returnUpdated);
-
-            self::completeRest();
-
-            return true;
-
-        });
+        return false;
 
     }
 
@@ -1465,8 +1609,8 @@ abstract class Rest extends Database
      */
     protected static function insert(array $data = [])
     {
-        try {
-            return self::TryCatchPDOException(static function () use ($data) {
+        do {
+            try {
 
                 self::startRest(self::POST, [], $data);
 
@@ -1553,7 +1697,7 @@ abstract class Rest extends Database
                                 ? self::beginTransaction(self::class, $data[self::DEPENDANT_ON_ENTITY] ?? null)     // clusters should really use this
                                 : self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
 
-                        } else if (false === self::validateInternalColumn(self::POST, $fullName, $op, $data[$fullName])) {
+                        } else if (false === self::validateInternalColumn($fullName, $op, $data[$fullName])) {
 
                             throw new PublicAlert("The column value of ($fullName) caused custom restful api validations for your primary key to fail (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
 
@@ -1579,7 +1723,7 @@ abstract class Rest extends Database
 
                         }
 
-                        if (!self::validateInternalColumn(self::POST, $fullName, $op, $data[$fullName])) {
+                        if (!self::validateInternalColumn($fullName, $op, $data[$fullName])) {
 
                             throw new PublicAlert("Your custom restful api validations caused the request to fail on json column ($fullName). Possible values include (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
 
@@ -1603,7 +1747,7 @@ abstract class Rest extends Database
 
                         $data[$fullName] ??= $info[self::DEFAULT_POST_VALUE];
 
-                        if (false === self::validateInternalColumn(self::POST, $fullName, $op, $data[$fullName], $data[$fullName] === $info[self::DEFAULT_POST_VALUE])) {
+                        if (false === self::validateInternalColumn($fullName, $op, $data[$fullName], $data[$fullName] === $info[self::DEFAULT_POST_VALUE])) {
 
                             return self::signalError("Your custom restful api validations caused the request to fail on column '$fullName'. (has default)");
 
@@ -1619,7 +1763,7 @@ abstract class Rest extends Database
 
                         }
 
-                        if (false === self::validateInternalColumn(self::POST, $fullName, $op, $data[$fullName], array_key_exists(self::DEFAULT_POST_VALUE, $info) ? $data[$fullName] === $info[self::DEFAULT_POST_VALUE] : false)) {
+                        if (false === self::validateInternalColumn($fullName, $op, $data[$fullName], array_key_exists(self::DEFAULT_POST_VALUE, $info) ? $data[$fullName] === $info[self::DEFAULT_POST_VALUE] : false)) {
 
                             return self::signalError("Your custom restful api validations caused the request to fail on required column '$fullName'.");
 
@@ -1679,14 +1823,17 @@ abstract class Rest extends Database
 
                 return true;
 
-            });
-        } catch (Throwable $e) {
+            } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);  // this terminates
+                self::handleRestException($e);
 
-            return false; // this will never be reached.
+            }
 
-        }
+            $tries ??= 0;   // dont make this static
+
+        } while (3 !== $tries++);
+
+        return false;
 
     }
 
@@ -1757,7 +1904,9 @@ abstract class Rest extends Database
                 ];
 
                 if (!in_array($by, $validJoins, true)) {
-                    throw new PublicAlert('The restful inner join had an unknown error.');
+
+                    throw new PublicAlert('The restful inner join had an unknown error.'); // todo - message
+
                 }
 
                 foreach ($tables as $class => $stmt) {
@@ -1768,15 +1917,15 @@ abstract class Rest extends Database
                         !class_exists($JoiningClass = static::CLASS_NAMESPACE . $class)
                         && !class_exists($JoiningClass = static::CLASS_NAMESPACE . preg_replace('/^' . preg_quote(static::TABLE_PREFIX, '/') . '/i', '', $class))
                     ) {
+
+
                         throw new PublicAlert('A table ' . $JoiningClass . ' provided in the Restful join request was not found in the system. This may mean you need to auto generate your restful tables in the CLI.');
                     }
 
                     $imp = array_map('strtolower', array_keys(class_implements($JoiningClass)));
 
                     /** @noinspection ClassConstantUsageCorrectnessInspection */
-                    if (!in_array(strtolower(iRest::class), $imp, true)
-                        && !in_array(strtolower(iRestfulReferences::class), $imp, true)
-                        && !in_array(strtolower(iRestMultiplePrimaryKeys::class), $imp, true)
+                    if (!in_array(strtolower(iRestMultiplePrimaryKeys::class), $imp, true)
                         && !in_array(strtolower(iRestSinglePrimaryKey::class), $imp, true)
                         && !in_array(strtolower(iRestNoPrimaryKey::class), $imp, true)
                     ) {
@@ -1795,8 +1944,10 @@ abstract class Rest extends Database
                         !class_exists($JoiningClass = static::CLASS_NAMESPACE . $class)
                         && !class_exists($JoiningClass = static::CLASS_NAMESPACE . preg_replace('/^' . preg_quote(static::TABLE_PREFIX, '/') . '/i', '', $class))
                     ) {
+
                         throw new PublicAlert('A table ' . $JoiningClass . ' provided in the Restful join request was not found in the system. This may mean you need to auto generate your restful tables in the CLI.');
                     }
+
 
                     $table = $JoiningClass::TABLE_NAME;
 
@@ -1808,12 +1959,14 @@ abstract class Rest extends Database
                      */
                     self::getCheckPrefix($JoiningClass::TABLE_PREFIX);
 
-                    $prefix = static::QUERY_WITH_DATABASE ? static::DATABASE . '.' : '';
+                    $prefix = static::QUERY_WITH_DATABASE ? static::DATABASE : '';
 
-                    $join .= ' ' . strtoupper($by) . ' JOIN ' . $prefix . $table . ' ON ' . self::buildBooleanJoinConditions(self::GET, $stmt, $pdo);
+                    $join .= strtoupper($by) . " JOIN $prefix.$table ON " . self::buildBooleanJoinedConditions($stmt, $pdo);
 
                 }
+
             }
+
         }
 
         // pagination [self::PAGINATION][self::LIMIT]
@@ -1833,11 +1986,11 @@ abstract class Rest extends Database
 
                     }
 
-                    $limit = ' LIMIT ' . (($argv[self::PAGINATION][self::PAGE] - 1) * $argv[self::PAGINATION][self::LIMIT]) . ',' . $argv[self::PAGINATION][self::LIMIT];
+                    $limit = 'LIMIT ' . (($argv[self::PAGINATION][self::PAGE] - 1) * $argv[self::PAGINATION][self::LIMIT]) . ',' . $argv[self::PAGINATION][self::LIMIT];
 
                 } else {
 
-                    $limit = ' LIMIT ' . $argv[self::PAGINATION][self::LIMIT];
+                    $limit = 'LIMIT ' . $argv[self::PAGINATION][self::LIMIT];
 
                 }
 
@@ -1859,17 +2012,29 @@ abstract class Rest extends Database
 
                     if (is_array($argv[self::PAGINATION][self::ORDER])) {
 
+                        /** @noinspection NotOptimalIfConditionsInspection */
+                        if (2 === count($argv[self::PAGINATION][self::ORDER])
+                            && array_key_exists(0, $argv[self::PAGINATION][self::ORDER])
+                            && array_key_exists(1, $argv[self::PAGINATION][self::ORDER])
+                            && is_string($argv[self::PAGINATION][self::ORDER][0])
+                            && is_string($argv[self::PAGINATION][self::ORDER][1])
+                        ) {
+
+                            throw new PublicAlert('The syntax used in the order by must be array( $key => $value ) pairs; not a comma `,` separated list. The (' . json_encode($argv[self::PAGINATION][self::ORDER]) . ') argument passed is not correct.');
+
+                        }
+
                         $orderArray = [];
 
                         foreach ($argv[self::PAGINATION][self::ORDER] as $item => $sort) {
 
                             if (!in_array($sort, [self::ASC, self::DESC], true)) {
 
-                                throw new PublicAlert('Restful order by failed to validate sorting method.');
+                                throw new PublicAlert('Restful order by failed to validate sorting method. The value should be one of (' . json_encode([self::ASC, self::DESC]) . ')');
 
                             }
 
-                            if (!self::validateInternalColumn(self::GET, $item, $sort)) {
+                            if (!self::validateInternalColumn($item, $sort)) {
 
                                 throw new PublicAlert("The column value ($item) caused your custom validations to fail. Possible values include (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
 
@@ -1895,7 +2060,7 @@ abstract class Rest extends Database
 
                     if ('binary' === static::PDO_VALIDATION[$primaryColumn][self::MYSQL_TYPE]) {
 
-                        $order .= static::COLUMNS[$primaryColumn] . self::DESC;
+                        $order .= static::COLUMNS[$primaryColumn] . ' ' . self::DESC;
 
                     } else {
 
@@ -1936,19 +2101,25 @@ abstract class Rest extends Database
 
             }
 
-            if (is_callable($column)) {
+            $wasCallable = false;
+
+            while (is_callable($column)) {
+
+                $wasCallable = true;
 
                 $column = $column();
 
-                if (strpos($column, '(SELECT ') === 0) {
+            }
 
-                    $sql .= $column;
+            // todo - more validation on sub-select?
+            if ($wasCallable && strpos($column, '(SELECT ') === 0) {
 
-                    continue;
+                $sql .= $column;
 
-                }
+                continue;
 
             }
+
 
             if (is_array($column)) {
 
@@ -1977,7 +2148,7 @@ abstract class Rest extends Database
 
             }
 
-            if (self::validateInternalColumn(self::GET, $column)) {
+            if (self::validateInternalColumn($column)) {
 
                 $group[] = $column;
 
@@ -2012,7 +2183,7 @@ abstract class Rest extends Database
 
             if (!empty($where)) {
 
-                $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::GET, $where, $pdo);
+                $sql .= ' WHERE ' . self::buildBooleanJoinedConditions($where, $pdo);
 
             }
 
@@ -2060,7 +2231,7 @@ abstract class Rest extends Database
 
             }
 
-            $sql .= ' WHERE ' . self::buildBooleanJoinConditions(self::GET, $primary, $pdo);
+            $sql .= ' WHERE ' . self::buildBooleanJoinedConditions($primary, $pdo);
 
         } else {
 
@@ -2076,7 +2247,7 @@ abstract class Rest extends Database
 
         $sql .= $limit;
 
-        return '(' . $sql . ')';
+        return $sql;
     }
 
 
@@ -2098,6 +2269,8 @@ abstract class Rest extends Database
 
             $sql = self::buildSelectQuery($primary, $argv, $database, $pdo, true);
 
+            $sql = "($sql)";
+
             if (!empty($as)) {
                 $sql = "$sql AS $as";
             }
@@ -2107,122 +2280,253 @@ abstract class Rest extends Database
             return $sql;
 
         };
+
+    }
+
+    protected static function addSingleConditionToWhereOrJoin(
+        string $valueOne,
+        string $operator,
+        string $valueTwo,
+        PDO $pdo,
+        string $booleanOperator): string
+    {
+
+        $key_is_custom = false === self::validateInternalColumn($valueOne, $valueTwo);
+
+        $value_is_custom = false === self::validateInternalColumn($valueTwo, $valueOne);
+
+        if ($key_is_custom && $value_is_custom) {
+
+            throw new PublicAlert("Rest failed in as you have two custom columns ($valueOne) & ($valueTwo). This may mean you need to regenerate your rest tables or have misspellings in your request. Please uses dedicated constants.");
+
+        }
+
+        if (!$key_is_custom && !$value_is_custom) {
+
+            $joinColumns[] = $valueOne; // todo - prefix by key?
+
+            $joinColumns[] = $valueTwo;
+
+            return "( $valueOne $operator $valueTwo ) $booleanOperator ";
+
+        }
+
+        if ($value_is_custom) {
+
+            $joinColumns[] = $valueOne;
+
+            if (self::$allowSubSelectQueries && strpos($valueTwo, '(SELECT ') === 0) {
+
+                return "( $valueOne $operator $valueTwo ) $booleanOperator ";
+
+            }
+
+            if (self::$compiled_PDO_validations[$valueOne][self::MYSQL_TYPE] === 'binary') {
+
+                return "( $valueOne $operator UNHEX(" . self::addInjection($valueTwo, $pdo) . " )) $booleanOperator ";
+
+            }
+
+            return "( $valueOne $operator " . self::addInjection($valueTwo, $pdo) . " ) $booleanOperator ";
+
+        }
+
+        // column is custom
+        $joinColumns[] = $valueTwo;
+
+        if (self::$compiled_PDO_validations[$valueTwo][self::MYSQL_TYPE] === 'binary') {
+
+            return "($valueTwo $operator UNHEX(" . self::addInjection($valueOne, $pdo) . ")) $booleanOperator ";
+
+        }
+
+        return '(' . self::addInjection($valueOne, $pdo) . $operator . $valueTwo . ") $booleanOperator ";
     }
 
     /**
      * It was easier for me to think of this in a recursive manner.
      * In reality we should limit our use of recursion php <= 8.^
-     * @param string $method
      * @param array $set
      * @param PDO $pdo
-     * @param string $booleanOperator
      * @return string
      * @throws PublicAlert
      */
-    protected static function buildBooleanJoinConditions(string $method, array $set, PDO $pdo, $booleanOperator = 'AND'): string
+    protected static function buildBooleanJoinedConditions(array $set, PDO $pdo): string
     {
-        $sql = '(';
+        static $booleanOperatorIsAnd = true;
+
+        $booleanOperator = $booleanOperatorIsAnd ? 'AND' : 'OR';
+
+        $sql = '';
 
         $addJoinNext = false;
 
-        $addSingleConditionToJoin = static function (string $valueOne, string $operator, string $valueTwo) use ($method, $pdo, &$booleanOperator, &$sql): void {
+        // this is designed to be different than buildAggregate
+        $supportedOperators = implode('|', [
+            self::GREATER_THAN_OR_EQUAL_TO,
+            self::GREATER_THAN,
+            self::LESS_THAN_OR_EQUAL_TO,
+            self::LESS_THAN,
+            self::EQUAL,
+            self::EQUAL_NULL_SAFE,
+            self::NOT_EQUAL,
+            self::LIKE,
+            self::NOT_LIKE,
+        ]);
 
-            $key_is_custom = false === self::validateInternalColumn($method, $valueOne, $valueTwo);
+        $array_of_strings_and_int_keys = static function (array &$a): bool {
 
-            $value_is_custom = false === self::validateInternalColumn($method, $valueTwo, $valueOne);
+            if (empty($a)) {
 
-            if ($key_is_custom && $value_is_custom) {
-
-                throw new PublicAlert("Rest failed in as you have two custom columns ($valueOne && $valueTwo). This may mean you need to regenerate your rest tables or have misspellings in your request. Please uses dedicated constants.");
-
-            }
-
-            if (!$key_is_custom && !$value_is_custom) {
-
-                $joinColumns[] = $valueOne; // todo - prefix by key?
-
-                $joinColumns[] = $valueTwo;
-
-                $sql .= '(' . $valueOne . $operator . $valueTwo . ") $booleanOperator ";
-
-                return;
+                return true;
 
             }
 
-            if ($value_is_custom) {
-                $joinColumns[] = $valueOne;
+            foreach ($a as $key => &$value) {
 
-                if (self::$allowSubSelectQueries && strpos($valueTwo, '(SELECT ') === 0) {
+                while (is_callable($value)) {
 
-                    $sql .= "($valueOne $operator $valueTwo ) $booleanOperator ";
-
-                    return;
+                    $value = $value();
 
                 }
 
-                if (self::$compiled_PDO_validations[$valueOne][self::MYSQL_TYPE] === 'binary') {
+                if (false === is_int($key)
+                    || false === is_string($value)) {
 
-                    $sql .= "($valueOne $operator UNHEX(" . self::addInjection($valueTwo, $pdo) . ")) $booleanOperator ";
-
-                    return;
+                    return false;
 
                 }
 
-                $sql .= '(' . $valueOne . $operator . self::addInjection($valueTwo, $pdo) . ") $booleanOperator ";
-
-                return;
-
             }
 
-            // column is custom
-            $joinColumns[] = $valueTwo;
-
-            if (self::$compiled_PDO_validations[$valueTwo][self::MYSQL_TYPE] === 'binary') {
-
-                $sql .= "($valueTwo $operator UNHEX(" . self::addInjection($valueOne, $pdo) . ")) $booleanOperator ";
-
-                return;
-
-            }
-
-            $sql .= '(' . self::addInjection($valueOne, $pdo) . $operator . $valueTwo . ") $booleanOperator ";
+            return true;
 
         };
 
-        foreach ($set as $column => $value) {
+        if (true === $array_of_strings_and_int_keys($set)) {
 
-            if (is_callable($value)) {
+            switch (count($set)) {
 
-                $value = $value();              // todo - validation and injection logic here.
+                case 0:
 
-            }
+                    throw new PublicAlert('An empty array was passed as a leaf member of a condition. Nested arrays recursively flip the AND vs OR joining conditional. Multiple conditions are not required. If only one condition is needed, the two may be asserted equal implicitly by placing them in positions one and two of the array. An explicit definition may see the second $position[1] equal one of  (' . $supportedOperators . ')');
 
-            if ($addJoinNext) {
+                case 1:
 
-                $sql .= " $booleanOperator ";
+                    $key = array_key_first($set);
 
-            }
+                    throw new PublicAlert("The single value ({$set[$key]}) has the numeric array key [$key] which may imply a conditional equality; however, numeric keys (implicit or explicit) to imply equality are not allowed. Please reorder the condition to have a string key and numeric value.");
 
-            if (is_array($value)) {                         /// do we intemperate as a boolean switch or custom operation (w/ optional operation)
+                case 2:
 
-                $supportedOperators = implode('|', [
-                    self::GREATER_THAN_OR_EQUAL_TO,
-                    self::GREATER_THAN,
-                    self::LESS_THAN_OR_EQUAL_TO,
-                    self::LESS_THAN,
-                    self::EQUAL,
-                    self::EQUAL_NULL_SAFE,
-                    self::NOT_EQUAL
-                ]);
+                    $sql .= self::addSingleConditionToWhereOrJoin($set[0], self::EQUAL, $set[1], $pdo, $booleanOperator);
+
+                    break;
+
+                case 3:
+
+                    if (!((bool)preg_match('#^' . $supportedOperators . '$#', $set[1]))) { // ie #^=|>=|<=$#
+
+                        throw new PublicAlert("Restful column joins may only use one of the following ($supportedOperators) the value ({$set[1]}) is not supported.");
+
+                    }
+
+                    $sql .= self::addSingleConditionToWhereOrJoin($set[0], $set[1], $set[2], $pdo, $booleanOperator);
+
+                    break;
+
+                default:
+
+                    throw new PublicAlert('An array containing all numeric keys was found with (' . count($set) . ') values. Only exactly two or three values maybe given.');
+
+            } // end switch
+
+        } else {
+
+            // we know not
+            foreach ($set as $column => $value) {
+
+                if ($addJoinNext) {
+
+                    $sql .= " $booleanOperator ";
+
+                }
+
+                if (is_int($column)) {
+
+                    $addJoinNext = true;
+
+                    $booleanOperatorIsAnd = !$booleanOperatorIsAnd;
+
+                    $sql .= self::buildBooleanJoinedConditions($value, $pdo);
+
+                    $booleanOperatorIsAnd = !$booleanOperatorIsAnd;
+
+                    continue;
+                }
+
+                if (false === is_array($value)) {                         /// do we intemperate as a boolean switch or custom operation (w/ optional operation)
+
+                    $addJoinNext = false;
+
+                    $sql .= self::addSingleConditionToWhereOrJoin($column, self::EQUAL, $value, $pdo, $booleanOperator);
+
+                    continue;
+
+                }
+
+
+                if (false === is_string($column)) {
+
+                    // todo - im out of wifi but im 99% sure if column is not an int it must be a string
+                    throw new PublicAlert("An unexpected error has occurred to which a column was not and int or string.");
+
+                }
+
+
+                if (count($value) !== 2) {
+
+                    throw new PublicAlert("A rest key column value ($value) was set to an array");
+
+                }
 
                 switch (count($value)) {
-                    case 2:
-                        if (!array_key_exists(0, $value) || !is_string($value[0])
-                            || !array_key_exists(1, $value) || !is_string($value[1])) {
+
+                    default:
+
+                        if (is_int($column)) {
 
                             $addJoinNext = true;
 
-                            $sql .= self::buildBooleanJoinConditions($method, $value, $pdo, $booleanOperator === 'AND' ? 'OR' : 'AND');
+                            $booleanOperatorIsAnd = !$booleanOperatorIsAnd;
+
+                            $sql .= self::buildBooleanJoinedConditions($value, $pdo);
+
+                            $booleanOperatorIsAnd = !$booleanOperatorIsAnd;
+
+                            break;
+                        }
+
+                        throw new PublicAlert('Restful conditions across two columns (during JOIN or WHERE) must be populated with two or three array values with column names, or an appropriate joining operator and column names. An invalid value was seen :: "' . json_encode($value, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR) . '"');
+
+                    case 0:
+
+                        throw new PublicAlert('An empty array was passed as a leaf member of a condition. Nested arrays recursively flip the AND vs OR joining conditional. Multiple conditions are not required. If only one condition is needed, the two may be asserted equal implicitly by placing them in positions one and two of the array. An explicit definition may see the second $position[1] equal one of  (' . $supportedOperators . ')');
+
+                    case 2:
+
+                        if (true === array_key_exists(0, $value)
+                            && true === array_key_exists(1, $value)
+                            && true === is_string($value[0])
+                            && true === is_string($value[1])) {
+
+                            $addJoinNext = true;
+
+                            $booleanOperatorIsAnd = !$booleanOperatorIsAnd;
+
+                            $sql .= self::buildBooleanJoinedConditions($value, $pdo);
+
+                            $booleanOperatorIsAnd = !$booleanOperatorIsAnd;
 
                             break;
 
@@ -2232,7 +2536,7 @@ abstract class Rest extends Database
 
                             if (!((bool)preg_match('#^' . $supportedOperators . '$#', $value[0]))) { // ie #^=|>=|<=$#
 
-                                throw new PublicAlert('Restful column joins may only use one (=,>=, or <=).');
+                                throw new PublicAlert("Restful column joins may only use one ($supportedOperators).");
 
                             }
 
@@ -2242,11 +2546,11 @@ abstract class Rest extends Database
 
                             }
 
-                            $addSingleConditionToJoin($column, $value[0], $value[1]);
+                            $sql .= self::addSingleConditionToWhereOrJoin($column, $value[0], $value[1], $pdo, $booleanOperator);
 
                         } else {
 
-                            $addSingleConditionToJoin($value[0], self::EQUAL, $value[1]);
+                            $sql .= self::addSingleConditionToWhereOrJoin($value[0], self::EQUAL, $value[1], $pdo, $booleanOperator);
 
                         }
 
@@ -2256,9 +2560,17 @@ abstract class Rest extends Database
                         if (!array_key_exists(0, $value) || !is_string($value[0])
                             || !array_key_exists(1, $value) || !is_string($value[1])
                             || !array_key_exists(2, $value) || !is_string($value[2])) {
+
                             $addJoinNext = true;
-                            $sql .= self::buildBooleanJoinConditions($method, $value, $pdo, $booleanOperator === 'AND' ? 'OR' : 'AND');
+
+                            $booleanOperatorIsAnd = !$booleanOperatorIsAnd;
+
+                            $sql .= self::buildBooleanJoinedConditions($value, $pdo);
+
+                            $booleanOperatorIsAnd = !$booleanOperatorIsAnd;
+
                             break;
+
                         }
 
                         if (!is_string($value[0]) || !is_string($value[1]) || !is_string($value[2])) {
@@ -2269,40 +2581,33 @@ abstract class Rest extends Database
 
                         if (!((bool)preg_match('#^' . $supportedOperators . '$#', $value[1]))) { // ie #^=|>=|<=$#
 
-                            throw new PublicAlert('Restful column joins may only use one (=,>=, or <=).');
+                            throw new PublicAlert("Restful column joins may only use one of the following ($supportedOperators) the value ({$value[1]}) is not supported.");
 
                         }
 
-                        $addSingleConditionToJoin($value[0], $value[1], $value[2]);
+                        $sql .= self::addSingleConditionToWhereOrJoin($value[0], $value[1], $value[2], $pdo, $booleanOperator);
 
                         break;
 
-                    default:
-                        if (is_int($column)) {
 
-                            $addJoinNext = true;
+                } // end switch
 
-                            $sql .= self::buildBooleanJoinConditions($method, $value, $pdo, $booleanOperator === 'AND' ? 'OR' : 'AND');
 
-                            break;
-                        }
 
-                        throw new PublicAlert('Restful joins across two tables must be populated with two or three array values with column names, or an appropriate joining operator and column names. An invalid value was seen :: "' . json_encode($value, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR) . '"');
 
-                }
 
-                // end switch
-                continue;
+            } // end foreach
 
-            } // end is_array
+        }
 
-            $addJoinNext = false;
+        // while these two look appealing do not waist your time..
+        // brave have tried, tests will help you fail
+        /// trim ($sql, '()')
+        #while ($sql[0] === '(' && $sql[-1] === ')') {
+        #    $sql = substr($sql, 1, -1);
+        #}
 
-            $addSingleConditionToJoin($column, self::EQUAL, $value);
-
-        } // end foreach
-
-        return preg_replace("/\s$booleanOperator\s?$/", '', $sql) . ')';
+        return '(' . preg_replace("/\s$booleanOperator\s?$/", '', $sql) . ')';
 
     }
 
@@ -2478,7 +2783,7 @@ abstract class Rest extends Database
         }
     }
 
-    public static function addInjection($value, PDO $pdo, array $pdo_column_validation = null): string
+    public static function addInjection($value, PDO $pdo = null, array $pdo_column_validation = null): string
     {
 
         $inject = ':injection' . count(self::$injection);
@@ -2495,7 +2800,7 @@ abstract class Rest extends Database
 
             default:
 
-                self::$injection[$inject] = $pdo->quote($value);        // boolean, string
+                self::$injection[$inject] = ($pdo ?? Database::database())->quote($value);        // boolean, string
 
         }
 

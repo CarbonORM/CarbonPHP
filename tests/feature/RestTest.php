@@ -50,8 +50,7 @@ final class RestTest extends Config
 
     /**
      * @param string $key
-     * @throws PublicAlert
-     */
+\     */
     private function KeyExistsAndRemove(string $key): void
     {
         $store = [];
@@ -70,10 +69,6 @@ final class RestTest extends Config
 
     }
 
-
-    /**
-     * @throws PublicAlert
-     */
     public function testRestApiCanPostAndDelete(): void
     {
         // Should return a unique hex id
@@ -91,10 +86,6 @@ final class RestTest extends Config
 
     }
 
-
-    /**
-     * @throws PublicAlert
-     */
     public function testRestApiCanGet(): void
     {
         $return = [];

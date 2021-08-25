@@ -318,7 +318,7 @@ class ErrorCatcher
 
                 }
 
-                Database::verify('Check that all database commit chains have finished successfully. You may need to self::commit().');     // Check that all database commit chains have finished successfully, otherwise attempt to remove
+                Database::verify();     // Check that all database commit chains have finished successfully, otherwise attempt to remove
 
                 return $argv;
             }
@@ -502,7 +502,7 @@ class ErrorCatcher
             $browserOutput = [];
 
 
-            ColorCode::colorCode('The Global (set_error_handler || set_exception_handler) Handler has been invoked.', iColorCode::CYAN);
+            ColorCode::colorCode('The Global Error (set_error_handler) Handler has been invoked.', iColorCode::CYAN);
 
             // refer to link on this one
             /*if (!(error_reporting() & $errorLevel)) {
@@ -577,6 +577,8 @@ class ErrorCatcher
          */
         $exception_handler = static function (Throwable $exception) {
 
+            ColorCode::colorCode('The Global Exception (set_error_handler) Handler has been invoked.', iColorCode::CYAN);
+
             $browserOutput = ['Exception Handler' => 'CarbonPHP Generated This Report.'];
 
             self::generateLog($exception, false, null, $browserOutput, iColorCode::YELLOW);
@@ -626,7 +628,7 @@ class ErrorCatcher
      *  The following functions point to this method by passing the arguments on via redirection.
      *  The required method signatures are different, so it is important that we do not type hint this function.
      *
-     *  The options to make this signatures unique are compelling, but not essential.
+     *  The options to make this signatures unique are compelling, but df essential.
      *
      *  set_error_handler
      *  set_exception_handler

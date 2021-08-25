@@ -61,22 +61,33 @@ IDENTIFIED;
         $c = CarbonPHP::$configuration;
 
         if ($cnfFile !== null) {
+
             self::$mysql = $cnfFile;
+
             return $cnfFile;
+
         }
 
         if (!empty(self::$mysql)) {
+
             return self::$mysql;
+
         }
 
         if (empty($c['SITE']['CONFIG'])) {
+
             print 'The [\'SITE\'][\'CONFIG\'] option is missing. It should have the value __FILE__. This helps with debugging.' . PHP_EOL;
+
             exit(1);
+
         }
 
         if (empty($c['DATABASE']['DB_USER'])) {
+
             print 'You must set [\'DATABASE\'][\'DB_USER\'] in the "' . $c['SITE']['CONFIG'] . '".  Run `>> php index.php setup` to fix this.' . PHP_EOL;
+
             exit(1);
+
         }
 
         if (empty($c['DATABASE']['DB_HOST'])) {
@@ -120,11 +131,14 @@ IDENTIFIED;
      */
     public static function MySQLDump(string $mysqldump = null, bool $data = false): string
     {
-        $c = CarbonPHP::$configuration;
+
         $cmd = ($mysqldump ?? 'mysqldump') . ' --defaults-extra-file="' . self::buildCNF() . '" '
-            . ($data ? '' : '--no-data ') . $c['DATABASE']['DB_NAME'] . ' > "' . CarbonPHP::$app_root . 'mysqldump.sql"';
+            . ($data ? '' : '--no-data ') . CarbonPHP::$configuration['DATABASE']['DB_NAME'] . ' > "' . CarbonPHP::$app_root . 'mysqldump.sql"';
+
         Background::executeAndCheckStatus($cmd);
+
         return self::$mysqldump = CarbonPHP::$app_root . 'mysqldump.sql';
+
     }
 
 

@@ -40,21 +40,6 @@ trait ColorCode
 
         $message = sprintf($colors[$color], $message);
 
-        if (CarbonPHP::$test) {
-
-            /**
-             * The code below doesn't seem to hold. print is needed to pass tests
-             * @link https://stackoverflow.com/questions/21784240/is-there-any-way-to-expect-output-to-error-log-in-phpunit-tests
-             * @noinspection ForgottenDebugOutputInspection
-             * $current = ini_set('error_log', '/dev/stdout'); // use this rather than const as const is not defined in all run time envs
-             * error_log($colorCodex);
-             * ini_set('error_log', $current);
-             */
-            print $message . PHP_EOL;
-
-            return;
-        }
-
         /** @noinspection ForgottenDebugOutputInspection */
         error_log($message);    // do not double quote args passed here
 
