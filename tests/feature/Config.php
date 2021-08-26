@@ -20,9 +20,11 @@ abstract class Config extends TestCase
 
     public const ADMIN_PASSWORD = 'adminadmin';
 
-    public static function setupServerVariables(): void   // todo - wut
+    public static function setupServerVariables(): void   // todo - what is needed
     {
+
         CarbonPHP::$safelyExit = true;  // We just want the env to load, not route life :)
+
         $_SERVER = array_merge($_SERVER, $_SERVER = [
             'SCRIPT_FILENAME' => __FILE__,  // added for wp compatibility
             'REMOTE_ADDR' => '::1',
@@ -46,6 +48,7 @@ abstract class Config extends TestCase
             'HTTP_ACCEPT_LANGUAGE' => 'en-US,en;q=0.9',
             'HTTP_COOKIE' => 'PHPSESSID=gn4amaq3el5giekaboa29q27gp;',
         ]);
+
     }
 
     public function setUp() : void /* The :void return type declaration that should be here would cause a BC issue */
@@ -92,18 +95,6 @@ abstract class Config extends TestCase
         if (false === (include SERVER_ROOT . 'wp-load.php')) {     // Load the autoload() for composer dependencies located in the Services folder
             die("Failed to load wordpress.");
         }
-    }
-
-    public function commit(callable $lambda = null): bool
-    {
-        $commit = new class extends Database {
-            public function testCommit(callable $lambda = null): bool
-            {
-                /** @noinspection MissUsingParentKeywordInspection */
-                return parent::commit($lambda);
-            }
-        };
-        return $commit->testCommit($lambda);
     }
 
 }

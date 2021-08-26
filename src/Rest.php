@@ -122,7 +122,7 @@ abstract class Rest extends Database
     public static bool $allowFullTableDeletes = false;
 
     /**
-     * Rest constructor. Avoid this if possible.
+     * @warning Rest constructor. Avoid this if possible.
      * This is complex, but if the value is modified in the original array it will be modified in the instantiated
      *  object by reference. The call time is slightly slower but your server will thank you when you start editing these
      *  values // recompiling to send. Really try to avoid looping through an array and using new. Refer to php manual
@@ -383,6 +383,81 @@ abstract class Rest extends Database
 
     }
 
+    public static function runCustomCallables(&$column, string &$operator = null, &$value = null, bool $default = false)
+    {
+
+        $method = self::$REST_REQUEST_METHOD;
+
+        self::$VALIDATED_REST_COLUMNS[] = $column;  // to prevent recursion.
+
+        if (null !== $value && $default === false) {
+
+            // this is just a test for the bool
+            $equalsValidColumn = self::validateInternalColumn($value, $column);
+
+            if (false === $equalsValidColumn
+                && array_key_exists($column, self::$compiled_regex_validations)
+                && 1 > preg_match_all(self::$compiled_regex_validations[$column], $value, $matches, PREG_SET_ORDER)) {  // can return 0 or false
+
+                throw new PublicAlert("The column ($column) was set to be compared with a value who did not pass the regex test. Please check this value and try again.");
+
+            }
+            // todo - add injection logic here // double down on aggregate placement (low priority as it's done elsewhere)
+        }
+
+        // run validation on the whole request give column now exists
+        /** @noinspection NotOptimalIfConditionsInspection */
+        if (!in_array($column, self::$VALIDATED_REST_COLUMNS, true)
+            && (self::$compiled_PHP_validations[self::REST_REQUEST_PREPROCESS_CALLBACKS][$column] ?? false)) {
+
+            if (!is_array(self::$compiled_PHP_validations[self::PREPROCESS][$column])) {
+
+                throw new PublicAlert('The value of [' . self::PREPROCESS . '][' . $column . '] should equal an array. See Carbonphp.com for more info.');
+
+            }
+
+            self::runValidations(self::$compiled_PHP_validations[self::PREPROCESS][$column]);
+        }
+
+        // run validation on each condition
+        if ((self::$compiled_PHP_validations[$column] ?? false) && is_array(self::$compiled_PHP_validations[$column])) {
+
+            if ($operator === null) {
+                self::runValidations(self::$compiled_PHP_validations[$column]);
+
+            } elseif ($operator === self::ASC || $operator === self::DESC) {
+
+                self::runValidations(self::$compiled_PHP_validations[$column], $operator);
+
+            } else {
+
+                self::runValidations(self::$compiled_PHP_validations[$column], $operator, $value);
+
+            }
+
+        }
+
+        // run validation on each condition
+        if ((self::$compiled_PHP_validations[$method][$column] ?? false) && is_array(self::$compiled_PHP_validations[$method][$column])) {
+
+            if ($operator === null) {
+
+                self::runValidations(self::$compiled_PHP_validations[$method][$column]);
+
+            } elseif ($operator === self::ASC || $operator === self::DESC) {
+
+                self::runValidations(self::$compiled_PHP_validations[$method][$column], $operator);
+
+            } else {
+
+                self::runValidations(self::$compiled_PHP_validations[$method][$column], $operator, $value);
+
+            }
+
+        }
+
+    }
+
     /**
      * returns true if it is a column name that exists and all user validations pass.
      * return is false otherwise.
@@ -396,79 +471,6 @@ abstract class Rest extends Database
      */
     public static function validateInternalColumn(&$column, string &$operator = null, &$value = null, bool $default = false): bool
     {
-        $runCustomCallables = static function () use (&$column, &$operator, &$value, $default): void {
-
-            $method = Rest::$REST_REQUEST_METHOD;
-
-            self::$VALIDATED_REST_COLUMNS[] = $column;  // to prevent recursion.
-
-            if (null !== $value && $default === false) {
-
-                // this is just a test for the bool
-                $equalsValidColumn = self::validateInternalColumn($value, $column);
-
-                if (false === $equalsValidColumn
-                    && array_key_exists($column, self::$compiled_regex_validations)
-                    && 1 > preg_match_all(self::$compiled_regex_validations[$column], $value, $matches, PREG_SET_ORDER)) {  // can return 0 or false
-
-                    throw new PublicAlert("The column ($column) was set to be compared with a value who did not pass the regex test. Please check this value and try again.");
-
-                }
-                // todo - add injection logic here // double down on aggregate placement (low priority as it's done elsewhere)
-            }
-
-            // run validation on the whole request give column now exists
-            /** @noinspection NotOptimalIfConditionsInspection */
-            if (!in_array($column, self::$VALIDATED_REST_COLUMNS, true)
-                && (self::$compiled_PHP_validations[self::REST_REQUEST_PREPROCESS_CALLBACKS][$column] ?? false)) {
-
-                if (!is_array(self::$compiled_PHP_validations[self::PREPROCESS][$column])) {
-
-                    throw new PublicAlert('The value of [' . self::PREPROCESS . '][' . $column . '] should equal an array. See Carbonphp.com for more info.');
-
-                }
-
-                self::runValidations(self::$compiled_PHP_validations[self::PREPROCESS][$column]);
-            }
-
-            // run validation on each condition
-            if ((self::$compiled_PHP_validations[$column] ?? false) && is_array(self::$compiled_PHP_validations[$column])) {
-
-                if ($operator === null) {
-                    self::runValidations(self::$compiled_PHP_validations[$column]);
-
-                } elseif ($operator === self::ASC || $operator === self::DESC) {
-
-                    self::runValidations(self::$compiled_PHP_validations[$column], $operator);
-
-                } else {
-
-                    self::runValidations(self::$compiled_PHP_validations[$column], $operator, $value);
-
-                }
-
-            }
-
-            // run validation on each condition
-            if ((self::$compiled_PHP_validations[$method][$column] ?? false) && is_array(self::$compiled_PHP_validations[$method][$column])) {
-
-                if ($operator === null) {
-
-                    self::runValidations(self::$compiled_PHP_validations[$method][$column]);
-
-                } elseif ($operator === self::ASC || $operator === self::DESC) {
-
-                    self::runValidations(self::$compiled_PHP_validations[$method][$column], $operator);
-
-                } else {
-
-                    self::runValidations(self::$compiled_PHP_validations[$method][$column], $operator, $value);
-
-                }
-
-            }
-
-        };
 
         if (!is_string($column) && !is_int($column)) {
 
@@ -478,7 +480,7 @@ abstract class Rest extends Database
 
         if (array_key_exists($column, self::$compiled_PDO_validations)) {      // allow short tags
 
-            $runCustomCallables();
+            self::runCustomCallables($column, $operator, $value, $default);
 
             return true;
 
@@ -488,7 +490,7 @@ abstract class Rest extends Database
 
             $column = $key; // adds table name.
 
-            $runCustomCallables();
+            self::runCustomCallables($column, $operator, $value, $default);
 
             return true;
 
@@ -948,7 +950,7 @@ abstract class Rest extends Database
 
             if (false === headers_sent()) {
 
-                header('Content-Type: application/json');
+                header('Content-Type: application/json', true, 200);
 
             }
 
@@ -2261,6 +2263,7 @@ abstract class Rest extends Database
      */
     public static function subSelect($primary = null, array $argv = [], string $as = '', PDO $pdo = null, string $database = ''): callable
     {
+
         return static function () use ($primary, $argv, $as, $database, $pdo): string {
 
             self::$allowSubSelectQueries = true;
@@ -2287,8 +2290,7 @@ abstract class Rest extends Database
         string $valueOne,
         string $operator,
         string $valueTwo,
-        PDO $pdo,
-        string $booleanOperator): string
+        PDO $pdo): string
     {
 
         $key_is_custom = false === self::validateInternalColumn($valueOne, $valueTwo);
@@ -2307,7 +2309,7 @@ abstract class Rest extends Database
 
             $joinColumns[] = $valueTwo;
 
-            return "( $valueOne $operator $valueTwo ) $booleanOperator ";
+            return "$valueOne $operator $valueTwo";
 
         }
 
@@ -2317,17 +2319,17 @@ abstract class Rest extends Database
 
             if (self::$allowSubSelectQueries && strpos($valueTwo, '(SELECT ') === 0) {
 
-                return "( $valueOne $operator $valueTwo ) $booleanOperator ";
+                return "$valueOne $operator $valueTwo";
 
             }
 
             if (self::$compiled_PDO_validations[$valueOne][self::MYSQL_TYPE] === 'binary') {
 
-                return "( $valueOne $operator UNHEX(" . self::addInjection($valueTwo, $pdo) . " )) $booleanOperator ";
+                return "$valueOne $operator UNHEX(" . self::addInjection($valueTwo, $pdo) . ")";
 
             }
 
-            return "( $valueOne $operator " . self::addInjection($valueTwo, $pdo) . " ) $booleanOperator ";
+            return "$valueOne $operator " . self::addInjection($valueTwo, $pdo);
 
         }
 
@@ -2336,11 +2338,11 @@ abstract class Rest extends Database
 
         if (self::$compiled_PDO_validations[$valueTwo][self::MYSQL_TYPE] === 'binary') {
 
-            return "($valueTwo $operator UNHEX(" . self::addInjection($valueOne, $pdo) . ")) $booleanOperator ";
+            return "$valueTwo $operator UNHEX(" . self::addInjection($valueOne, $pdo) . ")";
 
         }
 
-        return '(' . self::addInjection($valueOne, $pdo) . $operator . $valueTwo . ") $booleanOperator ";
+        return self::addInjection($valueOne, $pdo) . " $operator $valueTwo";
     }
 
     /**
@@ -2359,8 +2361,6 @@ abstract class Rest extends Database
 
         $sql = '';
 
-        $addJoinNext = false;
-
         // this is designed to be different than buildAggregate
         $supportedOperators = implode('|', [
             self::GREATER_THAN_OR_EQUAL_TO,
@@ -2374,7 +2374,7 @@ abstract class Rest extends Database
             self::NOT_LIKE,
         ]);
 
-        $array_of_strings_and_int_keys = static function (array &$a): bool {
+        $array_of_numeric_keys_and_string_or_int_values = static function (array &$a): bool {
 
             if (empty($a)) {
 
@@ -2390,8 +2390,9 @@ abstract class Rest extends Database
 
                 }
 
-                if (false === is_int($key)
-                    || false === is_string($value)) {
+                if (false === is_numeric($key)
+                    || (false === is_string($value)
+                        && false === is_int($value))) {
 
                     return false;
 
@@ -2403,7 +2404,7 @@ abstract class Rest extends Database
 
         };
 
-        if (true === $array_of_strings_and_int_keys($set)) {
+        if (true === $array_of_numeric_keys_and_string_or_int_values($set)) {
 
             switch (count($set)) {
 
@@ -2419,7 +2420,7 @@ abstract class Rest extends Database
 
                 case 2:
 
-                    $sql .= self::addSingleConditionToWhereOrJoin($set[0], self::EQUAL, $set[1], $pdo, $booleanOperator);
+                    $sql .= self::addSingleConditionToWhereOrJoin($set[0], self::EQUAL, $set[1], $pdo);
 
                     break;
 
@@ -2431,7 +2432,7 @@ abstract class Rest extends Database
 
                     }
 
-                    $sql .= self::addSingleConditionToWhereOrJoin($set[0], $set[1], $set[2], $pdo, $booleanOperator);
+                    $sql .= self::addSingleConditionToWhereOrJoin($set[0], $set[1], $set[2], $pdo);
 
                     break;
 
@@ -2443,6 +2444,7 @@ abstract class Rest extends Database
 
         } else {
 
+            $addJoinNext = false;
             // we know not
             foreach ($set as $column => $value) {
 
@@ -2450,11 +2452,19 @@ abstract class Rest extends Database
 
                     $sql .= " $booleanOperator ";
 
+                } else {
+
+                    $addJoinNext = true;
+
                 }
 
                 if (is_int($column)) {
 
-                    $addJoinNext = true;
+                    if (false === is_array($value)) {
+
+                        throw new PublicAlert("Rest boolean condition builder expected ($value) to be an array as it has a numeric key in the set :: " . json_encode($set));
+
+                    }
 
                     $booleanOperatorIsAnd = !$booleanOperatorIsAnd;
 
@@ -2463,18 +2473,16 @@ abstract class Rest extends Database
                     $booleanOperatorIsAnd = !$booleanOperatorIsAnd;
 
                     continue;
+
                 }
 
                 if (false === is_array($value)) {                         /// do we intemperate as a boolean switch or custom operation (w/ optional operation)
 
-                    $addJoinNext = false;
-
-                    $sql .= self::addSingleConditionToWhereOrJoin($column, self::EQUAL, $value, $pdo, $booleanOperator);
+                    $sql .= self::addSingleConditionToWhereOrJoin($column, self::EQUAL, $value, $pdo);
 
                     continue;
 
                 }
-
 
                 if (false === is_string($column)) {
 
@@ -2484,117 +2492,24 @@ abstract class Rest extends Database
                 }
 
 
-                if (count($value) !== 2) {
+                $count = count($value);
 
-                    throw new PublicAlert("A rest key column value ($value) was set to an array");
+                if ($count !== 2) {
+
+                    throw new PublicAlert("A rest key column value ($value) was set to an array with ($count) "
+                        . "values but requires exactly two. Boolean comparisons can use one of the following operators "
+                        . "($supportedOperators). The same comparison can be made with an empty (aka default numeric) key "
+                        . "and three array entries :: [  Column,  Operator, (Operand|Column2) ]. Both ways are made equally for your personal preference.");
 
                 }
 
-                switch (count($value)) {
+                if (!((bool)preg_match('#^' . $supportedOperators . '$#', $value[0]))) { // ie #^=|>=|<=$#
 
-                    default:
+                    throw new PublicAlert("Restful column joins may only use one ($supportedOperators).");
 
-                        if (is_int($column)) {
+                }
 
-                            $addJoinNext = true;
-
-                            $booleanOperatorIsAnd = !$booleanOperatorIsAnd;
-
-                            $sql .= self::buildBooleanJoinedConditions($value, $pdo);
-
-                            $booleanOperatorIsAnd = !$booleanOperatorIsAnd;
-
-                            break;
-                        }
-
-                        throw new PublicAlert('Restful conditions across two columns (during JOIN or WHERE) must be populated with two or three array values with column names, or an appropriate joining operator and column names. An invalid value was seen :: "' . json_encode($value, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR) . '"');
-
-                    case 0:
-
-                        throw new PublicAlert('An empty array was passed as a leaf member of a condition. Nested arrays recursively flip the AND vs OR joining conditional. Multiple conditions are not required. If only one condition is needed, the two may be asserted equal implicitly by placing them in positions one and two of the array. An explicit definition may see the second $position[1] equal one of  (' . $supportedOperators . ')');
-
-                    case 2:
-
-                        if (true === array_key_exists(0, $value)
-                            && true === array_key_exists(1, $value)
-                            && true === is_string($value[0])
-                            && true === is_string($value[1])) {
-
-                            $addJoinNext = true;
-
-                            $booleanOperatorIsAnd = !$booleanOperatorIsAnd;
-
-                            $sql .= self::buildBooleanJoinedConditions($value, $pdo);
-
-                            $booleanOperatorIsAnd = !$booleanOperatorIsAnd;
-
-                            break;
-
-                        }
-
-                        if (is_string($column) && !is_numeric($column)) {
-
-                            if (!((bool)preg_match('#^' . $supportedOperators . '$#', $value[0]))) { // ie #^=|>=|<=$#
-
-                                throw new PublicAlert("Restful column joins may only use one ($supportedOperators).");
-
-                            }
-
-                            if (!is_string($value[1])) {
-
-                                throw new PublicAlert('A value parsed during a boolean join condition was not correct. String expected as second value while creating aggregation.');
-
-                            }
-
-                            $sql .= self::addSingleConditionToWhereOrJoin($column, $value[0], $value[1], $pdo, $booleanOperator);
-
-                        } else {
-
-                            $sql .= self::addSingleConditionToWhereOrJoin($value[0], self::EQUAL, $value[1], $pdo, $booleanOperator);
-
-                        }
-
-                        break;
-
-                    case 3:
-                        if (!array_key_exists(0, $value) || !is_string($value[0])
-                            || !array_key_exists(1, $value) || !is_string($value[1])
-                            || !array_key_exists(2, $value) || !is_string($value[2])) {
-
-                            $addJoinNext = true;
-
-                            $booleanOperatorIsAnd = !$booleanOperatorIsAnd;
-
-                            $sql .= self::buildBooleanJoinedConditions($value, $pdo);
-
-                            $booleanOperatorIsAnd = !$booleanOperatorIsAnd;
-
-                            break;
-
-                        }
-
-                        if (!is_string($value[0]) || !is_string($value[1]) || !is_string($value[2])) {
-
-                            throw new PublicAlert('One or more of the array values provided in the restful JOIN condition are not strings.');
-
-                        }
-
-                        if (!((bool)preg_match('#^' . $supportedOperators . '$#', $value[1]))) { // ie #^=|>=|<=$#
-
-                            throw new PublicAlert("Restful column joins may only use one of the following ($supportedOperators) the value ({$value[1]}) is not supported.");
-
-                        }
-
-                        $sql .= self::addSingleConditionToWhereOrJoin($value[0], $value[1], $value[2], $pdo, $booleanOperator);
-
-                        break;
-
-
-                } // end switch
-
-
-
-
+                $sql .= self::addSingleConditionToWhereOrJoin($column, $value[0], $value[1], $pdo);
 
             } // end foreach
 
@@ -2603,11 +2518,10 @@ abstract class Rest extends Database
         // while these two look appealing do not waist your time..
         // brave have tried, tests will help you fail
         /// trim ($sql, '()')
-        #while ($sql[0] === '(' && $sql[-1] === ')') {
-        #    $sql = substr($sql, 1, -1);
-        #}
 
-        return '(' . preg_replace("/\s$booleanOperator\s?$/", '', $sql) . ')';
+        $sql = preg_replace("/\s$booleanOperator\s?$/", '', $sql);
+
+        return "($sql)";
 
     }
 
