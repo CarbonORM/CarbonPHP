@@ -20,7 +20,9 @@ class ExternalRestTest extends Config
 {
     public function testGenerateCorrectDistinctCountAndThreeArgumentBooleanConditionsUsingIntAndStringSql(): void
     {
+
         try {
+
             $_GET = [
                 Rest::SELECT => [
                     [Rest::COUNT, Photos::PHOTO_PATH, 'countCustomNamed'],

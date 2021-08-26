@@ -928,7 +928,7 @@ FOOT;
 
             }
 
-            self::addTablePrefix($tableName, $table::TABLE_PREFIX, $preUpdateSQL);
+            self::addTablePrefix($tableName, $fullyQualifiedClassName::TABLE_PREFIX, $preUpdateSQL);
 
             $table_regex = "#CREATE\s+TABLE\s`$tableName`(.|\s)+?(?=ENGINE=)#";
 
