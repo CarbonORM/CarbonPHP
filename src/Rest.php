@@ -803,6 +803,7 @@ abstract class Rest extends Database
         $prefix = CarbonPHP::$configuration[CarbonPHP::REST][CarbonPHP::TABLE_PREFIX] ?? '';
 
         try {
+
             $mainTable = ucwords($mainTable, '_');
 
             if (!class_exists($namespace . $mainTable)
@@ -822,12 +823,6 @@ abstract class Rest extends Database
                 case self::GET:
 
                     if (array_key_exists(0, $_GET)) {
-
-                        if (ctype_xdigit($_GET[0])) {
-
-                            $_GET[0] = pack('H*', $_GET[0]);
-
-                        }
 
                         $_GET = json_decode(stripcslashes($_GET[0]), true, JSON_THROW_ON_ERROR);
 
@@ -1184,10 +1179,12 @@ abstract class Rest extends Database
 
                         }
 
+                        /** @noinspection SlowArrayOperationsInLoopInspection */
                         $argv = array_merge($argv, $primary); // todo - this is a good point. were looping and running and array merge..
 
                     } elseif (is_string(static::PRIMARY) && !$emptyPrimary) {
 
+                        /** @noinspection SlowArrayOperationsInLoopInspection */
                         $argv = array_merge($argv, $primary);
 
                     }
@@ -1292,7 +1289,6 @@ abstract class Rest extends Database
 
                 $sql = self::buildSelectQuery($primary, $argv, static::QUERY_WITH_DATABASE ? static::DATABASE : '', $pdo);
 
-
                 self::jsonSQLReporting(func_get_args(), $sql);
 
                 self::postpreprocessRestRequest($sql);
@@ -1300,7 +1296,6 @@ abstract class Rest extends Database
                 $stmt = $pdo->prepare($sql);
 
                 self::bind($stmt);
-
 
                 if (!$stmt->execute()) {
 
@@ -1961,9 +1956,9 @@ abstract class Rest extends Database
                      */
                     self::getCheckPrefix($JoiningClass::TABLE_PREFIX);
 
-                    $prefix = static::QUERY_WITH_DATABASE ? static::DATABASE : '';
+                    $prefix = static::QUERY_WITH_DATABASE ? static::DATABASE . '.' : '';   // its super important to do this period on this line
 
-                    $join .= strtoupper($by) . " JOIN $prefix.$table ON " . self::buildBooleanJoinedConditions($stmt, $pdo);
+                    $join .= strtoupper($by) . " JOIN $prefix$table ON " . self::buildBooleanJoinedConditions($stmt, $pdo);
 
                 }
 
