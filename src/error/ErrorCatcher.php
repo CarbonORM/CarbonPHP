@@ -16,8 +16,7 @@ use ReflectionMethod;
 use Throwable;
 
 /**
- * TODO - we cant SEND public alerts in this class ever
- *
+ * This is really an Error and Exception handler
  *
  * Class ErrorCatcher
  * @package CarbonPHP\Error
@@ -733,47 +732,6 @@ class ErrorCatcher
 
         $log_array['$GLOBALS[\'json\']'] = CarbonPHP::$cli ? $json : $pre(json_encode($json, JSON_PRETTY_PRINT) ?: serialize($json));
 
-        $storeReportToFile = self::$storeReport === true || self::$storeReport === 'file';
-
-        if ($storeReportToFile) {
-
-            try {
-
-                if (!is_dir(CarbonPHP::$reports) && !mkdir($concurrentDirectory = CarbonPHP::$reports) && !is_dir($concurrentDirectory)) {
-
-                    error_log($message = 'Failed storing to custom log. The directory could not be found or created :: ' . CarbonPHP::$reports);
-
-                    $log_array['[C6] ISSUE'] = $message;
-
-                } else {
-
-                    $file = fopen($fileName = CarbonPHP::$reports . 'Log_' . time() . '.log', 'ab');
-
-                    if (!\is_resource($file)) {
-
-                        error_log($message = 'Failed writing to log to file. The file could not opened :: ' . $fileName);
-
-                        $log_array['[C6] ISSUE'] = $message;
-
-                    } else if (!fwrite($file, $cliOutput)) {
-
-                        error_log($message = 'Failed writing to log to file. The file could not be written to :: ' . $fileName);
-
-                        $log_array['[C6] ISSUE'] = $message;
-
-                    }
-
-                    fclose($file);
-
-                }
-
-            } catch (Throwable $e) {
-
-            } finally {
-
-            } // NO MATTER WHAT.. continue
-        }
-
         if (self::$storeReport === true || self::$storeReport === 'database') {
 
             if (Database::$carbonDatabaseInitialized) {
@@ -858,6 +816,21 @@ class ErrorCatcher
                         REDIRECT;
 
                 } else {
+
+                    if (false === headers_sent()) {
+
+                        $code = $log_array['CODE'] ?? false;
+
+                        if (false === $code || false === is_numeric($color)) {
+
+                            $code = 500;
+
+                        }
+
+
+                        header('Content-Type:text/html', true, $code);
+
+                    }
 
                     print $html_error_log;  // todo - we are cli and were printing the html log?  CarbonPHP::$cli
 
@@ -1057,12 +1030,6 @@ DESCRIPTION;
         if ('' !== $public_root) {
 
             $public_root = '/' . $public_root;
-
-        }
-
-        if (false === headers_sent()) {
-
-            header('Content-Type:text/html', true, $code);
 
         }
 

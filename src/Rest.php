@@ -30,8 +30,10 @@ abstract class Rest extends Database
     public const EQUAL_NULL_SAFE = '<=>';
     public const FULL_OUTER = 'FULL OUTER';
     public const GREATER_THAN = '>';
+    public const GROUP_BY = 'GROUP_BY';
     public const GROUP_CONCAT = 'GROUP_CONCAT';
     public const GREATER_THAN_OR_EQUAL_TO = '>=';
+    public const HAVING = 'HAVING';
     public const HEX = 'HEX';
     public const INNER = 'INNER';
     public const INSERT = 'INSERT';
@@ -123,7 +125,7 @@ abstract class Rest extends Database
 
     /**
      * @warning Rest constructor. Avoid this if possible.
-     * This is complex, but if the value is modified in the original array it will be modified in the instantiated
+     * If the value is modified in the original array or this `static` object it will be modified in the instantiated
      *  object by reference. The call time is slightly slower but your server will thank you when you start editing these
      *  values // recompiling to send. Really try to avoid looping through an array and using new. Refer to php manual
      *  as to why arrays will help your dev.
@@ -214,7 +216,8 @@ abstract class Rest extends Database
 
         }
 
-        if (($mustInterface === iRestSinglePrimaryKey::class || $mustInterface === null) && in_array(iRestSinglePrimaryKey::class, class_implements($fullyQualifiedRestClassName), true)) {
+        if (($mustInterface === iRestSinglePrimaryKey::class || $mustInterface === null)
+            && in_array(iRestSinglePrimaryKey::class, class_implements($fullyQualifiedRestClassName), true)) {
 
             if (!in_array(iRestSinglePrimaryKey::class, class_implements($custom_prefix_carbon_table), true)) {
 
@@ -383,7 +386,7 @@ abstract class Rest extends Database
 
     }
 
-    public static function runCustomCallables(&$column, string &$operator = null, &$value = null, bool $default = false)
+    public static function runCustomCallables(&$column, string &$operator = null, &$value = null, bool $default = false): void
     {
 
         $method = self::$REST_REQUEST_METHOD;
@@ -423,6 +426,7 @@ abstract class Rest extends Database
         if ((self::$compiled_PHP_validations[$column] ?? false) && is_array(self::$compiled_PHP_validations[$column])) {
 
             if ($operator === null) {
+
                 self::runValidations(self::$compiled_PHP_validations[$column]);
 
             } elseif ($operator === self::ASC || $operator === self::DESC) {
@@ -1834,7 +1838,7 @@ abstract class Rest extends Database
 
     }
 
-    protected static function getCheckPrefix($table_prefix): void
+    protected static function checkPrefix($table_prefix): void
     {
 
         $prefix = CarbonPHP::$configuration[CarbonPHP::REST][CarbonPHP::TABLE_PREFIX] ?? '';
@@ -1954,7 +1958,7 @@ abstract class Rest extends Database
                      * The following check is so CarbonPHP internal tables can be compatible with table prefixing.
                      * It also ensures the table you are joining has been generated correctly for your current build.
                      */
-                    self::getCheckPrefix($JoiningClass::TABLE_PREFIX);
+                    self::checkPrefix($JoiningClass::TABLE_PREFIX);
 
                     $prefix = static::QUERY_WITH_DATABASE ? static::DATABASE . '.' : '';   // its super important to do this period on this line
 
@@ -2089,7 +2093,6 @@ abstract class Rest extends Database
 
         }
 
-
         foreach ($get as $key => $column) {
 
             if (!empty($sql) && ',' !== $sql[-2]) {
@@ -2167,12 +2170,6 @@ abstract class Rest extends Database
 
         }
 
-        /**
-         * The table prefix is normally included int the TABLE_NAME constant.
-         * The only time prefix is not an empty string is when a CarbonPHP table is
-         **/
-        self::getCheckPrefix(static::TABLE_PREFIX);
-
         // case sensitive select
         $sql = 'SELECT ' . $sql . ' FROM ' . ($database === '' ? '' : $database . '.') . static::TABLE_NAME . ' ' . $join;
 
@@ -2236,6 +2233,7 @@ abstract class Rest extends Database
 
         }
 
+        // GROUP BY clause can only be used with aggregate functions like SUM, AVG, COUNT, MAX, and MIN.
         if ($aggregate && !empty($group)) {
 
             $sql .= ' GROUP BY ' . implode(', ', $group) . ' ';
@@ -2590,7 +2588,7 @@ abstract class Rest extends Database
         &$primary = null,
         bool $subQuery = false): void
     {
-        self::getCheckPrefix(static::TABLE_PREFIX);
+        self::checkPrefix(static::TABLE_PREFIX);
 
         if (self::$REST_REQUEST_METHOD !== null) {
             self::$activeQueryStates[] = [
@@ -2772,8 +2770,8 @@ abstract class Rest extends Database
         foreach ($php_validation as $key => $validation) {
 
             if (!is_int($key)) {
-                // This would indicated a column value explicitly on pre or post method.
 
+                // This would indicated a column value explicitly on pre or post method.
                 continue;
 
             }

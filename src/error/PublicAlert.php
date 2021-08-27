@@ -126,10 +126,17 @@ class PublicAlert extends CustomException {
      */
     public function __construct($message = null, $code = 'warning')
     {
+
         if (!empty($message)) {
+
+            $message = 'Whoa, a Public Alert was thrown without a message attached. This is awful.';
+
             static::alert($message, $code);
+
         }
+
         parent::__construct($message, 0);
+
     }
 
     /** Allow for even more customization alerts on runtime.

@@ -1111,7 +1111,7 @@ FOOT;
 
             self::colorCode("Attempting to create table ($table_name).");
 
-            if (!self::execute($sql)) {
+            if (false === self::execute($sql)) {
 
                 throw new PublicAlert('Failed to update table :: ' . $table_name);
 
@@ -1130,6 +1130,7 @@ FOOT;
         } else if (CarbonPHP::$cli) {
 
             self::colorCode('Table `' . $table_name . '` already exists');
+
         } else {
 
             print '<br>Table `' . $table_name . '` already exists';

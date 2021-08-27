@@ -25,8 +25,6 @@ class Wordpress
 /** Adding composer to our base setup */
 const DS = DIRECTORY_SEPARATOR;
 
-define('DIG_WP_START_TIME', microtime(true));
-
 if (false === include __DIR__ . DS . 'vendor' . DS . 'autoload.php') {
     // Load the autoload() for composer dependencies located in the Services folder
     print '<h1>Try running <code>>> composer run rei</code></h1>';
