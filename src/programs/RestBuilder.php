@@ -461,7 +461,7 @@ END;
 
                             $skipTable = true;
 
-                            continue 2;
+                            continue 2; /// break out of the foreach and switch
 
                         }
 
@@ -469,15 +469,24 @@ END;
 
                             $validation = file_get_contents($validation);
 
-                            preg_match_all('#public const VALIDATE_AFTER_REBUILD\s?=\s?false;#', $validation, $matches);
+                            if (0 === strpos($etn, 'carbon_')) {    // as this would mean the table is prefixed
 
-                            if (isset($matches[0][0])) {
+                                $rest[$tableName]['DONT_VALIDATE_AFTER_REBUILD'] = true;
 
-                                $rest[$tableName]['DONT_VALIDATE_AFTER_REBUILD'] = $matches[0][0];
+                            } else {
+
+                                preg_match_all('#public const VALIDATE_AFTER_REBUILD\s?=\s?false;#', $validation, $matches);
+
+                                if (isset($matches[0][0])) {
+
+
+                                    $rest[$tableName]['DONT_VALIDATE_AFTER_REBUILD'] = $matches[0][0];
+
+                                }
 
                             }
 
-                            preg_match_all('#public const REGEX_VALIDATION\s?=\s? \[(.|\n)*?];(?=(\s|\n)+(public|protected|private|/\*))#', $validation, $matches);
+                            preg_match_all('#public const REGEX_VALIDATION\s*=\s*\[(.|\n)*?];(?=(\s|\n)+(public|protected|private|/\*))#', $validation, $matches);
 
                             if (isset($matches[0][0])) {
 
@@ -485,7 +494,7 @@ END;
 
                             }
 
-                            preg_match_all('#public const PHP_VALIDATION\s?=\s? \[(.|\n)*?];(?=(\s|\n)+(public|protected|private|/\*))#', $validation, $matches);
+                            preg_match_all('#public const PHP_VALIDATION\s*=\s*\[(.|\n)*?];(?=(\s|\n)+(public|protected|private|/\*))#', $validation, $matches);
 
                             if (isset($matches[0][0])) {
 
@@ -493,7 +502,7 @@ END;
 
                             }
 
-                            preg_match_all('#public const REFRESH_SCHEMA\s?=\s? \[(.|\n)*?];(?=(\s|\n)+(public|protected|private|/\*))#', $validation, $matches);
+                            preg_match_all('#public const REFRESH_SCHEMA\s*=\s*\[(.|\n)*?];(?=(\s|\n)+(public|protected|private|/\*))#', $validation, $matches);
 
                             if (isset($matches[0][0])) {
 
