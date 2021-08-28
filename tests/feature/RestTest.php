@@ -32,7 +32,7 @@ final class RestTest extends Config
 
     public static function createUser(): string
     {
-        self::assertInternalType('string', $uid = Users::Post([
+        self::assertIsString($uid = Users::Post([
             Users::USER_TYPE => 'Athlete',
             Users::USER_IP => '127.0.0.1',
             Users::USER_SPORT => 'GOLF',
@@ -72,7 +72,7 @@ final class RestTest extends Config
     public function testRestApiCanPostAndDelete(): void
     {
         // Should return a unique hex id
-        self::assertIsString(Carbons::Post([Carbons::ENTITY_TAG => self::class]));
+        self::assertIsString($key = Carbons::Post([Carbons::ENTITY_TAG => self::class]));
 
         $ref = [];
 
