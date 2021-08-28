@@ -72,7 +72,7 @@ final class RestTest extends Config
     public function testRestApiCanPostAndDelete(): void
     {
         // Should return a unique hex id
-        self::assertInternalType('string', $key = Carbons::Post([Carbons::ENTITY_TAG => self::class]));
+        self::assertIsString(Carbons::Post([Carbons::ENTITY_TAG => self::class]));
 
         $ref = [];
 
@@ -95,7 +95,7 @@ final class RestTest extends Config
 
         ])));
 
-        self::assertInternalType('array', $return);
+        self::assertIsArray($return);
 
         self::assertNotEmpty($return);
 
@@ -238,7 +238,7 @@ final class RestTest extends Config
 
         $uid = self::createUser();
 
-        self::assertInternalType('string', $lid = Locations::Post([
+        self::assertIsString($lid = Locations::Post([
             Locations::CITY => 'Grapevine',
             Locations::STATE => 'Texas',
             Locations::ZIP => 76051
@@ -439,8 +439,6 @@ final class RestTest extends Config
 
         self::assertEmpty($user, 'Could not delete user admin in cascade delete function.');
 
-        self::assertInternalType('array', $user, 'Delete functions did not clear provided array to 
-        empty array.');
 
 
         self::assertTrue(Users::Get($user, null, [

@@ -52,7 +52,7 @@ final class UserTest extends Config
             $this->testUserCanBeDeleted();
         }
 
-        self::assertInternalType('string', $id = Users::Post([
+        self::assertIsString($id = Users::Post([
             Users::USER_TYPE => 'Athlete',
             Users::USER_IP => '127.0.0.1',
             Users::USER_SPORT => 'GOLF',
@@ -87,7 +87,7 @@ final class UserTest extends Config
                 ]
             ));
 
-        self::assertInternalType('array', $this->user);
+        self::assertIsArray($this->user);
 
         self::assertArrayHasKey(
             Users::COLUMNS[Users::USER_EMAIL],
