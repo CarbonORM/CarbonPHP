@@ -788,9 +788,9 @@ class ErrorCatcher
 
         $html_error_log = self::generateBrowserReport($log_array, $return);
 
-        if ($storeReportToFile) {
+        if (self::$storeReport === true || self::$storeReport === 'file') {
 
-            $log_file = 'logs/ErrorCatcherReport.' . session_id() . '.' . microtime(true) . '.' . getmypid() . '.html';
+            $log_file = 'logs/ErrorCatcherReport.' . ($_SESSION['id'] ?? 'guest'). '.' . session_id() . '.' . microtime(true) . '.' . getmypid() . '.html';
 
             $log_saved = true;
 
