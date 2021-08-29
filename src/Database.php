@@ -979,10 +979,13 @@ FOOT;
             if ([] !== $changesOne || $changesTwo !== []) {
 
                 ColorCode::colorCode('Oh No! After running the database updated it looks like the sql found in'
-                    . " the mysql dump file did not match the expected. Please note the regex to match ($regex)."
-                    . "Any updates done to the database should be automated in the $tableName::REFRESH_SCHEMA[] definition. "
-                    . "If this is not a table you manage, but rather 3rd-party generated, you should change ($tableName::VALIDATE_AFTER_REBUILD = false;) and re-try. "
-                    . 'To update your table using REFRESH_SCHEMA, please refer to the documentation that is been provided'
+                    . " the mysql dump file did not match the expected. Please note the regex to match ($regex). This is "
+                    . " to imply that database engine and charset are not captured or compared. The engine is automattically "
+                    . " converted to INNODB if built with this Restful generator. Any updates done to the database should be automated in the $fullyQualifiedClassName::REFRESH_SCHEMA[] definition. "
+                    . "If this is not a table you manage, but rather 3rd-party generated, you should change "
+                    . "($fullyQualifiedClassName::VALIDATE_AFTER_REBUILD = false;) and re-try; this can aslo be set to "
+                    . ' false if you would like to manage table definition(s) using other means.'
+                    . ' To update your table using REFRESH_SCHEMA, please refer to the documentation that is been provided'
                     . " above this constant in the php class for $tableName. If the new SQL appears correct you probably"
                     . " just need to re-run the RestBuilder program (not the database rebuild program currently raising error). The offending SQL::\n", iColorCode::RED);
 
@@ -1105,7 +1108,17 @@ FOOT;
 
         }
 
-        $sql = preg_replace("#([^a-z_])({$table_name}[^a-z_])#i", '$1' . $prefix . '$2', $sql);
+        $sql = preg_replace(["#([^a-z_])({$table_name}[^a-z_])#i", "#([^a-z_])(carbon_carbons[^a-z_])#i"],
+            '$1' . $prefix . '$2', $sql);
+
+        if (false !== strpos($sql, "`$table_name`")
+            || false !== strpos($sql, "`carbon_carbons`")) {
+
+            self::colorCode('Preg_replace failed to add prefix to table.', iColorCode::RED);
+
+            exit(1);
+
+        }
 
         $table_name = $prefix . $table_name;
 

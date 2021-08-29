@@ -1409,17 +1409,17 @@ export interface  i{{ucEachTableName}}{
     private function restTemplateStaticNameSpace(): array
     {
         return [
-            'use CarbonPHP\Database;',
-            'use CarbonPHP\Error\PublicAlert;',
+            #'use CarbonPHP\Database;',
+            #'use CarbonPHP\Error\PublicAlert;',
             'use CarbonPHP\Helpers\RestfulValidations;',
             'use CarbonPHP\Rest;',
-            'use JsonException;',
+            #'use JsonException;',
             'use PDO;',
-            'use PDOException;',
-            'use function array_key_exists;',
-            'use function count;',
-            'use function func_get_args;',
-            'use function is_array;'
+            #'use PDOException;',
+            #'use function array_key_exists;',
+            #'use function count;',
+            #'use function func_get_args;',
+            #'use function is_array;'
         ];
     }
 
