@@ -845,7 +845,7 @@ FOOT;
 
     public static function scanAndRunRefreshDatabase(string $tableDirectory): void
     {
-        static $validatedTables;
+        static $validatedTables = [];
 
         ColorCode::colorCode("\n\nScanning and running refresh database using ('$tableDirectory' . '*.php')");
 
