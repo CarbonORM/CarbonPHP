@@ -152,7 +152,7 @@ FOOT;
      * @param PDOException $e
      * @return mixed|bool|string|object - the return of the passed callable
      */
-    public static function TryCatchPDOException(PDOException $e) : void
+    public static function TryCatchPDOException(PDOException $e): void
     {
 
         $error_array = ErrorCatcher::generateLog($e, true);
@@ -845,6 +845,8 @@ FOOT;
 
     public static function scanAndRunRefreshDatabase(string $tableDirectory): void
     {
+        static $validatedTables;
+
         ColorCode::colorCode("\n\nScanning and running refresh database using ('$tableDirectory' . '*.php')");
 
         self::scanAnd(static function (string $table): void {
@@ -929,6 +931,16 @@ FOOT;
             }
 
             self::addTablePrefix($tableName, $fullyQualifiedClassName::TABLE_PREFIX, $preUpdateSQL);
+
+            if (in_array($tableName, $validatedTables, true)) {
+
+                self::colorCode("The table [C6] ($tableName) has already been validated. Skipping...");
+
+                continue;
+
+            }
+
+            $validatedTables[] = $tableName;
 
             $table_regex = "#CREATE\s+TABLE\s`$tableName`(.|\s)+?(?=ENGINE=)#";
 
@@ -1093,7 +1105,7 @@ FOOT;
 
         }
 
-        $sql = preg_replace("#([^a-z_])({$table_name}[^a-z_])#i", '$1'. $prefix . '$2', $sql);
+        $sql = preg_replace("#([^a-z_])({$table_name}[^a-z_])#i", '$1' . $prefix . '$2', $sql);
 
         $table_name = $prefix . $table_name;
 
