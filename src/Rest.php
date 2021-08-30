@@ -2199,7 +2199,7 @@ abstract class Rest extends Database
 
             if (!empty($where)) {
 
-                throw new PublicAlert('Restful tables with a single primary key must not have WHERE values passed when the primary key is given. Table ' . static::class . ' was passed a non empty key `WHERE` to the arguments of GET.');
+                throw new PublicAlert('Restful tables with a single primary key must not have WHERE values passed when the primary key is given. Table ' . static::class . ' was passed a non empty key `WHERE` (' . json_encode($where, JSON_PRETTY_PRINT) . ') to the arguments of GET.');
 
             }
 

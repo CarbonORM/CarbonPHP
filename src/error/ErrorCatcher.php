@@ -416,15 +416,10 @@ class ErrorCatcher
 
         }
 
-        if (CarbonPHP::$cli || CarbonPHP::$socket) {
-
-            self::closeStdoutStderrAndExit(1);
-
-        }
-
-
         // try resetting to the default page if conditions correct, we've already generated a log and optionally printed
         if (!CarbonPHP::$setupComplete) {
+
+            header('Content-Type:text/html', true, $code);
 
             print $error_page;
 
@@ -444,6 +439,8 @@ class ErrorCatcher
             self::closeStdoutStderrAndExit(1);
 
         }
+
+        header('Content-Type:text/html', true, $code);
 
         print $error_page;
 
@@ -786,7 +783,7 @@ class ErrorCatcher
 
         self::colorCode($message, $color);
 
-        $html_error_log = self::generateBrowserReport($log_array, $return);
+        $html_error_log = self::generateBrowserReport($log_array, true);
 
         if (self::$storeReport === true || self::$storeReport === 'file') {
 

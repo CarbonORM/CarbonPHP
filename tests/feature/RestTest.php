@@ -600,6 +600,7 @@ final class RestTest extends Config
     public function testRestApiCanUseJson(): void
     {
         $ignore = [];
+
         $condition = 'ME';
 
         self::assertTrue(History_Logs::Delete($ignore, [
@@ -611,7 +612,6 @@ final class RestTest extends Config
             History_Logs::HISTORY_TABLE => $condition,
             History_Logs::HISTORY_UUID => $UUID = Carbons::Post([])
         ]));
-
 
         // Should return a unique hex id
         self::assertTrue(History_Logs::Put($ignore, [
@@ -634,9 +634,6 @@ final class RestTest extends Config
                 Rest::ORDER => [History_Logs::HISTORY_TIME => Rest::ASC]
             ]
         ]));
-
-
-
 
         self::assertCount(6, $return);
 
