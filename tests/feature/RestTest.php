@@ -350,6 +350,7 @@ final class RestTest extends Config
      */
     public function testRestApiCanSubQuery(): void
     {
+        global $json;
 
         $user = [];
         self::assertTrue(Carbons::Get($user, null, [
@@ -373,7 +374,7 @@ final class RestTest extends Config
             ]
         ]));
 
-        self::assertNotEmpty($user, 'Could not get user admin via sub query.');
+        self::assertNotEmpty($user, 'Could not get user admin via sub query. ' . json_encode($json));
 
         self::assertArrayHasKey(Carbons::COLUMNS[Carbons::ENTITY_PK], $user);
 

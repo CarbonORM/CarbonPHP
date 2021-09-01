@@ -102,7 +102,6 @@ class Database
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 HEAD;
 
-
     /*
      * Must be used in conjunction with REMOVE_MYSQL_FOREIGN_KEY_CHECKS
      */
@@ -120,7 +119,7 @@ FOOT;
 
     public static function database(): PDO
     {
-        if (null === self::$database) {
+        if (null === self::$database) { // todo - can we get the ini of mysql timeout?
 
             return static::reset();
 
@@ -850,6 +849,7 @@ FOOT;
         ColorCode::colorCode("\n\nScanning and running refresh database using ('$tableDirectory' . '*.php')");
 
         self::scanAnd(static function (string $table): void {
+
             if (defined("$table::REFRESH_SCHEMA")) {
 
                 self::runRefreshSchema($table::REFRESH_SCHEMA);

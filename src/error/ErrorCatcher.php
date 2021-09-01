@@ -824,7 +824,6 @@ class ErrorCatcher
 
                         }
 
-
                         header('Content-Type:text/html', true, $code);
 
                     }

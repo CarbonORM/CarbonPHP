@@ -142,6 +142,8 @@ final class UserTest extends Config
      */
     public function testUserCanBeDeleted(): void
     {
+        global $json;
+
         $this->user = [];
 
         Users::Get($this->user, null, [
@@ -174,7 +176,7 @@ final class UserTest extends Config
             ]
         ]);
 
-        self::assertEmpty($this->user, 'Failed asserting delete removed the user :: ' . json_encode($GLOBALS['json'] ?? [], JSON_PRETTY_PRINT));
+        self::assertEmpty($this->user, 'Failed asserting delete removed the user :: ' . json_encode($json));
 
     }
 

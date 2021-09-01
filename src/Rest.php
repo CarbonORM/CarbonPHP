@@ -30,8 +30,8 @@ abstract class Rest extends Database
     public const EQUAL_NULL_SAFE = '<=>';
     public const FULL_OUTER = 'FULL OUTER';
     public const GREATER_THAN = '>';
-    public const GROUP_BY = 'GROUP_BY';
-    public const GROUP_CONCAT = 'GROUP_CONCAT';
+    public const GROUP_BY = 'GROUP BY';
+    public const GROUP_CONCAT = 'GROUP CONCAT';
     public const GREATER_THAN_OR_EQUAL_TO = '>=';
     public const HAVING = 'HAVING';
     public const HEX = 'HEX';
@@ -118,6 +118,12 @@ abstract class Rest extends Database
     public static bool $allowSubSelectQueries = false;
     public static bool $externalRestfulRequestsAPI = false;
     public static bool $jsonReport = true;
+
+
+    //
+    public static array $namedAsReferenceInjections = [];
+    public static bool $aggregateEncountered = false;
+
 
     // False for external and internal requests by default. If a primary key exists you should always attempt to use it.
     public static bool $allowFullTableUpdates = false;
@@ -960,14 +966,50 @@ abstract class Rest extends Database
         return true;
     }
 
+    private static function isAggregateArray(array $array): bool
+    {
+
+        if (false === array_key_exists(0, $array) ||
+            false === array_key_exists(1, $array) ||
+            count($array) > 3) {
+
+            return false;
+
+        }
+
+        if ($array[1] === self::AS) {
+
+            return true;
+
+        }
+
+        if (in_array($array[0], [
+            self::MAX,
+            self::MIN,
+            self::SUM,
+            self::HEX,
+            self::UNHEX,
+            self::DISTINCT,
+            self::GROUP_CONCAT,
+            self::COUNT,
+        ], true)) {
+
+            return true;
+
+        }
+
+        return false;
+
+    }
+
     /**
      * @param $stmt
      * @param $sql
      * @param array $group
-     * @param bool $noHEX
+     * @param bool $isSubSelect
      * @throws PublicAlert
      */
-    private static function buildAggregate(array $stmt, string &$sql, array &$group = [], bool $noHEX = false): void
+    private static function buildAggregate(array $stmt, bool $isSubSelect = false): string
     {
         $name = '';
 
@@ -985,7 +1027,7 @@ abstract class Rest extends Database
 
             if (count($stmt) !== 2) {
 
-                throw new PublicAlert('An array in the GET Restful Request must be two values: [aggregate, column]');
+                throw new PublicAlert('A Restful array value in the aggregation must be at least two values: array( $aggregate, $column [, optional: $as] ) ');
 
             }
 
@@ -993,19 +1035,19 @@ abstract class Rest extends Database
 
         }
 
-        if (!in_array($aggregate, $aggregateArray = [
-            self::AS,
-            self::MAX,
-            self::MIN,
-            self::SUM,
-            self::HEX,
-            self::UNHEX,
-            self::DISTINCT,
-            self::GROUP_CONCAT,
-            self::COUNT,
-        ], true)) {
+        if (false === in_array($aggregate, $aggregateArray = [
+                self::AS,
+                self::MAX,
+                self::MIN,
+                self::SUM,
+                self::HEX,
+                self::UNHEX,
+                self::DISTINCT,
+                self::GROUP_CONCAT,
+                self::COUNT,
+            ], true)) {
 
-            throw new PublicAlert('The aggregate method in the GET request must be one of the following: '
+            throw new PublicAlert('The aggregate ( ' . json_encode($stmt) . ') method in the GET request must be one of the following: '
                 . implode(', ', $aggregateArray));
 
         }
@@ -1016,13 +1058,15 @@ abstract class Rest extends Database
 
         }
 
-        if (!empty($name)) {
+        if ('' !== $name) {
 
-            $name = self::addInjection($name);
+            // this is just a technicality as name could be injected but also referenced in the query
+            $name = self::addInjection($name, [self::PDO_TYPE => null]);
 
         }
 
         switch ($aggregate) {
+
             case self::AS:
 
                 if (empty($name)) {
@@ -1031,19 +1075,13 @@ abstract class Rest extends Database
 
                 }
 
-                if (!$noHEX && self::$compiled_PDO_validations[$column][self::MYSQL_TYPE] === 'binary') {
+                if (!$isSubSelect && self::$compiled_PDO_validations[$column][self::MYSQL_TYPE] === 'binary') {
 
-                    $sql = "HEX($column) $aggregate $name," . $sql;
-
-                } else {
-
-                    $sql = "$column $aggregate $name, " . $sql;
+                    return "HEX($column) $aggregate $name";
 
                 }
 
-                $sql = rtrim($sql, ', ');
-
-                break;
+                return "$column $aggregate $name";
 
             case self::GROUP_CONCAT:
 
@@ -1053,19 +1091,13 @@ abstract class Rest extends Database
 
                 }
 
-                if (!$noHEX && self::$compiled_PDO_validations[$column][self::MYSQL_TYPE] === 'binary') {
+                if (!$isSubSelect && self::$compiled_PDO_validations[$column][self::MYSQL_TYPE] === 'binary') {
 
-                    $sql = "GROUP_CONCAT(DISTINCT HEX($column) ORDER BY $column ASC SEPARATOR ',') AS $name, $sql";
-
-                } else {
-
-                    $sql = "GROUP_CONCAT(DISTINCT($column) ORDER BY $column ASC SEPARATOR ',') AS $name, $sql";
+                    return "GROUP_CONCAT(DISTINCT HEX($column) ORDER BY $column ASC SEPARATOR ',') AS $name";
 
                 }
 
-                $sql = rtrim($sql, ', ');
-
-                break;
+                return "GROUP_CONCAT(DISTINCT($column) ORDER BY $column ASC SEPARATOR ',') AS $name";
 
             case self::DISTINCT:
 
@@ -1075,37 +1107,23 @@ abstract class Rest extends Database
 
                 }
 
-                if (!$noHEX && self::$compiled_PDO_validations[$column][self::MYSQL_TYPE] === 'binary') {
+                if (!$isSubSelect && self::$compiled_PDO_validations[$column][self::MYSQL_TYPE] === 'binary') {
 
-                    $sql = "$aggregate HEX($column) AS $name, $sql";
-
-                    $group[] = self::$compiled_valid_columns[$column];
-
-                } else {
-
-                    $sql = "$aggregate($column) AS $name, $sql";
-
-                    $group[] = $column;
+                    return "$aggregate HEX($column) AS $name";
 
                 }
 
-                $sql = rtrim($sql, ', ');
-
-                break;
+                return "$aggregate($column) AS $name";
 
             default:
 
                 if ($name === '') {
 
-                    $sql .= "$aggregate($column)";
-
-                } else {
-
-                    $sql .= "$aggregate($column) AS $name";
+                    return "$aggregate($column)";
 
                 }
 
-                $group[] = $column;
+                return "$aggregate($column) AS $name";
 
         }
 
@@ -1146,7 +1164,9 @@ abstract class Rest extends Database
                 if (static::CARBON_CARBONS_PRIMARY_KEY) {
 
                     if (is_array(static::PRIMARY)) {
+
                         throw new PublicAlert('Tables which use carbon for indexes should not have composite primary keys.');
+
                     }
 
                     $table_prefix = static::TABLE_PREFIX === Carbons::TABLE_PREFIX ? '' : static::TABLE_PREFIX;
@@ -1154,12 +1174,12 @@ abstract class Rest extends Database
                     $sql = self::DELETE . ' c FROM ' . $query_database_name . $table_prefix . 'carbon_carbons c JOIN ' . $table_name . ' on c.entity_pk = ' . static::PRIMARY;
 
                     if (false === self::$allowFullTableDeletes || !empty($argv)) {
-                        $sql .= ' WHERE ' . self::buildBooleanJoinedConditions($argv, $pdo);
+                        $sql .= ' WHERE ' . self::buildBooleanJoinedConditions($argv);
                     }
 
                 } else {
 
-                    $sql = self::DELETE . ' FROM ' . $table_name;
+                    $sql = self::DELETE . ' FROM ' . $table_name . ' ';
 
                     if (false === self::$allowFullTableDeletes && $emptyPrimary && empty($argv)) {
                         return self::signalError('When deleting from restful tables a primary key or where query must be provided. This can be disabled by setting `self::\$allowFullTableDeletes = true;` during the PREPROCESS events, or just directly before this request.');
@@ -1193,7 +1213,7 @@ abstract class Rest extends Database
 
                     }
 
-                    $where = self::buildBooleanJoinedConditions($argv, $pdo);
+                    $where = self::buildBooleanJoinedConditions($argv);
 
                     $emptyWhere = empty($where);
 
@@ -1269,6 +1289,7 @@ abstract class Rest extends Database
 
         if ($e instanceof PDOException) {
 
+            // this most likely terminates (only on db resource drop will it continue < 1%)
             Database::TryCatchPDOException($e);
 
         } else {
@@ -1291,7 +1312,7 @@ abstract class Rest extends Database
 
                 $pdo = self::database();
 
-                $sql = self::buildSelectQuery($primary, $argv, static::QUERY_WITH_DATABASE ? static::DATABASE : '', $pdo);
+                $sql = self::buildSelectQuery($primary, $argv);
 
                 self::jsonSQLReporting(func_get_args(), $sql);
 
@@ -1313,45 +1334,48 @@ abstract class Rest extends Database
                 $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                 if (is_array(static::PRIMARY)) {
+
                     if ((null !== $primary && [] !== $primary)
                         || (isset($argv[self::PAGINATION][self::LIMIT])
                             && $argv[self::PAGINATION][self::LIMIT] === 1
                             && count($return) === 1)) {
                         $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
                     }
+
                 } elseif (is_string(static::PRIMARY)) {
 
-                    if ((null !== $primary && '' !== $primary) || (isset($argv[self::PAGINATION][self::LIMIT]) && $argv[self::PAGINATION][self::LIMIT] === 1 && count($return) === 1)) {
+                    if ((null !== $primary && '' !== $primary)
+                        || (isset($argv[self::PAGINATION][self::LIMIT])
+                            && $argv[self::PAGINATION][self::LIMIT] === 1
+                            && count($return) === 1)) {
 
                         $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
 
                     }
 
-                } else {
+                } else if (isset($argv[self::PAGINATION][self::LIMIT])
+                    && $argv[self::PAGINATION][self::LIMIT] === 1
+                    && count($return) === 1) {
 
-                    if (isset($argv[self::PAGINATION][self::LIMIT])
-                        && $argv[self::PAGINATION][self::LIMIT] === 1
-                        && count($return) === 1) {
-
-                        $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
-
-                    }
+                    $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
 
                 }
 
                 foreach (static::JSON_COLUMNS as $key) {
+
                     if (array_key_exists($key, $return)) {
+
                         $return[$key] = json_decode($return[$key], true);
+
                     }
+
                 }
 
                 self::postprocessRestRequest($return);
 
-
                 self::completeRest();
 
                 return true;
-
 
             } catch (Throwable $e) {
 
@@ -1369,6 +1393,7 @@ abstract class Rest extends Database
 
     protected static function updateReplace(array &$returnUpdated, array $argv = [], array $primary = null): bool
     {
+
         do {
 
             try {
@@ -1400,7 +1425,7 @@ abstract class Rest extends Database
 
                 if (null === static::PRIMARY) {
 
-                    if (false === self::$allowFullTableUpdates && empty($where)) {
+                    if (false === self::$allowFullTableUpdates && [] === $where) {
 
                         return self::signalError('Restful tables which have no primary key must be updated using conditions given to \$argv[self::WHERE] and values to be updated given to \$argv[self::UPDATE]. No WHERE attribute given. To bypass this set `self::\$allowFullTableUpdates = true;` during the PREPROCESS events, or just directly before this request.');
 
@@ -1504,7 +1529,7 @@ abstract class Rest extends Database
                         throw new PublicAlert('The where clause is required but has been detected as empty. Arguments were :: ' . json_encode(func_get_args(), JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
                     }
 
-                    $sql .= ' WHERE ' . self::buildBooleanJoinedConditions($where, $pdo);
+                    $sql .= ' WHERE ' . self::buildBooleanJoinedConditions($where);
 
                 }
 
@@ -1616,9 +1641,13 @@ abstract class Rest extends Database
                 self::startRest(self::POST, [], $data);
 
                 foreach ($data as $columnName => $postValue) {
-                    if (!array_key_exists($columnName, static::COLUMNS)) {
-                        return self::signalError("Restful table could not post column $columnName, because it does not appear to exist.");
+
+                    if (false === array_key_exists($columnName, static::COLUMNS)) {
+
+                        return self::signalError("Restful table (" . static::class . ") would not post column ($columnName), because it does not appear to exist.");
+
                     }
+
                 }
 
                 $keys = $pdo_values = '';
@@ -1676,7 +1705,7 @@ abstract class Rest extends Database
                         if (array_key_exists($fullName, $data)
                             && self::CURRENT_TIMESTAMP === ($info[self::DEFAULT_POST_VALUE] ?? '')) {
 
-                            return self::signalError("The column $fullName is set to default to CURRENT_TIMESTAMP. The Rest API does not allow POST requests with columns explicitly set whose default is CURRENT_TIMESTAMP. You can remove to the default in MySQL or the column $fullName from the request.");
+                            return self::signalError("The column ($fullName) is set to default to CURRENT_TIMESTAMP. The Rest API does not allow POST requests with columns explicitly set whose default is CURRENT_TIMESTAMP. You can remove to the default in MySQL or the column ($fullName) from the request.");
 
                         }
 
@@ -1700,7 +1729,7 @@ abstract class Rest extends Database
 
                         } else if (false === self::validateInternalColumn($fullName, $op, $data[$fullName])) {
 
-                            throw new PublicAlert("The column value of ($fullName) caused custom restful api validations for your primary key to fail (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
+                            throw new PublicAlert("The column value of ($fullName) caused custom restful api validations for (" . static::class . ") primary key to fail (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
 
                         }
 
@@ -1720,25 +1749,29 @@ abstract class Rest extends Database
 
                         if (false === array_key_exists($fullName, $data)) {
 
-                            return self::signalError("The column $fullName is set to not null and has no default value. It must exist in the request and was not found in the one sent.");
+                            return self::signalError("Table ('" . static::class . "') column ($fullName) is set to not null and has no default value. It must exist in the request and was not found in the one sent.");
 
                         }
 
-                        if (!self::validateInternalColumn($fullName, $op, $data[$fullName])) {
+                        if (false === self::validateInternalColumn($fullName, $op, $data[$fullName])) {
 
-                            throw new PublicAlert("Your custom restful api validations caused the request to fail on json column ($fullName). Possible values include (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
+                            throw new PublicAlert("Your tables ('" . static::class . "'), or joining tables, custom restful api validations caused the request to fail on json column ($fullName). Possible values include (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
 
                         }
 
                         if (false === is_string($data[$fullName])) {
 
-                            $data[$fullName] = json_encode($data[$fullName]);
+                            $json = json_encode($data[$fullName]);  // todo - is this over-validating?
 
-                            if (false === $data[$fullName]) {
+                            if (false === $json && $data[$fullName] !== false) {
 
-                                return self::signalError("The column $fullName failed to be json encoded.");
+                                return self::signalError("The column ($fullName) failed to be json encoded.");
 
                             }
+
+                            $data[$fullName] = $json;
+
+                            unset($json);
 
                         }
 
@@ -1750,7 +1783,7 @@ abstract class Rest extends Database
 
                         if (false === self::validateInternalColumn($fullName, $op, $data[$fullName], $data[$fullName] === $info[self::DEFAULT_POST_VALUE])) {
 
-                            return self::signalError("Your custom restful api validations caused the request to fail on column '$fullName'. (has default)");
+                            return self::signalError("Your custom restful table ('" . static::class . "') api validations caused the request to fail on column ($fullName)");
 
                         }
 
@@ -1760,13 +1793,13 @@ abstract class Rest extends Database
 
                         if (false === array_key_exists($fullName, $data)) {
 
-                            return self::signalError("Required argument '$fullName' is missing from the request and has no default value.");
+                            return self::signalError("Required argument ($fullName) is missing from the request to ('" . static::class . "') and has no default value.");
 
                         }
 
                         if (false === self::validateInternalColumn($fullName, $op, $data[$fullName], array_key_exists(self::DEFAULT_POST_VALUE, $info) ? $data[$fullName] === $info[self::DEFAULT_POST_VALUE] : false)) {
 
-                            return self::signalError("Your custom restful api validations caused the request to fail on required column '$fullName'.");
+                            return self::signalError("Your custom restful api validations for ('" . static::class . "') caused the request to fail on required column ($fullName).");
 
                         }
 
@@ -1780,7 +1813,7 @@ abstract class Rest extends Database
 
                     self::completeRest();
 
-                    return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
+                    return self::signalError('The REST generated PDOStatement failed to execute for (' . static::class . '), with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
 
                 }
 
@@ -1814,7 +1847,7 @@ abstract class Rest extends Database
 
                 if (self::$commit && false === Database::commit()) {
 
-                    return self::signalError('Failed to commit transaction on table ' . static::TABLE_NAME);
+                    return self::signalError('Failed to commit transaction on table ' . static::class);
 
                 }
 
@@ -1852,132 +1885,263 @@ abstract class Rest extends Database
     }
 
     /**
-     * @param string|null $primary
-     * @param array $argv
-     * @param string $database
-     * @param PDO|null $pdo
-     * @param bool $noHEX
+     * only get, put, and delete
+     * @param array $where
+     * @param array|null $primary
      * @return string
      * @throws PublicAlert
      */
-    protected static function buildSelectQuery(array $primary = null, array $argv = [], string $database = '', PDO $pdo = null, bool $noHEX = false): string
+    private static function buildQueryWhereValues(array $where, array $primary = null): string
     {
-        if ($pdo === null) {
 
-            $pdo = self::database();
+        if (null === $primary) {
+
+            if ([] === $where) {
+
+                switch (self::$REST_REQUEST_METHOD) {
+
+                    default:
+
+                        throw new PublicAlert('An unexpected request (' . self::$REST_REQUEST_METHOD . ') method was given to (' . static::class . ').');
+
+                    case self::GET:
+
+                        return '';
+
+                    case self::PUT:
+
+                        if (false === self::$allowFullTableUpdates) {
+
+                            return '';
+
+                        }
+
+                        throw new PublicAlert('Rest expected a primary key or valid where statement but none was provided during a (PUT) request on (' . static::class . ')');
+
+                    case self::DELETE:
+
+                        if (false === self::$allowFullTableDeletes) {
+
+                            return '';
+
+                        }
+
+                        throw new PublicAlert('Rest expected a primary key or valid where statement but none was provided during a (DELETE) request on (' . static::class . ')');
+
+
+                    case self::POST:
+
+                        throw new PublicAlert('The post method was executed while running buildQueryWhereValues against table (' . static::class . ')');
+
+
+                }
+
+            }
+
+            return ' WHERE ' . self::buildBooleanJoinedConditions($where);
 
         }
 
-        $aggregate = false;
+        if (empty(static::PRIMARY)) {
 
-        $joinColumns = [];          // this speeds up the query, by skipping duplicate validations
+            throw new PublicAlert('Primary keys given during a request to (' . static::class . ') which does not have a primary key. Please regenerate this class using RestBuilder.');
 
-        $group = [];
+        }
 
-        $join = '';
+        if (is_string(static::PRIMARY)) {
 
+            if ([] !== $where) {
+
+                throw new PublicAlert('Restful tables with a single primary key must not have WHERE values passed when the primary key is given. Table (' . static::class . ') was passed a non empty key `WHERE` (' . json_encode($where, JSON_PRETTY_PRINT) . ') to the arguments of GET.');
+
+            }
+
+            if ('binary' === (static::PDO_VALIDATION[static::PRIMARY][self::MYSQL_TYPE])) {
+
+                return ' WHERE ' . static::PRIMARY . "=UNHEX(" . self::addInjection($primary[static::PRIMARY]) . ') ';
+
+            }
+
+            return ' WHERE ' . static::PRIMARY . "=" . self::addInjection($primary[static::PRIMARY], static::PDO_VALIDATION[static::PRIMARY]) . ' ';
+
+        }
+
+        if (is_array(static::PRIMARY)) {
+
+            if (count($primary) !== count(static::PRIMARY)) {
+
+                throw new PublicAlert('The table ' . static::class . ' was passed a subset of the required primary keys. When passing primary keys all must be present.');
+
+            }
+
+            $primaryKeys = array_keys($primary);
+
+            if (!empty(array_intersect_key($primaryKeys, static::PRIMARY))) {
+
+                throw new PublicAlert('The rest table ' . static::class . ' was passed the correct number of primary keys; however, the associated keys did not match the static::PRIMARY attribute.');
+
+            }
+
+            if (!empty($where)) {
+
+                throw new PublicAlert('Restful tables selecting with primary keys must not have WHERE values passed when the primary keys are given. Table ' . static::class . ' was passed a non empty key `WHERE` to the arguments of GET.');
+
+            }
+
+            return ' WHERE ' . self::buildBooleanJoinedConditions($primary);
+
+        }
+
+        throw new PublicAlert('An unexpected error occurred while paring your primary key in ' . static::class . '. static::PRIMARY may only be a string, array, or null. You may need to regenerate with RestBuilder.');
+
+    }
+
+    private static function buildQueryGroupByValues(array $group): string
+    {
+        if ([] === $group) {
+
+            return '';
+
+        }
+
+        // GROUP BY clause can only be used with aggregate functions like SUM, AVG, COUNT, MAX, and MIN.
+        //
+        return ' ' . self::GROUP_BY . ' ' . self::buildQuerySelectValues($group, true) . ' ';
+
+    }
+
+    private static function buildQueryHavingValues(array $having): string
+    {
+        if ([] === $having) {
+
+            return '';
+
+        }
+
+        return ' ' . self::HAVING . ' ' . self::buildBooleanJoinedConditions($having);
+    }
+
+    private static function buildQuerySelectValues(array $get, bool $isSubSelect): string
+    {
         $sql = '';
 
-        $validColumns = array_keys(static::PDO_VALIDATION);
+        foreach ($get as $key => $column) {
 
-        $get = $argv[self::SELECT] ?? $validColumns;
+            // this is for buildAggregate which prepends
+            if ('' !== $sql && ',' !== $sql[-2]) {
 
-        $where = $argv[self::WHERE] ?? [];
-
-        // build join
-        if (array_key_exists(self::JOIN, $argv) && !empty($argv[self::JOIN])) {
-
-            if (!is_array($argv[self::JOIN])) {
-
-                throw new PublicAlert('The restful join field must be an array.');
+                $sql .= ', ';
 
             }
 
-            foreach ($argv[self::JOIN] as $by => $tables) {
+            $wasCallable = false;
 
-                $validJoins = [
-                    self::INNER,
-                    self::LEFT,
-                    self::RIGHT,
-                    self::FULL_OUTER,
-                    self::LEFT_OUTER,
-                    self::RIGHT_OUTER
-                ];
+            while (is_callable($column)) {
 
-                if (!in_array($by, $validJoins, true)) {
+                $wasCallable = true;    // this works as if rest generated the query or not and can be trusted as
 
-                    throw new PublicAlert('The restful inner join had an unknown error.'); // todo - message
-
-                }
-
-                foreach ($tables as $class => $stmt) {
-
-                    $class = ucwords($class, '_');
-
-                    if (
-                        !class_exists($JoiningClass = static::CLASS_NAMESPACE . $class)
-                        && !class_exists($JoiningClass = static::CLASS_NAMESPACE . preg_replace('/^' . preg_quote(static::TABLE_PREFIX, '/') . '/i', '', $class))
-                    ) {
-
-
-                        throw new PublicAlert('A table ' . $JoiningClass . ' provided in the Restful join request was not found in the system. This may mean you need to auto generate your restful tables in the CLI.');
-                    }
-
-                    $imp = array_map('strtolower', array_keys(class_implements($JoiningClass)));
-
-                    /** @noinspection ClassConstantUsageCorrectnessInspection */
-                    if (!in_array(strtolower(iRestMultiplePrimaryKeys::class), $imp, true)
-                        && !in_array(strtolower(iRestSinglePrimaryKey::class), $imp, true)
-                        && !in_array(strtolower(iRestNoPrimaryKey::class), $imp, true)
-                    ) {
-                        throw new PublicAlert('Rest error, class/table exists in the restful generation folder which does not implement the correct interfaces. Please re-run rest generation.');
-                    }
-                    if (!is_array($stmt)) {
-                        throw new PublicAlert("Rest error in the join stmt, the value of $JoiningClass is not an array.");
-                    }
-                }
-
-                foreach ($tables as $class => $stmt) {
-
-                    $class = ucwords($class, '_');
-
-                    if (
-                        !class_exists($JoiningClass = static::CLASS_NAMESPACE . $class)
-                        && !class_exists($JoiningClass = static::CLASS_NAMESPACE . preg_replace('/^' . preg_quote(static::TABLE_PREFIX, '/') . '/i', '', $class))
-                    ) {
-
-                        throw new PublicAlert('A table ' . $JoiningClass . ' provided in the Restful join request was not found in the system. This may mean you need to auto generate your restful tables in the CLI.');
-                    }
-
-
-                    $table = $JoiningClass::TABLE_NAME;
-
-                    /**
-                     * Prefix is normally included in the table name variable.
-                     * The table prefix is expected to be an empty string for all tables except carbon_ internals.
-                     * The following check is so CarbonPHP internal tables can be compatible with table prefixing.
-                     * It also ensures the table you are joining has been generated correctly for your current build.
-                     */
-                    self::checkPrefix($JoiningClass::TABLE_PREFIX);
-
-                    $prefix = static::QUERY_WITH_DATABASE ? static::DATABASE . '.' : '';   // its super important to do this period on this line
-
-                    $join .= strtoupper($by) . " JOIN $prefix$table ON " . self::buildBooleanJoinedConditions($stmt, $pdo);
-
-                }
+                $column = $column();
 
             }
+
+            // todo - more validation on sub-select?
+            if ($wasCallable && strpos($column, '(SELECT ') === 0) {
+
+                $sql .= $column;
+
+                continue;
+
+            }
+
+
+            if (is_array($column)) {
+
+                if (is_string($column[0] ?? false) && in_array($column[0], [
+                        self::GROUP_CONCAT,
+                        self::DISTINCT
+                    ], true)) {
+
+                    $sql = self::buildAggregate($column, $isSubSelect) . ", $sql";
+
+                    continue;
+
+                }
+
+                $sql .= self::buildAggregate($column, $isSubSelect);
+
+                continue;               // next foreach iteration
+
+            }
+
+            if (!is_string($column)) {
+
+                // is this even possible at this point?
+                throw new PublicAlert('C6 Rest client could not validate a column in the GET:[] request.');
+
+            }
+
+            // todo - update this syntax allow for remote sub select using [ buildAggregate ]
+            if (self::$allowSubSelectQueries && strpos($column, '(SELECT ') === 0) {
+
+                $sql .= $column;
+
+                continue;
+
+            }
+
+            if (self::validateInternalColumn($column)) {
+
+                $group[] = $column;
+
+                if (false === $isSubSelect && self::$compiled_PDO_validations[$column][self::MYSQL_TYPE] === 'binary') {
+
+                    $sql .= "HEX($column) as " . self::$compiled_valid_columns[$column];        // get short tag
+
+                    continue;
+
+                }
+
+                $sql .= $column;
+
+                continue;
+
+            }
+
+            throw new PublicAlert("Could not validate a column ($column) in the (SELECT) request which caused your request to fail. Possible values include (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
 
         }
 
+        // this is for buildAggregate self::GROUP_CONCAT & self::DISTINCT
+        return rtrim($sql, ', ');
+    }
+
+    private static function buildQueryPaginationValues(array $argv, bool $isSubSelect, array $primary = null): string
+    {
         // pagination [self::PAGINATION][self::LIMIT]
         if (array_key_exists(self::PAGINATION, $argv) && !empty($argv[self::PAGINATION])) {    // !empty should not be in this block - I look all the time
+
+            $limit = '';
+
+            $order = '';
 
             // setting the limit to null will cause no limit
             // I get tempted to allow 0 to symbolically mean the same thing, but 0 Limit is allowed in mysql
             // @link https://stackoverflow.com/questions/30269084/why-is-limit-0-even-allowed-in-mysql-select-statements
-            if (array_key_exists(self::LIMIT, $argv[self::PAGINATION])
-                && is_numeric($argv[self::PAGINATION][self::LIMIT])) {
+            if (array_key_exists(self::LIMIT, $argv[self::PAGINATION]) && null !== $argv[self::PAGINATION][self::LIMIT]) {
+
+                $limit = $argv[self::PAGINATION][self::LIMIT];
+
+                if (false === is_numeric($limit)) {
+
+                    throw new PublicAlert("A non numeric LIMIT ($limit) was provided to REST while querying against (" . static::class . ').');
+
+                }
+
+                if (0 > (int)$limit) {
+
+                    throw new PublicAlert('A negative limit was encountered in the rest Builder while querying against (' . static::class . ').');
+
+                }
 
                 if (array_key_exists(self::PAGE, $argv[self::PAGINATION])) {
 
@@ -1987,24 +2151,17 @@ abstract class Rest extends Database
 
                     }
 
-                    $limit = 'LIMIT ' . (($argv[self::PAGINATION][self::PAGE] - 1) * $argv[self::PAGINATION][self::LIMIT]) . ',' . $argv[self::PAGINATION][self::LIMIT];
+                    $limit = 'LIMIT ' . (($argv[self::PAGINATION][self::PAGE] - 1) * $limit) . ',' . $limit;
 
                 } else {
 
-                    $limit = 'LIMIT ' . $argv[self::PAGINATION][self::LIMIT];
+                    $limit = 'LIMIT ' . $limit;
 
                 }
 
-            } else {
-
-                $limit = '';
-
             }
 
-            $order = '';
-
-            if (!empty($limit)
-                || array_key_exists(self::ORDER, $argv[self::PAGINATION])) {
+            if ('' === $limit || array_key_exists(self::ORDER, $argv[self::PAGINATION])) {
 
                 $order = ' ORDER BY ';
 
@@ -2029,13 +2186,13 @@ abstract class Rest extends Database
 
                         foreach ($argv[self::PAGINATION][self::ORDER] as $item => $sort) {
 
-                            if (!in_array($sort, [self::ASC, self::DESC], true)) {
+                            if (false === in_array($sort, [self::ASC, self::DESC], true)) {
 
                                 throw new PublicAlert('Restful order by failed to validate sorting method. The value should be one of (' . json_encode([self::ASC, self::DESC]) . ')');
 
                             }
 
-                            if (!self::validateInternalColumn($item, $sort)) {
+                            if (false === self::validateInternalColumn($item, $sort)) {
 
                                 throw new PublicAlert("The column value ($item) caused your custom validations to fail. Possible values include (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
 
@@ -2055,7 +2212,8 @@ abstract class Rest extends Database
 
                     }
 
-                } else if (null !== static::PRIMARY && (is_string(static::PRIMARY) || is_array(static::PRIMARY))) {
+                } else if (null !== static::PRIMARY
+                    && (is_string(static::PRIMARY) || is_array(static::PRIMARY))) {
 
                     $primaryColumn = is_string(static::PRIMARY) ? static::PRIMARY : static::PRIMARY[0];
 
@@ -2079,191 +2237,206 @@ abstract class Rest extends Database
 
                 }
 
+
+                return $order . ($limit === '' ? '' : " $limit");
+
             }
 
-            $limit = "$order $limit";
-
-        } else if (!$noHEX && static::PRIMARY !== null) {
-
-            $limit = ' ORDER BY ' . (is_string(static::PRIMARY) ? static::PRIMARY : static::PRIMARY[0]) . ' ASC LIMIT ' . (null === $primary ? '100' : '1');
-
-        } else {
-
-            $limit = '';
+            return $limit;
 
         }
 
-        foreach ($get as $key => $column) {
+        if (false === $isSubSelect && static::PRIMARY !== null) {
 
-            if (!empty($sql) && ',' !== $sql[-2]) {
+            return 'ORDER BY ' . (is_string(static::PRIMARY) ? static::PRIMARY : static::PRIMARY[0])
+                . ' ASC LIMIT ' . (null === $primary ? '100' : '1');
 
-                $sql .= ', ';
+        }
 
-            }
+        return '';
 
-            $wasCallable = false;
+    }
 
-            while (is_callable($column)) {
+    private static function buildQueryJoinValues(array $join): string
+    {
 
-                $wasCallable = true;
+        $sql = '';
 
-                $column = $column();
+        foreach ($join as $by => $tables) {
 
-            }
+            $validJoins = [
+                self::INNER,
+                self::LEFT,
+                self::RIGHT,
+                self::FULL_OUTER,
+                self::LEFT_OUTER,
+                self::RIGHT_OUTER
+            ];
 
-            // todo - more validation on sub-select?
-            if ($wasCallable && strpos($column, '(SELECT ') === 0) {
+            if (false === in_array($by, $validJoins, true)) {
 
-                $sql .= $column;
-
-                continue;
-
-            }
-
-
-            if (is_array($column)) {
-
-                self::buildAggregate($column, $sql, $group, $noHEX);
-
-                continue;               // next foreach iteration
+                throw new PublicAlert('The restful inner join had an unknown error.'); // todo - message
 
             }
 
-            if (!is_string($column)) {
-                // is this even possible at this point?
-                throw new PublicAlert('C6 Rest client could not validate a column in the GET:[] request.');
+            foreach ($tables as $class => $stmt) {
 
-            }
+                $class = ucwords($class, '_');
 
-            if (self::$allowSubSelectQueries && strpos($column, '(SELECT ') === 0) {
-                $sql .= $column;
-                continue;
-            }
+                if (false === class_exists($JoiningClass = static::CLASS_NAMESPACE . $class)
+                    && false === class_exists($JoiningClass = static::CLASS_NAMESPACE . preg_replace('/^' . preg_quote(static::TABLE_PREFIX, '/') . '/i', '', $class))
+                ) {
 
-            if (array_key_exists($column, $joinColumns)) {  // todo - we need to cache everywhere / for every / validateColumnName -- orrr should we // what about validations
-
-                $sql .= $column;
-
-                continue;
-
-            }
-
-            if (self::validateInternalColumn($column)) {
-
-                $group[] = $column;
-
-                if (!$noHEX && self::$compiled_PDO_validations[$column][self::MYSQL_TYPE] === 'binary') {
-
-                    $sql .= "HEX($column) as " . self::$compiled_valid_columns[$column];        // get short tag
-
-                    continue;
+                    throw new PublicAlert('A table ' . $JoiningClass . ' provided in the Restful join request was not found in the system. This may mean you need to auto generate your restful tables in the CLI.');
 
                 }
 
-                $sql .= $column;
+                $imp = array_map('strtolower', array_keys(class_implements($JoiningClass)));
 
-                continue;
+                /** @noinspection ClassConstantUsageCorrectnessInspection */
+                if (false === in_array(strtolower(iRestMultiplePrimaryKeys::class), $imp, true)
+                    && false === in_array(strtolower(iRestSinglePrimaryKey::class), $imp, true)
+                    && false === in_array(strtolower(iRestNoPrimaryKey::class), $imp, true)
+                ) {
+
+                    throw new PublicAlert('Rest error, class/table exists in the restful generation folder which does not implement the correct interfaces. Please re-run rest generation.');
+
+                }
+
+                if (false === is_array($stmt)) {
+
+                    throw new PublicAlert("Rest error in the join stmt, the value of $JoiningClass is not an array.");
+
+                }
 
             }
 
-            throw new PublicAlert("Could not validate a column ($column) in the (SELECT) request which caused your request to fail. Possible values include (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
+            foreach ($tables as $class => $stmt) {
+
+                $class = ucwords($class, '_');
+
+                if (false === class_exists($JoiningClass = static::CLASS_NAMESPACE . $class)
+                    && false === class_exists($JoiningClass = static::CLASS_NAMESPACE
+                        . preg_replace('/^' . preg_quote(static::TABLE_PREFIX, '/') . '/i', '', $class))
+                ) {
+
+                    throw new PublicAlert('A table (' . $JoiningClass . ') provided in the Restful join request was not found in the system. This may mean you need to auto generate your restful tables in the CLI.');
+                }
+
+
+                $table = $JoiningClass::TABLE_NAME;
+
+                /**
+                 * Prefix is normally included in the table name variable.
+                 * The table prefix is expected to be an empty string for all tables except carbon_ internals.
+                 * The following check is so CarbonPHP internal tables can be compatible with table prefixing.
+                 * It also ensures the table you are joining has been generated correctly for your current build.
+                 */
+                self::checkPrefix($JoiningClass::TABLE_PREFIX);
+
+                $prefix = static::QUERY_WITH_DATABASE ? static::DATABASE . '.' : '';   // its super important to do this period on this line
+
+                if ('' !== $sql && ' ' !== $sql[-1]) {
+
+                    $sql .= ' ';
+
+                }
+
+                $sql .= strtoupper($by) . " JOIN $prefix$table ON " . self::buildBooleanJoinedConditions($stmt);
+
+            }
 
         }
 
-        // case sensitive select
-        $sql = 'SELECT ' . $sql . ' FROM ' . ($database === '' ? '' : $database . '.') . static::TABLE_NAME . ' ' . $join;
+        return $sql;
 
-        if (null === $primary) {
+    }
 
-            if (!empty($where)) {
 
-                $sql .= ' WHERE ' . self::buildBooleanJoinedConditions($where, $pdo);
+    /**
+     * @param array|null $primary
+     * @param array $argv
+     * @param bool $isSubSelect
+     * @return string
+     * @throws PublicAlert
+     */
+    protected static function buildSelectQuery(array $primary = null, array $argv = [], bool $isSubSelect = false): string
+    {
 
-            }
+        $sql = 'SELECT '
+            . self::buildQuerySelectValues($argv[self::SELECT] ?? array_keys(static::PDO_VALIDATION), $isSubSelect)
+            . ' FROM '
+            . (static::QUERY_WITH_DATABASE ? static::DATABASE . '.' : '')
+            . static::TABLE_NAME . ' ';
 
-        } elseif (empty(static::PRIMARY)) {
+        $ifArrayKeyExistsThenValueMustBeArray = static function (array $argv, string $key) {
 
-            throw new PublicAlert('Primary keys given in GET request to a table without a primary key. Please regenerate this class using RestBuilder.');
+            if (true === array_key_exists($key, $argv)) {
 
-        } elseif (is_string(static::PRIMARY)) {
+                if (false === is_array($argv[$key])) {
 
-            if ('binary' === (static::PDO_VALIDATION[static::PRIMARY][self::MYSQL_TYPE])) {
+                    throw new PublicAlert("The restful join field ($argv) passed to (" . static::class . ") must be an array.");
+                }
 
-                $sql .= ' WHERE ' . static::PRIMARY . "=UNHEX(" . self::addInjection($primary[static::PRIMARY], $pdo) . ') ';
-
-            } else {
-
-                $sql .= ' WHERE ' . static::PRIMARY . "=" . self::addInjection($primary[static::PRIMARY], $pdo, static::PDO_VALIDATION[static::PRIMARY]) . ' ';
-
-            }
-
-            if (!empty($where)) {
-
-                throw new PublicAlert('Restful tables with a single primary key must not have WHERE values passed when the primary key is given. Table ' . static::class . ' was passed a non empty key `WHERE` (' . json_encode($where, JSON_PRETTY_PRINT) . ') to the arguments of GET.');
-
-            }
-
-        } elseif (is_array(static::PRIMARY)) {
-
-            if (count($primary) !== count(static::PRIMARY)) {
-
-                throw new PublicAlert('The table ' . static::class . ' was passed a subset of the required primary keys. When passing primary keys all must be present.');
+                return true;
 
             }
 
-            $primaryKeys = array_keys($primary);
+            return false;
 
-            if (!empty(array_intersect_key($primaryKeys, static::PRIMARY))) {
+        };
 
-                throw new PublicAlert('The rest table ' . static::class . ' was passed the correct number of primary keys; however, the associated keys did not match the static::PRIMARY attribute.');
+        if (true === $ifArrayKeyExistsThenValueMustBeArray($argv, self::JOIN)) {
 
-            }
-
-            if (!empty($where)) {
-
-                throw new PublicAlert('Restful tables selecting with primary keys must not have WHERE values passed when the primary keys are given. Table ' . static::class . ' was passed a non empty key `WHERE` to the arguments of GET.');
-
-            }
-
-            $sql .= ' WHERE ' . self::buildBooleanJoinedConditions($primary, $pdo);
-
-        } else {
-
-            throw new PublicAlert('An unexpected error occurred while paring your primary key in ' . static::class . '. static::PRIMARY may only be a string, array, or null. You may need to regenerate with RestBuilder.');
+            $sql .= self::buildQueryJoinValues($argv[self::JOIN]);
 
         }
 
-        // GROUP BY clause can only be used with aggregate functions like SUM, AVG, COUNT, MAX, and MIN.
-        if ($aggregate && !empty($group)) {
+        $sql .= self::buildQueryWhereValues($argv[self::WHERE] ?? [], $primary); // Boolean Conditions and aggregation
 
-            $sql .= ' GROUP BY ' . implode(', ', $group) . ' ';
+        // concatenation and aggregation
+        $sql .= self::buildQueryGroupByValues(
+            true === $ifArrayKeyExistsThenValueMustBeArray($argv, self::GROUP_BY)
+                ? $argv[self::GROUP_BY]
+                : []);
+
+
+        if (true === $ifArrayKeyExistsThenValueMustBeArray($argv, self::HAVING)) {
+
+            // Boolean Conditions and aggregation
+            $sql .= self::buildQueryHavingValues($argv[self::HAVING]);
 
         }
 
-        $sql .= $limit;
+        $sql .= self::buildQueryPaginationValues($argv, $isSubSelect, $primary);
 
         return $sql;
     }
 
 
     /**
-     * @param string|null $primary
+     * @todo - external subselect
+     * Rest::SELECT => [
+     *
+     *      [ Rest::SELECT,  [  [primary:(array|null), optional argv:(array)]  ],  optional as:(string)) ]
+     *
+     * ]
+     *
+     * @param array|null $primary
      * @param array $argv
      * @param string $as
-     * @param PDO|null $pdo
-     * @param string $database
      * @return callable
      */
-    public static function subSelect($primary = null, array $argv = [], string $as = '', PDO $pdo = null, string $database = ''): callable
+    public static function subSelect(array $primary = null, array $argv = [], string $as = ''): callable
     {
 
-        return static function () use ($primary, $argv, $as, $database, $pdo): string {
+        return static function () use ($primary, $argv, $as): string {
 
             self::$allowSubSelectQueries = true;
 
             self::startRest(self::GET, self::$REST_REQUEST_PARAMETERS, $primary, $argv, true);
 
-            $sql = self::buildSelectQuery($primary, $argv, $database, $pdo, true);
+            $sql = self::buildSelectQuery($primary, $argv, true);
 
             $sql = "($sql)";
 
@@ -2279,11 +2452,14 @@ abstract class Rest extends Database
 
     }
 
-    protected static function addSingleConditionToWhereOrJoin(
-        string $valueOne,
-        string $operator,
-        string $valueTwo,
-        PDO $pdo): string
+    /**
+     * @param string|array $valueOne
+     * @param string $operator
+     * @param string|array $valueTwo
+     * @return string
+     * @throws PublicAlert
+     */
+    protected static function addSingleConditionToWhereOrJoin($valueOne, string $operator, $valueTwo): string
     {
 
         $key_is_custom = false === self::validateInternalColumn($valueOne, $valueTwo);
@@ -2296,7 +2472,7 @@ abstract class Rest extends Database
 
         }
 
-        if (!$key_is_custom && !$value_is_custom) {
+        if (false === $key_is_custom && false === $value_is_custom) {
 
             $joinColumns[] = $valueOne; // todo - prefix by key?
 
@@ -2318,11 +2494,11 @@ abstract class Rest extends Database
 
             if (self::$compiled_PDO_validations[$valueOne][self::MYSQL_TYPE] === 'binary') {
 
-                return "$valueOne $operator UNHEX(" . self::addInjection($valueTwo, $pdo) . ")";
+                return "$valueOne $operator UNHEX(" . self::addInjection($valueTwo) . ")";
 
             }
 
-            return "$valueOne $operator " . self::addInjection($valueTwo, $pdo);
+            return "$valueOne $operator " . self::addInjection($valueTwo);
 
         }
 
@@ -2331,22 +2507,57 @@ abstract class Rest extends Database
 
         if (self::$compiled_PDO_validations[$valueTwo][self::MYSQL_TYPE] === 'binary') {
 
-            return "$valueTwo $operator UNHEX(" . self::addInjection($valueOne, $pdo) . ")";
+            return "$valueTwo $operator UNHEX(" . self::addInjection($valueOne) . ")";
 
         }
 
-        return self::addInjection($valueOne, $pdo) . " $operator $valueTwo";
+        return self::addInjection($valueOne) . " $operator $valueTwo";
+
     }
+
+    private static function array_of_numeric_keys_and_string_int_or_aggregate_values(array &$a): bool
+    {
+
+        $return = true;
+
+        if (empty($a)) {
+
+            return $return;
+
+        }
+
+        foreach ($a as $key => &$value) {
+
+            while (is_callable($value)) {
+
+                $value = $value();
+
+            }
+
+            if (false === is_numeric($key)
+                || (false === is_string($value)
+                    && false === is_int($value)
+                    && (is_array($value) && false === self::isAggregateArray($value)))) {
+
+                $return = false;    // we want to remove callables
+
+            }
+
+        }
+
+        return $return;
+
+    }
+
 
     /**
      * It was easier for me to think of this in a recursive manner.
      * In reality we should limit our use of recursion php <= 8.^
      * @param array $set
-     * @param PDO $pdo
      * @return string
      * @throws PublicAlert
      */
-    protected static function buildBooleanJoinedConditions(array $set, PDO $pdo): string
+    protected static function buildBooleanJoinedConditions(array $set): string
     {
         static $booleanOperatorIsAnd = true;
 
@@ -2367,53 +2578,30 @@ abstract class Rest extends Database
             self::NOT_LIKE,
         ]);
 
-        $array_of_numeric_keys_and_string_or_int_values = static function (array &$a): bool {
-
-            if (empty($a)) {
-
-                return true;
-
-            }
-
-            foreach ($a as $key => &$value) {
-
-                while (is_callable($value)) {
-
-                    $value = $value();
-
-                }
-
-                if (false === is_numeric($key)
-                    || (false === is_string($value)
-                        && false === is_int($value))) {
-
-                    return false;
-
-                }
-
-            }
-
-            return true;
-
-        };
-
-        if (true === $array_of_numeric_keys_and_string_or_int_values($set)) {
+        // we have to determine when an aggregate might occur early
+        if (true === self::array_of_numeric_keys_and_string_int_or_aggregate_values($set)) {
 
             switch (count($set)) {
 
                 case 0:
 
-                    throw new PublicAlert('An empty array was passed as a leaf member of a condition. Nested arrays recursively flip the AND vs OR joining conditional. Multiple conditions are not required. If only one condition is needed, the two may be asserted equal implicitly by placing them in positions one and two of the array. An explicit definition may see the second $position[1] equal one of  (' . $supportedOperators . ')');
+                    throw new PublicAlert('An empty array was passed as a leaf member of a condition. Nested arrays recursively flip the AND vs OR joining conditional. Multiple conditions are not required as only one condition is needed. Two may be asserted equal implicitly by placing them in positions one and two of the array. An explicit definition may see the second $position[1] equal one of  (' . $supportedOperators . ')');
 
                 case 1:
 
                     $key = array_key_first($set);
 
-                    throw new PublicAlert("The single value ({$set[$key]}) has the numeric array key [$key] which may imply a conditional equality; however, numeric keys (implicit or explicit) to imply equality are not allowed. Please reorder the condition to have a string key and numeric value.");
+                    if (is_array($set[$key])) {
 
-                case 2:
+                        $set[$key] = json_encode($set[$key]);
 
-                    $sql .= self::addSingleConditionToWhereOrJoin($set[0], self::EQUAL, $set[1], $pdo);
+                    }
+
+                    throw new PublicAlert("The single value ({$set[$key]}) has the numeric array key [$key] which could imply a conditional equality; however, numeric keys (implicit or explicit) to imply equality are not allowed in C6. Please reorder the condition to have a string key and numeric value.");
+
+                case 2: // both string and|or int
+
+                    $sql .= self::addSingleConditionToWhereOrJoin($set[0], self::EQUAL, $set[1]);
 
                     break;
 
@@ -2425,7 +2613,7 @@ abstract class Rest extends Database
 
                     }
 
-                    $sql .= self::addSingleConditionToWhereOrJoin($set[0], $set[1], $set[2], $pdo);
+                    $sql .= self::addSingleConditionToWhereOrJoin($set[0], $set[1], $set[2]);
 
                     break;
 
@@ -2438,7 +2626,8 @@ abstract class Rest extends Database
         } else {
 
             $addJoinNext = false;
-            // we know not
+
+            // the value is not callable (we dealt with it in the condition above)
             foreach ($set as $column => $value) {
 
                 if ($addJoinNext) {
@@ -2459,9 +2648,9 @@ abstract class Rest extends Database
 
                     }
 
-                    $booleanOperatorIsAnd = !$booleanOperatorIsAnd;
+                    $booleanOperatorIsAnd = !$booleanOperatorIsAnd; // saves memory
 
-                    $sql .= self::buildBooleanJoinedConditions($value, $pdo);
+                    $sql .= self::buildBooleanJoinedConditions($value);
 
                     $booleanOperatorIsAnd = !$booleanOperatorIsAnd;
 
@@ -2469,52 +2658,61 @@ abstract class Rest extends Database
 
                 }
 
-                if (false === is_array($value)) {                         /// do we intemperate as a boolean switch or custom operation (w/ optional operation)
+                // else $column is equal a (string)
+                if (false === is_array($value) || self::isAggregateArray($value)) {
 
-                    $sql .= self::addSingleConditionToWhereOrJoin($column, self::EQUAL, $value, $pdo);
+                    $sql .= self::addSingleConditionToWhereOrJoin($column, self::EQUAL, $value);
 
                     continue;
 
                 }
-
-                if (false === is_string($column)) {
-
-                    // todo - im out of wifi but im 99% sure if column is not an int it must be a string
-                    throw new PublicAlert("An unexpected error has occurred to which a column was not and int or string.");
-
-                }
-
 
                 $count = count($value);
 
-                if ($count !== 2) {
+                switch ($count) {
 
-                    throw new PublicAlert("A rest key column value ($value) was set to an array with ($count) "
-                        . "values but requires exactly two. Boolean comparisons can use one of the following operators "
-                        . "($supportedOperators). The same comparison can be made with an empty (aka default numeric) key "
-                        . "and three array entries :: [  Column,  Operator, (Operand|Column2) ]. Both ways are made equally for your personal preference.");
+                    case 1:
+
+                        // this would be odd syntax but I will allow it
+                        if (true === array_key_exists(0, $value)
+                            && true === is_array($value[0])
+                            && true === self::isAggregateArray($value[0])) {
+
+                            $sql .= self::addSingleConditionToWhereOrJoin($column, self::EQUAL, $value[0]);
+                            break;
+
+                        }
+
+                    // let this fall to throw alert
+
+                    default:
+
+                        throw new PublicAlert("A rest key column ($column) value (" . json_encode($value) . ") was set to an array with ($count) "
+                            . "values but requires only one or two. Boolean comparisons can use one of the following operators "
+                            . "($supportedOperators). The same comparison can be made with an empty (aka default numeric) key "
+                            . "and three array entries :: [  Column,  Operator, (Operand|Column2) ]. Both ways are made equally "
+                            . "for conditions which might require multiple of the same key in the same array; as this would be invalid syntax in php.");
+
+                    case 2:
+
+                        if (!((bool)preg_match('#^' . $supportedOperators . '$#', $value[0]))) { // ie #^=|>=|<=$#
+
+                            throw new PublicAlert("Table (" . static::class . ") restful column joins may only use one of the following supported operators ($supportedOperators).");
+
+                        }
+
+                        $sql .= self::addSingleConditionToWhereOrJoin($column, $value[0], $value[1]);
 
                 }
 
-                if (!((bool)preg_match('#^' . $supportedOperators . '$#', $value[0]))) { // ie #^=|>=|<=$#
-
-                    throw new PublicAlert("Restful column joins may only use one ($supportedOperators).");
-
-                }
-
-                $sql .= self::addSingleConditionToWhereOrJoin($column, $value[0], $value[1], $pdo);
 
             } // end foreach
 
         }
 
-        // while these two look appealing do not waist your time..
-        // brave have tried, tests will help you fail
-        /// trim ($sql, '()')
-
         $sql = preg_replace("/\s$booleanOperator\s?$/", '', $sql);
 
-        return "($sql)";
+        return "($sql)";  // do not try to remove the parenthesis from this return
 
     }
 
@@ -2527,14 +2725,13 @@ abstract class Rest extends Database
     {
         global $json;
 
-
         if (false === self::$jsonReport) {
 
             return;
 
         }
 
-        if (!is_array($json)) {
+        if (false === is_array($json)) {
 
             $json = [];
 
@@ -2690,24 +2887,32 @@ abstract class Rest extends Database
         }
     }
 
-    public static function addInjection($value, PDO $pdo = null, array $pdo_column_validation = null): string
+    public static function addInjection($value, array $pdo_column_validation = null): string
     {
+        switch ($pdo_column_validation[self::PDO_TYPE] ?? null) {
 
-        $inject = ':injection' . count(self::$injection);
+            default:
 
-        switch ($pdo_column_validation[1] ?? null) {
+                // todo - cache db better (startRest?)
+                $value = (Database::database())->quote($value);        // boolean, string
 
             case null:
             case PDO::PARAM_INT:
             case PDO::PARAM_STR: // bindValue will quote strings
 
+                $key = array_search($value, self::$injection, true);
+
+                if (false !== $key) {
+
+                    return $key;   // this is a cache
+
+                }
+
+                $inject = ':injection' . count(self::$injection); // self::$injection needs to be a class const not a
+
                 self::$injection[$inject] = $value;
 
                 break;
-
-            default:
-
-                self::$injection[$inject] = ($pdo ?? Database::database())->quote($value);        // boolean, string
 
         }
 
