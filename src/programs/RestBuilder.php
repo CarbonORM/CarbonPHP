@@ -1037,7 +1037,6 @@ END;
 
 export const C6 = {
 
-
     // try to 1=1 match the Rest abstract class
     AS: '" . Rest::AS . "',
     ASC: '" . Rest::ASC . "',
@@ -1049,8 +1048,10 @@ export const C6 = {
     EQUAL_NULL_SAFE: '" . Rest::EQUAL_NULL_SAFE . "',
     FULL_OUTER: '" . Rest::FULL_OUTER . "',
     GREATER_THAN: '" . Rest::GREATER_THAN . "',
+    GROUP_BY: '" . Rest::GROUP_BY . "',
     GROUP_CONCAT: '" . Rest::GROUP_CONCAT . "',
     GREATER_THAN_OR_EQUAL_TO: '" . Rest::GREATER_THAN_OR_EQUAL_TO . "',
+    HAVING: '" . Rest::HAVING . "',
     INNER: '" . Rest::INNER . "',
     JOIN: '" . Rest::JOIN . "',
     LEFT: '" . Rest::LEFT . "',
@@ -1139,8 +1140,10 @@ const C6 = {
     EQUAL_NULL_SAFE: '" . Rest::EQUAL_NULL_SAFE . "',
     FULL_OUTER: '" . Rest::FULL_OUTER . "',
     GREATER_THAN: '" . Rest::GREATER_THAN . "',
+    GROUP_BY: '" . Rest::GROUP_BY . "',
     GROUP_CONCAT: '" . Rest::GROUP_CONCAT . "',
     GREATER_THAN_OR_EQUAL_TO: '" . Rest::GREATER_THAN_OR_EQUAL_TO . "',
+    HAVING: '" . Rest::HAVING . "',
     INNER: '" . Rest::INNER . "',
     JOIN: '" . Rest::JOIN . "',
     LEFT: '" . Rest::LEFT . "',
