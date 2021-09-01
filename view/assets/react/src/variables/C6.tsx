@@ -2,7 +2,6 @@
 
 export const C6 = {
 
-
     // try to 1=1 match the Rest abstract class
     AS: 'AS',
     ASC: 'ASC',
@@ -12,14 +11,16 @@ export const C6 = {
     DISTINCT: 'DISTINCT',
     EQUAL: '=',
     EQUAL_NULL_SAFE: '<=>',
-    FULL_OUTER: 'FULL OUTER',
+    FULL_OUTER: 'FULL_OUTER',
     GREATER_THAN: '>',
-    GROUP_CONCAT: 'GROUP CONCAT',
+    GROUP_BY: 'GROUP_BY',
+    GROUP_CONCAT: 'GROUP_CONCAT',
     GREATER_THAN_OR_EQUAL_TO: '>=',
+    HAVING: 'HAVING',
     INNER: 'INNER',
     JOIN: 'JOIN',
     LEFT: 'LEFT',
-    LEFT_OUTER: 'LEFT OUTER',
+    LEFT_OUTER: 'LEFT_OUTER',
     LESS_THAN: '<',
     LESS_THAN_OR_EQUAL_TO: '<=',
     LIKE: 'LIKE',
@@ -31,7 +32,7 @@ export const C6 = {
     ORDER: 'ORDER',
     PAGE: 'PAGE',
     PAGINATION: 'PAGINATION',
-    RIGHT_OUTER: 'RIGHT OUTER',
+    RIGHT_OUTER: 'RIGHT_OUTER',
     SELECT: 'SELECT',
     SUM: 'SUM',
     TRANSACTION_TIMESTAMP: 'TRANSACTION_TIMESTAMP',

@@ -185,7 +185,8 @@ class ExternalRestTest extends Config
             Rest::SELECT => [
                 Users::USER_USERNAME,
                 Users::USER_ABOUT_ME,
-                [Rest::COUNT, Location_References::ENTITY_REFERENCE]
+                [Rest::COUNT, Location_References::ENTITY_REFERENCE],
+                [Rest::DISTINCT, Location_References::ENTITY_REFERENCE],
             ],
             Rest::JOIN => [
                 Rest::INNER => [
@@ -234,7 +235,7 @@ class ExternalRestTest extends Config
         self::assertArrayHasKey('rest', $json_array);
 
         self::assertEquals(
-            "SELECT carbon_users.user_username, carbon_users.user_about_me, COUNT(carbon_location_references.entity_reference) FROM CarbonPHP.carbon_users INNER JOIN CarbonPHP.carbon_location_references ON ((carbon_users.user_id = carbon_location_references.entity_reference)) INNER JOIN CarbonPHP.carbon_locations ON ((carbon_locations.entity_id = carbon_location_references.location_reference)) WHERE ((carbon_users.user_username LIKE :injection0)) GROUP BY carbon_users.user_username  HAVING (carbon_users.user_about_me <> COUNT(carbon_location_references.entity_reference)) ORDER BY carbon_users.user_username ASC",
+            "SELECT DISTINCT HEX(carbon_location_references.entity_reference) AS entity_reference, carbon_users.user_username, carbon_users.user_about_me, COUNT(carbon_location_references.entity_reference) FROM CarbonPHP.carbon_users INNER JOIN CarbonPHP.carbon_location_references ON ((carbon_users.user_id = carbon_location_references.entity_reference)) INNER JOIN CarbonPHP.carbon_locations ON ((carbon_locations.entity_id = carbon_location_references.location_reference)) WHERE ((carbon_users.user_username LIKE :injection0)) GROUP BY carbon_users.user_username  HAVING (carbon_users.user_about_me <> COUNT(carbon_location_references.entity_reference)) ORDER BY carbon_users.user_username ASC",
             $GLOBALS['json']['sql'][0][1] ?? $GLOBALS['json']);
 
     }

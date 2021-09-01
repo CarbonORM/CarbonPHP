@@ -661,7 +661,9 @@ class ErrorCatcher
 
             $trace = self::generateCallTrace($e);
 
-            $log_array[$class] = $e->getMessage();
+            $log_array = [
+                    $class => $e->getMessage()
+                ] + $log_array;
 
             if (!$e instanceof PublicAlert) {
 
@@ -1037,7 +1039,8 @@ DESCRIPTION;
             'actual_message' => $actual_message,
             'actual_message_body' => $message[$actual_message],
             'cleanErrorReport' => $cleanErrorReport,
-            'json' => $GLOBALS['json'] ?? 'null'
+            'json' => $GLOBALS['json'] ?? 'null',
+            'json_string' => json_encode($GLOBALS['json'] ?? null, JSON_PRETTY_PRINT)
         ]);
     }
 

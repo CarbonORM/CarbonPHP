@@ -28,10 +28,10 @@ abstract class Rest extends Database
     public const DISTINCT = 'DISTINCT';
     public const EQUAL = '=';
     public const EQUAL_NULL_SAFE = '<=>';
-    public const FULL_OUTER = 'FULL OUTER';
+    public const FULL_OUTER = 'FULL_OUTER';
     public const GREATER_THAN = '>';
-    public const GROUP_BY = 'GROUP BY';
-    public const GROUP_CONCAT = 'GROUP CONCAT';
+    public const GROUP_BY = 'GROUP_BY';             // js // http get will convert the space so _ explicitly
+    public const GROUP_CONCAT = 'GROUP_CONCAT';
     public const GREATER_THAN_OR_EQUAL_TO = '>=';
     public const HAVING = 'HAVING';
     public const HEX = 'HEX';
@@ -39,11 +39,11 @@ abstract class Rest extends Database
     public const INSERT = 'INSERT';
     public const JOIN = 'JOIN';
     public const LEFT = 'LEFT';
-    public const LEFT_OUTER = 'LEFT OUTER';
+    public const LEFT_OUTER = 'LEFT_OUTER';
     public const LESS_THAN = '<';
     public const LESS_THAN_OR_EQUAL_TO = '<=';
     public const LIKE = 'LIKE';
-    public const NOT_LIKE = 'NOT LIKE';
+    public const NOT_LIKE = 'NOT_LIKE';
     public const LIMIT = 'LIMIT';
     public const MIN = 'MIN';
     public const MAX = 'MAX';
@@ -54,7 +54,7 @@ abstract class Rest extends Database
     public const PAGINATION = 'PAGINATION';
     public const REPLACE = 'REPLACE INTO';
     public const RIGHT = 'RIGHT';
-    public const RIGHT_OUTER = 'RIGHT OUTER';
+    public const RIGHT_OUTER = 'RIGHT_OUTER';
     public const SELECT = 'SELECT';
     public const SUM = 'SUM';
     public const TRANSACTION_TIMESTAMP = 'TRANSACTION_TIMESTAMP';
@@ -867,6 +867,18 @@ abstract class Rest extends Database
 
                         }
 
+                        if (array_key_exists(self::HAVING, $_GET) && is_string($_GET[self::HAVING])) {
+
+                            $_GET[self::HAVING] = json_decode($_GET[self::HAVING], true);
+
+                        }
+
+                        if (array_key_exists(self::GROUP_BY, $_GET) && is_string($_GET[self::GROUP_BY])) {
+
+                            $_GET[self::GROUP_BY] = json_decode($_GET[self::GROUP_BY], true);
+
+                        }
+
                     }
 
                     $args = $_GET;
@@ -910,7 +922,7 @@ abstract class Rest extends Database
 
                     if (!call_user_func_array([$namespace . $mainTable, $methodCase], $requestTableHasPrimary ? [&$return, $primary, $args] : [&$return, $args])) {
 
-                        throw new PublicAlert('The request failed, please make sure arguments are correct.');
+                        throw new PublicAlert('The request failed (returned false), please make sure arguments are correct.');
 
                     }
 
@@ -2015,7 +2027,7 @@ abstract class Rest extends Database
         }
 
         // GROUP BY clause can only be used with aggregate functions like SUM, AVG, COUNT, MAX, and MIN.
-        return ' ' . self::GROUP_BY . ' ' . self::buildQuerySelectValues($group, true) . ' ';
+        return ' GROUP BY ' . self::buildQuerySelectValues($group, true) . ' ';
 
     }
 
@@ -2260,7 +2272,7 @@ abstract class Rest extends Database
 
         if (false === $isSubSelect && static::PRIMARY !== null) {
 
-            return 'ORDER BY ' . (is_string(static::PRIMARY) ? static::PRIMARY : static::PRIMARY[0])
+            return ' ORDER BY ' . (is_string(static::PRIMARY) ? static::PRIMARY : static::PRIMARY[0])
                 . ' ASC LIMIT ' . (null === $primary ? '100' : '1');
 
         }
@@ -2290,6 +2302,8 @@ abstract class Rest extends Database
                 throw new PublicAlert('The restful inner join had an unknown error.'); // todo - message
 
             }
+
+            $by =  str_replace("_"," ",$by);
 
             foreach ($tables as $class => $stmt) {
 
@@ -2408,9 +2422,9 @@ abstract class Rest extends Database
 
         $sql .= self::buildQueryGroupByValues(
             true === $ifArrayKeyExistsThenValueMustBeArray($argv, self::GROUP_BY)
+            || true === $ifArrayKeyExistsThenValueMustBeArray($argv, self::GROUP_BY)
                 ? $argv[self::GROUP_BY]
                 : [], $sql);
-
 
         if (true === $ifArrayKeyExistsThenValueMustBeArray($argv, self::HAVING)) {
 
@@ -2472,6 +2486,8 @@ abstract class Rest extends Database
      */
     protected static function addSingleConditionToWhereOrJoin($valueOne, string $operator, $valueTwo): string
     {
+        // js ajax get will automatically add _ where spaces exist
+        $operator = str_replace('_', ' ', $operator);
 
         if (is_array($valueOne)) {
 
@@ -2598,17 +2614,6 @@ abstract class Rest extends Database
 
     }
 
-    public const supportedOperators = [
-        self::GREATER_THAN_OR_EQUAL_TO,
-        self::GREATER_THAN,
-        self::LESS_THAN_OR_EQUAL_TO,
-        self::LESS_THAN,
-        self::EQUAL,
-        self::EQUAL_NULL_SAFE,
-        self::NOT_EQUAL,
-        self::LIKE,
-        self::NOT_LIKE,
-    ];
 
     /**
      * It was easier for me to think of this in a recursive manner.
@@ -2626,7 +2631,7 @@ abstract class Rest extends Database
         $sql = '';
 
         // this is designed to be different than buildAggregate
-        $supportedOperators = implode('|', [
+        $supportedOperators =  [
             self::GREATER_THAN_OR_EQUAL_TO,
             self::GREATER_THAN,
             self::LESS_THAN_OR_EQUAL_TO,
@@ -2636,7 +2641,8 @@ abstract class Rest extends Database
             self::NOT_EQUAL,
             self::LIKE,
             self::NOT_LIKE,
-        ]);
+        ];
+
 
         // we have to determine when an aggregate might occur early
         if (true === self::array_of_numeric_keys_and_string_int_or_aggregate_values($set)) {
@@ -2645,7 +2651,7 @@ abstract class Rest extends Database
 
                 case 0:
 
-                    throw new PublicAlert('An empty array was passed as a leaf member of a condition. Nested arrays recursively flip the AND vs OR joining conditional. Multiple conditions are not required as only one condition is needed. Two may be asserted equal implicitly by placing them in positions one and two of the array. An explicit definition may see the second $position[1] equal one of  (' . $supportedOperators . ')');
+                    throw new PublicAlert('An empty array was passed as a leaf member of a condition. Nested arrays recursively flip the AND vs OR joining conditional. Multiple conditions are not required as only one condition is needed. Two may be asserted equal implicitly by placing them in positions one and two of the array. An explicit definition may see the second $position[1] equal one of  (' . implode('|',$supportedOperators) . ')');
 
                 case 1:
 
@@ -2667,9 +2673,9 @@ abstract class Rest extends Database
 
                 case 3:
 
-                    if (!((bool)preg_match('#^' . $supportedOperators . '$#', $set[1]))) { // ie #^=|>=|<=$#
+                    if (false === in_array($set[1], $supportedOperators)) { // ie #^=|>=|<=$#
 
-                        throw new PublicAlert("Restful column joins may only use one of the following ($supportedOperators) the value ({$set[1]}) is not supported.");
+                        throw new PublicAlert("Restful column joins may only use one of the following (" . implode('|',$supportedOperators) .") the value ({$set[1]}) is not supported.");
 
                     }
 
@@ -2751,13 +2757,13 @@ abstract class Rest extends Database
 
                         throw new PublicAlert("A rest key column ($column) value (" . json_encode($value) . ") was set to an array with ($count) "
                             . "values but requires only one or two. Boolean comparisons can use one of the following operators "
-                            . "($supportedOperators). The same comparison can be made with an empty (aka default numeric) key "
+                            . "(" .implode('|',$supportedOperators) ."). The same comparison can be made with an empty (aka default numeric) key "
                             . "and three array entries :: [  Column,  Operator, (Operand|Column2) ]. Both ways are made equally "
                             . "for conditions which might require multiple of the same key in the same array; as this would be invalid syntax in php.");
 
                     case 2:
 
-                        if (!((bool)preg_match('#^' . $supportedOperators . '$#', $value[0]))) { // ie #^=|>=|<=$#
+                        if (false === in_array($value[0], $supportedOperators)) { // ie #^=|>=|<=$#
 
                             throw new PublicAlert("Table (" . static::class . ") restful column joins may only use one of the following supported operators ($supportedOperators).");
 
