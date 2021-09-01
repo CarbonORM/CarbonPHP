@@ -120,9 +120,8 @@ abstract class Rest extends Database
     public static bool $jsonReport = true;
 
 
-    //
-    public static array $namedAsReferenceInjections = [];
-    public static bool $aggregateEncountered = false;
+    public static bool $aggregateSelectEncountered = false;
+    public static bool $columnSelectEncountered = false;
 
 
     // False for external and internal requests by default. If a primary key exists you should always attempt to use it.
@@ -969,9 +968,9 @@ abstract class Rest extends Database
     private static function isAggregateArray(array $array): bool
     {
 
-        if (false === array_key_exists(0, $array) ||
-            false === array_key_exists(1, $array) ||
-            count($array) > 3) {
+        if (false === array_key_exists(0, $array)
+            || false === array_key_exists(1, $array)
+            || count($array) > 3) {
 
             return false;
 
@@ -992,6 +991,7 @@ abstract class Rest extends Database
             self::DISTINCT,
             self::GROUP_CONCAT,
             self::COUNT,
+            self::AS                // just in case were using  $column => [ self::AS, '' ]  syntax
         ], true)) {
 
             return true;
@@ -1012,6 +1012,8 @@ abstract class Rest extends Database
     private static function buildAggregate(array $stmt, bool $isSubSelect = false): string
     {
         $name = '';
+
+        self::$aggregateSelectEncountered = true;
 
         if (count($stmt) === 3) {
 
@@ -1996,8 +1998,16 @@ abstract class Rest extends Database
 
     }
 
-    private static function buildQueryGroupByValues(array $group): string
+    private static function buildQueryGroupByValues(array $group, string $sql): string
     {
+
+        // concatenation and aggregation
+        if (true === self::$columnSelectEncountered && true === self::$aggregateSelectEncountered && [] === $group) {
+
+            throw new PublicAlert("Restful Error! A simple column select and aggregate function were used in the same query without the ['GROUP_BY'] clause explicitly set. This has been deprecated. Failed after compiling only :: ($sql)");
+
+        }
+
         if ([] === $group) {
 
             return '';
@@ -2005,7 +2015,6 @@ abstract class Rest extends Database
         }
 
         // GROUP BY clause can only be used with aggregate functions like SUM, AVG, COUNT, MAX, and MIN.
-        //
         return ' ' . self::GROUP_BY . ' ' . self::buildQuerySelectValues($group, true) . ' ';
 
     }
@@ -2047,6 +2056,8 @@ abstract class Rest extends Database
             // todo - more validation on sub-select?
             if ($wasCallable && strpos($column, '(SELECT ') === 0) {
 
+                self::$columnSelectEncountered = true;
+
                 $sql .= $column;
 
                 continue;
@@ -2058,7 +2069,7 @@ abstract class Rest extends Database
 
                 if (is_string($column[0] ?? false) && in_array($column[0], [
                         self::GROUP_CONCAT,
-                        self::DISTINCT
+                        self::DISTINCT      // todo - all I know is that count need be after distinct
                     ], true)) {
 
                     $sql = self::buildAggregate($column, $isSubSelect) . ", $sql";
@@ -2083,6 +2094,8 @@ abstract class Rest extends Database
             // todo - update this syntax allow for remote sub select using [ buildAggregate ]
             if (self::$allowSubSelectQueries && strpos($column, '(SELECT ') === 0) {
 
+                self::$columnSelectEncountered = true;
+
                 $sql .= $column;
 
                 continue;
@@ -2091,7 +2104,7 @@ abstract class Rest extends Database
 
             if (self::validateInternalColumn($column)) {
 
-                $group[] = $column;
+                self::$columnSelectEncountered = true;
 
                 if (false === $isSubSelect && self::$compiled_PDO_validations[$column][self::MYSQL_TYPE] === 'binary') {
 
@@ -2107,7 +2120,9 @@ abstract class Rest extends Database
 
             }
 
-            throw new PublicAlert("Could not validate a column ($column) in the (SELECT) request which caused your request to fail. Possible values include (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
+            throw new PublicAlert("CarbonPHP could not validate a column ($column) passed in the (SELECT) request which caused "
+                . "the request to fail. It does not appear to be allowed based on the tables joined. Possible values include ("
+                . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
 
         }
 
@@ -2121,8 +2136,6 @@ abstract class Rest extends Database
         if (array_key_exists(self::PAGINATION, $argv) && !empty($argv[self::PAGINATION])) {    // !empty should not be in this block - I look all the time
 
             $limit = '';
-
-            $order = '';
 
             // setting the limit to null will cause no limit
             // I get tempted to allow 0 to symbolically mean the same thing, but 0 Limit is allowed in mysql
@@ -2236,7 +2249,6 @@ abstract class Rest extends Database
                     throw new PublicAlert('A unknown Restful error was encountered while compiling the order by statement.');
 
                 }
-
 
                 return $order . ($limit === '' ? '' : " $limit");
 
@@ -2394,11 +2406,10 @@ abstract class Rest extends Database
 
         $sql .= self::buildQueryWhereValues($argv[self::WHERE] ?? [], $primary); // Boolean Conditions and aggregation
 
-        // concatenation and aggregation
         $sql .= self::buildQueryGroupByValues(
             true === $ifArrayKeyExistsThenValueMustBeArray($argv, self::GROUP_BY)
                 ? $argv[self::GROUP_BY]
-                : []);
+                : [], $sql);
 
 
         if (true === $ifArrayKeyExistsThenValueMustBeArray($argv, self::HAVING)) {
@@ -2415,6 +2426,10 @@ abstract class Rest extends Database
 
 
     /**
+     * @param array|null $primary
+     * @param array $argv
+     * @param string $as
+     * @return callable
      * @todo - external subselect
      * Rest::SELECT => [
      *
@@ -2422,10 +2437,6 @@ abstract class Rest extends Database
      *
      * ]
      *
-     * @param array|null $primary
-     * @param array $argv
-     * @param string $as
-     * @return callable
      */
     public static function subSelect(array $primary = null, array $argv = [], string $as = ''): callable
     {
@@ -2462,9 +2473,45 @@ abstract class Rest extends Database
     protected static function addSingleConditionToWhereOrJoin($valueOne, string $operator, $valueTwo): string
     {
 
-        $key_is_custom = false === self::validateInternalColumn($valueOne, $valueTwo);
+        if (is_array($valueOne)) {
 
-        $value_is_custom = false === self::validateInternalColumn($valueTwo, $valueOne);
+            if (self::isAggregateArray($valueOne)) {
+
+                $valueOne = self::buildAggregate($valueOne);
+
+            } else {
+
+                throw new PublicAlert("Restful error! While trying to add a single condition an array was encountered which was not a valid Aggregate. ($valueOne)");
+
+            }
+
+            $key_is_custom = false;
+
+        } else {
+
+            $key_is_custom = false === self::validateInternalColumn($valueOne, $operator, $valueTwo);
+
+        }
+
+        if (is_array($valueTwo)) {
+
+            if (self::isAggregateArray($valueTwo)) {
+
+                $valueTwo = self::buildAggregate($valueTwo);
+
+            } else {
+
+                throw new PublicAlert("Restful error! While trying to add a single condition an array was encountered which was not a valid Aggregate. ($valueTwo)");
+
+            }
+
+            $value_is_custom = false;
+
+        } else {
+
+            $value_is_custom = false === self::validateInternalColumn($valueTwo, $operator, $valueOne);
+
+        }
 
         if ($key_is_custom && $value_is_custom) {
 
@@ -2537,8 +2584,10 @@ abstract class Rest extends Database
             if (false === is_numeric($key)
                 || (false === is_string($value)
                     && false === is_int($value)
-                    && (is_array($value) && false === self::isAggregateArray($value)))) {
+                    && (is_array($value)
+                        && false === self::isAggregateArray($value)))) {
 
+                // not an Aggregate
                 $return = false;    // we want to remove callables
 
             }
@@ -2549,6 +2598,17 @@ abstract class Rest extends Database
 
     }
 
+    public const supportedOperators = [
+        self::GREATER_THAN_OR_EQUAL_TO,
+        self::GREATER_THAN,
+        self::LESS_THAN_OR_EQUAL_TO,
+        self::LESS_THAN,
+        self::EQUAL,
+        self::EQUAL_NULL_SAFE,
+        self::NOT_EQUAL,
+        self::LIKE,
+        self::NOT_LIKE,
+    ];
 
     /**
      * It was easier for me to think of this in a recursive manner.
@@ -2599,7 +2659,7 @@ abstract class Rest extends Database
 
                     throw new PublicAlert("The single value ({$set[$key]}) has the numeric array key [$key] which could imply a conditional equality; however, numeric keys (implicit or explicit) to imply equality are not allowed in C6. Please reorder the condition to have a string key and numeric value.");
 
-                case 2: // both string and|or int
+                case 2:
 
                     $sql .= self::addSingleConditionToWhereOrJoin($set[0], self::EQUAL, $set[1]);
 
@@ -2667,6 +2727,7 @@ abstract class Rest extends Database
 
                 }
 
+
                 $count = count($value);
 
                 switch ($count) {
@@ -2679,6 +2740,7 @@ abstract class Rest extends Database
                             && true === self::isAggregateArray($value[0])) {
 
                             $sql .= self::addSingleConditionToWhereOrJoin($column, self::EQUAL, $value[0]);
+
                             break;
 
                         }
@@ -2800,11 +2862,15 @@ abstract class Rest extends Database
                 self::$compiled_regex_validations,
                 self::$externalRestfulRequestsAPI,
                 self::$join_tables,
+                self::$aggregateSelectEncountered,
+                self::$columnSelectEncountered,
                 self::$allowSubSelectQueries,
                 self::$injection
             ];
             self::$allowSubSelectQueries = true;
             self::$externalRestfulRequestsAPI = false;
+            self::$aggregateSelectEncountered = false;
+            self::$columnSelectEncountered = false;
         }
 
         if ($subQuery) {
@@ -2825,6 +2891,7 @@ abstract class Rest extends Database
             self::$compiled_regex_validations = [];
             self::$join_tables = [];
             self::$allowSubSelectQueries = false;
+
         }
 
         self::gatherValidationsForRequest();
@@ -2839,6 +2906,8 @@ abstract class Rest extends Database
      */
     protected static function completeRest(bool $subQuery = false): void
     {
+
+
         if (empty(self::$activeQueryStates)) {
 
             self::$REST_REQUEST_METHOD = null;
@@ -2853,6 +2922,8 @@ abstract class Rest extends Database
             self::$join_tables = [];
             self::$allowSubSelectQueries = false;          // this should only be done on completion
             self::$injection = [];
+            self::$aggregateSelectEncountered = false;
+            self::$columnSelectEncountered = false;
 
         } elseif ($subQuery) {
             [
@@ -2867,6 +2938,8 @@ abstract class Rest extends Database
                 self::$compiled_regex_validations,
                 self::$externalRestfulRequestsAPI,
                 self::$join_tables,
+                self::$aggregateSelectEncountered,
+                self::$columnSelectEncountered,
             ] = array_pop(self::$activeQueryStates);
         } else {
             [
@@ -2881,6 +2954,8 @@ abstract class Rest extends Database
                 self::$compiled_regex_validations,
                 self::$externalRestfulRequestsAPI,
                 self::$join_tables,
+                self::$aggregateSelectEncountered,
+                self::$columnSelectEncountered,
                 self::$allowSubSelectQueries,
                 self::$injection
             ] = array_pop(self::$activeQueryStates);

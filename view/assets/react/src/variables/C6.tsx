@@ -14,7 +14,7 @@ export const C6 = {
     EQUAL_NULL_SAFE: '<=>',
     FULL_OUTER: 'FULL OUTER',
     GREATER_THAN: '>',
-    GROUP_CONCAT: 'GROUP_CONCAT',
+    GROUP_CONCAT: 'GROUP CONCAT',
     GREATER_THAN_OR_EQUAL_TO: '>=',
     INNER: 'INNER',
     JOIN: 'JOIN',

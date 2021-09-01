@@ -532,7 +532,6 @@ class CarbonPHP
 
             }
 
-
             #################  SITE  ########################
             if ($config['SITE'] ?? false) {
 

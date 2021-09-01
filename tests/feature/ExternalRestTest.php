@@ -178,4 +178,66 @@ class ExternalRestTest extends Config
 
     }
 
+
+    public function testBooleanJoinToNestedAggregateHavingAndGroupBy(): void
+    {
+        $_GET = [
+            Rest::SELECT => [
+                Users::USER_USERNAME,
+                Users::USER_ABOUT_ME,
+                [Rest::COUNT, Location_References::ENTITY_REFERENCE]
+            ],
+            Rest::JOIN => [
+                Rest::INNER => [
+                    Location_References::TABLE_NAME => [
+                        [Users::USER_ID =>
+                            Location_References::ENTITY_REFERENCE]
+                    ],
+                    Locations::TABLE_NAME => [
+                        [Locations::ENTITY_ID =>
+                            Location_References::LOCATION_REFERENCE]
+                    ]
+                ]
+            ],
+            Rest::WHERE => [
+                [Users::USER_USERNAME, Rest::LIKE, '%rock%'],
+            ],
+            Rest::GROUP_BY => [
+                Users::USER_USERNAME
+            ],
+            Rest::HAVING => [
+                Users::USER_ABOUT_ME => [
+                    Rest::NOT_EQUAL,
+                    [Rest::COUNT, Location_References::ENTITY_REFERENCE]
+                ]
+            ],
+            Rest::PAGINATION => [
+                Rest::LIMIT => null,
+                Rest::ORDER => [
+                    Users::USER_USERNAME => Rest::ASC
+                ]
+            ]
+        ];
+
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+
+        ob_start(null, 0, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
+
+        self::assertTrue(Rest::ExternalRestfulRequestsAPI(Users::TABLE_NAME, null, Users::CLASS_NAMESPACE));
+
+        $out = trim(ob_get_clean());
+
+        $json_array = json_decode(trim($out), true);
+
+        self::assertArrayHasKey('sql', $json_array);
+
+        self::assertArrayHasKey('rest', $json_array);
+
+        self::assertEquals(
+            "SELECT carbon_users.user_username, carbon_users.user_about_me, COUNT(carbon_location_references.entity_reference) FROM CarbonPHP.carbon_users INNER JOIN CarbonPHP.carbon_location_references ON ((carbon_users.user_id = carbon_location_references.entity_reference)) INNER JOIN CarbonPHP.carbon_locations ON ((carbon_locations.entity_id = carbon_location_references.location_reference)) WHERE ((carbon_users.user_username LIKE :injection0)) GROUP BY carbon_users.user_username  HAVING (carbon_users.user_about_me <> COUNT(carbon_location_references.entity_reference)) ORDER BY carbon_users.user_username ASC",
+            $GLOBALS['json']['sql'][0][1] ?? $GLOBALS['json']);
+
+    }
+
+
 }
