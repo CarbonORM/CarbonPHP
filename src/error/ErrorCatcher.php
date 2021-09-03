@@ -463,14 +463,7 @@ class ErrorCatcher
         // try resetting to the default page if conditions correct, we've already generated a log and optionally printed
         if (!CarbonPHP::$setupComplete) {
 
-
-            self::exitAndSendBasedOnRequested('1');
-
-            header('Content-Type:text/html', true, $code);
-
-            print $error_page;
-
-            self::closeStdoutStderrAndExit(1);
+            self::exitAndSendBasedOnRequested($errorForTemplate, $error_page);
 
         }
 
@@ -487,13 +480,8 @@ class ErrorCatcher
 
         }
 
-        self::exitAndSendBasedOnRequested('2');
+        self::exitAndSendBasedOnRequested($errorForTemplate, $error_page);
 
-        header('Content-Type:text/html', true, $code);
-
-        print $error_page;
-
-        self::closeStdoutStderrAndExit(1);
     }
 
     /**
