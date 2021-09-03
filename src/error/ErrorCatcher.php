@@ -378,6 +378,8 @@ class ErrorCatcher
 
     public static function exitAndSendBasedOnRequested(array $json, string $html) {
 
+        $_SERVER["CONTENT_TYPE"] ??= '';
+
         if (false === headers_sent()) {
 
             $code = $json['CODE'] ?? false;
@@ -889,6 +891,8 @@ class ErrorCatcher
      */
     protected static function generateCallTrace(Throwable $e = null)
     {
+        $_SERVER["CONTENT_TYPE"] ??= '';
+
         self::$methodName = self::$className = '';
 
         if (false === CarbonPHP::$cli) {
