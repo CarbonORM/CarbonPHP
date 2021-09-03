@@ -64,7 +64,7 @@ class Documentation extends Application implements iConfig
         View::$forceWrapper = true; // this will hard refresh the wrapper
 
         if (CarbonPHP::$app_local) {
-            throw new PublicAlert('You should run the live version on <a href="http://dev.carbonphp.com:3000/" style="color:#ff0084">port 3000</a> with the command<br/><b>>> npm start </b> 
+            throw new PublicAlert('You should run the live version on <a id="staticSite" href="http://dev.carbonphp.com:3000/" style="color:#ff0084">port 3000</a> with the command<br/><b>>> npm start </b> 
     <br/>To bypass this message <a href="http://dev.carbonphp.com:8080/6.0/" style="color:blue">click here</a>');
         }
 

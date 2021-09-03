@@ -376,6 +376,48 @@ class ErrorCatcher
     }
 
 
+    public static function exitAndSendBasedOnRequested(array $json, string $html) {
+
+        if (false === headers_sent()) {
+
+            $code = $json['CODE'] ?? false;
+
+            if (false === $code || false === is_numeric($color)) {
+
+                $code = 500;
+
+            }
+
+            $contentType = 'Content-Type: ' . $_SERVER["CONTENT_TYPE"] === 'application/json' ? 'application/json' : 'text/html';
+
+            header($contentType, true, $code);
+
+        }
+
+        if ($_SERVER["CONTENT_TYPE"] === 'application/json') {
+
+            $json = json_encode($json, JSON_PRETTY_PRINT);
+
+            if (false === $json) {
+
+                sortDump(['FAILED TO JSON ENCODE THE FOLLOWING (Retrying with sortDump) ::', $json]);
+
+            }
+
+            print $json;
+
+        } else {
+
+            print $html;
+
+        }
+
+        self::closeStdoutStderrAndExit(1);
+
+    }
+
+
+
     /**
      * This terminates!
      * @param array $errorForTemplate
@@ -419,6 +461,9 @@ class ErrorCatcher
         // try resetting to the default page if conditions correct, we've already generated a log and optionally printed
         if (!CarbonPHP::$setupComplete) {
 
+
+            self::exitAndSendBasedOnRequested('1');
+
             header('Content-Type:text/html', true, $code);
 
             print $error_page;
@@ -439,6 +484,8 @@ class ErrorCatcher
             self::closeStdoutStderrAndExit(1);
 
         }
+
+        self::exitAndSendBasedOnRequested('2');
 
         header('Content-Type:text/html', true, $code);
 
@@ -725,11 +772,11 @@ class ErrorCatcher
 
         $pre = fn(string $code) => "<pre>$code</pre>";
 
-        $log_array['TRACE'] = CarbonPHP::$cli ? $trace : $pre($trace);
+        $log_array['TRACE'] = CarbonPHP::$cli || $_SERVER["CONTENT_TYPE"] === 'application/json' ? $trace : $pre($trace);
 
         $json = $GLOBALS['json'] ??= [];
 
-        $log_array['$GLOBALS[\'json\']'] = CarbonPHP::$cli ? $json : $pre(json_encode($json, JSON_PRETTY_PRINT) ?: serialize($json));
+        $log_array['$GLOBALS[\'json\']'] = CarbonPHP::$cli || $_SERVER["CONTENT_TYPE"] === 'application/json' ? $json : $pre(json_encode($json, JSON_PRETTY_PRINT) ?: serialize($json));
 
         if (self::$storeReport === true || self::$storeReport === 'database') {
 
@@ -803,7 +850,7 @@ class ErrorCatcher
 
         if (false === $return) {
 
-            if (false === CarbonPHP::$cli) {
+            if (false === CarbonPHP::$cli) {    // we have alreay logged
 
                 if (headers_sent()) {
 
@@ -816,21 +863,7 @@ class ErrorCatcher
 
                 } else {
 
-                    if (false === headers_sent()) {
-
-                        $code = $log_array['CODE'] ?? false;
-
-                        if (false === $code || false === is_numeric($color)) {
-
-                            $code = 500;
-
-                        }
-
-                        header('Content-Type:text/html', true, $code);
-
-                    }
-
-                    print $html_error_log;  // todo - we are cli and were printing the html log?  CarbonPHP::$cli
+                    self::exitAndSendBasedOnRequested($log_array, $html_error_log);
 
                 }
 
@@ -943,13 +976,13 @@ class ErrorCatcher
 
                 if (array_key_exists('args', $args[$i])) {
 
-                    $line_two = CarbonPHP::$cli
+                    $line_two = CarbonPHP::$cli || $_SERVER["CONTENT_TYPE"] === 'application/json'
                         ? $args[$i]['args']
                         : json_encode($args[$i]['args'], JSON_PRETTY_PRINT);
 
                 }
 
-                $result[] = CarbonPHP::$cli
+                $result[] = CarbonPHP::$cli || $_SERVER["CONTENT_TYPE"] === 'application/json'
                     ? ["TRACE $call_number" => $line_one, 'ARGUMENTS' => $line_two]
                     : $line_one . "\n\t\t\t\t" . $line_two . PHP_EOL;
 
@@ -957,7 +990,9 @@ class ErrorCatcher
 
         }
 
-        return CarbonPHP::$cli ? $result : PHP_EOL . implode(PHP_EOL, $result);
+        return CarbonPHP::$cli || $_SERVER["CONTENT_TYPE"] === 'application/json'
+            ? $result
+            : PHP_EOL . implode(PHP_EOL, $result);
     }
 
     /**

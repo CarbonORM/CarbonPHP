@@ -30,7 +30,9 @@
   },
   "require-dev": {
     "wp-cli/wp-cli-bundle": "2.4.0",
-    "phpunit/phpunit-selenium": "9.0.0",
+    "phpunit/phpunit-selenium": "^9.0",
+    "se/selenium-server-standalone": "^3.141.59",
+    "phpunit/phpunit": "^9.5",
     "phpmetrics/phpmetrics": "^2.7"
   },
   "authors": [

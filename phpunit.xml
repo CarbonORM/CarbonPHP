@@ -16,7 +16,7 @@
             <file>tests/feature/RestWordpressTest.php</file>
         </testsuite>
         <testsuite name="browser">
-            <directory>./tests/browser/</directory>
+            <file>./tests/browser/NavigationTest.php</file>
         </testsuite>
     </testsuites>
     <php>
