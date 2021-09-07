@@ -132,12 +132,10 @@ IDENTIFIED;
     {
 
         $cmd = ($mysqldump ?? 'mysqldump')
-            . ' --defaults-extra-file="' . self::buildCNF() . '" '
             . '--hex-blob '
             . '--skip-opt '
-            . '--skip-comments '
-            . '--skip-set-charset '
-            . '--default-character-set=utf8mb4 '
+            . '--skip-set-charset -N --no-set-names '
+            . ' --defaults-extra-file="' . self::buildCNF() . '" '
             . ($data ? '' : '--no-data ') . CarbonPHP::$configuration['DATABASE']['DB_NAME'] . ' > "' . CarbonPHP::$app_root . 'mysqldump.sql"';
 
         Background::executeAndCheckStatus($cmd);
