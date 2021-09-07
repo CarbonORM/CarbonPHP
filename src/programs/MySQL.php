@@ -132,7 +132,7 @@ IDENTIFIED;
     {
 
         $cmd = ($mysqldump ?? 'mysqldump')
-            . '--hex-blob '
+            . ' --hex-blob '
             . '--skip-opt '
             . '--skip-set-charset -N --no-set-names '
             . ' --defaults-extra-file="' . self::buildCNF() . '" '
