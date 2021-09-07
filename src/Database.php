@@ -880,10 +880,22 @@ FOOT;
         },
             $tableDirectory);
 
-        unlink(CarbonPHP::$app_root . 'mysqldump.sql'); // I dont care if this works
+        if (file_exists($filename = CarbonPHP::$app_root . 'mysqldump.sql')) {
+
+            try {
+
+                unlink($filename); // I dont care if this works
+
+            } catch (Throwable $e) {
+
+                ErrorCatcher::generateLog($e, true);
+
+            }
+
+        }
 
         // Now Validate The Rest Tables Based on The MySQL Dump after update.
-        $mysqldump = MySQL::mysqldump(null);  // todo - make c6 argument
+        $mysqldump = MySQL::mysqldump(null);
 
         sleep(1);   // wait for last command
 

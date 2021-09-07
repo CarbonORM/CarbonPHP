@@ -35,6 +35,8 @@ abstract class Rest extends Database
     public const GREATER_THAN_OR_EQUAL_TO = '>=';
     public const HAVING = 'HAVING';
     public const HEX = 'HEX';
+    public const IN
+        = 'IN';
     public const INNER = 'INNER';
     public const INSERT = 'INSERT';
     public const JOIN = 'JOIN';
@@ -49,6 +51,7 @@ abstract class Rest extends Database
     public const MAX = 'MAX';
     public const NOW = ' NOW() ';
     public const NOT_EQUAL = '<>';
+    public const NOT_IN = 'NOT_IN';
     public const ORDER = 'ORDER';
     public const PAGE = 'PAGE';
     public const PAGINATION = 'PAGINATION';
@@ -980,6 +983,13 @@ abstract class Rest extends Database
     private static function isAggregateArray(array $array): bool
     {
 
+        if (self::isSubSelectAggregation($array)) {
+
+            return true;
+
+        }
+
+
         if (false === array_key_exists(0, $array)
             || false === array_key_exists(1, $array)
             || count($array) > 3) {
@@ -988,7 +998,7 @@ abstract class Rest extends Database
 
         }
 
-        if ($array[1] === self::AS) {
+        if (in_array($array[1], [self::IN, self::NOT_IN, self::AS], true)) {
 
             return true;
 
@@ -1003,7 +1013,9 @@ abstract class Rest extends Database
             self::DISTINCT,
             self::GROUP_CONCAT,
             self::COUNT,
-            self::AS                // just in case were using  $column => [ self::AS, '' ]  syntax
+            self::AS,                // just in case were using  $column => [ self::AS, '' ]  syntax
+            self::IN,
+            self::NOT_IN,            // Sub-select was handled earlier
         ], true)) {
 
             return true;
@@ -1014,16 +1026,194 @@ abstract class Rest extends Database
 
     }
 
+    public static function is_assoc(array $array): bool
+    {
+        // Keys of the array
+        $keys = array_keys($array);
+
+        // If the array keys of the keys match the keys, then the array must
+        // not be associative (e.g. the keys array looked like {0:0, 1:1...}).
+        return array_keys($keys) !== $keys;
+
+    }
+
+
+
+
+
+    public static function handleSubSelectAggregate(array $stmt): string
+    {
+
+        $tableName = $stmt[1];
+
+        if (false === self::$allowSubSelectQueries) {
+
+            throw new PublicAlert('Whoa, looks like a sub-select was encountered without `self::$allowSubSelectQueries` explicitly set to true. '
+            . ' This is a security precaution and is recommend to only be set to true when explicitly needed. You should'
+            . " consider doing this in the ($tableName::PHP_VALIDATION['PREPROCESS']) event cycle.");
+
+        }
+
+        if (false === defined("$tableName::CLASS_NAME")) {
+
+            throw new PublicAlert("The restful sub-select failed as the table ($tableName) did not have member const ($tableName::CLASS_NAME).");
+
+        }
+
+        $primaryField = $tableName::PRIMARY;
+
+        $primary = [];
+
+        $argv = [];
+
+        $as = '';
+
+        $setLength = count($stmt);
+
+        if (true === self::is_assoc($stmt)) {   // todo - php 8.1 check when we gain support
+
+            throw new PublicAlert('The restful sub-select query has been detected to be an associative array.'
+                . ' Associative array arrays can not (yet) be unpacked in PHP. Please remove the keys an allow php '
+                . 'to manually assign them. The infringing set on table (' . static::class . ') :: (' . json_encode($stmt) . ')');
+
+        }
+
+        if (null === $primaryField) {
+
+            switch ($setLength) {
+
+                case 4:
+
+                    [, , , $as] = $stmt;
+
+                case 3:
+
+                    [, , $argv] = $stmt;
+
+                    if (false === is_array($argv)) {
+
+                        throw new PublicAlert("The third argument passed to the restful sub-select was a not an array. The signature for tables without primary keys is as follows:: [ Rest::SELECT, '$tableName' , (array) \$argv, (string|optional) \$as].  The infringing set on table (" . static::class . ") :: (" . json_encode($stmt) . ")'");
+
+                    }
+
+                    if (false === is_string($as)) {
+
+                        throw new PublicAlert("The fourth argument passed  to the restful sub-select was a not a string. The signature for tables without primary keys is as follows:: [ Rest::SELECT, '$tableName' , (array) \$argv, (string|optional) \$as]. The infringing set on table (" . static::class . ") :: (" . json_encode($stmt) . ")'");
+
+                    }
+
+                    break;
+
+                default:
+
+                    throw new PublicAlert('The restful sub-select set passed was not the correct length. The '
+                        . "table ($tableName) has no primary keys so only three or four values are expected."
+                        . " Arguments must match the signature [ SELECT, $tableName, \$argv = [], \$as = '' ] for sub-select"
+                        . ' queries on tables which have no sql queries. The infringing set on table (' . static::class . ') :: (' . json_encode($stmt) . ')');
+
+            }
+
+        } else if (is_array($primaryField) || is_string($primaryField)) {
+
+            $error_context = static function (string $tableName) use ($primaryField, $stmt) {
+
+                $set = ' The infringing set on table ('.static::class.') :: (' . json_encode($stmt) . ')';
+
+                return is_array($primaryField) ? "The signature for tables with multiple column primary keys is as follows:: [ Rest::SELECT, '$tableName',  (array) \$primary, (array) \$argv, (string|optional) \$as]. $set"
+                    : "The signature for tables with a single column primary key is as follows:: [ Rest::SELECT, '$tableName',  (string|int|array) \$primary, (array) \$argv, (string|optional) \$as]. Note: if an array is given it must be a key value with the key being the fully qualified `table.column` name associated with the primary key. $set";
+
+            };
+
+            switch ($setLength) {
+                case 5:
+
+                    [, , , , $as] = $stmt;
+
+                case 4:
+
+                    [, , $primary, $argv] = $stmt;
+
+                    /** @noinspection NotOptimalIfConditionsInspection - whatever; really */
+                    if (is_string($primaryField)
+                        && (true === is_string($primary) || true === is_int($primary))) {
+
+                        $primary = [static::PRIMARY => $primary];
+
+                    }
+
+                    if (null !== $primary && false === is_array($primary)) {
+
+                        throw new PublicAlert("The third argument passed to the restful sub-select was a not a { null, string, int, or array }. " . $error_context($tableName));
+
+                    }
+
+                    if (false === is_array($argv)) {
+
+                        throw new PublicAlert("The fourth argument passed to the restful sub-select was a not an array. " . $error_context($tableName));
+
+                    }
+
+                    if (false === is_string($as)) {
+
+                        throw new PublicAlert("The fourth argument passed to the restful sub-select was a not a string. " . $error_context($tableName));
+
+                    }
+
+                    break;
+
+                default:
+
+                    throw new PublicAlert('The restful sub-select set passed was not the correct length. (' . count($stmt) . ') '
+                        . $error_context($tableName));
+
+            }
+
+        }
+
+        // thus ( $tableName::CLASS_NAME === $tableName )
+        // the following if from the original sub-select query, in this context xss could be dirty so this
+        // should be set during validations explicitly by end user
+        # self::$allowSubSelectQueries = true;
+
+        $tableName::startRest(self::GET, self::$REST_REQUEST_PARAMETERS, $primary, $argv, true);
+
+        $sql = $tableName::buildSelectQuery($primary, $argv, true);
+
+        $sql = "($sql)";
+
+        if (!empty($as)) {
+            $sql = "$sql AS $as";
+        }
+
+        $tableName::completeRest(true);
+
+        return $sql;
+
+    }
+
+    public static function isSubSelectAggregation(array $stmt) : bool {
+        return array_key_exists(0, $stmt)
+            && array_key_exists(1, $stmt)
+            && self::SELECT === $stmt[0];
+    }
+
+
     /**
-     * @param $stmt
-     * @param $sql
-     * @param array $group
+     * @param array $stmt
      * @param bool $isSubSelect
+     * @return string
      * @throws PublicAlert
      */
     private static function buildAggregate(array $stmt, bool $isSubSelect = false): string
     {
         $name = '';
+
+        if (self::isSubSelectAggregation($stmt)) {
+
+            // todo - it is unclear if this is more an aggregate or column with respect to the group by
+            return self::handleSubSelectAggregate($stmt);
+
+        }
 
         self::$aggregateSelectEncountered = true;
 
@@ -2303,7 +2493,7 @@ abstract class Rest extends Database
 
             }
 
-            $by =  str_replace("_"," ",$by);
+            $by = str_replace("_", " ", $by);
 
             foreach ($tables as $class => $stmt) {
 
@@ -2450,6 +2640,8 @@ abstract class Rest extends Database
      *      [ Rest::SELECT,  [  [primary:(array|null), optional argv:(array)]  ],  optional as:(string)) ]
      *
      * ]
+     *
+     * @deprecated private use
      *
      */
     public static function subSelect(array $primary = null, array $argv = [], string $as = ''): callable
@@ -2631,7 +2823,7 @@ abstract class Rest extends Database
         $sql = '';
 
         // this is designed to be different than buildAggregate
-        $supportedOperators =  [
+        $supportedOperators = [
             self::GREATER_THAN_OR_EQUAL_TO,
             self::GREATER_THAN,
             self::LESS_THAN_OR_EQUAL_TO,
@@ -2639,6 +2831,8 @@ abstract class Rest extends Database
             self::EQUAL,
             self::EQUAL_NULL_SAFE,
             self::NOT_EQUAL,
+            self::IN,
+            self::NOT_IN,
             self::LIKE,
             self::NOT_LIKE,
         ];
@@ -2651,7 +2845,7 @@ abstract class Rest extends Database
 
                 case 0:
 
-                    throw new PublicAlert('An empty array was passed as a leaf member of a condition. Nested arrays recursively flip the AND vs OR joining conditional. Multiple conditions are not required as only one condition is needed. Two may be asserted equal implicitly by placing them in positions one and two of the array. An explicit definition may see the second $position[1] equal one of  (' . implode('|',$supportedOperators) . ')');
+                    throw new PublicAlert('An empty array was passed as a leaf member of a condition. Nested arrays recursively flip the AND vs OR joining conditional. Multiple conditions are not required as only one condition is needed. Two may be asserted equal implicitly by placing them in positions one and two of the array. An explicit definition may see the second $position[1] equal one of  (' . implode('|', $supportedOperators) . ')');
 
                 case 1:
 
@@ -2673,9 +2867,9 @@ abstract class Rest extends Database
 
                 case 3:
 
-                    if (false === in_array($set[1], $supportedOperators)) { // ie #^=|>=|<=$#
+                    if (false === in_array($set[1], $supportedOperators, true)) { // ie #^=|>=|<=$#
 
-                        throw new PublicAlert("Restful column joins may only use one of the following (" . implode('|',$supportedOperators) .") the value ({$set[1]}) is not supported.");
+                        throw new PublicAlert("Restful column joins may only use one of the following (" . implode('|', $supportedOperators) . ") the value ({$set[1]}) is not supported.");
 
                     }
 
@@ -2757,7 +2951,7 @@ abstract class Rest extends Database
 
                         throw new PublicAlert("A rest key column ($column) value (" . json_encode($value) . ") was set to an array with ($count) "
                             . "values but requires only one or two. Boolean comparisons can use one of the following operators "
-                            . "(" .implode('|',$supportedOperators) ."). The same comparison can be made with an empty (aka default numeric) key "
+                            . "(" . implode('|', $supportedOperators) . "). The same comparison can be made with an empty (aka default numeric) key "
                             . "and three array entries :: [  Column,  Operator, (Operand|Column2) ]. Both ways are made equally "
                             . "for conditions which might require multiple of the same key in the same array; as this would be invalid syntax in php.");
 
@@ -2870,10 +3064,8 @@ abstract class Rest extends Database
                 self::$join_tables,
                 self::$aggregateSelectEncountered,
                 self::$columnSelectEncountered,
-                self::$allowSubSelectQueries,
                 self::$injection
             ];
-            self::$allowSubSelectQueries = true;
             self::$externalRestfulRequestsAPI = false;
             self::$aggregateSelectEncountered = false;
             self::$columnSelectEncountered = false;
@@ -2884,7 +3076,6 @@ abstract class Rest extends Database
             self::$REST_REQUEST_PRIMARY_KEY = &$primary;
             self::$REST_REQUEST_PARAMETERS = &$args;
             self::$REST_REQUEST_RETURN_DATA = &$return;
-            self::$allowSubSelectQueries = true;
         } else {
             self::$REST_REQUEST_METHOD = $method;
             self::$REST_REQUEST_PRIMARY_KEY = &$primary;
@@ -2896,8 +3087,7 @@ abstract class Rest extends Database
             self::$compiled_PHP_validations = [];
             self::$compiled_regex_validations = [];
             self::$join_tables = [];
-            self::$allowSubSelectQueries = false;
-
+            # self::$allowSubSelectQueries = false;
         }
 
         self::gatherValidationsForRequest();
@@ -2926,7 +3116,6 @@ abstract class Rest extends Database
             self::$compiled_regex_validations = [];
             self::$externalRestfulRequestsAPI = false;     // this should only be done on completion
             self::$join_tables = [];
-            self::$allowSubSelectQueries = false;          // this should only be done on completion
             self::$injection = [];
             self::$aggregateSelectEncountered = false;
             self::$columnSelectEncountered = false;
@@ -2962,7 +3151,6 @@ abstract class Rest extends Database
                 self::$join_tables,
                 self::$aggregateSelectEncountered,
                 self::$columnSelectEncountered,
-                self::$allowSubSelectQueries,
                 self::$injection
             ] = array_pop(self::$activeQueryStates);
         }

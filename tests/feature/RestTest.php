@@ -13,13 +13,13 @@ namespace Tests\Feature;
 use CarbonPHP\Database;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Rest;
-use CarbonPHP\Tables\Location_References;
-use CarbonPHP\Tables\Locations;
-use CarbonPHP\Tables\User_Tasks;
-use CarbonPHP\Tables\Users;
 use CarbonPHP\Tables\Carbons;
 use CarbonPHP\Tables\History_Logs;
+use CarbonPHP\Tables\Location_References;
+use CarbonPHP\Tables\Locations;
 use CarbonPHP\Tables\Sessions;
+use CarbonPHP\Tables\User_Tasks;
+use CarbonPHP\Tables\Users;
 
 
 /**
@@ -50,7 +50,7 @@ final class RestTest extends Config
 
     /**
      * @param string $key
-\     */
+     * \     */
     private function KeyExistsAndRemove(string $key): void
     {
         $store = [];
@@ -259,7 +259,7 @@ final class RestTest extends Config
 
         self::assertTrue(Users::Get($user, $uid));
 
-        self::assertArrayHasKey(Users::COLUMNS[Users::USER_ABOUT_ME] , $user);
+        self::assertArrayHasKey(Users::COLUMNS[Users::USER_ABOUT_ME], $user);
 
         self::assertTrue(Users::Get($user, $uid, [
             Users::SELECT => [
@@ -378,6 +378,42 @@ final class RestTest extends Config
 
         self::assertArrayHasKey(Carbons::COLUMNS[Carbons::ENTITY_PK], $user);
 
+        // try again with ^10 syntax
+
+        $user = [];
+
+        Rest::$allowSubSelectQueries = true;
+
+        self::assertTrue(Carbons::Get($user, null, [
+            Carbons::SELECT => [
+                Carbons::ENTITY_PK
+            ],
+            Carbons::WHERE => [
+                Carbons::ENTITY_PK =>
+                    [
+                        Rest::SELECT,
+                        Users::class,
+                        null,
+                        [
+                            Users::SELECT => [
+                                Users::USER_ID
+                            ],
+                            Users::WHERE => [
+                                Users::USER_USERNAME => Config::ADMIN_USERNAME
+                            ]
+                        ]
+                    ]
+            ],
+            Carbons::PAGINATION => [
+                Carbons::LIMIT =>
+                    1
+            ]
+        ]));
+
+        self::assertNotEmpty($user, 'Could not get user admin via sub query. ' . json_encode($json));
+
+        self::assertArrayHasKey(Carbons::COLUMNS[Carbons::ENTITY_PK], $user);
+
     }
 
 
@@ -439,7 +475,6 @@ final class RestTest extends Config
         ]));
 
         self::assertEmpty($user, 'Could not delete user admin in cascade delete function.');
-
 
 
         self::assertTrue(Users::Get($user, null, [
@@ -540,19 +575,18 @@ final class RestTest extends Config
 
         self::assertNotEquals('127.0.0.2', $return[Sessions::COLUMNS[Sessions::USER_IP]]);
         self::assertNotEquals('0', $return[Sessions::COLUMNS[Sessions::USER_ONLINE_STATUS]]);
-        
+
         self::assertTrue(Sessions::Get($return, $SESSION_ID_TWO, []));
         self::assertNotEmpty($return);
-        
+
         self::assertEquals('127.0.0.2', $return[Sessions::COLUMNS[Sessions::USER_IP]]);
-        
+
         self::assertEquals('0', $return[Sessions::COLUMNS[Sessions::USER_ONLINE_STATUS]]);
         self::assertTrue(Sessions::Delete($return, $SESSION_ID_ONE));
         self::assertTrue(Sessions::Delete($return, $SESSION_ID_TWO));
         self::assertTrue(Carbons::Delete($return, $USER_ID_ONE));
         self::assertTrue(Carbons::Delete($return, $USER_ID_TWO));
     }
-
 
 
     /**
@@ -609,7 +643,7 @@ final class RestTest extends Config
         ]));
 
         self::assertTrue(History_Logs::Post([
-            History_Logs::HISTORY_DATA => [ 'Json' => 'is cool'],
+            History_Logs::HISTORY_DATA => ['Json' => 'is cool'],
             History_Logs::HISTORY_TABLE => $condition,
             History_Logs::HISTORY_UUID => $UUID = Carbons::Post([])
         ]));
