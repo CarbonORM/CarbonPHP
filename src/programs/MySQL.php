@@ -137,7 +137,7 @@ IDENTIFIED;
             . '--opt '
             . '--skip-comments '
             . '--skip-set-charset '
-            . '--default-character-set=utf8 '
+            . '--default-character-set=utf8mb4 '
             . ($data ? '' : '--no-data ') . CarbonPHP::$configuration['DATABASE']['DB_NAME'] . ' > "' . CarbonPHP::$app_root . 'mysqldump.sql"';
 
         Background::executeAndCheckStatus($cmd);
