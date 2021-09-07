@@ -131,11 +131,7 @@ IDENTIFIED;
     public static function MySQLDump(string $mysqldump = null, bool $data = false): string
     {
 
-        $cmd = ($mysqldump ?? 'mysqldump')
-            . ' --hex-blob '
-            . '--skip-opt '
-            . '--skip-set-charset -N --no-set-names '
-            . ' --defaults-extra-file="' . self::buildCNF() . '" '
+        $cmd = ($mysqldump ?? 'mysqldump') . ' --defaults-extra-file="' . self::buildCNF() . '" '
             . ($data ? '' : '--no-data ') . CarbonPHP::$configuration['DATABASE']['DB_NAME'] . ' > "' . CarbonPHP::$app_root . 'mysqldump.sql"';
 
         Background::executeAndCheckStatus($cmd);
