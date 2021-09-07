@@ -13,7 +13,6 @@ namespace CarbonPHP\Programs;
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Error\ErrorCatcher;
-use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iColorCode;
 use Throwable;
 
@@ -132,7 +131,13 @@ IDENTIFIED;
     public static function MySQLDump(string $mysqldump = null, bool $data = false): string
     {
 
-        $cmd = ($mysqldump ?? 'mysqldump') . ' --defaults-extra-file="' . self::buildCNF() . '" '
+        $cmd = ($mysqldump ?? 'mysqldump')
+            . ' --defaults-extra-file="' . self::buildCNF() . '" '
+            . '--hex-blob '
+            . '--opt '
+            . '--skip-comments '
+            . '--skip-set-charset '
+            . '--default-character-set=utf8 '
             . ($data ? '' : '--no-data ') . CarbonPHP::$configuration['DATABASE']['DB_NAME'] . ' > "' . CarbonPHP::$app_root . 'mysqldump.sql"';
 
         Background::executeAndCheckStatus($cmd);
@@ -154,7 +159,7 @@ IDENTIFIED;
         Background::executeAndCheckStatus($cmd);
     }
 
-    public function cleanUp() : void
+    public function cleanUp(): void
     {
         if (file_exists(CarbonPHP::$app_root . 'mysql.cnf') && !unlink('./mysql.cnf')) {
             ColorCode::colorCode('Failed to unlink mysql.cnf', iColorCode::BACKGROUND_RED);
