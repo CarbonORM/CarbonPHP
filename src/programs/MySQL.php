@@ -134,7 +134,7 @@ IDENTIFIED;
         $cmd = ($mysqldump ?? 'mysqldump')
             . ' --defaults-extra-file="' . self::buildCNF() . '" '
             . '--hex-blob '
-            . '--opt '
+            . '--skip-opt '
             . '--skip-comments '
             . '--skip-set-charset '
             . '--default-character-set=utf8mb4 '
