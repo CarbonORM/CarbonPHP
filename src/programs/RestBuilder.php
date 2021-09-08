@@ -347,8 +347,6 @@ END;
                 if ($verbose) {
                     ColorCode::colorCode('Skipping ' . $tableName . PHP_EOL);
                 }
-                // this is our condition to check right after this tables is executed
-                $skipTable = true;
                 // We may need to analyse for foreign keys, we will still break after this foreach loop
                 if (!$history_table_query) {
                     return true;
@@ -437,7 +435,7 @@ END;
 
                         $rest[$tableName] = [
                             'prefix' => $prefix,
-                            'createTableSQL' => Rest::parseSchemaSQL($createTableSQL) . ';',
+                            'createTableSQL' => Rest::parseSchemaSQL($createTableSQL),
                             'QueryWithDatabaseName' => $QueryWithDatabaseName,
                             'json' => $json,
                             'binary_primary' => false,
@@ -475,7 +473,7 @@ END;
 
                             } else {
 
-                                preg_match_all('#public const VALIDATE_AFTER_REBUILD\s?=\s?false;#', $validation, $matches);
+                                preg_match_all('#\n\s+public const VALIDATE_AFTER_REBUILD\s?=\s?false;#', $validation, $matches);
 
                                 if (isset($matches[0][0])) {
 
@@ -486,27 +484,27 @@ END;
 
                             }
 
-                            preg_match_all('#public const REGEX_VALIDATION\s*=\s*\[(.|\n)*?];(?=(\s|\n)+(public|protected|private|/\*))#', $validation, $matches);
+                            preg_match_all('#\n\s+public const REGEX_VALIDATION\s*=\s*\[(.|\n)*?];(?=(\s|\n)+(public|protected|private|/\*))#', $validation, $matches);
 
                             if (isset($matches[0][0])) {
 
-                                $rest[$tableName]['regex_validation'] = $matches[0][0];
+                                $rest[$tableName]['regex_validation'] = trim($matches[0][0]);
 
                             }
 
-                            preg_match_all('#public const PHP_VALIDATION\s*=\s*\[(.|\n)*?];(?=(\s|\n)+(public|protected|private|/\*))#', $validation, $matches);
+                            preg_match_all('#\n\s+public const PHP_VALIDATION\s*=\s*\[(.|\n)*?];(?=(\s|\n)+(public|protected|private|/\*))#i', $validation, $matches);
 
                             if (isset($matches[0][0])) {
 
-                                $rest[$tableName]['php_validation'] = $matches[0][0];
+                                $rest[$tableName]['php_validation'] = trim(trim($matches[0][0]), ' \n');
 
                             }
 
-                            preg_match_all('#public const REFRESH_SCHEMA\s*=\s*\[(.|\n)*?];(?=(\s|\n)+(public|protected|private|/\*))#', $validation, $matches);
+                            preg_match_all('#\n\s+public const REFRESH_SCHEMA\s*=\s*\[(.|\n)*?];(?=(\s|\n)+(public|protected|private|/\*))#', $validation, $matches);
 
                             if (isset($matches[0][0])) {
 
-                                $rest[$tableName]['REFRESH_SCHEMA'] = $matches[0][0];
+                                $rest[$tableName]['REFRESH_SCHEMA'] = trim($matches[0][0]);
 
                             }
 
@@ -660,29 +658,66 @@ END;
                                 && in_array($foreign_key, $primary, true)
                                 && 'entity_pk' === $references_column;
 
-                        $rest[$tableName]['TABLE_CONSTRAINTS'][] = [
-                            'key' => $foreign_key,
-                            'references' => $references_table . '.' . $references_column
-                        ];
 
                         if (($references_table === 'carbon_carbons'
                                 || $references_table === $prefix . 'carbon_carbons')
                             && in_array($foreign_key, $primary, true)) {
-                            $rest[$tableName]['carbon_table'] = $tableName !== 'carbon_carbons'; // todo -
+                            $rest[$tableName]['carbon_table'] = $tableName !== 'carbon_carbons'
+                                && $tableName !== $prefix . 'carbon_carbons'; // todo -
                         }
 
+
+                        $localTable = 0 === strpos($tableName, $prefix)
+                            ? substr($tableName, strlen($prefix))
+                            : $tableName;
+
+                        $localTable = ucwords($localTable, '_');
+
+                        $localTableRef = 0 === strpos($references_table, $prefix)
+                            ? substr($references_table, strlen($prefix))
+                            : $references_table;
+
+                        $localTableRef = ucwords($localTableRef, '_');
+
+                        $isGenerated = $determineIfTableShouldBeSkipped($references_table)
+                            ? "'$references_table.$references_column'"
+                            : $localTableRef . '::' . strtoupper($references_column);
+
+                        $rest[$tableName]['TABLE_CONSTRAINTS'][] = [
+                            'key' => 'self::' . strtoupper($foreign_key),
+                            'references' => $isGenerated
+                        ];
+
+                        // We need to catch circular dependencies as mysql dumps print schemas alphabetically
+                        if (!isset($rest[$references_table])) {
+                            $rest[$references_table] = ['EXTERNAL_TABLE_CONSTRAINTS' => []];
+                        } else if (!isset($rest[$references_table]['EXTERNAL_TABLE_CONSTRAINTS'])) {
+                            $rest[$references_table]['EXTERNAL_TABLE_CONSTRAINTS'] = [];
+                        }
+
+                        $isGenerated = $skipTable
+                            ? "'$tableName.$foreign_key'"
+                            : $localTable . '::' . strtoupper($foreign_key);
+
+                        $rest[$references_table]['EXTERNAL_TABLE_CONSTRAINTS'][] = [
+                            'key' => $isGenerated,
+                            'references' => 'self::' . strtoupper($references_column)
+                        ];
+
+                        // todo - DEPRECATED I think we have a warning based off this that very much is helpful
                         // We need to catch circular dependencies as mysql dumps print schemas alphabetically
                         if (!isset($rest[$references_table])) {
                             $rest[$references_table] = ['dependencies' => []];
                         } else if (!isset($rest[$references_table]['dependencies'])) {
                             $rest[$references_table]['dependencies'] = [];
                         }
-
                         $verbose and self::colorCode("\nreference found ::\t$tableName([$foreign_key => $references_column])\n", 'magenta');
-
                         $rest[$references_table]['dependencies'][] = [$tableName => [$foreign_key => $references_column]];
+                        //\\ DEPRECATED
+
 
                         break;
+
 
                     default:
 
@@ -828,6 +863,12 @@ END;
             }
             // END PARSE
 
+
+            #$allRestInfo = json_encode($rest, JSON_PRETTY_PRINT);
+            #file_put_contents(CarbonPHP::$app_root . 'test.json', $allRestInfo);
+
+
+
             // We need to break from this tables too if the tables is not in ( -l -f )
             if ($skipTable) {
                 $skipTable = false; // This is so we can stop analysing a full tables
@@ -879,57 +920,30 @@ END;
             }
             unset($value);
 
-            // Listed is located in our POST method
-            $rest[$tableName]['listed'] = '';
-
-            $rest[$tableName]['implode'] = $rest[$tableName]['columns'];
-
-            // The final value of implode is only used in the POST method
-            foreach ($rest[$tableName]['implode'] as $key => &$value) {
-
-                if (!in_array($value, $skipping_col, true)) {
-
-                    // This suffixes an extra comma
-                    $rest[$tableName]['listed'] .= $value . ', ';
-
-                    if (in_array($value, $binary, true)) {
-
-                        $value = ' UNHEX(:' . $value . ')';
-
-                    } else {
-
-                        $value = ' :' . $value;
-
-                    }
-                } else {
-                    // unset($value) when &$value failed when implode became a second
-                    // generation value. This doesn't seem right, (like how can this be
-                    // the case?) to investigate later
-                    unset($rest[$tableName]['implode'][$key]);
-                }
-            }
-            unset($value);
-
-            // Listed is located in our POST stmt, remove trailing comma
-            $rest[$tableName]['listed'] = rtrim($rest[$tableName]['listed'], ', ');
-
-            // Remove unneeded comma at begging of string
-            $rest[$tableName]['implode'] = implode(',', $rest[$tableName]['implode']);
-
             $rest[$tableName]['custom_methods'] = rtrim($rest[$tableName]['custom_methods'], PHP_EOL);
 
             $logClasses && print $rest[$tableName]['TableName'] . ', ';
-
-            file_put_contents($targetDir . $rest[$tableName]['ucEachTableName'] . '.php', $mustache->render($this->restTemplate(), $rest[$tableName]));
 
         }
 
         foreach ($rest as $tableName => $parsed) {
 
+            if ($determineIfTableShouldBeSkipped($tableName)) {
+
+                continue;
+
+            }
+
+            if (false === file_put_contents($targetDir . $rest[$tableName]['ucEachTableName'] . '.php', $mustache->render($this->restTemplate(), $parsed))) {
+
+                self::colorCode('PHP internal file_put_contents failed while trying to store :: ('. $targetDir . $rest[$tableName]['ucEachTableName'] . '.php)', iColorCode::RED);
+
+            }
+
             if (empty($rest[$tableName]['explode'])) {
 
                 self::colorCode("\nYou have a reference with wasn't resolved in the dump. Please search for '$tableName' in your "
-                    . "mysqldump.sql file. This typically occurs when resolving to an outside schema, which typically indicates and error.\n", iColorCode::RED);
+                    . "./mysqldump.sql file. This typically occurs when resolving to an outside schema, which probably indicates an error.\n", iColorCode::RED);
 
             }
 
@@ -967,26 +981,33 @@ END;
 
                 $imp = array_map('strtolower', array_keys(class_implements($table)));
 
-                if (!in_array(strtolower(iRest::class), $imp, true)
-                    && !in_array(strtolower(iRestfulReferences::class), $imp, true)
-                    && !in_array(strtolower(iRestMultiplePrimaryKeys::class), $imp, true)
+                if (!in_array(strtolower(iRestMultiplePrimaryKeys::class), $imp, true)
                     && !in_array(strtolower(iRestSinglePrimaryKey::class), $imp, true)
                     && !in_array(strtolower(iRestNoPrimaryKey::class), $imp, true)
                 ) {
+
                     continue;
+
                 }
 
                 if (defined("$table::REGEX_VALIDATION")) {
+
                     $regex_validations = constant("$table::REGEX_VALIDATION");
+
                     if (!is_array($regex_validations)) {
-                        self::colorCode("\nRegex validations for $table must be an array!", 'red');
+
+                        self::colorCode("\nRegex validations for $table must be an array!", iColorCode::RED);
+
                         exit(1);
+
                     }
+
                     $parsed['regex_validation'] = [];
 
                     if (!empty($regex_validations)) {
 
                         $str_lreplace = static function (string $search, string $replace, string $subject) {
+
                             $pos = strrpos($subject, $search);
 
                             if ($pos !== false) {
@@ -1244,7 +1265,6 @@ const convertForRequestBody = function(restfulObject, tableName) {
 
             file_put_contents('triggers.sql', 'DELIMITER ;;' . PHP_EOL . $triggers . PHP_EOL . 'DELIMITER ;');
 
-
             self::MySQLSource('triggers.sql', $mysql ?? null);
         }
 
@@ -1253,7 +1273,6 @@ const convertForRequestBody = function(restfulObject, tableName) {
         $debug and var_dump($rest['clients']);
 
         self::colorCode("\tSuccess!\n\n");
-        print "\n\nSuccess\n";
 
     }
 
@@ -1498,14 +1517,21 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
     
     public const JSON_COLUMNS = [{{#explode}}{{#json}}'{{name}}',{{/json}}{{/explode}}];
     
-    public const TABLE_CONSTRAINTS = [{{#TABLE_CONSTRAINTS}}
-        '{{key}}'=>'{{references}}',
-    {{/TABLE_CONSTRAINTS}}];
+    // Tables we have a foreign key reffrence to
+    public const INTERNAL_TABLE_CONSTRAINTS = [{{#TABLE_CONSTRAINTS}}
+        {{key}} => {{references}},{{/TABLE_CONSTRAINTS}}
+    ];
+    
+    // Tables that reference this tables columns via FK
+    public const EXTERNAL_TABLE_CONSTRAINTS = [{{#EXTERNAL_TABLE_CONSTRAINTS}}
+        {{key}} => {{references}},{{/EXTERNAL_TABLE_CONSTRAINTS}}
+    ];
 
     /** VALIDATE_AFTER_REBUILD
      * If set to true, after running the REFRESH_SCHEMA the sql generated by a mysql dump should match, otherwise an 
      * error will be thrown. Set this to false if the table being generated is 3rd party, such as wordpress internals.
      * [C6] Internal tables will never be validated using restful generated files, outside the library, despite this setting. 
+     * @note this constant can be modified and will presist after rebuild.
     **/{{#DONT_VALIDATE_AFTER_REBUILD}}
     public const VALIDATE_AFTER_REBUILD = false;
     {{/DONT_VALIDATE_AFTER_REBUILD}}{{^DONT_VALIDATE_AFTER_REBUILD}}
@@ -1593,10 +1619,18 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
      * keep table specific procedures in it's respective restful-class table file. Check out the 'tableExistsOrExecuteSQL' 
      * method in the parent class to see a more abstract procedure.
      * Each directive MUST be designed to run multiple times without failure.
+     * @defaults
+     *   public const REFRESH_SCHEMA = [
+     *      [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::TABLE_PREFIX, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
+     *                  PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS, {{#carbon_namespace}}true{{/carbon_namespace}}{{^carbon_namespace}}false{{/carbon_namespace}}],
+     *      [self::class => 'buildMysqlHistoryTrigger', self::TABLE_NAME]
+     *   ];
+     *
      */{{^REFRESH_SCHEMA}}
     public const REFRESH_SCHEMA = [
         [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::TABLE_PREFIX, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
-                        PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS, {{#carbon_namespace}}true{{/carbon_namespace}}{{^carbon_namespace}}false{{/carbon_namespace}}]
+                        PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS, {{#carbon_namespace}}true{{/carbon_namespace}}{{^carbon_namespace}}false{{/carbon_namespace}}],
+        [self::class => 'buildMysqlHistoryTrigger', self::TABLE_NAME]
     ];{{/REFRESH_SCHEMA}}{{#REFRESH_SCHEMA}}
     {{{REFRESH_SCHEMA}}}{{/REFRESH_SCHEMA}}
     
@@ -1721,9 +1755,29 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
      *          [self::class => 'disallowPublicAccess', self::class]
      *  though would loose information as self::class is a dynamic variable which must be used in this class given 
      *  static and constant context. 
+     *  @default   
+     *      public const PHP_VALIDATION = [ 
+     *          self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
+     *              self::PREPROCESS => [ 
+     *                  [self::class => 'disallowPublicAccess', self::class],
+     *              ]
+     *          ],
+     *          self::GET => [ 
+     *              self::PREPROCESS => [ 
+     *                  [self::class => 'disallowPublicAccess', self::class],
+     *              ],{{#explode}}
+     *              self::{{caps}} => [
+     *                  [self::class => 'disallowPublicAccess', self::{{caps}}]
+     *              ],{{/explode}}
+     *          ],    
+     *          self::POST => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
+     *          self::PUT => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
+     *          self::DELETE => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],
+     *          self::REST_REQUEST_FINNISH_CALLBACKS => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]]    
+     *      ];
+     *  @note you can remove the constant entirely and re-run rest builder to reset the default.
      *  @version ^9
-     */
-    {{^php_validation}}
+     */{{^php_validation}}
     public const PHP_VALIDATION = [ 
         self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
             self::PREPROCESS => [ 
@@ -1733,7 +1787,10 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
         self::GET => [ 
             self::PREPROCESS => [ 
                 [self::class => 'disallowPublicAccess', self::class],
-            ]
+            ],{{#explode}}
+            self::{{caps}} => [
+                [self::class => 'disallowPublicAccess', self::{{caps}}]
+            ],{{/explode}}
         ],    
         self::POST => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
         self::PUT => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    

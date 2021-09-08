@@ -10,7 +10,9 @@ use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
 use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Programs\ColorCode;
+use CarbonPHP\Programs\MySQL;
 use CarbonPHP\Tables\Carbons;
+use CarbonPHP\Tables\History_Logs;
 use PDO;
 use PDOException;
 use PDOStatement;
@@ -1038,9 +1040,6 @@ abstract class Rest extends Database
     }
 
 
-
-
-
     public static function handleSubSelectAggregate(array $stmt): string
     {
 
@@ -1049,8 +1048,8 @@ abstract class Rest extends Database
         if (false === self::$allowSubSelectQueries) {
 
             throw new PublicAlert('Whoa, looks like a sub-select was encountered without `self::$allowSubSelectQueries` explicitly set to true. '
-            . ' This is a security precaution and is recommend to only be set to true when explicitly needed. You should'
-            . " consider doing this in the ($tableName::PHP_VALIDATION['PREPROCESS']) event cycle.");
+                . ' This is a security precaution and is recommend to only be set to true when explicitly needed. You should'
+                . " consider doing this in the ($tableName::PHP_VALIDATION['PREPROCESS']) event cycle.");
 
         }
 
@@ -1117,7 +1116,7 @@ abstract class Rest extends Database
 
             $error_context = static function (string $tableName) use ($primaryField, $stmt) {
 
-                $set = ' The infringing set on table ('.static::class.') :: (' . json_encode($stmt) . ')';
+                $set = ' The infringing set on table (' . static::class . ') :: (' . json_encode($stmt) . ')';
 
                 return is_array($primaryField) ? "The signature for tables with multiple column primary keys is as follows:: [ Rest::SELECT, '$tableName',  (array) \$primary, (array) \$argv, (string|optional) \$as]. $set"
                     : "The signature for tables with a single column primary key is as follows:: [ Rest::SELECT, '$tableName',  (string|int|array) \$primary, (array) \$argv, (string|optional) \$as]. Note: if an array is given it must be a key value with the key being the fully qualified `table.column` name associated with the primary key. $set";
@@ -1191,12 +1190,12 @@ abstract class Rest extends Database
 
     }
 
-    public static function isSubSelectAggregation(array $stmt) : bool {
+    public static function isSubSelectAggregation(array $stmt): bool
+    {
         return array_key_exists(0, $stmt)
             && array_key_exists(1, $stmt)
             && self::SELECT === $stmt[0];
     }
-
 
     /**
      * @param array $stmt
@@ -1515,6 +1514,21 @@ abstract class Rest extends Database
                 self::startRest(self::GET, $return, $argv, $primary);
 
                 $pdo = self::database();
+
+                if (null !== $primary && false === is_array($primary)) {
+
+                    throw new PublicAlert('Looks like your restful validations changed the primary value to an invalid state.'
+                        . ' The $primary field should be null or an array with the following syntax :: [ Table::EXAMPLE_COLUMN => "primary_key_string" ] '
+                        . ' The value (' . json_encode($primary) . ') was instead received. ');
+
+                }
+
+                if (false === is_array($argv)) {
+
+                    throw new PublicAlert('Looks like your restful validations changed the $argv value to an invalid state.'
+                        . ' The $argv was not an array. Received :: (' . json_encode($argv) . ')');
+
+                }
 
                 $sql = self::buildSelectQuery($primary, $argv);
 
@@ -3210,9 +3224,154 @@ abstract class Rest extends Database
         sortDump($args);
     }
 
-    public static function parseSchemaSQL(string $sql = null, string $engineAndDefaultCharset = ' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'): ?string
+
+    public static function buildMysqlHistoryTrigger(string $table): void
     {
-        if (null === preg_replace('#AUTO_INCREMENT=\d+#i', 'AUTO_INCREMENT=0', $sql)) {
+
+        $queryNew = '';
+
+        $queryOld = '';
+
+        $prefix = $table::TABLE_PREFIX !== History_Logs::TABLE_PREFIX ? $table::TABLE_PREFIX : '';
+
+        foreach ($table::PDO_VALIDATION as $name => $columnInfo) {
+
+            $column = $table::COLUMNS[$name];  // get name without table prefixed
+
+            $is_bin = $columnInfo[self::PDO_TYPE] === 'binary';
+
+            $queryNew .= $is_bin
+                ? <<<END
+                                '$column', HEX(NEW.$column),
+                            END
+                : <<<END
+                                '$column', JSON_QUOTE(COALESCE(NEW.$column,'')),
+                            END;
+
+            $queryOld .= $is_bin
+                ? <<<END
+                                '$column', HEX(OLD.$column),
+                            END
+                : <<<END
+                                '$column', JSON_QUOTE(COALESCE(OLD.$column,'')),
+                            END;
+        }
+
+        $queryOld = rtrim($queryOld, ',');
+
+        $queryNew = rtrim($queryNew, ',');
+
+        $dependencies = $table::EXTERNAL_TABLE_CONSTRAINTS;
+
+        $delete_children = '';
+
+        if (!empty($dependencies)) {
+            foreach ($dependencies as $external => $internal) {
+
+                [$externalTableName, $externalColumn] = explode('.', $external);
+
+                [, $internalColumn] = explode('.', $internal);
+
+                $delete_children .= "DELETE FROM $externalTableName WHERE $externalColumn = OLD.$internalColumn;" . PHP_EOL;
+
+
+            }
+
+        }
+
+        $trigger = <<<TRIGGER
+DROP TRIGGER IF EXISTS `trigger_{$table}_b_d`;;
+CREATE TRIGGER `trigger_{$table}_b_d` BEFORE DELETE ON `$table` FOR EACH ROW
+BEGIN
+
+        DECLARE original_query text;
+
+SELECT argument INTO original_query 
+  FROM mysql.general_log 
+  where thread_id = connection_id() 
+  order by event_time desc 
+  limit 1;
+
+      -- Insert record into audit tables
+INSERT INTO {$prefix}carbon_history_logs (history_uuid, history_table, history_type, history_data, history_original_query)
+                VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-',''))
+                        , '$table'
+                        , 'DELETE'
+                        , history_data = JSON_OBJECT($queryOld
+                        ), original_query);
+
+      -- Delete Children
+$delete_children
+
+END;;
+
+DROP TRIGGER IF EXISTS `trigger_{$table}_a_u`;;
+CREATE TRIGGER `trigger_{$table}_a_u` AFTER UPDATE ON `$table` FOR EACH ROW
+                                                                   BEGIN
+
+        DECLARE original_query text;
+
+SELECT argument INTO original_query 
+  FROM mysql.general_log 
+  where thread_id = connection_id() 
+  order by event_time desc 
+  limit 1;
+
+      -- Insert record into audit tables
+INSERT INTO {$prefix}carbon_history_logs (history_uuid, history_table, history_type, history_data, history_original_query)
+                VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-',''))
+                        , '$table'
+                        , 'PUT'
+                        , history_data = JSON_OBJECT($queryNew
+                        ), original_query);
+
+END;;
+
+DROP TRIGGER IF EXISTS `trigger_{$table}_a_i`;;
+CREATE TRIGGER `trigger_{$table}_a_i` AFTER INSERT ON `$table` FOR EACH ROW
+                                                                   BEGIN
+
+        DECLARE original_query text;
+
+SELECT argument INTO original_query 
+  FROM mysql.general_log 
+  where thread_id = connection_id() 
+  order by event_time desc 
+  limit 1;
+
+      -- Insert record into audit tables
+INSERT INTO {$prefix}carbon_history_logs (history_uuid, history_table, history_type, history_data, history_original_query)
+                VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-',''))
+                        , '$table'
+                        , 'POST'
+                        , history_data = JSON_OBJECT($queryNew
+                        ), original_query);
+
+END;;
+TRIGGER;
+
+
+        if (false === file_put_contents(CarbonPHP::$app_root . 'trigger.sql', 'DELIMITER ;;' . PHP_EOL . $trigger . PHP_EOL . 'DELIMITER ;')) {
+
+            self::colorCode('PHP file_put_contents failed to store (' . CarbonPHP::$app_root . 'trigger.sql)', iColorCode::RED);
+
+            return;
+
+        }
+
+        MySQL::MySQLSource(CarbonPHP::$app_root . 'trigger.sql');
+
+        unlink(CarbonPHP::$app_root . 'trigger.sql');
+
+    }
+
+
+    public static function parseSchemaSQL(string $sql = null): ?string
+    {
+
+        $sql = preg_replace('#AUTO_INCREMENT=\d+#i', 'AUTO_INCREMENT=0', $sql);
+
+        if (null === $sql) {
 
             ColorCode::colorCode('parseSchemaSQL preg_replace failed for sql ' . $sql, iColorCode::RED);
 
@@ -3220,22 +3379,7 @@ abstract class Rest extends Database
 
         }
 
-        if (null === $sql || false === preg_match_all('#CREATE\s+TABLE(.|\s)+?(?=ENGINE=)#', $sql, $matches)) {
-
-            ColorCode::colorCode('parseSchemaSQL preg_match_all failed for sql ' . $sql, iColorCode::RED);
-
-            return null;
-
-        }
-        if (!($matches[0][0] ?? false)) {
-
-            ColorCode::colorCode('Regex failed to match a schema.', iColorCode::RED);
-
-            return null;
-
-        }
-
-        return $matches[0][0] . $engineAndDefaultCharset;
+        return $sql;
 
     }
 
@@ -3270,34 +3414,11 @@ abstract class Rest extends Database
 
             if (empty($rest)) {
 
-                if (!empty(static::PRIMARY)) {
+                if (false === call_user_func_array([$class, $validationMethod],
+                        [&self::$REST_REQUEST_PARAMETERS, ...$validation]
+                    )) {
 
-                    if (false === call_user_func_array([$class, $validationMethod],
-                            [&self::$REST_REQUEST_PARAMETERS, ...$validation]
-                        )) {
-
-                        throw new PublicAlert('The global request validation failed, please make sure the arguments are correct.');
-
-                    }
-
-                } else {
-
-                    $primaryKey = self::REST_REQUEST_PRIMARY_KEY;
-
-                    // add primary key to custom validations request as it maybe passed outside the $argv
-                    self::$REST_REQUEST_PARAMETERS[self::REST_REQUEST_PRIMARY_KEY] = &$primaryKey;
-
-                    if (false === call_user_func_array([$class, $validationMethod],
-                            [&self::$REST_REQUEST_PARAMETERS, ...$validation]
-                        )) {
-
-                        throw new PublicAlert('The global request validation failed, please make sure the arguments are correct.');
-
-                    }
-
-                    self::$REST_REQUEST_PRIMARY_KEY = $primaryKey;
-
-                    unset(self::$REST_REQUEST_PARAMETERS[self::REST_REQUEST_PRIMARY_KEY]);
+                    throw new PublicAlert('The global request validation failed, please make sure the arguments are correct.');
 
                 }
 
