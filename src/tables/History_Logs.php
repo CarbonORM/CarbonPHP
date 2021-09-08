@@ -395,12 +395,12 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
     CREATE TABLE `carbon_history_logs` (
   `history_uuid` binary(16) NOT NULL,
-  `history_table` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `history_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `history_table` varchar(255) CHARACTER SET utf8mb4 DEFAULT NULL,
+  `history_type` varchar(20) CHARACTER SET utf8mb4 DEFAULT NULL,
   `history_data` json DEFAULT NULL,
-  `history_original_query` varchar(1024) DEFAULT NULL,
+  `history_original_query` varchar(1024) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `history_time` datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 MYSQL;
    
 

@@ -372,7 +372,7 @@ class Groups extends Rest implements iRestSinglePrimaryKey
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
     CREATE TABLE `carbon_groups` (
-  `group_name` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `group_name` varchar(20) CHARACTER SET utf8mb4 NOT NULL,
   `entity_id` binary(16) NOT NULL,
   `created_by` binary(16) NOT NULL,
   `creation_date` datetime DEFAULT CURRENT_TIMESTAMP,
@@ -380,7 +380,7 @@ class Groups extends Rest implements iRestSinglePrimaryKey
   KEY `carbon_feature_groups_carbons_entity_pk_fk_2` (`created_by`),
   CONSTRAINT `carbon_feature_groups_carbons_entity_pk_fk` FOREIGN KEY (`entity_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `carbon_feature_groups_carbons_entity_pk_fk_2` FOREIGN KEY (`created_by`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 MYSQL;
    
 

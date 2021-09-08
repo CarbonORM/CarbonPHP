@@ -360,13 +360,13 @@ class Features extends Rest implements iRestSinglePrimaryKey
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
     CREATE TABLE `carbon_features` (
   `feature_entity_id` binary(16) NOT NULL,
-  `feature_code` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `feature_code` varchar(30) CHARACTER SET utf8mb4 NOT NULL,
   `feature_creation_date` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`feature_entity_id`),
   UNIQUE KEY `carbon_features_feature_code_uindex` (`feature_code`),
   UNIQUE KEY `carbon_features_feature_entity_id_uindex` (`feature_entity_id`),
   CONSTRAINT `carbon_features_carbons_entity_pk_fk` FOREIGN KEY (`feature_entity_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 MYSQL;
    
 

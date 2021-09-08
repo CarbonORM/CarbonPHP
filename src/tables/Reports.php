@@ -156,7 +156,7 @@ class Reports extends Rest implements iRestNoPrimaryKey
     **/
     public const PDO_VALIDATION = [
         self::LOG_LEVEL => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '20', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null],
-        self::REPORT => [self::MYSQL_TYPE => 'text,', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
+        self::REPORT => [self::MYSQL_TYPE => 'text', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
         self::DATE => [self::MYSQL_TYPE => 'datetime', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => self::CURRENT_TIMESTAMP],
         self::CALL_TRACE => [self::MYSQL_TYPE => 'text', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
     ];
@@ -370,11 +370,11 @@ class Reports extends Rest implements iRestNoPrimaryKey
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
     CREATE TABLE `carbon_reports` (
-  `log_level` varchar(20) DEFAULT NULL,
-  `report` text,
+  `log_level` varchar(20) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `report` text COLLATE utf8mb4_unicode_520_ci,
   `date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `call_trace` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  `call_trace` text COLLATE utf8mb4_unicode_520_ci NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 MYSQL;
    
 

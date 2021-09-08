@@ -400,7 +400,7 @@ class User_Messages extends Rest implements iRestSinglePrimaryKey
   `message_id` binary(16) NOT NULL,
   `from_user_id` binary(16) NOT NULL,
   `to_user_id` binary(16) NOT NULL,
-  `message` text NOT NULL,
+  `message` text COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `message_read` tinyint(1) DEFAULT '0',
   `creation_date` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`message_id`),
@@ -410,7 +410,7 @@ class User_Messages extends Rest implements iRestSinglePrimaryKey
   CONSTRAINT `carbon_user_messages_carbon_entity_pk_fk` FOREIGN KEY (`from_user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `messages_entity_entity_pk_fk` FOREIGN KEY (`message_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `messages_entity_user_from_pk_fk` FOREIGN KEY (`to_user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 MYSQL;
    
 

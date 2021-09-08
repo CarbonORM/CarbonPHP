@@ -384,12 +384,12 @@ class Carbons extends Rest implements iRestSinglePrimaryKey
     CREATE TABLE `carbon_carbons` (
   `entity_pk` binary(16) NOT NULL,
   `entity_fk` binary(16) DEFAULT NULL,
-  `entity_tag` varchar(100) NOT NULL DEFAULT 'manually',
+  `entity_tag` varchar(100) COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT 'manually',
   PRIMARY KEY (`entity_pk`),
   UNIQUE KEY `entity_entity_pk_uindex` (`entity_pk`),
   KEY `entity_entity_entity_pk_fk` (`entity_fk`),
   CONSTRAINT `entity_entity_entity_pk_fk` FOREIGN KEY (`entity_fk`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 MYSQL;
    
 

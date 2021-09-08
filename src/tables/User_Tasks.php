@@ -185,7 +185,7 @@ class User_Tasks extends Rest implements iRestSinglePrimaryKey
         self::FROM_ID => [self::MYSQL_TYPE => 'binary', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '16', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null],
         self::TASK_NAME => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '40', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
         self::TASK_DESCRIPTION => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '225', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null],
-        self::PERCENT_COMPLETE => [self::MYSQL_TYPE => 'int', self::PDO_TYPE => PDO::PARAM_INT, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => '0'],
+        self::PERCENT_COMPLETE => [self::MYSQL_TYPE => 'int', self::PDO_TYPE => PDO::PARAM_INT, self::MAX_LENGTH => '11', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => '0'],
         self::START_DATE => [self::MYSQL_TYPE => 'datetime', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null],
         self::END_DATE => [self::MYSQL_TYPE => 'datetime', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null],
     ];
@@ -459,9 +459,9 @@ class User_Tasks extends Rest implements iRestSinglePrimaryKey
   `task_id` binary(16) NOT NULL,
   `user_id` binary(16) NOT NULL COMMENT 'This is the user the task is being assigned to',
   `from_id` binary(16) DEFAULT NULL COMMENT 'Keeping this colum so forgen key will remove task if user deleted',
-  `task_name` varchar(40) NOT NULL,
-  `task_description` varchar(225) DEFAULT NULL,
-  `percent_complete` int DEFAULT '0',
+  `task_name` varchar(40) COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `task_description` varchar(225) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `percent_complete` int(11) DEFAULT '0',
   `start_date` datetime DEFAULT NULL,
   `end_date` datetime DEFAULT NULL,
   PRIMARY KEY (`task_id`),
@@ -471,7 +471,7 @@ class User_Tasks extends Rest implements iRestSinglePrimaryKey
   CONSTRAINT `carbon_user_tasks_carbons_entity_pk_fk` FOREIGN KEY (`task_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `carbon_user_tasks_carbons_entity_pk_fk_2` FOREIGN KEY (`user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `carbon_user_tasks_carbons_entity_pk_fk_3` FOREIGN KEY (`from_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 MYSQL;
    
     public static function restTesting(...$argv)

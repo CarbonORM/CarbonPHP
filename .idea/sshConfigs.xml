@@ -2,10 +2,10 @@
 <project version="4">
   <component name="SshConfigs">
     <configs>
-      <sshConfig host="35.222.121.221" id="e8b98529-9c82-420f-988d-15850f1e50b9" keyPath="$USER_HOME$/.ssh/google_compute_engine" port="22" customName="Google" nameFormat="CUSTOM" username="richardmiles">
+      <sshConfig connectionConfig="{&quot;serverAliveInterval&quot;:300}" host="35.222.121.221" id="e8b98529-9c82-420f-988d-15850f1e50b9" keyPath="$USER_HOME$/.ssh/google_compute_engine" port="22" customName="Google" nameFormat="CUSTOM" username="richardmiles">
         <option name="customName" value="Google" />
       </sshConfig>
-      <sshConfig host="34.68.75.41" id="2134edcb-ef5b-4a7a-8b17-078a7918949f" keyPath="$USER_HOME$/.ssh/google_compute_engine" port="22" customName="mmmmmm" nameFormat="CUSTOM" username="richardmiles">
+      <sshConfig connectionConfig="{&quot;serverAliveInterval&quot;:300}" host="34.68.75.41" id="2134edcb-ef5b-4a7a-8b17-078a7918949f" keyPath="$USER_HOME$/.ssh/google_compute_engine" port="22" customName="mmmmmm" nameFormat="CUSTOM" username="richardmiles">
         <option name="customName" value="mmmmmm" />
       </sshConfig>
     </configs>

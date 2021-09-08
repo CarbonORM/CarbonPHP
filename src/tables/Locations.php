@@ -183,7 +183,7 @@ class Locations extends Rest implements iRestSinglePrimaryKey
         self::CITY => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '40', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null],
         self::STATE => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '10', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null],
         self::ELEVATION => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '40', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null],
-        self::ZIP => [self::MYSQL_TYPE => 'int', self::PDO_TYPE => PDO::PARAM_INT, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null],
+        self::ZIP => [self::MYSQL_TYPE => 'int', self::PDO_TYPE => PDO::PARAM_INT, self::MAX_LENGTH => '11', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null],
     ];
      
     /**
@@ -420,17 +420,17 @@ class Locations extends Rest implements iRestSinglePrimaryKey
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
     CREATE TABLE `carbon_locations` (
   `entity_id` binary(16) NOT NULL,
-  `latitude` varchar(225) DEFAULT NULL,
-  `longitude` varchar(225) DEFAULT NULL,
-  `street` varchar(225) DEFAULT NULL,
-  `city` varchar(40) DEFAULT NULL,
-  `state` varchar(10) DEFAULT NULL,
-  `elevation` varchar(40) DEFAULT NULL,
-  `zip` int DEFAULT NULL,
+  `latitude` varchar(225) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `longitude` varchar(225) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `street` varchar(225) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `city` varchar(40) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `state` varchar(10) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `elevation` varchar(40) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `zip` int(11) DEFAULT NULL,
   PRIMARY KEY (`entity_id`),
   UNIQUE KEY `entity_location_entity_id_uindex` (`entity_id`),
   CONSTRAINT `entity_location_entity_entity_pk_fk` FOREIGN KEY (`entity_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 MYSQL;
    
 

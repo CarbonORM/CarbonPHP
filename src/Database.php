@@ -909,7 +909,7 @@ FOOT;
             exit(1);
         }
 
-        $regex = '#CREATE\s+TABLE(.|\s)+?(?=ENGINE=)#';
+        $regex = '#CREATE\s+TABLE(.|\s)+?(?=ENGINE=)ENGINE=.+;#';
 
 
         foreach (self::$tablesToValidateAfterRefresh as $fullyQualifiedClassName => $preUpdateSQL) {
@@ -956,7 +956,7 @@ FOOT;
 
             $validatedTables[] = $tableName;
 
-            $table_regex = "#CREATE\s+TABLE\s`$tableName`(.|\s)+?(?=ENGINE=)#";
+            $table_regex = "#CREATE\s+TABLE\s`$tableName`(.|\s)+?(?=ENGINE=)ENGINE=.+;#";
 
             if (null === $preUpdateSQL || false === preg_match_all($table_regex, $mysqldump, $matches)) {
 
@@ -1158,35 +1158,40 @@ FOOT;
                             AND table_name = '$table_name'
                         LIMIT 1;");
 
-        if ([] === $result) {
-
-            self::colorCode("Attempting to create table ($table_name).");
-
-            if (false === self::execute($sql)) {
-
-                throw new PublicAlert('Failed to update table :: ' . $table_name);
-
-            }
-
-            if (CarbonPHP::$cli) {
-
-                self::colorCode('Table `' . $table_name . '` Created');
-
-            } else {
-
-                print '<br><p style="color: green">Table `' . $table_name . '` Created</p>';
-
-            }
-
-        } else if (CarbonPHP::$cli) {
+        if ([] !== $result) {
 
             self::colorCode('Table `' . $table_name . '` already exists');
 
-        } else {
-
-            print '<br>Table `' . $table_name . '` already exists';
+            return true;
 
         }
+
+        self::colorCode("Attempting to create table ($table_name).");
+
+        if (false === self::execute($sql)) {
+
+            self::colorCode('Failed to update table :: ' . $table_name, iColorCode::RED);
+
+            exit(1);
+
+        }
+
+        $result = self::fetch("SELECT * 
+                        FROM information_schema.tables
+                        WHERE table_schema = '" . self::$carbonDatabaseName . "' 
+                            AND table_name = '$table_name'
+                        LIMIT 1;");
+
+        if ([] === $result) {
+
+            self::colorCode("The table ($table_name) does not exist and was attempted to be created. This operation failed without error. (error unknown) Please manually try to run the create table sql.\n\n($sql)\n\n", iColorCode::RED);
+
+            exit(1);
+
+        }
+
+        self::colorCode('Table `' . $table_name . '` Created');
+
 
         return null;
 

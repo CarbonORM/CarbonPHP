@@ -170,7 +170,7 @@ class Sessions extends Rest implements iRestSinglePrimaryKey
         self::USER_IP => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '20', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null],
         self::SESSION_ID => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '255', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
         self::SESSION_EXPIRES => [self::MYSQL_TYPE => 'datetime', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
-        self::SESSION_DATA => [self::MYSQL_TYPE => 'text,', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
+        self::SESSION_DATA => [self::MYSQL_TYPE => 'text', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
         self::USER_ONLINE_STATUS => [self::MYSQL_TYPE => 'tinyint', self::PDO_TYPE => PDO::PARAM_INT, self::MAX_LENGTH => '1', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => '1'],
     ];
      
@@ -396,13 +396,13 @@ class Sessions extends Rest implements iRestSinglePrimaryKey
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
     CREATE TABLE `carbon_sessions` (
   `user_id` binary(16) NOT NULL,
-  `user_ip` varchar(20) DEFAULT NULL,
-  `session_id` varchar(255) NOT NULL,
+  `user_ip` varchar(20) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `session_id` varchar(255) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `session_expires` datetime NOT NULL,
-  `session_data` text,
+  `session_data` text COLLATE utf8mb4_unicode_520_ci,
   `user_online_status` tinyint(1) DEFAULT '1',
   PRIMARY KEY (`session_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 MYSQL;
    
     public static function validateRestTestSuite()

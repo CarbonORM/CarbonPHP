@@ -167,7 +167,7 @@ class Photos extends Rest implements iRestSinglePrimaryKey
         self::PHOTO_ID => [self::MYSQL_TYPE => 'binary', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '16', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
         self::USER_ID => [self::MYSQL_TYPE => 'binary', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '16', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
         self::PHOTO_PATH => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '225', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
-        self::PHOTO_DESCRIPTION => [self::MYSQL_TYPE => 'text,', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
+        self::PHOTO_DESCRIPTION => [self::MYSQL_TYPE => 'text', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
     ];
      
     /**
@@ -388,15 +388,15 @@ class Photos extends Rest implements iRestSinglePrimaryKey
   `parent_id` binary(16) NOT NULL,
   `photo_id` binary(16) NOT NULL,
   `user_id` binary(16) NOT NULL,
-  `photo_path` varchar(225) NOT NULL,
-  `photo_description` text,
+  `photo_path` varchar(225) COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `photo_description` text COLLATE utf8mb4_unicode_520_ci,
   PRIMARY KEY (`parent_id`),
   UNIQUE KEY `entity_photos_photo_id_uindex` (`photo_id`),
   KEY `photos_entity_user_pk_fk` (`user_id`),
   CONSTRAINT `entity_photos_entity_entity_pk_fk` FOREIGN KEY (`photo_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `photos_entity_entity_pk_fk` FOREIGN KEY (`parent_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `photos_entity_user_pk_fk` FOREIGN KEY (`user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 MYSQL;
    
 
