@@ -1044,7 +1044,7 @@ FOOT;
 
                 }
 
-                ColorCode::colorCode("Due to version differences in how MySQLDump will print your schema, the following are used with preg_replace to `loosen` the condition PHP array_diff must meet ::\n" . json_encode($replace, JSON_PRETTY_PRINT) . "\n\n", iColorCode::BACKGROUND_CYAN);
+                ColorCode::colorCode("Due to version differences in how MySQLDump will print your schema, the following are used with preg_replace to `loosen` the condition PHP array_diff must meet ::\n" . json_encode($replace, JSON_PRETTY_PRINT) . "\n\n", iColorCode::MAGENTA);
                 self::colorCode("Due to the loosened conditions the table ($tableName) has passed.");
                 ColorCode::colorCode("\tNew->Old", iColorCode::CYAN);
                 ColorCode::colorCode(json_encode($changesOne, JSON_PRETTY_PRINT) . "\n\n", iColorCode::CYAN);
