@@ -995,7 +995,6 @@ FOOT;
                 /** @lang PhpRegExp */ '#CHARACTER\sSET\s\w+#' => '',
                 /** @lang PhpRegExp */ '#COLLATE\s\w+#' => '',
                 /** @lang PhpRegExp */ '#AUTO_INCREMENT=\d\s#' => '',
-                /** @lang PhpRegExp */ '#CHARSET=\w+\s#' => '',
                 /** @lang PhpRegExp */ '#COLLATE=\w+\s#' => '',
                 /** @lang PhpRegExp */ '#\s{2,}#' => '',
                 /** @lang PhpRegExp */ '#\s?,$#' => '',
