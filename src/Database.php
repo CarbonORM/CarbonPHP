@@ -997,6 +997,7 @@ FOOT;
                 /** @lang PhpRegExp */ '#AUTO_INCREMENT=\d\s#' => '',
                 /** @lang PhpRegExp */ '#\s{2,}#' => '',
                 /** @lang PhpRegExp */ '#\s?,$#' => '',
+                /** @lang PhpRegExp */ '#\s?;$#' => '',
             ];
 
             $pattern = array_keys($replace);
