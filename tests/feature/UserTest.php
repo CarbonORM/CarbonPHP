@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Rest;
 use CarbonPHP\Tables\Users;
 
 /**
@@ -35,7 +36,7 @@ final class UserTest extends Config
         $this->user = [];
 
         Users::Get($this->user, null, [
-            Users::WHERE => [
+            Rest::WHERE => [
                 Users::USER_USERNAME => Config::ADMIN_USERNAME
             ]
         ]);
@@ -71,18 +72,17 @@ final class UserTest extends Config
 
     /**
      * @depends testUserCanBeCreated
-     * @throws PublicAlert
      */
     public function testUserCanBeRetrieved(): void
     {
         $this->user = [];
         self::assertTrue(
             Users::Get($this->user, null, [
-                    Users::WHERE => [
+                    Rest::WHERE => [
                         Users::USER_USERNAME => Config::ADMIN_USERNAME
                     ],
-                    Users::PAGINATION => [
-                        Users::LIMIT => 1
+                    Rest::PAGINATION => [
+                        Rest::LIMIT => 1
                     ]
                 ]
             ));
@@ -97,13 +97,12 @@ final class UserTest extends Config
 
     /**
      * @depends testUserCanBeRetrieved
-     * @throws PublicAlert
      */
     public function testUserCanBeUpdated(): void
     {
         self::assertTrue(
             Users::Get($this->user, null, [
-                    Users::WHERE => [
+                    Rest::WHERE => [
                         Users::USER_USERNAME => Config::ADMIN_USERNAME
                     ]
                 ]
@@ -122,11 +121,11 @@ final class UserTest extends Config
 
         self::assertTrue(
             Users::Get($this->user, null, [
-                    Users::WHERE => [
+                    Rest::WHERE => [
                         Users::USER_USERNAME => Config::ADMIN_USERNAME
                     ],
-                    Users::PAGINATION => [
-                        Users::LIMIT => 1
+                    Rest::PAGINATION => [
+                        Rest::LIMIT => 1
                     ]
                 ]
             ));
@@ -138,7 +137,6 @@ final class UserTest extends Config
 
     /**
      * @depends testUserCanBeRetrieved
-     * @throws PublicAlert
      */
     public function testUserCanBeDeleted(): void
     {
@@ -147,11 +145,11 @@ final class UserTest extends Config
         $this->user = [];
 
         Users::Get($this->user, null, [
-            Users::WHERE => [
+            Rest::WHERE => [
                 Users::USER_USERNAME => Config::ADMIN_USERNAME
             ],
-            Users::PAGINATION => [
-                Users::LIMIT => 1
+            Rest::PAGINATION => [
+                Rest::LIMIT => 1
             ]
         ]);
 
@@ -168,11 +166,11 @@ final class UserTest extends Config
         $this->user = [];
 
         Users::Get($this->user, null, [
-            Users::WHERE => [
+            Rest::WHERE => [
                 Users::USER_USERNAME => Config::ADMIN_USERNAME
             ],
-            Users::PAGINATION => [
-                Users::LIMIT => 1
+            Rest::PAGINATION => [
+                Rest::LIMIT => 1
             ]
         ]);
 
