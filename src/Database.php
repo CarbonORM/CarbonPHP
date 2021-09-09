@@ -998,7 +998,7 @@ FOOT;
             ];
 
             $pattern = array_keys($replace);
-            $replacement = array_keys($replace);
+            $replacement = array_values($replace);
 
             $looseSQLOne = preg_replace($pattern,$replacement, $preUpdateSQLArray);
             $looseSQLTwo = preg_replace($pattern,$replacement, $postUpdateSQLArray);
