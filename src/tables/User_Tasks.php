@@ -477,8 +477,14 @@ MYSQL;
     public static function restTesting(...$argv)
     {
         if (CarbonPHP::$test) {
+
             /** @noinspection PhpUndefinedClassInspection - todo - remove example php files in react */
             RestTest::$restChallenge[] = $argv;
+
+        } elseif (CarbonPHP::$cli) {
+
+            throw new PublicAlert('No way your trying to do this in cli. I bet CarbonPHP::$test was not set correctly.');
+
         }
     }
     

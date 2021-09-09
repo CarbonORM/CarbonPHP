@@ -31,6 +31,13 @@ if (false === (include __DIR__ . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPA
     die(1);
 }
 
+/** Absolute path to the WordPress directory. */
+if ( ! defined( 'ABSPATH' ) ) {
+    define( 'ABSPATH', __DIR__ . '/' );
+}
+
+
+
 /** @noinspection PhpUnhandledExceptionInspection */
 CarbonPHP::make(Documentation::class, ABSPATH);
 
@@ -46,7 +53,7 @@ define( 'DB_PASSWORD', Database::$carbonDatabasePassword );
 define( 'DB_HOST', Database::$carbonDatabaseHost );
 
 /** Database Charset to use in creating database tables. */
-define( 'DB_CHARSET', 'utf8' );
+define( 'DB_CHARSET', 'utf8mb4' );
 
 /** The Database Collate type. Don't change this if in doubt. */
 define( 'DB_COLLATE', '' );
@@ -94,12 +101,6 @@ $table_prefix = 'carbon_wp_';
 define( 'WP_DEBUG', false );
 
 /* That's all, stop editing! Happy publishing. */
-
-/** Absolute path to the WordPress directory. */
-if ( ! defined( 'ABSPATH' ) ) {
-	define( 'ABSPATH', __DIR__ . '/' );
-}
-
 
 /** Sets up WordPress vars and included files. */
 require_once ABSPATH . 'wp-settings.php';

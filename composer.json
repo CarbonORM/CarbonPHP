@@ -81,7 +81,7 @@
     ],
     "rei": "rm -rf vendor && rm composer.lock && composer i",
     "rest": [
-      "php index.php rest -json -dumpData -trigger"
+      "php index.php rest -json -dumpData"
     ],
     "setup": [
       "@database:refresh:schema",
@@ -95,7 +95,7 @@
     ],
     "start": "php -S dev.carbonphp.com:8080 index.php -d display_errors=1",
     "test": [
-      "./vendor/bin/phpunit --log-junit junit.xml  --testdox || ./vendor/bin/phpunit  --log-junit junit.xml"
+      "./vendor/bin/phpunit --log-junit junit.xml  --testdox || ./vendor/bin/phpunit --verbose --log-junit junit.xml"
     ],
     "wordpress:download:latest-stable": "php -r \"copy('http://wordpress.org/latest.tar.gz', 'latest.tar.gz');\"",
     "wordpress:download:nightly-build": "php -r \"copy('https://wordpress.org/nightly-builds/wordpress-latest.zip', 'latest.tar.gz');\"",

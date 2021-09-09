@@ -11,9 +11,6 @@ use CarbonPHP\Tables\Photos;
 use CarbonPHP\Tables\Users;
 
 
-/**
- * @runTestsInSeparateProcesses
- */
 class ExternalRestTest extends Config
 {
     public function testGenerateCorrectDistinctCountAndThreeArgumentBooleanConditionsUsingIntAndStringSql(): void

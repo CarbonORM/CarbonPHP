@@ -10,9 +10,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-/**
- * @runTestsInSeparateProcesses
- */
+
 final class WordpressTest extends Config
 {
     private const ERROR_MESSAGE = 'Wordpress internal login failed in testing. This could mean your not running your test class using the @runTestsInSeparateProcesses annotation, output was sent to stdout, or your build is upto date with stage. See the PHPDOC block on WordpressTest for more information on debugging this.';

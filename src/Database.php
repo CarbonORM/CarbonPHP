@@ -911,6 +911,7 @@ FOOT;
 
         $regex = '#CREATE\s+TABLE(.|\s)+?(?=ENGINE=)ENGINE=.+;#';
 
+        $failureEncountered = false;
 
         foreach (self::$tablesToValidateAfterRefresh as $fullyQualifiedClassName => $preUpdateSQL) {
 
@@ -978,7 +979,7 @@ FOOT;
 
             $preUpdateSQL = trim($preUpdateSQL);
 
-            $postUpdateSQL = trim(str_replace("\\n", "\n", $postUpdateSQL));
+            $postUpdateSQL = trim(str_replace("\\n", "\n", Rest::parseSchemaSQL($postUpdateSQL)));
 
             // the table definition maybe reordered and we just want to know whats dif
             $preUpdateSQLArray = array_map('trim', explode(PHP_EOL, $preUpdateSQL));
@@ -986,40 +987,79 @@ FOOT;
             $postUpdateSQLArray = array_map('trim', explode(PHP_EOL, $postUpdateSQL));
 
             $changesOne = array_diff($preUpdateSQLArray, $postUpdateSQLArray);
-
             $changesTwo = array_diff($postUpdateSQLArray, $preUpdateSQLArray);
+
+            $replace = [
+                /** @lang PhpRegExp */ '#bigint\(\d+\)#' => 'bigint',
+                /** @lang PhpRegExp */ '#int\(\d+\)#' => 'int',
+                /** @lang PhpRegExp */ '#CHARACTER\sSET\s\w+#' => '',
+                /** @lang PhpRegExp */ '#COLLATE\s\w+#' => '',
+                /** @lang PhpRegExp */ '#AUTO_INCREMENT=\d\s#' => '',
+                /** @lang PhpRegExp */ '#\s{2,}#' => '',
+                /** @lang PhpRegExp */ '#\s?,$#' => '',
+            ];
+
+            $pattern = array_keys($replace);
+            $replacement = array_values($replace);
+
+            $looseSQLOne = preg_replace($pattern,$replacement, $preUpdateSQLArray);
+            $looseSQLTwo = preg_replace($pattern,$replacement, $postUpdateSQLArray);
+
+            $looseChangesOne = array_diff($looseSQLOne, $looseSQLTwo);
+            $looseChangesTwo = array_diff($looseSQLTwo, $looseSQLOne);
 
             // safe compare multibyte strings
             if ([] !== $changesOne || $changesTwo !== []) {
 
-                ColorCode::colorCode('Oh No! After running the database updated it looks like the sql found in'
-                    . " the mysql dump file did not match the expected. Please note the regex to match ($regex). This is "
-                    . " to imply that database engine and charset are not captured or compared. The engine is automattically "
-                    . " converted to INNODB if built with this Restful generator. Any updates done to the database should be automated in the $fullyQualifiedClassName::REFRESH_SCHEMA[] definition. "
-                    . "If this is not a table you manage, but rather 3rd-party generated, you should change "
-                    . "($fullyQualifiedClassName::VALIDATE_AFTER_REBUILD = false;) and re-try; this can aslo be set to "
-                    . ' false if you would like to manage table definition(s) using other means.'
-                    . ' To update your table using REFRESH_SCHEMA, please refer to the documentation that is been provided'
-                    . " above this constant in the php class for $tableName. If the new SQL appears correct you probably"
-                    . " just need to re-run the RestBuilder program (not the database rebuild program currently raising error). The offending SQL::\n", iColorCode::RED);
+                if ([] !== $looseChangesOne || [] !== $looseChangesTwo) {
 
-                ColorCode::colorCode("Expected :: $preUpdateSQL\n\n", iColorCode::YELLOW);
+                    ColorCode::colorCode('Oh No! After running the database updated it looks like the sql found in'
+                        . " the mysql dump file did not match the expected. Any updates done to the database should be automated in the $fullyQualifiedClassName::REFRESH_SCHEMA[] definition. "
+                        . "If this is not a table you manage, but rather 3rd-party generated, you should change "
+                        . "($fullyQualifiedClassName::VALIDATE_AFTER_REBUILD = false;) and re-try; this can also be set to "
+                        . ' false if you would like to manage table definition(s) using other means.'
+                        . ' To update your table using REFRESH_SCHEMA, please refer to the documentation that is been provided'
+                        . " above this constant in the php class for $tableName. If the new SQL appears correct you probably"
+                        . " just need to re-run the RestBuilder program (not the database rebuild program currently raising error). The offending SQL::\n", iColorCode::RED);
 
-                ColorCode::colorCode("GOT :: $postUpdateSQL\n\n", iColorCode::BLUE);    // I want to bring your attention back to the red ^^ then down to blue
+                    ColorCode::colorCode("Due to version differences in how MySQLDump will print your schema, the following are used with preg_replace to `loosen` the condition PHP array_diff must meet ::\n" . json_encode($replace, JSON_PRETTY_PRINT) . "\n\n", iColorCode::BACKGROUND_CYAN);
 
-                ColorCode::colorCode("\tChanges\n", iColorCode::ITALIC);
+                    ColorCode::colorCode("Expected :: $preUpdateSQL\n\n", iColorCode::YELLOW);
+
+                    ColorCode::colorCode("GOT :: $postUpdateSQL\n\n", iColorCode::BLUE);    // I want to bring your attention back to the red ^^ then down to blue
+
+                    ColorCode::colorCode("\tChanges\n", iColorCode::ITALIC);
+                    ColorCode::colorCode("\tNew->Old", iColorCode::CYAN);
+                    ColorCode::colorCode("Needs to be added or modified :: ", iColorCode::YELLOW);
+                    ColorCode::colorCode('preg_replace\'d :: ' . json_encode($looseChangesOne, JSON_PRETTY_PRINT) . "\n\n", iColorCode::CYAN);
+                    ColorCode::colorCode('exact :: ' . json_encode($changesOne, JSON_PRETTY_PRINT) . "\n\n", iColorCode::CYAN);
+                    ColorCode::colorCode("\tOld->New", iColorCode::RED);
+                    ColorCode::colorCode("needs to be removed or modified :: ", iColorCode::YELLOW);
+                    ColorCode::colorCode('preg_replace\'d :: ' . json_encode($looseChangesTwo, JSON_PRETTY_PRINT) . "\n\n", iColorCode::RED);
+                    ColorCode::colorCode('exact :: ' . json_encode($changesTwo, JSON_PRETTY_PRINT) . "\n\n", iColorCode::RED);
+
+                    self::colorCode('Only the `preg_replace` differences need be changed to complete with success.');
+
+                    $failureEncountered = true;
+
+                }
+
+                ColorCode::colorCode("Due to version differences in how MySQLDump will print your schema, the following are used with preg_replace to `loosen` the condition PHP array_diff must meet ::\n" . json_encode($replace, JSON_PRETTY_PRINT) . "\n\n", iColorCode::MAGENTA);
+                self::colorCode("Due to the loosened conditions the table ($tableName) has passed.");
                 ColorCode::colorCode("\tNew->Old", iColorCode::CYAN);
-                ColorCode::colorCode("Needs to be added or modified :: ", iColorCode::YELLOW);
                 ColorCode::colorCode(json_encode($changesOne, JSON_PRETTY_PRINT) . "\n\n", iColorCode::CYAN);
-                ColorCode::colorCode("\tOld->New", iColorCode::RED);
-                ColorCode::colorCode("needs to be removed or modified :: ", iColorCode::YELLOW);
-                ColorCode::colorCode(json_encode($changesTwo, JSON_PRETTY_PRINT) . "\n\n", iColorCode::RED);
-
-                exit(1);
+                ColorCode::colorCode("\tOld->New", iColorCode::CYAN);
+                ColorCode::colorCode(json_encode($changesTwo, JSON_PRETTY_PRINT) . "\n\n", iColorCode::CYAN);
 
             }
 
             ColorCode::colorCode("Table `$tableName` was verified.");
+
+        }
+
+        if ($failureEncountered) {
+
+            exit(1);
 
         }
 

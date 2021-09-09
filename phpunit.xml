@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit backupGlobals="false"
          backupStaticAttributes="false"
-         bootstrap="vendor/autoload.php"
+         bootstrap="wp-load.php"
          colors="true"
          convertErrorsToExceptions="true"
          convertNoticesToExceptions="true"
          convertWarningsToExceptions="true"
+         processIsolation="false"
          stopOnFailure="false">
     <testsuites>
         <testsuite name="feature">
@@ -17,6 +18,6 @@
         </testsuite>
     </testsuites>
     <php>
-        <env name="APP_ENV" value="testing"/>
+        <env name="TESTING" value="1"/>
     </php>
 </phpunit>
