@@ -1024,8 +1024,10 @@ FOOT;
                         . "($fullyQualifiedClassName::VALIDATE_AFTER_REBUILD = false;) and re-try; this can also be set to "
                         . ' false if you would like to manage table definition(s) using other means.'
                         . ' To update your table using REFRESH_SCHEMA, please refer to the documentation that is been provided'
-                        . " above this constant in the php class for $tableName. If the new SQL appears correct you probably"
-                        . " just need to re-run the RestBuilder program (not the database rebuild program currently raising error). The offending SQL::\n", iColorCode::RED);
+                        . " above this constant in the php class for $tableName.", iColorCode::RED);
+                    
+                    self::colorCode("If the new SQL appears correct you probably"
+                        . " just need to re-run the RestBuilder program (not the database rebuild program currently raising error). The offending SQL::\n", iColorCode::BACKGROUND_YELLOW);
 
                     ColorCode::colorCode("Due to version differences in how MySQLDump will print your schema, the following are used with preg_replace to `loosen` the condition PHP array_diff must meet ::\n" . json_encode($replace, JSON_PRETTY_PRINT) . "\n\n", iColorCode::BACKGROUND_CYAN);
 
@@ -1047,14 +1049,16 @@ FOOT;
 
                     $failureEncountered = true;
 
-                }
+                } else {
 
-                ColorCode::colorCode("Due to version differences in how MySQLDump will print your schema, the following are used with preg_replace to `loosen` the condition PHP array_diff must meet ::\n" . json_encode($replace, JSON_PRETTY_PRINT) . "\n\n", iColorCode::MAGENTA);
-                self::colorCode("Due to the loosened conditions the table ($tableName) has passed.");
-                ColorCode::colorCode("\tNew->Old", iColorCode::CYAN);
-                ColorCode::colorCode(json_encode($changesOne, JSON_PRETTY_PRINT) . "\n\n", iColorCode::CYAN);
-                ColorCode::colorCode("\tOld->New", iColorCode::CYAN);
-                ColorCode::colorCode(json_encode($changesTwo, JSON_PRETTY_PRINT) . "\n\n", iColorCode::CYAN);
+                    ColorCode::colorCode("Due to version differences in how MySQLDump will print your schema, the following are used with preg_replace to `loosen` the condition PHP array_diff must meet ::\n" . json_encode($replace, JSON_PRETTY_PRINT) . "\n\n", iColorCode::MAGENTA);
+                    self::colorCode("Due to the loosened conditions the table ($tableName) has passed.");
+                    ColorCode::colorCode("\tNew->Old", iColorCode::CYAN);
+                    ColorCode::colorCode(json_encode($changesOne, JSON_PRETTY_PRINT) . "\n\n", iColorCode::CYAN);
+                    ColorCode::colorCode("\tOld->New", iColorCode::CYAN);
+                    ColorCode::colorCode(json_encode($changesTwo, JSON_PRETTY_PRINT) . "\n\n", iColorCode::CYAN);
+
+                }
 
             }
 
@@ -1149,7 +1153,20 @@ FOOT;
         // If not exists
         if ([] === $existed) {
 
-            self::execute($sql);
+            self::colorCode("Column ($column) did not appear to exist. Attempting to run ($sql).");
+
+            if (self::execute($sql)) {
+
+                self::colorCode("success");
+
+            } else {
+
+                self::colorCode("failure", iColorCode::RED);
+            }
+
+        } else {
+
+            self::colorCode("The ($column) already exists.");
 
         }
 
