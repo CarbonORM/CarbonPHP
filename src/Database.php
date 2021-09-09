@@ -990,8 +990,8 @@ FOOT;
             $changesTwo = array_diff($postUpdateSQLArray, $preUpdateSQLArray);
 
             $replace = [
-                /** @lang PhpRegExp */ '#bigint\(\d\)#' => 'bigint',
-                /** @lang PhpRegExp */ '#int\(\d\)#' => 'int',
+                /** @lang PhpRegExp */ '#bigint\(\d+\)#' => 'bigint',
+                /** @lang PhpRegExp */ '#int\(\d+\)#' => 'int',
                 /** @lang PhpRegExp */ '#CHARACTER\sSET\s\w+#' => '',
                 /** @lang PhpRegExp */ '#COLLATE\s\w+#' => '',
                 /** @lang PhpRegExp */ '#AUTO_INCREMENT=\d\s#' => '',
