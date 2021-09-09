@@ -388,6 +388,9 @@ class CarbonPHP
     public static function make($configuration = null, string $app_root = null): void
     {
         try {
+
+            self::$test = '1' === ($_ENV['TESTING'] ?? ''); // set with phpunit.xml
+
             defined('DS') or define('DS', DIRECTORY_SEPARATOR);
 
             if ($app_root !== null) {

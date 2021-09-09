@@ -64,9 +64,6 @@ jobs:
       - name: php index.php rest
         run: php index.php rest
 
-      - name: php index.php rest  (again to ensure generated php valid)
-        run: php index.php rest
-
       - name: ./vendor/se/selenium-server-standalone/composer/bin/selenium-server-standalone &
         run: ./vendor/se/selenium-server-standalone/composer/bin/selenium-server-standalone &
 
@@ -75,6 +72,9 @@ jobs:
 
       - name: ./vendor/bin/wp core update-db
         run: ./vendor/bin/wp core update-db
+
+      - name: php index.php rest (again to ensure generated php valid and to build Wp Tables)
+        run: php index.php rest
 
         # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
         # Docs: https://getcomposer.org/doc/articles/scripts.md

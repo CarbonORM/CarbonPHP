@@ -49,12 +49,6 @@ abstract class Config extends TestCase
 
     public function setUp() : void /* The :void return type declaration that should be here would cause a BC issue */
     {
-        if (CarbonPHP::$test) {
-            return;
-        }
-
-        CarbonPHP::$test = true;
-
         parent::setUp();
 
         $_SERVER = [
@@ -78,18 +72,6 @@ abstract class Config extends TestCase
             'HTTP_REFERER' => 'http://dev.carbonphp.com/'
         ];
 
-        // All folder constants end in a trailing slash /
-        define('DS', DIRECTORY_SEPARATOR);
-
-        // Set our root folder for the application, this will move up one directory to the c6 root
-        define('SERVER_ROOT', dirname(__DIR__, 2) . DS);
-
-        CarbonPHP::$app_root = SERVER_ROOT;
-
-        // Composer autoload, phpunit has some sort of auto-loading to get us this far, but we need ours
-        if (false === (include SERVER_ROOT . 'wp-load.php')) {     // Load the autoload() for composer dependencies located in the Services folder
-            die("Failed to load wordpress.");
-        }
     }
 
 }
