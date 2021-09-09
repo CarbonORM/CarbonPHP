@@ -996,6 +996,7 @@ FOOT;
                 /** @lang PhpRegExp */ '#COLLATE\s\w+#' => '',
                 /** @lang PhpRegExp */ '#AUTO_INCREMENT=\d+#' => '',
                 /** @lang PhpRegExp */ '#COLLATE=\w+#' => '',
+                /** @lang PhpRegExp */ '#DEFAULT CHARSET=\w+#' => '',   // todo - I feel like this makes sense to flag but Actions
                 /** @lang PhpRegExp */ '#\s{2,}#' => ' ',
                 /** @lang PhpRegExp */ '#\s?,$#' => '',
                 /** @lang PhpRegExp */ '#\s?;$#' => '',
