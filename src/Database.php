@@ -994,6 +994,7 @@ FOOT;
                 /** @lang PhpRegExp */ '#int\(\d+\)#' => 'int',
                 /** @lang PhpRegExp */ '#CHARACTER\sSET\s\w+#' => '',
                 /** @lang PhpRegExp */ '#COLLATE\s\w+#' => '',
+                /** @lang PhpRegExp */ '#\sON\sDELETE\sNO\sACTION#' => '',
                 /** @lang PhpRegExp */ '#AUTO_INCREMENT=\d+#' => '',
                 /** @lang PhpRegExp */ '#COLLATE=\w+#' => '',
                 /** @lang PhpRegExp */ '#DEFAULT CHARSET=\w+#' => '',   // todo - I feel like this makes sense to flag but Actions
