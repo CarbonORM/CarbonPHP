@@ -746,6 +746,8 @@ END;
                                 $rest[$tableName]['explode'][$column]['length'] = $length;
                             }
 
+                            $type = rtrim($type, ',');
+
                             $rest[$tableName]['explode'][$column]['mysql_type'] = $type;
 
                             $rest[$tableName]['explode'][$column]['json'] = $type === 'json';
