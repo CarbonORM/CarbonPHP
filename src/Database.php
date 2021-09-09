@@ -1025,9 +1025,9 @@ FOOT;
                         . ' false if you would like to manage table definition(s) using other means.'
                         . ' To update your table using REFRESH_SCHEMA, please refer to the documentation that is been provided'
                         . " above this constant in the php class for $tableName.", iColorCode::RED);
-                    
+
                     self::colorCode("If the new SQL appears correct you probably"
-                        . " just need to re-run the RestBuilder program (not the database rebuild program currently raising error). The offending SQL::\n", iColorCode::BACKGROUND_YELLOW);
+                        . " just need to re-run the RestBuilder program (not the database rebuild program currently raising error).", iColorCode::BACKGROUND_YELLOW);
 
                     ColorCode::colorCode("Due to version differences in how MySQLDump will print your schema, the following are used with preg_replace to `loosen` the condition PHP array_diff must meet ::\n" . json_encode($replace, JSON_PRETTY_PRINT) . "\n\n", iColorCode::BACKGROUND_CYAN);
 
@@ -1268,5 +1268,5 @@ FOOT;
 
     }
 
-} 
+}
 
