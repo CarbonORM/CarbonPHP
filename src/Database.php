@@ -992,9 +992,9 @@ FOOT;
             $replace = [
                 /** @lang PhpRegExp */ '#bigint\(\d\)#' => 'bigint',
                 /** @lang PhpRegExp */ '#int\(\d\)#' => 'int',
-                /** @lang PhpRegExp */ '#CHARACTER\sSET\s\w#' => '',
-                /** @lang PhpRegExp */ '#COLLATE\s\w#' => '',
-                /** @lang PhpRegExp */ '#AUTO_INCREMENT=\d\s\w#' => '',
+                /** @lang PhpRegExp */ '#CHARACTER\sSET\s\w+#' => '',
+                /** @lang PhpRegExp */ '#COLLATE\s\w+#' => '',
+                /** @lang PhpRegExp */ '#AUTO_INCREMENT=\d\s\w+#' => '',
             ];
 
             $pattern = array_keys($replace);
