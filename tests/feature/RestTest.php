@@ -22,9 +22,7 @@ use CarbonPHP\Tables\User_Tasks;
 use CarbonPHP\Tables\Users;
 
 
-/**
- * @runTestsInSeparateProcesses
- */
+
 final class RestTest extends Config
 {
 

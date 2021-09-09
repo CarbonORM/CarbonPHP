@@ -7,11 +7,7 @@ use CarbonPHP\Database;
 use Config\Documentation;
 use PHPUnit\Framework\TestCase;
 
-/**
- * phpunit likes to rerun code with not explicitly stated to run in separate process
- * add this annotation to each class which extends this class
- * @runTestsInSeparateProcesses
- */
+
 abstract class Config extends TestCase
 {
     public const URL = 'http://dev.carbonphp.com/';

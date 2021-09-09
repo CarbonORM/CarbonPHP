@@ -15,9 +15,7 @@ use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Tables\Wp_Users;
 use Throwable;
 
-/**
- * @runTestsInSeparateProcesses
- */
+
 final class RestWordpressTest extends Config
 {
     public function testRestInternalPostAndDelete(): void

@@ -14,9 +14,7 @@ use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Rest;
 use CarbonPHP\Tables\Users;
 
-/**
- * @runTestsInSeparateProcesses
- */
+
 final class UserTest extends Config
 {
 
