@@ -996,6 +996,7 @@ FOOT;
                 /** @lang PhpRegExp */ '#COLLATE\s\w+#' => '',
                 /** @lang PhpRegExp */ '#AUTO_INCREMENT=\d\s#' => '',
                 /** @lang PhpRegExp */ '#\s{2,}#' => '',
+                /** @lang PhpRegExp */ '#\s?,$#' => '',
             ];
 
             $pattern = array_keys($replace);
