@@ -1,4 +1,4 @@
-,<?php /** @noinspection DuplicatedCode */
+<?php /** @noinspection DuplicatedCode */
 /**
  * The base configuration for WordPress
  *
@@ -38,9 +38,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /** @noinspection PhpUnhandledExceptionInspection */
 CarbonPHP::make(Documentation::class, ABSPATH);
-
-
-sortDump(Database::$carbonDatabaseName);
 
 define( 'DB_NAME', Database::$carbonDatabaseName );
 
