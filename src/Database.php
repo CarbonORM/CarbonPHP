@@ -994,9 +994,9 @@ FOOT;
                 /** @lang PhpRegExp */ '#int\(\d+\)#' => 'int',
                 /** @lang PhpRegExp */ '#CHARACTER\sSET\s\w+#' => '',
                 /** @lang PhpRegExp */ '#COLLATE\s\w+#' => '',
-                /** @lang PhpRegExp */ '#AUTO_INCREMENT=\d\s#' => '',
-                /** @lang PhpRegExp */ '#COLLATE=\w+\s#' => '',
-                /** @lang PhpRegExp */ '#\s{2,}#' => '',
+                /** @lang PhpRegExp */ '#AUTO_INCREMENT=\d+#' => '',
+                /** @lang PhpRegExp */ '#COLLATE=\w+#' => '',
+                /** @lang PhpRegExp */ '#\s{2,}#' => ' ',
                 /** @lang PhpRegExp */ '#\s?,$#' => '',
                 /** @lang PhpRegExp */ '#\s?;$#' => '',
             ];
