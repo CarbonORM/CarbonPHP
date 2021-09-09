@@ -995,7 +995,7 @@ FOOT;
                 /** @lang PhpRegExp */ '#CHARACTER\sSET\s\w+#' => '',
                 /** @lang PhpRegExp */ '#COLLATE\s\w+#' => '',
                 /** @lang PhpRegExp */ '#AUTO_INCREMENT=\d\s#' => '',
-                /** @lang PhpRegExp */ '#\s{2,}#' => '\s',
+                /** @lang PhpRegExp */ '#\s{2,}#' => '',
             ];
 
             $pattern = array_keys($replace);
@@ -1013,9 +1013,7 @@ FOOT;
                 if ([] !== $looseChangesOne || [] !== $looseChangesTwo) {
 
                     ColorCode::colorCode('Oh No! After running the database updated it looks like the sql found in'
-                        . " the mysql dump file did not match the expected. Please note the regex to match ($regex). This is "
-                        . " to imply that database engine and charset are not captured or compared. The engine is automatically "
-                        . " converted to INNODB if built with this Restful generator. Any updates done to the database should be automated in the $fullyQualifiedClassName::REFRESH_SCHEMA[] definition. "
+                        . " the mysql dump file did not match the expected. Any updates done to the database should be automated in the $fullyQualifiedClassName::REFRESH_SCHEMA[] definition. "
                         . "If this is not a table you manage, but rather 3rd-party generated, you should change "
                         . "($fullyQualifiedClassName::VALIDATE_AFTER_REBUILD = false;) and re-try; this can also be set to "
                         . ' false if you would like to manage table definition(s) using other means.'
