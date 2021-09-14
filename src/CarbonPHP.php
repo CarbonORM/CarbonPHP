@@ -453,7 +453,6 @@ class CarbonPHP
                 RestTest::setupServerVariables();
 
             }
-
             ####################  Define your own server root
             self::$app_root ??= self::CARBON_ROOT;
 
@@ -514,6 +513,7 @@ class CarbonPHP
             ####################  GENERAL CONF  ######################
             error_reporting($config[self::ERROR][self::LEVEL] ?? E_ALL | E_STRICT);
 
+            /** @noinspection PhpExpressionResultUnusedInspection */
             ini_set('display_errors', $config[self::ERROR][self::SHOW] ?? true);
 
             date_default_timezone_set($config[self::SITE][self::TIMEZONE] ?? 'America/Chicago');
@@ -523,7 +523,7 @@ class CarbonPHP
             #####################   ERRORS + Warnings + Alerts    #######################
             if ($config[self::ERROR] ??= false) {
 
-                ErrorCatcher::$defaultLocation ??= self::$reports . 'Log_' . ($_SESSION['id'] ?? '') . '_' . time() . '.log';
+                ErrorCatcher::$defaultLocation ??= self::$reports . 'default_log.txt';
 
                 ErrorCatcher::$printToScreen = $config[self::ERROR][self::SHOW] ?? ErrorCatcher::$printToScreen;
 

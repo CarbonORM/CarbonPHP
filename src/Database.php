@@ -222,7 +222,7 @@ FOOT;
 
                 if (!$db->prepare($stmt)->execute()) {
 
-                    $log_array[] = '<h1>Failed to insert database. See CarbonPHP.com for documentation.</h1>';
+                    $log_array[] = "<h1>Failed to execute ($stmt).</h1>";
 
                     print ErrorCatcher::generateBrowserReport($log_array);  // this terminates
 
@@ -230,9 +230,11 @@ FOOT;
 
                     $db->exec("use $db_name");
 
-                    static::setUp(!CarbonPHP::$cli, CarbonPHP::$cli);
+                    static::refreshDatabase();
 
                 }
+
+                print ErrorCatcher::generateBrowserReport($log_array);  // this terminates
 
                 break;
 
@@ -401,29 +403,7 @@ FOOT;
 
         }
 
-        if (null !== $tableDirectory) {
-
-            self::refreshDatabase($tableDirectory);
-
-        } else if (!empty(static::$carbonDatabaseSetup)) {
-
-            if (file_exists(static::$carbonDatabaseSetup)) {
-
-                /** @noinspection PhpIncludeInspection */
-                include static::$carbonDatabaseSetup;
-
-            } else {
-
-                self::colorCode('Failed to locate setup file at (' . static::$carbonDatabaseSetup . '). This feature is deprecated and will 
-                    be removed in the future. Please use the Rest Generation to manage database rebuilds. See CarbonPHP.com for details.', iColorCode::RED);
-
-            }
-
-        } else {
-
-            self::refreshDatabase();
-
-        }
+        self::refreshDatabase($tableDirectory ?? '');
 
         if ($refresh && !$cli) {
 
