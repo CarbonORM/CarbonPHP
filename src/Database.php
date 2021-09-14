@@ -413,12 +413,6 @@ FOOT;
 
         }
 
-        if (CarbonPHP::$cli) {
-
-            print PHP_EOL . PHP_EOL . PHP_EOL;
-
-        }
-
         return static::database();
 
     }
@@ -1101,6 +1095,7 @@ FOOT;
             self::scanAndRunRefreshDatabase($tableDirectory);
 
             self::colorCode('Success!');
+
             self::colorCode('After Refreshing the database one should rerun the RestBuilder program to capture any changes made to tables with (public const VALIDATE_AFTER_REBUILD = false;)!', iColorCode::CYAN);
 
         } catch (Throwable $e) {
