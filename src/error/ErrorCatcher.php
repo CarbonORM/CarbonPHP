@@ -384,7 +384,7 @@ class ErrorCatcher
 
             $code = $json['CODE'] ?? false;
 
-            if (false === $code || false === is_numeric($color)) {
+            if (false === $code || false === is_numeric($code)) {
 
                 $code = 500;
 
