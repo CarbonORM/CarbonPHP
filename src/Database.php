@@ -1005,9 +1005,9 @@ FOOT;
 
                     ColorCode::colorCode("Due to version differences in how MySQLDump will print your schema, the following are used with preg_replace to `loosen` the condition PHP array_diff must meet ::\n" . json_encode($replace, JSON_PRETTY_PRINT) . "\n\n", iColorCode::BACKGROUND_CYAN);
 
-                    ColorCode::colorCode("Expected :: $preUpdateSQL\n\n", iColorCode::YELLOW);
+                    ColorCode::colorCode("Expected (pre-updated sql) :: $preUpdateSQL\n\n", iColorCode::YELLOW);
 
-                    ColorCode::colorCode("GOT :: $postUpdateSQL\n\n", iColorCode::BLUE);    // I want to bring your attention back to the red ^^ then down to blue
+                    ColorCode::colorCode("GOT (post-updated sql) :: $postUpdateSQL\n\n", iColorCode::BLUE);    // I want to bring your attention back to the red ^^ then down to blue
 
                     ColorCode::colorCode("\tChanges\n", iColorCode::ITALIC);
                     ColorCode::colorCode("\tNew->Old", iColorCode::CYAN);
@@ -1023,7 +1023,7 @@ FOOT;
 
                     $failureEncountered = true;
 
-                } else {
+                } elseif (defined("$fullyQualifiedClassName::VERBOSE_LOGGING") && true === $fullyQualifiedClassName::VERBOSE_LOGGING){
 
                     ColorCode::colorCode("Due to version differences in how MySQLDump will print your schema, the following are used with preg_replace to `loosen` the condition PHP array_diff must meet ::\n" . json_encode($replace, JSON_PRETTY_PRINT) . "\n\n", iColorCode::MAGENTA);
                     self::colorCode("Due to the loosened conditions the table ($tableName) has passed.");
