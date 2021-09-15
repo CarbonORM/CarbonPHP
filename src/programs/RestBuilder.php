@@ -1513,6 +1513,8 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
     
     public const DIRECTORY = __DIR__ . DIRECTORY_SEPARATOR;
     
+    public const VERBOSE_LOGGING = false;
+    
     public const QUERY_WITH_DATABASE = {{#QueryWithDatabaseName}}true{{/QueryWithDatabaseName}}{{^QueryWithDatabaseName}}false{{/QueryWithDatabaseName}};
     
     public const DATABASE = '{{#QueryWithDatabaseName}}{{database}}{{/QueryWithDatabaseName}}';

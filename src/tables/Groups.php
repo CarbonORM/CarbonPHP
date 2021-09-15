@@ -52,6 +52,8 @@ class Groups extends Rest implements iRestSinglePrimaryKey
     
     public const DIRECTORY = __DIR__ . DIRECTORY_SEPARATOR;
     
+    public const VERBOSE_LOGGING = false;
+    
     public const QUERY_WITH_DATABASE = true;
     
     public const DATABASE = 'CarbonPHP';
