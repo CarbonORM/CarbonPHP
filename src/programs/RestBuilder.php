@@ -549,8 +549,8 @@ END;
 
                             $methods = array_udiff(
                                 $generatedClassCustomMethods,
-                                get_class_methods(Carbons::class));         // or null.. smh
-
+                                get_class_methods(Carbons::class),
+                                    'strcasecmp');         // or null.. smh
 
                             foreach ($methods as $method) {
 
