@@ -547,7 +547,7 @@ END;
                                 exit(1);
                             }
 
-                            $methods = array_diff(
+                            $methods = array_udiff(
                                 $generatedClassCustomMethods,
                                 get_class_methods(Carbons::class));         // or null.. smh
 
