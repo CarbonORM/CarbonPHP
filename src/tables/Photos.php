@@ -489,7 +489,7 @@ MYSQL;
     }
 
     /**
-     * @param array $post 
+     * @param array $post - a one to one; column => value mapping. Multiple rows may be inserted at one time using an array of arrays.
      * @return bool|string|mixed
      * @generated
      */
