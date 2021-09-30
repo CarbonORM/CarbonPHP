@@ -9,6 +9,7 @@ config/buildDatabase.php
 /node_modules/
 /*/node_modules/
 /logs/*.log
+/logs/default_log.txt
 /mysql.cnf
 /mysqldump.cnf
 /mysqldump_data.sql

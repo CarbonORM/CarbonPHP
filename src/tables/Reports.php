@@ -466,7 +466,7 @@ MYSQL;
     }
 
     /**
-     * @param array $data 
+     * @param array $post 
      * @return bool|string
      * @generated
      */
