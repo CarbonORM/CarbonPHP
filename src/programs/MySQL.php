@@ -35,23 +35,33 @@ IDENTIFIED;
         print PHP_EOL . $query . PHP_EOL;
 
         try {
+
             if (!file_put_contents('query.txt', $query)) {
+
                 print 'Failed to create query file!';
+
                 exit(2);
+
             }
 
-            $out = self::mysqlSource('query.txt');
+            self::mysqlSource('query.txt');
 
             if (!unlink('query.txt')) {
                 print 'Failed to remove query.txt file' . PHP_EOL;
             }
-            print $out . PHP_EOL;
+
             exit(0);
+
         } catch (Throwable $e) {
+
             print 'Failed to change mysql auth method' . PHP_EOL;
+
             ErrorCatcher::generateLog($e);
+
             exit(1);
+
         }
+
     }
 
 
@@ -132,7 +142,7 @@ IDENTIFIED;
     {
 
         $cmd = ($mysqldump ?? 'mysqldump') . ' --defaults-extra-file="' . self::buildCNF() . '" '
-            . ($data ? '' : '--no-data ') . CarbonPHP::$configuration['DATABASE']['DB_NAME'] . ' > "' . CarbonPHP::$app_root . 'mysqldump.sql"';
+            . ($data ? '--hex-blob ' : '--no-data ') . CarbonPHP::$configuration['DATABASE']['DB_NAME'] . ' > "' . CarbonPHP::$app_root . 'mysqldump.sql"';
 
         Background::executeAndCheckStatus($cmd);
 

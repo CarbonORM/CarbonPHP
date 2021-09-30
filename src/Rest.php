@@ -13,6 +13,8 @@ use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Programs\MySQL;
 use CarbonPHP\Tables\Carbons;
 use CarbonPHP\Tables\History_Logs;
+use CarbonPHP\Tables\Wp_Users;
+use Config\Documentation;
 use PDO;
 use PDOException;
 use PDOStatement;
@@ -1847,50 +1849,92 @@ abstract class Rest extends Database
 
     }
 
+    public static function has_string_keys(array $array): bool
+    {
+        return count(array_filter(array_keys($array), 'is_string')) > 0;
+    }
+
     /**
-     * @param array $data
+     * @param array $post
      * @return mixed|string|int
      */
-    protected static function insert(array $data = [])
+    protected static function insert(array &$post = [])
     {
         do {
             try {
 
-                self::startRest(self::POST, [], $data);
+                self::startRest(self::POST, [], $post);
 
-                foreach ($data as $columnName => $postValue) {
+                if ([] !== $post && true === self::has_string_keys($post)) {
 
-                    if (false === array_key_exists($columnName, static::COLUMNS)) {
+                    $post = [
 
-                        return self::signalError("Restful table (" . static::class . ") would not post column ($columnName), because it does not appear to exist.");
+                        $post
+
+                    ];
+
+                }
+
+                foreach ($post as $iValue) {
+
+                    foreach ($iValue as $columnName => $postValue) {
+
+                        if (false === array_key_exists($columnName, static::COLUMNS)) {
+
+                            return self::signalError("Restful table (" . static::class . ") would not post column ($columnName), because the column does not appear to exist.");
+
+                        }
 
                     }
 
                 }
 
-                $keys = $pdo_values = '';
+                $keys = '';
 
-                foreach (static::COLUMNS as $fullName => $shortName) {
+                $pdo_values = $bound_values = [];
 
-                    if (static::PDO_VALIDATION[$fullName][self::SKIP_COLUMN_IN_POST] ?? false) {
+                $rowsToInsert = count($post);
 
-                        continue;
+                $i = 0;
+
+                do {
+
+                    $pdo_values[$i] = '';
+
+                    foreach (static::COLUMNS as $fullName => $shortName) {
+
+                        if (static::PDO_VALIDATION[$fullName][self::SKIP_COLUMN_IN_POST] ?? false) {
+
+                            continue;
+
+                        }
+
+                        if ($i === 0) {
+
+                            $keys .= "$shortName, ";
+
+                        }
+
+                        $shortName .= $i;
+
+                        $bound_values[] = $shortName;
+
+                        $pdo_values[$i] .= 'binary' === static::PDO_VALIDATION[$fullName][self::MYSQL_TYPE] ? "UNHEX(:$shortName), " : ":$shortName, ";
 
                     }
 
-                    $keys .= "$shortName, ";
+                    $pdo_values[$i] = rtrim($pdo_values[$i], ', ');
 
-                    $pdo_values .= 'binary' === static::PDO_VALIDATION[$fullName][self::MYSQL_TYPE] ? "UNHEX(:$shortName), " : ":$shortName, ";
+                    ++$i;
 
-                }
-
-                $keys = rtrim($keys, ', ');
-
-                $pdo_values = rtrim($pdo_values, ', ');
+                } while ($i < $rowsToInsert);
 
                 $sql = self::INSERT . ' INTO '
                     . (static::QUERY_WITH_DATABASE ? static::DATABASE . '.' : '')
-                    . static::TABLE_NAME . " ($keys) VALUES ($pdo_values)";
+                    . static::TABLE_NAME . ' ('
+                    . rtrim($keys, ', ')
+                    . ') VALUES ('
+                    . implode('), (', $pdo_values) . ')';
 
                 $primaryBinary = is_string(static::PRIMARY) && 'binary' === static::PDO_VALIDATION[static::PRIMARY][self::MYSQL_TYPE] ?? false;
 
@@ -1898,7 +1942,7 @@ abstract class Rest extends Database
 
                     $pdo = self::database();
 
-                    if (!$pdo->inTransaction()) {
+                    if (false === $pdo->inTransaction()) {
 
                         $pdo->beginTransaction();
 
@@ -1916,135 +1960,189 @@ abstract class Rest extends Database
 
                 $op = self::EQUAL;
 
-                foreach (static::PDO_VALIDATION as $fullName => $info) {
+                $i = 0;
 
-                    if ($info[self::SKIP_COLUMN_IN_POST] ?? false) {
+                do {
 
-                        if (array_key_exists($fullName, $data)
-                            && self::CURRENT_TIMESTAMP === ($info[self::DEFAULT_POST_VALUE] ?? '')) {
+                    $post[$i] ??= [];
 
-                            return self::signalError("The column ($fullName) is set to default to CURRENT_TIMESTAMP. The Rest API does not allow POST requests with columns explicitly set whose default is CURRENT_TIMESTAMP. You can remove to the default in MySQL or the column ($fullName) from the request.");
+                    $iValue = &$post[$i];   // this allows you to get your binary keys if they were C6 enabled.
 
-                        }
+                    foreach (static::PDO_VALIDATION as $fullName => $info) {
 
-                        continue;
+                        if ($info[self::SKIP_COLUMN_IN_POST] ?? false) {
 
-                    }
+                            if (array_key_exists($fullName, $iValue)
+                                && self::CURRENT_TIMESTAMP === ($info[self::DEFAULT_POST_VALUE] ?? '')) {
 
-                    $shortName = static::COLUMNS[$fullName];
-
-                    if ($fullName === static::PRIMARY
-                        || (is_array(static::PRIMARY)
-                            && array_key_exists($fullName, static::PRIMARY))) {
-
-                        $data[$fullName] ??= false;
-
-                        if ($data[$fullName] === false) {
-
-                            $data[$fullName] = static::CARBON_CARBONS_PRIMARY_KEY
-                                ? self::beginTransaction(self::class, $data[self::DEPENDANT_ON_ENTITY] ?? null)     // clusters should really use this
-                                : self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
-
-                        } else if (false === self::validateInternalColumn($fullName, $op, $data[$fullName])) {
-
-                            throw new PublicAlert("The column value of ($fullName) caused custom restful api validations for (" . static::class . ") primary key to fail (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
-
-                        }
-
-                        /**
-                         * I'm fairly confident the length attribute does nothing.
-                         * @todo - hex / unhex length conversion on any binary data
-                         * @link https://stackoverflow.com/questions/28251144/inserting-and-selecting-uuids-as-binary16
-                         * @link https://www.php.net/ChangeLog-8.php
-                         * @notice PDO type validation has a bug until 8
-                         **/
-                        $maxLength = $info[self::MAX_LENGTH] === '' ? null : (int)$info[self::MAX_LENGTH];
-
-                        $stmt->bindParam(":$shortName", $data[$fullName], $info[self::PDO_TYPE],
-                            $maxLength);
-
-                    } elseif ('json' === $info[self::MYSQL_TYPE]) {
-
-                        if (false === array_key_exists($fullName, $data)) {
-
-                            return self::signalError("Table ('" . static::class . "') column ($fullName) is set to not null and has no default value. It must exist in the request and was not found in the one sent.");
-
-                        }
-
-                        if (false === self::validateInternalColumn($fullName, $op, $data[$fullName])) {
-
-                            throw new PublicAlert("Your tables ('" . static::class . "'), or joining tables, custom restful api validations caused the request to fail on json column ($fullName). Possible values include (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
-
-                        }
-
-                        if (false === is_string($data[$fullName])) {
-
-                            $json = json_encode($data[$fullName]);  // todo - is this over-validating?
-
-                            if (false === $json && $data[$fullName] !== false) {
-
-                                return self::signalError("The column ($fullName) failed to be json encoded.");
+                                return self::signalError("The column ($fullName) is set to default to CURRENT_TIMESTAMP. The Rest API does not allow POST requests with columns explicitly set whose default is CURRENT_TIMESTAMP. You can remove to the default in MySQL or the column ($fullName) from the request.");
 
                             }
 
-                            $data[$fullName] = $json;
-
-                            unset($json);
+                            continue;
 
                         }
 
-                        $stmt->bindValue(":$shortName", $data[$fullName], $info[self::PDO_TYPE]);
+                        $shortName = static::COLUMNS[$fullName] . $i;
 
-                    } elseif (array_key_exists(self::DEFAULT_POST_VALUE, $info)) {
+                        if (false === $key = array_search($shortName, $bound_values, true)) {
 
-                        $data[$fullName] ??= $info[self::DEFAULT_POST_VALUE];
-
-                        if (false === self::validateInternalColumn($fullName, $op, $data[$fullName], $data[$fullName] === $info[self::DEFAULT_POST_VALUE])) {
-
-                            return self::signalError("Your custom restful table ('" . static::class . "') api validations caused the request to fail on column ($fullName)");
+                            return self::signalError("An internal rest error has occurred where rest attempted binding ($shortName) which was in in the prepared sql ($sql)");
 
                         }
 
-                        $stmt->bindValue(":$shortName", $data[$fullName], $info[self::PDO_TYPE]);
+                        unset($bound_values[$key]);
 
-                    } else {
+                        if ($fullName === static::PRIMARY
+                            || (is_array(static::PRIMARY)
+                                && array_key_exists($fullName, static::PRIMARY))) {
 
-                        if (false === array_key_exists($fullName, $data)) {
+                            $iValue[$fullName] ??= false;
 
-                            return self::signalError("Required argument ($fullName) is missing from the request to ('" . static::class . "') and has no default value.");
+                            if ($iValue[$fullName] === false) {
+
+                                $iValue[$fullName] = static::CARBON_CARBONS_PRIMARY_KEY
+                                    ? self::beginTransaction(self::class, $iValue[self::DEPENDANT_ON_ENTITY] ?? null)     // clusters should really use this
+                                    : self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
+
+                            } else if (false === self::validateInternalColumn($fullName, $op, $iValue[$fullName])) {
+
+                                throw new PublicAlert("The column value of ($fullName) caused custom restful api validations for (" . static::class . ") primary key to fail (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
+
+                            }
+
+                            /**
+                             * I'm fairly confident the length attribute does nothing.
+                             * @todo - hex / unhex length conversion on any binary data
+                             * @link https://stackoverflow.com/questions/28251144/inserting-and-selecting-uuids-as-binary16
+                             * @link https://www.php.net/ChangeLog-8.php
+                             * @notice PDO type validation has a bug until 8
+                             **/
+                            $maxLength = $info[self::MAX_LENGTH] === '' ? null : (int)$info[self::MAX_LENGTH];
+
+                            $stmt->bindParam(":$shortName", $iValue[$fullName], $info[self::PDO_TYPE],
+                                $maxLength);
+
+                        } elseif ('json' === $info[self::MYSQL_TYPE]) {
+
+                            if (false === array_key_exists($fullName, $iValue)) {
+
+                                return self::signalError("Table ('" . static::class . "') column ($fullName) is set to not null and has no default value. It must exist in the request and was not found in the one sent.");
+
+                            }
+
+                            if (false === self::validateInternalColumn($fullName, $op, $iValue[$fullName])) {
+
+                                throw new PublicAlert("Your tables ('" . static::class . "'), or joining tables, custom restful api validations caused the request to fail on json column ($fullName). Possible values include (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
+
+                            }
+
+                            if (false === is_string($iValue[$fullName])) {
+
+                                $json = json_encode($iValue[$fullName]);  // todo - is this over-validating?
+
+                                if (false === $json && $iValue[$fullName] !== false) {
+
+                                    return self::signalError("The column ($fullName) failed to be json encoded.");
+
+                                }
+
+                                $iValue[$fullName] = $json;
+
+                                unset($json);
+
+                            }
+
+                            $stmt->bindValue(":$shortName", $iValue[$fullName], $info[self::PDO_TYPE]);
+
+                        } elseif (array_key_exists(self::DEFAULT_POST_VALUE, $info)) {
+
+                            $iValue[$fullName] ??= $info[self::DEFAULT_POST_VALUE];
+
+                            if (false === self::validateInternalColumn($fullName, $op, $iValue[$fullName], $iValue[$fullName] === $info[self::DEFAULT_POST_VALUE])) {
+
+                                return self::signalError("Your custom restful table ('" . static::class . "') api validations caused the request to fail on column ($fullName)");
+
+                            }
+
+                            $stmt->bindValue(":$shortName", $iValue[$fullName], $info[self::PDO_TYPE]);
+
+                        } else {
+
+                            if (false === array_key_exists($fullName, $iValue)) {
+
+                                return self::signalError("Required argument ($fullName) is missing from the request to ('" . static::class . "') and has no default value.");
+
+                            }
+
+                            if (false === self::validateInternalColumn($fullName, $op, $iValue[$fullName], array_key_exists(self::DEFAULT_POST_VALUE, $info) ? $iValue[$fullName] === $info[self::DEFAULT_POST_VALUE] : false)) {
+
+                                return self::signalError("Your custom restful api validations for ('" . static::class . "') caused the request to fail on required column ($fullName).");
+
+                            }
+
+                            $stmt->bindParam(":$shortName", $iValue[$fullName], $info[self::PDO_TYPE], $info[self::MAX_LENGTH] === '' ? null : (int)$info[self::MAX_LENGTH]);
 
                         }
-
-                        if (false === self::validateInternalColumn($fullName, $op, $data[$fullName], array_key_exists(self::DEFAULT_POST_VALUE, $info) ? $data[$fullName] === $info[self::DEFAULT_POST_VALUE] : false)) {
-
-                            return self::signalError("Your custom restful api validations for ('" . static::class . "') caused the request to fail on required column ($fullName).");
-
-                        }
-
-                        $stmt->bindParam(":$shortName", $data[$fullName], $info[self::PDO_TYPE], $info[self::MAX_LENGTH] === '' ? null : (int)$info[self::MAX_LENGTH]);
-
+                        // end foreach bind
                     }
-                    // end foreach bind
+
+                    ++$i;
+
+                } while ($i < $rowsToInsert);
+
+                if ([] !== $bound_values) {
+
+                    // todo - link support forums
+                    return self::signalError("The insert query ($sql) did not receive values for (" . implode(', ', $bound_values) . '). This is not expected, please open a ticket so we can fix this at (' . Documentation::GIT_SUPPORT . ').');
+
                 }
+
 
                 if (false === $stmt->execute()) {
 
                     self::completeRest();
 
-                    return self::signalError('The REST generated PDOStatement failed to execute for (' . static::class . '), with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
+                    return self::signalError('The REST generated PDOStatement failed to execute for (' . static::class . '), with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR));
 
                 }
 
+                # https://dev.mysql.com/doc/refman/5.6/en/information-functions.html#function_last-insert-id
                 if (static::AUTO_INCREMENT_PRIMARY_KEY || $primaryBinary) {
 
                     /** @noinspection NotOptimalIfConditionsInspection */
                     if (static::AUTO_INCREMENT_PRIMARY_KEY) {
 
-                        $id = $pdo->lastInsertId();
+                        $post[0][static::PRIMARY] = $id = $pdo->lastInsertId();
+
+                        if (1 < $rowsToInsert) {
+
+                            PublicAlert::warning(<<<WARNING
+                                                Auto increment keys used indiscriminately are a waste of the primary key access which is always the fastest way to get to a row in a table.
+                                                Auto increment locks can and do impact concurrency and scalability of your database.
+                                                In an HA replication environment using standard Async Replication, auto increment risks orphan rows during a master failure event.
+                                                If you are lucky enough to need to scale writes beyond a single server and end up having to shard auto increment no longer produces unique keys.
+                                                @quote @author John Schulz
+                                                @source @reference @link https://blog.pythian.com/case-auto-increment-mysql/
+                                                WARNING);
+
+                            PublicAlert::warning('CarbonPHP offers a scalable primary key solution using UUIDs. Please refer to the documentation.');
+
+                            PublicAlert::success("The first key ($id) is the primary key id of the first row inserted in the request. Please understand implications of sharded environments. Refer to link :: https://dev.mysql.com/doc/refman/5.6/en/information-functions.html#function_last-insert-id");
+
+                        }
+
+                    } else {
+
+                        $id = $post[0][static::PRIMARY]; 
 
                     }
 
-                    $id ??= $data[static::PRIMARY];
+                    if (null === $id) {
+
+                        return self::signalError("Failed to parse the id of the first inserted element after running ($sql); (" . json_encode($post) . ')');
+
+                    }
 
                     self::prepostprocessRestRequest($id);
 
@@ -3049,17 +3147,17 @@ abstract class Rest extends Database
      * It is most common for a user validation to use a rest request
      * @param string $method
      * @param array $return
-     * @param string|null $primary
-     * @param array $args
+     * @param array|null $args
+     * @param string|array|null $primary
      * @param bool $subQuery
      * @throws PublicAlert
      */
     protected static function startRest(
         string $method,
-        array $return,
-        array &$args = null,
-        &$primary = null,
-        bool $subQuery = false): void
+        array  $return,
+        array  &$args = null,
+               &$primary = null,
+        bool   $subQuery = false): void
     {
         self::checkPrefix(static::TABLE_PREFIX);
 
@@ -3117,13 +3215,15 @@ abstract class Rest extends Database
     protected static function completeRest(bool $subQuery = false): void
     {
 
+        // named to remind myself not to use this for all empty array reset occurrences in this file
+        $empty_request_parameters_array = [];
+
+        // tested, this is the only way to reset static member references
+        self::$REST_REQUEST_PARAMETERS = &$empty_request_parameters_array;
 
         if (empty(self::$activeQueryStates)) {
-
             self::$REST_REQUEST_METHOD = null;
-            self::$REST_REQUEST_PARAMETERS = [];
             self::$REST_REQUEST_PRIMARY_KEY = null;
-            self::$VALIDATED_REST_COLUMNS = [];
             self::$compiled_valid_columns = [];
             self::$compiled_PDO_validations = [];
             self::$compiled_PHP_validations = [];
@@ -3151,6 +3251,10 @@ abstract class Rest extends Database
                 self::$columnSelectEncountered,
             ] = array_pop(self::$activeQueryStates);
         } else {
+
+
+
+
             [
                 self::$REST_REQUEST_METHOD,
                 self::$REST_REQUEST_PRIMARY_KEY,

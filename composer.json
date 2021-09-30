@@ -50,7 +50,6 @@
       "CarbonPHP\\Interfaces\\": "src/interfaces/",
       "CarbonPHP\\Programs\\": "src/programs/",
       "CarbonPHP\\Tables\\": "src/tables/",
-      "CarbonPHP\\Tables\\Interfaces\\": "src/tables/interfaces/",
       "CarbonPHP\\": "src/",
       "Tests\\Browser\\": "tests/browser/",
       "Tests\\Feature\\": "tests/feature/",
@@ -88,6 +87,9 @@
       "@rest",
       "npm install",
       "php index.php ApacheConfig"
+    ],
+    "console": [
+      "echo https://cloud.google.com/sdk/docs/downloads-interactive"
     ],
     "setup:generated": [
       "php index.php minify",

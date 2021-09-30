@@ -539,8 +539,9 @@ class WebSocket extends Request implements iCommand
 
                     $sessionContinued = 0;
                     // this is a really expensive foreach
+                    $WebsocketToPipeRelations[$session_id] ??= null;
 
-                    $pipeRelation = &$WebsocketToPipeRelations[$session_id] ?? null;
+                    $pipeRelation = &$WebsocketToPipeRelations[$session_id];
 
                     if ($pipeRelation !== null) {
 

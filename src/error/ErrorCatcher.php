@@ -776,7 +776,7 @@ class ErrorCatcher
 
                     $reports = Rest::getDynamicRestClass(Reports::class);
 
-                    if (false === $reports::Post([
+                    if (false === $reports::post([
                             $reports::LOG_LEVEL => $level,
                             $reports::REPORT => $cliOutput,
                             $reports::CALL_TRACE => $trace

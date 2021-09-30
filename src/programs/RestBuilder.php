@@ -1895,19 +1895,19 @@ MYSQL;
     * @generated
     * @return bool
     */
-    public static function Get(array &\$return, {{#primaryExists}}{{#multiplePrimary}}array{{/multiplePrimary}}{{^multiplePrimary}}string{{/multiplePrimary}} \$primary = null, {{/primaryExists}}array \$argv = []): bool
+    public static function get(array &\$return, {{#primaryExists}}{{#multiplePrimary}}array{{/multiplePrimary}}{{^multiplePrimary}}string{{/multiplePrimary}} \$primary = null, {{/primaryExists}}array \$argv = []): bool
     {
         return self::select(\$return, \$argv{{#primaryExists}}, {{#multiplePrimary}}\$primary{{/multiplePrimary}}{{^multiplePrimary}}\$primary === null ? null : [ self::PRIMARY => \$primary ]{{/multiplePrimary}}{{/primaryExists}});
     }
 
     /**
-     * @param array \$data 
+     * @param array \$post 
      * @return bool|string{{#primaryExists}}|mixed{{/primaryExists}}
      * @generated
      */
-    public static function Post(array \$data = []){{^primaryExists}}: bool{{/primaryExists}}
+    public static function post(array &\$post = []){{^primaryExists}}: bool{{/primaryExists}}
     {   
-        return self::insert(\$data);
+        return self::insert(\$post);
     }
     
     /**
@@ -1936,7 +1936,7 @@ MYSQL;
     * @generated
     * @return bool - if execute fails, false will be returned and \$returnUpdated = \$stmt->errorInfo(); 
     */
-    public static function Put(array &\$returnUpdated, {{#primaryExists}}{{#multiplePrimary}}array{{/multiplePrimary}}{{^multiplePrimary}}string{{/multiplePrimary}} \$primary = null,{{/primaryExists}} array \$argv = []) : bool
+    public static function put(array &\$returnUpdated, {{#primaryExists}}{{#multiplePrimary}}array{{/multiplePrimary}}{{^multiplePrimary}}string{{/multiplePrimary}} \$primary = null,{{/primaryExists}} array \$argv = []) : bool
     {
         return self::updateReplace(\$returnUpdated, \$argv{{#primaryExists}}, {{#multiplePrimary}}\$primary{{/multiplePrimary}}{{^multiplePrimary}}\$primary === null ? null : [ self::PRIMARY => \$primary ]{{/multiplePrimary}}{{/primaryExists}});
     }
@@ -1948,7 +1948,7 @@ MYSQL;
     * @generated
     * @return bool
     */
-    public static function Delete(array &\$remove, {{#primaryExists}}{{#multiplePrimary}}array{{/multiplePrimary}}{{^multiplePrimary}}string{{/multiplePrimary}} \$primary = null, {{/primaryExists}}array \$argv = []) : bool
+    public static function delete(array &\$remove, {{#primaryExists}}{{#multiplePrimary}}array{{/multiplePrimary}}{{^multiplePrimary}}string{{/multiplePrimary}} \$primary = null, {{/primaryExists}}array \$argv = []) : bool
     {
         return self::remove(\$remove, \$argv{{#primaryExists}}, {{#multiplePrimary}}\$primary{{/multiplePrimary}}{{^multiplePrimary}}\$primary === null ? null : [ self::PRIMARY => \$primary ]{{/multiplePrimary}}{{/primaryExists}});
     }

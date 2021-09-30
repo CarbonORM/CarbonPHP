@@ -49,7 +49,6 @@ abstract class Application extends Route
 
             self::$matched = true;
 
-            /** @noinspection PhpIncludeInspection */
             return include CarbonPHP::$app_root . CarbonPHP::$app_view . $file;
 
         };

@@ -51,7 +51,7 @@ final class UserTest extends Config
             $this->testUserCanBeDeleted();
         }
 
-        self::assertIsString($id = Users::Post([
+        $post = [
             Users::USER_TYPE => 'Athlete',
             Users::USER_IP => '127.0.0.1',
             Users::USER_SPORT => 'GOLF',
@@ -62,7 +62,9 @@ final class UserTest extends Config
             Users::USER_FIRST_NAME => 'Richard',
             Users::USER_LAST_NAME => 'Miles',
             Users::USER_GENDER => 'Male'
-        ]), 'No string ID was returned');
+        ];
+
+        self::assertIsString($id = Users::Post($post), 'No string ID was returned');
 
         return $id;
     }

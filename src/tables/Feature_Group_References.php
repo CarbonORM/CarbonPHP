@@ -445,7 +445,7 @@ MYSQL;
     * @generated
     * @return bool
     */
-    public static function Get(array &$return, array $argv = []): bool
+    public static function get(array &$return, array $argv = []): bool
     {
         return self::select($return, $argv);
     }
@@ -455,9 +455,9 @@ MYSQL;
      * @return bool|string
      * @generated
      */
-    public static function Post(array $data = []): bool
+    public static function post(array &$post = []): bool
     {   
-        return self::insert($data);
+        return self::insert($post);
     }
     
     /**
@@ -478,7 +478,7 @@ MYSQL;
     * @generated
     * @return bool - if execute fails, false will be returned and $returnUpdated = $stmt->errorInfo(); 
     */
-    public static function Put(array &$returnUpdated,  array $argv = []) : bool
+    public static function put(array &$returnUpdated,  array $argv = []) : bool
     {
         return self::updateReplace($returnUpdated, $argv);
     }
@@ -489,7 +489,7 @@ MYSQL;
     * @generated
     * @return bool
     */
-    public static function Delete(array &$remove, array $argv = []) : bool
+    public static function delete(array &$remove, array $argv = []) : bool
     {
         return self::remove($remove, $argv);
     }

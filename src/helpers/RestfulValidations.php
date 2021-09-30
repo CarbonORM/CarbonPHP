@@ -4,8 +4,6 @@
 namespace CarbonPHP\Helpers;
 
 use CarbonPHP\Error\PublicAlert;
-use CarbonPHP\Interfaces\iRest;
-use CarbonPHP\Interfaces\iRestfulReferences;
 use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
 use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
@@ -33,8 +31,6 @@ trait RestfulValidations
         $return = [];
 
         $options = [
-            iRest::class,
-            iRestfulReferences::class,
             iRestNoPrimaryKey::class,
             iRestSinglePrimaryKey::class,
             iRestMultiplePrimaryKeys::class
@@ -49,9 +45,7 @@ trait RestfulValidations
             throw new PublicAlert("Rest validation error. The class ($className) passed must extend ($imp).");
         }
 
-
-        $noPrimary = in_array(strtolower(iRestfulReferences::class), $intersect, true)
-            || in_array(strtolower(iRestNoPrimaryKey::class), $intersect, true);
+        $noPrimary = in_array(strtolower(iRestNoPrimaryKey::class), $intersect, true);
 
         $query = [
             Rest::WHERE => [

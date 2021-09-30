@@ -586,11 +586,13 @@ FOOT;
 
             $count++;
 
-            /** @noinspection PhpUndefinedMethodInspection - intellij is not good at php static refs */
-            $id = $carbons::Post([
+            $post = [
                 $carbons::ENTITY_TAG => $tag_id,
                 $carbons::ENTITY_FK => $dependant
-            ]);
+            ];
+
+            /** @noinspection PhpUndefinedMethodInspection - intellij is not good at php static refs */
+            $id = $carbons::post($post);
 
         } while ($id === false && $count < 4);  // todo - why four?
 
@@ -614,7 +616,7 @@ FOOT;
         $ref = [];
         $carbons = Rest::getDynamicRestClass(Carbons::class);
         /** @noinspection PhpUndefinedMethodInspection */
-        return $carbons::Delete($ref, $id, []); //Database::database()->prepare('DELETE FROM carbon WHERE entity_pk = ?')->execute([$id]);
+        return $carbons::delete($ref, $id, []); //Database::database()->prepare('DELETE FROM carbon WHERE entity_pk = ?')->execute([$id]);
     }
 
 

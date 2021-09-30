@@ -11,7 +11,7 @@ use CarbonPHP\Tables\Photos;
 use CarbonPHP\Tables\Users;
 
 
-class ExternalRestTest extends Config
+class FullRestTest extends CarbonRestTest
 {
     public function testGenerateCorrectDistinctCountAndThreeArgumentBooleanConditionsUsingIntAndStringSql(): void
     {
@@ -145,7 +145,7 @@ class ExternalRestTest extends Config
                 ]
             ],
             Rest::WHERE => [
-                [Users::USER_USERNAME, Rest::LIKE, '%rock%']
+                [Users::USER_USERNAME, Rest::LIKE, '%admin%']
             ],
             Rest::PAGINATION => [
                 Rest::LIMIT => null,

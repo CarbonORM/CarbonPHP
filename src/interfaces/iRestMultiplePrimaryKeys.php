@@ -22,7 +22,7 @@ interface iRestMultiplePrimaryKeys
      * @param array $argv
      * @return bool
      */
-    public static function Delete(array &$remove, array $primary = null, array $argv = []): bool;      // Delete all data from a tables given its primary key
+    public static function delete(array &$remove, array $primary = null, array $argv = []): bool;      // Delete all data from a tables given its primary key
 
     /**
      * @param array $return
@@ -30,21 +30,21 @@ interface iRestMultiplePrimaryKeys
      * @param array $argv - column names desired to be in our array
      * @return bool
      */
-    public static function Get(array &$return, array $primary = null, array $argv = []): bool;   // Get tables columns given in argv (usually an array) and place them into our array
+    public static function get(array &$return, array $primary = null, array $argv = []): bool;   // Get tables columns given in argv (usually an array) and place them into our array
 
     /**
-     * @param array $data
+     * @param array $post
      * @param string|null \$dependantEntityId - a C6 Hex entity key
      * @return bool|string
      * @throws PublicAlert
      */
-    public static function Post(array $data = []);              // Add and associative array Column => value
+    public static function post(array &$post = []);              // Add and associative array Column => value
 
     /**
      * @param array $returnUpdated
-     * @param array $primary
+     * @param array|null $primary
      * @param array $argv   - an associative array of Column => Value pairs
      * @return bool  - true on success false on failure
      */
-    public static function Put(array &$returnUpdated, array $primary = null, array $argv = []): bool;
+    public static function put(array &$returnUpdated, array $primary = null, array $argv = []): bool;
 }

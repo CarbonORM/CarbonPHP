@@ -15,8 +15,6 @@ namespace CarbonPHP\Helpers;
 
 use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Error\PublicAlert;
-use CarbonPHP\Interfaces\iColorCode;
-use CarbonPHP\Programs\ColorCode;
 
 abstract class Serialized
 {

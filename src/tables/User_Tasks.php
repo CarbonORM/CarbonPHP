@@ -18,7 +18,7 @@ use function count;
 use function func_get_args;
 use function is_array;
 use CarbonPHP\CarbonPHP;
-use Tests\Feature\RestTest;
+use Tests\Feature\CarbonRestTest;
 
 /**
  *
@@ -480,8 +480,7 @@ MYSQL;
     {
         if (CarbonPHP::$test) {
 
-            /** @noinspection PhpUndefinedClassInspection - todo - remove example php files in react */
-            RestTest::$restChallenge[] = $argv;
+            CarbonRestTest::$restChallenge[] = $argv;
 
         } elseif (CarbonPHP::$cli) {
 
@@ -570,7 +569,7 @@ MYSQL;
     * @generated
     * @return bool
     */
-    public static function Get(array &$return, string $primary = null, array $argv = []): bool
+    public static function get(array &$return, string $primary = null, array $argv = []): bool
     {
         return self::select($return, $argv, $primary === null ? null : [ self::PRIMARY => $primary ]);
     }
@@ -580,9 +579,9 @@ MYSQL;
      * @return bool|string|mixed
      * @generated
      */
-    public static function Post(array $data = [])
+    public static function post(array &$post = [])
     {   
-        return self::insert($data);
+        return self::insert($post);
     }
     
     /**
@@ -602,7 +601,7 @@ MYSQL;
     * @generated
     * @return bool - if execute fails, false will be returned and $returnUpdated = $stmt->errorInfo(); 
     */
-    public static function Put(array &$returnUpdated, string $primary = null, array $argv = []) : bool
+    public static function put(array &$returnUpdated, string $primary = null, array $argv = []) : bool
     {
         return self::updateReplace($returnUpdated, $argv, $primary === null ? null : [ self::PRIMARY => $primary ]);
     }
@@ -614,7 +613,7 @@ MYSQL;
     * @generated
     * @return bool
     */
-    public static function Delete(array &$remove, string $primary = null, array $argv = []) : bool
+    public static function delete(array &$remove, string $primary = null, array $argv = []) : bool
     {
         return self::remove($remove, $argv, $primary === null ? null : [ self::PRIMARY => $primary ]);
     }

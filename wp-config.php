@@ -36,8 +36,6 @@ if ( ! defined( 'ABSPATH' ) ) {
     define( 'ABSPATH', __DIR__ . '/' );
 }
 
-
-
 /** @noinspection PhpUnhandledExceptionInspection */
 CarbonPHP::make(Documentation::class, ABSPATH);
 

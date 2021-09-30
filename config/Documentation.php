@@ -19,6 +19,8 @@ use CarbonPHP\View;
 class Documentation extends Application implements iConfig
 {
 
+    public const GIT_SUPPORT = 'https://github.com/RichardTMiles/CarbonPHP/issues';
+
     // these are all relative to the /view/ directory
     private const REACT = '60/index.html';
 
@@ -81,7 +83,6 @@ class Documentation extends Application implements iConfig
      */
     public function __construct($structure = null)
     {
-
         if (CarbonPHP::$safelyExit) {
             return;
         }
@@ -546,7 +547,7 @@ SOCKET;
                 Users::USER_GENDER => 'N/A',
                 Users::USER_EMAIL => 'N/A',
                 Users::USER_IP => CarbonPHP::$server_ip
-            ])) && Database::commit()) {
+            ]))) {
             PublicAlert::info('A new session has been established with the id ' . $id);
         } else {
             PublicAlert::warning('Failed to create you a new user. Some demos may not function as expected.');
@@ -556,18 +557,25 @@ SOCKET;
     public static function configuration(): array
     {
         if (CarbonPHP::$app_root === '/home/runner/work/carbonphp/carbonphp') {
+
             CarbonPHP::$test = true;
+
             $databasePassword = 'password';
+
         } else if (CarbonPHP::$app_local) {
+
             $databasePassword = 'password';
+
         } else {
+
             $databasePassword = 'goldteamrules';
+
         }
 
         return [
             CarbonPHP::REST => [
                 CarbonPHP::NAMESPACE => Carbons::CLASS_NAMESPACE,
-                CarbonPHP::TABLE_PREFIX => 'carbon_' // Carbons::TABLE_PREFIX
+                CarbonPHP::TABLE_PREFIX => Carbons::TABLE_PREFIX
             ],
             CarbonPHP::DATABASE => [
                 CarbonPHP::DB_HOST => CarbonPHP::$app_local ? '127.0.0.1' : '35.224.229.250',

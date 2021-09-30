@@ -3,7 +3,6 @@
 
 namespace CarbonPHP\Helpers;
 
-
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Rest;
 use CarbonPHP\Route;

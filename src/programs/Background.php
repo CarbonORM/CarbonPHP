@@ -33,7 +33,7 @@ trait Background
         if ($return_var !== 0 && $return_var !== '0') {
             ColorCode::colorCode("The command >>  $command \n\t returned with a status code (" . $return_var . '). Expecting 0 for success.', iColorCode::RED);
             $output = implode(PHP_EOL, $output);
-            ColorCode::colorCode("\n\n\tCommand output::\n\n $output \n\n", iColorCode::RED);
+            ColorCode::colorCode("Command output::\t $output ", iColorCode::RED);
             if ($exitOnFailure) {
                 exit($return_var);
             }

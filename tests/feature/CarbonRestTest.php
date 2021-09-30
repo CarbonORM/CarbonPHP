@@ -1,17 +1,11 @@
-<?php /** @noinspection PhpUndefinedClassInspection */
-/**
- * Created by IntelliJ IDEA.
- * User: rmiles
- * Date: 6/26/2018
- * Time: 3:21 PM
- */
+<?php
 
 declare(strict_types=1);
 
 namespace Tests\Feature;
 
 use CarbonPHP\Database;
-use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Helpers\Bcrypt;
 use CarbonPHP\Rest;
 use CarbonPHP\Tables\Carbons;
 use CarbonPHP\Tables\History_Logs;
@@ -20,35 +14,47 @@ use CarbonPHP\Tables\Locations;
 use CarbonPHP\Tables\Sessions;
 use CarbonPHP\Tables\User_Tasks;
 use CarbonPHP\Tables\Users;
+use CarbonPHP\Tables\Wp_Users;
 
 
-
-final class RestTest extends Config
+class CarbonRestTest extends Config
 {
 
     public static array $restChallenge = [];
 
-    public static function createUser(): string
+    public static function createUser(array &$data = [], int $amount = 1): string
     {
-        self::assertIsString($uid = Users::Post([
-            Users::USER_TYPE => 'Athlete',
-            Users::USER_IP => '127.0.0.1',
-            Users::USER_SPORT => 'GOLF',
-            Users::USER_EMAIL_CONFIRMED => 1,
-            Users::USER_USERNAME => Config::ADMIN_USERNAME,
-            Users::USER_PASSWORD => Config::ADMIN_PASSWORD,
-            Users::USER_EMAIL => 'richard@miles.systems',
-            Users::USER_FIRST_NAME => 'Richard',
-            Users::USER_LAST_NAME => 'Miles',
-            Users::USER_GENDER => 'Male'
-        ]), 'No string ID was returned');
+        self::assertGreaterThan(0, $amount);
+
+        if (empty($data)) {
+
+            for ($i = 0; $i < $amount; $i++) {
+
+                $data[] = [
+                    Users::USER_TYPE => 'Athlete',
+                    Users::USER_IP => '127.0.0.1',
+                    Users::USER_SPORT => 'GOLF',
+                    Users::USER_EMAIL_CONFIRMED => 1,
+                    Users::USER_USERNAME => Config::ADMIN_USERNAME . Bcrypt::genRandomHex(),
+                    Users::USER_PASSWORD => Config::ADMIN_PASSWORD,
+                    Users::USER_EMAIL => 'richard@miles.systems',
+                    Users::USER_FIRST_NAME => 'Richard',
+                    Users::USER_LAST_NAME => 'Miles',
+                    Users::USER_GENDER => 'Male'
+                ];
+
+            }
+
+        }
+
+        self::assertIsString($uid = Users::Post($data), 'No string ID was returned');
+
+        self::assertNotEmpty($data);
 
         return $uid;
     }
 
-    /**
-     * @param string $key
-     * \     */
+
     private function KeyExistsAndRemove(string $key): void
     {
         $store = [];
@@ -69,8 +75,11 @@ final class RestTest extends Config
 
     public function testRestApiCanPostAndDelete(): void
     {
+
+        $post = [Carbons::ENTITY_TAG => self::class];
+
         // Should return a unique hex id
-        self::assertIsString($key = Carbons::Post([Carbons::ENTITY_TAG => self::class]));
+        self::assertIsString($key = Carbons::Post($post));
 
         $ref = [];
 
@@ -86,12 +95,15 @@ final class RestTest extends Config
 
     public function testRestApiCanGet(): void
     {
-        $return = [];
-        self::assertTrue(Carbons::Get($return, $key = Carbons::Post([
-
+        $post = [
             Carbons::ENTITY_TAG => self::class
+        ];
 
-        ])));
+        $key = Carbons::Post($post);
+
+        $return = [];
+
+        self::assertTrue(Carbons::Get($return, $key));
 
         self::assertIsArray($return);
 
@@ -122,17 +134,18 @@ final class RestTest extends Config
     }
 
 
-    /**
-     * @depends testRestApiCanGet
-     * @throws PublicAlert
-     */
     public function testRestApiCanAggregate(): void
     {
+
+        $post = [
+            Carbons::ENTITY_TAG => self::class
+        ];
+
+        $key = Carbons::Post($post);
+
         $return = [];
 
-        self::assertTrue(Carbons::Get($return, $key = Carbons::Post([
-            Carbons::ENTITY_TAG => self::class
-        ])));
+        self::assertTrue(Carbons::Get($return, $key));
 
         $temp = [];
 
@@ -150,22 +163,22 @@ final class RestTest extends Config
         $temp = [];
 
         self::assertTrue(Carbons::Get($temp, null, [
-            Carbons::SELECT => [
+            Rest::SELECT => [
                 [Rest::COUNT, Carbons::ENTITY_PK, Carbons::COLUMNS[Carbons::ENTITY_PK]]
             ],
-            Carbons::PAGINATION => [
-                Carbons::LIMIT => 1
+            Rest::PAGINATION => [
+                Rest::LIMIT => 1
             ]
         ]));
 
         self::assertArrayHasKey(Carbons::COLUMNS[Carbons::ENTITY_PK], $temp, 'failed on PAGINATION:LIMIT');
 
         self::assertTrue(Carbons::Get($temp, null, [
-            Carbons::SELECT => [
+            Rest::SELECT => [
                 [Rest::COUNT, Carbons::ENTITY_PK, Carbons::COLUMNS[Carbons::ENTITY_PK]]
             ],
-            Carbons::PAGINATION => [
-                Carbons::LIMIT => 2   // check the limit
+            Rest::PAGINATION => [
+                Rest::LIMIT => 2   // check the limit
             ]
         ]));
 
@@ -174,14 +187,13 @@ final class RestTest extends Config
 
     }
 
-    /**
-     * @throws PublicAlert
-     */
     public function testRestApiCanPut(): void
     {
         $store = [];
 
-        self::assertNotEmpty($primary = Carbons::Post([]));
+        $post = [];
+
+        self::assertNotEmpty($primary = Carbons::Post($post));
 
         self::assertTrue(Carbons::Get($store, $primary, []));
 
@@ -209,45 +221,47 @@ final class RestTest extends Config
     }
 
 
-    /**
-     * @throws PublicAlert
-     * @depends testRestApiCanPostAndDelete
-     */
     public function testRestApiCanJoin(): void
     {
         $user = [];
 
         if (Users::Get($user, null, [
-                Users::SELECT => [
+                Rest::SELECT => [
                     Users::USER_ID
                 ],
-                Users::WHERE => [
+                Rest::WHERE => [
                     Users::USER_USERNAME => Config::ADMIN_USERNAME
                 ],
-                Users::PAGINATION => [
-                    Users::LIMIT => 1
+                Rest::PAGINATION => [
+                    Rest::LIMIT => 1
                 ]
             ]) && !empty($user)) {
+
             self::assertTrue(Users::Delete($user, $user[Users::COLUMNS[Users::USER_ID]], []),
                 'Failed to delete user for join test.');
+
         }
 
         Rest::$commit = false;
 
         $uid = self::createUser();
 
-        self::assertIsString($lid = Locations::Post([
+        $post = [
             Locations::CITY => 'Grapevine',
             Locations::STATE => 'Texas',
             Locations::ZIP => 76051
-        ]), 'Failed to create location entity.');
+        ];
+
+        self::assertIsString($lid = Locations::Post($post), 'Failed to create location entity.');
 
         Rest::$commit = true; // the next post request will post
 
-        self::assertTrue(Location_References::Post([
+        $post = [
             Location_References::ENTITY_REFERENCE => $uid,
             Location_References::LOCATION_REFERENCE => $lid
-        ]), 'Failed to create location references.');
+        ];
+
+        self::assertTrue(Location_References::Post($post), 'Failed to create location references.');
 
         $user = [];
 
@@ -260,12 +274,12 @@ final class RestTest extends Config
         self::assertArrayHasKey(Users::COLUMNS[Users::USER_ABOUT_ME], $user);
 
         self::assertTrue(Users::Get($user, $uid, [
-            Users::SELECT => [
+            Rest::SELECT => [
                 Users::USER_USERNAME,
                 Locations::STATE
             ],
-            Users::JOIN => [
-                Users::INNER => [
+            Rest::JOIN => [
+                Rest::INNER => [
                     Location_References::TABLE_NAME => [
                         Users::USER_ID => Location_References::ENTITY_REFERENCE
                     ],
@@ -274,34 +288,27 @@ final class RestTest extends Config
                     ]
                 ]
             ],
-            Users::PAGINATION => [
-                Users::LIMIT => 1,
-                Users::ORDER => [Users::USER_USERNAME => Users::ASC]
+            Rest::PAGINATION => [
+                Rest::LIMIT => 1,
+                Rest::ORDER => [Users::USER_USERNAME => Rest::ASC]
             ]
         ]), 'Failed to run inner join.');
 
         self::assertArrayHasKey(Users::COLUMNS[Users::USER_USERNAME], $user);
 
-        self::assertEquals(Config::ADMIN_USERNAME, $user[Users::COLUMNS[Users::USER_USERNAME]]);
+        self::assertStringStartsWith(Config::ADMIN_USERNAME, $user[Users::COLUMNS[Users::USER_USERNAME]]);
 
         self::assertEquals('Texas', $user[Locations::COLUMNS[Locations::STATE]]);
     }
 
 
-    /**
-     * This test undoubtedly does a half ass job at verifying order of operations,
-     * expected return values for custom functions, custom method and validation preservation.
-     * This will end up breaking and causing me to add another 40 lines.
-     * @throws PublicAlert
-     * @depends testRestApiCanJoin
-     */
     public function testRestApiCanUseUserDefinedCallbacks(): void
     {
         $user = [];
 
         self::assertTrue(Users::Get($user, null, [
                 Rest::WHERE => [
-                    Users::USER_USERNAME => Config::ADMIN_USERNAME,
+                    [Users::USER_USERNAME, Rest::LIKE, Config::ADMIN_USERNAME . '%'],
                     Users::USER_PASSWORD => Config::ADMIN_PASSWORD
                 ],
                 Rest::PAGINATION => [
@@ -316,63 +323,80 @@ final class RestTest extends Config
 
         self::assertEmpty(self::$restChallenge, 'Rest Challenges Should Start as Empty.');
 
-        $id = User_Tasks::Post([
+        $post = [
             User_Tasks::USER_ID => $uid,
             User_Tasks::TASK_NAME => 'Hello World',
             User_Tasks::TASK_DESCRIPTION => 'Test',
             User_Tasks::PERCENT_COMPLETE => 70
-        ]);
+        ];
+
+        $id = User_Tasks::Post($post);
+
+        self::assertNotEmpty($id);
 
         self::assertCount(7, self::$restChallenge, 'Not all rest challenges have run');
 
         self::assertArrayHasKey(0, self::$restChallenge);
+
         self::assertArrayHasKey(1, self::$restChallenge);
+
         self::assertArrayHasKey(2, self::$restChallenge);
+
         self::assertArrayHasKey(3, self::$restChallenge);
+
         self::assertArrayHasKey(4, self::$restChallenge);
+
         self::assertArrayHasKey(5, self::$restChallenge);
+
         self::assertArrayHasKey(User_Tasks::USER_ID, self::$restChallenge[0][0]);
+
         self::assertArrayHasKey(User_Tasks::TASK_NAME, self::$restChallenge[0][0]);
+
         self::assertArrayHasKey(User_Tasks::TASK_DESCRIPTION, self::$restChallenge[0][0]);
+
         self::assertArrayHasKey(User_Tasks::PERCENT_COMPLETE, self::$restChallenge[0][0]);
+
         self::assertArrayHasKey(1, self::$restChallenge[1]);
+
         self::assertEquals(Rest::POST, self::$restChallenge[1][1]); // start at 0 ;)
+
         self::assertEquals(Rest::PREPROCESS, self::$restChallenge[1][2]); // start at 0 ;)
+
         self::assertEquals(User_Tasks::PERCENT_COMPLETE, self::$restChallenge[3][1]);
+
     }
 
 
-    /**
-     * @depends testRestApiCanJoin
-     * @throws PublicAlert
-     */
     public function testRestApiCanSubQuery(): void
     {
         global $json;
 
         $user = [];
         self::assertTrue(Carbons::Get($user, null, [
-            Carbons::SELECT => [
+            Rest::SELECT => [
                 Carbons::ENTITY_PK
             ],
-            Carbons::WHERE => [
+            Rest::WHERE => [
                 Carbons::ENTITY_PK =>
                     Users::subSelect(null, [
-                        Users::SELECT => [
+                        Rest::SELECT => [
                             Users::USER_ID
                         ],
-                        Users::WHERE => [
-                            Users::USER_USERNAME => Config::ADMIN_USERNAME
+                        Rest::WHERE => [
+                            [Users::USER_USERNAME, Rest::LIKE, Config::ADMIN_USERNAME . '%']
+                        ],
+                        Rest::PAGINATION => [
+                            Rest::LIMIT => 1
                         ]
                     ])
             ],
-            Carbons::PAGINATION => [
-                Carbons::LIMIT =>
+            Rest::PAGINATION => [
+                Rest::LIMIT =>
                     1
             ]
         ]));
 
-        self::assertNotEmpty($user, 'Could not get user admin via sub query. ' . json_encode($json));
+        self::assertNotEmpty($user, 'Could not get user admin via sub query (function). ' . json_encode($json));
 
         self::assertArrayHasKey(Carbons::COLUMNS[Carbons::ENTITY_PK], $user);
 
@@ -383,87 +407,41 @@ final class RestTest extends Config
         Rest::$allowSubSelectQueries = true;
 
         self::assertTrue(Carbons::Get($user, null, [
-            Carbons::SELECT => [
+            Rest::SELECT => [
                 Carbons::ENTITY_PK
             ],
-            Carbons::WHERE => [
+            Rest::WHERE => [
                 Carbons::ENTITY_PK =>
                     [
                         Rest::SELECT,
                         Users::class,
                         null,
                         [
-                            Users::SELECT => [
+                            Rest::SELECT => [
                                 Users::USER_ID
                             ],
-                            Users::WHERE => [
-                                Users::USER_USERNAME => Config::ADMIN_USERNAME
+                            Rest::WHERE => [
+                                [Users::USER_USERNAME, Rest::LIKE, Config::ADMIN_USERNAME . '%']
+                            ],
+                            Rest::PAGINATION => [
+                                Rest::LIMIT => 1
                             ]
                         ]
                     ]
             ],
-            Carbons::PAGINATION => [
-                Carbons::LIMIT =>
+            Rest::PAGINATION => [
+                Rest::LIMIT =>
                     1
             ]
         ]));
 
-        self::assertNotEmpty($user, 'Could not get user admin via sub query. ' . json_encode($json));
+        self::assertNotEmpty($user, 'Could not get user admin via sub query (aggregate). ' . json_encode($json));
 
         self::assertArrayHasKey(Carbons::COLUMNS[Carbons::ENTITY_PK], $user);
 
     }
 
 
-    /**
-     * @depends testRestApiCanPostAndDelete
-     */
-    public function testExternalRequestValidationRoutines(): void
-    {
-
-        $_POST = [
-            Users::SELECT => [
-                Users::USER_USERNAME,
-                Locations::STATE,
-            ],
-            Users::JOIN => [
-                Users::INNER => [
-                    Location_References::TABLE_NAME => [
-                        Users::USER_ID,
-                        Location_References::ENTITY_REFERENCE
-                    ],
-                    Locations::TABLE_NAME => [
-                        Locations::ENTITY_ID,
-                        Location_References::LOCATION_REFERENCE
-                    ]
-                ]
-            ],
-            Users::PAGINATION => [
-                Users::LIMIT => 10,
-                Users::ORDER => [Users::USER_USERNAME, Users::ASC] // todo - I think Users::USER_USERNAME . Users::ASC worked, or didnt throw an error..
-            ]
-        ];
-
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-
-        ob_start(null, 0, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
-
-        Rest::ExternalRestfulRequestsAPI(Users::TABLE_NAME, null, Users::CLASS_NAMESPACE);
-
-        $out = trim(ob_get_clean());
-
-        self::assertStringEndsWith('}', $out, 'Did not detect json output. OUTPUT :: ' . $out);
-
-        self::assertNotEmpty($GLOBALS['json']['rest'], $out);
-
-    }
-
-
-    /**
-     * TODO - this could be better showcasing more things
-     * @throws PublicAlert
-     * @depends testRestApiCanPostAndDelete
-     */
     public function testCascadeDelete(): void
     {
         $user = [Users::USER_USERNAME => Config::ADMIN_USERNAME];
@@ -476,7 +454,7 @@ final class RestTest extends Config
 
 
         self::assertTrue(Users::Get($user, null, [
-            Users::WHERE => [
+            Rest::WHERE => [
                 Users::USER_USERNAME => Config::ADMIN_USERNAME
             ]
         ]));
@@ -491,14 +469,20 @@ final class RestTest extends Config
     {
         $return = [];
 
-        self::assertNotFalse(Sessions::Post([
-            Sessions::USER_ID => $USER_ID = Carbons::Post([]),
+        $postOne = [];
+
+        $postTwo = [];
+
+        $post = [
+            Sessions::USER_ID => $USER_ID = Carbons::post($postOne),
             Sessions::USER_IP => '127.0.0.1',
-            Sessions::SESSION_ID => $SESSION_ID = Carbons::Post([]),
+            Sessions::SESSION_ID => $SESSION_ID = Carbons::post($postTwo),
             Sessions::SESSION_EXPIRES => date('Y-m-d H:i:s'), // @link https://stackoverflow.com/questions/2215354/php-date-format-when-inserting-into-datetime-in-mysql/17295570
             Sessions::SESSION_DATA => '',
             Sessions::USER_ONLINE_STATUS => 1
-        ]));
+        ];
+
+        self::assertNotFalse(Sessions::Post($post));
 
         self::assertTrue(Sessions::Put($return, $SESSION_ID, [
             Sessions::USER_IP => '127.0.0.2',
@@ -515,16 +499,23 @@ final class RestTest extends Config
 
     public function testRestApiCanUpdateCarbonPrimaryKeysWithNoCollisions(): void
     {
+        $post = [];
 
-        self::assertNotFalse($USER_ID_ONE = Carbons::Post([]));
+        self::assertNotFalse($USER_ID_ONE = Carbons::Post($post));
 
-        self::assertNotFalse($USER_ID_TWO = Carbons::Post([Carbons::ENTITY_FK => $USER_ID_ONE]));
+        $post = [Carbons::ENTITY_FK => $USER_ID_ONE];
 
-        self::assertNotFalse($USER_ID_THREE = Carbons::Post([Carbons::ENTITY_FK => $USER_ID_TWO]));
+        self::assertNotFalse($USER_ID_TWO = Carbons::Post($post));
+
+        $post = [Carbons::ENTITY_FK => $USER_ID_TWO];
+
+        self::assertNotFalse($USER_ID_THREE = Carbons::Post($post));
 
         $returnUpdated = [];
 
-        self::assertNotFalse(Carbons::Put($returnUpdated, $USER_ID_TWO, [Carbons::ENTITY_FK => $USER_ID_FOUR = Carbons::Post([])]));
+        $post = [];
+
+        self::assertNotFalse(Carbons::Put($returnUpdated, $USER_ID_TWO, [Carbons::ENTITY_FK => $USER_ID_FOUR = Carbons::Post($post)]));
 
         $return = [];
 
@@ -538,27 +529,39 @@ final class RestTest extends Config
     {
         $return = [];
 
-        self::assertNotFalse(Sessions::Post([
-            Sessions::USER_ID => $USER_ID_ONE = Carbons::Post([]),
+        $postOne = [];
+
+        $postTwo = [];
+
+        $post = [
+            Sessions::USER_ID => $USER_ID_ONE = Carbons::Post($postOne),
             Sessions::USER_IP => '127.0.0.1',
-            Sessions::SESSION_ID => $SESSION_ID_ONE = Carbons::Post([]),
+            Sessions::SESSION_ID => $SESSION_ID_ONE = Carbons::Post($postTwo),
             Sessions::SESSION_EXPIRES => date('Y-m-d H:i:s'), // @link https://stackoverflow.com/questions/2215354/php-date-format-when-inserting-into-datetime-in-mysql/17295570
             Sessions::SESSION_DATA => '',
             Sessions::USER_ONLINE_STATUS => 1
-        ]));
+        ];
+
+        self::assertNotFalse(Sessions::Post($post));
 
         self::assertTrue(Sessions::Get($return, $SESSION_ID_ONE, []));
 
         self::assertNotEmpty($return, 'Could not query rest sessions table with id :: ' . $SESSION_ID_ONE);
 
-        self::assertNotFalse(Sessions::Post([
-            Sessions::USER_ID => $USER_ID_TWO = Carbons::Post([]),
+        $postOne = [];
+
+        $postTwo = [];
+
+        $post = [
+            Sessions::USER_ID => $USER_ID_TWO = Carbons::Post($postOne),
             Sessions::USER_IP => '127.0.0.1',
-            Sessions::SESSION_ID => $SESSION_ID_TWO = Carbons::Post([]),
+            Sessions::SESSION_ID => $SESSION_ID_TWO = Carbons::Post($postTwo),
             Sessions::SESSION_EXPIRES => date('Y-m-d H:i:s'), // @link https://stackoverflow.com/questions/2215354/php-date-format-when-inserting-into-datetime-in-mysql/17295570
             Sessions::SESSION_DATA => '',
             Sessions::USER_ONLINE_STATUS => 1
-        ]));
+        ];
+
+        self::assertNotFalse(Sessions::Post($post));
 
         self::assertTrue(Sessions::Put($return, $SESSION_ID_TWO, [
             Sessions::USER_IP => '127.0.0.2',
@@ -586,28 +589,25 @@ final class RestTest extends Config
         self::assertTrue(Carbons::Delete($return, $USER_ID_TWO));
     }
 
-
-    /**
-     * It can be noted that history logs are not Carbon tables as the reff will be deleted before it
-     * is added to this table.
-     * @throws PublicAlert
-     */
     public function testRestApiCanUseTablesWithNoPrimaryKey(): void
     {
         $ignore = [];
         $condition = 'ME';
 
-        // Should return a unique hex id
-        self::assertTrue(History_Logs::Post([
-            History_Logs::HISTORY_UUID => $UUID = Carbons::Post([]),
+        $post = [
+            History_Logs::HISTORY_UUID => $UUID = Carbons::Post($ignore),
             History_Logs::HISTORY_TABLE => $condition,
             History_Logs::HISTORY_DATA => '{}',
-        ]));
+        ];
 
+        // Should return a unique hex id
+        self::assertTrue(History_Logs::Post($post));
+
+        $post = [];
         // Should return a unique hex id
         self::assertTrue(History_Logs::Put($ignore, [
             Rest::UPDATE => [
-                History_Logs::HISTORY_UUID => $UUID = Carbons::Post([]),
+                History_Logs::HISTORY_UUID => $UUID = Carbons::Post($post),
                 History_Logs::HISTORY_DATA => '{}',
             ],
             Rest::WHERE => [
@@ -640,11 +640,13 @@ final class RestTest extends Config
             History_Logs::HISTORY_UUID => '8544e3d581ba11e8942cd89ef3fc55fb'
         ]));
 
-        self::assertTrue(History_Logs::Post([
+        $post = [
             History_Logs::HISTORY_DATA => ['Json' => 'is cool'],
             History_Logs::HISTORY_TABLE => $condition,
-            History_Logs::HISTORY_UUID => $UUID = Carbons::Post([])
-        ]));
+            History_Logs::HISTORY_UUID => $UUID = Carbons::Post($ignore)
+        ];
+
+        self::assertTrue(History_Logs::post($post));
 
         // Should return a unique hex id
         self::assertTrue(History_Logs::Put($ignore, [
@@ -658,7 +660,7 @@ final class RestTest extends Config
 
         $return = [];
 
-        self::assertTrue(History_Logs::Get($return, [
+        self::assertTrue(History_Logs::get($return, [
             Rest::WHERE => [
                 History_Logs::HISTORY_TABLE => $condition
             ],
@@ -672,4 +674,65 @@ final class RestTest extends Config
 
     }
 
+    public function testRestApiCanPostMultipleCarbons(): void
+    {
+
+        $post = [
+            [],
+            [],
+            [],
+            []
+        ];
+
+        self::assertIsString(Carbons::post($post));
+
+    }
+
+    public function testRestApiCanPostMultipleCarbonEnabled(): void
+    {
+
+        $data = [];
+
+        //$first_id =
+        self::createUser($data, 10);
+
+        self::assertNotEmpty($data);
+
+
+        self::assertCount(10,$data);
+
+    }
+
+    public function testRestApiCanPostMultipleNonCarbonPrimaryKey(): void
+    {
+        $now = date('Y-m-d H:i:s');
+
+        $data = [
+            [
+                Wp_Users::USER_REGISTERED => $now,
+            ],
+            [
+                Wp_Users::USER_REGISTERED => $now,
+            ],
+            [
+                Wp_Users::USER_REGISTERED => $now,
+            ],
+            [
+                Wp_Users::USER_REGISTERED => $now,
+            ]
+        ];
+
+        $id = Wp_Users::post($data);
+
+        //$first_id =
+        self::assertIsNumeric($id);
+
+        self::assertNotEmpty($data);
+
+        self::assertCount(4,$data);
+
+    }
+
 }
+
+

@@ -9,7 +9,7 @@ use CarbonPHP\Interfaces\iConfig;
 use CarbonPHP\Programs\CLI;
 use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Programs\WebSocket;
-use Tests\Feature\RestTest;
+use Tests\Feature\CarbonRestTest;
 use Throwable;
 use function define;
 use function defined;
@@ -323,15 +323,21 @@ class CarbonPHP
     {
         ####################  Now load config file so globals above & stacktrace security
         if ($configuration === null) {
-            return self::$configuration = $config = [];
+            return self::$configuration = [];
         }
 
         if ($configuration instanceof iConfig) {
-            self::$configuration = $config = $configuration::configuration();
+
+            self::$configuration = $configuration::configuration();
+
             if ($configuration instanceof Application) {
+
                 self::$application = $configuration;
+
             }
+
             return self::$configuration;
+
         }
 
         if (class_exists($configuration)) {
@@ -353,13 +359,13 @@ class CarbonPHP
             }
 
             /** @noinspection PhpPossiblePolymorphicInvocationInspection */
-            return self::$configuration = $config = $configuration::configuration();
+            return self::$configuration = $configuration::configuration();
 
         }
 
         if (file_exists($configuration)) {
+
             /** @var array $config */
-            /** @noinspection PhpIncludeInspection */
             $config = include $configuration;            // TODO - change the variable
 
             if (!is_array($config)) {
@@ -450,7 +456,7 @@ class CarbonPHP
 
             if (self::$test) {
 
-                RestTest::setupServerVariables();
+                CarbonRestTest::setupServerVariables();
 
             }
             ####################  Define your own server root
@@ -825,4 +831,5 @@ class CarbonPHP
         return $arrHttpHeaders;
 
     }
+
 }

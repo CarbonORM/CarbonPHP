@@ -417,7 +417,7 @@ class Session implements SessionHandlerInterface
 
         /** @noinspection PhpPossiblePolymorphicInvocationInspection */
         if (false === $session_table::Get($session_table_row, $id, [
-            Sessions::SELECT => [
+            Rest::SELECT => [
                 $session_table::SESSION_DATA
             ]
         ])) {
@@ -451,8 +451,8 @@ class Session implements SessionHandlerInterface
 
             $session_table = self::getSessionTable();
 
-            return $session_table::Put($session_table_row, null, [
-                Sessions::REPLACE => [
+            return $session_table::put($session_table_row, null, [
+                Rest::REPLACE => [
                     $session_table::SESSION_ID => $id,
                     $session_table::USER_ID => static::$user_id,
                     $session_table::USER_IP => CarbonPHP::$server_ip,
@@ -480,7 +480,7 @@ class Session implements SessionHandlerInterface
             $session_table = self::getSessionTable();
 
             return $session_table::Delete($session_table_row, $session_id, [
-                Sessions::WHERE => [
+                Rest::WHERE => [
                     [
                         $session_table::USER_ID => self::$user_id,
                         $session_table::SESSION_ID => $session_id
@@ -510,8 +510,7 @@ class Session implements SessionHandlerInterface
 
         $session = Rest::getDynamicRestClass(Sessions::class);
 
-        return $db->prepare('DELETE FROM ' . $session::TABLE_NAME . ' WHERE (UNIX_TIMESTAMP(' . $session::SESSION_EXPIRES . ') + ? ) < UNIX_TIMESTAMP(?)')->execute([$maxLife, date('Y-m-d H:i:s')])
-            ? true : false;
+        return $db->prepare('DELETE FROM ' . $session::TABLE_NAME . ' WHERE (UNIX_TIMESTAMP(' . $session::SESSION_EXPIRES . ') + ? ) < UNIX_TIMESTAMP(?)')->execute([$maxLife, date('Y-m-d H:i:s')]);
 
     }
 

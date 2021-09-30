@@ -4,7 +4,7 @@
  *
 */
 
-namespace CarbonPHP\helpers;
+namespace CarbonPHP\Helpers;
 
 use CarbonPHP\Error\PublicAlert;
 

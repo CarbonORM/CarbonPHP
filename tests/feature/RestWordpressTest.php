@@ -69,15 +69,17 @@ final class RestWordpressTest extends Config
     /** @noinspection PhpUnhandledExceptionInspection */
     public static function createUser(array $data = null) : string {
         try {
+            $data ??= [
+                Wp_Users::USER_LOGIN => 'WookieeWorking',
+                Wp_Users::USER_PASS => 'carbon',
+                Wp_Users::USER_NICENAME => 'WookieeWorking1',
+                Wp_Users::USER_EMAIL => 'support@miles.systems',
+                Wp_Users::USER_REGISTERED => date('Y-m-d H:i:s'),
+                Wp_Users::USER_URL => '',
+            ];
+
             // an auto incrementing int should be returned
-            $primary = Wp_Users::Post($data ?? [
-                    Wp_Users::USER_LOGIN => 'WookieeWorking',
-                    Wp_Users::USER_PASS => 'carbon',
-                    Wp_Users::USER_NICENAME => 'WookieeWorking1',
-                    Wp_Users::USER_EMAIL => 'support@miles.systems',
-                    Wp_Users::USER_REGISTERED => date('Y-m-d H:i:s'),
-                    Wp_Users::USER_URL => '',
-                ]);
+            $primary = Wp_Users::Post($data);
 
             self::assertGreaterThan(1, $primary, 'Failed to create a new wordpress user.');
 
