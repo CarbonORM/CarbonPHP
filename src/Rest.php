@@ -3383,9 +3383,11 @@ abstract class Rest extends Database
 
         }
 
+        $table_name = $table::TABLE_NAME;
+
         $trigger = <<<TRIGGER
-DROP TRIGGER IF EXISTS `trigger_{$table}_b_d`;;
-CREATE TRIGGER `trigger_{$table}_b_d` BEFORE DELETE ON `$table` FOR EACH ROW
+DROP TRIGGER IF EXISTS `trigger_{$table_name}_b_d`;;
+CREATE TRIGGER `trigger_{$table_name}_b_d` BEFORE DELETE ON `$table_name` FOR EACH ROW
 BEGIN
 
         DECLARE original_query text;
@@ -3399,7 +3401,7 @@ SELECT argument INTO original_query
       -- Insert record into audit tables
 INSERT INTO {$prefix}carbon_history_logs (history_uuid, history_table, history_type, history_data, history_original_query)
                 VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-',''))
-                        , '$table'
+                        , '$table_name'
                         , 'DELETE'
                         , history_data = JSON_OBJECT($queryOld
                         ), original_query);
@@ -3409,8 +3411,8 @@ $delete_children
 
 END;;
 
-DROP TRIGGER IF EXISTS `trigger_{$table}_a_u`;;
-CREATE TRIGGER `trigger_{$table}_a_u` AFTER UPDATE ON `$table` FOR EACH ROW
+DROP TRIGGER IF EXISTS `trigger_{$table_name}_a_u`;;
+CREATE TRIGGER `trigger_{$table_name}_a_u` AFTER UPDATE ON `$table_name` FOR EACH ROW
                                                                    BEGIN
 
         DECLARE original_query text;
@@ -3424,15 +3426,15 @@ SELECT argument INTO original_query
       -- Insert record into audit tables
 INSERT INTO {$prefix}carbon_history_logs (history_uuid, history_table, history_type, history_data, history_original_query)
                 VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-',''))
-                        , '$table'
+                        , '$table_name'
                         , 'PUT'
                         , history_data = JSON_OBJECT($queryNew
                         ), original_query);
 
 END;;
 
-DROP TRIGGER IF EXISTS `trigger_{$table}_a_i`;;
-CREATE TRIGGER `trigger_{$table}_a_i` AFTER INSERT ON `$table` FOR EACH ROW
+DROP TRIGGER IF EXISTS `trigger_{$table_name}_a_i`;;
+CREATE TRIGGER `trigger_{$table_name}_a_i` AFTER INSERT ON `$table_name` FOR EACH ROW
                                                                    BEGIN
 
         DECLARE original_query text;
@@ -3446,7 +3448,7 @@ SELECT argument INTO original_query
       -- Insert record into audit tables
 INSERT INTO {$prefix}carbon_history_logs (history_uuid, history_table, history_type, history_data, history_original_query)
                 VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-',''))
-                        , '$table'
+                        , '$table_name'
                         , 'POST'
                         , history_data = JSON_OBJECT($queryNew
                         ), original_query);

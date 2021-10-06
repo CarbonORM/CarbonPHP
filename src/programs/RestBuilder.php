@@ -1634,7 +1634,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
     public const REFRESH_SCHEMA = [
         [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::TABLE_PREFIX, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
                         PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS, {{#carbon_namespace}}true{{/carbon_namespace}}{{^carbon_namespace}}false{{/carbon_namespace}}],
-        [self::class => 'buildMysqlHistoryTrigger', self::TABLE_NAME]
+        [self::class => 'buildMysqlHistoryTrigger', self::class]
     ];{{/REFRESH_SCHEMA}}{{#REFRESH_SCHEMA}}
     {{{REFRESH_SCHEMA}}}{{/REFRESH_SCHEMA}}
     
