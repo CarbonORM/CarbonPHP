@@ -185,7 +185,7 @@ class Photos extends Rest implements iRestSinglePrimaryKey
      *   public const REFRESH_SCHEMA = [
      *      [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::TABLE_PREFIX, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
      *                  PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS, true],
-     *      [self::class => 'buildMysqlHistoryTrigger', self::TABLE_NAME]
+     *      [self::class => 'buildMysqlHistoryTrigger', self::class]
      *   ];
      *
      */
