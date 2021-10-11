@@ -966,6 +966,8 @@ class ErrorCatcher
 
                 $line_two = '[]';
 
+                var_dump($args);die;
+
                 if (array_key_exists('args', $args[$i])) {
 
                     $line_two = CarbonPHP::$cli || $_SERVER["CONTENT_TYPE"] === 'application/json'

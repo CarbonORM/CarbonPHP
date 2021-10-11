@@ -66,9 +66,12 @@
     "apache:restart:mac": "sudo /usr/local/bin/httpd -k restart",
     "apache:start:mac": "sudo /usr/local/bin/httpd -k start",
     "apache:stop:mac": "sudo /usr/local/bin/httpd -k stop",
-    "database:refresh:schema": [
+    "db": [
       "php index.php setup --cnf",
       "php index.php buildDatabase -r"
+    ],
+    "database:refresh:schema": [
+      "@db"
     ],
     "force": "@composer install --ignore-platform-reqs",
     "forceUp": "@composer update --ignore-platform-reqs",
