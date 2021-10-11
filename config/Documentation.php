@@ -21,7 +21,7 @@ class Documentation extends Application implements iConfig
     public const GIT_SUPPORT = 'https://github.com/RichardTMiles/CarbonPHP/issues';
 
     // these are all relative to the /view/ directory
-    private const REACT = '10.4.3/index.html';
+    private const REACT = 'releases/10.4.3/index.html';
 
     private array $version2Dot0 = [
         'Home' => '2.0.0/Home.hbs',
