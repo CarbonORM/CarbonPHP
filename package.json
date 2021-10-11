@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "cd ./view/assets/react/ && npm start",
-    "build": "cd ./view/assets/react/ && npm run-script build"
+    "build": "cd ./view/assets/react/ && npm run-script build && TAG=$(git describe --tags `git rev-list --tags --max-count=1`) && mv -f  ./build ./../../../view/releases/$TAG"
   },
   "dependencies": {
     "admin-lte": "^3.1.0",

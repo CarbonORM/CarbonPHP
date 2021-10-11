@@ -5,15 +5,14 @@ namespace Config;
 
 use CarbonPHP\Application;
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\Database;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iConfig;
 use CarbonPHP\Programs\Deployment;
 use CarbonPHP\Programs\WebSocket;
 use CarbonPHP\Request;
 use CarbonPHP\Rest;
-use CarbonPHP\Tables\Users;
 use CarbonPHP\Tables\Carbons;
+use CarbonPHP\Tables\Users;
 use CarbonPHP\View;
 
 class Documentation extends Application implements iConfig
@@ -194,7 +193,7 @@ class Documentation extends Application implements iConfig
             && $this->regexMatch('#echo/([a-z0-9]+)#i',
                 static function ($echo) use ($uri) {
                     WebSocket::sendToAllExternalResources("Echo Server On URI ($uri) :: \$echo = $echo");
-        })()) {
+                })()) {
 
             return true;
 
@@ -400,7 +399,6 @@ SOCKET;
         }
 
 
-
         if (Rest::MatchRestfulRequests($this)()) {
             return true;
         }
@@ -409,20 +407,29 @@ SOCKET;
                 global $json;
 
                 if (array_key_exists('code', $_POST)) {
+
                     if (!is_string($_POST['code'])) {
+
                         throw new PublicAlert('You must submit a string. This could be code or a file path.');
+
                     }
+
                     $json['colorCode'] = highlight($_POST['code'], false);
+
                 } else {
+
                     $json['colorCode'] = '';
                 }
+
                 View::$wrapper = CarbonPHP::$app_root . CarbonPHP::$app_view . 'assets/AdminLTE/wrapper.hbs';
+
                 return View::content(CarbonPHP::$app_view . 'color' . DS . 'color.hbs', CarbonPHP::$app_root);
+
             })()) {
+
             return true;
+
         }
-
-
 
         $this->structure($this->wrap());
 
@@ -455,34 +462,59 @@ SOCKET;
         }
 
         if ($version = (self::$uriExplode[0] ?? false)) {
+
+
+
             switch ($version) {
+
                 case '2.0':
-                    self::$matched = true;
                     $json['VersionTWO'] = true;
 
                     $page = $this->uriExplode[1] ?? false;
+
                     $page or (View::$forceWrapper = true and View::$wrapper = CarbonPHP::$app_root . CarbonPHP::$app_view . 'assets/AdminLTE/wrapper.hbs');
 
                     if ($page && array_key_exists($page, $this->version2Dot0)) {
+
                         $this->wrap()($this->version2Dot0[$page]);
+
                     } else {
+
                         $this->wrap()($this->version2Dot0['Home']);
+
                     }
+
                     return true;
-                case '6.0':
-                    $this->fullPage()('60/index.html');
-                    return true;
+
                 default:
+
+                    $folderName = CarbonPHP::$app_root . 'view' . DS . 'releases' . DS . $version . DS;
+
+                    if (is_dir($folderName)) {
+
+                        self::$matched = true;
+
+                        $this->fullPage()($folderName . 'index.html');
+
+                    }
+
                     break;
+
             }
+
         }
 
         if ($this->regexMatch('#carbon/authenticated#', static function () {
+
             global $json;
 
             header('Content-Type: application/json', true, 200); // Send as JSON
 
-            #PublicAlert::JsonAlert('Test', 'Danger', 'success', 'success');
+            $scanned_directory = scandir(CarbonPHP::$app_root . 'view/releases');
+
+            $scanned_directory = array_diff($scanned_directory, ['..', '.']);
+
+            $json['versions'] = $scanned_directory;
 
             $json['success'] = !true;
 
@@ -507,39 +539,52 @@ SOCKET;
         global $users, $json;
 
         if (!is_array($users)) {
+
             $users = [];
+
         }
 
         if ($id === '') {
+
             $id = session_id();
+
         }
 
         $me = [];
-        if (!Users::Get($me, null, [
-            REST::SELECT => [
-                Users::USER_ID,
-                Users::USER_USERNAME,
-                Users::USER_PASSWORD,
-                Users::USER_FIRST_NAME,
-                Users::USER_LAST_NAME
-            ],
-            REST::WHERE => [
-                [
-                    Users::USER_USERNAME => $id,
-                    Users::USER_PASSWORD => $id
+
+        if (false === Users::Get($me, null, [
+                REST::SELECT => [
+                    Users::USER_ID,
+                    Users::USER_USERNAME,
+                    Users::USER_PASSWORD,
+                    Users::USER_FIRST_NAME,
+                    Users::USER_LAST_NAME
+                ],
+                REST::WHERE => [
+                    [
+                        Users::USER_USERNAME => $id,
+                        Users::USER_PASSWORD => $id
+                    ]
+                ],
+                REST::PAGINATION => [
+                    REST::LIMIT => 1
                 ]
-            ],
-            REST::PAGINATION => [
-                REST::LIMIT => 1
-            ]
-        ])) {
+            ])) {
+
             PublicAlert::warning('Failed to find the user. Some demos may not function as expected.');
+
             return;
+
         }
 
+
         if (!empty($me)) {
+
             $_SESSION['id'] = $json['id'] = $me[Users::COLUMNS[Users::USER_ID]];
-        } else if (is_string($id = Users::Post([         // required fields :P
+
+        } else {
+
+            $user = [         // required fields :P
                 Users::USER_USERNAME => $id,
                 Users::USER_PASSWORD => $id,
                 Users::USER_FIRST_NAME => 'Guest',
@@ -547,11 +592,20 @@ SOCKET;
                 Users::USER_GENDER => 'N/A',
                 Users::USER_EMAIL => 'N/A',
                 Users::USER_IP => CarbonPHP::$server_ip
-            ]))) {
-            PublicAlert::info('A new session has been established with the id ' . $id);
-        } else {
-            PublicAlert::warning('Failed to create you a new user. Some demos may not function as expected.');
+            ];
+
+            if (is_string($id = Users::Post($user))) {
+
+                PublicAlert::info('A new session has been established with the id ' . $id);
+
+            } else {
+
+                PublicAlert::warning('Failed to create you a new user. Some demos may not function as expected.');
+
+            }
+
         }
+
     }
 
     public static function configuration(): array

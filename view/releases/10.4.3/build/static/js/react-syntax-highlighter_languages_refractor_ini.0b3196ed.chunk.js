@@ -1,0 +1,2 @@
+(this["webpackJsonpcarbonphp-documentation-react"]=this["webpackJsonpcarbonphp-documentation-react"]||[]).push([[60],{913:function(t,n,a){"use strict";function e(t){t.languages.ini={comment:/^[ \t]*[;#].*$/m,selector:/^[ \t]*\[.*?\]/m,constant:/^[ \t]*[^\s=]+?(?=[ \t]*=)/m,"attr-value":{pattern:/=.*/,inside:{punctuation:/^[=]/}}}}t.exports=e,e.displayName="ini",e.aliases=[]}}]);
+//# sourceMappingURL=react-syntax-highlighter_languages_refractor_ini.0b3196ed.chunk.js.map

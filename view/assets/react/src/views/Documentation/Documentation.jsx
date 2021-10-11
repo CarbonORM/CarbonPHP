@@ -40,14 +40,12 @@ class Documentation extends React.Component {
     this.state = {
       isLoaded: false,
     }
-
-
   }
 
   componentDidMount() {
-    this.setState({
-      isLoaded: true,
-    });
+      this.setState({
+        isLoaded: true,
+      });
   }
 
 
@@ -112,13 +110,14 @@ class Documentation extends React.Component {
       }
     ];
 
-    // todo - if we were to merge versionia PHP ^7.4 application tool kit & frameworkng with code it would be here {this.props.subRoutingSwitch(publicDocumentationRoutes, rest)}
-    return (
-      <>
+    // todo - if we were to merge version ia PHP ^7.4 application tool kit & frameworkng with code it would be here {this.props.subRoutingSwitch(publicDocumentationRoutes, rest)}
+    return <>
         <HeaderTop
           darkMode={this.props.darkMode}
           brand="CarbonPHP.com"
           rightLinks={<HeaderLinks
+            axios={this.props.axios}
+            versions={this.props.versions}
             darkMode={this.props.darkMode}
             switchDarkAndLightTheme={this.props.switchDarkAndLightTheme}
           />}
@@ -150,15 +149,16 @@ class Documentation extends React.Component {
           <div>
 
             <Navbar
-              color={this.props.darkMode ?  "dark" : "info"}
+              axios={this.props.axios}
+              color={this.props.darkMode ? "dark" : "info"}
               darkMode={this.props.darkMode}
               className={classNames(classes.main, classes.mainRaised)}
               routes={publicDocumentationRoutes}/>
 
-            <div className={classNames(classes.main, classes.mainRaised)}  style={
+            <div className={classNames(classes.main, classes.mainRaised)} style={
               {
-                backgroundColor: (this.props.darkMode ?  "black" : "white"),
-                color: (this.props.darkMode ?  "white" : "black"),
+                backgroundColor: (this.props.darkMode ? "black" : "white"),
+                color: (this.props.darkMode ? "white" : "black"),
                 fontSize: "+1.2em",
                 lineHeight: "+1.8em"
               }
@@ -171,7 +171,7 @@ class Documentation extends React.Component {
         </div>
         <Footer fluid/>
       </>
-    );
+    ;
   }
 }
 

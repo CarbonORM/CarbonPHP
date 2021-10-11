@@ -1,5 +1,7 @@
 import raw from "raw.macro";
 
+
+
 export const CODE_EXAMPLES = {
 
   // quick examples
@@ -24,7 +26,7 @@ export const CODE_EXAMPLES = {
   forksCode:            raw("./assets/src/src/helpers/Fork.php"),
   CarbonUsersTable:     raw("./assets/src/src/tables/Users.php"),
   websocketCode:        raw("./assets/src/src/programs/WebSocket.php"),
-  restTest:             raw("./assets/src/tests/feature/RestTest.php"),
+  restTest:             raw("./assets/src/tests/feature/FullRestTest.php"),
   restUserTest:         raw("./assets/src/tests/feature/UserTest.php"),
   gcpDeployment:        raw("./assets/src/src/programs/gcpDeployment.sh")
 

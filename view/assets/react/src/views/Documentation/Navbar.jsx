@@ -69,6 +69,7 @@ class Navbar extends React.Component {
             <div className={classes.section}>
                 <div className={classes.container}>
                     <HeaderTop
+                        axios={this.props.axios}
                         darkMode={this.props.darkMode}
                         brand={brand ? brand : "Documentation"}
                         color={color ? color : "dark"}

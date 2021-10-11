@@ -247,7 +247,7 @@ export default {
     axios: contextAxios,
     contextRoot: context,
     contextHost: window.location.protocol + "//" + window.location.hostname, // + ":80",
-    documentationVersion: '10',
-    documentationVersionURI: '10'
+    documentationVersion: '10.4.3',
+    documentationVersionURI: '10.4.3'
 };
 

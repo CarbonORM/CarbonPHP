@@ -19,7 +19,8 @@ class bootstrap extends React.Component<any, {
   operationActive: boolean,
   isLoaded: boolean,
   darkMode: boolean,
-  alertsWaiting: Array<any>
+  alertsWaiting: Array<any>,
+  versions: Array<any>
 }> {
   constructor(props) {
     super(props);
@@ -32,6 +33,7 @@ class bootstrap extends React.Component<any, {
       isLoaded: false,
       alertsWaiting: [],
       darkMode: true,
+      versions: []
     };
 
     this.switchDarkAndLightTheme = this.switchDarkAndLightTheme.bind(this);
@@ -174,6 +176,7 @@ class bootstrap extends React.Component<any, {
   };
 
   authenticate = () => {
+
     this.state.axios.get(this.state.authenticate).then(res => {
       console.log("authenticate data: ", res);
       this.setState({
@@ -184,6 +187,52 @@ class bootstrap extends React.Component<any, {
           res.data !== null &&
           "success" in res.data &&
           res.data.success,
+        versions: Object.values(res?.data?.versions || {}).sort((v1 : string, v2 : string) => {
+          let lexicographical = false,
+            zeroExtend = false,
+            v1parts = v1.split('.'),
+            v2parts = v2.split('.');
+
+          function isValidPart(x) {
+            return (lexicographical ? /^\d+[A-Za-z]*$/ : /^\d+$/).test(x);
+          }
+
+          if (!v1parts.every(isValidPart) || !v2parts.every(isValidPart)) {
+            return NaN;
+          }
+
+          if (zeroExtend) {
+            while (v1parts.length < v2parts.length) v1parts.push("0");
+            while (v2parts.length < v1parts.length) v2parts.push("0");
+          }
+
+          if (!lexicographical) {
+            v1parts = v1parts.map(Number);
+            v2parts = v2parts.map(Number);
+          }
+
+          for (let i = 0; i < v1parts.length; ++i) {
+            if (v2parts.length === i) {
+              return 1;
+            }
+
+            if (v1parts[i] === v2parts[i]) {
+              // noinspection UnnecessaryContinueJS - clarity call
+              continue;
+            } else if (v1parts[i] > v2parts[i]) {
+              return 1;
+            } else {
+              return -1;
+            }
+          }
+
+          if (v1parts.length !== v2parts.length) {
+            return -1;
+          }
+
+          return 0;
+
+        }).reverse(),
         isLoaded: true
       });
     });
@@ -369,6 +418,7 @@ class bootstrap extends React.Component<any, {
             render={props => (authenticated ?
                 <Private
                   darkMode={this.state.darkMode}
+                  versions={this.state.versions}
                   switchDarkAndLightTheme={this.switchDarkAndLightTheme}
                   codeBlock={this.codeBlock}
                   axios={this.state.axios}
@@ -382,6 +432,7 @@ class bootstrap extends React.Component<any, {
                 /> :
                 <Public
                   darkMode={this.state.darkMode}
+                  versions={this.state.versions}
                   switchDarkAndLightTheme={this.switchDarkAndLightTheme}
                   codeBlock={this.codeBlock}
                   axios={this.state.axios}

@@ -74,6 +74,10 @@
     "metrics": [
       "php ./vendor/bin/phpmetrics --config=php-metrics.json ."
     ],
+    "post-install-cmd": [
+      "@rest",
+      "@test"
+    ],
     "post-update-cmd": [
       "@rest",
       "@test"
@@ -95,11 +99,15 @@
       "php index.php minify",
       "cd view/assets/react && npm install && npm run build"
     ],
-    "start": "php -S dev.carbonphp.com:8080 index.php -d display_errors=1",
+    "start": [
+      "open http://dev.carbonphp.com:8080/",
+      "php -S dev.carbonphp.com:8080 index.php -d display_errors=1"
+    ],
+    "socket": "php index.php websocket",
     "test": [
       "./vendor/bin/phpunit --log-junit junit.xml  --testdox || ./vendor/bin/phpunit --verbose --log-junit junit.xml"
     ],
-    "wordpress:download:latest-stable": "php -r \"copy('http://wordpress.org/latest.tar.gz', 'latest.tar.gz');\"",
+    "wordpress:download:latest-stable": "php -r \"copy('https://wordpress.org/latest.tar.gz', 'latest.tar.gz');\"",
     "wordpress:download:nightly-build": "php -r \"copy('https://wordpress.org/nightly-builds/wordpress-latest.zip', 'latest.tar.gz');\"",
     "wordpress:download:unpack": [
       "tar xfz latest.tar.gz",

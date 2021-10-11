@@ -6,7 +6,6 @@ import {Link} from "react-router-dom";
 import withStyles from "@material-ui/core/styles/withStyles";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
-import Tooltip from "@material-ui/core/Tooltip";
 // @material-ui/icons
 import {Add, Apps, CloudDownload, NightsStay, Remove, WbSunny} from "@material-ui/icons";
 // core components
@@ -42,8 +41,11 @@ class HeaderLinks extends React.Component<any, any> {
     }
   }
 
+
   render() {
-    const { classes } = this.props;
+    const { classes, versions} = this.props;
+
+    console.info(versions);
 
     return (
       <List className={classes.list}>
@@ -93,17 +95,16 @@ class HeaderLinks extends React.Component<any, any> {
             }}
             darkMode={this.props.darkMode}
             buttonIcon={Apps}
-            dropdownList={[
-              <Link to="/10" className={classes.dropdownLink}>
-                Version 10
-              </Link>,
-            ]}
+            dropdownList={versions && versions.map(version =>
+              <a href={'/' + version} target="_blank" className={classes.dropdownLink}>
+                Version {version}
+              </a>,
+            )}
           />
         </ListItem>
         <ListItem className={classes.listItem}>
           <CustomDropdown
             noLiPadding
-            buttonText="UI"
             buttonText="UI"
             buttonProps={{
               className: classes.navLink,

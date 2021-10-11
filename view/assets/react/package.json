@@ -1,10 +1,10 @@
 {
   "name": "carbonphp-documentation-react",
-  "version": "10",
+  "version": "^10",
   "description": "CarbonPHP Documentation. Material Dashboard React. Coded by Creative Tim and Richard Miles.",
   "private": false,
   "main": "src/index.js",
-  "homepage": "http://dev.carbonphp.com/10/#/",
+  "homepage": ".",
   "dependencies": {
     "@material-ui/core": "4.12.3",
     "@material-ui/icons": "4.9.1",
@@ -55,7 +55,7 @@
     "lint:check": "eslint . --ext=js,jsx;  exit 0",
     "lint:fix": "eslint . --ext=js,jsx --fix;  exit 0",
     "build-package": "babel src --out-dir dist",
-    "postinstall": "[ -d \"src/assets/src\" ] || ([ ! -d \"../../../../CarbonPHP\" ] && ( git clone git@github.com:RichardTMiles/CarbonPHP.git src/assets/src ) || ( ln -s ../../../../CarbonPHP src/assets/src ) )"
+    "postinstall": "[ ! -d \"src/assets/src\" ] && git clone git@github.com:RichardTMiles/CarbonPHP.git src/assets/src "
   },
   "repository": {
     "type": "git",
