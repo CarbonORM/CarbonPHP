@@ -641,15 +641,30 @@ FOOT;
      */
     protected static function fetch(string $sql, ...$execute): array
     {
-        $stmt = self::database()->prepare($sql);
-        if (!$stmt->execute($execute) && !$stmt->execute($execute)) { // try it twice, you never know..
-            return [];
+        try {
+
+            $stmt = self::database()->prepare($sql);
+
+            if (!$stmt->execute($execute) && !$stmt->execute($execute)) { // try it twice, you never know..
+                return [];
+            }
+
+            if (count($stmt = $stmt->fetchAll(PDO::FETCH_ASSOC)) !== 1) {
+                return $stmt;
+            }
+
+            is_array($stmt) and $stmt = array_shift($stmt);
+
+            return $stmt;   // promise this is needed and will still return the desired array
+
+        } catch (Throwable $e) {
+
+            ErrorCatcher::generateLog($e);  // this terminates
+
+            exit(1);
+
         }
-        if (count($stmt = $stmt->fetchAll(PDO::FETCH_ASSOC)) !== 1) {
-            return $stmt;
-        }
-        is_array($stmt) and $stmt = array_shift($stmt);
-        return $stmt;   // promise this is needed and will still return the desired array
+
     }
 
     /** Quickly prepare and execute PDO $sql statements using
@@ -739,28 +754,48 @@ FOOT;
         }
     }
 
-    protected static function runRefreshSchema(array $php_validation): void
+    protected static function runRefreshSchema(array $REFRESH_SCHEMA): void
     {
-        foreach ($php_validation as $key => $validation) {
-            if (!is_int($key)) {
-                throw new PublicAlert('All members of REFRESH_SCHEMA must be arrays with integer keys.');
+        try {
+
+            foreach ($REFRESH_SCHEMA as $key => $validation) {
+
+                if (!is_int($key)) {
+
+                    throw new PublicAlert('All members of REFRESH_SCHEMA must be arrays with integer keys.');
+
+                }
+
+                if (!is_array($validation)) {
+
+                    throw new PublicAlert('Each REFRESH_SCHEMA should equal an array of arrays with [ call => method , structure followed by any additional arguments ]. Refer to Carbonphp.com for more information.');
+
+                }
+
+                $class = array_key_first($validation);          //  $class => $method
+
+                $validationMethod = $validation[$class];
+
+                unset($validation[$class]);
+
+                if (!class_exists($class)) {
+
+                    throw new PublicAlert("A class reference in REFRESH_SCHEMA failed. Class ($class) not found.");
+
+                }
+
+                if (false === call_user_func([$class, $validationMethod], ...$validation)) {
+
+                    throw new PublicAlert("Any method used in REFRESH_SCHEMA must not return false. $class => $validationMethod returned with error.");
+
+                }
+
             }
 
-            if (!is_array($validation)) {
-                throw new PublicAlert('Each REFRESH_SCHEMA should equal an array of arrays with [ call => method , structure followed by any additional arguments ]. Refer to Carbonphp.com for more information.');
-            }
+        } catch (Throwable $e) {
 
-            $class = array_key_first($validation);          //  $class => $method
-            $validationMethod = $validation[$class];
-            unset($validation[$class]);
+            ErrorCatcher::generateLog($e);
 
-            if (!class_exists($class)) {
-                throw new PublicAlert("A class reference in REFRESH_SCHEMA failed. Class ($class) not found.");
-            }
-
-            if (false === call_user_func([$class, $validationMethod], ...$validation)) {
-                throw new PublicAlert("Any method used in REFRESH_SCHEMA must not return false. $class => $validationMethod returned with error.");
-            }
         }
     }
 
