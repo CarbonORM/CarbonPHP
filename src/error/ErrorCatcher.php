@@ -895,9 +895,6 @@ class ErrorCatcher
 
             $args = array_reverse($e->getTrace());
 
-            var_dump('hi');die;
-
-
             $trace = array_reverse($trace);
 
             array_shift($trace); // remove {main}
@@ -915,6 +912,8 @@ class ErrorCatcher
             $trace = explode("\n", $e->getTraceAsString());
 
             $args = array_reverse($e->getTrace());
+
+            sortDump([$args,  debug_backtrace()]); die;
 
             $trace = array_reverse($trace);
 
