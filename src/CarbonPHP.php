@@ -191,66 +191,76 @@ class CarbonPHP
      */
     public static function run($application = null): bool
     {
+        try {
 
-        if (!self::$safelyExit) {
 
-            self::$socket = false;
+            if (!self::$safelyExit) {
 
-        }
+                self::$socket = false;
 
-        if (empty(self::$application)) {
+            }
 
-            if (empty($application)) {
+            if (empty(self::$application)) {
 
-                if (!empty(self::$not_invoked_application)) {
+                if (empty($application)) {
 
-                    $application = self::$not_invoked_application;
+                    if (!empty(self::$not_invoked_application)) {
+
+                        $application = self::$not_invoked_application;
+
+                        self::setApplication(new $application);
+
+                    }
+                    // we're not required to pass any arguments so this is essentially a break stmt
+                    // this also works as the condition to move to cli
+                } else if ($application instanceof Application) {
+
+                    self::setApplication($application);
+
+                } else if (class_exists($application)) {
 
                     self::setApplication(new $application);
 
+                } else if (!self::$safelyExit) {
+
+                    print 'Your trying to run CarbonPHP without a valid Application configured. '
+                        . 'Argument passed to the static run method or _invoke should be a reference to a child of the abstract Application class. '
+                        . 'This could be a fully qualified namespace or an instantiated object.'
+                        . 'If no argument is supplied the configuration passed to the constructor, which implements iConfig, must also extend the Application class.';
+
+                    return self::$safelyExit = true;
+
                 }
-                // we're not required to pass any arguments so this is essentially a break stmt
-                // this also works as the condition to move to cli
-            } else if ($application instanceof Application) {
-
-                self::setApplication($application);
-
-            } else if (class_exists($application)) {
-
-                self::setApplication(new $application);
-
-            } else if (!self::$safelyExit) {
-
-                print 'Your trying to run CarbonPHP without a valid Application configured. '
-                    . 'Argument passed to the static run method or _invoke should be a reference to a child of the abstract Application class. '
-                    . 'This could be a fully qualified namespace or an instantiated object.'
-                    . 'If no argument is supplied the configuration passed to the constructor, which implements iConfig, must also extend the Application class.';
-
-                return self::$safelyExit = true;
 
             }
 
-        }
+            if (self::$safelyExit) {
 
-        if (self::$safelyExit) {
+                if (self::$cli && !self::$test && self::$commandLineInterface !== null) {
 
-            if (self::$cli && !self::$test && self::$commandLineInterface !== null) {
+                    self::$safelyExit = true;
 
-                self::$safelyExit = true;
+                    $cli = self::$commandLineInterface;
 
-                $cli = self::$commandLineInterface;
+                    $cli->run($_SERVER['argv'] ?? ['index.php', null]);
 
-                $cli->run($_SERVER['argv'] ?? ['index.php', null]);
+                    $cli->cleanUp();
 
-                $cli->cleanUp();
+                }
+
+                return true;
 
             }
 
-            return true;
+            return self::startApplication() !== false; // startApplication can return null which is not allowed here
+
+        } catch (Throwable $e) {
+
+            ErrorCatcher::generateLog($e);  // this terminates
+
+            exit(1);
 
         }
-
-        return self::startApplication() !== false; // startApplication can return null which is not allowed here
 
     }
 

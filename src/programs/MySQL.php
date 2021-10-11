@@ -121,8 +121,8 @@ IDENTIFIED;
         // We're going to use this function to execute mysql from the command line
         // Mysql needs this to access the server
         if (false === file_put_contents(CarbonPHP::$app_root . 'mysql.cnf', implode(PHP_EOL, $cnf))) {
-            print 'Failed to store file contents of mysql.cnf in ' . CarbonPHP::$app_root;
-            exit('Failed to store file contents mysql.cnf in ' . CarbonPHP::$app_root);
+            ColorCode::colorCode( 'Failed to store file contents of mysql.cnf in ' . CarbonPHP::$app_root, iColorCode::RED);
+            exit(1);
         }
 
         // @link https://www.php.net/manual/en/function.chmod.php
