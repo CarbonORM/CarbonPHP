@@ -1044,7 +1044,11 @@ class ErrorCatcher
                     $right = json_encode($right, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: serialize($left);                      //  todo - we can do better
                 }
 
-                $cleanErrorReport .= $left === 'TRACE' || $left === '$GLOBALS[\'json\']' ?
+                $cleanErrorReport .=
+                    $left === 'TRACE'
+                    || $left === '$GLOBALS[\'json\']'
+                    || $left === 'debug_backtrace()'
+                        ?
                     <<<DESCRIPTION
 <p>> <span>$left</span>: <i>$right</i></p>
 
