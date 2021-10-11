@@ -193,7 +193,6 @@ class CarbonPHP
     {
         try {
 
-
             if (!self::$safelyExit) {
 
                 self::$socket = false;
@@ -211,7 +210,11 @@ class CarbonPHP
                         error_reporting(E_ALL);
                         ini_set("display_errors", 1);
 
-                        self::setApplication(new $application);
+                        $application = new $application;
+
+                        phpinfo();die;
+
+                        self::setApplication( $application);
 
                     }
                     // we're not required to pass any arguments so this is essentially a break stmt
