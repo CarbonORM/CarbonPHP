@@ -736,7 +736,7 @@ class ErrorCatcher
 
             try {
 
-                $cliOutput .= json_encode($trace, JSON_PRETTY_PRINT) ?: serialize($trace);
+                $cliOutput .= json_encode($trace, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: serialize($trace);
 
             } catch (Throwable $e) {
 
@@ -767,12 +767,12 @@ class ErrorCatcher
         $json = $GLOBALS['json'] ??= [];
 
         $log_array['$GLOBALS[\'json\']'] = CarbonPHP::$cli || $_SERVER["CONTENT_TYPE"] === 'application/json'
-            ? $json : $pre(json_encode($json, JSON_PRETTY_PRINT) ?: serialize($json));
+            ? $json : $pre(json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: serialize($json));
 
         $debugBacktrace = debug_backtrace();
 
         $log_array['debug_backtrace()'] = CarbonPHP::$cli || $_SERVER["CONTENT_TYPE"] === 'application/json'
-            ? $debugBacktrace : $pre(json_encode($debugBacktrace, JSON_PRETTY_PRINT) ?: serialize($debugBacktrace));
+            ? $debugBacktrace : $pre(json_encode($debugBacktrace, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: serialize($debugBacktrace));
 
         if (self::$storeReport === true || self::$storeReport === 'database') {
 
