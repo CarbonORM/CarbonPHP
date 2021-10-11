@@ -57,7 +57,7 @@ abstract class Application extends Route
 
             }
 
-            return include CarbonPHP::$app_root . CarbonPHP::$app_view . $file;
+            return include $file;
 
         };
 

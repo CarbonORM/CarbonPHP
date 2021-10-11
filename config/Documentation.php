@@ -70,6 +70,7 @@ class Documentation extends Application implements iConfig
         }
 
         $this->fullPage()(self::REACT);
+
     }
 
 
