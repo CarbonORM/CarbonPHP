@@ -824,7 +824,7 @@ class ErrorCatcher
 
         }
 
-        $message = json_encode($log_array, JSON_PRETTY_PRINT);
+        $message = json_encode($log_array, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
         self::colorCode($message, $color);
 
@@ -976,7 +976,7 @@ class ErrorCatcher
 
                     $line_two = CarbonPHP::$cli || $_SERVER["CONTENT_TYPE"] === 'application/json'
                         ? $args[$i]['args']
-                        : json_encode($args[$i]['args'], JSON_PRETTY_PRINT);
+                        : json_encode($args[$i]['args'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
                 }
 
@@ -1024,11 +1024,11 @@ class ErrorCatcher
             foreach ($message as $left => $right) {
 
                 if (!is_string($left)) {
-                    $left = json_encode($left, JSON_PRETTY_PRINT) ?: serialize($left);                      //  todo - we can do better
+                    $left = json_encode($left, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: serialize($left);                      //  todo - we can do better
                 }
 
                 if (!is_string($right)) {
-                    $right = json_encode($right, JSON_PRETTY_PRINT) ?: serialize($left);                      //  todo - we can do better
+                    $right = json_encode($right, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: serialize($left);                      //  todo - we can do better
                 }
 
                 $cleanErrorReport .= $left === 'TRACE' || $left === '$GLOBALS[\'json\']' ?
@@ -1073,7 +1073,7 @@ DESCRIPTION;
             'actual_message_body' => $message[$actual_message],
             'cleanErrorReport' => $cleanErrorReport,
             'json' => $GLOBALS['json'] ?? 'null',
-            'json_string' => json_encode($GLOBALS['json'] ?? null, JSON_PRETTY_PRINT)
+            'json_string' => json_encode($GLOBALS['json'] ?? null, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
         ]);
     }
 
