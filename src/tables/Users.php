@@ -551,96 +551,10 @@ class Users extends Rest implements iRestSinglePrimaryKey
      */ 
     public const PHP_VALIDATION = [ 
         self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
-            self::PREPROCESS => [ 
-                [self::class => 'disallowPublicAccess', self::class],
-            ]
+
         ],
         self::GET => [ 
-            self::PREPROCESS => [ 
-                [self::class => 'disallowPublicAccess', self::class],
-            ],
-            self::USER_USERNAME => [
-                [self::class => 'disallowPublicAccess', self::USER_USERNAME]
-            ],
-            self::USER_PASSWORD => [
-                [self::class => 'disallowPublicAccess', self::USER_PASSWORD]
-            ],
-            self::USER_ID => [
-                [self::class => 'disallowPublicAccess', self::USER_ID]
-            ],
-            self::USER_TYPE => [
-                [self::class => 'disallowPublicAccess', self::USER_TYPE]
-            ],
-            self::USER_SPORT => [
-                [self::class => 'disallowPublicAccess', self::USER_SPORT]
-            ],
-            self::USER_SESSION_ID => [
-                [self::class => 'disallowPublicAccess', self::USER_SESSION_ID]
-            ],
-            self::USER_FACEBOOK_ID => [
-                [self::class => 'disallowPublicAccess', self::USER_FACEBOOK_ID]
-            ],
-            self::USER_FIRST_NAME => [
-                [self::class => 'disallowPublicAccess', self::USER_FIRST_NAME]
-            ],
-            self::USER_LAST_NAME => [
-                [self::class => 'disallowPublicAccess', self::USER_LAST_NAME]
-            ],
-            self::USER_PROFILE_PIC => [
-                [self::class => 'disallowPublicAccess', self::USER_PROFILE_PIC]
-            ],
-            self::USER_PROFILE_URI => [
-                [self::class => 'disallowPublicAccess', self::USER_PROFILE_URI]
-            ],
-            self::USER_COVER_PHOTO => [
-                [self::class => 'disallowPublicAccess', self::USER_COVER_PHOTO]
-            ],
-            self::USER_BIRTHDAY => [
-                [self::class => 'disallowPublicAccess', self::USER_BIRTHDAY]
-            ],
-            self::USER_GENDER => [
-                [self::class => 'disallowPublicAccess', self::USER_GENDER]
-            ],
-            self::USER_ABOUT_ME => [
-                [self::class => 'disallowPublicAccess', self::USER_ABOUT_ME]
-            ],
-            self::USER_RANK => [
-                [self::class => 'disallowPublicAccess', self::USER_RANK]
-            ],
-            self::USER_EMAIL => [
-                [self::class => 'disallowPublicAccess', self::USER_EMAIL]
-            ],
-            self::USER_EMAIL_CODE => [
-                [self::class => 'disallowPublicAccess', self::USER_EMAIL_CODE]
-            ],
-            self::USER_EMAIL_CONFIRMED => [
-                [self::class => 'disallowPublicAccess', self::USER_EMAIL_CONFIRMED]
-            ],
-            self::USER_GENERATED_STRING => [
-                [self::class => 'disallowPublicAccess', self::USER_GENERATED_STRING]
-            ],
-            self::USER_MEMBERSHIP => [
-                [self::class => 'disallowPublicAccess', self::USER_MEMBERSHIP]
-            ],
-            self::USER_DEACTIVATED => [
-                [self::class => 'disallowPublicAccess', self::USER_DEACTIVATED]
-            ],
-            self::USER_LAST_LOGIN => [
-                [self::class => 'disallowPublicAccess', self::USER_LAST_LOGIN]
-            ],
-            self::USER_IP => [
-                [self::class => 'disallowPublicAccess', self::USER_IP]
-            ],
-            self::USER_EDUCATION_HISTORY => [
-                [self::class => 'disallowPublicAccess', self::USER_EDUCATION_HISTORY]
-            ],
-            self::USER_LOCATION => [
-                [self::class => 'disallowPublicAccess', self::USER_LOCATION]
-            ],
-            self::USER_CREATION_DATE => [
-                [self::class => 'disallowPublicAccess', self::USER_CREATION_DATE]
-            ],
-            
+
         ],    
         self::POST => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
         self::PUT => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    

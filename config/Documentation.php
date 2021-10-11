@@ -536,7 +536,6 @@ SOCKET;
 
     /**
      * @param string $id
-     * @throws PublicAlert
      */
     public static function getUser(string $id = ''): void
     {
