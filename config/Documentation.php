@@ -83,9 +83,6 @@ class Documentation extends Application implements iConfig
     public function __construct($structure = null)
     {
 
-        sortDump($structure);
-
-
         if (CarbonPHP::$safelyExit) {
             return;
         }

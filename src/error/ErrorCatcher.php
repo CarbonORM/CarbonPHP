@@ -372,6 +372,12 @@ class ErrorCatcher
 
         $source = preg_split('/' . PHP_EOL . '/', $source);
 
+        if (false === function_exists('highlight')) {
+
+            include_once CarbonPHP::CARBON_ROOT . 'Functions.php';
+
+        }
+
         return highlight($comment . PHP_EOL . implode(PHP_EOL, array_slice($source, $start_line, $length)), true);
     }
 
@@ -1018,7 +1024,14 @@ class ErrorCatcher
 
                 $source = preg_split('/' . PHP_EOL . '/', $source);
 
+                if (false === function_exists('highlight')) {
+
+                    include_once CarbonPHP::CARBON_ROOT . 'Functions.php';
+
+                }
+
                 $codePreview = highlight(implode(PHP_EOL, array_slice($source, $start_line, 20)), true);
+
             }
 
             foreach ($message as $left => $right) {

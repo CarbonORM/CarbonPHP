@@ -207,14 +207,7 @@ class CarbonPHP
 
                         $application = self::$not_invoked_application;
 
-                        error_reporting(-1);
-                        ini_set("display_errors", 1);
-
-                        $application = new $application;
-
-                        phpinfo();die;
-
-                        self::setApplication( $application);
+                        self::setApplication( new $application);
 
                     }
                     // we're not required to pass any arguments so this is essentially a break stmt
@@ -337,9 +330,12 @@ class CarbonPHP
 
     private static function parseConfiguration($configuration): array
     {
+
         ####################  Now load config file so globals above & stacktrace security
         if ($configuration === null) {
+
             return self::$configuration = [];
+
         }
 
         if ($configuration instanceof iConfig) {
@@ -370,8 +366,10 @@ class CarbonPHP
             self::$not_invoked_configuration = $configuration;  // this is only ever needed for websockets
 
             if (is_subclass_of($configuration, Application::class)) {
+
                 // only invoke this when setup is finished so constructors have access to constants
                 self::$not_invoked_application = $configuration;
+
             }
 
             /** @noinspection PhpPossiblePolymorphicInvocationInspection */
