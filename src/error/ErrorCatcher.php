@@ -895,6 +895,9 @@ class ErrorCatcher
 
             $args = array_reverse($e->getTrace());
 
+            var_dump('hi');die;
+
+
             $trace = array_reverse($trace);
 
             array_shift($trace); // remove {main}
@@ -965,8 +968,6 @@ class ErrorCatcher
                 $line_one = $call_number . ') ' . implode(' ', $line_one);
 
                 $line_two = '[]';
-
-                var_dump($args);die;
 
                 if (array_key_exists('args', $args[$i])) {
 
