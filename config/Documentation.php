@@ -21,34 +21,34 @@ class Documentation extends Application implements iConfig
     public const GIT_SUPPORT = 'https://github.com/RichardTMiles/CarbonPHP/issues';
 
     // these are all relative to the /view/ directory
-    private const REACT = '60/index.html';
+    private const REACT = '10.4.3/index.html';
 
     private array $version2Dot0 = [
-        'Home' => '20/Home.hbs',
-        'CarbonPHP' => '20/Introduction.hbs',
-        'Installation' => '20/Installation.hbs',
-        'Implementations' => '20/Implementations.hbs',
-        'Dependencies' => '20/Dependencies.hbs',
-        'FileStructure' => '20/QuickStart/FileStructure.hbs',
-        'Environment' => '20/QuickStart/Environment.hbs',
-        'Options' => '20/QuickStart/Options.hbs',
-        'Bootstrap' => '20/QuickStart/Bootstrap.hbs',
-        'Wrapper' => '20/QuickStart/Wrapper.hbs',
-        'Parallel' => '20/QuickStart/ParallelProcessing.hbs',
-        'Overview' => '20/PHP/Overview.hbs',
-        'Entities' => '20/PHP/Entities.hbs',
-        'Request' => '20/PHP/Request.hbs',
-        'Route' => '20/PHP/Route.hbs',
-        'Server' => '20/PHP/Server.hbs',
-        'Session' => '20/PHP/Session.hbs',
-        'Singleton' => '20/PHP/Singleton.hbs',
-        'View' => '20/PHP/View.hbs',
-        'OSSupport' => '20/PlatformSupport.hbs',
-        'UpgradeGuide' => '20/PlatformSupport.hbs',
-        'Support' => '20/Support.hbs',
-        'License' => '20/License.hbs',
-        'AdminLTE' => '20/AdminLTE.hbs',
-        'N00B' => '20/N00B.hbs'
+        'Home' => '2.0.0/Home.hbs',
+        'CarbonPHP' => '2.0.0/Introduction.hbs',
+        'Installation' => '2.0.0/Installation.hbs',
+        'Implementations' => '2.0.0/Implementations.hbs',
+        'Dependencies' => '2.0.0/Dependencies.hbs',
+        'FileStructure' => '2.0.0/QuickStart/FileStructure.hbs',
+        'Environment' => '2.0.0/QuickStart/Environment.hbs',
+        'Options' => '2.0.0/QuickStart/Options.hbs',
+        'Bootstrap' => '2.0.0/QuickStart/Bootstrap.hbs',
+        'Wrapper' => '2.0.0/QuickStart/Wrapper.hbs',
+        'Parallel' => '2.0.0/QuickStart/ParallelProcessing.hbs',
+        'Overview' => '2.0.0/PHP/Overview.hbs',
+        'Entities' => '2.0.0/PHP/Entities.hbs',
+        'Request' => '2.0.0/PHP/Request.hbs',
+        'Route' => '2.0.0/PHP/Route.hbs',
+        'Server' => '2.0.0/PHP/Server.hbs',
+        'Session' => '2.0.0/PHP/Session.hbs',
+        'Singleton' => '2.0.0/PHP/Singleton.hbs',
+        'View' => '2.0.0/PHP/View.hbs',
+        'OSSupport' => '2.0.0/PlatformSupport.hbs',
+        'UpgradeGuide' => '2.0.0/PlatformSupport.hbs',
+        'Support' => '2.0.0/Support.hbs',
+        'License' => '2.0.0/License.hbs',
+        'AdminLTE' => '2.0.0/AdminLTE.hbs',
+        'N00B' => '2.0.0/N00B.hbs'
     ];
 
     public const TEMPLATE = 'node_modules/admin-lte/';
@@ -369,7 +369,7 @@ $(document).ready(function () {
       
       $('#message_box').animate({
         scrollTop: $('#message_box').get(0).scrollHeight
-      }, 2000);
+      }, 2.0.000);
     };
 
    
@@ -436,7 +436,7 @@ SOCKET;
 
 
         ###################################### AdminLTE DOC
-        if ($this->regexMatch('#2.0/UIElements/?([A-Za-z]{0,20})#',
+        if ($this->regexMatch('#2.0/UIElements/?([A-Za-z]{0,2.0.0})#',
             function ($AdminLTE = '') {
 
                 View::$wrapper = CarbonPHP::$app_root . CarbonPHP::$app_view . 'assets/AdminLTE/wrapper.hbs';
@@ -692,7 +692,7 @@ SOCKET;
             CarbonPHP::VIEW => [
                 // TODO - THIS IS USED AS A URL AND DIRECTORY PATH. THIS IS BAD. WE NEED DS
                 CarbonPHP::VIEW => 'view/',  // This is where the MVC() function will map the HTML.PHP and HTML.HBS . See Carbonphp.com/mvc
-                CarbonPHP::WRAPPER => '20/Wrapper.hbs',     // View::content() will produce this
+                CarbonPHP::WRAPPER => '2.0.0/Wrapper.hbs',     // View::content() will produce this
             ],
             CarbonPHP::MINIFY => [
                 CarbonPHP::CSS => [
