@@ -21,9 +21,10 @@ config/buildDatabase.php
 /PhpMetrics
 /out/*
 
-# recursive documentation
+# recursive documentation (keep both)
 /view/assets/react/src/assets/src/*
 view/assets/react/src/assets/src
+
 # wordpress
 /wp-content/index.php
 /wp-content/themes/index.php
