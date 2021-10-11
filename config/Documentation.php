@@ -401,7 +401,7 @@ SOCKET;
         }
 
 
-        if (Rest::MatchRestfulRequests($this)()) {
+        if (Rest::MatchRestfulRequests($this, '', Carbons::CLASS_NAMESPACE)()) {
             return true;
         }
 
