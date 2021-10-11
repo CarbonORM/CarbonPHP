@@ -69,7 +69,9 @@ class Documentation extends Application implements iConfig
     <br/>To bypass this message <a href="http://dev.carbonphp.com:8080/releases/10.4.3/" style="color:blue">click here</a>');
         }
 
-        header('Location: https://www.carbonphp.com/' . self::REACT);
+        print 'oof';
+
+        #header('Location: https://www.carbonphp.com/' . self::REACT);
 
     }
 
@@ -463,9 +465,7 @@ SOCKET;
             return true;
         }
 
-        if ($version = (self::$uriExplode[0] ?? false)) {
-
-
+        if ($version = (self::$uriExplode[1] ?? false)) {
 
             switch ($version) {
 
