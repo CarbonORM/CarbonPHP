@@ -93,14 +93,14 @@ IDENTIFIED;
 
         if (empty($c['DATABASE']['DB_USER'])) {
 
-            print 'You must set [\'DATABASE\'][\'DB_USER\'] in the "' . $c['SITE']['CONFIG'] . '".  Run `>> php index.php setup` to fix this.' . PHP_EOL;
+            print 'You must set [\'DATABASE\'][\'DB_USER\'] in the "' . $c['SITE']['CONFIG'] . '" file.' . PHP_EOL;
 
             exit(1);
 
         }
 
         if (empty($c['DATABASE']['DB_HOST'])) {
-            print 'You must set [\'DATABASE\'][\'DB_HOST\'] in the "' . $c['SITE']['CONFIG'] . '".  Run `>> php index.php setup` to fix this.' . PHP_EOL;
+            print 'You must set [\'DATABASE\'][\'DB_HOST\'] in the "' . $c['SITE']['CONFIG'] . '" file.' . PHP_EOL;
             exit(1);
         }
 
@@ -125,8 +125,8 @@ IDENTIFIED;
             exit('Failed to store file contents mysql.cnf in ' . CarbonPHP::$app_root);
         }
 
-        // https://www.php.net/manual/en/function.chmod.php
-        if (!chmod(CarbonPHP::$app_root . 'mysql.cnf', 0750)) {
+        // @link https://www.php.net/manual/en/function.chmod.php
+        if (false === chmod(CarbonPHP::$app_root . 'mysql.cnf', 0750)) {
             ColorCode::colorCode('The chmod(\'' . CarbonPHP::$app_root . 'mysql.cnf\', 0750); has failed. This isn\'t always an issue. Moving on. Cross your fingers.', iColorCode::YELLOW);
         }
 

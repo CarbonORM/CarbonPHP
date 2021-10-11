@@ -610,19 +610,22 @@ SOCKET;
 
     public static function configuration(): array
     {
+
         if (CarbonPHP::$app_root === '/home/runner/work/carbonphp/carbonphp') {
 
             CarbonPHP::$test = true;
 
             $databasePassword = 'password';
 
-        } else if (CarbonPHP::$app_local) {
+        } else if (CarbonPHP::$app_root === '/var/www/carbonphp.com/') {
 
-            $databasePassword = 'password';
+            CarbonPHP::$is_running_production = true;
+
+            $databasePassword = 'goldteamrules';
 
         } else {
 
-            $databasePassword = 'goldteamrules';
+            $databasePassword = 'password';
 
         }
 
@@ -632,7 +635,7 @@ SOCKET;
                 CarbonPHP::TABLE_PREFIX => Carbons::TABLE_PREFIX
             ],
             CarbonPHP::DATABASE => [
-                CarbonPHP::DB_HOST => CarbonPHP::$app_local ? '127.0.0.1' : '35.224.229.250',
+                CarbonPHP::DB_HOST => CarbonPHP::$is_running_production ? '35.224.229.250' : '127.0.0.1',
                 CarbonPHP::DB_PORT => '3306',
                 CarbonPHP::DB_NAME => 'CarbonPHP',                       // Schema
                 CarbonPHP::DB_USER => 'root',                            // User

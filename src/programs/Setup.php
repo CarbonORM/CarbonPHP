@@ -70,7 +70,7 @@ usage;
                     // this is going to the CLI so no need to run/attach redirect scripts
                     exit(0);
                 case '--cnf':
-                    print MySQL::buildCNF();
+                    print MySQL::buildCNF() . PHP_EOL;
                     exit(0);
 
                 case '--mysql_native_password':
