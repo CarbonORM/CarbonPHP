@@ -1,10 +1,9 @@
 {
   "name": "carbonphp-documentation-react",
-  "version": "^10",
+  "version": "10",
   "description": "CarbonPHP Documentation. Material Dashboard React. Coded by Creative Tim and Richard Miles.",
   "private": false,
   "main": "src/index.js",
-  "homepage": ".",
   "dependencies": {
     "@material-ui/core": "4.12.3",
     "@material-ui/icons": "4.9.1",
@@ -46,8 +45,9 @@
     "sweetalert": "^2.1.2"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "env": "TAG=$( git describe --tags `git rev-list --tags --max-count=1` ) && printf \"REACT_APP_TAG=${TAG}\nNODE_PATH=./src\nHOST=dev.carbonphp.com\nPUBLIC_URL=http://dev.carbonphp.com/$( git describe --tags `git rev-list --tags --max-count=1` )/#/\" > .env",
+    "start": "npm run env && react-scripts start",
+    "build": "npm run env && react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
     "install:clean": "rm -rf node_modules/ && rm -rf package-lock.json && npm install && npm start",
@@ -90,6 +90,7 @@
     "@types/react": "^16.9.5",
     "@types/react-slick": "^0.23.4",
     "@typescript-eslint/parser": "^3.10.1",
+    "env-var": "^7.0.1",
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-prettier": "^3.3.1",
     "http-proxy-middleware": "^1.0.5",

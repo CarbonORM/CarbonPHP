@@ -10,6 +10,7 @@
 //import swal from 'sweetalert';
 import axios from "axios";
 
+const URI = process.env.REACT_APP_TAG || '0.0.0';
 
 /*// Add a request interceptor
 axios.interceptors.request.use(function (config) {
@@ -247,7 +248,7 @@ export default {
     axios: contextAxios,
     contextRoot: context,
     contextHost: window.location.protocol + "//" + window.location.hostname, // + ":80",
-    documentationVersion: '10.4.3',
-    documentationVersionURI: '10.4.3'
+    documentationVersion: URI,
+    documentationVersionURI: URI
 };
 

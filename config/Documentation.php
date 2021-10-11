@@ -465,11 +465,13 @@ SOCKET;
             return true;
         }
 
-        if ($version = (self::$uriExplode[1] ?? false)) {
+        $version = (self::$uriExplode[0] ?? false);
+
+        if ($version) {
 
             switch ($version) {
 
-                case '2.0':
+                case '2.0.0':
                     $json['VersionTWO'] = true;
 
                     $page = $this->uriExplode[1] ?? false;

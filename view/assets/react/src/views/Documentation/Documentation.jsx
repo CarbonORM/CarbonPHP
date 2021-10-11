@@ -1,12 +1,15 @@
 import React from "react";
+
 // nodejs library that concatenates classes
 import classNames from "classnames";
+
 // @material-ui/core components
 import withStyles from "@material-ui/core/styles/withStyles";
 import GridItem from "components/Grid/GridItem.jsx";
 import CarbonPHP from "./Sections/CarbonPHP";
 import Dependencies from "./Sections/Dependencies";
 import Implementations from "./Sections/Implementations";
+
 // FileStructure OptionsIndex Bootstrap Wrapper ParallelProcessing
 import componentsStyle from "assets/jss/material-kit-react/views/components.jsx";
 
