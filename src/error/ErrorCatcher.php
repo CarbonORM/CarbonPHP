@@ -768,6 +768,8 @@ class ErrorCatcher
 
         $log_array['$GLOBALS[\'json\']'] = CarbonPHP::$cli || $_SERVER["CONTENT_TYPE"] === 'application/json' ? $json : $pre(json_encode($json, JSON_PRETTY_PRINT) ?: serialize($json));
 
+        $log_array['debug_backtrace()'] = debug_backtrace();
+
         if (self::$storeReport === true || self::$storeReport === 'database') {
 
             if (Database::$carbonDatabaseInitialized) {
@@ -912,8 +914,6 @@ class ErrorCatcher
             $trace = explode("\n", $e->getTraceAsString());
 
             $args = array_reverse($e->getTrace());
-
-            sortDump([$args,  debug_backtrace()]); die;
 
             $trace = array_reverse($trace);
 
