@@ -35,6 +35,7 @@ class Setup implements iCommand
         The setup program can be used to initialize and update a projects configuration files. 
         Currently it does not do this, but here is what it does do.  
         
+        --cnf
         
         -r --rebuild                 Update the projects database configurations.
 
@@ -54,6 +55,8 @@ usage;
             exit(1);
         }
 
+        /** @noinspection ForeachInvariantsInspection */
+        /** @noinspection PhpLoopNeverIteratesInspection */
         for ($i = 0; $i < $argc; $i++) {
             switch ($argv[$i]) {
                 default:
@@ -66,8 +69,12 @@ usage;
                     Database::setUp(false, true);   // Redirect = false
                     // this is going to the CLI so no need to run/attach redirect scripts
                     exit(0);
+                case '--cnf':
+                    print MySQL::buildCNF();
+                    exit(0);
+
                 case '--mysql_native_password':
-                    $this->mysql_native_password();
+                    self::mysql_native_password();
                     exit(0);
             }
         }
