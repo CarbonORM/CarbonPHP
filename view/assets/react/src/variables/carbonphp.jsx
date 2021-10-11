@@ -10,7 +10,7 @@
 //import swal from 'sweetalert';
 import axios from "axios";
 
-const URI = process.env.REACT_APP_TAG || '0.0.0';
+const URI = process.env.REACT_APP_URI || 'releases/0.0.0';
 
 /*// Add a request interceptor
 axios.interceptors.request.use(function (config) {

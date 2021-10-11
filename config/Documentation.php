@@ -463,9 +463,11 @@ SOCKET;
             return true;
         }
 
-        $version = (self::$uriExplode[0] ?? false);
+        $releases = (self::$uriExplode[0] ?? false);
 
-        if ($version) {
+        if ($releases === 'releases') {
+
+            $version = (self::$uriExplode[0] ?? false);
 
             switch ($version) {
 
