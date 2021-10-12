@@ -133,7 +133,7 @@ class Documentation extends React.Component {
           {...rest}
         />
         <Parallax
-          image={this.props.darkMode ? "/view/assets/img/Carbon-teal-180.png" : "/view/assets/img/Full-Carbon-Teal-White.jpg"}>
+          image={this.props.darkMode ? "/view/assets/img/Carbon-teal-180.png" : "/view/assets/img/Full-Carbon-Teal-White-1920x1080.png"}>
           <div className={classes.container}>
             <GridContainer>
               <GridItem>
