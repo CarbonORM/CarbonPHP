@@ -340,32 +340,15 @@ class Groups extends Rest implements iRestSinglePrimaryKey
      */ 
     public const PHP_VALIDATION = [ 
         self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
-            self::PREPROCESS => [ 
-                [self::class => 'disallowPublicAccess', self::class],
-            ]
+
         ],
         self::GET => [ 
-            self::PREPROCESS => [ 
-                [self::class => 'disallowPublicAccess', self::class],
-            ],
-            self::GROUP_NAME => [
-                [self::class => 'disallowPublicAccess', self::GROUP_NAME]
-            ],
-            self::ENTITY_ID => [
-                [self::class => 'disallowPublicAccess', self::ENTITY_ID]
-            ],
-            self::CREATED_BY => [
-                [self::class => 'disallowPublicAccess', self::CREATED_BY]
-            ],
-            self::CREATION_DATE => [
-                [self::class => 'disallowPublicAccess', self::CREATION_DATE]
-            ],
-            
+
         ],    
-        self::POST => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
-        self::PUT => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
-        self::DELETE => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],
-        self::REST_REQUEST_FINNISH_CALLBACKS => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]]    
+        self::POST => [],
+        self::PUT => [],
+        self::DELETE => [ ],
+        self::REST_REQUEST_FINNISH_CALLBACKS => []
     ]; 
    
     /**

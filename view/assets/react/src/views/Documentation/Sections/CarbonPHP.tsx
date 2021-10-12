@@ -70,6 +70,7 @@ const JS_ORM_EXAMPLE_3 = ``;
 
 
 interface iCarbonPHP extends WithStyles<typeof dashboardStyle> {
+  id: string,
   axios: AxiosInstance;
   testRestfulPostPutDeleteResponse: Function;
   codeBlock: (markdown: String, highlight ?: String, language ?: String, dark ?: boolean) => any;
@@ -581,6 +582,9 @@ class CarbonPHP extends React.Component<iCarbonPHP, {
                                   ]
                                 }
                               },
+                              [C6.GROUP_BY]: [
+                                C6.groups.ENTITY_ID
+                              ],
                               [C6.PAGINATION]: {
                                 [C6.LIMIT]: 100
                               }
@@ -625,6 +629,9 @@ class CarbonPHP extends React.Component<iCarbonPHP, {
                                   ]
                                 }
                               },
+                              [C6.GROUP_BY]: [
+                                C6.users.USER_ID,
+                              ],
                               [C6.PAGINATION]: {
                                 [C6.LIMIT]: 100
                               }
@@ -853,6 +860,7 @@ class CarbonPHP extends React.Component<iCarbonPHP, {
                   <GridItem xs={12} sm={12} md={10}>
                     {codeBlock("php index.php rest", "", "bash", true)}
                     <AccessControl
+                      id={this.props.id}
                       testRestfulPostPutDeleteResponse={this.props.testRestfulPostPutDeleteResponse}
                       axios={this.props.axios}
                     />

@@ -135,6 +135,9 @@ abstract class Rest extends Database
     public static bool $allowFullTableUpdates = false;
     public static bool $allowFullTableDeletes = false;
 
+    // many other requirements must be met for this to apply, see how method signalError is defined
+    public static bool $suppressErrorsAndReturnFalse = false;
+
     /**
      * @warning Rest constructor. Avoid this if possible.
      * If the value is modified in the original array or this `static` object it will be modified in the instantiated
@@ -312,10 +315,18 @@ abstract class Rest extends Database
      */
     public static function signalError(string $message): bool
     {
-        if (!self::$externalRestfulRequestsAPI && CarbonPHP::$is_running_production && !CarbonPHP::$test) {
+        if (true === self::$suppressErrorsAndReturnFalse
+            && false === self::$externalRestfulRequestsAPI
+            && CarbonPHP::$is_running_production
+            && false === CarbonPHP::$carbon_is_root
+            && false === CarbonPHP::$test) {
+
             return false;
+
         }
+
         throw new PublicAlert($message);
+
     }
 
     public static function preprocessRestRequest(): void
@@ -951,7 +962,7 @@ abstract class Rest extends Database
 
                 case self::POST:
 
-                    if (!$id = call_user_func([$namespace . $mainTable, $methodCase], $_POST, $primary)) {
+                    if (!$id = call_user_func_array([$namespace . $mainTable, $methodCase], [&$_POST, $primary])) {
 
                         throw new PublicAlert('The request failed, please make sure arguments are correct.');
 

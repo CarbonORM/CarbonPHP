@@ -322,26 +322,15 @@ class User_Groups extends Rest implements iRestNoPrimaryKey
      */ 
     public const PHP_VALIDATION = [ 
         self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
-            self::PREPROCESS => [ 
-                [self::class => 'disallowPublicAccess', self::class],
-            ]
+
         ],
-        self::GET => [ 
-            self::PREPROCESS => [ 
-                [self::class => 'disallowPublicAccess', self::class],
-            ],
-            self::GROUP_ID => [
-                [self::class => 'disallowPublicAccess', self::GROUP_ID]
-            ],
-            self::USER_ID => [
-                [self::class => 'disallowPublicAccess', self::USER_ID]
-            ],
-            
+        self::GET => [
+
         ],    
-        self::POST => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
-        self::PUT => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
-        self::DELETE => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],
-        self::REST_REQUEST_FINNISH_CALLBACKS => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]]    
+        self::POST => [ ],
+        self::PUT => [ ],
+        self::DELETE => [],
+        self::REST_REQUEST_FINNISH_CALLBACKS => [ ]
     ]; 
    
     /**

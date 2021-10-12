@@ -20,7 +20,8 @@ class bootstrap extends React.Component<any, {
   isLoaded: boolean,
   darkMode: boolean,
   alertsWaiting: Array<any>,
-  versions: Array<any>
+  versions: Array<any>,
+  id: string
 }> {
   constructor(props) {
     super(props);
@@ -33,7 +34,8 @@ class bootstrap extends React.Component<any, {
       isLoaded: false,
       alertsWaiting: [],
       darkMode: true,
-      versions: []
+      versions: [],
+      id: ''
     };
 
     this.switchDarkAndLightTheme = this.switchDarkAndLightTheme.bind(this);
@@ -140,6 +142,7 @@ class bootstrap extends React.Component<any, {
                 path={x.path}
                 render={y => (
                   <x.component
+                    id={this.state.id}
                     axios={this.state.axios}
                     subRoutingSwitch={this.subRoutingSwitch}
                     authenticated={this.state.authenticated}
@@ -159,6 +162,7 @@ class bootstrap extends React.Component<any, {
           path={prop.path}
           render={props => (
             <prop.component
+              id={this.state.id}
               axios={this.state.axios}
               subRoutingSwitch={this.subRoutingSwitch}
               authenticated={this.state.authenticated}
@@ -180,13 +184,8 @@ class bootstrap extends React.Component<any, {
     this.state.axios.get(this.state.authenticate).then(res => {
       console.log("authenticate data: ", res);
       this.setState({
-        authenticated:
-          res !== undefined &&
-          res !== null &&
-          "data" in res &&
-          res.data !== null &&
-          "success" in res.data &&
-          res.data.success,
+        id: res?.data?.id || '',
+        authenticated: res?.data?.success || false,
         versions: Object.values(res?.data?.versions || {}).sort((v1 : string, v2 : string) => {
           let lexicographical = false,
             zeroExtend = false,

@@ -49,8 +49,6 @@ abstract class Application extends Route
 
             self::$matched = true;
 
-            $file = CarbonPHP::$app_root . CarbonPHP::$app_view . $file;
-
             if (false === file_exists($file)) {
 
                 throw new PublicAlert("Failed to find file ($file)");

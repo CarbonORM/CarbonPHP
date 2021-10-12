@@ -327,26 +327,9 @@ class Feature_Group_References extends Rest implements iRestNoPrimaryKey
      */ 
     public const PHP_VALIDATION = [ 
         self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
-            self::PREPROCESS => [ 
-                [self::class => 'disallowPublicAccess', self::class],
-            ]
+
         ],
-        self::GET => [ 
-            self::PREPROCESS => [ 
-                [self::class => 'disallowPublicAccess', self::class],
-            ],
-            self::FEATURE_ENTITY_ID => [
-                [self::class => 'disallowPublicAccess', self::FEATURE_ENTITY_ID]
-            ],
-            self::GROUP_ENTITY_ID => [
-                [self::class => 'disallowPublicAccess', self::GROUP_ENTITY_ID]
-            ],
-            
-        ],    
-        self::POST => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
-        self::PUT => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
-        self::DELETE => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],
-        self::REST_REQUEST_FINNISH_CALLBACKS => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]]    
+        self::REST_REQUEST_FINNISH_CALLBACKS => [ ]
     ]; 
    
     /**

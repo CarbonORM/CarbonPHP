@@ -50,6 +50,7 @@ import withStyles from "@material-ui/core/styles/withStyles";
 
 
 interface iAccessControl extends WithStyles<typeof landingPageStyle> {
+  id: string,
   axios: AxiosInstance;
   testRestfulPostPutDeleteResponse: Function;
 }
@@ -149,6 +150,9 @@ class AccessControl extends React.Component<iAccessControl, {
             ]
           }
         },
+        [C6.GROUP_BY]: [
+          C6.users.USER_ID
+        ],
         [C6.PAGINATION]: {
           [C6.LIMIT]: 100
         }
@@ -182,6 +186,9 @@ class AccessControl extends React.Component<iAccessControl, {
             ]
           }
         },
+        [C6.GROUP_BY]:[
+          C6.groups.ENTITY_ID
+        ],
         [C6.PAGINATION]: {
           [C6.LIMIT]: 100
         }
@@ -492,7 +499,6 @@ class AccessControl extends React.Component<iAccessControl, {
                               feature: {
                                 feature_code: e.target.value,
                                 feature_entity_id: null,
-                                feature_creation_date: null
                               }
                             })
                           }}
@@ -523,7 +529,8 @@ class AccessControl extends React.Component<iAccessControl, {
                                       onChange: (e: ChangeEvent<HTMLInputElement>) => this.setState({
                                         group: {
                                           ...this.state.group,
-                                          group_name: e.target.value
+                                          group_name: e.target.value,
+                                          created_by: this.props.id
                                         }
                                       })
                                     }}

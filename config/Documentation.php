@@ -463,18 +463,18 @@ SOCKET;
             return true;
         }
 
-        $releases = (self::$uriExplode[0] ?? false);
+        $view = (self::$uriExplode[0] ?? false);
 
-        if ($releases === 'releases') {
+        if ($view === 'view' && 'releases' === (self::$uriExplode[1] ?? false)) {
 
-            $version = (self::$uriExplode[0] ?? false);
+            $version = (self::$uriExplode[2] ?? false);
 
             switch ($version) {
 
                 case '2.0.0':
                     $json['VersionTWO'] = true;
 
-                    $page = $this->uriExplode[1] ?? false;
+                    $page = $this->uriExplode[3] ?? false;
 
                     $page or (View::$forceWrapper = true and View::$wrapper = CarbonPHP::$app_root . CarbonPHP::$app_view . 'assets/AdminLTE/wrapper.hbs');
 

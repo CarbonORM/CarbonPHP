@@ -11,7 +11,7 @@ module.exports = function (app) {
         },
         logLevel: "debug"
     }));
-    app.use('/view/**', createProxyMiddleware({
+    app.use(createProxyMiddleware(['/view/**', '!/view/releases/**'],{
         target: 'http://dev.carbonphp.com:8080/',
         changeOrigin: true,
         secure: false,
