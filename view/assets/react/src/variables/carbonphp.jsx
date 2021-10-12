@@ -247,7 +247,7 @@ function context(o){
 export default {
     axios: contextAxios,
     contextRoot: context,
-    contextHost: window.location.protocol + "//" + window.location.hostname, // + ":80",
+    contextHost: window.location.protocol + "//" + window.location.hostname, // + ":8080",
     documentationVersion: URI,
     documentationVersionURI: URI
 };

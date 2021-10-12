@@ -469,40 +469,37 @@ SOCKET;
 
             $version = (self::$uriExplode[2] ?? false);
 
-            switch ($version) {
+            if ($version === '2.0.0') {
 
-                case '2.0.0':
-                    $json['VersionTWO'] = true;
+                $json['VersionTWO'] = true;
 
-                    $page = $this->uriExplode[3] ?? false;
+                $page = $this->uriExplode[3] ?? false;
 
-                    $page or (View::$forceWrapper = true and View::$wrapper = CarbonPHP::$app_root . CarbonPHP::$app_view . 'assets/AdminLTE/wrapper.hbs');
+                $page or (View::$forceWrapper = true and View::$wrapper = CarbonPHP::$app_root . CarbonPHP::$app_view . 'assets/AdminLTE/wrapper.hbs');
 
-                    if ($page && array_key_exists($page, $this->version2Dot0)) {
+                if ($page && array_key_exists($page, $this->version2Dot0)) {
 
-                        $this->wrap()($this->version2Dot0[$page]);
+                    $this->wrap()($this->version2Dot0[$page]);
 
-                    } else {
+                } else {
 
-                        $this->wrap()($this->version2Dot0['Home']);
+                    $this->wrap()($this->version2Dot0['Home']);
 
-                    }
+                }
 
-                    return true;
+                return true;
 
-                default:
+            }
 
-                    $folderName = CarbonPHP::$app_root . 'view' . DS . 'releases' . DS . $version . DS;
+            $folderName = CarbonPHP::$app_root . 'view' . DS . 'releases' . DS . $version . DS;
 
-                    if (is_dir($folderName)) {
+            if (is_dir($folderName)) {
 
-                        self::$matched = true;
+                self::$matched = true;
 
-                        $this->fullPage()($folderName . 'index.html');
+                $this->fullPage()($folderName . 'index.html');
 
-                    }
-
-                    break;
+                return true;
 
             }
 

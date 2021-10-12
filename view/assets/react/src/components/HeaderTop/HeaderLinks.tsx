@@ -96,7 +96,7 @@ class HeaderLinks extends React.Component<any, any> {
             darkMode={this.props.darkMode}
             buttonIcon={Apps}
             dropdownList={versions && versions.map(version =>
-              <a href={'/' + version} target="_blank" className={classes.dropdownLink}>
+              <a href={'/view/releases/' + version} target="_blank" className={classes.dropdownLink}>
                 Version {version}
               </a>,
             )}
