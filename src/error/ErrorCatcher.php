@@ -702,7 +702,7 @@ class ErrorCatcher
 
             $class = get_class($e);
 
-            $trace = self::generateCallTrace($e);
+            [$traceCLI, $traceHTML] = self::generateCallTrace($e);
 
             $log_array = [
                     $class => $e->getMessage()
@@ -730,55 +730,65 @@ class ErrorCatcher
 
         } else {
 
-            $trace = self::generateCallTrace(null);
-
-        }
-
-        if (is_string($trace)) {
-
-            $cliOutput .= $trace;
-
-        } else {
-
-            try {
-
-                $cliOutput .= json_encode($trace, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: serialize($trace);
-
-            } catch (Throwable $e) {
-
-                ColorCode::colorCode('The trace failed to be json_encoded or serialized.', iColorCode::RED);
-
-                ColorCode::colorCode($e->getMessage(), iColorCode::RED);
-
-                ColorCode::colorCode('Attempting with print_r and sortDump...', iColorCode::RED);
-
-                $cliOutput .= print_r($trace, true);
-
-                ob_start(null, null, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
-
-                sortDump($trace, true, false);
-
-                $cliOutput .= ob_get_clean();
-
-            }
+            [$traceCLI, $traceHTML] = self::generateCallTrace(null);
 
         }
 
         $log_array['[C6] CARBONPHP'] = 'ErrorCatcher::generateLog';
 
-        $pre = fn(string $code) => "<pre>$code</pre>";
+        $pre = static fn ($code) => static function ($serialize = true) use ($code) {
 
-        $log_array['TRACE'] = CarbonPHP::$cli || $_SERVER["CONTENT_TYPE"] === 'application/json' ? $trace : $pre($trace);
+            if (false === $serialize) {
+
+                return $code;
+
+            }
+
+            if (CarbonPHP::$cli || $_SERVER["CONTENT_TYPE"] === 'application/json') {
+
+                return $code;
+
+            }
+
+            if (false === is_string($code)) {
+
+                try {
+
+                    $code = json_encode($code, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: serialize($code);
+
+                } catch (Throwable $e) {
+
+                    ColorCode::colorCode('The trace failed to be json_encoded or serialized.', iColorCode::RED);
+
+                    ColorCode::colorCode($e->getMessage(), iColorCode::RED);
+
+                    ColorCode::colorCode('Attempting with print_r and sortDump...', iColorCode::RED);
+
+                    $code = print_r($code, true);
+
+                    ob_start(null, null, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
+
+                    sortDump($trace, true, false);
+
+                    $code .= ob_get_clean();
+
+                }
+
+            }
+
+            return "<pre>$code</pre>";
+
+        };
+
+        $log_array['TRACE'] = [];
 
         $json = $GLOBALS['json'] ??= [];
 
-        $log_array['$GLOBALS[\'json\']'] = CarbonPHP::$cli || $_SERVER["CONTENT_TYPE"] === 'application/json'
-            ? $json : $pre(json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: serialize($json));
+        $log_array['$GLOBALS[\'json\']'] = $pre($json);
 
         $debugBacktrace = debug_backtrace();
 
-        $log_array['debug_backtrace()'] = CarbonPHP::$cli || $_SERVER["CONTENT_TYPE"] === 'application/json'
-            ? $debugBacktrace : $pre(json_encode($debugBacktrace, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: serialize($debugBacktrace));
+        $log_array['debug_backtrace()'] = $pre($debugBacktrace);
 
         if (self::$storeReport === true || self::$storeReport === 'database') {
 
@@ -790,8 +800,8 @@ class ErrorCatcher
 
                     if (false === $reports::post([
                             $reports::LOG_LEVEL => $level,
-                            $reports::REPORT => $cliOutput,
-                            $reports::CALL_TRACE => $trace
+                            $reports::REPORT => $traceHTML,
+                            $reports::CALL_TRACE => $html_error_log
                         ])) {
 
                         error_log($message = 'Failed storing log in database. The restful Reports table returned false.');
@@ -830,7 +840,25 @@ class ErrorCatcher
 
         }
 
-        $message = json_encode($log_array, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        $cliOutputArray = $log_array;
+
+        $cliOutputArray['TRACE'] = $traceCLI;
+
+        $log_array['TRACE'] = '<pre>' . $traceHTML . '</pre>' ;
+
+        foreach ($log_array as $key => $val) {
+
+            if (is_callable($val)) {
+
+                $cliOutputArray[$key] = $val(false);
+
+                $log_array[$key] = $val();
+
+            }
+
+        }
+
+        $message = json_encode($cliOutputArray, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
         self::colorCode($message, $color);
 
@@ -889,14 +917,16 @@ class ErrorCatcher
      * @param Throwable $e
      * @return string|array
      */
-    protected static function generateCallTrace(Throwable $e = null)
+    protected static function generateCallTrace(Throwable $e = null) : array
     {
+
         $_SERVER["CONTENT_TYPE"] ??= '';
 
         self::$methodName = self::$className = '';
 
         if (false === CarbonPHP::$cli) {
-            ob_start(null, null, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);     // start a new buffer for saving errors
+            ob_start(null, null, PHP_OUTPUT_HANDLER_CLEANABLE
+                | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);     // start a new buffer for saving errors
         }
 
         if (null === $e) {
@@ -941,7 +971,8 @@ class ErrorCatcher
 
         } else {
 
-            $result = array();
+            $resultHTML = array();
+            $resultCLI = array();
 
             for ($i = 0; $i < $length; $i++) {
 
@@ -986,17 +1017,18 @@ class ErrorCatcher
 
                 }
 
-                $result[] = CarbonPHP::$cli || $_SERVER["CONTENT_TYPE"] === 'application/json'
-                    ? ["TRACE $call_number" => $line_one, 'ARGUMENTS' => $line_two]
-                    : $line_one . "\n\t\t\t\t" . $line_two . PHP_EOL;
+                $resultCLI[] = [
+                        "TRACE $call_number" => $line_one,
+                        'ARGUMENTS' => $line_two
+                    ];
+
+                $resultHTML[] = $line_one . "\n\t\t\t\t" . $line_two . PHP_EOL;
 
             }
 
         }
 
-        return CarbonPHP::$cli || $_SERVER["CONTENT_TYPE"] === 'application/json'
-            ? $result
-            : PHP_EOL . implode(PHP_EOL, $result);
+        return [ $resultCLI,   PHP_EOL . implode(PHP_EOL, $resultHTML ) . PHP_EOL ];
     }
 
     /**
@@ -1037,18 +1069,28 @@ class ErrorCatcher
             foreach ($message as $left => $right) {
 
                 if (!is_string($left)) {
+
                     $left = json_encode($left, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: serialize($left);                      //  todo - we can do better
+
                 }
 
                 if (!is_string($right)) {
+
                     $right = json_encode($right, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: serialize($left);                      //  todo - we can do better
+
                 }
 
-                $cleanErrorReport .=
-                    $left === 'TRACE'
+                $blocks = $left === 'TRACE'
                     || $left === '$GLOBALS[\'json\']'
-                    || $left === 'debug_backtrace()'
-                        ?
+                    || $left === 'debug_backtrace()';
+
+                if ($blocks && is_callable($right)) {
+
+                    $right();
+
+                }
+
+                $cleanErrorReport .= $blocks ?
                     <<<DESCRIPTION
 <p>> <span>$left</span>: <i>$right</i></p>
 
@@ -1061,14 +1103,19 @@ DESCRIPTION;
             }
 
             if ($codePreview !== '') {
+
                 $cleanErrorReport = "<p>> <span>THROWN NEAR</span>: <pre><code>$codePreview</code></pre></p>$cleanErrorReport";
+
             }
+
         } else {
+
             $cleanErrorReport = <<<PRODUCTION
                     <p>> <span>ERROR DESCRIPTION</span>: "<i>Something went wrong on our end. We will be investigating soon.</i>"</p>
                     <p>> <span>ERROR POSSIBLY CAUSED BY</span>: [<b>execute access forbidden, read access forbidden, write access forbidden, ssl required, ssl 128 required, ip address rejected, client certificate required, site access denied, too many users, invalid configuration, password change, mapper denied access, client certificate revoked, directory listing denied, client access licenses exceeded, client certificate is untrusted or invalid, client certificate has expired or is not yet valid, passport logon failed, source access denied, infinite depth is denied, too many requests from the same client ip</b>...]</p>
                     <p>> <span>SOME PAGES ON THIS SERVER THAT YOU DO HAVE PERMISSION TO ACCESS</span>: [<a href="/">Home Page</a>, <a href="/about">About Us</a>, <a href="/contact">Contact Us</a>, <a href="/Blog">Blog</a>...]</p>
                     PRODUCTION;
+
         }
 
         $statusText = self::statusText($code);
