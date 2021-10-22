@@ -853,7 +853,7 @@ class CarbonPHP extends React.Component<iCarbonPHP, {
               },
               {
                 tabIcon: RecentActors,
-                tabButton: "Session",
+                tabButton: "IAM",
                 tabContent:
                   <GridContainer justify="center">
                   <GridItem xs={false} sm={false} md={1}> </GridItem>

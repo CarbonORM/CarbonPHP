@@ -984,9 +984,15 @@ abstract class Rest extends Database
 
         } finally {
 
-            if (false === headers_sent()) {
+            if (false === headers_sent($filename,$line)) {
 
                 header('Content-Type: application/json', true, 200);
+
+            } else {
+
+                $json['headers_sent:filename'] = $filename;
+
+                $json['headers_sent:line'] = $line;
 
             }
 
@@ -2362,6 +2368,12 @@ abstract class Rest extends Database
         $sql = '';
 
         foreach ($get as $key => $column) {
+
+            if (false === is_numeric($key)) {
+
+                throw new PublicAlert('Select values must only use numeric keys. The key (' . $key . ') was encountered.');
+
+            }
 
             // this is for buildAggregate which prepends
             if ('' !== $sql && ',' !== $sql[-2]) {

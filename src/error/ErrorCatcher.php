@@ -396,7 +396,12 @@ class ErrorCatcher
 
             }
 
-            $contentType = 'Content-Type: ' . ( $_SERVER["CONTENT_TYPE"] === 'application/json' ? 'application/json' : 'text/html' );
+            $_SERVER["CONTENT_TYPE"] =
+                false === strpos($_SERVER["CONTENT_TYPE"], 'application/json')
+                    ? 'text/html'
+                    : 'application/json';
+
+            $contentType = 'Content-Type: ' . $_SERVER["CONTENT_TYPE"];
 
             header($contentType, true, $code);
 
