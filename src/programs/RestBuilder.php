@@ -1542,6 +1542,16 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
     public const VALIDATE_AFTER_REBUILD = true;
     {{/DONT_VALIDATE_AFTER_REBUILD}}
     
+    
+    /** ALLOW_COUNT_ALL
+     * Count(*) should only be run it's own query.?
+    **/{{#ALLOW_COUNT_ALL}}
+    public const ALLOW_COUNT_ALL = false;
+    {{/ALLOW_COUNT_ALL}}{{^ALLOW_COUNT_ALL}}
+    public const ALLOW_COUNT_ALL = true;
+    {{/ALLOW_COUNT_ALL}}
+    
+    
     /**
      * COLUMNS
      * The columns below are a 1=1 mapping to the columns found in {{TableName}}. 

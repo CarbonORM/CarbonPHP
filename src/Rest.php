@@ -13,7 +13,6 @@ use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Programs\MySQL;
 use CarbonPHP\Tables\Carbons;
 use CarbonPHP\Tables\History_Logs;
-use CarbonPHP\Tables\Wp_Users;
 use Config\Documentation;
 use PDO;
 use PDOException;
@@ -27,6 +26,7 @@ abstract class Rest extends Database
     public const AS = 'AS';
     public const ASC = 'ASC';
     public const COUNT = 'COUNT';
+    public const COUNT_ALL = 'COUNT_ALL';
     public const CURRENT_TIMESTAMP = 'CURRENT_TIMESTAMP';
     public const DESC = 'DESC'; // not case sensitive but helpful for reporting to remain uppercase
     public const DISTINCT = 'DISTINCT';
@@ -39,8 +39,7 @@ abstract class Rest extends Database
     public const GREATER_THAN_OR_EQUAL_TO = '>=';
     public const HAVING = 'HAVING';
     public const HEX = 'HEX';
-    public const IN
-        = 'IN';
+    public const IN = 'IN';
     public const INNER = 'INNER';
     public const INSERT = 'INSERT';
     public const JOIN = 'JOIN';
@@ -984,7 +983,7 @@ abstract class Rest extends Database
 
         } finally {
 
-            if (false === headers_sent($filename,$line)) {
+            if (false === headers_sent($filename, $line)) {
 
                 header('Content-Type: application/json', true, 200);
 
@@ -2143,7 +2142,8 @@ abstract class Rest extends Database
                                                 If you are lucky enough to need to scale writes beyond a single server and end up having to shard auto increment no longer produces unique keys.
                                                 @quote @author John Schulz
                                                 @source @reference @link https://blog.pythian.com/case-auto-increment-mysql/
-                                                WARNING);
+                                                WARNING
+                            );
 
                             PublicAlert::warning('CarbonPHP offers a scalable primary key solution using UUIDs. Please refer to the documentation.');
 
@@ -2153,7 +2153,7 @@ abstract class Rest extends Database
 
                     } else {
 
-                        $id = $post[0][static::PRIMARY]; 
+                        $id = $post[0][static::PRIMARY];
 
                     }
 
@@ -3276,8 +3276,6 @@ abstract class Rest extends Database
                 self::$columnSelectEncountered,
             ] = array_pop(self::$activeQueryStates);
         } else {
-
-
 
 
             [

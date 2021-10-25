@@ -977,6 +977,7 @@ class ErrorCatcher
         } else {
 
             $resultHTML = array();
+
             $resultCLI = array();
 
             for ($i = 0; $i < $length; $i++) {
@@ -1016,18 +1017,19 @@ class ErrorCatcher
 
                 if (array_key_exists('args', $args[$i])) {
 
-                    $line_two = CarbonPHP::$cli || $_SERVER["CONTENT_TYPE"] === 'application/json'
-                        ? $args[$i]['args']
-                        : json_encode($args[$i]['args'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                    $line_two_html = json_encode($args[$i]['args'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+
+                    $line_two_cli = CarbonPHP::$cli || $_SERVER["CONTENT_TYPE"] === 'application/json'
+                        ? $args[$i]['args'] : $line_two_html;
 
                 }
 
                 $resultCLI[] = [
                         "TRACE $call_number" => $line_one,
-                        'ARGUMENTS' => $line_two
+                        'ARGUMENTS' => $line_two_cli
                     ];
 
-                $resultHTML[] = $line_one . "\n\t\t\t\t" . $line_two . PHP_EOL;
+                $resultHTML[] = $line_one . "\n\t\t\t\t" . $line_two_html . PHP_EOL;
 
             }
 
