@@ -1075,7 +1075,15 @@ abstract class Rest extends Database
 
         if (false === defined("$tableName::CLASS_NAME")) {
 
-            throw new PublicAlert("The restful sub-select failed as the table ($tableName) did not have member const ($tableName::CLASS_NAME).");
+            $tableNameFullTry = static::CLASS_NAMESPACE . $tableName;
+
+            if (false === defined("$tableNameFullTry::CLASS_NAME")) {
+
+                throw new PublicAlert("The restful sub-select failed as the table ($tableName) did not have member const ($tableName::CLASS_NAME) under the (" . static::CLASS_NAMESPACE . ') namespace.');
+
+            }
+
+            $tableName = $tableNameFullTry;
 
         }
 
