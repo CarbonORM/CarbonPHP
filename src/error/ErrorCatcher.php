@@ -898,7 +898,7 @@ class ErrorCatcher
 
                 } else {
 
-                    self::exitAndSendBasedOnRequested($log_array, $html_error_log);
+                    self::exitAndSendBasedOnRequested($cliOutputArray, $html_error_log);
 
                 }
 
@@ -1025,9 +1025,9 @@ class ErrorCatcher
                 }
 
                 $resultCLI[] = [
-                        "TRACE $call_number" => $line_one,
-                        'ARGUMENTS' => $line_two_cli
-                    ];
+                    "TRACE $call_number" => $line_one,
+                    'ARGUMENTS' => $line_two_cli
+                ];
 
                 $resultHTML[] = $line_one . "\n\t\t\t\t" . $line_two_html . PHP_EOL;
 
