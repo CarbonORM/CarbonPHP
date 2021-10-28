@@ -1,6 +1,8 @@
 <component name="ProjectDictionaryState">
   <dictionary name="richardmiles">
     <words>
+      <w>adddate</w>
+      <w>addtime</w>
       <w>autoloading</w>
       <w>automagically</w>
       <w>axios</w>
@@ -9,6 +11,11 @@
       <w>callables</w>
       <w>carbonphp</w>
       <w>certbot</w>
+      <w>datediff</w>
+      <w>dayname</w>
+      <w>dayofmonth</w>
+      <w>dayofweek</w>
+      <w>dayofyear</w>
       <w>devconsole</w>
       <w>falsey</w>
       <w>fileinfo</w>
@@ -18,7 +25,10 @@
       <w>httpd</w>
       <w>jsqueeze</w>
       <w>lte</w>
+      <w>makedate</w>
+      <w>maketime</w>
       <w>matthiasmullie</w>
+      <w>monthname</w>
       <w>mysqldum</w>
       <w>mysqldump</w>
       <w>or'ed</w>
@@ -41,6 +51,7 @@
       <w>ucfirst</w>
       <w>unhex</w>
       <w>unhexed</w>
+      <w>unixtime</w>
       <w>websocketd</w>
       <w>websockets</w>
       <w>wget</w>

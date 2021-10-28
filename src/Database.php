@@ -119,6 +119,7 @@ FOOT;
 
     public static function database(): PDO
     {
+
         if (null === self::$database) { // todo - can we get the ini of mysql timeout?
 
             return static::reset();
@@ -145,6 +146,7 @@ FOOT;
 
             return static::reset();
         }
+
     }
 
     /**
@@ -266,18 +268,7 @@ FOOT;
 
     }
 
-
-    /** Clears and restarts the PDO connection
-     * @return PDO
-     */
-    public static function reset(): PDO // built to help preserve database in sockets and forks
-    {
-        if (null !== self::$database) {
-
-            self::close();
-
-        }
-
+    protected static function newInstance() : PDO {
         $attempts = 0;
 
         $prep = static function (PDO $db): PDO {
@@ -330,6 +321,20 @@ FOOT;
         ErrorCatcher::generateLog($e);
 
         die(1);
+    }
+
+    /** Clears and restarts the PDO connection
+     * @return PDO
+     */
+    public static function reset(): PDO // built to help preserve database in sockets and forks
+    {
+        if (null !== self::$database) {
+
+            self::close();
+
+        }
+
+        return self::newInstance();
 
     }
 
@@ -467,7 +472,6 @@ FOOT;
 
     /** Commit the current transaction to the database.
      * @link http://php.net/manual/en/pdo.rollback.php
-     * @param callable|mixed $lambda
      * @return bool
      * @throws PublicAlert
      */
@@ -482,17 +486,20 @@ FOOT;
 
         }
 
-        return $db->commit() ?: static::verify();
+        return $db->commit() || static::verify();
 
     }
 
     /**
+     *
+     * ATTR_EMULATE_PREPARES - the sessions table stopped working as the php serialized
+     *      uses : which cased the driver to fail
      * @return array
      */
     public static function getPdoOptions(): array
     {
-
         return self::$pdo_options ??= [
+            PDO::ATTR_EMULATE_PREPARES => true,
             PDO::ATTR_PERSISTENT => CarbonPHP::$cli,                // only in cli (including websockets)
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::MYSQL_ATTR_FOUND_ROWS => true,                     // Return the number of found (matched) rows, not the number of changed rows.
@@ -500,7 +507,6 @@ FOOT;
             PDO::ATTR_CASE => PDO::CASE_NATURAL,
             PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL
         ];
-
     }
 
     /**
@@ -1001,25 +1007,37 @@ FOOT;
             $changesTwo = array_diff($postUpdateSQLArray, $preUpdateSQLArray);
 
             $replace = [
-                /** @lang PhpRegExp */ '#bigint\(\d+\)#' => 'bigint',
-                /** @lang PhpRegExp */ '#int\(\d+\)#' => 'int',
-                /** @lang PhpRegExp */ '#CHARACTER\sSET\s\w+#' => '',
-                /** @lang PhpRegExp */ '#COLLATE\s\w+#' => '',
-                /** @lang PhpRegExp */ '#datetime\sDEFAULT\sNULL#' => 'datetime',
-                /** @lang PhpRegExp */ '#\sON\sDELETE\sNO\sACTION#' => '',
-                /** @lang PhpRegExp */ '#AUTO_INCREMENT=\d+#' => '',
-                /** @lang PhpRegExp */ '#COLLATE=\w+#' => '',
-                /** @lang PhpRegExp */ '#DEFAULT CHARSET=\w+#' => '',   // todo - I feel like this makes sense to flag but Actions
-                /** @lang PhpRegExp */ '#\s{2,}#' => ' ',
-                /** @lang PhpRegExp */ '#\s?,$#' => '',
-                /** @lang PhpRegExp */ '#\s?;$#' => '',
+                /** @lang PhpRegExp */
+                '#bigint\(\d+\)#' => 'bigint',
+                /** @lang PhpRegExp */
+                '#int\(\d+\)#' => 'int',
+                /** @lang PhpRegExp */
+                '#CHARACTER\sSET\s\w+#' => '',
+                /** @lang PhpRegExp */
+                '#COLLATE\s\w+#' => '',
+                /** @lang PhpRegExp */
+                '#datetime\sDEFAULT\sNULL#' => 'datetime',
+                /** @lang PhpRegExp */
+                '#\sON\sDELETE\sNO\sACTION#' => '',
+                /** @lang PhpRegExp */
+                '#AUTO_INCREMENT=\d+#' => '',
+                /** @lang PhpRegExp */
+                '#COLLATE=\w+#' => '',
+                /** @lang PhpRegExp */
+                '#DEFAULT CHARSET=\w+#' => '',   // todo - I feel like this makes sense to flag but Actions
+                /** @lang PhpRegExp */
+                '#\s{2,}#' => ' ',
+                /** @lang PhpRegExp */
+                '#\s?,$#' => '',
+                /** @lang PhpRegExp */
+                '#\s?;$#' => '',
             ];
 
             $pattern = array_keys($replace);
             $replacement = array_values($replace);
 
-            $looseSQLOne = preg_replace($pattern,$replacement, $preUpdateSQLArray);
-            $looseSQLTwo = preg_replace($pattern,$replacement, $postUpdateSQLArray);
+            $looseSQLOne = preg_replace($pattern, $replacement, $preUpdateSQLArray);
+            $looseSQLTwo = preg_replace($pattern, $replacement, $postUpdateSQLArray);
 
             $looseChangesOne = array_diff($looseSQLOne, $looseSQLTwo);
             $looseChangesTwo = array_diff($looseSQLTwo, $looseSQLOne);
@@ -1060,7 +1078,7 @@ FOOT;
 
                     $failureEncountered = true;
 
-                } elseif (defined("$fullyQualifiedClassName::VERBOSE_LOGGING") && true === $fullyQualifiedClassName::VERBOSE_LOGGING){
+                } elseif (defined("$fullyQualifiedClassName::VERBOSE_LOGGING") && true === $fullyQualifiedClassName::VERBOSE_LOGGING) {
 
                     ColorCode::colorCode("Due to version differences in how MySQLDump will print your schema, the following are used with preg_replace to `loosen` the condition PHP array_diff must meet ::\n" . json_encode($replace, JSON_PRETTY_PRINT) . "\n\n", iColorCode::MAGENTA);
                     self::colorCode("Due to the loosened conditions the table ($tableName) has passed.");

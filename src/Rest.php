@@ -23,27 +23,71 @@ abstract class Rest extends Database
 {
 
     # mysql restful identifiers
+    public const ADDDATE = 'ADDDATE';
+    public const ADDTIME = 'ADDTIME';
     public const AS = 'AS';
     public const ASC = 'ASC';
+    public const BETWEEN = 'BETWEEN';
+    public const CONVERT_TZ = 'CONVERT_TZ';
     public const COUNT = 'COUNT';
     public const COUNT_ALL = 'COUNT_ALL';
+    public const CURRENT_DATE = 'CURRENT_DATE';
     public const CURRENT_TIMESTAMP = 'CURRENT_TIMESTAMP';
+    public const DAY = 'DAY';
+    public const DAY_HOUR = 'DAY_HOUR';
+    public const DAY_MICROSECOND = 'DAY_MICROSECOND';
+    public const DAY_MINUTE = 'DAY_MINUTE';
+    public const DAY_SECOND = 'DAY_SECOND';
+    public const DAYNAME = 'DAYNAME';
+    public const DAYOFMONTH = 'DAYOFMONTH';
+    public const DAYOFWEEK = 'DAYOFWEEK';
+    public const DAYOFYEAR = 'DAYOFYEAR';
+    public const DATE = 'DATE';
+    public const DATE_ADD = 'DATE_ADD';
+    public const DATEDIFF = 'DATEDIFF';
+    public const DATE_SUB = 'DATE_SUB';
+    public const DATE_FORMAT = 'DATE_FORMAT';
     public const DESC = 'DESC'; // not case sensitive but helpful for reporting to remain uppercase
     public const DISTINCT = 'DISTINCT';
+    public const EXTRACT = 'EXTRACT';
     public const EQUAL = '=';
     public const EQUAL_NULL_SAFE = '<=>';
     public const FULL_OUTER = 'FULL_OUTER';
+    public const FROM_DAYS = 'FROM_DAYS';
+    public const FROM_UNIXTIME = 'FROM_UNIXTIME';
+    public const GET_FORMAT = 'GET_FORMAT';
     public const GREATER_THAN = '>';
     public const GROUP_BY = 'GROUP_BY';             // js // http get will convert the space so _ explicitly
     public const GROUP_CONCAT = 'GROUP_CONCAT';
     public const GREATER_THAN_OR_EQUAL_TO = '>=';
     public const HAVING = 'HAVING';
     public const HEX = 'HEX';
+    public const HOUR = 'HOUR';
+    public const HOUR_MICROSECOND = 'HOUR_MICROSECOND';
+    public const HOUR_SECOND = 'HOUR_SECOND';
+    public const HOUR_MINUTE = 'HOUR_MINUTE';
+    public const MICROSECOND = 'MICROSECOND';
+    public const MINUTE = 'MINUTE';
+    public const MINUTE_MICROSECOND = 'MINUTE_MICROSECOND';
+    public const MINUTE_SECOND = 'MINUTE_SECOND';
+    public const MONTH = 'MONTH';
+    public const QUARTER = 'QUARTER';
+    public const SECOND = 'SECOND';
+    public const SECOND_MICROSECOND = 'SECOND_MICROSECOND';
+    public const WEEK = 'WEEK';
+    public const YEAR = 'YEAR';
+    public const YEAR_MONTH = 'YEAR_MONTH';
     public const IN = 'IN';
     public const INNER = 'INNER';
+    public const INTERVAL = 'INTERVAL';
     public const INSERT = 'INSERT';
     public const JOIN = 'JOIN';
     public const LEFT = 'LEFT';
+    public const LOCALTIME = 'LOCALTIME';
+    public const LOCALTIMESTAMP = 'LOCALTIMESTAMP';
+    public const MAKEDATE = 'MAKEDATE';
+    public const MAKETIME = 'MAKETIME';
+    public const MONTHNAME = 'MONTHNAME';
     public const LEFT_OUTER = 'LEFT_OUTER';
     public const LESS_THAN = '<';
     public const LESS_THAN_OR_EQUAL_TO = '<=';
@@ -52,16 +96,37 @@ abstract class Rest extends Database
     public const LIMIT = 'LIMIT';
     public const MIN = 'MIN';
     public const MAX = 'MAX';
-    public const NOW = ' NOW() ';
+    public const NOW = 'NOW';
     public const NOT_EQUAL = '<>';
     public const NOT_IN = 'NOT_IN';
     public const ORDER = 'ORDER';
     public const PAGE = 'PAGE';
     public const PAGINATION = 'PAGINATION';
+    public const PERIOD_DIFF = 'PERIOD_DIFF';
     public const REPLACE = 'REPLACE INTO';
     public const RIGHT = 'RIGHT';
     public const RIGHT_OUTER = 'RIGHT_OUTER';
     public const SELECT = 'SELECT';
+    public const STR_TO_DATE = 'STR_TO_DATE';
+    public const SUBDATE = 'SUBDATE';
+    public const SUBTIME = 'SUBTIME';
+    public const SYSDATE = 'SYSDATE';
+    public const TIME = 'TIME';
+    public const TIME_FORMAT = 'TIME_FORMAT';
+    public const TIME_TO_SEC = 'TIME_TO_SEC';
+    public const TIMEDIFF = 'TIMEDIFF';
+    public const TIMESTAMP = 'TIMESTAMP';
+    public const TIMESTAMPADD = 'TIMESTAMPADD';
+    public const TIMESTAMPDIFF = 'TIMESTAMPDIFF';
+    public const TO_DAYS = 'TO_DAYS';
+    public const TO_SECONDS = 'TO_SECONDS';
+    public const UNIX_TIMESTAMP = 'UNIX_TIMESTAMP';
+    public const UTC_DATE = 'UTC_DATE';
+    public const UTC_TIME = 'UTC_TIME';
+    public const UTC_TIMESTAMP = 'UTC_TIMESTAMP';
+    public const WEEKDAY = 'WEEKDAY';
+    public const WEEKOFYEAR = 'WEEKOFYEAR';
+    public const YEARWEEK = 'YEARWEEK';
     public const SUM = 'SUM';
     public const TRANSACTION_TIMESTAMP = 'TRANSACTION_TIMESTAMP';
     public const UPDATE = 'UPDATE';
@@ -136,6 +201,34 @@ abstract class Rest extends Database
 
     // many other requirements must be met for this to apply, see how method signalError is defined
     public static bool $suppressErrorsAndReturnFalse = false;
+
+    public const AGGREGATES = [
+        self::ADDDATE,
+        self::ADDTIME,
+        self::DATE_ADD,
+        self::DAYNAME,
+        self::CONVERT_TZ,
+        self::DAYOFMONTH,
+        self::MAX,
+        self::MIN,
+        self::SUM,
+        self::HEX,
+        self::UNHEX,
+        self::DISTINCT,
+        self::NOW,
+        self::GROUP_CONCAT,
+        self::COUNT,
+        self::AS,                // just in case were using  $column => [ self::AS, '' ]  syntax
+        self::IN,
+        self::INTERVAL,
+        self::NOT_IN,            // Sub-select was handled earlier
+    ];
+
+    public const AGGREGATES_WITH_NO_PARAMETERS = [
+        'COUNT(*)',
+        self::COUNT_ALL,
+        self::NOW,
+    ];
 
     /**
      * @warning Rest constructor. Avoid this if possible.
@@ -484,6 +577,21 @@ abstract class Rest extends Database
 
     }
 
+    public static function parseAggregateWithNoOperators(&$aggregate) : string {
+
+        if ($aggregate === self::COUNT_ALL) {
+
+            $aggregate = 'COUNT(*)';
+
+        } else {
+
+            $aggregate .= '()';
+        }
+
+        return $aggregate;
+
+    }
+
     /**
      * returns true if it is a column name that exists and all user validations pass.
      * return is false otherwise.
@@ -502,6 +610,29 @@ abstract class Rest extends Database
 
             return false; // this may indicate a json column
 
+        }
+
+        if (in_array($column, self::AGGREGATES_WITH_NO_PARAMETERS, true)) {
+
+            self::parseAggregateWithNoOperators($column);
+
+            return true;
+
+        }
+
+        if (in_array(substr($column, 0, -2), self::AGGREGATES_WITH_NO_PARAMETERS, true)
+            || in_array(substr($column, 0, -3), self::AGGREGATES_WITH_NO_PARAMETERS, true)) {
+
+            $aggregateCharCheck = $column[-2];
+
+            if ('*' !== $aggregateCharCheck
+                && '(' !== $aggregateCharCheck) {
+
+                throw new PublicAlert("An unexpected aggregate ($column) was encountered.");
+
+            }
+
+            return true;
         }
 
         if (array_key_exists($column, self::$compiled_PDO_validations)) {      // allow short tags
@@ -1026,19 +1157,7 @@ abstract class Rest extends Database
 
         }
 
-        if (in_array($array[0], [
-            self::MAX,
-            self::MIN,
-            self::SUM,
-            self::HEX,
-            self::UNHEX,
-            self::DISTINCT,
-            self::GROUP_CONCAT,
-            self::COUNT,
-            self::AS,                // just in case were using  $column => [ self::AS, '' ]  syntax
-            self::IN,
-            self::NOT_IN,            // Sub-select was handled earlier
-        ], true)) {
+        if (in_array($array[0], self::AGGREGATES, true)) {
 
             return true;
 
@@ -1225,6 +1344,19 @@ abstract class Rest extends Database
             && self::SELECT === $stmt[0];
     }
 
+    public static function verifyAsValue($value): void
+    {
+
+        $validNameRegex = '#^[a-zA-Z_][a-zA-Z0-9_]*$#';
+
+        if (false === preg_match($validNameRegex, $value)) {
+
+            throw new PublicAlert("When using a RESTFUL (AS) aggregation the name ($value) value must match the regex ($validNameRegex)");
+
+        }
+
+    }
+
     /**
      * @param array $stmt
      * @param bool $isSubSelect
@@ -1242,44 +1374,84 @@ abstract class Rest extends Database
 
         }
 
-        self::$aggregateSelectEncountered = true;
+        $validateInternalOrAddInjection = static function (string $columnOrInjection, string $aggregate, &...$rest) {
 
-        if (count($stmt) === 3) {
+            $value_is_custom = false === self::validateInternalColumn($columnOrInjection, $operator, $rest);
 
-            [$column, $aggregate, $name] = $stmt;
+            if ($value_is_custom) {
 
-            if ($aggregate !== self::AS) {
-
-                [$aggregate, $column, $name] = $stmt;
+                // this is just a technicality as name could be injected but also referenced in the query
+                return self::addInjection($columnOrInjection, [self::PDO_TYPE => null]);
 
             }
 
+            return $columnOrInjection;
+
+        };
+
+        self::$aggregateSelectEncountered = true;
+
+        $stmtCount = count($stmt);
+
+        if (4 === $stmtCount) {
+
+            [$aggregate, $time, $zoneOne, $zoneTwo] = $stmt;
+
+            if ($aggregate !== self::CONVERT_TZ) {
+
+                throw new PublicAlert('Expected the CONVERT_TZ aggregate function as four arguments were encountered.');
+
+            }
+
+            return $aggregate .
+                "({$validateInternalOrAddInjection($time, $aggregate, $zoneOne, $zoneTwo)},
+                {$validateInternalOrAddInjection($zoneOne, $aggregate, $time, $zoneTwo)},
+                {$validateInternalOrAddInjection($zoneTwo, $aggregate, $time, $zoneOne)})";
+
+        }
+
+        if (3 === $stmtCount) {
+
+            [$column, $aggregate, $name] = $stmt;
+
+            switch ($aggregate) {
+                case self::AS:
+                case self::IN:
+                case self::INTERVAL:
+                case self::NOT_IN:
+                    break;
+                default:
+                    [$aggregate, $column] = $stmt;
+            }
+
+        } elseif (2 === $stmtCount) {
+
+            [$aggregate, $column] = $stmt;    // todo - nested aggregates :: [$aggregate, string | array ]
+
         } else {
 
-            if (count($stmt) !== 2) {
+            if (count($stmt) !== 1) {
 
                 throw new PublicAlert('A Restful array value in the aggregation must be at least two values: array( $aggregate, $column [, optional: $as] ) ');
 
             }
 
-            [$aggregate, $column] = $stmt;    // todo - nested aggregates :: [$aggregate, string | array ]
+            [$aggregate] = $stmt;
+
+            if (self::NOW !== $aggregate) {
+
+                throw new PublicAlert("Restful request encountered an ($aggregate) aggregate function as the only member of the array.");
+
+            }
+
+            return $aggregate . '()';
 
         }
 
-        if (false === in_array($aggregate, $aggregateArray = [
-                self::AS,
-                self::MAX,
-                self::MIN,
-                self::SUM,
-                self::HEX,
-                self::UNHEX,
-                self::DISTINCT,
-                self::GROUP_CONCAT,
-                self::COUNT,
-            ], true)) {
+        if (false === in_array($aggregate, self::AGGREGATES, true)) {
 
             throw new PublicAlert('The aggregate ( ' . json_encode($stmt) . ') method in the GET request must be one of the following: '
-                . implode(', ', $aggregateArray));
+                . implode(', ', self::AGGREGATES));
 
         }
 
@@ -1744,10 +1916,10 @@ abstract class Rest extends Database
 
                     $shortName = static::COLUMNS[$fullName];
 
-                    $set .= "$fullName=" .
+                    $set .= " $fullName = " .
                         ('binary' === self::$compiled_PDO_validations[$fullName][self::MYSQL_TYPE]
-                            ? "UNHEX(:$shortName),"
-                            : ":$shortName,");
+                            ? "UNHEX(:$shortName) ,"
+                            : ":$shortName ,");
 
                 }
 
@@ -1785,6 +1957,12 @@ abstract class Rest extends Database
 
                 $stmt = $pdo->prepare($sql);
 
+                if (false === $stmt) {
+
+                    return self::signalError("PDO failed to prepare the sql generated! ($sql)");
+
+                }
+
                 foreach (static::COLUMNS as $fullName => $shortName) {
 
                     if (array_key_exists($fullName, $argv)) {
@@ -1803,15 +1981,21 @@ abstract class Rest extends Database
                                 ? json_encode($argv[$fullName])
                                 : $argv[$fullName];
 
-                            $stmt->bindValue(":$shortName", $value, static::PDO_VALIDATION[$fullName][self::PDO_TYPE]);
 
-                        } else {
+                            if (false === $stmt->bindValue(":$shortName", $value, static::PDO_VALIDATION[$fullName][self::PDO_TYPE])) {
 
-                            $stmt->bindParam(":$shortName", $argv[$fullName],
+                                return self::signalError("Failed to bind (:$shortName) with value ($value)");
+
+                            }
+
+                        } else if (false === $stmt->bindParam(":$shortName", $argv[$fullName],
                                 static::PDO_VALIDATION[$fullName][self::PDO_TYPE],
-                                (int)static::PDO_VALIDATION[$fullName][self::MAX_LENGTH]);
+                                (int)static::PDO_VALIDATION[$fullName][self::MAX_LENGTH])) {
+
+                            return self::signalError("Failed to bind (:$shortName) with value ({$argv[$fullName]})");
 
                         }
+
 
                     }
 
@@ -2293,7 +2477,7 @@ abstract class Rest extends Database
 
         if (is_string(static::PRIMARY)) {
 
-            if ([] !== $where) {
+            if ([] !== $where && '' !== ($primary[static::PRIMARY] ?? '')) {
 
                 throw new PublicAlert('Restful tables with a single primary key must not have WHERE values passed when the primary key is given. Table (' . static::class . ') was passed a non empty key `WHERE` (' . json_encode($where, JSON_PRETTY_PRINT) . ') to the arguments of GET.');
 
@@ -2453,7 +2637,8 @@ abstract class Rest extends Database
 
                 self::$columnSelectEncountered = true;
 
-                if (false === $isSubSelect && self::$compiled_PDO_validations[$column][self::MYSQL_TYPE] === 'binary') {
+                if (false === $isSubSelect
+                    && self::$compiled_PDO_validations[$column][self::MYSQL_TYPE] === 'binary') {
 
                     $sql .= "HEX($column) as " . self::$compiled_valid_columns[$column];        // get short tag
 
@@ -2757,7 +2942,6 @@ abstract class Rest extends Database
 
         $sql .= self::buildQueryGroupByValues(
             true === $ifArrayKeyExistsThenValueMustBeArray($argv, self::GROUP_BY)
-            || true === $ifArrayKeyExistsThenValueMustBeArray($argv, self::GROUP_BY)
                 ? $argv[self::GROUP_BY]
                 : [], $sql);
 
@@ -2874,17 +3058,11 @@ abstract class Rest extends Database
 
         if (false === $key_is_custom && false === $value_is_custom) {
 
-            $joinColumns[] = $valueOne; // todo - prefix by key?
-
-            $joinColumns[] = $valueTwo;
-
             return "$valueOne $operator $valueTwo";
 
         }
 
         if ($value_is_custom) {
-
-            $joinColumns[] = $valueOne;
 
             if (self::$allowSubSelectQueries && strpos($valueTwo, '(SELECT ') === 0) {
 
@@ -2901,9 +3079,6 @@ abstract class Rest extends Database
             return "$valueOne $operator " . self::addInjection($valueTwo);
 
         }
-
-        // column is custom
-        $joinColumns[] = $valueTwo;
 
         if (self::$compiled_PDO_validations[$valueTwo][self::MYSQL_TYPE] === 'binary') {
 
@@ -3232,6 +3407,7 @@ abstract class Rest extends Database
             self::$compiled_PHP_validations = [];
             self::$compiled_regex_validations = [];
             self::$join_tables = [];
+            self::$injection = [];
             # self::$allowSubSelectQueries = false;
         }
 
@@ -3284,8 +3460,6 @@ abstract class Rest extends Database
                 self::$columnSelectEncountered,
             ] = array_pop(self::$activeQueryStates);
         } else {
-
-
             [
                 self::$REST_REQUEST_METHOD,
                 self::$REST_REQUEST_PRIMARY_KEY,
@@ -3407,7 +3581,8 @@ abstract class Rest extends Database
 
                 [, $internalColumn] = explode('.', $internal);
 
-                $delete_children .= "DELETE FROM $externalTableName WHERE $externalColumn = OLD.$internalColumn;" . PHP_EOL;
+                $delete_children .= "# noinspection SqlResolve
+DELETE FROM $externalTableName WHERE $externalColumn = OLD.$internalColumn;" . PHP_EOL;
 
 
             }
@@ -3522,6 +3697,7 @@ TRIGGER;
 
     protected static function runValidations(array $php_validation, &...$rest): void
     {
+
         foreach ($php_validation as $key => $validation) {
 
             if (!is_int($key)) {

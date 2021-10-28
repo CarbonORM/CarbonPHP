@@ -76,6 +76,13 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
     **/
     public const VALIDATE_AFTER_REBUILD = true;
     
+    
+    /** ALLOW_COUNT_ALL
+     * Count(*) should only be run it's own query.?
+    **/
+    public const ALLOW_COUNT_ALL = true;
+    
+    
     /**
      * COLUMNS
      * The columns below are a 1=1 mapping to the columns found in carbon_history_logs. 

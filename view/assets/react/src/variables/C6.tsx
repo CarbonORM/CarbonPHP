@@ -27,7 +27,7 @@ export const C6 = {
     LIMIT: 'LIMIT',
     MIN: 'MIN',
     MAX: 'MAX',
-    NOW: ' NOW() ',
+    NOW: 'NOW',
     NOT_EQUAL: '<>',
     ORDER: 'ORDER',
     PAGE: 'PAGE',
