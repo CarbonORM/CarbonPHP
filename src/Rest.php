@@ -1279,9 +1279,16 @@ abstract class Rest extends Database
 
                     [, , $primary, $argv] = $stmt;
 
+                    if ('' === $primary) {
+
+                        $primary = null;
+
+                    }
+
                     /** @noinspection NotOptimalIfConditionsInspection - whatever; really */
                     if (is_string($primaryField)
-                        && (true === is_string($primary) || true === is_int($primary))) {
+                        && (true === is_int($primary)
+                        || true === is_string($primary))) {
 
                         $primary = [static::PRIMARY => $primary];
 
@@ -2938,7 +2945,8 @@ abstract class Rest extends Database
 
         }
 
-        $sql .= self::buildQueryWhereValues($argv[self::WHERE] ?? [], $primary); // Boolean Conditions and aggregation
+        // Boolean Conditions and aggregation
+        $sql .= self::buildQueryWhereValues($argv[self::WHERE] ?? [], $primary);
 
         $sql .= self::buildQueryGroupByValues(
             true === $ifArrayKeyExistsThenValueMustBeArray($argv, self::GROUP_BY)
