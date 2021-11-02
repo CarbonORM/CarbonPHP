@@ -1810,7 +1810,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
      * the RestBuilder program.
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
-    {{createTableSQL}}
+{{createTableSQL}}
 MYSQL;
        
    /**

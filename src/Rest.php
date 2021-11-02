@@ -1288,7 +1288,7 @@ abstract class Rest extends Database
                     /** @noinspection NotOptimalIfConditionsInspection - whatever; really */
                     if (is_string($primaryField)
                         && (true === is_int($primary)
-                        || true === is_string($primary))) {
+                            || true === is_string($primary))) {
 
                         $primary = [static::PRIMARY => $primary];
 
@@ -3690,20 +3690,57 @@ TRIGGER;
     }
 
 
+    public const  SQL_VERSION_PREG_REPLACE = [
+        /** @lang PhpRegExp */
+        '#bigint\(\d+\)#' => 'bigint',
+        /** @lang PhpRegExp */
+        '#int\(\d+\)#' => 'int',
+        /** @lang PhpRegExp */
+        '#CHARACTER\sSET\s[A-Za-z0-9_]+#' => '',
+        /** @lang PhpRegExp */
+        '#COLLATE\s[A-Za-z0-9_]+#' => '',
+        /** @lang PhpRegExp */
+        '#datetime\sDEFAULT\sNULL#' => 'datetime',
+        /** @lang PhpRegExp */
+        '#\sON\sDELETE\sNO\sACTION#' => '',
+        /** @lang PhpRegExp */
+        '#AUTO_INCREMENT=\d+#' => '',
+        /** @lang PhpRegExp */
+        '#COLLATE=[A-Za-z0-9_]+#' => '',
+        /** @lang PhpRegExp */
+        '#CREATE\sTABLE\s`#' => 'CREATE TABLE IF NOT EXISTS `',
+        /** @lang PhpRegExp */
+        '#DEFAULT CHARSET=[A-Za-z0-9_]+#' => '',   // todo - I feel like this makes sense to flag but Actions
+        /** @lang PhpRegExp */
+        '#\s{2,}#' => ' ',
+        /** @lang PhpRegExp */
+        '#\s?,$#' => '',
+        /** @lang PhpRegExp */
+        '#\s?;$#' => '',
+    ];
+
     public static function parseSchemaSQL(string $sql = null): ?string
     {
 
-        $sql = preg_replace('#AUTO_INCREMENT=\d+#i', 'AUTO_INCREMENT=0', $sql);
+        $sql = trim($sql);
 
-        if (null === $sql) {
+        $postUpdateSQL = trim(str_replace("\\n", "\n", $sql));
 
-            ColorCode::colorCode('parseSchemaSQL preg_replace failed for sql ' . $sql, iColorCode::RED);
+        $replace = self::SQL_VERSION_PREG_REPLACE;
 
-            return null;
+        $pattern = array_keys($replace);
 
-        }
+        $replacement = array_values($replace);
 
-        return preg_replace('#CREATE TABLE#i', 'CREATE TABLE IF NOT EXISTS', $sql);
+        $SQLArray = array_map('trim', explode(PHP_EOL, $sql));
+
+        $looseSQL = preg_replace($pattern, $replacement, $SQLArray);
+
+        $last = array_pop($looseSQL);
+
+        $first = array_shift($looseSQL);
+
+        return $first . PHP_EOL . implode( ',' . PHP_EOL, $looseSQL) . PHP_EOL . $last . ';';
 
     }
 

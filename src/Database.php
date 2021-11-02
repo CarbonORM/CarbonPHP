@@ -268,7 +268,8 @@ FOOT;
 
     }
 
-    protected static function newInstance() : PDO {
+    protected static function newInstance(): PDO
+    {
         $attempts = 0;
 
         $prep = static function (PDO $db): PDO {
@@ -865,7 +866,6 @@ FOOT;
 
         ColorCode::colorCode("\n\nScanning and running refresh database using ('$tableDirectory' . '*.php')");
 
-
         self::scanAnd(static function (string $table): void {
 
             if (defined("$table::TABLE_NAME")
@@ -1022,9 +1022,12 @@ FOOT;
 
             }
 
-            $preUpdateSQL = trim($preUpdateSQL);
+            // Rest::parseSchemaSQL() is only done on $preUpdateSQL for legacy builds
+            $preUpdateSQL = trim(Rest::parseSchemaSQL($preUpdateSQL));
 
-            $postUpdateSQL = trim(str_replace("\\n", "\n", Rest::parseSchemaSQL($postUpdateSQL)));
+            // parseSchemaSQL is needed as dif versions of mysql will dump diff things.
+            $postUpdateSQL = trim(str_replace("\\n", "\n",
+                Rest::parseSchemaSQL($postUpdateSQL)));
 
             // the table definition maybe reordered and we just want to know whats dif
             $preUpdateSQLArray = array_map('trim', explode(PHP_EOL, $preUpdateSQL));
@@ -1032,90 +1035,40 @@ FOOT;
             $postUpdateSQLArray = array_map('trim', explode(PHP_EOL, $postUpdateSQL));
 
             $changesOne = array_diff($preUpdateSQLArray, $postUpdateSQLArray);
+
             $changesTwo = array_diff($postUpdateSQLArray, $preUpdateSQLArray);
-
-            $replace = [
-                /** @lang PhpRegExp */
-                '#bigint\(\d+\)#' => 'bigint',
-                /** @lang PhpRegExp */
-                '#int\(\d+\)#' => 'int',
-                /** @lang PhpRegExp */
-                '#CHARACTER\sSET\s\w+#' => '',
-                /** @lang PhpRegExp */
-                '#COLLATE\s\w+#' => '',
-                /** @lang PhpRegExp */
-                '#datetime\sDEFAULT\sNULL#' => 'datetime',
-                /** @lang PhpRegExp */
-                '#\sON\sDELETE\sNO\sACTION#' => '',
-                /** @lang PhpRegExp */
-                '#AUTO_INCREMENT=\d+#' => '',
-                /** @lang PhpRegExp */
-                '#COLLATE=\w+#' => '',
-                /** @lang PhpRegExp */
-                '#DEFAULT CHARSET=\w+#' => '',   // todo - I feel like this makes sense to flag but Actions
-                /** @lang PhpRegExp */
-                '#\s{2,}#' => ' ',
-                /** @lang PhpRegExp */
-                '#\s?,$#' => '',
-                /** @lang PhpRegExp */
-                '#\s?;$#' => '',
-            ];
-
-            $pattern = array_keys($replace);
-            $replacement = array_values($replace);
-
-            $looseSQLOne = preg_replace($pattern, $replacement, $preUpdateSQLArray);
-            $looseSQLTwo = preg_replace($pattern, $replacement, $postUpdateSQLArray);
-
-            $looseChangesOne = array_diff($looseSQLOne, $looseSQLTwo);
-            $looseChangesTwo = array_diff($looseSQLTwo, $looseSQLOne);
 
             // safe compare multibyte strings
             if ([] !== $changesOne || $changesTwo !== []) {
 
-                if ([] !== $looseChangesOne || [] !== $looseChangesTwo) {
+                ColorCode::colorCode('Oh No! After running the database updated it looks like the sql found in'
+                    . " the mysql dump file did not match the expected. Any updates done to the database should be automated in the $fullyQualifiedClassName::REFRESH_SCHEMA[] definition. "
+                    . "If this is not a table you manage, but rather 3rd-party generated, you should change "
+                    . "($fullyQualifiedClassName::VALIDATE_AFTER_REBUILD = false;) and re-try; this can also be set to "
+                    . ' false if you would like to manage table definition(s) using other means.'
+                    . ' To update your table using REFRESH_SCHEMA, please refer to the documentation that is been provided'
+                    . " above this constant in the php class for $tableName.", iColorCode::RED);
 
-                    ColorCode::colorCode('Oh No! After running the database updated it looks like the sql found in'
-                        . " the mysql dump file did not match the expected. Any updates done to the database should be automated in the $fullyQualifiedClassName::REFRESH_SCHEMA[] definition. "
-                        . "If this is not a table you manage, but rather 3rd-party generated, you should change "
-                        . "($fullyQualifiedClassName::VALIDATE_AFTER_REBUILD = false;) and re-try; this can also be set to "
-                        . ' false if you would like to manage table definition(s) using other means.'
-                        . ' To update your table using REFRESH_SCHEMA, please refer to the documentation that is been provided'
-                        . " above this constant in the php class for $tableName.", iColorCode::RED);
+                self::colorCode("If the new SQL appears correct you probably"
+                    . " just need to re-run the RestBuilder program (not the database rebuild program currently raising error).", iColorCode::BACKGROUND_YELLOW);
 
-                    self::colorCode("If the new SQL appears correct you probably"
-                        . " just need to re-run the RestBuilder program (not the database rebuild program currently raising error).", iColorCode::BACKGROUND_YELLOW);
+                ColorCode::colorCode("Due to version differences in how MySQLDump will print your schema, the following are used with preg_replace to `loosen` the condition PHP array_diff must meet ::\n" . json_encode(Rest::SQL_VERSION_PREG_REPLACE, JSON_PRETTY_PRINT) . "\n\n", iColorCode::BACKGROUND_CYAN);
 
-                    ColorCode::colorCode("Due to version differences in how MySQLDump will print your schema, the following are used with preg_replace to `loosen` the condition PHP array_diff must meet ::\n" . json_encode($replace, JSON_PRETTY_PRINT) . "\n\n", iColorCode::BACKGROUND_CYAN);
+                ColorCode::colorCode("Expected (pre-updated sql) :: $preUpdateSQL\n\n", iColorCode::YELLOW);
 
-                    ColorCode::colorCode("Expected (pre-updated sql) :: $preUpdateSQL\n\n", iColorCode::YELLOW);
+                ColorCode::colorCode("GOT (post-updated sql) :: $postUpdateSQL\n\n", iColorCode::BLUE);    // I want to bring your attention back to the red ^^ then down to blue
 
-                    ColorCode::colorCode("GOT (post-updated sql) :: $postUpdateSQL\n\n", iColorCode::BLUE);    // I want to bring your attention back to the red ^^ then down to blue
+                ColorCode::colorCode("\tChanges\n", iColorCode::ITALIC);
+                ColorCode::colorCode("\tNew->Old", iColorCode::CYAN);
+                ColorCode::colorCode("Needs to be added or modified :: ", iColorCode::YELLOW);
+                ColorCode::colorCode('preg_replace\'d :: ' . json_encode($changesOne, JSON_PRETTY_PRINT) . "\n\n", iColorCode::CYAN);
+                ColorCode::colorCode("\tOld->New", iColorCode::RED);
+                ColorCode::colorCode("needs to be removed or modified :: ", iColorCode::YELLOW);
+                ColorCode::colorCode('preg_replace\'d :: ' . json_encode($changesTwo, JSON_PRETTY_PRINT) . "\n\n", iColorCode::RED);
 
-                    ColorCode::colorCode("\tChanges\n", iColorCode::ITALIC);
-                    ColorCode::colorCode("\tNew->Old", iColorCode::CYAN);
-                    ColorCode::colorCode("Needs to be added or modified :: ", iColorCode::YELLOW);
-                    ColorCode::colorCode('preg_replace\'d :: ' . json_encode($looseChangesOne, JSON_PRETTY_PRINT) . "\n\n", iColorCode::CYAN);
-                    ColorCode::colorCode('exact :: ' . json_encode($changesOne, JSON_PRETTY_PRINT) . "\n\n", iColorCode::CYAN);
-                    ColorCode::colorCode("\tOld->New", iColorCode::RED);
-                    ColorCode::colorCode("needs to be removed or modified :: ", iColorCode::YELLOW);
-                    ColorCode::colorCode('preg_replace\'d :: ' . json_encode($looseChangesTwo, JSON_PRETTY_PRINT) . "\n\n", iColorCode::RED);
-                    ColorCode::colorCode('exact :: ' . json_encode($changesTwo, JSON_PRETTY_PRINT) . "\n\n", iColorCode::RED);
+                self::colorCode('Only the `preg_replace` differences need be changed to complete with success.');
 
-                    self::colorCode('Only the `preg_replace` differences need be changed to complete with success.');
-
-                    $failureEncountered = true;
-
-                } elseif (defined("$fullyQualifiedClassName::VERBOSE_LOGGING") && true === $fullyQualifiedClassName::VERBOSE_LOGGING) {
-
-                    ColorCode::colorCode("Due to version differences in how MySQLDump will print your schema, the following are used with preg_replace to `loosen` the condition PHP array_diff must meet ::\n" . json_encode($replace, JSON_PRETTY_PRINT) . "\n\n", iColorCode::MAGENTA);
-                    self::colorCode("Due to the loosened conditions the table ($tableName) has passed.");
-                    ColorCode::colorCode("\tNew->Old", iColorCode::CYAN);
-                    ColorCode::colorCode(json_encode($changesOne, JSON_PRETTY_PRINT) . "\n\n", iColorCode::CYAN);
-                    ColorCode::colorCode("\tOld->New", iColorCode::CYAN);
-                    ColorCode::colorCode(json_encode($changesTwo, JSON_PRETTY_PRINT) . "\n\n", iColorCode::CYAN);
-
-                }
+                $failureEncountered = true;
 
             }
 
@@ -1272,10 +1225,27 @@ FOOT;
 
             }
 
-            $jsonEncode = json_encode(self::fetch(self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS . PHP_EOL
-                . $stmts . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS), JSON_PRETTY_PRINT);
+            $sql = self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS . PHP_EOL
+                . $stmts . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS;
 
-            self::colorCode($jsonEncode);
+            $success = self::execute($sql);
+
+
+            self::colorCode($success ? 'success' : 'failed', $success ? iColorCode::GREEN : iColorCode::RED);
+
+            if (false === $success) {
+
+                exit(1);
+
+            }
+
+            if (false === file_put_contents(CarbonPHP::$app_root . 'createTables.sql', $sql)) {
+
+                self::colorCode('Failed to store sql to ' . CarbonPHP::$app_root . 'createTables.sql', iColorCode::RED);
+
+            }
+
+            self::colorCode($sql);
 
         }
 
