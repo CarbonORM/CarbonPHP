@@ -79,6 +79,7 @@
       "php ./vendor/bin/phpmetrics --config=php-metrics.json ."
     ],
     "post-install-cmd": [
+      "@database:refresh:schema",
       "@rest",
       "@test"
     ],

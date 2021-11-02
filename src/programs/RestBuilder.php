@@ -1047,7 +1047,7 @@ END;
             }
 
             if (empty($all_interface_types) || empty($all_table_names_types)) {
-                self::colorCode('The value of $all_interface_types must not be empty. Rest Failed.', 'red');
+                self::colorCode('The value of $all_interface_types must not be empty. This would mean no tables were parsed from the dump. Rest Failed.', 'red');
                 exit(1);
             }
 
