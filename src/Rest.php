@@ -3541,6 +3541,10 @@ abstract class Rest extends Database
         sortDump($args);
     }
 
+    public static function allowSubSelect(): void
+    {
+        self::$allowSubSelectQueries = true;
+    }
 
     public static function buildMysqlHistoryTrigger(string $table): void
     {

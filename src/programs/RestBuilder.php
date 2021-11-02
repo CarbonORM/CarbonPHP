@@ -1636,7 +1636,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
     
     /** Custom User Methods Are Placed Here **/
     
-    {{{custom_methods}}}
+{{{custom_methods}}}
    
     /**
      * REGEX_VALIDATION
