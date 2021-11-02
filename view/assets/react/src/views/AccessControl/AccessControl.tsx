@@ -299,8 +299,11 @@ class AccessControl extends React.Component<iAccessControl, {
     this.setState({ alert: null }, () =>
       this.props.axios.post('/rest/' + C6.features.TABLE_NAME,
         convertForRequestBody(this.state.feature, C6.features.TABLE_NAME))
-        .then(response => (id = this.props.testRestfulPostPutDeleteResponse(response, 'Successfully Created Feature Code',
-          'An unknown issue occurred. We will be looking into this shortly.')) && this.setState({
+        .then(response => (id = this.props.testRestfulPostPutDeleteResponse(
+          response,
+          'Successfully Created Feature Code',
+          'An unknown issue occurred. We will be looking into this shortly.'))
+          && this.setState({
           feature: {
             feature_code: this.state.feature.feature_code,
             feature_entity_id: id

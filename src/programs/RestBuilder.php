@@ -1635,19 +1635,19 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
      * Each directive MUST be designed to run multiple times without failure.
      * @defaults
      *   public const REFRESH_SCHEMA = [
-     *      [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::TABLE_PREFIX, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
-     *                  PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS, {{#carbon_namespace}}true{{/carbon_namespace}}{{^carbon_namespace}}false{{/carbon_namespace}}],
-     *      [self::class => 'buildMysqlHistoryTrigger', self::class]
+     *        [self::class => 'buildMysqlHistoryTrigger', self::class]
      *   ];
      *
      */{{^REFRESH_SCHEMA}}
     public const REFRESH_SCHEMA = [
-        [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::TABLE_PREFIX, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
-                        PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS, {{#carbon_namespace}}true{{/carbon_namespace}}{{^carbon_namespace}}false{{/carbon_namespace}}],
         [self::class => 'buildMysqlHistoryTrigger', self::class]
     ];{{/REFRESH_SCHEMA}}{{#REFRESH_SCHEMA}}
     {{{REFRESH_SCHEMA}}}{{/REFRESH_SCHEMA}}
     
+    /** Custom User Methods Are Placed Here **/
+    
+    {{{custom_methods}}}
+   
     /**
      * REGEX_VALIDATION
      * Regular Expression validations will run before and recommended over PHP_VALIDATION.
@@ -1822,9 +1822,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
     {{createTableSQL}}
 MYSQL;
-   
-{{{custom_methods}}}
-    
+       
    /**
     * Currently nested aggregation is not supported. It is recommended to avoid using 'AS' where possible. Sub-selects are 
     * allowed and do support 'as' aggregation. Refer to the static subSelect method parameters in the parent `Rest` class.

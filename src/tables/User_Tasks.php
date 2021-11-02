@@ -217,10 +217,25 @@ class User_Tasks extends Rest implements iRestSinglePrimaryKey
      *
      */
     public const REFRESH_SCHEMA = [
-        [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::TABLE_PREFIX, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
-                        PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS, true]
+
     ];
     
+    /** Custom User Methods Are Placed Here **/
+    
+        /** Custom User Methods Are Placed Here **/
+        public static function restTesting(...$argv)
+    {
+        if (CarbonPHP::$test) {
+
+            CarbonRestTest::$restChallenge[] = $argv;
+
+        } elseif (CarbonPHP::$cli) {
+
+            throw new PublicAlert('No way your trying to do this in cli. I bet CarbonPHP::$test was not set correctly.');
+
+        }
+    }
+   
     /**
      * REGEX_VALIDATION
      * Regular Expression validations will run before and recommended over PHP_VALIDATION.
@@ -464,7 +479,7 @@ class User_Tasks extends Rest implements iRestSinglePrimaryKey
      * the RestBuilder program.
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
-    CREATE TABLE `carbon_user_tasks` (
+    CREATE TABLE IF NOT EXISTS `carbon_user_tasks` (
   `task_id` binary(16) NOT NULL,
   `user_id` binary(16) NOT NULL COMMENT 'This is the user the task is being assigned to',
   `from_id` binary(16) DEFAULT NULL COMMENT 'Keeping this colum so forgen key will remove task if user deleted',
@@ -482,20 +497,7 @@ class User_Tasks extends Rest implements iRestSinglePrimaryKey
   CONSTRAINT `carbon_user_tasks_carbons_entity_pk_fk_3` FOREIGN KEY (`from_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 MYSQL;
-   
-    public static function restTesting(...$argv)
-    {
-        if (CarbonPHP::$test) {
-
-            CarbonRestTest::$restChallenge[] = $argv;
-
-        } elseif (CarbonPHP::$cli) {
-
-            throw new PublicAlert('No way your trying to do this in cli. I bet CarbonPHP::$test was not set correctly.');
-
-        }
-    }
-    
+       
    /**
     * Currently nested aggregation is not supported. It is recommended to avoid using 'AS' where possible. Sub-selects are 
     * allowed and do support 'as' aggregation. Refer to the static subSelect method parameters in the parent `Rest` class.

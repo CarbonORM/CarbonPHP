@@ -178,15 +178,13 @@ class Feature_Group_References extends Rest implements iRestNoPrimaryKey
      *
      */
     public const REFRESH_SCHEMA = [
-        [
-            self::class => 'tableExistsOrExecuteSQL',
-            self::TABLE_NAME,
-            self::TABLE_PREFIX,
-            self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS . PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS,
-            true
-        ],
+
     ];
     
+    /** Custom User Methods Are Placed Here **/
+    
+    
+   
     /**
      * REGEX_VALIDATION
      * Regular Expression validations will run before and recommended over PHP_VALIDATION.
@@ -344,7 +342,7 @@ class Feature_Group_References extends Rest implements iRestNoPrimaryKey
      * the RestBuilder program.
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
-    CREATE TABLE `carbon_feature_group_references` (
+    CREATE TABLE IF NOT EXISTS `carbon_feature_group_references` (
   `feature_entity_id` binary(16) DEFAULT NULL,
   `group_entity_id` binary(16) DEFAULT NULL,
   KEY `carbon_feature_references_carbons_entity_pk_fk_2` (`feature_entity_id`),
@@ -353,9 +351,7 @@ class Feature_Group_References extends Rest implements iRestNoPrimaryKey
   CONSTRAINT `carbon_feature_references_carbons_entity_pk_fk` FOREIGN KEY (`feature_entity_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 MYSQL;
-   
-
-    
+       
    /**
     * Currently nested aggregation is not supported. It is recommended to avoid using 'AS' where possible. Sub-selects are 
     * allowed and do support 'as' aggregation. Refer to the static subSelect method parameters in the parent `Rest` class.

@@ -3699,7 +3699,7 @@ TRIGGER;
 
         }
 
-        return $sql;
+        return preg_replace('#CREATE TABLE#i', 'CREATE TABLE IF NOT EXISTS', $sql);
 
     }
 

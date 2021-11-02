@@ -865,6 +865,23 @@ FOOT;
 
         ColorCode::colorCode("\n\nScanning and running refresh database using ('$tableDirectory' . '*.php')");
 
+
+        self::scanAnd(static function (string $table): void {
+
+            if (defined("$table::CREATE_TABLE_SQL")) {
+
+                self::compileMySqlStatementsAndExecuteWithoutForeignKeyChecks($table::CREATE_TABLE_SQL);
+
+            } else {
+
+                ColorCode::colorCode("The generated constant $table::CREATE_TABLE_SQL does not exist. Rerun RestBuilder to repopulate.", iColorCode::YELLOW);
+
+            }
+
+        });
+
+        self::compileMySqlStatementsAndExecuteWithoutForeignKeyChecks();
+
         self::scanAnd(static function (string $table): void {
 
             if (defined("$table::REFRESH_SCHEMA")) {
@@ -1230,6 +1247,30 @@ FOOT;
 
     }
 
+
+    private static function compileMySqlStatementsAndExecuteWithoutForeignKeyChecks($tableCreateStmt = ''): void
+    {
+
+        static $stmts = '';
+
+        if ('' === $tableCreateStmt) {
+
+            if ('' === $stmts) {
+
+                throw new PublicAlert('Nothing was passed to ' . __FUNCTION__ . ' and no query was compiled yet!');
+
+            }
+
+            $jsonEncode = json_encode(self::fetch(self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS . PHP_EOL
+                . $stmts . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS), JSON_PRETTY_PRINT);
+
+            self::colorCode($jsonEncode);
+
+        }
+
+        $stmts .= PHP_EOL . $tableCreateStmt . PHP_EOL;
+
+    }
 
     /**
      * @param string $table_name

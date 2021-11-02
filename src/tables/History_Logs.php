@@ -200,10 +200,12 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
      *
      */
     public const REFRESH_SCHEMA = [
-        [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::TABLE_PREFIX, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
-            PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS, true]
     ];
     
+    /** Custom User Methods Are Placed Here **/
+    
+    
+   
     /**
      * REGEX_VALIDATION
      * Regular Expression validations will run before and recommended over PHP_VALIDATION.
@@ -402,7 +404,7 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
      * the RestBuilder program.
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
-    CREATE TABLE `carbon_history_logs` (
+    CREATE TABLE IF NOT EXISTS `carbon_history_logs` (
   `history_uuid` binary(16) NOT NULL,
   `history_table` varchar(255) CHARACTER SET utf8mb4 DEFAULT NULL,
   `history_type` varchar(20) CHARACTER SET utf8mb4 DEFAULT NULL,
@@ -411,9 +413,7 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
   `history_time` datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 MYSQL;
-   
-
-    
+       
    /**
     * Currently nested aggregation is not supported. It is recommended to avoid using 'AS' where possible. Sub-selects are 
     * allowed and do support 'as' aggregation. Refer to the static subSelect method parameters in the parent `Rest` class.

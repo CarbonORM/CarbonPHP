@@ -204,13 +204,12 @@ class Carbons extends Rest implements iRestSinglePrimaryKey
      *   ];
      *
      */
-    public const REFRESH_SCHEMA = [
-        [
-            self::class => 'tableExistsOrExecuteSQL',
-            self::TABLE_NAME, self::TABLE_PREFIX, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
-            PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS, true]
-    ];
+    public const REFRESH_SCHEMA = [ ];
     
+    /** Custom User Methods Are Placed Here **/
+    
+    
+   
     /**
      * REGEX_VALIDATION
      * Regular Expression validations will run before and recommended over PHP_VALIDATION.
@@ -390,7 +389,7 @@ class Carbons extends Rest implements iRestSinglePrimaryKey
      * the RestBuilder program.
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
-    CREATE TABLE `carbon_carbons` (
+    CREATE TABLE IF NOT EXISTS `carbon_carbons` (
   `entity_pk` binary(16) NOT NULL,
   `entity_fk` binary(16) DEFAULT NULL,
   `entity_tag` varchar(100) COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT 'manually',
@@ -400,9 +399,7 @@ class Carbons extends Rest implements iRestSinglePrimaryKey
   CONSTRAINT `entity_entity_entity_pk_fk` FOREIGN KEY (`entity_fk`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 MYSQL;
-   
-
-    
+       
    /**
     * Currently nested aggregation is not supported. It is recommended to avoid using 'AS' where possible. Sub-selects are 
     * allowed and do support 'as' aggregation. Refer to the static subSelect method parameters in the parent `Rest` class.

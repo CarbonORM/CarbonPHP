@@ -327,15 +327,13 @@ class Users extends Rest implements iRestSinglePrimaryKey
      *
      */
     public const REFRESH_SCHEMA = [
-        [
-            self::class => 'tableExistsOrExecuteSQL',
-            self::TABLE_NAME,
-            self::TABLE_PREFIX,
-            self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS . PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS,
-            true
-        ],
+
     ];
     
+    /** Custom User Methods Are Placed Here **/
+    
+    
+   
     /**
      * REGEX_VALIDATION
      * Regular Expression validations will run before and recommended over PHP_VALIDATION.
@@ -574,7 +572,7 @@ class Users extends Rest implements iRestSinglePrimaryKey
      * the RestBuilder program.
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
-    CREATE TABLE `carbon_users` (
+    CREATE TABLE IF NOT EXISTS `carbon_users` (
   `user_username` varchar(100) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `user_password` varchar(225) COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `user_id` binary(16) NOT NULL,
@@ -609,9 +607,7 @@ class Users extends Rest implements iRestSinglePrimaryKey
   CONSTRAINT `user_entity_entity_pk_fk` FOREIGN KEY (`user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 MYSQL;
-   
-
-    
+       
    /**
     * Currently nested aggregation is not supported. It is recommended to avoid using 'AS' where possible. Sub-selects are 
     * allowed and do support 'as' aggregation. Refer to the static subSelect method parameters in the parent `Rest` class.
