@@ -868,19 +868,30 @@ FOOT;
 
         self::scanAnd(static function (string $table): void {
 
-            if (defined("$table::CREATE_TABLE_SQL")) {
+            if (defined("$table::TABLE_NAME")
+                && defined("$table::CREATE_TABLE_SQL")) {
 
-                self::compileMySqlStatementsAndExecuteWithoutForeignKeyChecks($table::CREATE_TABLE_SQL);
+                $tableName = $table::TABLE_NAME;
+
+                $sql = $table::CREATE_TABLE_SQL;
+
+                self::addTablePrefix($tableName, $table::TABLE_PREFIX, $sql);
+
+                self::compileMySqlStatementsAndExecuteWithoutForeignKeyChecks($sql);
 
             } else {
 
-                ColorCode::colorCode("The generated constant $table::CREATE_TABLE_SQL does not exist. Rerun RestBuilder to repopulate.", iColorCode::YELLOW);
+                ColorCode::colorCode("The generated constant $table::TABLE_NAME or $table::CREATE_TABLE_SQL does not exist in the class. Rerun RestBuilder to repopulate.", iColorCode::YELLOW);
 
             }
 
         });
 
+        self::colorCode('Running Compiled Table Creates.');
+
         self::compileMySqlStatementsAndExecuteWithoutForeignKeyChecks();
+
+        self::colorCode('Done Creating Tables.');
 
         self::scanAnd(static function (string $table): void {
 

@@ -191,7 +191,6 @@ class Comments extends Rest implements iRestSinglePrimaryKey
      *
      */
     public const REFRESH_SCHEMA = [
-        [self::class => 'buildMysqlHistoryTrigger', self::class]
     ];
     
     /** Custom User Methods Are Placed Here **/
