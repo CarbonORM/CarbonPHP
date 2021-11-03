@@ -76,14 +76,7 @@ class Users extends Rest implements iRestSinglePrimaryKey
      * @note this constant can be modified and will presist after rebuild.
     **/
     public const VALIDATE_AFTER_REBUILD = true;
-    
-    
-    /** ALLOW_COUNT_ALL
-     * Count(*) should only be run it's own query.?
-    **/
-    public const ALLOW_COUNT_ALL = true;
-    
-    
+  
     /**
      * COLUMNS
      * The columns below are a 1=1 mapping to the columns found in carbon_users. 
@@ -320,9 +313,7 @@ class Users extends Rest implements iRestSinglePrimaryKey
      * Each directive MUST be designed to run multiple times without failure.
      * @defaults
      *   public const REFRESH_SCHEMA = [
-     *      [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::TABLE_PREFIX, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
-     *                  PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS, true],
-     *      [self::class => 'buildMysqlHistoryTrigger', self::class]
+     *        [self::class => 'buildMysqlHistoryTrigger', self::class]
      *   ];
      *
      */
@@ -332,7 +323,7 @@ class Users extends Rest implements iRestSinglePrimaryKey
     
     /** Custom User Methods Are Placed Here **/
     
-    
+
    
     /**
      * REGEX_VALIDATION
@@ -572,40 +563,40 @@ class Users extends Rest implements iRestSinglePrimaryKey
      * the RestBuilder program.
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
-    CREATE TABLE IF NOT EXISTS `carbon_users` (
-  `user_username` varchar(100) COLLATE utf8mb4_unicode_520_ci NOT NULL,
-  `user_password` varchar(225) COLLATE utf8mb4_unicode_520_ci NOT NULL,
-  `user_id` binary(16) NOT NULL,
-  `user_type` varchar(20) COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT 'Athlete',
-  `user_sport` varchar(20) COLLATE utf8mb4_unicode_520_ci DEFAULT 'GOLF',
-  `user_session_id` varchar(225) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `user_facebook_id` varchar(225) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `user_first_name` varchar(25) COLLATE utf8mb4_unicode_520_ci NOT NULL,
-  `user_last_name` varchar(25) COLLATE utf8mb4_unicode_520_ci NOT NULL,
-  `user_profile_pic` varchar(225) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `user_profile_uri` varchar(225) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `user_cover_photo` varchar(225) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `user_birthday` varchar(9) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `user_gender` varchar(25) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `user_about_me` varchar(225) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `user_rank` int(11) DEFAULT '0',
-  `user_email` varchar(50) COLLATE utf8mb4_unicode_520_ci NOT NULL,
-  `user_email_code` varchar(225) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `user_email_confirmed` tinyint(1) DEFAULT '0' COMMENT 'need to change to enums, but no support in rest yet',
-  `user_generated_string` varchar(200) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `user_membership` int(11) DEFAULT '0',
-  `user_deactivated` tinyint(1) DEFAULT '0',
-  `user_last_login` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `user_ip` varchar(20) COLLATE utf8mb4_unicode_520_ci NOT NULL,
-  `user_education_history` varchar(200) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `user_location` varchar(20) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `user_creation_date` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`user_id`),
-  UNIQUE KEY `carbon_users_user_username_uindex` (`user_username`),
-  UNIQUE KEY `user_user_profile_uri_uindex` (`user_profile_uri`),
-  UNIQUE KEY `carbon_users_user_facebook_id_uindex` (`user_facebook_id`),
-  CONSTRAINT `user_entity_entity_pk_fk` FOREIGN KEY (`user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
+CREATE TABLE IF NOT EXISTS `carbon_users` (
+`user_username` varchar(100) NOT NULL,
+`user_password` varchar(225) NOT NULL,
+`user_id` binary(16) NOT NULL,
+`user_type` varchar(20) NOT NULL DEFAULT 'Athlete',
+`user_sport` varchar(20) DEFAULT 'GOLF',
+`user_session_id` varchar(225) DEFAULT NULL,
+`user_facebook_id` varchar(225) DEFAULT NULL,
+`user_first_name` varchar(25) NOT NULL,
+`user_last_name` varchar(25) NOT NULL,
+`user_profile_pic` varchar(225) DEFAULT NULL,
+`user_profile_uri` varchar(225) DEFAULT NULL,
+`user_cover_photo` varchar(225) DEFAULT NULL,
+`user_birthday` varchar(9) DEFAULT NULL,
+`user_gender` varchar(25) DEFAULT NULL,
+`user_about_me` varchar(225) DEFAULT NULL,
+`user_rank` int DEFAULT '0',
+`user_email` varchar(50) NOT NULL,
+`user_email_code` varchar(225) DEFAULT NULL,
+`user_email_confirmed` tinyint DEFAULT '0' COMMENT 'need to change to enums, but no support in rest yet',
+`user_generated_string` varchar(200) DEFAULT NULL,
+`user_membership` int DEFAULT '0',
+`user_deactivated` tinyint DEFAULT '0',
+`user_last_login` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+`user_ip` varchar(20) NOT NULL,
+`user_education_history` varchar(200) DEFAULT NULL,
+`user_location` varchar(20) DEFAULT NULL,
+`user_creation_date` datetime DEFAULT CURRENT_TIMESTAMP,
+PRIMARY KEY (`user_id`),
+UNIQUE KEY `carbon_users_user_username_uindex` (`user_username`),
+UNIQUE KEY `user_user_profile_uri_uindex` (`user_profile_uri`),
+UNIQUE KEY `carbon_users_user_facebook_id_uindex` (`user_facebook_id`),
+CONSTRAINT `user_entity_entity_pk_fk` FOREIGN KEY (`user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
 MYSQL;
        
    /**

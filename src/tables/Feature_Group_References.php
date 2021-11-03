@@ -77,14 +77,7 @@ class Feature_Group_References extends Rest implements iRestNoPrimaryKey
      * @note this constant can be modified and will presist after rebuild.
     **/
     public const VALIDATE_AFTER_REBUILD = true;
-    
-    
-    /** ALLOW_COUNT_ALL
-     * Count(*) should only be run it's own query.?
-    **/
-    public const ALLOW_COUNT_ALL = true;
-    
-    
+  
     /**
      * COLUMNS
      * The columns below are a 1=1 mapping to the columns found in carbon_feature_group_references. 
@@ -171,9 +164,7 @@ class Feature_Group_References extends Rest implements iRestNoPrimaryKey
      * Each directive MUST be designed to run multiple times without failure.
      * @defaults
      *   public const REFRESH_SCHEMA = [
-     *      [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::TABLE_PREFIX, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
-     *                  PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS, true],
-     *      [self::class => 'buildMysqlHistoryTrigger', self::class]
+     *        [self::class => 'buildMysqlHistoryTrigger', self::class]
      *   ];
      *
      */
@@ -183,7 +174,7 @@ class Feature_Group_References extends Rest implements iRestNoPrimaryKey
     
     /** Custom User Methods Are Placed Here **/
     
-    
+
    
     /**
      * REGEX_VALIDATION
@@ -342,14 +333,14 @@ class Feature_Group_References extends Rest implements iRestNoPrimaryKey
      * the RestBuilder program.
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
-    CREATE TABLE IF NOT EXISTS `carbon_feature_group_references` (
-  `feature_entity_id` binary(16) DEFAULT NULL,
-  `group_entity_id` binary(16) DEFAULT NULL,
-  KEY `carbon_feature_references_carbons_entity_pk_fk_2` (`feature_entity_id`),
-  KEY `carbon_feature_group_references_carbons_entity_pk_fk` (`group_entity_id`),
-  CONSTRAINT `carbon_feature_group_references_carbons_entity_pk_fk` FOREIGN KEY (`group_entity_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `carbon_feature_references_carbons_entity_pk_fk` FOREIGN KEY (`feature_entity_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
+CREATE TABLE IF NOT EXISTS `carbon_feature_group_references` (
+`feature_entity_id` binary(16) DEFAULT NULL,
+`group_entity_id` binary(16) DEFAULT NULL,
+KEY `carbon_feature_references_carbons_entity_pk_fk_2` (`feature_entity_id`),
+KEY `carbon_feature_group_references_carbons_entity_pk_fk` (`group_entity_id`),
+CONSTRAINT `carbon_feature_group_references_carbons_entity_pk_fk` FOREIGN KEY (`group_entity_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+CONSTRAINT `carbon_feature_references_carbons_entity_pk_fk` FOREIGN KEY (`feature_entity_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
 MYSQL;
        
    /**

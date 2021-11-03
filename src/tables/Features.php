@@ -76,14 +76,7 @@ class Features extends Rest implements iRestSinglePrimaryKey
      * @note this constant can be modified and will presist after rebuild.
     **/
     public const VALIDATE_AFTER_REBUILD = true;
-    
-    
-    /** ALLOW_COUNT_ALL
-     * Count(*) should only be run it's own query.?
-    **/
-    public const ALLOW_COUNT_ALL = true;
-    
-    
+  
     /**
      * COLUMNS
      * The columns below are a 1=1 mapping to the columns found in carbon_features. 
@@ -176,9 +169,7 @@ class Features extends Rest implements iRestSinglePrimaryKey
      * Each directive MUST be designed to run multiple times without failure.
      * @defaults
      *   public const REFRESH_SCHEMA = [
-     *      [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::TABLE_PREFIX, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
-     *                  PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS, true],
-     *      [self::class => 'buildMysqlHistoryTrigger', self::class]
+     *        [self::class => 'buildMysqlHistoryTrigger', self::class]
      *   ];
      *
      */
@@ -187,7 +178,7 @@ class Features extends Rest implements iRestSinglePrimaryKey
     
     /** Custom User Methods Are Placed Here **/
     
-    
+
    
     /**
      * REGEX_VALIDATION
@@ -345,15 +336,15 @@ class Features extends Rest implements iRestSinglePrimaryKey
      * the RestBuilder program.
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
-    CREATE TABLE IF NOT EXISTS `carbon_features` (
-  `feature_entity_id` binary(16) NOT NULL,
-  `feature_code` varchar(30) CHARACTER SET utf8mb4 NOT NULL,
-  `feature_creation_date` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`feature_entity_id`),
-  UNIQUE KEY `carbon_features_feature_code_uindex` (`feature_code`),
-  UNIQUE KEY `carbon_features_feature_entity_id_uindex` (`feature_entity_id`),
-  CONSTRAINT `carbon_features_carbons_entity_pk_fk` FOREIGN KEY (`feature_entity_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
+CREATE TABLE IF NOT EXISTS `carbon_features` (
+`feature_entity_id` binary(16) NOT NULL,
+`feature_code` varchar(30) NOT NULL,
+`feature_creation_date` datetime DEFAULT CURRENT_TIMESTAMP,
+PRIMARY KEY (`feature_entity_id`),
+UNIQUE KEY `carbon_features_feature_code_uindex` (`feature_code`),
+UNIQUE KEY `carbon_features_feature_entity_id_uindex` (`feature_entity_id`),
+CONSTRAINT `carbon_features_carbons_entity_pk_fk` FOREIGN KEY (`feature_entity_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
 MYSQL;
        
    /**

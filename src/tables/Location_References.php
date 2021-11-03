@@ -77,14 +77,7 @@ class Location_References extends Rest implements iRestNoPrimaryKey
      * @note this constant can be modified and will presist after rebuild.
     **/
     public const VALIDATE_AFTER_REBUILD = true;
-    
-    
-    /** ALLOW_COUNT_ALL
-     * Count(*) should only be run it's own query.?
-    **/
-    public const ALLOW_COUNT_ALL = true;
-    
-    
+  
     /**
      * COLUMNS
      * The columns below are a 1=1 mapping to the columns found in carbon_location_references. 
@@ -177,9 +170,7 @@ class Location_References extends Rest implements iRestNoPrimaryKey
      * Each directive MUST be designed to run multiple times without failure.
      * @defaults
      *   public const REFRESH_SCHEMA = [
-     *      [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::TABLE_PREFIX, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
-     *                  PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS, true],
-     *      [self::class => 'buildMysqlHistoryTrigger', self::class]
+     *        [self::class => 'buildMysqlHistoryTrigger', self::class]
      *   ];
      *
      */
@@ -188,7 +179,7 @@ class Location_References extends Rest implements iRestNoPrimaryKey
     
     /** Custom User Methods Are Placed Here **/
     
-    
+
    
     /**
      * REGEX_VALIDATION
@@ -370,15 +361,15 @@ class Location_References extends Rest implements iRestNoPrimaryKey
      * the RestBuilder program.
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
-    CREATE TABLE IF NOT EXISTS `carbon_location_references` (
-  `entity_reference` binary(16) NOT NULL,
-  `location_reference` binary(16) NOT NULL,
-  `location_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  KEY `carbon_location_references_carbons_entity_pk_fk` (`entity_reference`),
-  KEY `carbon_location_references_carbons_entity_pk_fk_2` (`location_reference`),
-  CONSTRAINT `carbon_location_references_carbons_entity_pk_fk` FOREIGN KEY (`entity_reference`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `carbon_location_references_carbons_entity_pk_fk_2` FOREIGN KEY (`location_reference`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
+CREATE TABLE IF NOT EXISTS `carbon_location_references` (
+`entity_reference` binary(16) NOT NULL,
+`location_reference` binary(16) NOT NULL,
+`location_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+KEY `carbon_location_references_carbons_entity_pk_fk` (`entity_reference`),
+KEY `carbon_location_references_carbons_entity_pk_fk_2` (`location_reference`),
+CONSTRAINT `carbon_location_references_carbons_entity_pk_fk` FOREIGN KEY (`entity_reference`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+CONSTRAINT `carbon_location_references_carbons_entity_pk_fk_2` FOREIGN KEY (`location_reference`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
 MYSQL;
        
    /**

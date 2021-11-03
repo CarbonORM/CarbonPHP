@@ -1037,7 +1037,7 @@ FOOT;
 
                 [$internalTableName, $internalColumnName] = explode('.',  $internalTableColumn);
 
-                $values = self::fetch('SELECT COUNT(*)
+                $values = self::fetch('SELECT REFERENCED_TABLE_SCHEMA
                                         FROM  INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
                                         WHERE  REFERENCED_TABLE_SCHEMA = ?
                                         AND REFERENCED_TABLE_NAME = ?

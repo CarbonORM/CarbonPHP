@@ -78,14 +78,7 @@ class User_Messages extends Rest implements iRestSinglePrimaryKey
      * @note this constant can be modified and will presist after rebuild.
     **/
     public const VALIDATE_AFTER_REBUILD = true;
-    
-    
-    /** ALLOW_COUNT_ALL
-     * Count(*) should only be run it's own query.?
-    **/
-    public const ALLOW_COUNT_ALL = true;
-    
-    
+  
     /**
      * COLUMNS
      * The columns below are a 1=1 mapping to the columns found in carbon_user_messages. 
@@ -196,9 +189,7 @@ class User_Messages extends Rest implements iRestSinglePrimaryKey
      * Each directive MUST be designed to run multiple times without failure.
      * @defaults
      *   public const REFRESH_SCHEMA = [
-     *      [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::TABLE_PREFIX, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
-     *                  PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS, true],
-     *      [self::class => 'buildMysqlHistoryTrigger', self::class]
+     *        [self::class => 'buildMysqlHistoryTrigger', self::class]
      *   ];
      *
      */
@@ -208,7 +199,7 @@ class User_Messages extends Rest implements iRestSinglePrimaryKey
     
     /** Custom User Methods Are Placed Here **/
     
-    
+
    
     /**
      * REGEX_VALIDATION
@@ -408,21 +399,21 @@ class User_Messages extends Rest implements iRestSinglePrimaryKey
      * the RestBuilder program.
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
-    CREATE TABLE IF NOT EXISTS `carbon_user_messages` (
-  `message_id` binary(16) NOT NULL,
-  `from_user_id` binary(16) NOT NULL,
-  `to_user_id` binary(16) NOT NULL,
-  `message` text COLLATE utf8mb4_unicode_520_ci NOT NULL,
-  `message_read` tinyint(1) DEFAULT '0',
-  `creation_date` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`message_id`),
-  KEY `messages_entity_entity_pk_fk` (`message_id`),
-  KEY `messages_entity_user_from_pk_fk` (`to_user_id`),
-  KEY `carbon_user_messages_carbon_entity_pk_fk` (`from_user_id`),
-  CONSTRAINT `carbon_user_messages_carbon_entity_pk_fk` FOREIGN KEY (`from_user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `messages_entity_entity_pk_fk` FOREIGN KEY (`message_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `messages_entity_user_from_pk_fk` FOREIGN KEY (`to_user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
+CREATE TABLE IF NOT EXISTS `carbon_user_messages` (
+`message_id` binary(16) NOT NULL,
+`from_user_id` binary(16) NOT NULL,
+`to_user_id` binary(16) NOT NULL,
+`message` text NOT NULL,
+`message_read` tinyint DEFAULT '0',
+`creation_date` datetime DEFAULT CURRENT_TIMESTAMP,
+PRIMARY KEY (`message_id`),
+KEY `messages_entity_entity_pk_fk` (`message_id`),
+KEY `messages_entity_user_from_pk_fk` (`to_user_id`),
+KEY `carbon_user_messages_carbon_entity_pk_fk` (`from_user_id`),
+CONSTRAINT `carbon_user_messages_carbon_entity_pk_fk` FOREIGN KEY (`from_user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+CONSTRAINT `messages_entity_entity_pk_fk` FOREIGN KEY (`message_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+CONSTRAINT `messages_entity_user_from_pk_fk` FOREIGN KEY (`to_user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
 MYSQL;
        
    /**

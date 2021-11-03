@@ -75,14 +75,7 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
      * @note this constant can be modified and will presist after rebuild.
     **/
     public const VALIDATE_AFTER_REBUILD = true;
-    
-    
-    /** ALLOW_COUNT_ALL
-     * Count(*) should only be run it's own query.?
-    **/
-    public const ALLOW_COUNT_ALL = true;
-    
-    
+  
     /**
      * COLUMNS
      * The columns below are a 1=1 mapping to the columns found in carbon_history_logs. 
@@ -193,9 +186,7 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
      * Each directive MUST be designed to run multiple times without failure.
      * @defaults
      *   public const REFRESH_SCHEMA = [
-     *      [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::TABLE_PREFIX, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
-     *                  PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS, true],
-     *      [self::class => 'buildMysqlHistoryTrigger', self::class]
+     *        [self::class => 'buildMysqlHistoryTrigger', self::class]
      *   ];
      *
      */
@@ -204,7 +195,7 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
     
     /** Custom User Methods Are Placed Here **/
     
-    
+
    
     /**
      * REGEX_VALIDATION
@@ -404,14 +395,14 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
      * the RestBuilder program.
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
-    CREATE TABLE IF NOT EXISTS `carbon_history_logs` (
-  `history_uuid` binary(16) NOT NULL,
-  `history_table` varchar(255) CHARACTER SET utf8mb4 DEFAULT NULL,
-  `history_type` varchar(20) CHARACTER SET utf8mb4 DEFAULT NULL,
-  `history_data` json DEFAULT NULL,
-  `history_original_query` varchar(1024) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
-  `history_time` datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
+CREATE TABLE IF NOT EXISTS `carbon_history_logs` (
+`history_uuid` binary(16) NOT NULL,
+`history_table` varchar(255) DEFAULT NULL,
+`history_type` varchar(20) DEFAULT NULL,
+`history_data` json DEFAULT NULL,
+`history_original_query` varchar(1024) DEFAULT NULL,
+`history_time` datetime DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
 MYSQL;
        
    /**

@@ -75,14 +75,7 @@ class User_Sessions extends Rest implements iRestSinglePrimaryKey
      * @note this constant can be modified and will presist after rebuild.
     **/
     public const VALIDATE_AFTER_REBUILD = true;
-    
-    
-    /** ALLOW_COUNT_ALL
-     * Count(*) should only be run it's own query.?
-    **/
-    public const ALLOW_COUNT_ALL = true;
-    
-    
+  
     /**
      * COLUMNS
      * The columns below are a 1=1 mapping to the columns found in carbon_user_sessions. 
@@ -193,9 +186,7 @@ class User_Sessions extends Rest implements iRestSinglePrimaryKey
      * Each directive MUST be designed to run multiple times without failure.
      * @defaults
      *   public const REFRESH_SCHEMA = [
-     *      [self::class => 'tableExistsOrExecuteSQL', self::TABLE_NAME, self::TABLE_PREFIX, self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS .
-     *                  PHP_EOL . self::CREATE_TABLE_SQL . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS, true],
-     *      [self::class => 'buildMysqlHistoryTrigger', self::class]
+     *        [self::class => 'buildMysqlHistoryTrigger', self::class]
      *   ];
      *
      */
@@ -205,7 +196,7 @@ class User_Sessions extends Rest implements iRestSinglePrimaryKey
     
     /** Custom User Methods Are Placed Here **/
     
-    
+
    
     /**
      * REGEX_VALIDATION
@@ -405,15 +396,15 @@ class User_Sessions extends Rest implements iRestSinglePrimaryKey
      * the RestBuilder program.
      */
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
-    CREATE TABLE IF NOT EXISTS `carbon_user_sessions` (
-  `user_id` binary(16) NOT NULL,
-  `user_ip` binary(16) DEFAULT NULL,
-  `session_id` varchar(255) COLLATE utf8mb4_unicode_520_ci NOT NULL,
-  `session_expires` datetime NOT NULL,
-  `session_data` text COLLATE utf8mb4_unicode_520_ci,
-  `user_online_status` tinyint(1) DEFAULT '1',
-  PRIMARY KEY (`session_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
+CREATE TABLE IF NOT EXISTS `carbon_user_sessions` (
+`user_id` binary(16) NOT NULL,
+`user_ip` binary(16) DEFAULT NULL,
+`session_id` varchar(255) NOT NULL,
+`session_expires` datetime NOT NULL,
+`session_data` text,
+`user_online_status` tinyint DEFAULT '1',
+PRIMARY KEY (`session_id`)
+) ENGINE=InnoDB;
 MYSQL;
        
    /**
