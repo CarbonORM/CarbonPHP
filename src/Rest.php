@@ -1583,7 +1583,9 @@ abstract class Rest extends Database
 
                     $sql = self::DELETE . ' c FROM ' . $query_database_name . $table_prefix . 'carbon_carbons c JOIN ' . $table_name . ' on c.entity_pk = ' . static::PRIMARY;
 
-                    if (false === self::$allowFullTableDeletes || !empty($argv)) {
+                    if (false === self::$allowFullTableDeletes
+                        || !empty($argv)) {
+
                         $sql .= ' WHERE ' . self::buildBooleanJoinedConditions($argv);
                     }
 
@@ -1591,21 +1593,32 @@ abstract class Rest extends Database
 
                     $sql = self::DELETE . ' FROM ' . $table_name . ' ';
 
-                    if (false === self::$allowFullTableDeletes && $emptyPrimary && empty($argv)) {
+                    if (false === self::$allowFullTableDeletes
+                        && $emptyPrimary
+                        && empty($argv)) {
+
                         return self::signalError('When deleting from restful tables a primary key or where query must be provided. This can be disabled by setting `self::\$allowFullTableDeletes = true;` during the PREPROCESS events, or just directly before this request.');
+
                     }
 
                     if (is_array(static::PRIMARY)) {
 
-                        $primaryIntersect = count(array_intersect_key($primary, static::PRIMARY));
+                        $primaryIntersect = count(array_intersect(array_keys($primary), static::PRIMARY));
 
                         $primaryCount = count($primary);
 
+                        $actualPrimaryCount = count(static::PRIMARY);
+
                         if ($primaryCount !== $primaryIntersect) {
+
                             return self::signalError('The keys provided to table ' . $table_name . ' was not a subset of (' . implode(', ', static::PRIMARY) . '). Only primary keys associated with the root table requested, thus not joined tables, are allowed.');
+
                         }
 
-                        if (false === self::$allowFullTableDeletes && $primaryIntersect !== count(static::PRIMARY)) {
+                        // todo - complex join logic
+                        if (false === self::$allowFullTableDeletes
+                            && $primaryIntersect !== $actualPrimaryCount
+                            && $actualPrimaryCount !== count(array_intersect(array_keys($argv[self::WHERE] ?? $argv), static::PRIMARY))) {
 
                             return self::signalError('You must provide all primary keys ('
                                 . implode(', ', static::PRIMARY)
@@ -1614,7 +1627,7 @@ abstract class Rest extends Database
                         }
 
                         /** @noinspection SlowArrayOperationsInLoopInspection */
-                        $argv = array_merge($argv, $primary); // todo - this is a good point. were looping and running and array merge..
+                        $argv = array_merge($argv, $primary ?? []); // todo - this is a good point. were looping and running and array merge..
 
                     } elseif (is_string(static::PRIMARY) && !$emptyPrimary) {
 
