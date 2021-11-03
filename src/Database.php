@@ -860,7 +860,7 @@ FOOT;
 
     public static array $tablesToValidateAfterRefresh = [];
 
-    public static function scanAndRunRefreshDatabase(string $tableDirectory): void
+    public static function scanAndRunRefreshDatabase(string $tableDirectory): bool
     {
         static $validatedTables = [];
 
@@ -915,13 +915,14 @@ FOOT;
 
             }
 
-            if (!self::commit()) {
+            if (false === self::commit()) {
 
                 self::colorCode('Failed to commit to database!', iColorCode::RED);
 
                 exit(1);
 
             }
+
         },
             $tableDirectory);
 
@@ -940,17 +941,17 @@ FOOT;
         }
 
         // Now Validate The Rest Tables Based on The MySQL Dump after update.
-        $mysqldump = MySQL::mysqldump(null);
+        $mysqldump = MySQL::mysqldump();
 
         sleep(1);   // wait for last command
 
         if (!file_exists($mysqldump)) {
-            print 'Could not load mysql dump file!' . PHP_EOL;
+            self::colorCode( 'Could not load mysql dump file!' . PHP_EOL);
             exit(1);
         }
 
         if (empty($mysqldump = file_get_contents($mysqldump))) {
-            print 'Contents of the mysql dump file appears empty. Build Failed!';
+            self::colorCode(  'Contents of the mysql dump file appears empty. Build Failed!');
             exit(1);
         }
 
@@ -976,7 +977,9 @@ FOOT;
 
                 ColorCode::colorCode('Verifying schema failed during preg_match_all for sql ' . $preUpdateSQL, iColorCode::RED);
 
-                return;
+                $failureEncountered = true;
+
+                continue;
 
             }
 
@@ -986,7 +989,9 @@ FOOT;
 
                 ColorCode::colorCode("Regex failed to match a schema using preg_match_all('$regex', '$preUpdateSQL',...", iColorCode::RED);
 
-                return;
+                $failureEncountered = true;
+
+                continue;
 
             }
 
@@ -1008,26 +1013,68 @@ FOOT;
 
                 ColorCode::colorCode('Verifying schema failed during preg_match_all on the ./mysqlDump.sql', iColorCode::RED);
 
-                return;
+                $failureEncountered = true;
+
+                continue;
 
             }
 
             $postUpdateSQL = $matches[0][0] ?? false;
 
-            if (!$postUpdateSQL) {
+            if (false === $postUpdateSQL) {
 
                 ColorCode::colorCode("Regex failed to match a schema using preg_match_all('$table_regex', '$mysqldump',...", iColorCode::RED);
 
-                exit(1);
+                $failureEncountered = true;
+
+                continue;
+
+            }
+
+            foreach ($fullyQualifiedClassName::EXTERNAL_TABLE_CONSTRAINTS as $externalTableColumn => $internalTableColumn) {
+
+                [$externalTableName, $externalColumnName] = explode('.', $externalTableColumn);
+
+                [$internalTableName, $internalColumnName] = explode('.',  $internalTableColumn);
+
+                $values = self::fetch('SELECT COUNT(*)
+                                        FROM  INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
+                                        WHERE  REFERENCED_TABLE_SCHEMA = ?
+                                        AND REFERENCED_TABLE_NAME = ?
+                                        AND REFERENCED_COLUMN_NAME = ?
+                                        AND TABLE_NAME = ?
+                                        AND COLUMN_NAME = ?
+                ;',  self::$carbonDatabaseName, $internalTableName, $internalColumnName, $externalTableName, $externalColumnName);
+
+                if ([] === $values) {
+
+                    self::colorCode("Failed to verify that the table ($tableName) contains FOREIGN KEY CONSTRAINT ($externalTableColumn) => ($internalTableColumn)", iColorCode::RED);
+
+                    $failureEncountered = true;
+
+                    break;
+                }
+
+            }
+
+            if ($failureEncountered) {
+
+                continue;
 
             }
 
             // Rest::parseSchemaSQL() is only done on $preUpdateSQL for legacy builds
-            $preUpdateSQL = trim(Rest::parseSchemaSQL($preUpdateSQL));
+            // we add 'CONSTRAINT\s`.*' => '' only to the post updated query as AWS will not include
+            // FK constraints in mysql dump files // post update
+            $awsLoose = Rest::SQL_VERSION_PREG_REPLACE + [
+                    '#CONSTRAINT\s`.*#' => ''
+                ];
+
+            $preUpdateSQL = trim(Rest::parseSchemaSQL($preUpdateSQL, $awsLoose));
 
             // parseSchemaSQL is needed as dif versions of mysql will dump diff things.
             $postUpdateSQL = trim(str_replace("\\n", "\n",
-                Rest::parseSchemaSQL($postUpdateSQL)));
+                Rest::parseSchemaSQL($postUpdateSQL, $awsLoose)));
 
             // the table definition maybe reordered and we just want to know whats dif
             $preUpdateSQLArray = array_map('trim', explode(PHP_EOL, $preUpdateSQL));
@@ -1078,9 +1125,11 @@ FOOT;
 
         if ($failureEncountered) {
 
-            exit(1);
+            return false;
 
         }
+
+        return true;
 
     }
 
@@ -1124,13 +1173,23 @@ FOOT;
 
             if ($tableDirectory !== Carbons::DIRECTORY) {
 
-                self::scanAndRunRefreshDatabase(Carbons::DIRECTORY);
+                $status = self::scanAndRunRefreshDatabase(Carbons::DIRECTORY);
 
             }
 
-            self::scanAndRunRefreshDatabase($tableDirectory);
+            $status = self::scanAndRunRefreshDatabase($tableDirectory) && ($status ?? true);
 
-            self::colorCode('Success!');
+            if (true === $status) {
+
+                self::colorCode('Success!');
+
+            } else {
+
+                self::colorCode('Failed refreshing schema; view output above for more information!');
+
+                exit(1);
+
+            }
 
             self::colorCode('After Refreshing the database one should rerun the RestBuilder program to capture any changes made to tables with (public const VALIDATE_AFTER_REBUILD = false;)!', iColorCode::CYAN);
 

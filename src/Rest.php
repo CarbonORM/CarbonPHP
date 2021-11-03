@@ -159,6 +159,35 @@ abstract class Rest extends Database
     public static array $activeQueryStates = [];
     public static ?string $REST_REQUEST_METHOD = null;
 
+    public const  SQL_VERSION_PREG_REPLACE = [
+        /** @lang PhpRegExp */
+        '#bigint\(\d+\)#' => 'bigint',
+        /** @lang PhpRegExp */
+        '#int\(\d+\)#' => 'int',
+        /** @lang PhpRegExp */
+        '#CHARACTER\sSET\s[A-Za-z0-9_]+#' => '',
+        /** @lang PhpRegExp */
+        '#COLLATE\s[A-Za-z0-9_]+#' => '',
+        /** @lang PhpRegExp */
+        '#datetime\sDEFAULT\sNULL#' => 'datetime',
+        /** @lang PhpRegExp */
+        '#\sON\sDELETE\sNO\sACTION#' => '',
+        /** @lang PhpRegExp */
+        '#AUTO_INCREMENT=\d+#' => '',
+        /** @lang PhpRegExp */
+        '#COLLATE=[A-Za-z0-9_]+#' => '',
+        /** @lang PhpRegExp */
+        '#CREATE\sTABLE\s`#' => 'CREATE TABLE IF NOT EXISTS `',
+        /** @lang PhpRegExp */
+        '#DEFAULT CHARSET=[A-Za-z0-9_]+#' => '',   // todo - I feel like this makes sense to flag but Actions
+        /** @lang PhpRegExp */
+        '#\s{2,}#' => ' ',
+        /** @lang PhpRegExp */
+        '#\s?,$#' => '',
+        /** @lang PhpRegExp */
+        '#\s?;$#' => '',
+    ];
+
     /**
      * @var mixed
      */
@@ -3703,43 +3732,18 @@ TRIGGER;
     }
 
 
-    public const  SQL_VERSION_PREG_REPLACE = [
-        /** @lang PhpRegExp */
-        '#bigint\(\d+\)#' => 'bigint',
-        /** @lang PhpRegExp */
-        '#int\(\d+\)#' => 'int',
-        /** @lang PhpRegExp */
-        '#CHARACTER\sSET\s[A-Za-z0-9_]+#' => '',
-        /** @lang PhpRegExp */
-        '#COLLATE\s[A-Za-z0-9_]+#' => '',
-        /** @lang PhpRegExp */
-        '#datetime\sDEFAULT\sNULL#' => 'datetime',
-        /** @lang PhpRegExp */
-        '#\sON\sDELETE\sNO\sACTION#' => '',
-        /** @lang PhpRegExp */
-        '#AUTO_INCREMENT=\d+#' => '',
-        /** @lang PhpRegExp */
-        '#COLLATE=[A-Za-z0-9_]+#' => '',
-        /** @lang PhpRegExp */
-        '#CREATE\sTABLE\s`#' => 'CREATE TABLE IF NOT EXISTS `',
-        /** @lang PhpRegExp */
-        '#DEFAULT CHARSET=[A-Za-z0-9_]+#' => '',   // todo - I feel like this makes sense to flag but Actions
-        /** @lang PhpRegExp */
-        '#\s{2,}#' => ' ',
-        /** @lang PhpRegExp */
-        '#\s?,$#' => '',
-        /** @lang PhpRegExp */
-        '#\s?;$#' => '',
-    ];
 
-    public static function parseSchemaSQL(string $sql = null): ?string
+
+    public static function parseSchemaSQL(string $sql = null, array $replace = null): ?string
     {
 
         $sql = trim($sql);
 
-        $postUpdateSQL = trim(str_replace("\\n", "\n", $sql));
+        $sql = str_replace("\\n", "\n", $sql);
 
-        $replace = self::SQL_VERSION_PREG_REPLACE;
+        $sql = trim($sql);
+
+        $replace ??= self::SQL_VERSION_PREG_REPLACE;
 
         $pattern = array_keys($replace);
 
