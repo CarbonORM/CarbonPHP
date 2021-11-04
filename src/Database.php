@@ -1033,9 +1033,15 @@ FOOT;
 
             foreach ($fullyQualifiedClassName::EXTERNAL_TABLE_CONSTRAINTS as $externalTableColumn => $internalTableColumn) {
 
+                $ignoreRef = '';
+
                 [$externalTableName, $externalColumnName] = explode('.', $externalTableColumn);
 
+                self::addTablePrefix($externalTableName, $fullyQualifiedClassName::TABLE_PREFIX, $ignoreRef);
+
                 [$internalTableName, $internalColumnName] = explode('.',  $internalTableColumn);
+
+                self::addTablePrefix($internalTableName, $fullyQualifiedClassName::TABLE_PREFIX, $ignoreRef);
 
                 $values = self::fetch('SELECT REFERENCED_TABLE_SCHEMA
                                         FROM  INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
