@@ -64,8 +64,10 @@ usage;
                 case '-r':
                 case '--rebuild':
                     self::colorCode('Starting Database Build');
+
                     DB::setUp(false, true);   // Redirect = false
-                    self::colorCode('Finished Database Build');
+
+                self::colorCode('Finished Database Build');
                     // this is going to the CLI so no need to run/attach redirect scripts
                     exit(0);
                 case '-m':

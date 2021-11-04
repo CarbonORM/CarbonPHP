@@ -393,7 +393,7 @@ FOOT;
      * @param string|null $tableDirectory
      * @return PDO
      */
-    public static function setUp(bool $refresh = true, bool $cli = false, string $tableDirectory = null): PDO
+    public static function setUp(bool $refresh = true, bool $cli = false): PDO
     {
 
         if ($cli) {
@@ -409,7 +409,7 @@ FOOT;
 
         }
 
-        self::refreshDatabase($tableDirectory ?? '');
+        self::refreshDatabase();
 
         if ($refresh && !$cli) {
 
@@ -806,11 +806,6 @@ FOOT;
         }
     }
 
-    public static function buildCarbonPHP(): void
-    {
-        self::refreshDatabase(CarbonPHP::CARBON_ROOT . DS . 'tables' . DS);
-    }
-
     public static function scanAnd(callable $callback, string $tableDirectory = null): void
     {
 
@@ -862,6 +857,7 @@ FOOT;
 
     public static function scanAndRunRefreshDatabase(string $tableDirectory): bool
     {
+
         static $validatedTables = [];
 
         ColorCode::colorCode("\n\nScanning and running refresh database using ('$tableDirectory' . '*.php')");
@@ -885,7 +881,7 @@ FOOT;
 
             }
 
-        });
+        }, $tableDirectory);
 
         self::colorCode('Running Compiled Table Creates.');
 
@@ -923,8 +919,7 @@ FOOT;
 
             }
 
-        },
-            $tableDirectory);
+        }, $tableDirectory);
 
         if (file_exists($filename = CarbonPHP::$app_root . 'mysqldump.sql')) {
 
@@ -1141,10 +1136,9 @@ FOOT;
 
 
     /**
-     * @param string $tableDirectory
      * @param bool|null $cli
      */
-    public static function refreshDatabase(string $tableDirectory = '', bool $cli = null): void
+    public static function refreshDatabase(bool $cli = null): void
     {
 
         if (null === $cli) {
@@ -1155,15 +1149,9 @@ FOOT;
 
         try {
 
-            if (CarbonPHP::$carbon_is_root) {
+            $tableDirectory = Rest::autoTargetTableDirectory();
 
-                $tableDirectory = CarbonPHP::CARBON_ROOT . 'tables/'; // todo - use config array to set this
-
-            } elseif ($tableDirectory === '') {
-
-                $tableDirectory = Rest::autoTargetTableDirectory();
-
-            }
+            $isC6 = $tableDirectory === Carbons::DIRECTORY;
 
             if ($cli) {
 
@@ -1177,7 +1165,7 @@ FOOT;
 
             self::colorCode('Building CarbonPHP [C6] Tables', iColorCode::CYAN);
 
-            if ($tableDirectory !== Carbons::DIRECTORY) {
+            if (false === $isC6) {
 
                 $status = self::scanAndRunRefreshDatabase(Carbons::DIRECTORY);
 
@@ -1191,7 +1179,7 @@ FOOT;
 
             } else {
 
-                self::colorCode('Failed refreshing schema; view output above for more information!');
+                self::colorCode('Failed refreshing schema; view output above for more information!', iColorCode::RED);
 
                 exit(1);
 
