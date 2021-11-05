@@ -1004,7 +1004,8 @@ FOOT;
 
             $table_regex = "#CREATE\s+TABLE\s`$tableName`(.|\s)+?(?=ENGINE=)ENGINE=.+;#";
 
-            if (null === $preUpdateSQL || false === preg_match_all($table_regex, $mysqldump, $matches)) {
+            if (null === $preUpdateSQL
+                || false === preg_match_all($table_regex, $mysqldump, $matches)) {
 
                 ColorCode::colorCode('Verifying schema failed during preg_match_all on the ./mysqlDump.sql', iColorCode::RED);
 
@@ -1026,7 +1027,8 @@ FOOT;
 
             }
 
-            foreach ($fullyQualifiedClassName::EXTERNAL_TABLE_CONSTRAINTS as $externalTableColumn => $internalTableColumn) {
+            // todo - change to internal // check order to ensure all tables inserted
+            foreach ($fullyQualifiedClassName::INTERNAL_TABLE_CONSTRAINTS as $internalTableColumn => $externalTableColumn) {
 
                 $ignoreRef = '';
 
@@ -1067,9 +1069,11 @@ FOOT;
             // Rest::parseSchemaSQL() is only done on $preUpdateSQL for legacy builds
             // we add 'CONSTRAINT\s`.*' => '' only to the post updated query as AWS will not include
             // FK constraints in mysql dump files // post update
-            $awsLoose = Rest::SQL_VERSION_PREG_REPLACE + [
+            $awsLoose = Rest::SQL_VERSION_PREG_REPLACE;
+
+            /*+ [
                     '#CONSTRAINT\s`.*#' => ''
-                ];
+                ];*/
 
             $preUpdateSQL = trim(Rest::parseSchemaSQL($preUpdateSQL, $awsLoose));
 

@@ -1064,19 +1064,12 @@ abstract class Rest extends Database
 
                     break;
 
-                case self::PUT:
-
-                    if ($primary === null) {
-
-                        throw new PublicAlert('Updating restful records requires a primary key.'); // todo - add updates optional primary bool
-
-                    }
-
                 case self::OPTIONS:
 
                     $_SERVER['REQUEST_METHOD'] = self::GET;
 
                 case self::POST:
+                case self::PUT:
                 case self::DELETE:
 
                     $args = $_POST;
@@ -1630,7 +1623,13 @@ abstract class Rest extends Database
 
                     }
 
+                    // todo - loosen logic
                     if (is_array(static::PRIMARY)) {
+
+
+
+
+
 
                         $primaryIntersect = count(array_intersect(array_keys($primary), static::PRIMARY));
 
@@ -1657,6 +1656,15 @@ abstract class Rest extends Database
 
                         /** @noinspection SlowArrayOperationsInLoopInspection */
                         $argv = array_merge($argv, $primary ?? []); // todo - this is a good point. were looping and running and array merge..
+
+
+
+
+
+
+
+
+
 
                     } elseif (is_string(static::PRIMARY) && !$emptyPrimary) {
 
@@ -1898,6 +1906,7 @@ abstract class Rest extends Database
 
                     }
 
+                    // todo - more validations on payload not empty
                     if (empty($argv)) {
 
                         return self::signalError('Restful tables which have no primary key must be updated using conditions given to \$argv[self::WHERE] and values to be updated given to \$argv[self::UPDATE]. No UPDATE attribute given.');
@@ -1908,7 +1917,9 @@ abstract class Rest extends Database
 
                     $emptyPrimary = null === $primary || [] === $primary;
 
-                    if (false === $replace && false === self::$allowFullTableUpdates && $emptyPrimary) {
+                    if (false === $replace
+                        && false === self::$allowFullTableUpdates
+                        && $emptyPrimary) {
 
                         return self::signalError('Restful tables which have a primary key must be updated by its primary key. To bypass this set you may set `self::\$allowFullTableUpdates = true;` during the PREPROCESS events.');
 
@@ -1916,12 +1927,24 @@ abstract class Rest extends Database
 
                     if (is_array(static::PRIMARY)) {
 
-                        if (false === self::$allowFullTableUpdates || !$emptyPrimary) {
+                        if (false === self::$allowFullTableUpdates
+                            || false === $emptyPrimary) {
 
-                            if (count(array_intersect_key($primary, static::PRIMARY)) !== count(static::PRIMARY)) {
+                            $primary ??= [];
 
-                                return self::signalError('You must provide all primary keys (' . implode(', ', static::PRIMARY) . ').');
+                            $primaryCount = count(static::PRIMARY);
 
+                            $explicitPrimaryCount = count(array_intersect(array_keys($primary), static::PRIMARY));
+
+                            if ($explicitPrimaryCount !== $primaryCount) {
+
+                                $implicitPrimaryCount = count(array_intersect(array_keys($primary), static::PRIMARY));
+
+                                if (($explicitPrimaryCount + $implicitPrimaryCount) !== $primaryCount) {
+
+                                    return self::signalError('You must provide all primary keys (' . implode(', ', static::PRIMARY) . ').');
+
+                                }
                             }
 
                             $where = array_merge($argv, $primary);
@@ -1950,6 +1973,7 @@ abstract class Rest extends Database
                         return self::signalError("Your custom restful api validations caused the request to fail on column ($key).");
 
                     }
+
                 }
                 unset($value);
 
