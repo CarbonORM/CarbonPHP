@@ -1650,16 +1650,8 @@ abstract class Rest extends Database
                         }
 
                         /** @noinspection SlowArrayOperationsInLoopInspection */
-                        $argv = array_merge($argv, $primary ?? []); // todo - this is a good point. were looping and running and array merge..
-
-
-
-
-
-
-
-
-
+                        $argv = array_merge($argv, $primary ?? []);
+                        // todo - this is a good point. were looping and running and array merge..
 
                     } elseif (is_string(static::PRIMARY) && !$emptyPrimary) {
 
