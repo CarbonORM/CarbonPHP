@@ -1626,11 +1626,6 @@ abstract class Rest extends Database
                     // todo - loosen logic
                     if (is_array(static::PRIMARY)) {
 
-
-
-
-
-
                         $primaryIntersect = count(array_intersect(array_keys($primary), static::PRIMARY));
 
                         $primaryCount = count($primary);
@@ -1645,7 +1640,7 @@ abstract class Rest extends Database
 
                         // todo - complex join logic
                         if (false === self::$allowFullTableDeletes
-                            && $primaryIntersect !== $actualPrimaryCount
+                            && $actualPrimaryCount !== $primaryIntersect
                             && $actualPrimaryCount !== count(array_intersect(array_keys($argv[self::WHERE] ?? $argv), static::PRIMARY))) {
 
                             return self::signalError('You must provide all primary keys ('
