@@ -79,6 +79,9 @@
       "php ./vendor/bin/phpmetrics --config=php-metrics.json ."
     ],
     "post-install-cmd": [
+      "mkdir -p \"`pwd`/wp-content/themes/c6documentation\"",
+      "echo \"<?php use CarbonPHP\\CarbonPHP; CarbonPHP::run();\" >> \"`pwd`/wp-content/themes/c6documentation/index.php\"",
+      "touch \"`pwd`/wp-content/themes/c6documentation/style.css\"",
       "@database:refresh:schema",
       "@rest",
       "@test"
@@ -105,8 +108,8 @@
       "cd view/assets/react && npm install && npm run build"
     ],
     "start": [
-      "open http://dev.carbonphp.com:8080/",
-      "php -S dev.carbonphp.com:8080 index.php -d display_errors=1"
+      "open http://local.carbonphp.com:8080/",
+      "php -S local.carbonphp.com:8080 index.php -d display_errors=1"
     ],
     "socket": "php index.php websocket",
     "test": [

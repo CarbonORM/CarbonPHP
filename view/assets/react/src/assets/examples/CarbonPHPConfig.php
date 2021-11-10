@@ -346,7 +346,7 @@ class Config extends Application implements iConfig
                 'REBUILD' => false
             ],
             'SITE' => [
-                'URL' => APP_LOCAL ? 'dev.carbonphp.com' : 'carbonphp.com',    /* Evaluated and if not the accurate Redirect. Local php server okay. Remove for any domain */
+                'URL' => APP_LOCAL ? 'local.carbonphp.com' : 'carbonphp.com',    /* Evaluated and if not the accurate Redirect. Local php server okay. Remove for any domain */
                 'ROOT' => APP_ROOT,          /* This was defined in our ../index.php */
                 'CACHE_CONTROL' => [
                     'ico|pdf|flv' => 'Cache-Control: max-age=29030400, public',

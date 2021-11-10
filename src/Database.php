@@ -1047,7 +1047,7 @@ FOOT;
                                         AND REFERENCED_COLUMN_NAME = ?
                                         AND TABLE_NAME = ?
                                         AND COLUMN_NAME = ?
-                ;',  self::$carbonDatabaseName, $internalTableName, $internalColumnName, $externalTableName, $externalColumnName);
+                ;',  self::$carbonDatabaseName, $externalTableName, $externalColumnName, $internalTableName, $internalColumnName);
 
                 if ([] === $values) {
 

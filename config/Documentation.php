@@ -62,11 +62,12 @@ class Documentation extends Application implements iConfig
     {
         self::getUser();
 
+
         View::$forceWrapper = true; // this will hard refresh the wrapper
 
         if (CarbonPHP::$app_local) {
-            throw new PublicAlert('You should run the live version on <a id="staticSite" href="http://dev.carbonphp.com:3000/" style="color:#ff0084">port 3000</a> with the command<br/><b>>> npm start </b> 
-    <br/>To bypass this message <a href="http://dev.carbonphp.com:8080/releases/10.4.3/" style="color:blue">click here</a>');
+            throw new PublicAlert('You should run the live version on <a id="staticSite" href="http://local.carbonphp.com:3000/" style="color:#ff0084">port 3000</a> with the command<br/><b>>> npm start </b> 
+    <br/>To bypass this message <a href="http://local.carbonphp.com:8080/releases/10.4.3/" style="color:blue">click here</a>');
         }
 
         $this->fullPage()(CarbonPHP::$app_root . self::REACT);
@@ -298,7 +299,7 @@ function IsJsonString(str) {
 $(document).ready(function () {
 
     //create a new WebSocket object.
-    let wsUri = "ws://dev.carbonphp.com:8888/ws";
+    let wsUri = "ws://local.carbonphp.com:8888/ws";
     let websocket = new WebSocket(wsUri);
     
     
@@ -643,7 +644,7 @@ SOCKET;
                 CarbonPHP::REBUILD => false
             ],
             CarbonPHP::SITE => [
-                CarbonPHP::URL => CarbonPHP::$app_local ? 'dev.carbonphp.com' : 'carbonphp.com',    /* Evaluated and if not the accurate Redirect. Local php server okay. Remove for any domain */
+                CarbonPHP::URL => CarbonPHP::$app_local ? 'local.carbonphp.com' : 'carbonphp.com',    /* Evaluated and if not the accurate Redirect. Local php server okay. Remove for any domain */
                 CarbonPHP::ROOT => CarbonPHP::$app_root,          /* This was defined in our ../index.php */
                 CarbonPHP::CACHE_CONTROL => [
                     'ico|pdf|flv' => 'Cache-Control: max-age=29030400, public',

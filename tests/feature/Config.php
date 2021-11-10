@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase;
 
 abstract class Config extends TestCase
 {
-    public const URL = 'http://dev.carbonphp.com/';
+    public const URL = 'http://local.carbonphp.com/';
 
     public const ADMIN_USERNAME = 'admin';
 
@@ -69,7 +69,7 @@ abstract class Config extends TestCase
             'HTTP_UPGRADE_INSECURE_REQUESTS' => '1',
             'HTTP_USER_AGENT' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36',
             'HTTP_ACCEPT' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-            'HTTP_REFERER' => 'http://dev.carbonphp.com/'
+            'HTTP_REFERER' => 'http://local.carbonphp.com/'
         ];
 
     }

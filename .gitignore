@@ -20,6 +20,13 @@ config/buildDatabase.php
 /junit.xml
 /PhpMetrics
 /out/*
+/out
+/tmp
+/wp-admin
+/wp-content
+/wp-includes
+/logs
+/temp
 
 # recursive documentation (keep both)
 /view/assets/react/src/assets/src/*
