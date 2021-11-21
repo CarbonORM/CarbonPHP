@@ -33,7 +33,7 @@ For the rest of us who live outside windows Hell C6 has a Websocket Library Clas
 ## Quick Start
 ### Existing projects
 
-    composer install richardtmiles/carbonphp@^9
+    composer install richardtmiles/carbonphp
 
 ## Standards 
 
@@ -53,7 +53,7 @@ CarbonPHP will always try to stay upto date with the latest version of PHP.
 Use of an opcode cache such as XCache is highly recommended, as Carbon is able to run entirely without stat() 
 calls when paired with an opcode cache. Also recommended (but optional) is a RAM-caching engine such as memcached.
 PHP8, if not already supported, will receive support WITH C6's FIRST Backwards Compatible Release. Plans to drop 7.4 
-are currently scheduled for the summer of 2021. 
+are currently scheduled for the summer of 2022. 
 
 ## Documentation
 
