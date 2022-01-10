@@ -3,6 +3,7 @@
 namespace CarbonPHP;
 
 use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Helpers\Serialized;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iConfig;
@@ -769,25 +770,47 @@ class CarbonPHP
      */
     private static function IP_FILTER()
     {
+
         $ip_keys = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR');
+
         foreach ($ip_keys as $key) {
+
             if (array_key_exists($key, $_SERVER) === true) {
+
                 foreach (explode(',', $_SERVER[$key]) as $ip) {
 
                     $ip = trim($ip);
 
-                    if (self::$app_local && $ip === '127.0.0.1') {
+                    if (self::$app_local && ( $ip === '127.0.0.1' || $ip === '::1' )) {
+
                         return self::$server_ip = $ip;
+
                     }
 
                     if ($ip = filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+
                         return self::$server_ip = $ip;
+
                     }
+
                 }
+
             }
+
         }
-        print 'Could not establish an IP address.';
+
+        try {
+
+            throw new PublicAlert('Could not establish an IP address.');
+
+        } catch (Throwable $e) {
+
+            ErrorCatcher::generateLog($e);  // this should terminate
+
+        }
+
         die(1);
+
     }
 
 

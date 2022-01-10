@@ -179,27 +179,9 @@ FOOT;
 
             case 1049:
 
-                $query = explode(';', static::$carbonDatabaseDSN);    // I programmatically put it there which is why..
-
-                $db_name = explode('=', $query[1])[1];  // I dont validate with count on this
-
-                if (empty($db_name)) {
-
-                    $log_array[] = 'Could not determine a database to create. See Carbonphp.com for documentation.';
-
-                    print ErrorCatcher::generateBrowserReport($log_array); // this
-
-                    break;
-
-                }
-
                 try {
-                    // https://www.php.net/manual/en/pdo.setattribute.php
-                    static::$database = new PDO(
-                        $query[0],
-                        static::$carbonDatabaseUsername,
-                        static::$carbonDatabasePassword,
-                        self::getPdoOptions());
+
+                    self::createDatabaseIfNotExist();
 
                 } catch (Throwable $e) {
 
@@ -218,23 +200,7 @@ FOOT;
 
                 }
 
-                $stmt = "CREATE DATABASE $db_name;";
-
-                $db = static::$database;
-
-                if (!$db->prepare($stmt)->execute()) {
-
-                    $log_array[] = "<h1>Failed to execute ($stmt).</h1>";
-
-                    print ErrorCatcher::generateBrowserReport($log_array);  // this terminates
-
-                } else {
-
-                    $db->exec("use $db_name");
-
-                    static::refreshDatabase();
-
-                }
+                static::refreshDatabase();
 
                 print ErrorCatcher::generateBrowserReport($log_array);  // this terminates
 
@@ -853,6 +819,45 @@ FOOT;
         }
     }
 
+    /**
+     * @throws Throwable
+     */
+    public static function createDatabaseIfNotExist(): void
+    {
+
+        $query = explode(';', static::$carbonDatabaseDSN);    // I programmatically put it there which is why..
+
+        $db_name = explode('=', $query[1])[1];  // I dont validate with count on this
+
+        if (empty($db_name)) {
+
+            throw new PublicAlert('Failed to parse the database name. Please look at the mysql connection information.');
+
+        }
+
+        // https://www.php.net/manual/en/pdo.setattribute.php
+        static::$database = new PDO(
+            $query[0],
+            static::$carbonDatabaseUsername,
+            static::$carbonDatabasePassword,
+            self::getPdoOptions());
+
+
+        $stmt = "CREATE DATABASE IF NOT EXISTS $db_name;";
+
+        $db = static::$database;
+
+        if (!$db->prepare($stmt)->execute()) {
+
+            throw new PublicAlert("The following mysql command failed 'CREATE DATABASE IF NOT EXISTS ($db_name)'");
+
+        }
+
+        $db->exec("use $db_name");
+
+    }
+
+
     public static array $tablesToValidateAfterRefresh = [];
 
     public static function scanAndRunRefreshDatabase(string $tableDirectory): bool
@@ -941,12 +946,15 @@ FOOT;
         sleep(1);   // wait for last command
 
         if (!file_exists($mysqldump)) {
-            self::colorCode( 'Could not load mysql dump file!' . PHP_EOL);
+
+            self::colorCode('Could not load mysql dump file!' . PHP_EOL);
+
             exit(1);
+
         }
 
         if (empty($mysqldump = file_get_contents($mysqldump))) {
-            self::colorCode(  'Contents of the mysql dump file appears empty. Build Failed!');
+            self::colorCode('Contents of the mysql dump file appears empty. Build Failed!');
             exit(1);
         }
 
@@ -1036,7 +1044,7 @@ FOOT;
 
                 self::addTablePrefix($externalTableName, $fullyQualifiedClassName::TABLE_PREFIX, $ignoreRef);
 
-                [$internalTableName, $internalColumnName] = explode('.',  $internalTableColumn);
+                [$internalTableName, $internalColumnName] = explode('.', $internalTableColumn);
 
                 self::addTablePrefix($internalTableName, $fullyQualifiedClassName::TABLE_PREFIX, $ignoreRef);
 
@@ -1047,7 +1055,7 @@ FOOT;
                                         AND REFERENCED_COLUMN_NAME = ?
                                         AND TABLE_NAME = ?
                                         AND COLUMN_NAME = ?
-                ;',  self::$carbonDatabaseName, $externalTableName, $externalColumnName, $internalTableName, $internalColumnName);
+                ;', self::$carbonDatabaseName, $externalTableName, $externalColumnName, $internalTableName, $internalColumnName);
 
                 if ([] === $values) {
 
@@ -1168,6 +1176,10 @@ FOOT;
             }
 
             self::colorCode('Building CarbonPHP [C6] Tables', iColorCode::CYAN);
+
+
+            self::createDatabaseIfNotExist();
+
 
             if (false === $isC6) {
 
