@@ -13,10 +13,9 @@ trait Background
      * @param string $cmd
      * @param string $outputFile
      * @param bool $append
-     * @param bool $disown  -- only works for linux
      * @return mixed
      */
-    public static function background(string $cmd, string $outputFile = '/dev/null', bool $append = false, bool $disown = false): mixed
+    public static function background(string $cmd, string $outputFile = '/dev/null', bool $append = false): mixed
     {
 
         try {
@@ -31,19 +30,11 @@ trait Background
 
             }
 
-
-            $cmd = sprintf('sudo sh %s ' . ($append ? '>>' : '>') . ' %s 2>&1 & echo $!', $cmd, $outputFile);
-
-            // the parenthesis should run this in another shell // disowned from this process
-            if ($disown) {
-
-                $cmd = "( $cmd );";
-
-            }
+            $cmd = sprintf('nohup sudo sh %s ' . ($append ? '>>' : '>') . ' %s 2>&1 & echo $! ;', $cmd, $outputFile);
 
             exec($cmd, $pid);
 
-            ColorCode::colorCode("Running Background CMD (parent pid:: " . getmypid() . "; child pid::" . ($pid[0] ??='error') . ")>> " . $cmd . PHP_EOL . PHP_EOL);
+            ColorCode::colorCode("Running Background CMD <disassociated> (parent pid:: " . getmypid() . "; child pid::" . ($pid[0] ??='error') . ")>> " . $cmd . PHP_EOL . PHP_EOL);
 
             return $pid[0];
 
