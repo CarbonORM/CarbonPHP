@@ -7,7 +7,16 @@ use Throwable;
 
 trait Background
 {
-    public static function background(string $cmd, string $outputFile = '/dev/null', bool $append = false)
+    /**
+     * Attempt to run shell command in the background on any os.
+     * This is convent as appending an ampersand will not work universally, and may not work where expected
+     * @param string $cmd
+     * @param string $outputFile
+     * @param bool $append
+     * @param bool $disown  -- only works for linux
+     * @return mixed
+     */
+    public static function background(string $cmd, string $outputFile = '/dev/null', bool $append = false, bool $disown = false): mixed
     {
 
         try {
@@ -22,11 +31,19 @@ trait Background
 
             }
 
-            $cmd = sprintf('sudo sh %s ' . ($append ? '>>' : '>') . ' %s 2>&1 & echo $!;', $cmd, $outputFile); // sudo %s > %s 2>$1 & echo $!
+
+            $cmd = sprintf('sudo sh %s ' . ($append ? '>>' : '>') . ' %s 2>&1 & echo $!', $cmd, $outputFile);
+
+            // the parenthesis should run this in another shell // disowned from this process
+            if ($disown) {
+
+                $cmd = "( $cmd );";
+
+            }
 
             exec($cmd, $pid);
 
-            ColorCode::colorCode("Running Background CMD (pid::" . ($pid[0] ??='error') . ")>> " . $cmd . PHP_EOL . PHP_EOL);
+            ColorCode::colorCode("Running Background CMD (parent pid:: " . getmypid() . "; child pid::" . ($pid[0] ??='error') . ")>> " . $cmd . PHP_EOL . PHP_EOL);
 
             return $pid[0];
 
