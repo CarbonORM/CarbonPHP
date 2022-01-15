@@ -36,8 +36,6 @@ trait Background
 
             ColorCode::colorCode("Running Background CMD <disassociated> (parent pid:: " . getmypid() . "; child pid::" . ($pid[0] ??='error') . ")>> " . $cmd . PHP_EOL . PHP_EOL);
 
-            return $pid[0];
-
         } catch (Throwable $e) {
         }
 
