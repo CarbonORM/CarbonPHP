@@ -30,7 +30,7 @@ trait Background
 
             }
 
-            $cmd = sprintf('nohup sudo sh %s ' . ($append ? '>>' : '>') . ' %s 2>&1 & echo $! ;', $cmd, $outputFile);
+            $cmd = sprintf('nohup %s ' . ($append ? '>>' : '>') . ' %s 2>&1 & echo $! ; disown', $cmd, $outputFile);
 
             exec($cmd, $pid);
 
