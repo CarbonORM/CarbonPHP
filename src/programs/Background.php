@@ -2,6 +2,7 @@
 
 namespace CarbonPHP\Programs;
 
+use CarbonPHP\Helpers\Files;
 use CarbonPHP\Interfaces\iColorCode;
 use Throwable;
 
@@ -13,9 +14,9 @@ trait Background
      * @param string $cmd
      * @param string $outputFile
      * @param bool $append
-     * @return mixed
+     * @return string|int
      */
-    public static function background(string $cmd, string $outputFile = '/dev/null', bool $append = false): mixed
+    public static function background(string $cmd, string $outputFile = '/dev/null', bool $append = false)
     {
 
         try {
@@ -30,11 +31,15 @@ trait Background
 
             }
 
+            Files::mkdir($outputFile);
+
+            touch($outputFile);
+
             $cmd = sprintf('nohup %s ' . ($append ? '>>' : '>') . ' %s 2>&1 & echo $! ; disown', $cmd, $outputFile);
 
             exec($cmd, $pid);
 
-            ColorCode::colorCode("Running Background CMD <disassociated> (parent pid:: " . getmypid() . "; child pid::" . ($pid[0] ??='error') . ")>> " . $cmd . PHP_EOL . PHP_EOL);
+            ColorCode::colorCode("Running Background CMD <disassociated> (parent<current> pid:: " . getmypid() . "; child pid::" . ($pid[0] ??='error') . ")>> " . $cmd . PHP_EOL . PHP_EOL);
 
         } catch (Throwable $e) {
         }

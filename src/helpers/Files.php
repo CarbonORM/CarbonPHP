@@ -79,19 +79,19 @@ class Files
      * This will usually mean the www user group or another variation. Deleting
      * Files and folders created with this function may require sudo.
      * @param $location
-     * @return bool
-     * @throws \RuntimeException
+     * @return void
+     * @throws PublicAlert
      */
-    public static function mkdir($location) : bool
+    public static function mkdir($location) : void
     {
-        $user = get_current_user();                            // get current process user
+        $directory = dirname($location);
 
-        print exec("chown -R {$user}:{$user} " . CarbonPHP::$app_root);  // We need to modify the permissions so users can write to it
+        if (false === is_dir($directory) && (false === mkdir($directory, 775, true) || false === is_dir($directory))) {
 
-        if (!mkdir(CarbonPHP::$app_root . $location, 755, true) && !is_dir($location)) {
-            throw new \RuntimeException("Failed to create directory $location");
+            throw new PublicAlert('The directory (' . $directory . ') does not exists and failed to be created (' . $location . ') failed.');
+
         }
-        return is_dir($location);
+
     }
 
     /** Attempt to store a string to a file. If the file does not exist the
