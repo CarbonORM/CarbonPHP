@@ -75,10 +75,8 @@ class Files
         }
     }
 
-    /** Attempt to safely make a directory using the current user. During runtime
-     * This will usually mean the www user group or another variation. Deleting
-     * Files and folders created with this function may require sudo.
-     * @param $location
+    /** Attempt to safely make a directory using the current user.
+     * @param $location - should end with a DIRECTORY_SEPARATOR or will be parsed with dirname()
      * @return void
      * @throws PublicAlert
      */
