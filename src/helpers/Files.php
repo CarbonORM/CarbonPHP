@@ -84,7 +84,15 @@ class Files
      */
     public static function mkdir($location) : void
     {
-        $directory = dirname($location);
+        if ($location[-1] === DIRECTORY_SEPARATOR) {
+
+            $directory = $location;
+
+        } else {
+
+            $directory = dirname($location);
+
+        }
 
         if (false === is_dir($directory) && (false === mkdir($directory, 775, true) || false === is_dir($directory))) {
 
