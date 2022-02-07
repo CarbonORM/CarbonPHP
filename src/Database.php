@@ -772,6 +772,7 @@ FOOT;
         }
     }
 
+
     public static function scanAnd(callable $callback, string $tableDirectory = null): void
     {
 
@@ -1246,7 +1247,7 @@ FOOT;
 
         } else {
 
-            self::colorCode("The ($column) already exists.");
+            self::colorCode("The ($column) already exists on table ($table_name).");
 
         }
 

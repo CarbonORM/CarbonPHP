@@ -194,6 +194,7 @@ END;
                 case '-prefix':
                     $prefix = $argv[++$i];
                     break;
+
                 case '-namespace':
                     $target_namespace = $argv[++$i];
 
