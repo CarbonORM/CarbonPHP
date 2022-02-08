@@ -23,7 +23,6 @@ use function array_shift;
 use function count;
 use function is_array;
 
-
 /**
  * Class Database
  * @link https://en.wikipedia.org/wiki/Entity–component–system
@@ -586,10 +585,14 @@ FOOT;
      */
     public static function remove_entity($id): bool
     {
+
         $ref = [];
+
         $carbons = Rest::getDynamicRestClass(Carbons::class);
+
         /** @noinspection PhpUndefinedMethodInspection */
         return $carbons::delete($ref, $id, []); //Database::database()->prepare('DELETE FROM carbon WHERE entity_pk = ?')->execute([$id]);
+
     }
 
 
@@ -607,8 +610,9 @@ FOOT;
      * Example:
      *  $array = static::fetch('SELECT * FROM user WHERE user_id = ?', $id);
      *
+     * @deprecated
      * @param string $sql
-     * @param array ...$execute
+     * @param mixed ...$execute
      * @link http://php.net/manual/en/functions.arguments.php
      * @return array
      */
@@ -622,6 +626,7 @@ FOOT;
                 return [];
             }
 
+            // @deprecated
             if (count($stmt = $stmt->fetchAll(PDO::FETCH_ASSOC)) !== 1) {
                 return $stmt;
             }
@@ -637,8 +642,38 @@ FOOT;
             exit(1);
 
         }
+    }
+
+    /**
+     * @param string $sql
+     * @param ...$execute
+     * @return array|bool
+     */
+    public static function fetchAll(string $sql, ...$execute)
+    {
+
+        try {
+
+            $stmt = self::database()->prepare($sql);
+
+            if (false === $stmt->execute($execute)) { // try it twice, you never know..
+
+                return [];
+
+            }
+
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);   // promise this is needed and will still return the desired array
+
+        } catch (Throwable $e) {
+
+            ErrorCatcher::generateLog($e);  // this terminates
+
+            exit(1);
+
+        }
 
     }
+
 
     /** Quickly prepare and execute PDO $sql statements using
      *  variable arguments.
@@ -735,13 +770,25 @@ FOOT;
 
                 if (!is_int($key)) {
 
-                    throw new PublicAlert('All members of REFRESH_SCHEMA must be arrays with integer keys.');
+                    throw new PublicAlert('All members of REFRESH_SCHEMA must be callables or arrays with integer keys. Note: callables are not allowed in constants.');
 
                 }
 
                 if (!is_array($validation)) {
 
-                    throw new PublicAlert('Each REFRESH_SCHEMA should equal an array of arrays with [ call => method , structure followed by any additional arguments ]. Refer to Carbonphp.com for more information.');
+                    if (!is_callable($validation)) {
+
+                        throw new PublicAlert('Each REFRESH_SCHEMA should equal an array of arrays with [ call => method , structure followed by any additional arguments ]. Optionally a public member array $REFRESH_SCHEMA maybe used to explicitly reference using callables. Refer to Carbonphp.com for more information.');
+
+                    }
+
+                    if (false === $validation()) {
+
+                        throw new PublicAlert("Any method used in REFRESH_SCHEMA must not return false. A failure was caught in a callable. This typically can be tough debugging. ");
+
+                    }
+
+                    continue;
 
                 }
 
@@ -820,6 +867,104 @@ FOOT;
         }
     }
 
+    public static function verifyAndCreateForeignKeyRelations(string $fullyQualifiedClassName, callable $cb) : bool {
+
+        $constraintsAdded = $failureEncountered = false;
+
+        foreach ($fullyQualifiedClassName::INTERNAL_TABLE_CONSTRAINTS as $internalTableColumn => $externalTableColumn) {
+
+            $ignoreRef = '';
+
+            [$externalTableName, $externalColumnName] = explode('.', $externalTableColumn);
+
+            $preUpdateExternalTableName = $externalTableName;
+
+            self::addTablePrefix($externalTableName, $fullyQualifiedClassName::TABLE_PREFIX, $ignoreRef);
+
+            [$internalTableName, $internalColumnName] = explode('.', $internalTableColumn);
+
+            self::addTablePrefix($internalTableName, $fullyQualifiedClassName::TABLE_PREFIX, $ignoreRef);
+
+            $values = self::fetch('SELECT CONSTRAINT_NAME
+                                        FROM  INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
+                                        WHERE REFERENCED_TABLE_SCHEMA = ?
+                                        AND REFERENCED_TABLE_NAME = ?
+                                        AND REFERENCED_COLUMN_NAME = ?
+                                        AND TABLE_NAME = ?
+                                        AND COLUMN_NAME = ?
+                ;', self::$carbonDatabaseName, $externalTableName, $externalColumnName, $internalTableName, $internalColumnName);
+
+            if ([] === $values) {
+
+                self::colorCode("Failed to verify that the table ($tableName) contains FOREIGN KEY CONSTRAINT ($externalTableName.$externalColumnName) => ($internalTableName.$internalColumnName)", iColorCode::RED);
+
+                $tableCreateSTMT = $fullyQualifiedClassName::CREATE_TABLE_SQL;
+
+                // CONSTRAINT_NAME
+                $constraintNameRegex = "#CONSTRAINT `(.*)` FOREIGN KEY \(`$internalColumnName`\) REFERENCES `(?:$externalTableName|$preUpdateExternalTableName)` \(`$externalColumnName`\)(.*)?#";
+
+                if (false === preg_match_all($constraintNameRegex, $tableCreateSTMT, $cMatches)) {
+
+                    throw new PublicAlert("Failed to preg_match with :: " . print_r([ 'regex' => $constraintNameRegex, 'matches' => $cMatches, '$tableCreateSTMT'=> $tableCreateSTMT], true));
+
+                }
+
+                $constraintName = $cMatches[1][0] ?? '';
+
+                $constraintProperties = $cMatches[2][0] ?? '';
+
+                $constraintProperties = rtrim($constraintProperties, ' ,');
+
+                if ('' === $constraintName) {
+
+                    self::colorCode("Failed to find the constraint name in the table creation SQL \n($tableCreateSTMT)\n with regex ($constraintNameRegex)\n\n", iColorCode::RED);
+
+                    $failureEncountered = true;
+
+                    continue;
+
+                }
+
+                $addConstraint = "ALTER TABLE $internalTableName ADD CONSTRAINT $constraintName FOREIGN KEY ($internalColumnName) REFERENCES $externalTableName ($externalColumnName) $constraintProperties;";
+
+                self::colorCode("Attmpting to run :: ($addConstraint)", iColorCode::CYAN);
+
+                if (false === self::execute($addConstraint)) {
+
+                    self::colorCode("Failed to create constraint using generated sql ::", iColorCode::RED);
+
+                    self::colorCode("$addConstraint\n\n", iColorCode::RED);
+
+                    $failureEncountered = true;
+
+                    continue;
+
+                }
+
+                self::colorCode('The missing constraint was automatically added. You should re-run the build.');
+
+                $constraintsAdded = true;
+
+                continue;
+
+            }
+
+            self::colorCode("Verified relation $internalTableName.$internalColumnName => $externalTableName.$externalColumnName", iColorCode::BACKGROUND_MAGENTA);
+
+        }
+
+
+        if ($constraintsAdded) {
+
+            $cb;
+
+        }
+
+        return false === $failureEncountered;
+
+    }
+
+
     /**
      * @throws Throwable
      */
@@ -861,6 +1006,9 @@ FOOT;
 
     public static array $tablesToValidateAfterRefresh = [];
 
+    /**
+     * @throws PublicAlert
+     */
     public static function scanAndRunRefreshDatabase(string $tableDirectory): bool
     {
 
@@ -893,19 +1041,28 @@ FOOT;
 
         self::compileMySqlStatementsAndExecuteWithoutForeignKeyChecks();
 
-        self::colorCode('Done Creating Tables.');
+        self::colorCode("\n\n\nDone Creating Tables. REFRESH_SCHEMA\n\n", iColorCode::BACKGROUND_GREEN);
 
         self::scanAnd(static function (string $table): void {
 
-            if (defined("$table::REFRESH_SCHEMA")) {
-
-                self::runRefreshSchema($table::REFRESH_SCHEMA);
-
-            } else {
+            if (!defined("$table::REFRESH_SCHEMA")) {
 
                 ColorCode::colorCode("The generated constant $table::REFRESH_SCHEMA does not exist. Rerun RestBuilder to repopulate.", iColorCode::YELLOW);
 
             }
+
+            $refreshFunctions = $table::REFRESH_SCHEMA;
+
+            if (property_exists($table, 'REFRESH_SCHEMA')) {
+
+                $tableInstanciated = new $table;
+
+                $refreshFunctions += $tableInstanciated->REFRESH_SCHEMA;
+
+            }
+
+
+            self::runRefreshSchema($refreshFunctions);
 
             self::$tablesToValidateAfterRefresh[$table] = $table::CREATE_TABLE_SQL;
 
@@ -941,29 +1098,52 @@ FOOT;
 
         }
 
-        // Now Validate The Rest Tables Based on The MySQL Dump after update.
-        $mysqldump = MySQL::mysqldump();
+        self::colorCode("\n\n\nDone with REFRESH_SCHEMA!\n\n", iColorCode::BACKGROUND_CYAN);
 
-        sleep(1);   // wait for last command
+        $mysqldump = '';
 
-        if (!file_exists($mysqldump)) {
+        $getCurrentSchema = static function () use (&$mysqldump) {
 
-            self::colorCode('Could not load mysql dump file!' . PHP_EOL);
+            // Now Validate The Rest Tables Based on The MySQL Dump after update.
+            $mysqldump = MySQL::mysqldump();
 
-            exit(1);
+            sleep(1);   // wait for last command
 
-        }
+            if (!file_exists($mysqldump)) {
 
-        if (empty($mysqldump = file_get_contents($mysqldump))) {
-            self::colorCode('Contents of the mysql dump file appears empty. Build Failed!');
-            exit(1);
-        }
+                self::colorCode("Could not load mysql dump file created at <$mysqldump>" . PHP_EOL);
+
+                exit(1);
+
+            }
+
+            $mysqldump = file_get_contents($mysqldump);
+
+            if (empty($mysqldump)) {
+
+                self::colorCode("Contents of the mysql dump file <$mysqldump> appears empty. Build Failed!");
+
+                exit(1);
+
+            }
+
+        };
+
+        $getCurrentSchema();
 
         $regex = '#CREATE\s+TABLE(.|\s)+?(?=ENGINE=)ENGINE=.+;#';
 
         $failureEncountered = false;
 
+        $databaseName = self::$carbonDatabaseName;
+
         foreach (self::$tablesToValidateAfterRefresh as $fullyQualifiedClassName => $preUpdateSQL) {
+
+            if ($failureEncountered) {
+
+                ColorCode::colorCode("DB <$databaseName> refresh FAILED ABOVE; please keep scrolling above ($fullyQualifiedClassName) for #1st error.", iColorCode::BLUE);
+
+            }
 
             if (defined("$fullyQualifiedClassName::VALIDATE_AFTER_REBUILD") && false === $fullyQualifiedClassName::VALIDATE_AFTER_REBUILD) {
 
@@ -977,7 +1157,8 @@ FOOT;
 
             $matches = [];
 
-            if (null === $preUpdateSQL || false === preg_match_all($regex, $preUpdateSQL, $matches)) {
+            if (null === $preUpdateSQL
+                || false === preg_match_all($regex, $preUpdateSQL, $matches)) {
 
                 ColorCode::colorCode('Verifying schema failed during preg_match_all for sql ' . $preUpdateSQL, iColorCode::RED);
 
@@ -1001,6 +1182,12 @@ FOOT;
 
             self::addTablePrefix($tableName, $fullyQualifiedClassName::TABLE_PREFIX, $preUpdateSQL);
 
+            if (null === $preUpdateSQL) {
+
+                throw new PublicAlert("The \$preUpdateSQL variable is null; this is very unexptected. \n\n" . print_r(self::$tablesToValidateAfterRefresh,true));
+
+            }
+
             if (in_array($tableName, $validatedTables, true)) {
 
                 self::colorCode("The table [C6] ($tableName) has already been validated. Skipping...");
@@ -1011,61 +1198,63 @@ FOOT;
 
             $validatedTables[] = $tableName;
 
-            $table_regex = "#CREATE\s+TABLE\s`$tableName`(.|\s)+?(?=ENGINE=)ENGINE=.+;#";
+            $postUpdateSQL = '';
 
-            if (null === $preUpdateSQL
-                || false === preg_match_all($table_regex, $mysqldump, $matches)) {
+            $pregMatchSchema = static function () use (&$postUpdateSQL, $tableName, $preUpdateSQL, &$mysqldump, $getCurrentSchema, &$failureEncountered) : bool {
 
-                ColorCode::colorCode('Verifying schema failed during preg_match_all on the ./mysqlDump.sql', iColorCode::RED);
+                static $hasRun = [];
 
-                $failureEncountered = true;
+                if (false === in_array($tableName, $hasRun)) {
 
-                continue;
+                    $hasRun[] = $tableName;
 
-            }
+                } else {
 
-            $postUpdateSQL = $matches[0][0] ?? false;
+                    $getCurrentSchema();
 
-            if (false === $postUpdateSQL) {
+                }
 
-                ColorCode::colorCode("Regex failed to match a schema using preg_match_all('$table_regex', '$mysqldump',...", iColorCode::RED);
+                $table_regex = "#CREATE\s+TABLE\s`$tableName`(.|\s)+?(?=ENGINE=)ENGINE=.+;#";
 
-                $failureEncountered = true;
+                if (false === preg_match_all($table_regex, $mysqldump, $matches)) {
 
-                continue;
-
-            }
-
-            // todo - change to internal // check order to ensure all tables inserted
-            foreach ($fullyQualifiedClassName::INTERNAL_TABLE_CONSTRAINTS as $internalTableColumn => $externalTableColumn) {
-
-                $ignoreRef = '';
-
-                [$externalTableName, $externalColumnName] = explode('.', $externalTableColumn);
-
-                self::addTablePrefix($externalTableName, $fullyQualifiedClassName::TABLE_PREFIX, $ignoreRef);
-
-                [$internalTableName, $internalColumnName] = explode('.', $internalTableColumn);
-
-                self::addTablePrefix($internalTableName, $fullyQualifiedClassName::TABLE_PREFIX, $ignoreRef);
-
-                $values = self::fetch('SELECT REFERENCED_TABLE_SCHEMA
-                                        FROM  INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
-                                        WHERE  REFERENCED_TABLE_SCHEMA = ?
-                                        AND REFERENCED_TABLE_NAME = ?
-                                        AND REFERENCED_COLUMN_NAME = ?
-                                        AND TABLE_NAME = ?
-                                        AND COLUMN_NAME = ?
-                ;', self::$carbonDatabaseName, $externalTableName, $externalColumnName, $internalTableName, $internalColumnName);
-
-                if ([] === $values) {
-
-                    self::colorCode("Failed to verify that the table ($tableName) contains FOREIGN KEY CONSTRAINT ($externalTableColumn) => ($internalTableColumn)", iColorCode::RED);
+                    ColorCode::colorCode("Verifying schema using regex ($table_regex) failed during preg_match_all on the ./mysqlDump.sql", iColorCode::RED);
 
                     $failureEncountered = true;
 
-                    break;
+                    return false;
+
                 }
+
+                $postUpdateSQL = $matches[0][0] ?? false;
+
+                if (false === $postUpdateSQL) {
+
+                    ColorCode::colorCode("Regex failed to match a schema using preg_match_all('$table_regex', '$mysqldump',...", iColorCode::RED);
+
+                    $failureEncountered = true;
+
+                    return false;
+
+                }
+
+                return true;
+
+            };
+
+            if (false === $pregMatchSchema()) {
+
+                continue;
+
+            }
+
+            if (false === self::verifyAndCreateForeignKeyRelations($fullyQualifiedClassName, $pregMatchSchema)) {
+
+                self::colorCode("Failed druing verifyAndCreateForeignKeyRelations:", iColorCode::RED);
+
+                $failureEncountered = true;
+
+                continue;
 
             }
 
@@ -1079,10 +1268,6 @@ FOOT;
             // we add 'CONSTRAINT\s`.*' => '' only to the post updated query as AWS will not include
             // FK constraints in mysql dump files // post update
             $awsLoose = Rest::SQL_VERSION_PREG_REPLACE;
-
-            /*+ [
-                    '#CONSTRAINT\s`.*#' => ''
-                ];*/
 
             $preUpdateSQL = trim(Rest::parseSchemaSQL($preUpdateSQL, $awsLoose));
 
@@ -1119,7 +1304,8 @@ FOOT;
 
                 ColorCode::colorCode("GOT (post-updated sql) :: $postUpdateSQL\n\n", iColorCode::BLUE);    // I want to bring your attention back to the red ^^ then down to blue
 
-                ColorCode::colorCode("\tChanges\n", iColorCode::ITALIC);
+
+                ColorCode::colorCode("\tChanges <$databaseName>\n", iColorCode::ITALIC);
                 ColorCode::colorCode("\tNew->Old", iColorCode::CYAN);
                 ColorCode::colorCode("Needs to be added or modified :: ", iColorCode::YELLOW);
                 ColorCode::colorCode('preg_replace\'d :: ' . json_encode($changesOne, JSON_PRETTY_PRINT) . "\n\n", iColorCode::CYAN);
@@ -1226,10 +1412,11 @@ FOOT;
 
     public static function columnExistsOrExecuteSQL(string $column, string $table_name, string $sql): void
     {
+
+        $currentSchema = self::$carbonDatabaseName;
+
         // Check if exist the column named image
-        $existed = self::fetch("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
-            WHERE table_name = '$table_name' 
-              AND column_name = '$column'");
+        $existed = self::fetch("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '$currentSchema' AND TABLE_NAME = '$table_name' AND COLUMN_NAME = '$column'");
 
         // If not exists
         if ([] === $existed) {
@@ -1259,23 +1446,27 @@ FOOT;
 
         $prefix = CarbonPHP::$configuration[CarbonPHP::REST][CarbonPHP::TABLE_PREFIX] ?? '';
 
+
         if ($prefix === '' || $prefix === $table_prefix) {
 
             return;
 
         }
 
-        $sql = preg_replace(["#([^a-z_])({$table_name}[^a-z_])#i", "#([^a-z_])(carbon_carbons[^a-z_])#i"],
+        $sqlReplaced = preg_replace(["#([^a-z_])({$table_name}[^a-z_])#i", "#([^a-z_])(carbon_carbons[^a-z_])#i"],
             '$1' . $prefix . '$2', $sql);
 
-        if (false !== strpos($sql, "`$table_name`")
-            || false !== strpos($sql, "`carbon_carbons`")) {
+        if (false !== strpos($sqlReplaced, "`$table_name`")
+            || false !== strpos($sqlReplaced, "`carbon_carbons`")
+            || false === is_string($sqlReplaced)) {
 
-            self::colorCode('Preg_replace failed to add prefix to table.', iColorCode::RED);
+            self::colorCode("Preg_replace failed to add prefix to table; (". print_r($sqlReplaced, true) . ")", iColorCode::RED);
 
             exit(1);
 
         }
+
+        $sql = $sqlReplaced;
 
         $table_name = $prefix . $table_name;
 

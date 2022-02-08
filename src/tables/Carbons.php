@@ -194,7 +194,28 @@ class Carbons extends Rest implements iRestSinglePrimaryKey
      *        [self::class => 'buildMysqlHistoryTrigger', self::class]
      *   ];
      *
+     *
+     * Hint: the following may be uncommented and used to allow explicitly referencing methods with callbacks. No 
+     * parameters will be passed to the callbacks. The refrencing style above will also be respected in this array. The
+     * example callables maybe removed. 
+     *
+     *    public function __construct(array &$return = [])
+     *    {
+     *        parent::__construct($return);
+     *        
+     *        $this->REFRESH_SCHEMA = [
+     *            static fn() => self::execute('ALTER TABLE mytbl ALTER j SET DEFAULT 1000;'),
+     *            static fn() => self::execute('ALTER TABLE mytbl ALTER k DROP DEFAULT;'),
+     *            static fn() => self::buildMysqlHistoryTrigger(self::TABLE_NAME),
+     *            static fn() => self::columnExistsOrExecuteSQL(self::COLUMNS[self::MODIFIED], self::TABLE_NAME,
+     *                  'alter table '.self::TABLE_NAME.' add '.self::COLUMNS[self::MODIFIED].' DATETIME default CURRENT_TIMESTAMP;'),
+     *        ];
+     *    }
+     *
      */
+    public array $REFRESH_SCHEMA = [];
+     
+
     public const REFRESH_SCHEMA = [ ];
     
     /** Custom User Methods Are Placed Here **/
@@ -392,14 +413,12 @@ CONSTRAINT `entity_entity_entity_pk_fk` FOREIGN KEY (`entity_fk`) REFERENCES `ca
 MYSQL;
        
    /**
-    * Currently nested aggregation is not supported. It is recommended to avoid using 'AS' where possible. Sub-selects are 
+    * Please refrence these notes for the `get` method.
+    * Nested aggregation is not currently supported. It is recommended to avoid using 'AS' where possible. Sub-selects are 
     * allowed and do support 'as' aggregation. Refer to the static subSelect method parameters in the parent `Rest` class.
     * All supported aggregation is listed in the example below. Note while the WHERE and JOIN members are syntactically 
     * similar, and are moreover compiled through the same method, our aggregation is not. Please refer to this example 
-    * when building your queries. By design, queries using subSelect are only allowed internally. Public Sub-Selects may 
-    * be given an optional argument with future releases but will never default to on. Thus, you external API validation
-    * need only validate for possible table joins. In many cases sub-selects can be replaces using simple joins, this is
-    * highly recommended.
+    * when building your queries. In many cases sub-selects can be replaces using simple joins, this is highly recommended.
     *
     *   $argv = [
     *       Rest::SELECT => [
@@ -415,7 +434,6 @@ MYSQL;
     *              ANOTHER_EXAMPLE_TABLE::subSelect($primary, $argv, $as, $pdo, $database)
     *       ],
     *       Rest::WHERE => [
-    *              
     *              self::EXAMPLE_COLUMN_NINE => 'Value To Constrain',                       // self::EXAMPLE_COLUMN_NINE AND           
     *              'Defaults to boolean AND grouping' => 'Nesting array switches to OR',    // ''='' AND 
     *              [
@@ -519,4 +537,5 @@ MYSQL;
     {
         return self::remove($remove, $argv, $primary === null ? null : [ self::PRIMARY => $primary ]);
     }
+    
 }

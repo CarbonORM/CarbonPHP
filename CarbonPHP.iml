@@ -52,7 +52,6 @@
       <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/search-replace-command" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/shell-command" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/scaffold-command" />
-      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/cache-command" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/polyfill-php73" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/deprecation-contracts" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/filesystem" />
@@ -74,6 +73,7 @@
       <excludeFolder url="file://$MODULE_DIR$/vendor/sebastian/complexity" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/phpunit/php-invoker" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/se/selenium-server-standalone" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/cache-command" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
