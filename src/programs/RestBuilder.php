@@ -561,6 +561,13 @@ END;
                                 get_class_methods(Carbons::class),
                                     'strcasecmp');         // or null.. smh
 
+
+                            if (false !== strpos($validation, 'public function __construct(array &$return = [])')) {
+
+                                $methods[]= '__construct';
+
+                            }
+
                             foreach ($methods as $method) {
 
                                 try {
