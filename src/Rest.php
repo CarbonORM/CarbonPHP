@@ -2458,6 +2458,9 @@ abstract class Rest extends Database
 
     }
 
+    /**
+     * @throws PublicAlert
+     */
     protected static function checkPrefix($table_prefix): void
     {
 
@@ -2465,7 +2468,7 @@ abstract class Rest extends Database
 
         if ($prefix !== $table_prefix) {
 
-            throw new PublicAlert("The tables prefix ($prefix) does not match the on ($table_prefix) found in your configuration.");
+            throw new PublicAlert("The tables prefix ($table_prefix) does not match the one ($prefix) found in your configuration. Please make sure you've initiated CarbonPHP before trying to run restful operations. Otherwise you make need to rebuild rest.");
 
         }
 

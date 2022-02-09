@@ -628,10 +628,16 @@ FOOT;
 
             // @deprecated
             if (count($stmt = $stmt->fetchAll(PDO::FETCH_ASSOC)) !== 1) {
+
                 return $stmt;
+
             }
 
-            is_array($stmt) and $stmt = array_shift($stmt);
+            if (is_array($stmt)) {
+
+                $stmt = array_shift($stmt);
+
+            }
 
             return $stmt;   // promise this is needed and will still return the desired array
 
@@ -896,7 +902,7 @@ FOOT;
 
             if ([] === $values) {
 
-                self::colorCode("Failed to verify that the table ($tableName) contains FOREIGN KEY CONSTRAINT ($externalTableName.$externalColumnName) => ($internalTableName.$internalColumnName)", iColorCode::RED);
+                self::colorCode("Failed to verify that the table ($internalTableName) contains FOREIGN KEY CONSTRAINT ($externalTableName.$externalColumnName) => ($internalTableName.$internalColumnName)", iColorCode::RED);
 
                 $tableCreateSTMT = $fullyQualifiedClassName::CREATE_TABLE_SQL;
 
@@ -956,7 +962,7 @@ FOOT;
 
         if ($constraintsAdded) {
 
-            $cb;
+            $cb();
 
         }
 
