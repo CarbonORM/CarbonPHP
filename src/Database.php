@@ -648,6 +648,7 @@ FOOT;
             exit(1);
 
         }
+
     }
 
     /**
@@ -1440,7 +1441,7 @@ FOOT;
 
         } else {
 
-            self::colorCode("The ($column) already exists on table ($table_name).");
+            self::colorCode("The ($column) already exists on table ($table_name) in the schema ($currentSchema).");
 
         }
 
