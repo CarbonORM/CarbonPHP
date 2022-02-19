@@ -545,6 +545,7 @@ class ErrorCatcher
 
             $browserOutput = [];
 
+            ColorCode::colorCode("Note :: warnings will not be caught by a try catch block, they signal error and should corrected but typically may be 'recoverable'. Some warnings PHP, such as 'max file descriptors reached', are more critical and should be handled with care. For this reason it's important to keep logs of warnings and correct/suppress when nessicary. For suppression see @link https://stackoverflow.com/questions/1241728/can-i-try-catch-a-warning", iColorCode::CYAN);
 
             ColorCode::colorCode('The Global Error (set_error_handler) Handler has been invoked.' . PHP_EOL . "int $errorLevel, string $errorString, string $errorFile, int $errorLine", iColorCode::CYAN);
 
