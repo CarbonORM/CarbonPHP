@@ -546,7 +546,7 @@ class ErrorCatcher
             $browserOutput = [];
 
 
-            ColorCode::colorCode('The Global Error (set_error_handler) Handler has been invoked.', iColorCode::CYAN);
+            ColorCode::colorCode('The Global Error (set_error_handler) Handler has been invoked.' . PHP_EOL . "int $errorLevel, string $errorString, string $errorFile, int $errorLine", iColorCode::CYAN);
 
             // refer to link on this one
             /*if (!(error_reporting() & $errorLevel)) {
@@ -607,9 +607,11 @@ class ErrorCatcher
 
             $browserOutput['LINE'] = (string)$errorLine;
 
-            self::generateLog(null, false === $fatalError, (string)$errorLevel, $browserOutput);
+            $warning = array_key_exists('RECOVERABLE WARNING', $browserOutput);
 
-            return self::$bypass_standard_PHP_error_handler;  // todo this will continue execution for set_error_handler
+            self::generateLog(null, false === $fatalError, (string)$errorLevel, $browserOutput, $warning ? iColorCode::YELLOW : iColorCode::RED);
+
+            return $warning;  // todo this will continue execution for set_error_handler
 
         };
 
@@ -621,11 +623,13 @@ class ErrorCatcher
          */
         $exception_handler = static function (Throwable $exception) {
 
-            ColorCode::colorCode('The Global Exception (set_error_handler) Handler has been invoked.', iColorCode::CYAN);
+            ColorCode::colorCode('The Global Exception (set_exception_handler) Handler has been invoked.', iColorCode::CYAN);
 
             $browserOutput = ['Exception Handler' => 'CarbonPHP Generated This Report.'];
 
             self::generateLog($exception, false, null, $browserOutput, iColorCode::YELLOW);
+
+            ColorCode::colorCode('Returning from $exception_handler.', iColorCode::BACKGROUND_RED);
 
             return false;   // php will exit after this
 
@@ -865,11 +869,27 @@ class ErrorCatcher
 
         $message = json_encode($cliOutputArray, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
-        self::colorCode($message, $color);
+        if (false === $message) {
+
+            self::colorCode('The designated \$cliOutputArray failed to json_encode. This may be due to a call stack which passes objects as parameters, a cicilic reffrence (recursion), an extremely large callstack for long running, or forever-running, programs. Should the output below be unhelpful you should you explore further using xDebug.', iColorCode::YELLOW);
+
+            $log_array['debug_backtrace()'] = '*EXCLUDED FOR POSSIBLE RECURSION*';
+
+            $message = print_r($log_array, true);
+
+            self::colorCode($message, $color);
+
+        } else {
+
+            self::colorCode($message, $color);
+
+        }
 
         $html_error_log = self::generateBrowserReport($log_array, true);
 
         if (self::$storeReport === true || self::$storeReport === 'file') {
+
+            ColorCode::colorCode('Store report to file');
 
             $log_file = 'logs/ErrorCatcherReport.' . ($_SESSION['id'] ?? 'guest'). '.' . session_id() . '.' . microtime(true) . '.' . getmypid() . '.html';
 
@@ -877,7 +897,7 @@ class ErrorCatcher
 
             if (false === file_put_contents(CarbonPHP::$app_root . $log_file, $html_error_log)) {
 
-                ColorCode::colorCode("Failed to store html log using file_put_contents. Arguments :: ($log_file) ($html_error_log);", iColorCode::RED);
+                ColorCode::colorCode("Failed to store html log using file_put_contents. File :: ($log_file);", iColorCode::RED);
 
             }
 
@@ -888,8 +908,6 @@ class ErrorCatcher
             if (false === CarbonPHP::$cli) {    // we have alreay logged
 
                 if (headers_sent()) {
-
-                    sortDump($log_file, false, false);
 
                     print <<<REDIRECT
                         <meta http-equiv="refresh" content="0; URL=/$log_file" />
@@ -907,6 +925,8 @@ class ErrorCatcher
             self::closeStdoutStderrAndExit(1);
 
         }
+
+        self::colorCode('Returning Error Information', iColorCode::CYAN);
 
         return [
             self::LOG_ARRAY => $log_array,
@@ -1212,7 +1232,7 @@ DESCRIPTION;
 
         ob_start();
 
-        ErrorCatcher::stop();
+        self::stop();
 
         error_reporting(0);
 

@@ -235,36 +235,48 @@ FOOT;
 
     protected static function newInstance(): PDO
     {
+
         $attempts = 0;
-
-        $prep = static function (PDO $db): PDO {
-
-            $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-            $db->setAttribute(PDO::ATTR_PERSISTENT, CarbonPHP::$cli);
-
-            $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-
-            static::$database = $db;
-
-            return static::$database;
-
-        };
 
         do {
 
             try {
 
                 // @link https://stackoverflow.com/questions/10522520/pdo-were-rows-affected-during-execute-statement
-                return $prep(new PDO(
+                $user_options = self::getPdoOptions();
+
+                ColorCode::colorCode('new PDO('
+                    . static::$carbonDatabaseDSN .','
+                    . static::$carbonDatabaseUsername . ','
+                    . static::$carbonDatabasePassword . ',' . PHP_EOL
+                    . print_r($user_options, true) .')', iColorCode::BLUE);
+
+                set_error_handler(static function () { /* ignore errors // warnings */ });
+
+                // exceptions will still fall
+                $db = new PDO(
                     static::$carbonDatabaseDSN,
                     static::$carbonDatabaseUsername,
                     static::$carbonDatabasePassword,
-                    self::getPdoOptions()));
+                    $user_options);
+
+                restore_error_handler();
+
+                self::$database = $db;
+
+                $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+                $db->setAttribute(PDO::ATTR_PERSISTENT, CarbonPHP::$cli);
+
+                $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+
+                return $db;
 
             } catch (Throwable $e) {
 
                 if ($e instanceof PDOException) {
+
+                    ColorCode::colorCode('$e instanceof PDOException', iColorCode::BACKGROUND_RED);
 
                     self::TryCatchPDOException($e); // this might exit
 
@@ -274,19 +286,19 @@ FOOT;
 
                 }
 
+            } finally {
+
                 $attempts++;
 
             }
 
         } while ($attempts < 3);
 
-        $message = 'Failed to connect to database.';
+        $message = "Failed to connect to database after ($attempts) attempts.";
 
         ColorCode::colorCode($message, iColorCode::RED);
 
-        ErrorCatcher::generateLog($e);
-
-        die(1);
+        die(5);
     }
 
     /** Clears and restarts the PDO connection
@@ -294,6 +306,8 @@ FOOT;
      */
     public static function reset(): PDO // built to help preserve database in sockets and forks
     {
+        self::colorCode('Running PDO resource reset');
+
         if (null !== self::$database) {
 
             self::close();
@@ -304,13 +318,19 @@ FOOT;
 
     }
 
-
     public static function close(): void
     {
 
         try {
 
             if (self::$database instanceof PDO) {
+
+                // @link https://stackoverflow.com/questions/21595402/php-pdo-how-to-get-the-current-connection-status/21595939
+                $server_status = self::$database->getAttribute(PDO::ATTR_SERVER_INFO);
+
+                $connection_status = self::$database->getAttribute(PDO::ATTR_CONNECTION_STATUS);
+
+                self::colorCode("Closing MySQL, Connection Status ::\n$connection_status\nCurrent Server Status ::\n$server_status", iColorCode::BLACK);
 
                 self::$database->exec('KILL CONNECTION_ID();');
 
@@ -336,7 +356,8 @@ FOOT;
     public static function setDatabase(PDO $database = null): void
     {
 
-        if (null === $database && self::$database instanceof PDO) {
+        if (null === $database
+            && self::$database instanceof PDO) {
 
             self::close();
 
@@ -1441,7 +1462,7 @@ FOOT;
 
         } else {
 
-            self::colorCode("The ($column) already exists on table ($table_name) in the schema ($currentSchema).");
+            self::colorCode("The ($column) already exists on table ($table_name).");
 
         }
 

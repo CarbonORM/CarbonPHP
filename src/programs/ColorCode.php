@@ -4,6 +4,7 @@ namespace CarbonPHP\Programs;
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iColorCode;
 use Throwable;
 
@@ -20,6 +21,19 @@ trait ColorCode
      */
     public static function colorCode(string $message, string $color = iColorCode::GREEN): void
     {
+
+        $pid = getmypid(); // this shouldn't be cached
+
+        if (false === $pid) {
+
+            $message = 'The php internal function getmypid() has failed' . PHP_EOL . $message;
+
+        } else {
+
+            $message = "<pid::$pid> $message";
+
+        }
+
         if (false === self::$colorCodeBool) {
 
             print $message;
