@@ -3116,7 +3116,7 @@ abstract class Rest extends Database
 
         if ($key_is_custom && $value_is_custom) {
 
-            throw new PublicAlert("Rest failed in as you have two custom columns ($valueOne) & ($valueTwo). This may mean you need to regenerate your rest tables or have misspellings in your request. Please uses dedicated constants.");
+            throw new PublicAlert("Rest failed in as you have custom columns ($valueOne) &| ($valueTwo). This may mean you need to regenerate your rest tables or have misspellings in your request. Please uses dedicated constants.");
 
         }
 

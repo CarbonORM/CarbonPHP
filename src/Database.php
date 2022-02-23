@@ -245,12 +245,6 @@ FOOT;
                 // @link https://stackoverflow.com/questions/10522520/pdo-were-rows-affected-during-execute-statement
                 $user_options = self::getPdoOptions();
 
-                ColorCode::colorCode('new PDO('
-                    . static::$carbonDatabaseDSN .','
-                    . static::$carbonDatabaseUsername . ','
-                    . static::$carbonDatabasePassword . ',' . PHP_EOL
-                    . print_r($user_options, true) .')', iColorCode::BLUE);
-
                 set_error_handler(static function () { /* ignore errors // warnings */ });
 
                 // exceptions will still fall
@@ -306,11 +300,16 @@ FOOT;
      */
     public static function reset(): PDO // built to help preserve database in sockets and forks
     {
-        self::colorCode('Running PDO resource reset');
 
         if (null !== self::$database) {
 
+            self::colorCode('Running PDO resource reset');
+
             self::close();
+
+        } else {
+
+            self::colorCode("Getting new database instance");
 
         }
 
