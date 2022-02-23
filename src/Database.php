@@ -303,13 +303,13 @@ FOOT;
 
         if (null !== self::$database) {
 
-            self::colorCode('Running PDO resource reset');
+            self::colorCode('Running PDO resource reset <close/start>', iColorCode::BACKGROUND_CYAN);
 
             self::close();
 
         } else {
 
-            self::colorCode("Getting new database instance");
+            self::colorCode("Getting new database instance", iColorCode::BACKGROUND_CYAN);
 
         }
 
@@ -1068,7 +1068,9 @@ FOOT;
 
         self::compileMySqlStatementsAndExecuteWithoutForeignKeyChecks();
 
-        self::colorCode("\n\n\nDone Creating Tables. REFRESH_SCHEMA\n\n", iColorCode::BACKGROUND_GREEN);
+        $getCurrentSchema = self::$carbonDatabaseName;
+
+        self::colorCode("\n\n\nDone Creating Tables. REFRESH_SCHEMA <$getCurrentSchema>\n\n", iColorCode::BACKGROUND_GREEN);
 
         self::scanAnd(static function (string $table): void {
 
