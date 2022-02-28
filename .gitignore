@@ -16,7 +16,6 @@ config/buildDatabase.php
 /mysqldump.sql
 /triggers.sql
 /scratch/
-/.htaccess
 /junit.xml
 /PhpMetrics
 /out/*

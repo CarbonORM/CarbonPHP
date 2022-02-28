@@ -8,6 +8,7 @@ use CarbonPHP\CarbonPHP;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iConfig;
 use CarbonPHP\Programs\Deployment;
+use CarbonPHP\Programs\MigrateMySQL;
 use CarbonPHP\Programs\WebSocket;
 use CarbonPHP\Request;
 use CarbonPHP\Rest;
@@ -61,7 +62,6 @@ class Documentation extends Application implements iConfig
     public function defaultRoute(): void // Sockets will not execute this
     {
         self::getUser();
-
 
         View::$forceWrapper = true; // this will hard refresh the wrapper
 
@@ -187,9 +187,11 @@ class Documentation extends Application implements iConfig
 
         self::getUser();
 
-        if (Deployment::github($this)()) {
+        if (Deployment::github($this)()
+            || MigrateMySQL::enablePull($this, [ CarbonPHP::VIEW ])) {
 
             return true;
+
         }
 
         if (CarbonPHP::$socket

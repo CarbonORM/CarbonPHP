@@ -30,16 +30,20 @@ class CLI implements iCommand
 
     public function __construct(array $configuration)
     {
+
         [$this->CONFIG, $this->ARGV] = $configuration;
 
         $this->programList();
 
         $PHP = $this->CONFIG;
+
         $argv = &$this->ARGV;
 
         $fullCommand = 'php ' . implode(' ', $argv);
+
         self::colorCode("CLI Command Parsed >>", iColorCode::BLUE);
-        self::colorCode($fullCommand);
+
+        self::colorCode($fullCommand, iColorCode::BACKGROUND_GREEN);
 
         array_shift($argv);
 
@@ -68,6 +72,7 @@ class CLI implements iCommand
         }
 
         $searchAndConstruct = static function ($array, bool $C6Internal = true) use ($program, $PHP, $argv) {
+
             // Validation with this loop
             foreach ($array as $name) {
 
@@ -132,7 +137,7 @@ class CLI implements iCommand
 
         }
 
-        self::colorCode("Program not found in CarbonPHP. Use help to list all CarbonPHP programs. Safely moving on :: '$program'", iColorCode::YELLOW);
+        self::colorCode("Program not found in CarbonPHP. Use help to list all CarbonPHP programs. Safely moving on.", iColorCode::YELLOW);
 
     }
 
@@ -153,6 +158,7 @@ class CLI implements iCommand
 
             $json = file_get_contents(CarbonPHP::$app_root . 'composer.json');
 
+            /** @noinspection JsonEncodingApiUsageInspection */
             $json = json_decode($json, true);
 
             if ($json === null) {

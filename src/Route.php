@@ -63,7 +63,7 @@ abstract class Route
      * false when this class destructs the default route will be executed.
      * @return mixed
      */
-    abstract public function defaultRoute() : void;
+    abstract public function defaultRoute(): void;
 
     /**
      * Will be run when the active object is destroyed. If the
@@ -139,9 +139,9 @@ abstract class Route
      * (string) type cast
      * @return bool
      */
-    public function __invoke() : bool
+    public function __invoke(): bool
     {
-        return (bool) self::$matched;
+        return (bool)self::$matched;
     }
 
     /** This sets a default route to execute immediately when
@@ -151,7 +151,7 @@ abstract class Route
      * @param callable|null $struct
      * @return Route
      */
-    public function structure(callable $struct = null) : self
+    public function structure(callable $struct = null): self
     {
         self::$closure = $struct;
 
@@ -163,13 +163,12 @@ abstract class Route
      * @param string $regexToMatch
      * @param mixed ...$argv
      * @return $this
-     * @throws PublicAlert
      */
     public function regexMatch(string $regexToMatch, ...$argv): self
     {
-        $matches = [];
-
         try {
+
+            $matches = [];
 
             if (1 > preg_match_all($regexToMatch, self::$uri, $matches, PREG_SET_ORDER)) {  // can return 0 or false
 
@@ -177,178 +176,46 @@ abstract class Route
 
             }
 
-        } catch (Throwable $exception) {
+            self::$matched = true;
 
-            throw new PublicAlert('The following regex failed :: ' . $regexToMatch);
+            $matches = array_shift($matches);
 
-        }
+            array_shift($matches);  // could care less about the full match
 
-        self::$matched = true;
+            // Variables captured in the path to match will passed to the closure
+            if (is_callable($argv[0])) {
 
-        $matches = array_shift($matches);
+                $callable = array_shift($argv);
 
-        array_shift($matches);  // could care less about the full match
+                $argv = array_merge($argv, $matches);
 
-        // Variables captured in the path to match will passed to the closure
-        if (is_callable($argv[0])) {
+                call_user_func_array($callable, $argv); // I'm ignoring this return now,
 
-            $callable = array_shift($argv);
-
-            $argv = array_merge($argv, $matches);
-
-            call_user_func_array($callable, $argv); // I'm ignoring this return now,
-
-            return $this;
-        }
-
-        // If variables were captured in our path to match, they will be merged with our variable list provided with $argv
-        if (is_callable(self::$closure)) {
-
-            $argv = array_merge($argv, $matches);
-
-            call_user_func_array(self::$closure, $argv);
-
-            return $this;
-        }
-
-        return $this;
-    }
-
-    /** This is our main uri routing mechanism.
-     *
-     *  syntactically similar to Laravel routing, what
-     *  should probably be done with regex was implemented
-     *  by a younger novice me.
-     *
-     * @param string $pathToMatch
-     * @param array ...$argv
-     * @return Route
-     * @throws PublicAlert
-     * @deprecated use matchRegex instead - no version
-     */
-    public function match(string $pathToMatch, ...$argv): self
-    {
-        $uri = self::$uriExplode;
-
-        $arrayToMatch = explode('/', trim($pathToMatch, '/'));
-
-        $pathLength = count($arrayToMatch);
-
-        if ($pathLength === 0) {
-
-            $pathToMatch = '*';   // shorthand if stmt
-
-        }
-
-        // The order of the following
-        if ($pathLength < self::$uriLength && substr($pathToMatch, -1) !== '*') {
-
-            return $this;
-
-        }
-
-        $required = true;       // variables can be made optional by `?`
-
-        $variables = array();
-
-        for ($i = 0; $i <= $pathLength; $i++) {
-
-            // set up our ending condition
-            if ($pathLength === $i || $arrayToMatch[$i] === null) {
-
-                $arrayToMatch[$i] = '*';
-
+                return $this;
             }
 
-            switch ($arrayToMatch[$i][0]) {
-                case  '*':
+            // If variables were captured in our path to match, they will be merged with our variable list provided with $argv
+            if (is_callable(self::$closure)) {
 
-                     self::$matched = true;
+                $argv = array_merge($argv, $matches);
 
-                    $referenceVariables = [];
+                call_user_func_array(self::$closure, $argv);
 
-                    foreach ($variables as $key => $value) {
-
-                        $GLOBALS[$key] = $value;                    // this must be done in two lines
-
-                        $referenceVariables[] = &$GLOBALS[$key];
-                    }
-
-                    // Variables captured in the path to match will passed to the closure
-                    if (is_callable($argv[0])) {
-
-                        $callable = array_shift($argv);
-
-                        $argv = array_merge($argv, $referenceVariables);
-
-                        call_user_func_array($callable, $argv); // I'm ignoring this return now,
-
-                        return $this;
-                    }
-
-                    // If variables were captured in our path to match, they will be merged with our variable list provided with $argv
-                    if (is_callable(self::$closure)) {
-
-                        $argv = array_merge($argv, $referenceVariables);
-
-                        call_user_func_array(self::$closure, $argv);
-
-                        return $this;
-                    }
-
-                    return $this;
-
-                case '{': // this is going to indicate the start of a variable name
-
-                    if (substr($arrayToMatch[$i], -1) !== '}') {
-
-                        throw new PublicAlert('Variable declaration must be rapped in brackets. ie `/{var}/`');
-
-                    }
-
-                    $variable = rtrim(ltrim($arrayToMatch[$i], '{'), '}');
-
-                    if (substr($variable, -1) === '?' && $variable = rtrim($variable, '?')) {
-
-                        $required = false;
-
-                    }
-
-                    if (empty($variable)) {
-
-                        throw new PublicAlert('Variable must have a name association. ie  `/{var}/`');
-
-                    }
-
-                    $value = $uri[$i] ?? null;
-
-                    if ($required === true && $value === null) {
-
-                        return $this;
-
-                    }
-
-                    $variables[$variable] = $value;
-
-                    break;
-
-                default:
-
-                    if (!array_key_exists($i, $uri)) {
-
-                        return $this;
-
-                    }
-
-                    if (strtolower($arrayToMatch[$i]) !== strtolower($uri[$i])) {
-
-                        return $this;
-
-                    }
+                return $this;
             }
+
+            return $this;
+
+        } catch (Throwable $e) {
+
+            ErrorCatcher::generateLog($e);
+
+            exit(0);
+
         }
-        return $this;
+
     }
+
 }
 
 

@@ -134,15 +134,36 @@ IDENTIFIED;
     }
 
     /**
+     * @link https://dba.stackexchange.com/questions/5033/mysqldump-with-insert-on-duplicate
+     * @link https://dev.mysql.com/doc/refman/5.7/en/mysqldump-definition-data-dumps.html#:~:text=The%20%2D%2Dno%2Ddata%20option,file%20contains%20only%20table%20data.
      * @param String|null $mysqldump
      * @param bool $data
+     * @param bool $schemas
+     * @param string $otherOption -   --insert-ignore     Insert rows with INSERT IGNORE.
+     *                                --replace           Use REPLACE INTO instead of INSERT INTO.
      * @return string
      */
-    public static function MySQLDump(string $mysqldump = null, bool $data = false): string
+    public static function MySQLDump(string $mysqldump = null, bool $data = false, bool $schemas = true, string $outputFile = null, string $otherOption = ''): string
     {
 
-        $cmd = ($mysqldump ?? 'mysqldump') . ' --defaults-extra-file="' . self::buildCNF() . '" '
-            . ($data ? '--hex-blob ' : '--no-data ') . CarbonPHP::$configuration['DATABASE']['DB_NAME'] . ' > "' . CarbonPHP::$app_root . 'mysqldump.sql"';
+        if (null === $outputFile) {
+
+            $outputFile =  CarbonPHP::$app_root . 'mysqldump.sql';
+
+        }
+
+        if (false === $data && false === $schemas) {
+
+            ColorCode::colorCode("MysqlDump is running with --no-create-info and --no-data. Why?", iColorCode::BACKGROUND_YELLOW);
+
+        }
+
+        // defaults extra file must be the first argument
+        $cmd = ($mysqldump ?? 'mysqldump') . ' '
+            . ' --defaults-extra-file="' . self::buildCNF() . '" '
+            . $otherOption . ' --single-transaction --quick --opt  '
+            . ($schemas ? '' : ' --no-create-info ')
+            . ($data ? '--hex-blob ' : '--no-data ') . CarbonPHP::$configuration['DATABASE']['DB_NAME'] . " > '$outputFile'";
 
         Background::executeAndCheckStatus($cmd);
 
