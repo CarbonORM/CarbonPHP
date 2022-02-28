@@ -1034,7 +1034,9 @@ class ErrorCatcher
 
                 $line_one = $call_number . ') ' . implode(' ', $line_one);
 
-                $line_two = '[]';
+                $line_two_cli = '[]';
+
+                $line_two_html = '';
 
                 if (array_key_exists('args', $args[$i])) {
 
@@ -1056,7 +1058,7 @@ class ErrorCatcher
 
         }
 
-        return [ $resultCLI,   PHP_EOL . implode(PHP_EOL, $resultHTML ) . PHP_EOL ];
+        return [ $resultCLI ?? [],   PHP_EOL . implode(PHP_EOL, $resultHTML ?? [] ) . PHP_EOL ];
     }
 
     /**
