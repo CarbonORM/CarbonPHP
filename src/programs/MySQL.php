@@ -162,7 +162,7 @@ IDENTIFIED;
         // defaults extra file must be the first argument
         $cmd = ($mysqldump ?? 'mysqldump') . ' '
             . ' --defaults-extra-file="' . self::buildCNF() . '" '
-            . $otherOption . ' --skip-add-locks --single-transaction --quick --opt  '
+            . $otherOption . ' --skip-add-locks --single-transaction --quick '
             . ($schemas ? '' : ' --no-create-info ')
             . ($data ? '--hex-blob ' : '--no-data ') . CarbonPHP::$configuration['DATABASE']['DB_NAME'] . " > '$outputFile'";
 
