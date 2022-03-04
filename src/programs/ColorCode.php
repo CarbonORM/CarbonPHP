@@ -69,14 +69,18 @@ trait ColorCode
 
         switch ($location) {
             case '':
-                /** @noinspection PhpExpressionResultUnusedInspection */
                 ini_set('error_log', ErrorCatcher::$defaultLocation); // log to file too
 
                 break;
 
             case ErrorCatcher::$defaultLocation:
 
-                /** @noinspection PhpExpressionResultUnusedInspection */
+                if (false === CarbonPHP::$cli) {
+
+                    return;
+
+                }
+
                 ini_set('error_log', '');   // default output // cli stdout
 
                 break;
@@ -90,13 +94,11 @@ trait ColorCode
 
                 $message .= $additional; // for old log location
 
-                /** @noinspection PhpExpressionResultUnusedInspection */
                 ini_set('error_log', ErrorCatcher::$defaultLocation);
 
                 /** @noinspection ForgottenDebugOutputInspection */
                 error_log($message);    // do not double quote args passed here
 
-                /** @noinspection PhpExpressionResultUnusedInspection */
                 ini_set('error_log', '');           // default output // cli stdout
         }
 
@@ -104,7 +106,6 @@ trait ColorCode
         /** @noinspection ForgottenDebugOutputInspection */
         error_log($message);    // do not double quote args passed here
 
-        /** @noinspection PhpExpressionResultUnusedInspection */
         ini_set('error_log', $location);    // back to what it was before this function
 
     }

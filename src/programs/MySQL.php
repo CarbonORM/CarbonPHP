@@ -136,6 +136,7 @@ IDENTIFIED;
     /**
      * @link https://dba.stackexchange.com/questions/5033/mysqldump-with-insert-on-duplicate
      * @link https://dev.mysql.com/doc/refman/5.7/en/mysqldump-definition-data-dumps.html#:~:text=The%20%2D%2Dno%2Ddata%20option,file%20contains%20only%20table%20data.
+     * @link skip-add-locks - https://stackoverflow.com/questions/104612/run-mysqldump-without-locking-tables
      * @param String|null $mysqldump
      * @param bool $data
      * @param bool $schemas
@@ -161,7 +162,7 @@ IDENTIFIED;
         // defaults extra file must be the first argument
         $cmd = ($mysqldump ?? 'mysqldump') . ' '
             . ' --defaults-extra-file="' . self::buildCNF() . '" '
-            . $otherOption . ' --single-transaction --quick --opt  '
+            . $otherOption . ' --skip-add-locks --single-transaction --quick --opt  '
             . ($schemas ? '' : ' --no-create-info ')
             . ($data ? '--hex-blob ' : '--no-data ') . CarbonPHP::$configuration['DATABASE']['DB_NAME'] . " > '$outputFile'";
 

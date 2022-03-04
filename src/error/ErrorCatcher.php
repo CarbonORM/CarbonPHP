@@ -334,9 +334,9 @@ class ErrorCatcher
 
         }
 
-        if (false === touch(ErrorCatcher::$defaultLocation)) {
+        if (false === touch(self::$defaultLocation)) {
 
-            $message .= "\n\nCould not create file (" . ErrorCatcher::$defaultLocation . ') as it does not exist on the system. All folders appear correct. Please create the directories required to store logs correctly!' . PHP_EOL;
+            $message .= "\n\nCould not create file (" . self::$defaultLocation . ') as it does not exist on the system. All folders appear correct. Please create the directories required to store logs correctly!' . PHP_EOL;
 
         }
 
@@ -349,11 +349,15 @@ class ErrorCatcher
         }
 
         try {
+
             $func = new ReflectionMethod(self::$className, self::$methodName);
+
             $comment = $func->getDocComment();
 
         } catch (ReflectionException $e) {
+
             return '<div>Failed to load code preview in ErrorCatcher class using ReflectionMethod.<div>';
+
         }
 
         $f = $func->getFileName(); // stub says string but may also produce false

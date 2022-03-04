@@ -16,7 +16,7 @@ use Throwable;
 
 class Migrate implements iCommand
 {
-    public static string $migrationUrl = 'migration';
+    public static string $migrationUrl = 'c6migration';
 
     public static float $currentTime;
 
@@ -1391,6 +1391,8 @@ HALT;
     {
 
         return $route->regexMatch('#^' . self::$migrationUrl . '/?(.*)?#i', static function (string $getPath = '') use ($allowedDirectories) {
+
+            sortDump( ini_get('error_log'));
 
             self::$currentTime = microtime(true);
 
