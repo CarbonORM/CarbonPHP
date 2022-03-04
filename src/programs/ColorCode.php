@@ -17,7 +17,9 @@ trait ColorCode
      * @param string $message
      * @param string $color
      * @param bool $exit
+     * @throws PublicAlert
      * @link https://www.php.net/manual/en/function.syslog.php
+     * @noinspection ForgottenDebugOutputInspection
      */
     public static function colorCode(string $message, string $color = iColorCode::GREEN): void
     {
@@ -52,10 +54,24 @@ trait ColorCode
 
         }
 
+        $location = ini_get('error_log');
+
         $message = sprintf($colors[$color], $message);
 
-        /** @noinspection ForgottenDebugOutputInspection */
-        error_log($message);    // do not double quote args passed here
+        $status = error_log($message);
+
+        if (false === $location) {
+
+            throw new PublicAlert("Failed to get current log location!");
+
+        }
+
+        if (false === $status) {
+
+            throw new PublicAlert("Failed to write to error log ($location)");
+
+        }    // do not double quote args passed here
+
 
         if (null === ErrorCatcher::$defaultLocation || '' === ErrorCatcher::$defaultLocation) {
 
@@ -63,13 +79,16 @@ trait ColorCode
 
         }
 
-        $location = ini_get('error_log');
 
         ErrorCatcher::checkCreateLogFile($message);
 
         switch ($location) {
             case '':
-                ini_set('error_log', ErrorCatcher::$defaultLocation); // log to file too
+                if (false === ini_set('error_log', ErrorCatcher::$defaultLocation)) {
+
+                    throw new PublicAlert('Failed to set the log location to (' . ErrorCatcher::$defaultLocation . ')');
+
+                } // log to file too
 
                 break;
 
@@ -81,7 +100,11 @@ trait ColorCode
 
                 }
 
-                ini_set('error_log', '');   // default output // cli stdout
+                if (false === ini_set('error_log', '')) {
+
+                    throw new PublicAlert('Detected cli but failed to print color coded logging to standard out.');
+
+                }   // default output // cli stdout
 
                 break;
 
@@ -94,19 +117,37 @@ trait ColorCode
 
                 $message .= $additional; // for old log location
 
-                ini_set('error_log', ErrorCatcher::$defaultLocation);
+                $lastLoggingLocation = ini_set('error_log', ErrorCatcher::$defaultLocation);
+
+                if (false === $lastLoggingLocation) {
+
+                    throw new PublicAlert('All color coded enabled logs must print to (' . ErrorCatcher::$defaultLocation. ') but switching failed.');
+
+                }
 
                 /** @noinspection ForgottenDebugOutputInspection */
                 error_log($message);    // do not double quote args passed here
 
-                ini_set('error_log', '');           // default output // cli stdout
+                if (false === ini_set('error_log', '')) {
+
+                    throw new PublicAlert('Failed to change from c6 standard log file to stdout');
+
+                }           // default output // cli stdout
+
         }
 
-
         /** @noinspection ForgottenDebugOutputInspection */
-        error_log($message);    // do not double quote args passed here
+        if (false === error_log($message)) {
 
-        ini_set('error_log', $location);    // back to what it was before this function
+            throw new PublicAlert('Our secondary logging mechanism failed, please review log.');
+
+        }  // do not double quote args passed here
+
+        if (false === ini_set('error_log', $location)) {
+
+            throw new PublicAlert("Failed changing logging location back to ($location), this is unexpected.");
+
+        }    // back to what it was before this function
 
     }
 
