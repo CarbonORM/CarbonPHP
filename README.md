@@ -1,3 +1,4 @@
+
 ![CarbonPHP Feature Test Suit](https://github.com/RichardTMiles/CarbonPHP/workflows/CarbonPHP%20Feature%20Test%20Suit/badge.svg)
 
 # CarbonPHP Tool Kit and Performance Library
@@ -15,6 +16,9 @@ Refer to the guide at [carbonphp.com](https://carbonphp.com)
 
 
 ## Introduction
+
+
+
 
 CarbonPHP is a PHP 7.4+ library to simplify the building of custom, dynamic web applications. Its main focus is to make
 webapps run ridiculously fast, with performance and high-traffic scalability being the absolute highest concern. CarbonPHP 

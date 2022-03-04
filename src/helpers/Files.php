@@ -2,10 +2,84 @@
 
 namespace CarbonPHP\Helpers;
 
+use CarbonPHP\CarbonPHP;
 use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Interfaces\iColorCode;
+use CarbonPHP\Programs\ColorCode;
+use FilesystemIterator;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 
 class Files
 {
+    /**
+     * @throws PublicAlert
+     */
+    public static function createDirectoryIfNotExist($directory) : void {
+
+        if (false === is_dir($directory)
+            && false === mkdir($directory, 0755, true)
+            && false === is_dir($directory)) {
+
+            throw new PublicAlert("Failed to create directory ($directory)");
+
+        }
+
+    }
+
+    /**
+     * @link https://stackoverflow.com/questions/3338123/how-do-i-recursively-delete-a-directory-and-its-entire-contents-files-sub-dir
+     * @link https://gist.github.com/mindplay-dk/a4aad91f5a4f1283a5e2
+     * @throws PublicAlert
+     */
+    public static function rmRecursively(string $dir): void
+    {
+
+        if (false === file_exists($dir)) {
+
+            throw new PublicAlert("Failed to verify file exists ($dir)");
+
+        }
+
+        ColorCode::colorCode("Unlinking (file://$dir)", iColorCode::CYAN);
+
+        $files = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST);
+
+        foreach ($files as $fileinfo) {
+
+            $realName = $fileinfo->getRealPath();
+
+            if ($fileinfo->isDir()) {
+
+                if (false === rmdir($realName)) {
+
+                    throw new PublicAlert("Failed to remove directory ($realName)");
+
+                }
+
+            } else if (false === unlink($realName)) {
+
+                throw new PublicAlert("Failed to unlink file ($realName)");
+
+            } else {
+
+                CarbonPHP::$verbose and ColorCode::colorCode("Unlinked file\nfile://$realName", iColorCode::BACKGROUND_CYAN);
+
+            }
+
+        }
+
+        if (false === rmdir($dir)) {
+
+            throw new PublicAlert("Failed to remove directory ($dir)");
+
+        }
+
+    }
+
+
     /** The following method was originated from the link provided.
      * @link http://php.net/manual/en/features.file-upload.php
      * @param $fileArray

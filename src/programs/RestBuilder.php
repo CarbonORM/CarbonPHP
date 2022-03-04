@@ -4,6 +4,7 @@ namespace CarbonPHP\Programs;
 
 
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
 use CarbonPHP\Interfaces\iRest;
@@ -564,44 +565,78 @@ END;
 
                             if (false !== strpos($validation, 'public function __construct(array &$return = [])')) {
 
+                                // todo - add any method we want to allow "overrides for"
                                 $methods[]= '__construct';
 
                             }
 
+                            // todo - make real method and use a seek method to use less memory
+                            $getMethod = static function (ReflectionMethod $method) : string {
+
+                                $file = $method->getFileName();
+
+                                $start_line = $method->getStartLine() - 1;
+
+                                $end_line = $method->getEndLine();
+
+                                $length = $end_line - $start_line;
+
+                                $source = file_get_contents($file);
+
+                                $source = preg_split('/' . PHP_EOL . '/', $source);
+
+                                return implode(PHP_EOL, array_slice($source, $start_line, $length));
+
+                            };
+
                             foreach ($methods as $method) {
 
+                                $abstractClass = null;
+
                                 try {
+
                                     $func = new ReflectionMethod($fullTableClassName, $method);
+
+                                    $f = $func->getFileName();
+
+                                    if (true === method_exists(Carbons::class, $method)) {
+
+                                        // todo - I do not think we need to re-init here
+                                        $abstractClass = new ReflectionMethod(Carbons::class, $method);
+
+                                        if ($f === $abstractClass->getFileName()
+                                            || $getMethod($func) === $getMethod($abstractClass)) {
+
+                                            continue;
+
+                                        }
+
+                                    }
 
                                     $comment = $func->getDocComment();
 
                                 } catch (ReflectionException $e) {
-                                    print 'Failed to load custom functions defined in restful class using ReflectionMethod.';
+
+                                    ErrorCatcher::generateLog($e);
+
                                     exit(1);
+
                                 }
 
-                                $f = $func->getFileName();
-
-                                $start_line = $func->getStartLine() - 1;
-
-                                $end_line = $func->getEndLine();
-
-                                $length = $end_line - $start_line;
-
-                                $source = file_get_contents($f);
-
-                                $source = preg_split('/' . PHP_EOL . '/', $source);
-
-                                $body = implode(PHP_EOL, array_slice($source, $start_line, $length));
+                                $body = $getMethod($func);
 
                                 $rest[$tableName]['custom_methods'] .= ($comment ? "    $comment\n" : '') . $body . PHP_EOL . PHP_EOL;
                             }
                         }
 
                         if ($verbose) {
-                            self::colorCode("\tGenerating {$tableName}\n", 'blue');
+
+                            self::colorCode("\tGenerating {$tableName}\n", iColorCode::BLUE);
+
                             $debug and var_dump($table);
+
                         }
+
                         break;
 
                     case 'PRIMARY':
@@ -668,20 +703,22 @@ END;
                         $rest[$tableName]['CARBON_CARBONS_PRIMARY_KEY'] ??= false;
 
                         $rest[$tableName]['CARBON_CARBONS_PRIMARY_KEY'] =
-                            $rest[$tableName]['CARBON_CARBONS_PRIMARY_KEY'] === true ?:
-                                ($references_table === 'carbon_carbons'
+                            ($rest[$tableName]['CARBON_CARBONS_PRIMARY_KEY'] === true)
+                            || (($references_table === 'carbon_carbons'
                                     || $references_table === $prefix . 'carbon_carbons')
                                 && in_array($foreign_key, $primary, true)
-                                && 'entity_pk' === $references_column;
+                                && 'entity_pk' === $references_column);
 
 
                         if (($references_table === 'carbon_carbons'
                                 || $references_table === $prefix . 'carbon_carbons')
-                            && in_array($foreign_key, $primary, true)) {
-                            $rest[$tableName]['carbon_table'] = $tableName !== 'carbon_carbons'
-                                && $tableName !== $prefix . 'carbon_carbons'; // todo -
-                        }
+                                && in_array($foreign_key, $primary, true)) {
 
+                            $rest[$tableName]['carbon_table'] =
+                                $tableName !== 'carbon_carbons'
+                                && $tableName !== $prefix . 'carbon_carbons'; // todo -
+
+                        }
 
                         $localTable = 0 === strpos($tableName, $prefix)
                             ? substr($tableName, strlen($prefix))
@@ -706,9 +743,13 @@ END;
 
                         // We need to catch circular dependencies as mysql dumps print schemas alphabetically
                         if (!isset($rest[$references_table])) {
+
                             $rest[$references_table] = ['EXTERNAL_TABLE_CONSTRAINTS' => []];
+
                         } else if (!isset($rest[$references_table]['EXTERNAL_TABLE_CONSTRAINTS'])) {
+
                             $rest[$references_table]['EXTERNAL_TABLE_CONSTRAINTS'] = [];
+
                         }
 
                         $isGenerated = $skipTable
@@ -723,11 +764,17 @@ END;
                         // todo - DEPRECATED I think we have a warning based off this that very much is helpful
                         // We need to catch circular dependencies as mysql dumps print schemas alphabetically
                         if (!isset($rest[$references_table])) {
+
                             $rest[$references_table] = ['dependencies' => []];
+
                         } else if (!isset($rest[$references_table]['dependencies'])) {
+
                             $rest[$references_table]['dependencies'] = [];
+
                         }
+
                         $verbose and self::colorCode("\nreference found ::\t$tableName([$foreign_key => $references_column])\n", 'magenta');
+
                         $rest[$references_table]['dependencies'][] = [$tableName => [$foreign_key => $references_column]];
                         //\\ DEPRECATED
 
@@ -752,14 +799,22 @@ END;
 
                             // exploding strings like 'mediumint(9)' and 'binary(16)'
                             if (count($argv = explode('(', $type)) > 1) {
+
                                 $type = $argv[0];
+
                                 if ($type === 'enum') {
+
                                     $length = '';               // enums define strings where im expecting int length
+
                                 } else {
+
                                     $length = trim($argv[1], '),');
+
                                 }
+
                                 // This being set determines what type of PDO stmt we use
                                 $rest[$tableName]['explode'][$column]['length'] = $length;
+
                             }
 
                             $type = rtrim($type, ',');

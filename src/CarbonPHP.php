@@ -125,6 +125,7 @@ class CarbonPHP
     public static bool $ajax = false;
     public static bool $https = false;
     public static bool $http = false;
+    public static bool $verbose = false;
 
     // Validated Server Values
     public static string $server_ip = '127.0.0.1';

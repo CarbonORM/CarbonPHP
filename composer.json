@@ -26,7 +26,8 @@
     "ext-openssl": "*",
     "ext-fileinfo": "*",
     "ext-posix": "*",
-    "ext-readline": "*"
+    "ext-readline": "*",
+    "ext-zip": "*"
   },
   "require-dev": {
     "wp-cli/wp-cli-bundle": "2.4.0",
@@ -92,7 +93,7 @@
     ],
     "rei": "rm -rf vendor && rm composer.lock && composer i",
     "rest": [
-      "php index.php rest -json -dumpData"
+      "php index.php restbuilder -json -dumpData"
     ],
     "setup": [
       "@database:refresh:schema",

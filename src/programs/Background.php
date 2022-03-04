@@ -39,7 +39,8 @@ trait Background
 
             exec($cmd, $pid);
 
-            ColorCode::colorCode("Running Background CMD <disassociated> (parent<current> pid:: " . getmypid() . "; child pid::" . ($pid[0] ??='error') . ")>> " . $cmd . PHP_EOL . PHP_EOL);
+            ColorCode::colorCode("Running Background CMD <disassociated> (parent<current> pid:: " . getmypid() . "; child pid::" . ($pid[0] ??='error') . ")>> " . $cmd,
+                iColorCode::BACKGROUND_BLUE);
 
         } catch (Throwable $e) {
         }
@@ -55,7 +56,8 @@ trait Background
 
         $return_var = null;
 
-        ColorCode::colorCode('Running CMD >> ' . $command . PHP_EOL . PHP_EOL . ' ');
+        ColorCode::colorCode('Running CMD >> ' . $command,
+            iColorCode::BACKGROUND_BLUE);
 
         exec($command, $output, $return_var);
 
