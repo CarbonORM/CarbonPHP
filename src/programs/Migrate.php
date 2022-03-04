@@ -1392,8 +1392,6 @@ HALT;
 
         return $route->regexMatch('#^' . self::$migrationUrl . '/?(.*)?#i', static function (string $getPath = '') use ($allowedDirectories) {
 
-            sortDump( ini_get('error_log'));
-
             self::$currentTime = microtime(true);
 
             ColorCode::colorCode("Migration Request " . print_r($_POST, true), iColorCode::CYAN);
