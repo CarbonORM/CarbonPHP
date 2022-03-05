@@ -442,7 +442,7 @@ END;
                             'json' => $json,
                             'binary_primary' => false,
                             'carbon_namespace' => $carbon_namespace,
-                            'namespace' => $carbon_namespace ? 'CarbonPHP\Tables' : $target_namespace,
+                            'namespace' => $carbon_namespace ? 'CarbonPHP\Tables' : rtrim($target_namespace, '\\'),
                             'carbon_table' => false,
                             'database' => $this->schema,
                             // We need to catch circular dependencies
@@ -560,7 +560,7 @@ END;
                             $methods = array_udiff(
                                 $generatedClassCustomMethods,
                                 get_class_methods(Carbons::class),
-                                    'strcasecmp');         // or null.. smh
+                                'strcasecmp');         // or null.. smh
 
 
                             if (false !== strpos($validation, 'public function __construct(array &$return = [])')) {
@@ -712,7 +712,7 @@ END;
 
                         if (($references_table === 'carbon_carbons'
                                 || $references_table === $prefix . 'carbon_carbons')
-                                && in_array($foreign_key, $primary, true)) {
+                            && in_array($foreign_key, $primary, true)) {
 
                             $rest[$tableName]['carbon_table'] =
                                 $tableName !== 'carbon_carbons'
