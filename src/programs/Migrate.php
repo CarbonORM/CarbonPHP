@@ -1319,7 +1319,7 @@ HALT;
 
             $absolutePath = CarbonPHP::$app_root . $dumpFileName;
 
-            MySQL::MySQLDump(null, true, false, $absolutePath, ' --replace ');
+            MySQL::MySQLDump(null, true, false, $absolutePath, ' --replace --skip-triggers ');
 
         }
 

@@ -691,6 +691,7 @@ class ErrorCatcher
      * @param array $log_array
      * @param string $color
      * @return array
+     * @throws PublicAlert
      * @internal param $argv
      * @noinspection ForgottenDebugOutputInspection
      */
@@ -892,13 +893,11 @@ class ErrorCatcher
 
         $html_error_log = self::generateBrowserReport($log_array, true);
 
-        if (self::$storeReport === true || self::$storeReport === 'file') {
+        $log_file = 'logs/ErrorCatcherReport.' . ($_SESSION['id'] ?? 'guest'). '.' . session_id() . '.' . microtime(true) . '.' . getmypid() . '.html';
+
+        if (self::$storeReport === true) {
 
             ColorCode::colorCode('Store report to file');
-
-            $log_file = 'logs/ErrorCatcherReport.' . ($_SESSION['id'] ?? 'guest'). '.' . session_id() . '.' . microtime(true) . '.' . getmypid() . '.html';
-
-            $log_saved = true;
 
             if (false === file_put_contents(CarbonPHP::$app_root . $log_file, $html_error_log)) {
 
