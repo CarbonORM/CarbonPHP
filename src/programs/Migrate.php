@@ -429,7 +429,6 @@ class Migrate implements iCommand
 
                     CarbonPHP::$verbose and ColorCode::colorCode("MD5 remote server check status ($updateStatus)", iColorCode::BACKGROUND_YELLOW);
 
-
                 }
 
                 ColorCode::colorCode("Updates needed <$hash>($localPath)", iColorCode::BACKGROUND_CYAN);
@@ -856,7 +855,7 @@ HALT;
 
             $fileName = basename($toLocalFilePath);
 
-            $tmpPath = CarbonPHP::$app_root . 'tmp' . DS . 'import_' . $fileName;
+            $tmpPath = CarbonPHP::$app_root . 'tmp' . DS . $fileName;
 
             // create curl resource
             $ch = curl_init();
@@ -875,7 +874,6 @@ HALT;
             self::curlProgress($ch);
 
             self::curlGetResponseHeaders($ch, $responseHeaders);
-
 
             $removePrefixSetVar = static function (string $header, string $prefix, string &$setVarToHeaderValue): bool {
 
@@ -1296,42 +1294,51 @@ HALT;
 
     }
 
+    /**
+     * @throws PublicAlert
+     */
     public static function dumpAll(string $pathHaltPHP): void
     {
 
-        static $hasRun = false;
-
         $currentTime = self::$currentTime;
 
-        if (false === $hasRun) {
-
-            $dumpFileName = "tmp/migration_schemas_$currentTime.sql";
+        $hideDumpFiles = static function (string $dumpFileName) use ($pathHaltPHP) {
 
             $absolutePath = CarbonPHP::$app_root . $dumpFileName;
 
-            MySQL::MySQLDump(null, false, true, $absolutePath);
+            Background::executeAndCheckStatus("cat '$pathHaltPHP' '$absolutePath' > '$absolutePath.php'");
 
-            $hasRun = true;
+            ColorCode::colorCode("Stored schemas to :: ($dumpFileName)", iColorCode::BLUE);
 
-        } else {
+            print $dumpFileName . '.php' . PHP_EOL;
 
-            $dumpFileName = "tmp/migration_replace_$currentTime.sql";
+            if (false === unlink($absolutePath)) {
+
+                ColorCode::colorCode("Failed to unlink ($absolutePath). This could cause a serious security hole.", iColorCode::BACKGROUND_RED);
+
+            }
+
+        };
+
+        $dumpFileName = "tmp/migration_schemas_$currentTime.sql";
+
+        $absolutePath = CarbonPHP::$app_root . $dumpFileName;
+
+        MySQL::MySQLDump(null, false, true, $absolutePath);
+
+        $hideDumpFiles($dumpFileName);
+
+        $tables = Database::fetchColumn('SHOW TABLES');
+
+        foreach ($tables as $table) {
+
+            $dumpFileName = "tmp/migration_replace_{$table}_$currentTime.sql";
 
             $absolutePath = CarbonPHP::$app_root . $dumpFileName;
 
-            MySQL::MySQLDump(null, true, false, $absolutePath, ' --replace --skip-triggers ');
+            MySQL::MySQLDump(null, true, false, $absolutePath, ' --replace --skip-triggers ', $table);
 
-        }
-
-        Background::executeAndCheckStatus("cat '$pathHaltPHP' '$absolutePath' > '$absolutePath.php'");
-
-        ColorCode::colorCode("Stored schemas to :: ($dumpFileName)");
-
-        print $dumpFileName . '.php' . PHP_EOL;
-
-        if (false === unlink($absolutePath)) {
-
-            ColorCode::colorCode("Failed to unlink ($absolutePath). This could cause a serious security hole.", iColorCode::RED);
+            $hideDumpFiles($dumpFileName);
 
         }
 
@@ -1363,7 +1370,10 @@ HALT;
 
         $md5Zip = md5_file($zipFile);
 
-        $finalZipFileName = (CarbonPHP::$cli ? 'local_' : '') . "migration_{$zipPathHash}_{$md5Zip}.zip";
+        $folderName = basename($relativeFolderPath);
+
+        // order of the name matters for destructuring
+        $finalZipFileName = (CarbonPHP::$cli ? 'local_' : '') . "migration_{$zipPathHash}_{$md5Zip}_{$folderName}.zip";
 
         $zipFileWithMd5 = $zipFolder . $finalZipFileName;
 
@@ -1498,9 +1508,6 @@ HALT;
                     iColorCode::CYAN);
 
                 self::dumpAll($pathHaltPHP);
-
-                ColorCode::colorCode('About to dump mysql import data <' . Database::$carbonDatabaseName . '> to file.',
-                    iColorCode::CYAN);
 
                 self::dumpAll($pathHaltPHP);
 

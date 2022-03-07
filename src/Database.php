@@ -703,6 +703,7 @@ FOOT;
 
 
     /** Quickly prepare and execute PDO $sql statements using
+     * @NOTE PDO's version of fetchColumn() will fail on statements like SHOW TABLES;
      *  variable arguments.
      *
      * Example:
@@ -713,12 +714,13 @@ FOOT;
      *  if multiple question marks exist you may use comma separated parameters to fill the statement
      * @return array
      */
-    protected static function fetchColumn(string $sql, ...$execute): array
+    public static function fetchColumn(string $sql, ...$execute): array
     {
         $stmt = self::database()->prepare($sql);
         if (!$stmt->execute($execute)) {
             return [];
         }
+        // pdo's version of fetchColumn is flawed see note
         $count = count($stmt = $stmt->fetchAll(PDO::FETCH_ASSOC));
         if ($count === 0) {
             return $stmt;

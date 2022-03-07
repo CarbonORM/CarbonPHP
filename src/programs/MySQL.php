@@ -13,6 +13,7 @@ namespace CarbonPHP\Programs;
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iColorCode;
 use Throwable;
 
@@ -140,12 +141,17 @@ IDENTIFIED;
      * @param String|null $mysqldump
      * @param bool $data
      * @param bool $schemas
+     * @param string|null $outputFile
      * @param string $otherOption -   --insert-ignore     Insert rows with INSERT IGNORE.
      *                                --replace           Use REPLACE INTO instead of INSERT INTO.
+     * @param string|null $specificTable  - will limit the dump to a single table! Can be left empty string or null for the full sh
      * @return string
+     * @throws PublicAlert
      */
-    public static function MySQLDump(string $mysqldump = null, bool $data = false, bool $schemas = true, string $outputFile = null, string $otherOption = ''): string
+    public static function MySQLDump(string $mysqldump = null, bool $data = false, bool $schemas = true, string $outputFile = null, string $otherOption = '', string $specificTable = null): string
     {
+
+        $specificTable ??= '';
 
         if (null === $outputFile) {
 
@@ -155,7 +161,8 @@ IDENTIFIED;
 
         if (false === $data && false === $schemas) {
 
-            ColorCode::colorCode("MysqlDump is running with --no-create-info and --no-data. Why?", iColorCode::BACKGROUND_YELLOW);
+            ColorCode::colorCode("MysqlDump is running with --no-create-info and --no-data. Why?",
+                iColorCode::BACKGROUND_YELLOW);
 
         }
 
@@ -164,7 +171,7 @@ IDENTIFIED;
             . ' --defaults-extra-file="' . self::buildCNF() . '" '
             . $otherOption . ' --skip-add-locks --single-transaction --quick '
             . ($schemas ? '' : ' --no-create-info ')
-            . ($data ? '--hex-blob ' : '--no-data ') . CarbonPHP::$configuration['DATABASE']['DB_NAME'] . " > '$outputFile'";
+            . ($data ? '--hex-blob ' : '--no-data ') . CarbonPHP::$configuration['DATABASE']['DB_NAME'] . " $specificTable > '$outputFile'";
 
         Background::executeAndCheckStatus($cmd);
 
