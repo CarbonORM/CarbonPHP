@@ -276,6 +276,8 @@ class Migrate implements iCommand
 
             }
 
+            passthru("cat $localManifestPath.html");
+
             throw new PublicAlert("The manifest download detected an html document (file://$localManifestPath.html). A new line delimited list of files is expected. This is an error. View log file for more details");
 
         }
