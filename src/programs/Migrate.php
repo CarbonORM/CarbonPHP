@@ -326,8 +326,6 @@ class Migrate implements iCommand
 
                 self::largeHttpGetRequestsToFile(self::$remoteUrl . $uri . '?license=' . self::$license, $importManifestFilePath);
 
-                Background::executeAndCheckStatus("[[ \"$( cat '$importManifestFilePath' | grep -o 'Dump completed' | wc -l )\" == *\"1\"* ]] && exit 0 || exit 16");
-
                 self::showStatus(++$done, $manifestLineCount);
 
                 $manifestArray[$uri] = $importManifestFilePath;
@@ -582,6 +580,8 @@ class Migrate implements iCommand
             case 'sql':
 
                 if (self::$MySQLDataDump) {
+
+                    Background::executeAndCheckStatus("[[ \"$( cat '$file' | grep -o 'Dump completed' | wc -l )\" == *\"1\"* ]] && exit 0 || exit 16");
 
                     ColorCode::colorCode("Doing an update to Mysql, do not exit!!!\nfile://$file",
                         iColorCode::BACKGROUND_YELLOW);
