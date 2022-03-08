@@ -584,6 +584,10 @@ class Migrate implements iCommand
                     ColorCode::colorCode("Doing an update to Mysql, do not exit!!!\nfile://$file",
                         iColorCode::BACKGROUND_YELLOW);
 
+
+                    $urlNoProtocol = static fn($url) => preg_replace('#http(?:s)?://(.*)/#', '$1', $url);
+
+
                     if (CarbonPHP::$app_root !== self::$remoteAbsolutePath) {
 
                         // todo - windows -> linux support
@@ -597,7 +601,10 @@ class Migrate implements iCommand
 
                     if (self::$localUrl !== self::$remoteUrl) {
 
+                        // todo - make these b2b replaceInFile() into one sed execution
                         self::replaceInFile(rtrim(self::$remoteUrl, '/'), rtrim(self::$localUrl, '/'), $file);
+
+                        self::replaceInFile($urlNoProtocol(self::$remoteUrl), $urlNoProtocol(self::$localUrl), $file);
 
                     } else {
 
@@ -1430,6 +1437,8 @@ HALT;
 
         return $route->regexMatch('#^' . self::$migrationUrl . '/?(.*)?#i', static function (string $getPath = '') use ($allowedDirectories) {
 
+            self::unlinkMigrationFiles();
+
             self::$currentTime = microtime(true);
 
             ColorCode::colorCode("Migration Request " . print_r($_POST, true), iColorCode::CYAN);
@@ -1553,7 +1562,17 @@ HALT;
 
             ColorCode::colorCode("Preparing to create a manifest to media!!", iColorCode::BACKGROUND_CYAN);
 
-            self::clearDirectory(CarbonPHP::$app_root . 'tmp' . DS . 'zip' . DS);
+            $zipDirectory = CarbonPHP::$app_root . 'tmp' . DS . 'zip' . DS;
+
+            if (true === is_dir($zipDirectory)) {
+
+                self::clearDirectory($zipDirectory);
+
+            } else {
+
+                Files::createDirectoryIfNotExist($zipDirectory);
+
+            }
 
             # server needs to compile directories
             foreach ($requestedDirectories as $media) {

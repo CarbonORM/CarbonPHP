@@ -35,9 +35,9 @@ class Files
     public static function rmRecursively(string $dir): void
     {
 
-        if (false === file_exists($dir)) {
+        if (false === is_dir($dir)) {
 
-            throw new PublicAlert("Failed to verify file exists ($dir)");
+            throw new PublicAlert("Failed to verify directory exists ($dir)");
 
         }
 
