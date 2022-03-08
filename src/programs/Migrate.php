@@ -478,47 +478,79 @@ class Migrate implements iCommand
 
                 $localUpdates[] = 'file://' . $localPath;
 
-                self::largeHttpGetRequestsToFile($getMetaUrl, $localPath);
+                $count = 3;
 
-                if (false !== preg_match('/zip$/', $localPath)) {
+                $failed = false;
 
-                    $zipFileName = basename($localPath);
+                while ($count--) {
 
-                    ColorCode::colorCode("Exploding ($localPath)", iColorCode::YELLOW);
+                    if ($count < 2) {
 
-                    [, $path, $md5] = explode('_', $zipFileName);
-
-                    // todo - this could be more expensive than a longer version
-                    [$md5,] = explode('.', $md5);   // remove the .zip suffix
-
-                    $unzipToPath = base64_decode($path);
-
-                    $downloadedMd5 = md5_file($localPath);
-
-                    if ($downloadedMd5 !== $md5) {
-
-                        throw new PublicAlert("The md5 doesn't match :(");
+                        ColorCode::colorCode("Retrying ($getMetaUrl) to local path (file://$localPath)",
+                            iColorCode::BACKGROUND_YELLOW);
 
                     }
 
-                    ColorCode::colorCode("The next step is unzipping to path ($unzipToPath)",
-                        iColorCode::YELLOW);
+                    self::largeHttpGetRequestsToFile($getMetaUrl, $localPath);
 
-                    $unzipToPath = CarbonPHP::$app_root . $unzipToPath;
+                    if (1 === preg_match('/zip$/', $localPath)) {
 
-                    if (is_dir($unzipToPath)) {
+                        $zipFileName = basename($localPath);
 
-                        self::clearDirectory($unzipToPath);
+                        ColorCode::colorCode("Exploding ($localPath)", iColorCode::YELLOW);
 
-                    } elseif (false === mkdir($unzipToPath) && !is_dir($unzipToPath)) {
+                        [, $path, $md5] = explode('_', $zipFileName);
 
-                        throw new PublicAlert("Failed to makedir($unzipToPath)");
+                        [$md5,] = explode('.', $md5);   // remove the .zip suffix
+
+                        $unzipToPath = base64_decode($path);
+
+                        $downloadedMd5 = md5_file($localPath);
+
+                        if ($downloadedMd5 !== $md5) {
+
+                            $failed = true;
+
+                            ColorCode::colorCode("The md5 ($downloadedMd5 !== $md5) doesn't match :(",
+                                iColorCode::BACKGROUND_RED);
+
+                            continue;
+
+                        }
+
+                        ColorCode::colorCode("The next step is unzipping to path ($unzipToPath)",
+                            iColorCode::YELLOW);
+
+                        $unzipToPath = CarbonPHP::$app_root . $unzipToPath;
+
+                        if (is_dir($unzipToPath)) {
+
+                            Files::rmRecursively($unzipToPath);
+
+                        } elseif (false === mkdir($unzipToPath) && !is_dir($unzipToPath)) {
+
+                            throw new PublicAlert("Failed to makedir($unzipToPath)");
+
+                        }
+
+                        $unzip = "unzip '$localPath' -d '$unzipToPath'";
+
+                        Background::executeAndCheckStatus($unzip);
+
+                        $failed = false;
+
+                        break;
 
                     }
 
-                    $unzip = "unzip '$localPath' -d '$unzipToPath'";
+                    break;
 
-                    Background::executeAndCheckStatus($unzip);
+
+                }
+
+                if (true === $failed) {
+
+                    throw new PublicAlert("Failed to download file ($file) after three attempts!");
 
                 }
 
@@ -1371,6 +1403,8 @@ HALT;
 
             print $dumpFileName . '.php' . PHP_EOL;
 
+            flush();
+
             if (false === unlink($absolutePath)) {
 
                 ColorCode::colorCode("Failed to unlink ($absolutePath). This could cause a serious security hole.", iColorCode::BACKGROUND_RED);
@@ -1587,6 +1621,8 @@ HALT;
 
                 // create a list of all files the requesting server will need to transfer
                 print self::manifestDirectory($media) . PHP_EOL;    // do not remove the newline
+
+                flush();
 
             }
 
