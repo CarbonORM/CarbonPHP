@@ -497,6 +497,8 @@ class ErrorCatcher
 
         self::exitAndSendBasedOnRequested($errorForTemplate, $error_page);
 
+        exit(1);
+
     }
 
     /**
@@ -711,8 +713,6 @@ class ErrorCatcher
 
         }
 
-        $cliOutput = '';
-
         if ($e instanceof Throwable) {
 
             $class = get_class($e);
@@ -723,19 +723,7 @@ class ErrorCatcher
                     $class => $e->getMessage()
                 ] + $log_array;
 
-            if (!$e instanceof PublicAlert) {
-
-                $cliOutput .= '(set_error_handler || set_exception_handler) caught this ( ' . $class . ' ) throwable. #Bubbled up#' . PHP_EOL;
-
-            } else {
-
-                $cliOutput .= 'Public Alert Thrown!' . PHP_EOL;
-
-                $log_array['ERROR TYPE'] = 'A Public Alert Was Thrown!';
-
-            }
-
-            $cliOutput .= $e->getMessage() . PHP_EOL;
+            $log_array['ERROR TYPE'] = 'A Public Alert Was Thrown!';
 
             $log_array['FILE'] = $e->getFile();
 
@@ -745,7 +733,7 @@ class ErrorCatcher
 
         } else {
 
-            [$traceCLI, $traceHTML] = self::generateCallTrace(null);
+            [$traceCLI, $traceHTML] = self::generateCallTrace();
 
         }
 
@@ -769,6 +757,7 @@ class ErrorCatcher
 
                 try {
 
+                    /** @noinspection JsonEncodingApiUsageInspection */
                     $code = json_encode($code, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: serialize($code);
 
                 } catch (Throwable $e) {
@@ -780,12 +769,6 @@ class ErrorCatcher
                     ColorCode::colorCode('Attempting with print_r and sortDump...', iColorCode::RED);
 
                     $code = print_r($code, true);
-
-                    ob_start(null, null, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
-
-                    sortDump($trace, true, false);
-
-                    $code .= ob_get_clean();
 
                 }
 
@@ -805,7 +788,9 @@ class ErrorCatcher
 
         $log_array['debug_backtrace()'] = $pre($debugBacktrace);
 
-        if (self::$storeReport === true || self::$storeReport === 'database') {
+        $html_error_log = self::generateBrowserReport($log_array, true);
+
+        if (self::$storeReport === true) {
 
             if (Database::$carbonDatabaseInitialized) {
 
@@ -873,6 +858,7 @@ class ErrorCatcher
 
         }
 
+        /** @noinspection JsonEncodingApiUsageInspection */
         $message = json_encode($cliOutputArray, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
         if (false === $message) {
@@ -883,15 +869,9 @@ class ErrorCatcher
 
             $message = print_r($log_array, true);
 
-            self::colorCode($message, $color);
-
-        } else {
-
-            self::colorCode($message, $color);
-
         }
 
-        $html_error_log = self::generateBrowserReport($log_array, true);
+        self::colorCode($message, $color);
 
         $log_file = 'logs/ErrorCatcherReport.' . ($_SESSION['id'] ?? 'guest'). '.' . session_id() . '.' . microtime(true) . '.' . getmypid() . '.html';
 

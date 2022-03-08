@@ -99,6 +99,14 @@ class Migrate implements iCommand
 
                     self::$localUrl = $argv[++$i] ?? '';
 
+                    $pattern = '#^http(s)?://.*/$#';
+
+                    if (1 !== preg_match($pattern, self::$localUrl)) {
+
+                        throw new PublicAlert("The url failed to match the regx ($pattern) with given --local-url argument. (" .self::$localUrl . ") given.");
+
+                    }
+
                     CarbonPHP::$verbose and ColorCode::colorCode('CLI found flag set for local URL (' . self::$localUrl . ')');
 
                     break;
@@ -106,6 +114,14 @@ class Migrate implements iCommand
                 case '--remote-url':
 
                     self::$remoteUrl = $argv[++$i] ?? '';
+
+                    $pattern = '#^http(s)?://.*/$#';
+
+                    if (1 !== preg_match($pattern, self::$remoteUrl)) {
+
+                        throw new PublicAlert("The url failed to match the regx ($pattern) with given --remote-url argument; (" .self::$remoteUrl . ") given.");
+
+                    }
 
                     CarbonPHP::$verbose and ColorCode::colorCode('CLI found flag set for remote URL (' . self::$remoteUrl . ')');
 
@@ -238,10 +254,20 @@ class Migrate implements iCommand
 
         }
 
-        // todo - this could be  bottle neck and should be processed one at a time
-        $manifest = file_get_contents($localManifestPath);
+        $manifestLineCount = self::getLineCount($localManifestPath);
 
-        if (0 === strpos($manifest, '<html lang="en">')) {
+        // todo - this could be  bottle neck and should be processed one at a time
+        $manifest = fopen($localManifestPath, 'rb');
+
+        if (false === $manifest) {
+
+            throw new PublicAlert("Failed to open file pointer to ($localManifestPath)");
+
+        }
+
+        $firstLine = fgets($manifest);
+
+        if (0 === strpos($firstLine, '<html')) {
 
             if (false === rename($localManifestPath, $localManifestPath . '.html')) {
 
@@ -268,17 +294,17 @@ class Migrate implements iCommand
 
         ColorCode::colorCode("Manifest\n" . $manifest);
 
-        $explodeManifest = explode(PHP_EOL, $manifest);
+        rewind($manifest);
 
-        $manifest = [];
+        $manifestArray = [];
 
-        # You have to run the process under root for this to happen.. this is never a good idea when loading external
-        # dependencies, aka us; We should looking
-        # proc_nice(-19);
+        $done = 0;
 
         // Client
         // a list of instructional manifest files has been stored on the peer.. lets retrieve this info
-        foreach ($explodeManifest as $uri) {
+        while (false === feof($manifest)) {
+
+            $uri = trim(fgets($manifest));
 
             if (false === empty($uri)) {
 
@@ -298,19 +324,32 @@ class Migrate implements iCommand
 
                 self::largeHttpGetRequestsToFile(self::$remoteUrl . $uri . '?license=' . self::$license, $importManifestFilePath);
 
-                $manifest[$uri] = $importManifestFilePath;
+                Background::executeAndCheckStatus("[[ \"$( cat '$importManifestFilePath' | grep -o 'Dump completed' | wc -l )\" == *\"1\"* ]] && exit 0 || exit 16");
+
+                self::showStatus(++$done, $manifestLineCount);
+
+                $manifestArray[$uri] = $importManifestFilePath;
+
+            } else {
+
+                --$manifestLineCount;
 
             }
 
         }
 
         // todo - we need to NOT download zips unless needed
-        #now do something with each of the files we've imported...
-        foreach ($manifest as $uri => $importFileAbsolutePath) {
+        $done = 0;
+
+        $manifestArrayCount = count($manifestArray);
+
+        foreach ($manifestArray as $uri => $importFileAbsolutePath) {
+
+            self::showStatus(++$done, $manifestArrayCount);
 
             CarbonPHP::$verbose and ColorCode::colorCode($importFileAbsolutePath, iColorCode::MAGENTA);
 
-            self::importManifestFile($importFileAbsolutePath, $uri, $requestedDirectoriesLocalCopyInfo);
+            self::importManifestFile($importFileAbsolutePath, $uri);
 
         }
 
@@ -518,7 +557,7 @@ class Migrate implements iCommand
     /**
      * @throws PublicAlert
      */
-    public static function importManifestFile(string $file, string $uri, array $requestedDirectoriesLocalCopyInfo): void
+    public static function importManifestFile(string $file, string $uri): void
     {
 
         CarbonPHP::$verbose and ColorCode::colorCode("Importing file ($file)");
@@ -542,12 +581,13 @@ class Migrate implements iCommand
 
                 if (self::$MySQLDataDump) {
 
-                    ColorCode::colorCode("Doing an update to Mysql, do no exit!!!\nfile://$file",
+                    ColorCode::colorCode("Doing an update to Mysql, do not exit!!!\nfile://$file",
                         iColorCode::BACKGROUND_YELLOW);
 
                     if (CarbonPHP::$app_root !== self::$remoteAbsolutePath) {
 
-                        self::replaceInFile(CarbonPHP::$app_root, self::$remoteAbsolutePath, $file);
+                        // todo - windows -> linux support
+                        self::replaceInFile(rtrim(self::$remoteAbsolutePath, DS), rtrim(CarbonPHP::$app_root, DS), $file);
 
                     } else {
 
@@ -557,7 +597,7 @@ class Migrate implements iCommand
 
                     if (self::$localUrl !== self::$remoteUrl) {
 
-                        self::replaceInFile(self::$localUrl, self::$remoteUrl, $file);
+                        self::replaceInFile(rtrim(self::$remoteUrl, '/'), rtrim(self::$localUrl, '/'), $file);
 
                     } else {
 
@@ -595,6 +635,8 @@ class Migrate implements iCommand
     public static function replaceInFile(string $string, string $replacement, string $absoluteFilePath): void
     {
 
+        ColorCode::colorCode("Attempting to replace ::\n$string\nwith replacement ::\n$replacement\n in file ::\nfile://$absoluteFilePath", iColorCode::BACKGROUND_MAGENTA);
+
         /**
          * @throws PublicAlert
          */
@@ -613,17 +655,10 @@ class Migrate implements iCommand
 
         $replace = "sed -e 's/" . $delimited($string)
             . "/" . $delimited($replacement)
-            . "/g' $absoluteFilePath > $absoluteFilePath.tmp && rm $absoluteFilePath && mv $absoluteFilePath.tmp $absoluteFilePath";
+            . "/g' $absoluteFilePath > $absoluteFilePath.txt && rm $absoluteFilePath && mv $absoluteFilePath.txt $absoluteFilePath";
 
-        $resultCode = 0;
 
-        passthru($replace, $resultCode);
-
-        if (0 !== $resultCode) {
-
-            throw new PublicAlert("Failed to replace strings using command :: ($replace)");
-
-        }
+        Background::executeAndCheckStatus($replace);
 
     }
 
@@ -851,6 +886,8 @@ HALT;
 
         try {
 
+            $url = trim($url);
+
             ColorCode::colorCode("Attempting to get possibly large file \n($url)", iColorCode::BACKGROUND_GREEN);
 
             $fileName = basename($toLocalFilePath);
@@ -1006,13 +1043,20 @@ HALT;
      * show a status bar in the console
      *
      * @link https://stackoverflow.com/questions/2124195/command-line-progress-bar-in-php
-     * @param int $done items completed
-     * @param int $total total items
+     * @param int|null $done items completed
+     * @param int|null $total total items
      * @param int|null $size optional size of the status bar
      * @return  void
+     * @throws PublicAlert
      */
     public static function showStatus(int $done = null, int $total = null, int $size = null): void
     {
+
+        if (0 === $done) {
+
+            throw new PublicAlert("showStatus can have 0 passed for done!");
+
+        }
 
         static $start_time = null;
 
@@ -1302,9 +1346,15 @@ HALT;
 
         $currentTime = self::$currentTime;
 
-        $hideDumpFiles = static function (string $dumpFileName) use ($pathHaltPHP) {
+        $tables = Database::fetchColumn('SHOW TABLES');
+
+        foreach ($tables as $table) {
+
+            $dumpFileName = "tmp/migration_replace_{$table}_$currentTime.sql";
 
             $absolutePath = CarbonPHP::$app_root . $dumpFileName;
+
+            MySQL::MySQLDump(null, true, true, $absolutePath, '', $table);
 
             Background::executeAndCheckStatus("cat '$pathHaltPHP' '$absolutePath' > '$absolutePath.php'");
 
@@ -1317,28 +1367,6 @@ HALT;
                 ColorCode::colorCode("Failed to unlink ($absolutePath). This could cause a serious security hole.", iColorCode::BACKGROUND_RED);
 
             }
-
-        };
-
-        $dumpFileName = "tmp/migration_schemas_$currentTime.sql";
-
-        $absolutePath = CarbonPHP::$app_root . $dumpFileName;
-
-        MySQL::MySQLDump(null, false, true, $absolutePath);
-
-        $hideDumpFiles($dumpFileName);
-
-        $tables = Database::fetchColumn('SHOW TABLES');
-
-        foreach ($tables as $table) {
-
-            $dumpFileName = "tmp/migration_replace_{$table}_$currentTime.sql";
-
-            $absolutePath = CarbonPHP::$app_root . $dumpFileName;
-
-            MySQL::MySQLDump(null, true, false, $absolutePath, ' --replace --skip-triggers ', $table);
-
-            $hideDumpFiles($dumpFileName);
 
         }
 
@@ -1506,8 +1534,6 @@ HALT;
 
                 ColorCode::colorCode('About to dump mysql schemas <' . Database::$carbonDatabaseName . '> to file.',
                     iColorCode::CYAN);
-
-                self::dumpAll($pathHaltPHP);
 
                 self::dumpAll($pathHaltPHP);
 

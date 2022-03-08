@@ -704,6 +704,7 @@ FOOT;
 
     /** Quickly prepare and execute PDO $sql statements using
      * @NOTE PDO's version of fetchColumn() will fail on statements like SHOW TABLES;
+     * @TODO can we optimise based on when we know it will fail?
      *  variable arguments.
      *
      * Example:
