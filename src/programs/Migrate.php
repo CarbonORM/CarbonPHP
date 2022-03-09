@@ -521,10 +521,14 @@ class Migrate implements iCommand
 
                 }
 
+                $localPath = CarbonPHP::$app_root . $mediaFile;
+
                 // todo - if media file is a directory then we need to recursively create said directory.. it will remain empty
                 if (DS === $mediaFile[-1]) {
 
-                    sortDump($mediaFile);
+                    Files::createDirectoryIfNotExist($localPath);
+
+                    continue;
 
                 }
 
@@ -537,8 +541,6 @@ class Migrate implements iCommand
                     $getMetaUrl = self::$remoteUrl . $uri . '?license=' . self::$license . '&file=' . base64_encode($mediaFile);
 
                 }
-
-                $localPath = CarbonPHP::$app_root . $mediaFile;
 
                 if (true === file_exists($localPath)) {
 
