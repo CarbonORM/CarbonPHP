@@ -824,11 +824,19 @@ HALT;
 
         $ch = curl_init();
 
+        ColorCode::colorCode("Attempting to get possibly large POST response\n$url\nStoring to (file://$toLocalFilePath)\n".print_r($post,true));
+
         curl_setopt($ch, CURLOPT_URL, $url);
 
         curl_setopt($ch, CURLOPT_POST, 1);
 
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post));
+
+        $timeout = 90;
+
+        ColorCode::colorCode("Setting the post timeout to ($timeout)", iColorCode::YELLOW);
+
+        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
 
         // Receive server response ...
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -853,7 +861,9 @@ HALT;
 
         if (false === $bytesSent) {
 
-            ColorCode::colorCode("The method (" . __METHOD__ . ") failed to capture url ($url) and save it to path\nfile://$toLocalFilePath");
+            ColorCode::colorCode("The method (" . __METHOD__ . ") failed to capture url \n($url) and save it to path\nfile://$toLocalFilePath");
+
+            exit(4);
 
         }
 
@@ -961,7 +971,11 @@ HALT;
 
             curl_setopt($ch, CURLOPT_COOKIEJAR, '-');
 
-            curl_setopt($ch, CURLOPT_TIMEOUT, 90);
+            $timeout = 90;
+
+            ColorCode::colorCode("Setting the timeout to ($timeout)", iColorCode::BACKGROUND_YELLOW);
+
+            curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
 
             curl_setopt($ch, CURLOPT_HEADER, 0);
 
@@ -1026,7 +1040,6 @@ HALT;
 
             }
 
-
             // $output contains the output string
             curl_exec($ch);
 
@@ -1090,7 +1103,7 @@ HALT;
                 ColorCode::colorCode("Detected in verbose mode, will not unlink file\nfile://$tmpPath",
                     iColorCode::YELLOW);
 
-            } else {
+            } elseif ($toLocalFilePath !== $tmpPath) {
 
                 unlink($tmpPath);
 
