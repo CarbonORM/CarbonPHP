@@ -104,6 +104,8 @@ class Migrate implements iCommand
 
             if ($bytesMax < $bytesTotal) {
 
+                ColorCode::colorCode("The directory (file://$path) is to large, moving to subdirectory to ZIP!");
+
                 return false;
 
             }
@@ -450,7 +452,7 @@ class Migrate implements iCommand
 
         }
 
-        ColorCode::colorCode('Completed in ' . date("H:i:s", round((microtime(true) - self::$currentTime))));
+        ColorCode::colorCode('Completed in ' . (microtime(true) - self::$currentTime) . ' sec');
         exit(0);
 
     }
@@ -623,9 +625,9 @@ class Migrate implements iCommand
 
                             Files::rmRecursively($unzipToPath);
 
-                        } elseif (false === mkdir($unzipToPath) && !is_dir($unzipToPath)) {
+                        } else {
 
-                            throw new PublicAlert("Failed to makedir($unzipToPath)");
+                            Files::createDirectoryIfNotExist($unzipToPath);
 
                         }
 
@@ -1124,13 +1126,7 @@ HALT;
 
             $dirname = dirname($toLocalFilePath);
 
-            if (false === is_dir($dirname)
-                && false === mkdir($dirname, 0644, true)
-                && false === is_dir($dirname)) {
-
-                throw new PublicAlert("Directory ($dirname) does not exist and failed to create for file ($toLocalFilePath)!");
-
-            }
+            Files::createDirectoryIfNotExist($dirname);
 
             // $output contains the output string
             curl_exec($ch);
@@ -1140,7 +1136,7 @@ HALT;
 
             if (false === $bytesStored) {
 
-                throw new PublicAlert("The method (" . __METHOD__ . ") failed while fetching url ($url) and storing to file\nfile://$toLocalFilePath");
+                throw new PublicAlert("The method (" . __METHOD__ . ") failed while fetching url ($url) and storing to file (file://$toLocalFilePath)");
 
             }
 
@@ -1886,7 +1882,7 @@ HALT;
 
             } else if ($file->isDir()) {
 
-                if (false === self::directorySizeLessThan($filePath)) {
+                if (false === self::directorySizeLessThan($filePath, 80)) {
 
                     // recursive, logically simple; runtime expensive
                     $files += self::compileFolderFiles($filePath);

@@ -18,7 +18,7 @@ class Files
     public static function createDirectoryIfNotExist($directory) : void {
 
         if (false === is_dir($directory)
-            && false === mkdir($directory, 0755, true)
+            && false === mkdir($directory, 0777, true)
             && false === is_dir($directory)) {
 
             throw new PublicAlert("Failed to create directory ($directory)");
