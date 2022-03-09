@@ -1869,6 +1869,8 @@ HALT;
 
         $files = [];
 
+        Files::createDirectoryIfNotExist($path);
+
         $directory = new DirectoryIterator($path);
 
         foreach ($directory as $file) {
