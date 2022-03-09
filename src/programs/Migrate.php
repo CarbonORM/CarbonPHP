@@ -450,8 +450,7 @@ class Migrate implements iCommand
 
         }
 
-        ColorCode::colorCode('Complete!');
-
+        ColorCode::colorCode('Completed in ' . date("H:i:s", round((microtime(true) - self::$currentTime))));
         exit(0);
 
     }
@@ -548,7 +547,7 @@ class Migrate implements iCommand
 
                     $url = "$getMetaUrl&md5=$hash";
 
-                    ColorCode::colorCode("local copy\nfile://$localPath) exists, testing hash ($hash) with ur ($url)!",
+                    ColorCode::colorCode("local copy\n(file://$localPath) exists, testing hash ($hash) with url\n($url)!",
                         iColorCode::BACKGROUND_WHITE);
 
                     $updateStatus = file_get_contents($url);
@@ -557,18 +556,9 @@ class Migrate implements iCommand
 
                     if ('true' === $updateStatus) {
 
-                        $isZip = preg_match('/zip$/', $localPath);
+                        ColorCode::colorCode("No updates need for (file://$localPath)");
 
-                        if (false === $isZip
-                            || 0 === $isZip) {
-
-                            ColorCode::colorCode("No updates need for (file://$localPath)");
-
-                            continue;
-
-                        }
-
-                        ColorCode::colorCode("Detected the same zip, but downloading anyway to test!", iColorCode::RED);
+                        continue;
 
                     }
 
