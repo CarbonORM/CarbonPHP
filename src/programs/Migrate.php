@@ -11,6 +11,9 @@ use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
 use CarbonPHP\Route;
 use DirectoryIterator;
+use FilesystemIterator;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use SplFileObject;
 use Throwable;
 
@@ -37,6 +40,79 @@ class Migrate implements iCommand
     public const MIGRATE_DIRECTORIES_FLAG = '--directories';
 
     public static bool $MySQLDataDump = true;
+
+    public static int $timeout = 90;
+
+    /**
+     * @param string $path
+     * @return int
+     * @throws PublicAlert
+     * @link https://stackoverflow.com/questions/478121/how-to-get-directory-size-in-php
+     */
+    public static function getDirectorySize(string $path)
+    {
+        $bytesTotal = 0;
+
+        $path = realpath($path);
+
+        if (false === is_dir($path)) {
+
+            throw new PublicAlert("Failed to verify that dir (file://$path) exists!");
+
+        }
+
+        if ($path !== false
+            && $path !== ''
+            && file_exists($path)) {
+
+            $dir = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS));
+
+            foreach ($dir as $object) {
+
+                $bytesTotal += $object->getSize();
+
+            }
+
+        }
+
+        return $bytesTotal;
+
+    }
+
+    /**
+     * @throws PublicAlert
+     */
+    public static function directorySizeLessThan(string $path, int $megabytes = 25) : bool {
+
+        $bytesMax = 1000000 * $megabytes;
+
+        $bytesTotal = 0;
+
+        $path = realpath($path);
+
+        if ($path === false || false === is_dir($path)) {
+
+            throw new PublicAlert("Failed to verify that dir (file://$path) exists!");
+
+        }
+
+        $dir = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS));
+
+        foreach ($dir as $object) {
+
+            $bytesTotal += $object->getSize();
+
+            if ($bytesMax < $bytesTotal) {
+
+                return false;
+
+            }
+
+        }
+
+        return true;
+
+    }
 
     public static function unlinkMigrationFiles(): void
     {
@@ -69,6 +145,19 @@ class Migrate implements iCommand
 
     }
 
+    public static function secondsToReadable(int $init): string
+    {
+
+        $hours = floor($init / 3600);
+
+        $minutes = floor(($init / 60) % 60);
+
+        $seconds = $init % 60;
+
+        return "$hours:$minutes:$seconds";
+
+    }
+
     /**
      * @throws PublicAlert
      * @throws \JsonException
@@ -84,6 +173,12 @@ class Migrate implements iCommand
         for ($i = 0, $argc = count($argv); $i < $argc; $i++) {
 
             switch ($argv[$i]) {
+                case '--timeout':
+
+                    self::$timeout = $argv[++$i];
+
+                    break;
+
                 case '--verbose':
 
                     CarbonPHP::$verbose = true;
@@ -490,7 +585,7 @@ class Migrate implements iCommand
 
                     if ($count < 2) {
 
-                        ColorCode::colorCode("Retrying ($getMetaUrl) to local path (file://$localPath)",
+                        ColorCode::colorCode("Retrying \n($getMetaUrl) to local path\n(file://$localPath)",
                             iColorCode::BACKGROUND_YELLOW);
 
                     }
@@ -824,7 +919,7 @@ HALT;
 
         $ch = curl_init();
 
-        ColorCode::colorCode("Attempting to get possibly large POST response\n$url\nStoring to (file://$toLocalFilePath)\n".print_r($post,true));
+        ColorCode::colorCode("Attempting to get possibly large POST response\n$url\nStoring to (file://$toLocalFilePath)\n" . print_r($post, true));
 
         curl_setopt($ch, CURLOPT_URL, $url);
 
@@ -832,9 +927,9 @@ HALT;
 
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post));
 
-        $timeout = 90;
+        $timeout = self::$timeout;
 
-        ColorCode::colorCode("Setting the post timeout to ($timeout)", iColorCode::YELLOW);
+        ColorCode::colorCode("Setting the post timeout to ($timeout) <" . self::secondsToReadable($timeout) . '>', iColorCode::YELLOW);
 
         curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
 
@@ -971,9 +1066,9 @@ HALT;
 
             curl_setopt($ch, CURLOPT_COOKIEJAR, '-');
 
-            $timeout = 90;
+            $timeout = self::$timeout;
 
-            ColorCode::colorCode("Setting the timeout to ($timeout)", iColorCode::BACKGROUND_YELLOW);
+            ColorCode::colorCode("Setting the timeout to ($timeout) <" . self::secondsToReadable($timeout) . '>', iColorCode::BACKGROUND_YELLOW);
 
             curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
 
@@ -1794,6 +1889,16 @@ HALT;
 
             } else if ($file->isDir()) {
 
+                $isDir = $file->isDir();
+
+                if (false === self::directorySizeLessThan($isDir)) {
+
+                    $files += self::compileFolderFiles($isDir);
+
+                    continue;
+
+                }
+
                 $files[] = self::zipFolder($filePath);
 
             }
@@ -1815,7 +1920,7 @@ HALT;
 
             $storeToFile = CarbonPHP::$app_root . $relativePath;
 
-            $files = self::compileFolderFiles($path);
+            $files = self::compileFolderFiles($path);   // array
 
             $php = self::selfHidingFile();
 
