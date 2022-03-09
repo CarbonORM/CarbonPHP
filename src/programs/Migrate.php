@@ -297,8 +297,6 @@ class Migrate implements iCommand
 
         $requestedDirectoriesLocalCopyInfo = [];
 
-        ColorCode::colorCode("Child Forked; processing local directories for md5 hashes!");
-
         // todo - this is the perfect thing to do in the background
         if (null !== self::$directories) {
 
@@ -1889,11 +1887,9 @@ HALT;
 
             } else if ($file->isDir()) {
 
-                $isDir = $file->isDir();
+                if (false === self::directorySizeLessThan($filePath)) {
 
-                if (false === self::directorySizeLessThan($isDir)) {
-
-                    $files += self::compileFolderFiles($isDir);
+                    $files += self::compileFolderFiles($filePath);
 
                     continue;
 
