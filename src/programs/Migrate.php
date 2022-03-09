@@ -521,6 +521,13 @@ class Migrate implements iCommand
 
                 }
 
+                // todo - if media file is a directory then we need to recursively create said directory.. it will remain empty
+                if (DS === $mediaFile[-1]) {
+
+                    sortDump($mediaFile);
+
+                }
+
                 if (true === self::$throttle) {
 
                     $getMetaUrl = self::$remoteUrl . self::$migrationUrl . '/' . base64_encode($mediaFile) . '?license=' . self::$license;
@@ -717,7 +724,6 @@ class Migrate implements iCommand
 
 
                     $urlNoProtocol = static fn($url) => preg_replace('#http(?:s)?://(.*)/#', '$1', $url);
-
 
                     if (CarbonPHP::$app_root !== self::$remoteAbsolutePath) {
 
@@ -954,7 +960,8 @@ HALT;
 
         if (false === $bytesSent) {
 
-            ColorCode::colorCode("The method (" . __METHOD__ . ") failed to capture url \n($url) and save it to path\nfile://$toLocalFilePath");
+            ColorCode::colorCode("The method (" . __METHOD__ . ") failed to capture url \n($url) and save it to path\nfile://$toLocalFilePath",
+                iColorCode::BACKGROUND_RED);
 
             exit(4);
 
@@ -1889,7 +1896,18 @@ HALT;
 
                 if (false === self::directorySizeLessThan($filePath)) {
 
+                    // recursive, logically simple; runtime expensive
                     $files += self::compileFolderFiles($filePath);
+
+                    continue;
+
+                }
+
+                $isDirEmpty = !(new FilesystemIterator($filePath))->valid();
+
+                if ($isDirEmpty) {
+
+                    $files[] = $filePath . DS;
 
                     continue;
 
