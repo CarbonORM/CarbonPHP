@@ -27,7 +27,8 @@
     "ext-fileinfo": "*",
     "ext-posix": "*",
     "ext-readline": "*",
-    "ext-zip": "*"
+    "ext-zip": "*",
+    "ext-pcntl": "*"
   },
   "require-dev": {
     "wp-cli/wp-cli-bundle": "2.4.0",

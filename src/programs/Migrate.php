@@ -71,6 +71,7 @@ class Migrate implements iCommand
 
     /**
      * @throws PublicAlert
+     * @throws \JsonException
      */
     public function run(array $argv): void
     {
@@ -103,7 +104,7 @@ class Migrate implements iCommand
 
                     if (1 !== preg_match($pattern, self::$localUrl)) {
 
-                        throw new PublicAlert("The url failed to match the regx ($pattern) with given --local-url argument. (" .self::$localUrl . ") given.");
+                        throw new PublicAlert("The url failed to match the regx ($pattern) with given --local-url argument. (" . self::$localUrl . ") given.");
 
                     }
 
@@ -119,7 +120,7 @@ class Migrate implements iCommand
 
                     if (1 !== preg_match($pattern, self::$remoteUrl)) {
 
-                        throw new PublicAlert("The url failed to match the regx ($pattern) with given --remote-url argument; (" .self::$remoteUrl . ") given.");
+                        throw new PublicAlert("The url failed to match the regx ($pattern) with given --remote-url argument; (" . self::$remoteUrl . ") given.");
 
                     }
 
@@ -189,14 +190,22 @@ class Migrate implements iCommand
 
         }
 
-        $requestedDirectoriesLocalCopyInfo = [];
+        $noMedia = null === self::$directories;
 
-        // todo - this is the perfect thing to do in the background
-        if (null !== self::$directories) {
+        if (false === $noMedia) {
 
             $postData += [
                 'directories' => self::$directories
             ];
+
+        }
+
+        $requestedDirectoriesLocalCopyInfo = [];
+
+        ColorCode::colorCode("Child Forked; processing local directories for md5 hashes!");
+
+        // todo - this is the perfect thing to do in the background
+        if (null !== self::$directories) {
 
             $requestedDirectories = explode(',', self::$directories);
 
@@ -208,9 +217,6 @@ class Migrate implements iCommand
             }
 
         }
-
-        # we will do this in parallel in the future
-
 
         if (false === self::$MySQLDataDump) {
 
@@ -294,8 +300,6 @@ class Migrate implements iCommand
 
         }
 
-        ColorCode::colorCode("Manifest\n" . $manifest);
-
         rewind($manifest);
 
         $manifestArray = [];
@@ -349,7 +353,7 @@ class Migrate implements iCommand
 
             CarbonPHP::$verbose and ColorCode::colorCode($importFileAbsolutePath, iColorCode::MAGENTA);
 
-            self::importManifestFile($importFileAbsolutePath, $uri);
+            self::importManifestFile($importFileAbsolutePath, $uri, $requestedDirectoriesLocalCopyInfo);
 
         }
 
@@ -589,7 +593,7 @@ class Migrate implements iCommand
     /**
      * @throws PublicAlert
      */
-    public static function importManifestFile(string $file, string $uri): void
+    public static function importManifestFile(string $file, string $uri, array $requestedDirectoriesLocalCopyInfo): void
     {
 
         CarbonPHP::$verbose and ColorCode::colorCode("Importing file ($file)");
@@ -816,6 +820,8 @@ HALT;
     public static function largeHttpPostRequestsToFile(string $url, string $toLocalFilePath, array $post, array &$responseHeaders = []): void
     {
 
+        $bytesSent = false;
+
         $ch = curl_init();
 
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -837,13 +843,19 @@ HALT;
 
         self::curlProgress($ch);
 
-        self::curlReturnFileAppend($ch, $toLocalFilePath);
+        self::curlReturnFileAppend($ch, $toLocalFilePath, $bytesSent);
 
         self::curlGetResponseHeaders($ch, $responseHeaders);
 
         curl_exec($ch);
 
         curl_close($ch);
+
+        if (false === $bytesSent) {
+
+            ColorCode::colorCode("The method (" . __METHOD__ . ") failed to capture url ($url) and save it to path\nfile://$toLocalFilePath");
+
+        }
 
     }
 
@@ -870,12 +882,14 @@ HALT;
      * @return void
      * @throws PublicAlert
      */
-    public static function curlReturnFileAppend($ch, string $tmpPath): void
+    public static function curlReturnFileAppend($ch, string $tmpPath, bool &$bytesSent): void
     {
         self::testCurlResource($ch);
 
         curl_setopt($ch, CURLOPT_WRITEFUNCTION,
-            static function ($ch, $text) use ($tmpPath) {
+            static function ($ch, $text) use ($tmpPath, &$bytesSent) {
+
+                $bytesSent = true;
 
                 if (false === file_put_contents($tmpPath, $text, FILE_APPEND)) {
 
@@ -925,11 +939,13 @@ HALT;
 
         $serverSentSha1 = '';
 
+        $bytesStored = false;
+
         try {
 
             $url = trim($url);
 
-            ColorCode::colorCode("Attempting to get possibly large file \n($url)", iColorCode::BACKGROUND_GREEN);
+            ColorCode::colorCode("Attempting to get possibly large file\n$url\nfile://$toLocalFilePath", iColorCode::BACKGROUND_GREEN);
 
             $fileName = basename($toLocalFilePath);
 
@@ -941,9 +957,11 @@ HALT;
             // set url
             curl_setopt($ch, CURLOPT_URL, $url);
 
+            self::curlReturnFileAppend($ch, $tmpPath, $bytesStored);
+
             curl_setopt($ch, CURLOPT_COOKIEJAR, '-');
 
-            curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 90);
 
             curl_setopt($ch, CURLOPT_HEADER, 0);
 
@@ -983,7 +1001,8 @@ HALT;
 
                 }
 
-                if (('' !== $serverSentMd5) && $removePrefixSetVar($header, 'md5: ', $serverSentMd5)) {
+                if (('' !== $serverSentMd5)
+                    && $removePrefixSetVar($header, 'md5: ', $serverSentMd5)) {
 
                     continue;
 
@@ -1007,7 +1026,6 @@ HALT;
 
             }
 
-            self::curlReturnFileAppend($ch, $tmpPath);
 
             // $output contains the output string
             curl_exec($ch);
@@ -1015,11 +1033,19 @@ HALT;
             // close curl resource to free up system resources
             curl_close($ch);
 
+            if (false === $bytesStored) {
+
+                throw new PublicAlert("The method (" . __METHOD__ . ") failed while fetching url ($url) and storing to file\nfile://$toLocalFilePath");
+
+            }
+
             if (false === file_exists($tmpPath)) {
 
                 throw new PublicAlert("Failed to locate temp file ($tmpPath)");
 
             }
+
+            ColorCode::colorCode("Stored to local tmp file (file://$tmpPath)", iColorCode::BACKGROUND_RED);
 
             $md5 = md5_file($tmpPath);
 
