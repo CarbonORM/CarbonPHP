@@ -1099,7 +1099,6 @@ HALT;
 
             };
 
-
             foreach ($responseHeaders as $header) {
 
                 if ('' !== $serverSentMd5
@@ -1128,17 +1127,17 @@ HALT;
 
             Files::createDirectoryIfNotExist($dirname);
 
+            if (false === touch($tmpPath)) {
+
+                throw new PublicAlert("Failed to create tmp file (file://$tmpPath)");
+
+            }
+
             // $output contains the output string
             curl_exec($ch);
 
             // close curl resource to free up system resources
             curl_close($ch);
-
-            if (false === $bytesStored) {
-
-                throw new PublicAlert("The method (" . __METHOD__ . ") failed while fetching url ($url) and storing to file (file://$toLocalFilePath)");
-
-            }
 
             if (false === file_exists($tmpPath)) {
 
@@ -1165,6 +1164,12 @@ HALT;
                 sortDump($responseHeaders);
 
                 throw new PublicAlert("Failed to verify the sha1 ($sha1) equals server sent ($serverSentSha1) for file ($tmpPath)");
+
+            }
+
+            if (false === $bytesStored) {
+
+                ColorCode::colorCode("The method (" . __METHOD__ . ") received 0 bytes while fetching url\n($url) and storing to file\n(file://$toLocalFilePath). Empty file created.");
 
             }
 
