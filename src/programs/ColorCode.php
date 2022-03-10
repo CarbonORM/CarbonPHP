@@ -15,6 +15,8 @@ trait ColorCode
 
     public static bool $colorCodeBool = true;
 
+    public static bool $changingLocationsFailed = false;
+
     /**
      * @param string $message
      * @param string $color
@@ -63,6 +65,12 @@ trait ColorCode
             $message = sprintf($colors[$color], $message);
 
             $status = error_log($message);
+
+            if (true === self::$changingLocationsFailed) {
+
+                return;
+
+            }
 
             if (false === $location) {
 
@@ -162,6 +170,8 @@ trait ColorCode
             }    // back to what it was before this function
 
         } catch (Throwable $e) {
+
+            self::$changingLocationsFailed = true;
 
             ErrorCatcher::generateLog($e);
 

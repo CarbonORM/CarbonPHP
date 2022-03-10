@@ -739,7 +739,7 @@ class ErrorCatcher
 
         $log_array['[C6] CARBONPHP'] = 'ErrorCatcher::generateLog';
 
-        $pre = static fn ($code) => static function ($serialize = true) use ($code) {
+        $pre = static fn (string $code) : callable => static function ($serialize = true) use ($code) : string {
 
             if (false === $serialize) {
 
