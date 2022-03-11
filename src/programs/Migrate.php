@@ -576,13 +576,13 @@ class Migrate implements iCommand
 
                 $localUpdates[] = 'file://' . $localPath;
 
-                $count = 3;
+                $networkCount = 3;
 
                 $failed = false;
 
-                while ($count--) {
+                while ($networkCount--) {
 
-                    if ($count < 2) {
+                    if ($networkCount < 2) {
 
                         ColorCode::colorCode("Retrying \n($getMetaUrl) to local path\n(file://$localPath)",
                             iColorCode::BACKGROUND_YELLOW);
