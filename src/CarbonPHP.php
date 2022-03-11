@@ -127,6 +127,9 @@ class CarbonPHP
     public static bool $http = false;
     public static bool $verbose = false;
 
+    // Wordpress Support
+    public static $carbon_php_loaded_callback = null;
+
     // Validated Server Values
     public static string $server_ip = '127.0.0.1';
     public static ?string $user_ip = null;

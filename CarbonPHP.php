@@ -9,6 +9,7 @@ Author: Richard Tyler Miles
 
 use CarbonPHP\Application;
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iConfig;
 use CarbonPHP\Programs\Deployment;
 use CarbonPHP\Programs\Migrate;
@@ -19,7 +20,7 @@ if (false === defined('ABSPATH')) {
     http_response_code(400);
 
     print '<h1>CarbonPHP is an opensource library. It looks like you have accessed the wordpress bootstrap file, or in 
-            n00b terminology what allows us to be compatable with wordpress as a plugin. You should not try to access
+            n00b terminology what allows us to be compatible with WordPress as a plugin. You should not try to access
             any file directly as classes are PSR-4 compliant. This means all file include operations will be dynamic using
             composer. To lean more about how to use CarbonPHP please refer to 
             <a href="https://www.carbonphp.com/">https://CarbonPHP.com/</a></h1>';
@@ -39,49 +40,60 @@ if (false === (include_once ABSPATH . 'vendor' . DS . 'autoload.php')) {
 
 }
 
-function addCarbonPHPWordpressMenuItem() : void
+function addCarbonPHPWordpressMenuItem(bool $advanced): void
 {
-    add_action( 'admin_menu', static fn() => add_menu_page(
+    add_action('admin_menu', static fn() => add_menu_page(
         'CarbonPHP',
         'CarbonPHP',
         'edit_posts',
         'CarbonPHP',
-        static function () {
-            print '<h1>CarbonPHP</h1>';
+        static function () use ($advanced) {
+
+            $notice = $advanced ? "Advanced Setup Detected" : "Basic Configuration";
+
+            print "<h1>CarbonPHP</h1><h2>$notice</h2>";
+
         },
         'dashicons-editor-customchar',
         '4.5'
     ));
 }
 
+$loaded = static function () : void {
+
+    $callable = CarbonPHP::$carbon_php_loaded_callback;
+
+    if (null === $callable) {
+
+        return;
+
+    }
+
+    if (false === is_callable($callable)) {
+
+        throw new PublicAlert('Failed to load carbonphp. User defined (CarbonPHP::$carbon_php_loaded_callback) must be of type callable.');
+
+    }
+
+
+    $callable();
+
+};
+
+
 if (true === CarbonPHP::$setupComplete) {
 
-    addCarbonPHPWordpressMenuItem();
+    addCarbonPHPWordpressMenuItem(true);
+
+    $loaded();
 
     return true;
 
 }
 
-(new CarbonPHP(new class extends Application implements iConfig {
+$loaded();
 
-
-    public function startApplication(string $uri): bool
-    {
-
-        addCarbonPHPWordpressMenuItem();
-
-        return Deployment::github($this)()
-            || Rest::MatchRestfulRequests($this)()
-            || Migrate::enablePull($this, [
-                ABSPATH
-            ])();
-
-    }
-
-    public function defaultRoute(): void
-    {
-        // If nothing routes in this wordpress plugin just move on
-    }
+(new CarbonPHP(new class implements iConfig {
 
     public static function configuration(): array
     {
@@ -126,6 +138,33 @@ if (true === CarbonPHP::$setupComplete) {
 
     }
 
-}))();
+}))(new class extends Application {
+
+        public function startApplication(string $uri): bool
+        {
+
+            addCarbonPHPWordpressMenuItem(false);
+
+            if (Deployment::github($this)()
+                || Rest::MatchRestfulRequests($this)()
+                || Migrate::enablePull($this, [
+                    ABSPATH
+                ])()) {
+
+                exit(0);
+
+            }
+
+            return true;
+
+        }
+
+        public function defaultRoute(): void
+        {
+            // If nothing routes in this wordpress plugin just move on
+        }
+
+    }
+);
 
 return true;
