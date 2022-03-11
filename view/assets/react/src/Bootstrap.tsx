@@ -64,6 +64,7 @@ class bootstrap extends React.Component<any, {
   };
 
   semaphoreLock = <T extends React.Component>(context ?: T): Function =>
+
     (callback: Function, localLock: boolean = false): Function => (opt ?: any): boolean => {
 
       const criticalSection = async (): Promise<void> => {

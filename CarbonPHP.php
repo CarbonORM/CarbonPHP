@@ -10,6 +10,9 @@ Author: Richard Tyler Miles
 use CarbonPHP\Application;
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Interfaces\iConfig;
+use CarbonPHP\Programs\Deployment;
+use CarbonPHP\Programs\Migrate;
+use CarbonPHP\Rest;
 
 if (false === defined('ABSPATH')) {
 
@@ -67,7 +70,12 @@ if (true === CarbonPHP::$setupComplete) {
 
         addCarbonPHPWordpressMenuItem();
 
-        return true;
+        return Deployment::github($this)()
+            || Rest::MatchRestfulRequests($this)()
+            || Migrate::enablePull($this, [
+                ABSPATH
+            ])();
+
     }
 
     public function defaultRoute(): void
