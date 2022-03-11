@@ -38,7 +38,7 @@ if (false === (include_once ABSPATH . 'vendor' . DS . 'autoload.php')) {
 
 function addCarbonPHPWordpressMenuItem() : void
 {
-    add_menu_page(
+    add_action( 'admin_menu', static fn() => add_menu_page(
         'CarbonPHP',
         'CarbonPHP',
         'edit_posts',
@@ -46,14 +46,14 @@ function addCarbonPHPWordpressMenuItem() : void
         static function () {
             print '<h1>CarbonPHP</h1>';
         },
-        get_stylesheet_directory_uri() . '/assets/img/admin/tab-icons/bracket_64.png',
+        'dashicons-editor-customchar',
         '4.5'
-    );
+    ));
 }
 
 if (true === CarbonPHP::$setupComplete) {
 
-    add_action( 'admin_menu', static fn() => addCarbonPHPWordpressMenuItem());
+    addCarbonPHPWordpressMenuItem();
 
     return true;
 
@@ -65,7 +65,7 @@ if (true === CarbonPHP::$setupComplete) {
     public function startApplication(string $uri): bool
     {
 
-        add_action( 'admin_menu', static fn() => addCarbonPHPWordpressMenuItem());
+        addCarbonPHPWordpressMenuItem();
 
         return true;
     }
