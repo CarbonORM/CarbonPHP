@@ -689,11 +689,11 @@ class ErrorCatcher
      *  set_exception_handler
      *
      * @param Throwable|array|null $e
-     * @param string $level
+     * @param bool $return
+     * @param string|null $level
      * @param array $log_array
      * @param string $color
      * @return array
-     * @throws PublicAlert
      * @internal param $argv
      * @noinspection ForgottenDebugOutputInspection
      */
@@ -739,7 +739,7 @@ class ErrorCatcher
 
         $log_array['[C6] CARBONPHP'] = 'ErrorCatcher::generateLog';
 
-        $pre = static fn (string $code) : callable => static function ($serialize = true) use ($code) : string {
+        $pre = static fn ($code) : callable => static function ($serialize = true) use ($code) {
 
             if (false === $serialize) {
 

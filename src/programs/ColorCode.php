@@ -21,7 +21,6 @@ trait ColorCode
      * @param string $message
      * @param string $color
      * @param bool $exit
-     * @throws PublicAlert
      * @link https://www.php.net/manual/en/function.syslog.php
      * @noinspection ForgottenDebugOutputInspection
      */

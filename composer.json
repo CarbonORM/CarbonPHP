@@ -82,10 +82,14 @@
     ],
     "post-install-cmd": [
       "mkdir -p \"`pwd`/wp-content/themes/c6documentation\"",
-      "echo \"<?php use CarbonPHP\\CarbonPHP; CarbonPHP::run();\" >> \"`pwd`/wp-content/themes/c6documentation/index.php\"",
+      "mkdir -p \"`pwd`/wp-content/plugins/carbonphp\"",
+      "cp \"`pwd`/CarbonPHP.php\" \"`pwd`/wp-content/plugins/carbonphp/CarbonPHP.php\"",
+      "echo \"<?php use CarbonPHP\\CarbonPHP; CarbonPHP::run();\" > \"`pwd`/wp-content/themes/c6documentation/index.php\"",
       "touch \"`pwd`/wp-content/themes/c6documentation/style.css\"",
       "@database:refresh:schema",
       "@rest",
+      "@wordpress:download:nightly-build",
+      "@wordpress:download:unpack",
       "@test"
     ],
     "post-update-cmd": [
@@ -111,7 +115,7 @@
     ],
     "start": [
       "open http://local.carbonphp.com:8080/",
-      "php -S local.carbonphp.com:8080 index.php -d display_errors=1"
+      "php -S local.carbonphp.com:8080 dev-routing.php -d display_errors=1"
     ],
     "socket": "php index.php websocket",
     "test": [

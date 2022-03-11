@@ -82,7 +82,8 @@ class Migrate implements iCommand
     /**
      * @throws PublicAlert
      */
-    public static function directorySizeLessThan(string $path, int $megabytes = 25) : bool {
+    public static function directorySizeLessThan(string $path, int $megabytes = 25): bool
+    {
 
         $bytesMax = 1000000 * $megabytes;
 
@@ -642,7 +643,6 @@ class Migrate implements iCommand
                     }
 
                     break;
-
 
                 }
 
