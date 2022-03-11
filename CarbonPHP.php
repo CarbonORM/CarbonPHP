@@ -9,6 +9,7 @@ Author: Richard Tyler Miles
 
 use CarbonPHP\Application;
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iConfig;
 use CarbonPHP\Programs\Deployment;
@@ -61,22 +62,29 @@ function addCarbonPHPWordpressMenuItem(bool $advanced): void
 
 $loaded = static function () : void {
 
-    $callable = CarbonPHP::$carbon_php_loaded_callback;
+    try {
 
-    if (null === $callable) {
+        $callable = CarbonPHP::$carbon_php_loaded_callback;
 
-        return;
+        if (null === $callable) {
+
+            return;
+
+        }
+
+        if (false === is_callable($callable)) {
+
+            throw new PublicAlert('Failed to load carbonphp. User defined (CarbonPHP::$carbon_php_loaded_callback) must be of type callable.');
+
+        }
+
+        $callable();
+
+    } catch (Throwable $e) {
+
+        ErrorCatcher::generateLog($e);
 
     }
-
-    if (false === is_callable($callable)) {
-
-        throw new PublicAlert('Failed to load carbonphp. User defined (CarbonPHP::$carbon_php_loaded_callback) must be of type callable.');
-
-    }
-
-
-    $callable();
 
 };
 
