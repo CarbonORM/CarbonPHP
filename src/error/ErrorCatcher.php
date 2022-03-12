@@ -873,15 +873,20 @@ class ErrorCatcher
 
         self::colorCode($message, $color);
 
-        $log_file = 'logs/ErrorCatcherReport.' . ($_SESSION['id'] ?? 'guest'). '.' . session_id() . '.' . microtime(true) . '.' . getmypid() . '.html';
+        $log_file = 'logs/ErrorCatcherReport_' . ($_SESSION['id'] ?? 'guest'). '_' . session_id() . '_' . microtime(true) . '_' . getmypid() . '.html';
 
         if (self::$storeReport === true) {
 
-            ColorCode::colorCode('Store report to file');
+            ColorCode::colorCode('Store report to file (' . $log_file . ')');
 
             if (false === file_put_contents(CarbonPHP::$app_root . $log_file, $html_error_log)) {
 
                 ColorCode::colorCode("Failed to store html log using file_put_contents. File :: ($log_file);", iColorCode::RED);
+
+                print $html_error_log;
+
+                exit(22);
+
 
             }
 
