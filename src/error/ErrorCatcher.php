@@ -324,13 +324,14 @@ class ErrorCatcher
         };
     }
 
-    public static function checkCreateLogFile(string &$message) : void {
+    public static function checkCreateLogFile(string &$message): void
+    {
 
         $directory = dirname(self::$defaultLocation);
 
         if (false === is_dir($directory) && (false === mkdir($directory, 0755, true) || false === is_dir($directory))) {
 
-            throw new PublicAlert('The directory ('.$directory.') for ErrorCatcher::$defaultLocation (' . self::$defaultLocation . ') does not exist and could not be created');
+            throw new PublicAlert('The directory (' . $directory . ') for ErrorCatcher::$defaultLocation (' . self::$defaultLocation . ') does not exist and could not be created');
 
         }
 
@@ -386,7 +387,8 @@ class ErrorCatcher
     }
 
 
-    public static function exitAndSendBasedOnRequested(array $json, string $html) {
+    public static function exitAndSendBasedOnRequested(array $json, string $html)
+    {
 
         $_SERVER["CONTENT_TYPE"] ??= '';
 
@@ -432,7 +434,6 @@ class ErrorCatcher
         self::closeStdoutStderrAndExit(1);
 
     }
-
 
 
     /**
@@ -739,7 +740,7 @@ class ErrorCatcher
 
         $log_array['[C6] CARBONPHP'] = 'ErrorCatcher::generateLog';
 
-        $pre = static fn ($code) : callable => static function ($serialize = true) use ($code) {
+        $pre = static fn($code): callable => static function ($serialize = true) use ($code) {
 
             if (false === $serialize) {
 
@@ -844,7 +845,7 @@ class ErrorCatcher
 
         $cliOutputArray['TRACE'] = $traceCLI;
 
-        $log_array['TRACE'] = '<pre>' . $traceHTML . '</pre>' ;
+        $log_array['TRACE'] = '<pre>' . $traceHTML . '</pre>';
 
         foreach ($log_array as $key => $val) {
 
@@ -873,7 +874,7 @@ class ErrorCatcher
 
         self::colorCode($message, $color);
 
-        $log_file = 'logs/ErrorCatcherReport_' . ($_SESSION['id'] ?? 'guest'). '_' . session_id() . '_' . microtime(true) . '_' . getmypid() . '.html';
+        $log_file = 'logs/ErrorCatcherReport_' . ($_SESSION['id'] ?? 'guest') . '_' . session_id() . '_' . microtime(true) . '_' . getmypid() . '.html';
 
         if (self::$storeReport === true) {
 
@@ -896,15 +897,25 @@ class ErrorCatcher
 
             if (false === CarbonPHP::$cli) {    // we have alreay logged
 
-                if (true === self::$storeReport
-                    && headers_sent()) {
+                if (headers_sent()) {
 
-                    print <<<REDIRECT
+                    if (true === self::$storeReport) {
+
+                        print <<<REDIRECT
                         <meta http-equiv="refresh" content="0; URL=/$log_file" />
                         <script>window.location.replace("/$log_file");</script>
                         REDIRECT;
 
-                    exit(1);
+                        exit(1);
+
+                    }
+
+                    ColorCode::colorCode("HEADERS ALREADY SENT! Reporting to the browser can potentially be made more readable if you choose"
+                        . " to store the reports (currently off). The CarbonPHP configuration will allow, on errors with the headers sent, to"
+                        . ' intelligently redirect the users to the error message. This is opposed to loading a non-compliant HTML '
+                        . ' page and hoping the browser displays readable content. Surprisingly the browser does do well at this, but'
+                        . ' you end user experience could be better. @note storing logs cost memory, for more information visit CarbonPHP.com',
+                        iColorCode::BACKGROUND_CYAN);
 
                 }
 
@@ -932,7 +943,7 @@ class ErrorCatcher
      * @param Throwable $e
      * @return string|array
      */
-    protected static function generateCallTrace(Throwable $e = null) : array
+    protected static function generateCallTrace(Throwable $e = null): array
     {
 
         $_SERVER["CONTENT_TYPE"] ??= '';
@@ -1047,7 +1058,7 @@ class ErrorCatcher
 
         }
 
-        return [ $resultCLI ?? [],   PHP_EOL . implode(PHP_EOL, $resultHTML ?? [] ) . PHP_EOL ];
+        return [$resultCLI ?? [], PHP_EOL . implode(PHP_EOL, $resultHTML ?? []) . PHP_EOL];
     }
 
     /**
