@@ -840,7 +840,7 @@ class ErrorCatcher
 
         }
 
-        $parseMessage = static fn($message) : bool => false !== json_encode($message, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        $parseMessage = static fn($message) => json_encode($message, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
         /** @noinspection JsonEncodingApiUsageInspection */
         $message = $parseMessage($log_array);
