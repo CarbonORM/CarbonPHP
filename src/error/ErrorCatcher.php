@@ -690,17 +690,15 @@ class ErrorCatcher
             try {
 
                 /** @noinspection JsonEncodingApiUsageInspection */
-                $code = json_encode($code, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: serialize($code);
+                $code = json_encode($code, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: serialize($code) ?: print_r($code, true);
 
             } catch (Throwable $e) {
 
-                ColorCode::colorCode('The trace failed to be json_encoded or serialized.', iColorCode::RED);
+                ColorCode::colorCode('The trace failed to be json_encoded, serialized, or printed with print_r().', iColorCode::RED);
 
                 ColorCode::colorCode($e->getMessage(), iColorCode::RED);
 
-                ColorCode::colorCode('Attempting with print_r and sortDump...', iColorCode::RED);
-
-                $code = print_r($code, true);
+                $code = '** PARSING FAILED **';
 
             }
 
