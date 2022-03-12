@@ -34,6 +34,10 @@ class ErrorCatcher
 
     public const STORED_HTML_LOG_FILE_PATH = 'STORED_HTML_LOG_FILE_PATH';
 
+    public const TRACE = 'TRACE';
+    public const GLOBALS_JSON = '$GLOBALS[\'json\']';
+    public const DEBUG_BACKTRACE = 'debug_backtrace()';
+
     // todo - defaultLocation this does nothing.
     public static ?string $defaultLocation = null;
     /**
@@ -678,6 +682,34 @@ class ErrorCatcher
 
     }
 
+    public static function jsonEncodeAndWrapForHTML($code) : string
+    {
+
+        if (false === is_string($code)) {
+
+            try {
+
+                /** @noinspection JsonEncodingApiUsageInspection */
+                $code = json_encode($code, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: serialize($code);
+
+            } catch (Throwable $e) {
+
+                ColorCode::colorCode('The trace failed to be json_encoded or serialized.', iColorCode::RED);
+
+                ColorCode::colorCode($e->getMessage(), iColorCode::RED);
+
+                ColorCode::colorCode('Attempting with print_r and sortDump...', iColorCode::RED);
+
+                $code = print_r($code, true);
+
+            }
+
+        }
+
+        return "<pre>$code</pre>";
+
+    }
+
 
     /** Generate a full error log consisting of a stack trace and arguments to each function call
      *
@@ -697,6 +729,7 @@ class ErrorCatcher
      * @return array
      * @internal param $argv
      * @noinspection ForgottenDebugOutputInspection
+     * @noinspection JsonEncodingApiUsageInspection
      */
     public static function generateLog(Throwable $e = null, bool $return = false, string $level = null, array &$log_array = [], string $color = iColorCode::RED): array
     {
@@ -740,54 +773,14 @@ class ErrorCatcher
 
         $log_array['[C6] CARBONPHP'] = 'ErrorCatcher::generateLog';
 
-        $pre = static fn($code): callable => static function ($serialize = true) use ($code) {
 
-            if (false === $serialize) {
-
-                return $code;
-
-            }
-
-            if (CarbonPHP::$cli || $_SERVER["CONTENT_TYPE"] === 'application/json') {
-
-                return $code;
-
-            }
-
-            if (false === is_string($code)) {
-
-                try {
-
-                    /** @noinspection JsonEncodingApiUsageInspection */
-                    $code = json_encode($code, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: serialize($code);
-
-                } catch (Throwable $e) {
-
-                    ColorCode::colorCode('The trace failed to be json_encoded or serialized.', iColorCode::RED);
-
-                    ColorCode::colorCode($e->getMessage(), iColorCode::RED);
-
-                    ColorCode::colorCode('Attempting with print_r and sortDump...', iColorCode::RED);
-
-                    $code = print_r($code, true);
-
-                }
-
-            }
-
-            return "<pre>$code</pre>";
-
-        };
-
-        $log_array['TRACE'] = [];
+        $log_array[self::TRACE] = [];
 
         $json = $GLOBALS['json'] ??= [];
 
-        $log_array['$GLOBALS[\'json\']'] = $pre($json);
+        $log_array[self::GLOBALS_JSON] = $json;
 
-        $debugBacktrace = debug_backtrace();
-
-        $log_array['debug_backtrace()'] = $pre($debugBacktrace);
+        $log_array[self::DEBUG_BACKTRACE] = debug_backtrace();
 
         $html_error_log = self::generateBrowserReport($log_array, true);
 
@@ -841,34 +834,26 @@ class ErrorCatcher
 
         }
 
-        $cliOutputArray = $log_array;
-
-        $cliOutputArray['TRACE'] = $traceCLI;
-
-        $log_array['TRACE'] = '<pre>' . $traceHTML . '</pre>';
-
-        foreach ($log_array as $key => $val) {
-
-            if (is_callable($val)) {
-
-                $cliOutputArray[$key] = $val(false);
-
-                $log_array[$key] = $val();
-
-            }
-
-        }
+        $parseMessage = static fn($message) : bool => false !== json_encode($message, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
         /** @noinspection JsonEncodingApiUsageInspection */
-        $message = json_encode($cliOutputArray, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        $message = $parseMessage($log_array);
 
         if (false === $message) {
 
+            $log_copy = $log_array;
+
             self::colorCode('The designated \$cliOutputArray failed to json_encode. This may be due to a call stack which passes objects as parameters, a cicilic reffrence (recursion), an extremely large callstack for long running, or forever-running, programs. Should the output below be unhelpful you should you explore further using xDebug.', iColorCode::YELLOW);
 
-            $log_array['debug_backtrace()'] = '*EXCLUDED FOR POSSIBLE RECURSION*';
+            $log_copy[self::DEBUG_BACKTRACE] = '*EXCLUDED FOR POSSIBLE RECURSION*';
 
-            $message = print_r($log_array, true);
+            $message = $parseMessage($log_copy);
+
+            if (false === $message) {
+
+                $message = print_r($log_array, true);
+
+            }
 
         }
 
@@ -1034,22 +1019,17 @@ class ErrorCatcher
 
                 $line_one = $call_number . ') ' . implode(' ', $line_one);
 
-                $line_two_cli = '[]';
-
                 $line_two_html = '';
 
                 if (array_key_exists('args', $args[$i])) {
 
                     $line_two_html = json_encode($args[$i]['args'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
-                    $line_two_cli = CarbonPHP::$cli || $_SERVER["CONTENT_TYPE"] === 'application/json'
-                        ? $args[$i]['args'] : $line_two_html;
-
                 }
 
                 $resultCLI[] = [
                     "TRACE $call_number" => $line_one,
-                    'ARGUMENTS' => $line_two_cli
+                    'ARGUMENTS' => $args[$i]['args']
                 ];
 
                 $resultHTML[] = $line_one . "\n\t\t\t\t" . $line_two_html . PHP_EOL;
@@ -1100,25 +1080,16 @@ class ErrorCatcher
 
                 if (!is_string($left)) {
 
-                    $left = json_encode($left, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: serialize($left);                      //  todo - we can do better
+                    // this should never happen..
+                    $left = json_encode($left, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: serialize($left);
 
                 }
 
-                if (!is_string($right)) {
+                $blocks = $left === self::TRACE
+                    || $left === self::GLOBALS_JSON
+                    || $left === self::DEBUG_BACKTRACE;
 
-                    $right = json_encode($right, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: serialize($left);                      //  todo - we can do better
-
-                }
-
-                $blocks = $left === 'TRACE'
-                    || $left === '$GLOBALS[\'json\']'
-                    || $left === 'debug_backtrace()';
-
-                if ($blocks && is_callable($right)) {
-
-                    $right();
-
-                }
+                $right = self::jsonEncodeAndWrapForHTML($right);
 
                 $cleanErrorReport .= $blocks ?
                     <<<DESCRIPTION
