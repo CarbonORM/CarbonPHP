@@ -3,25 +3,34 @@
 namespace CarbonPHP\Helpers;
 
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Programs\ColorCode;
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use Throwable;
 
 class Files
 {
-    /**
-     * @throws PublicAlert
-     */
+
+
     public static function createDirectoryIfNotExist($directory) : void {
 
-        if (false === is_dir($directory)
-            && false === mkdir($directory, 0777, true)
-            && false === is_dir($directory)) {
+        try {
 
-            throw new PublicAlert("Failed to create directory ($directory)");
+            if (false === is_dir($directory)
+                && false === mkdir($directory, 0777, true)
+                && false === is_dir($directory)) {
+
+                throw new PublicAlert("Failed to create directory ($directory)");
+
+            }
+
+        } catch (Throwable $e) {
+
+            ErrorCatcher::generateLog($e);
 
         }
 
@@ -30,7 +39,6 @@ class Files
     /**
      * @link https://stackoverflow.com/questions/3338123/how-do-i-recursively-delete-a-directory-and-its-entire-contents-files-sub-dir
      * @link https://gist.github.com/mindplay-dk/a4aad91f5a4f1283a5e2
-     * @throws PublicAlert
      */
     public static function rmRecursively(string $dir): void
     {

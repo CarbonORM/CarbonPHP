@@ -123,14 +123,14 @@ $loaded();
                 CarbonPHP::REMOTE => true,  // Store the session in the SQL database
                 CarbonPHP::CALLBACK => static fn() => true,
             ],
+            CarbonPHP::DATABASE => [
+                CarbonPHP::DB_HOST => DB_HOST,
+                CarbonPHP::DB_PORT => '', //3306
+                CarbonPHP::DB_NAME => DB_NAME,
+                CarbonPHP::DB_USER => DB_USER,
+                CarbonPHP::DB_PASS => DB_PASSWORD,
+            ],
             CarbonPHP::SITE => [
-                CarbonPHP::DATABASE => [
-                    CarbonPHP::DB_HOST => DB_HOST,
-                    CarbonPHP::DB_PORT => '', //3306
-                    CarbonPHP::DB_NAME => DB_NAME,
-                    CarbonPHP::DB_USER => DB_USER,
-                    CarbonPHP::DB_PASS => DB_PASSWORD,
-                ],
                 CarbonPHP::URL => '', // todo - this should be changed back :: CarbonPHP::$app_local ? '127.0.0.1:8080' : basename(CarbonPHP::$app_root),    /* Evaluated and if not the accurate Redirect. Local php server okay. Remove for any domain */
                 CarbonPHP::ROOT => ABSPATH,
                 CarbonPHP::CACHE_CONTROL => [
