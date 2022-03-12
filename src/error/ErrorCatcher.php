@@ -896,18 +896,19 @@ class ErrorCatcher
 
             if (false === CarbonPHP::$cli) {    // we have alreay logged
 
-                if (headers_sent()) {
+                if (true === self::$storeReport
+                    && headers_sent()) {
 
                     print <<<REDIRECT
                         <meta http-equiv="refresh" content="0; URL=/$log_file" />
                         <script>window.location.replace("/$log_file");</script>
                         REDIRECT;
 
-                } else {
-
-                    self::exitAndSendBasedOnRequested($cliOutputArray, $html_error_log);
+                    exit(1);
 
                 }
+
+                self::exitAndSendBasedOnRequested($cliOutputArray, $html_error_log);
 
             }
 
