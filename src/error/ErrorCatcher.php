@@ -1064,8 +1064,11 @@ class ErrorCatcher
             $codePreview = self::grabCodeSnippet();
 
             // todo - log invalid files?
-            if ($codePreview === '' && ($message['FILE'] ?? false) && file_exists($message['FILE'])
-                && ($message['LINE'] ?? false) && is_numeric($message['LINE'])) {
+            if ($codePreview === ''
+                && ($message['FILE'] ?? false)
+                && file_exists($message['FILE'])
+                && ($message['LINE'] ?? false)
+                && is_numeric($message['LINE'])) {
 
                 $start_line = $message['LINE'] - 10;
 
@@ -1096,7 +1099,11 @@ class ErrorCatcher
                     || $left === self::GLOBALS_JSON
                     || $left === self::DEBUG_BACKTRACE;
 
-                $right = self::jsonEncodeAndWrapForHTML($right);
+                if ($blocks) {
+
+                    $right = self::jsonEncodeAndWrapForHTML($right);
+
+                }
 
                 $cleanErrorReport .= $blocks ?
                     <<<DESCRIPTION
