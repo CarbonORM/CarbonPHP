@@ -4,6 +4,7 @@ namespace CarbonPHP;
 
 use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Helpers\Files;
 use CarbonPHP\Helpers\Serialized;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iConfig;
@@ -212,7 +213,7 @@ class CarbonPHP
 
                         $application = self::$not_invoked_application;
 
-                        self::setApplication( new $application);
+                        self::setApplication(new $application);
 
                     }
                     // we're not required to pass any arguments so this is essentially a break stmt
@@ -659,16 +660,22 @@ class CarbonPHP
 
             ########################  Session Management ######################
             if ($config[self::SESSION] ?? true) {
-                if ($config[self::SESSION][self::PATH] ?? false) {
-                    session_save_path($config[self::SESSION][self::PATH] ?? '');   // Manually Set where the Users Session Data is stored
-                }
+
+                $sessionSavePath = $config[self::SESSION][self::PATH] ??= self::$app_root . 'tmp' . DS;;
+
+                Files::createDirectoryIfNotExist($sessionSavePath);
+
+                session_save_path($sessionSavePath);   // Manually Set where the Users Session Data is stored
 
                 // this start a session in every possible runtime except WebSocket::$minimiseResources
                 new Session(self::$user_ip, $config[self::SESSION][self::REMOTE] ?? false);
 
                 if (is_callable($config[self::SESSION][self::CALLBACK] ?? null)) {
+
                     Session::updateCallback($config[self::SESSION][self::CALLBACK]); // Pull From Database, manage socket ip
+
                 }
+
             }
 
             if (!self::$cli && is_array($config[self::SESSION][self::SERIALIZE] ?? false)) {
@@ -785,7 +792,7 @@ class CarbonPHP
 
                     $ip = trim($ip);
 
-                    if (self::$app_local && ( $ip === '127.0.0.1' || $ip === '::1' )) {
+                    if (self::$app_local && ($ip === '127.0.0.1' || $ip === '::1')) {
 
                         return self::$server_ip = $ip;
 

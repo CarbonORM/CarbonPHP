@@ -76,18 +76,21 @@ class Session implements SessionHandlerInterface
 
             self::$singleton = $this;   // I want the destructor to happen at the end of the process life
 
-            session_write_close(); //cancel the session's auto start, important
+            session_write_close();      // cancel the session's auto start, important
 
-            headers_sent() or ini_set('session.use_strict_mode', 1);
+            if (false === headers_sent()) {
+
+                ini_set('session.use_strict_mode', 1);
+
+            }
 
             if ($dbStore && !headers_sent()) {
 
-                /** @noinspection PhpExpressionResultUnusedInspection */
                 ini_set('session.gc_probability', 1);  // Clear any lingering session data in default locations
 
-                if (!session_set_save_handler($this, false)) {           // set this class as the session handler
+                if (false === session_set_save_handler($this, false)) {           // set this class as the session handler
 
-                    throw new PublicAlert('Session failed to store remotely');
+                    throw new PublicAlert('Session failed to store remotely; session_set_save_handler(...) returned false.');
 
                 }
 
@@ -106,7 +109,7 @@ class Session implements SessionHandlerInterface
             // this should not throw an error.. but if it doesnt we will catch and die
             if (false === session_start()) {
 
-                throw new PublicAlert('CarbonPHP failed to start your session');
+                throw new PublicAlert('CarbonPHP failed to start your session; session_start() failed.');
 
             }
 
@@ -462,9 +465,13 @@ class Session implements SessionHandlerInterface
             ]);
 
         } catch (Throwable $e) {
+
             ErrorCatcher::generateLog($e);
+
         }
+
         return false;
+
     }
 
     /** This method can be run explicit or through
