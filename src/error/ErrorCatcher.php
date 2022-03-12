@@ -778,7 +778,7 @@ class ErrorCatcher
         $log_array['[C6] CARBONPHP'] = 'ErrorCatcher::generateLog';
 
 
-        $log_array[self::TRACE] = [];
+        $log_array[self::TRACE] = $traceHTML;
 
         $json = $GLOBALS['json'] ??= [];
 
@@ -787,6 +787,8 @@ class ErrorCatcher
         $log_array[self::DEBUG_BACKTRACE] = debug_backtrace();
 
         $html_error_log = self::generateBrowserReport($log_array, true);
+
+        $log_array[self::TRACE] = $traceCLI;
 
         if (self::$storeReport === true) {
 
@@ -847,7 +849,8 @@ class ErrorCatcher
 
             $log_copy = $log_array;
 
-            self::colorCode('The designated \$cliOutputArray failed to json_encode. This may be due to a call stack which passes objects as parameters, a cicilic reffrence (recursion), an extremely large callstack for long running, or forever-running, programs. Should the output below be unhelpful you should you explore further using xDebug.', iColorCode::YELLOW);
+            self::colorCode('The designated \$cliOutputArray failed to json_encode. This may be due to a call stack which passes objects as parameters, a cicilic reffrence (recursion), an extremely large callstack for long running, or forever-running, programs. Should the output below be unhelpful you should you explore further using xDebug.',
+                iColorCode::YELLOW);
 
             $log_copy[self::DEBUG_BACKTRACE] = '*EXCLUDED FOR POSSIBLE RECURSION*';
 
@@ -908,7 +911,7 @@ class ErrorCatcher
 
                 }
 
-                self::exitAndSendBasedOnRequested($cliOutputArray, $html_error_log);
+                self::exitAndSendBasedOnRequested($log_array, $html_error_log);
 
             }
 
