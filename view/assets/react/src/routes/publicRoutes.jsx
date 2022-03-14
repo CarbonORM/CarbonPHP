@@ -50,14 +50,14 @@ let publicRoutes = [
         component: Documentation
     },
     {
-        redirect: true,
-        path: "/2.0",
-        pathTo: "https://carbonphp.com/2.0",
+        path: "/wp-admin/",
+        name: "Wp-Documentation",
+        component: Documentation
     },
     {
         redirect: true,
-        path: "/6.0",
-        pathTo: "https://carbonphp.com/6.0",
+        path: "/2.0",
+        pathTo: "https://carbonphp.com/2.0",
     },
     {
         redirect: true,

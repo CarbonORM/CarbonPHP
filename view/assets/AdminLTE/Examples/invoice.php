@@ -1,7 +1,7 @@
 <?php
 
 use CarbonPHP\CarbonPHP;
-use Config\Documentation;
+use CarbonPHP\Documentation;
 
 ?>
 

@@ -23,32 +23,44 @@
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
-use Config\Documentation;
+use CarbonPHP\Documentation;
 
 // Composer autoload
 if (false === (include __DIR__ . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php')) {
+
     print '<h1>Composer Failed. Please run <b>composer install</b>.</h1>';
+
     die(1);
+
 }
+
+define( 'DS', DIRECTORY_SEPARATOR);
+
 
 /** Absolute path to the WordPress directory. */
 if ( ! defined( 'ABSPATH' ) ) {
-    define( 'ABSPATH', __DIR__ . '/' );
+
+
+    define( 'ABSPATH', __DIR__ . DS );
+
 }
 
-/** @noinspection PhpUnhandledExceptionInspection */
-CarbonPHP::make(Documentation::class, ABSPATH);
+CarbonPHP::$app_root = ABSPATH;
 
-define( 'DB_NAME', Database::$carbonDatabaseName );
+$configuration = Documentation::configuration();
+
+$dbInfo = $configuration[CarbonPHP::DATABASE];
+
+define( 'DB_NAME', $dbInfo[CarbonPHP::DB_NAME] );
 
 /** MySQL database username */
-define( 'DB_USER', Database::$carbonDatabaseUsername );
+define( 'DB_USER', $dbInfo[CarbonPHP::DB_USER] );
 
 /** MySQL database password */
-define( 'DB_PASSWORD', Database::$carbonDatabasePassword );
+define( 'DB_PASSWORD', $dbInfo[CarbonPHP::DB_PASS] );
 
 /** MySQL hostname */
-define( 'DB_HOST', Database::$carbonDatabaseHost );
+define( 'DB_HOST', $dbInfo[CarbonPHP::DB_HOST] );
 
 /** Database Charset to use in creating database tables. */
 define( 'DB_CHARSET', 'utf8mb4' );

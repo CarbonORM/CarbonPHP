@@ -42,8 +42,8 @@ class PageNotFound extends React.Component {
               classes.customCardClass + " " + classes[this.state.cardAnimaton]
             }
           >
-            <CardHeader color="rose" icon>
-              <CardIcon color="rose">
+            <CardHeader color="info" icon>
+              <CardIcon color="info">
                 <Error />
               </CardIcon>
             </CardHeader>

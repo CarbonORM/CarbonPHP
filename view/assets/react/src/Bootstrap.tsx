@@ -15,6 +15,7 @@ class bootstrap extends React.Component<any, {
   axios: import("axios").AxiosInstance,
   authenticate: string,
   authenticated?: boolean,
+  pureWordpressPluginConfigured?: boolean,
   alert?: boolean,
   operationActive: boolean,
   isLoaded: boolean,
@@ -29,6 +30,7 @@ class bootstrap extends React.Component<any, {
       axios: context.axios,
       authenticate: '/carbon/authenticated',
       authenticated: null,
+      pureWordpressPluginConfigured: false,
       alert: false,
       operationActive: false,
       isLoaded: false,
@@ -186,6 +188,7 @@ class bootstrap extends React.Component<any, {
       console.log("authenticate data: ", res);
       this.setState({
         id: res?.data?.id || '',
+        pureWordpressPluginConfigured: res?.data?.pureWordpressPluginConfigured || false,
         authenticated: res?.data?.success || false,
         versions: Object.values(res?.data?.versions || {}).sort((v1 : string, v2 : string) => {
           let lexicographical = false,

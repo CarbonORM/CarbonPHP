@@ -1,9 +1,8 @@
 {
   "name": "carbonphp",
-  "version": "8.2.0",
-  "description": "A stats website for coaches",
   "main": "index.php",
   "scripts": {
+    "postinstall": "cd ./view/assets/react/ && npm install",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "cd ./view/assets/react/ && npm start",
     "build": "cd ./view/assets/react/ && npm run-script build && TAG=$(git describe --tags `git rev-list --tags --max-count=1`) && mv -f  ./build ./../../../view/releases/$TAG"

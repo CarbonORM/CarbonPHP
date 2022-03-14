@@ -45,7 +45,7 @@
     "sweetalert": "^2.1.2"
   },
   "scripts": {
-    "env": "TAG=$( git describe --tags `git rev-list --tags --max-count=1` ) && printf \"REACT_APP_TAG=${TAG}\nREACT_APP_URI=view/releases/${TAG}\nNODE_PATH=./src\nHOST=local.carbonphp.com\nPUBLIC_URL=//carbonphp.com/view/releases/$( git describe --tags `git rev-list --tags --max-count=1` )\" > .env",
+    "env": "TAG=$( git describe --tags `git rev-list --tags --max-count=1` ) && printf \"REACT_APP_TAG=${TAG}\nREACT_APP_URI=view/releases/${TAG}\nNODE_PATH=./src\nHOST=local.carbonphp.com\nPUBLIC_URL=/view/releases/$( git describe --tags `git rev-list --tags --max-count=1` )\" > .env",
     "start": "npm run env && react-scripts start",
     "build": "npm run env && react-scripts build",
     "test": "react-scripts test --env=jsdom",

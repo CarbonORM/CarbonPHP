@@ -38,148 +38,160 @@ import PropTypes from "prop-types";
 
 
 class Documentation extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      isLoaded: false,
+    constructor(props) {
+        super(props);
+        this.state = {
+            isLoaded: false,
+        }
     }
-  }
 
-  componentDidMount() {
-      this.setState({
-        isLoaded: true,
-      });
-  }
+    componentDidMount() {
+        this.setState({
+            isLoaded: true,
+        });
+    }
 
 
-  render() {
+    render() {
 
-    let documentationVersion = carbonphp.documentationVersionURI;
+        let documentationVersion = carbonphp.documentationVersionURI;
 
-    console.log("Documentation JSX RENDER");
+        console.log("Documentation JSX RENDER");
 
-    console.log(this.props);
+        console.log(this.props);
 
-    const { classes, ...rest } = this.props;
+        const {classes, ...rest} = this.props;
 
-    let publicDocumentationRoutes = [
-      {
-        path: "/" + documentationVersion + "/Documentation/CarbonPHP",     // I'm leaving this here for the time being as an example
-        name: "Documentation",          // This should be loaded under a different wrapper
-        component: CarbonPHP
-      },
-      {
-        path: "/" + documentationVersion + "/Documentation/Dependencies",
-        name: "Dependencies",
-        component: Dependencies
-      },
-      {
-        path: "/" + documentationVersion + "/Documentation/BrowserOSSupport",
-        name: "Changelog",
-        component: Changelog
-      },
-      {
-        path: "/" + documentationVersion + "/Documentation/Implementations",
-        name: "Implementations",
-        component: Implementations
-      },
-      {
-        path: "/" + documentationVersion + "/Documentation/Support",
-        name: "Support",
-        component: Support
-      },
-      {
-        path: "/" + documentationVersion + "/Documentation/License",
-        name: "License",
-        component: License
-      },
-      {
-        redirect: true,
-        path: "/" + documentationVersion,
-        pathTo: "/" + documentationVersion + "/Documentation/CarbonPHP",
-        name: "Examples"
-      },
-      {
-        redirect: true,
-        path: "/" + documentationVersion + "/",
-        pathTo: "/" + documentationVersion + "/Documentation/CarbonPHP",
-        name: "Examples"
-      },
-      {
-        redirect: true,
-        path: "/",
-        pathTo: "/" + documentationVersion + "/Documentation/CarbonPHP",
-        name: "Examples"
-      }
-    ];
+        let publicDocumentationRoutes = [
+            {
+                path: "/" + documentationVersion + "/Documentation/CarbonPHP",     // I'm leaving this here for the time being as an example
+                name: "Documentation",          // This should be loaded under a different wrapper
+                component: CarbonPHP
+            },
+            {
+                path: "/" + documentationVersion + "/Documentation/Dependencies",
+                name: "Dependencies",
+                component: Dependencies
+            },
+            {
+                path: "/" + documentationVersion + "/Documentation/BrowserOSSupport",
+                name: "Changelog",
+                component: Changelog
+            },
+            {
+                path: "/" + documentationVersion + "/Documentation/Implementations",
+                name: "Implementations",
+                component: Implementations
+            },
+            {
+                path: "/" + documentationVersion + "/Documentation/Support",
+                name: "Support",
+                component: Support
+            },
+            {
+                path: "/" + documentationVersion + "/Documentation/License",
+                name: "License",
+                component: License
+            },
+            {
+                redirect: true,
+                path: "/" + documentationVersion,
+                pathTo: "/" + documentationVersion + "/Documentation/CarbonPHP",
+                name: "Examples"
+            },
+            {
+                redirect: true,
+                path: "/" + documentationVersion + "/",
+                pathTo: "/" + documentationVersion + "/Documentation/CarbonPHP",
+                name: "Examples"
+            },
+            {
+                redirect: true,
+                path: "/",
+                pathTo: "/" + documentationVersion + "/Documentation/CarbonPHP",
+                name: "Examples"
+            }
+        ];
 
-    // todo - if we were to merge version ia PHP ^7.4 application tool kit & frameworkng with code it would be here {this.props.subRoutingSwitch(publicDocumentationRoutes, rest)}
-    return <>
-        <HeaderTop
-          darkMode={this.props.darkMode}
-          brand="CarbonPHP.com"
-          rightLinks={<HeaderLinks
-            axios={this.props.axios}
-            versions={this.props.versions}
-            darkMode={this.props.darkMode}
-            switchDarkAndLightTheme={this.props.switchDarkAndLightTheme}
-          />}
-          fixed
-          color={window.pageYOffset < 400 ? "transparent" : (this.props.darkMode ? "transparent" : "info")}
-          changeColorOnScroll={{
-            height: 400,
-            color: this.props.darkMode ? "dark" : "info"
-          }}
-          {...rest}
-        />
-        <Parallax
-          image={this.props.darkMode ? "/view/assets/img/Carbon-teal-180.png" : "/view/assets/img/Full-Carbon-Teal-White-1920x1080.png"}>
-          <div className={classes.container}>
-            <GridContainer>
-              <GridItem>
-                <div className={classes.brand}>
-                  <h1 className={classes.title} style={{ color: (this.props.darkMode ? "white" : "black") }}>CarbonPHP
-                    [C6]</h1>
-                  <h3 className={classes.subtitle} style={{ color: (this.props.darkMode ? "white" : "black") }}>
-                    A PHP 7.4.* Library
-                  </h3>
+        if (!this.props.pureWordpressPluginConfigured) {
+
+            publicDocumentationRoutes.push({
+                path: "/" + documentationVersion + "/Documentation/Wordpress",     // I'm leaving this here for the time being as an example
+                name: "Wordpress",          // This should be loaded under a different wrapper
+                component: Support
+            });
+
+        }
+
+        // todo - if we were to merge version ia PHP ^7.4 application tool kit & frameworkng with code it would be here {this.props.subRoutingSwitch(publicDocumentationRoutes, rest)}
+        return <>
+            <HeaderTop
+                fixed
+                {...rest}
+                brand="CarbonPHP.com"
+                darkMode={this.props.darkMode}
+                rightLinks={<HeaderLinks
+                    axios={this.props.axios}
+                    versions={this.props.versions}
+                    darkMode={this.props.darkMode}
+                    switchDarkAndLightTheme={this.props.switchDarkAndLightTheme}
+                />}
+                color={window.pageYOffset < 400 ? "transparent" : (this.props.darkMode ? "transparent" : "info")}
+                changeColorOnScroll={{
+                    height: 400,
+                    color: this.props.darkMode ? "dark" : "info"
+                }}
+            />
+            <Parallax
+                image={this.props.darkMode ? "/view/assets/img/Carbon-teal-180.png" : "/view/assets/img/Full-Carbon-Teal-White-1920x1080.png"}>
+                <div className={classes.container}>
+                    <GridContainer>
+                        <GridItem>
+                            <div className={classes.brand}>
+                                <h1 className={classes.title}
+                                    style={{color: (this.props.darkMode ? "white" : "black")}}>CarbonPHP
+                                    [C6]</h1>
+                                <h3 className={classes.subtitle}
+                                    style={{color: (this.props.darkMode ? "white" : "black")}}>
+                                    A PHP 7.4.* Library
+                                </h3>
+                            </div>
+                        </GridItem>
+                    </GridContainer>
                 </div>
-              </GridItem>
-            </GridContainer>
-          </div>
-        </Parallax>
-        <div>
-          <div>
+            </Parallax>
+            <div>
+                <div>
 
-            <Navbar
-              axios={this.props.axios}
-              color={this.props.darkMode ? "dark" : "info"}
-              darkMode={this.props.darkMode}
-              className={classNames(classes.main, classes.mainRaised)}
-              routes={publicDocumentationRoutes}/>
+                    <Navbar
+                        axios={this.props.axios}
+                        color={this.props.darkMode ? "dark" : "info"}
+                        darkMode={this.props.darkMode}
+                        className={classNames(classes.main, classes.mainRaised)}
+                        routes={publicDocumentationRoutes}/>
 
-            <div className={classNames(classes.main, classes.mainRaised)} style={
-              {
-                backgroundColor: (this.props.darkMode ? "black" : "white"),
-                color: (this.props.darkMode ? "white" : "black"),
-                fontSize: "+1.2em",
-                lineHeight: "+1.8em"
-              }
-            }>
-              {this.props.subRoutingSwitch(publicDocumentationRoutes, rest)}
+                    <div className={classNames(classes.main, classes.mainRaised)} style={
+                        {
+                            backgroundColor: (this.props.darkMode ? "black" : "white"),
+                            color: (this.props.darkMode ? "white" : "black"),
+                            fontSize: "+1.2em",
+                            lineHeight: "+1.8em"
+                        }
+                    }>
+                        {this.props.subRoutingSwitch(publicDocumentationRoutes, rest)}
+                    </div>
+
+                </div>
+
             </div>
-
-          </div>
-
-        </div>
-        <Footer fluid/>
-      </>
-    ;
-  }
+            <Footer fluid/>
+        </>
+            ;
+    }
 }
 
 Documentation.propTypes = {
-  classes: PropTypes.object.isRequired,
+    classes: PropTypes.object.isRequired,
 };
 
 export default withStyles(componentsStyle)(Documentation);

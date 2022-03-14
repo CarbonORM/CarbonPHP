@@ -80,11 +80,14 @@
     "metrics": [
       "php ./vendor/bin/phpmetrics --config=php-metrics.json ."
     ],
-    "post-install-cmd": [
-      "mkdir -p \"`pwd`/wp-content/themes/c6documentation\"",
+    "carbon:wordpress": [
       "mkdir -p \"`pwd`/wp-content/plugins/carbonphp\"",
       "cp \"`pwd`/CarbonPHP.php\" \"`pwd`/wp-content/plugins/carbonphp/CarbonPHP.php\"",
-      "echo \"<?php use CarbonPHP\\CarbonPHP; CarbonPHP::run();\" > \"`pwd`/wp-content/themes/c6documentation/index.php\"",
+    ],
+    "post-install-cmd": [
+      "@carbon:wordpress",
+      "mkdir -p \"`pwd`/wp-content/themes/c6documentation\"",
+      "echo \"<?php use CarbonPHP\\Documentation; Documentation::getLatestReactBuild();\" > \"`pwd`/wp-content/themes/c6documentation/index.php\"",
       "touch \"`pwd`/wp-content/themes/c6documentation/style.css\"",
       "@database:refresh:schema",
       "@rest",
@@ -120,6 +123,10 @@
     "socket": "php index.php websocket",
     "test": [
       "./vendor/bin/phpunit --log-junit junit.xml  --testdox || ./vendor/bin/phpunit --verbose --log-junit junit.xml"
+    ],
+    "wp": [
+      "@wordpress:download:nightly-build",
+      "@wordpress:download:unpack"
     ],
     "wordpress:download:latest-stable": "php -r \"copy('https://wordpress.org/latest.tar.gz', 'latest.tar.gz');\"",
     "wordpress:download:nightly-build": "php -r \"copy('https://wordpress.org/nightly-builds/wordpress-latest.zip', 'latest.tar.gz');\"",

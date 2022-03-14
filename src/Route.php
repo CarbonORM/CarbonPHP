@@ -106,18 +106,23 @@ abstract class Route
 
         // This check allows Route to be independent of Carbon/Application, but benefit if we've already initiated
         if (isset(CarbonPHP::$uri) && !CarbonPHP::$socket) {
+
             self::$uri = CarbonPHP::$uri;
 
             self::$uriExplode = explode('/', trim(CarbonPHP::$uri, '/'));
 
             self::$uriLength = count(self::$uriExplode);
+
         } else {
+
             self::$uri = trim(urldecode(parse_url(trim(preg_replace('/\s+/', ' ', $_SERVER['REQUEST_URI'] ?? '')), PHP_URL_PATH)));
 
             self::$uriExplode = explode('/', self::$uri,);
 
             self::$uriLength = substr_count(self::$uri, '/') + 1; // I need the exploded string
+
         }
+
     }
 
     /**

@@ -6,17 +6,20 @@
  * resolve it an return it.
  */
 
-
 $root = $_SERVER['DOCUMENT_ROOT'];
-$path = '/' . ltrim(parse_url(urldecode($_SERVER['REQUEST_URI']))['path'], '/');
 
+$path = '/' . ltrim(parse_url(urldecode($_SERVER['REQUEST_URI']))['path'], '/');
 
 if (file_exists($root . $path)) {
 
     // Enforces trailing slash, keeping links tidy in the admin
-    if (is_dir($root . $path) && substr($path, -1) !== '/') {
+    if (is_dir($root . $path)
+        && substr($path, -1) !== '/') {
+
         header("Location: $path/");
+
         exit;
+
     }
 
     // Runs PHP file if it exists
@@ -24,17 +27,30 @@ if (file_exists($root . $path)) {
 
         chdir(dirname($root . $path));
 
-        /** @noinspection PhpIncludeInspection */
         if (false === include $root . $path) {
+
             /** @noinspection ForgottenDebugOutputInspection */
+
             error_log('Failed including file :: ' . $root . $path . PHP_EOL);
+
             exit(1);
+
         }
+
         return true;
+
     }
-    return false;
+
+
+    if (0 === strpos($path, '/wp-admin')) {
+
+        return false;
+
+    }
+
 }
 
 // Otherwise, run `index.php`
 chdir($root);
+
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'index.php';

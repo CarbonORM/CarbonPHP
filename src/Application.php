@@ -42,7 +42,7 @@ abstract class Application extends Route
      * @throws Mustache_Exception_InvalidArgumentException
      */
 
-    public function fullPage(): callable
+    public static function fullPage(): callable
     {
 
         return static function (string $file) {
@@ -51,7 +51,7 @@ abstract class Application extends Route
 
             if (false === file_exists($file)) {
 
-                throw new PublicAlert("Failed to find file ($file)");
+                throw new PublicAlert("Failed to find file <fullPage> (file://$file)");
 
             }
 

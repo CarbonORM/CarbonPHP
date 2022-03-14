@@ -29,6 +29,14 @@ let privateRoutes = [
         component: DashboardPage
     },
     {
+        path: "/wp-admin/admin.php?page=CarbonPHP",
+        sidebarName: "Dashboard",
+        navbarName: "Material Dashboard",
+        name: "Material Dashboard",
+        icon: Dashboard,
+        component: DashboardPage
+    },
+    {
         path: "/user",
         sidebarName: "User Profile",
         navbarName: "Profile",

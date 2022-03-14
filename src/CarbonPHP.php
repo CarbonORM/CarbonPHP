@@ -129,7 +129,7 @@ class CarbonPHP
     public static bool $verbose = false;
 
     // Wordpress Support
-    public static $carbon_php_loaded_callback = null;
+    public static bool $wordpressPluginEnabled = false;
 
     // Validated Server Values
     public static string $server_ip = '127.0.0.1';
@@ -202,6 +202,12 @@ class CarbonPHP
             if (!self::$safelyExit) {
 
                 self::$socket = false;
+
+            }
+
+            if (false === self::$setupComplete) {
+
+                throw new PublicAlert('Failed to verify CarbonPHP was created successfully.');
 
             }
 
@@ -417,7 +423,11 @@ class CarbonPHP
 
             self::$test = '1' === ($_ENV['TESTING'] ?? ''); // set with phpunit.xml
 
-            defined('DS') or define('DS', DIRECTORY_SEPARATOR);
+            if (false === defined('DS')) {
+
+                define('DS', DIRECTORY_SEPARATOR);
+
+            }
 
             if ($app_root !== null) {
 
