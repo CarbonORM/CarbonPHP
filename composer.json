@@ -82,7 +82,7 @@
     ],
     "carbon:wordpress": [
       "mkdir -p \"`pwd`/wp-content/plugins/carbonphp\"",
-      "cp \"`pwd`/CarbonPHP.php\" \"`pwd`/wp-content/plugins/carbonphp/CarbonPHP.php\"",
+      "cp \"`pwd`/CarbonPHP.php\" \"`pwd`/wp-content/plugins/carbonphp/CarbonPHP.php\""
     ],
     "post-install-cmd": [
       "@carbon:wordpress",
