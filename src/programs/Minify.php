@@ -9,6 +9,8 @@
 namespace CarbonPHP\Programs;
 
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
 use MatthiasMullie\Minify as Run;
 use Patchwork\JSqueeze;
@@ -74,9 +76,13 @@ USE;
     private function CSS(): callable
     {
         return function (array $files) {
+
             if (empty($files)) {
+
                 $this->usage();
+
             }
+
             $minifiedPath = $files['OUT'] ?? CarbonPHP::$app_root . CarbonPHP::$app_view . 'CSS' . DS . 'style.css';
 
             unset($files['OUT']);
@@ -85,18 +91,23 @@ USE;
 
             foreach ($files as $file) {
                 if (!file_exists($file)) {
-                    ColorCode::colorCode("\tFailed to find\n\t\t$file\n\n\n", 'red');
+                    ColorCode::colorCode("\tFailed to find\n\t\t$file\n\n\n", iColorCode::RED);
                     exit(1);
                 }
             }
 
             if (file_exists($minifiedPath)) {
+
                 unlink($minifiedPath);
+
             }
 
             $min = new Run\CSS(... $files);
+
             $min->minify($minifiedPath);
-            ColorCode::colorCode("\tThe minified cascading style sheet (css) was stored to ::\n\n\t\t\t $minifiedPath\n\n", 'cyan');
+
+            ColorCode::colorCode("\tThe minified cascading style sheet (css) was stored to ::\n\n\t\t\t $minifiedPath\n\n", iColorCode::CYAN);
+
         };
     }
 
@@ -118,16 +129,37 @@ USE;
             }
 
             if (file_exists($minifiedPath)) {
+
                 unlink($minifiedPath);
+
             }
 
             $buffer = '';
 
             $jz = new JSqueeze;
 
-            foreach ($files as $file) {
+            foreach ($files as $break => $file) {
+
+                $codeFile = file_get_contents($file);
+
+                if (false === $codeFile) {
+
+                    ColorCode::colorCode("Failed to get file contents of (file://" . $file . ')', iColorCode::BACKGROUND_RED);
+
+                    exit(4);
+
+                }
+
+                if (empty($codeFile)) {
+
+                    ColorCode::colorCode("Contents of (file://" . $file . ') was empty.', iColorCode::BACKGROUND_RED);
+
+                    exit(5);
+
+                }
+
                 $buffer .= PHP_EOL . $jz->squeeze(
-                        file_get_contents($file) . ';',
+                    file_get_contents($file) . ';',
                         true,   // $singleLine
                         true,   // $keepImportantComments
                         false   // $specialVarRx
@@ -135,7 +167,9 @@ USE;
             }
 
             if (!file_put_contents($minifiedPath, $buffer)) {
+
                 ColorCode::colorCode("Failed to save the minified javascript!!\n\n\n", 'red');
+
             }
 
             ColorCode::colorCode("\tThe minified javascript (js) was stored to ::\n\n\t\t\t $minifiedPath\n\n", 'cyan');

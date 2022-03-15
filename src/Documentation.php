@@ -171,12 +171,10 @@ class Documentation extends Application implements iConfig
 
     /**
      * todo - document well what can go into constructor and when.
-     * @param null $structure
      * way this will throw an error is if you do
      * not define a url using sockets.
-     * @throws PublicAlert
      */
-    public function __construct($structure = null)
+    public function __construct()
     {
 
         if (CarbonPHP::$safelyExit) {
@@ -206,7 +204,7 @@ class Documentation extends Application implements iConfig
             'FACEBOOK_APP_ID' => ''
         ];
 
-        parent::__construct($structure);
+        parent::__construct();
     }
 
 

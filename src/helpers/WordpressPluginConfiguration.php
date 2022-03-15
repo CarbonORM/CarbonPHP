@@ -1,10 +1,13 @@
 <?php
 
+use CarbonPHP\Application;
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Documentation;
 use CarbonPHP\Interfaces\iConfig;
+use CarbonPHP\Programs\ColorCode;
+use CarbonPHP\Programs\Deployment;
+use CarbonPHP\Programs\Migrate;
 use CarbonPHP\Tables\Carbons;
-use DropInGaming\PHP\Tables\Dig_Wallet_Transactions;
 
 if (false === defined('ABSPATH')) {
 
@@ -130,6 +133,26 @@ if (true === CarbonPHP::$setupComplete) {
 
     }
 
-}))(Documentation::class);
+}))(new class extends Application {
+
+    public function startApplication(string $uri): bool
+    {
+
+        if (Deployment::github()
+            || Migrate::enablePull([CarbonPHP::$app_root])) {
+
+            ColorCode::colorCode("CarbonPHP matched matched a route with the Wordpress Plugin Feature!");
+
+        }
+
+        return true;
+
+    }
+
+    public function defaultRoute(): void
+    {
+        // TODO: Implement defaultRoute() method.
+    }
+});
 
 return true;
