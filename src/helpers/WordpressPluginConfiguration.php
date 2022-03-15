@@ -133,7 +133,7 @@ if (true === CarbonPHP::$setupComplete) {
 
     }
 
-}))(new class extends Application {
+}, ABSPATH))(new class extends Application {
 
     public function startApplication(string $uri): bool
     {
