@@ -1,7 +1,5 @@
 import raw from "raw.macro";
 
-
-
 export const CODE_EXAMPLES = {
 
   // quick examples
@@ -19,16 +17,16 @@ export const CODE_EXAMPLES = {
   // React ref
   restTypeScriptEx1:    raw("./variables/C6.tsx"),
 
-  composerCode:         raw("./assets/src/composer.json"),
-  CarbonPHPConfig:      raw("./assets/src/config/Documentation.php"),
-  iRest:                raw("./assets/src/src/interfaces/iRestMultiplePrimaryKeys.php"),
-  iRestfulReferences:   raw("./assets/src/src/interfaces/iRestMultiplePrimaryKeys.php"),
-  forksCode:            raw("./assets/src/src/helpers/Fork.php"),
-  CarbonUsersTable:     raw("./assets/src/src/tables/Users.php"),
-  websocketCode:        raw("./assets/src/src/programs/WebSocket.php"),
-  restTest:             raw("./assets/src/tests/feature/FullRestTest.php"),
-  restUserTest:         raw("./assets/src/tests/feature/UserTest.php"),
-  gcpDeployment:        raw("./assets/src/src/programs/gcpDeployment.sh")
+  composerCode:         raw("../../../../hi.txt"),
+  CarbonPHPConfig:      raw("../../../../src/Documentation.php"),
+  iRest:                raw( "../../../../src/interfaces/iRestMultiplePrimaryKeys.php"),
+  iRestfulReferences:   raw("../../../../src/interfaces/iRestMultiplePrimaryKeys.php"),
+  forksCode:            raw("../../../../src/helpers/Fork.php"),
+  CarbonUsersTable:     raw("../../../../src/tables/Users.php"),
+  websocketCode:        raw("../../../../src/programs/WebSocket.php"),
+  restTest:             raw("../../../../tests/feature/FullRestTest.php"),
+  restUserTest:         raw("../../../../tests/feature/UserTest.php"),
+  gcpDeployment:        raw("../../../../src/programs/gcpDeployment.sh")
 
 
 };

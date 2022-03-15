@@ -32,6 +32,7 @@ class View
      */
     public static function content(string $file, string $directoryContext = null): bool
     {
+
         global $json;
 
         if ($directoryContext === null) {

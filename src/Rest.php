@@ -3395,22 +3395,29 @@ abstract class Rest extends Database
     }
 
     /**
-     * @param Route $route
      * @param string $prefix
      * @param string|null $namespace
-     * @return Route
-     * @throws PublicAlert
+     * @return bool
      */
-    public static function MatchRestfulRequests(Route $route, string $prefix = '', string $namespace = null): Route
+    public static function MatchRestfulRequests(string $prefix = '', string $namespace = null): bool
     {
-        return $route->regexMatch(/** @lang RegExp */ '#' . $prefix . 'rest/([A-Za-z\_]{1,256})/?([^/]+)?#',
+
+        return Route::regexMatch(/** @lang RegExp */ '#' . $prefix . 'rest/([A-Za-z\_]{1,256})/?([^/]+)?#',
+
             static function (string $table, string $primary = null) use ($namespace): void {
+
                 if ($namespace === null) {
+
                     Rest::ExternalRestfulRequestsAPI($table, $primary);
+
                     return;
+
                 }
+
                 Rest::ExternalRestfulRequestsAPI($table, $primary, $namespace);
-            });
+
+        });
+
     }
 
     /**

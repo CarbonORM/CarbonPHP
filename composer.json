@@ -117,9 +117,9 @@
       "cd view/assets/react && npm install && npm run build"
     ],
     "start": [
-      "open http://local.carbonphp.com:8080/",
       "php -S local.carbonphp.com:8080 dev-routing.php -d display_errors=1"
     ],
+    "open": "open http://local.carbonphp.com:8080/",
     "socket": "php index.php websocket",
     "test": [
       "./vendor/bin/phpunit --log-junit junit.xml  --testdox || ./vendor/bin/phpunit --verbose --log-junit junit.xml"

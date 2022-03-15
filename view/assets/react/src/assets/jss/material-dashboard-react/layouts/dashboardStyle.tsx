@@ -6,6 +6,7 @@ import {
 
 import { createStyles } from '@material-ui/core';
 
+// @ts-ignore
 const appStyle = (theme: import("@material-ui/core/styles/createMuiTheme").Theme) => createStyles({
   wrapper: {
     position: "relative",

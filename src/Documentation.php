@@ -3,6 +3,7 @@
 namespace CarbonPHP;
 
 
+use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iConfig;
 use CarbonPHP\Programs\ColorCode;
@@ -11,6 +12,7 @@ use CarbonPHP\Programs\Migrate;
 use CarbonPHP\Programs\WebSocket;
 use CarbonPHP\Tables\Carbons;
 use CarbonPHP\Tables\Users;
+use Throwable;
 
 class Documentation extends Application implements iConfig
 {
@@ -49,7 +51,8 @@ class Documentation extends Application implements iConfig
 
     public const TEMPLATE = 'node_modules/admin-lte/';
 
-    public static function getLatestReactIndexPath() : string {
+    public static function getLatestReactIndexPath(): string
+    {
 
         $version = self::getLatestVersion();
 
@@ -90,7 +93,8 @@ class Documentation extends Application implements iConfig
     }
 
 
-    public static function getLatestReactBuild() : void {
+    public static function getLatestReactBuild(): void
+    {
 
         $carbon_package = dirname(CarbonPHP::CARBON_ROOT);
 
@@ -98,11 +102,12 @@ class Documentation extends Application implements iConfig
 
         ColorCode::colorCode("Attempting to serve (file://$index)");
 
-        self::fullPage()($index);
+        self::fullPage($index);
 
     }
 
-    public static function getLatestVersion() : string {
+    public static function getLatestVersion(): string
+    {
 
         $versions = self::getVersions();
 
@@ -127,12 +132,24 @@ class Documentation extends Application implements iConfig
 
         $latest = self::getLatestVersion();
 
+        $carbonDynamicRoot = CarbonPHP::$public_carbon_root;
+
+        if ('/' === $carbonDynamicRoot) {
+
+            $carbonDynamicRoot = '';
+
+        } else {
+
+            $carbonDynamicRoot = '/' . $carbonDynamicRoot;
+
+        }
+
         /** @noinspection JSUnresolvedVariable */
         return <<<HTML
                 <div id="root" style="height: 100%;">
                 </div>
                 <script>
-                    const manifestURI = '/view/releases/$latest/';
+                    const manifestURI = '{$carbonDynamicRoot}/view/releases/$latest/';
                     fetch(manifestURI + 'asset-manifest.json')
                         .then(response => response.json())
                         .then(data => {
@@ -169,20 +186,25 @@ class Documentation extends Application implements iConfig
         global $json;
 
         if (!is_array($json)) {
+
             $json = array();
+
         }
-        $json['SITE'] = CarbonPHP::$site;
-        $json['POST'] = $_POST;
-        $json['HTTP'] = CarbonPHP::$http ? 'True' : 'False';
-        $json['HTTPS'] = CarbonPHP::$https ? 'True' : 'False';
-        $json['SOCKET'] = CarbonPHP::$socket ? 'True' : 'False';
-        $json['AJAX'] = CarbonPHP::$ajax ? 'True' : 'False';
-        $json['PJAX'] = CarbonPHP::$pjax ? 'True' : 'False';
-        $json['SITE_TITLE'] = CarbonPHP::$site_title;
-        $json['CarbonPHP::$app_view'] = CarbonPHP::$app_view;
-        $json['COMPOSER'] = CarbonPHP::CARBON_ROOT;
-        $json['X_PJAX_Version'] = &$_SESSION['X_PJAX_Version'];
-        $json['FACEBOOK_APP_ID'] = '';
+
+        $json += [
+            'SITE' => CarbonPHP::$site,
+            'POST' => $_POST,
+            'HTTP' => CarbonPHP::$http ? 'True' : 'False',
+            'HTTPS' => CarbonPHP::$https ? 'True' : 'False',
+            'SOCKET' => CarbonPHP::$socket ? 'True' : 'False',
+            'AJAX' => CarbonPHP::$ajax ? 'True' : 'False',
+            'PJAX' => CarbonPHP::$pjax ? 'True' : 'False',
+            'SITE_TITLE' => CarbonPHP::$site_title,
+            'CarbonPHP::$app_view' => CarbonPHP::$app_view,
+            'COMPOSER' => CarbonPHP::CARBON_ROOT,
+            'X_PJAX_Version' => &$_SESSION['X_PJAX_Version'],
+            'FACEBOOK_APP_ID' => ''
+        ];
 
         parent::__construct($structure);
     }
@@ -214,9 +236,13 @@ class Documentation extends Application implements iConfig
      */
     public static function CM(string $class, string &$method, array &$argv = []): callable
     {
+
         $class = ucfirst(strtolower($class));   // Prevent malformed class names
+
         $controller = "CarbonPHP\\Controller\\$class";     // add namespace for autoloader
+
         $model = "CarbonPHP\\Model\\$class";
+
         $method = strtolower($method);          // Prevent malformed method names
 
         // Make sure our class exists
@@ -252,7 +278,10 @@ class Documentation extends Application implements iConfig
     }
 
 
-    /** TODO - we dont use this return value for anything
+    /** TODO - we dont use this return value for anything; actually - we do but I think only for the mvc which is legacy
+     *
+     * this should always be public and not static
+     *
      * @param string $uri
      * @return bool
      * @throws PublicAlert
@@ -263,32 +292,34 @@ class Documentation extends Application implements iConfig
 
         $json['APP_LOCAL'] = CarbonPHP::$app_local;
 
-        if (Deployment::github($this)()
-            || Migrate::enablePull($this, [ CarbonPHP::VIEW ])()) {
-
-            self::getUser();
+        if (Deployment::github()
+            || Migrate::enablePull([CarbonPHP::VIEW])) {
 
             return true;
 
         }
+
+        self::getUser();
 
         if (CarbonPHP::$socket
-            && $this->regexMatch('#echo/([a-z0-9]+)#i',
+            && self::regexMatch('#echo/([a-z0-9]+)#i',
                 static function ($echo) use ($uri) {
                     WebSocket::sendToAllExternalResources("Echo Server On URI ($uri) :: \$echo = $echo");
-                })()) {
+                })) {
 
             return true;
 
         }
 
-        if ($this->regexMatch('#inlineReact#', static fn() => self::inlineReact())()) {
+        if (self::regexMatch('#inlineReact#',
+            static fn() => self::inlineReact())) {
 
             return true;
 
         }
 
-        if ($this->regexMatch('#(!?ws|wss)#i', static function () {
+        if (self::regexMatch('#(!?ws|wss)#i',
+            static function () {
 
             self::$matched = true;
 
@@ -485,20 +516,21 @@ $(document).ready(function () {
 
 SOCKET;
 
-        })()) {
+        })) {
 
             return true;
 
         }
 
-        if (Rest::MatchRestfulRequests($this, '', Carbons::CLASS_NAMESPACE)()) {
+        if (Rest::MatchRestfulRequests('', Carbons::CLASS_NAMESPACE)) {
 
             return true;
 
         }
 
         if (CarbonPHP::$app_local
-            && $this->regexMatch('#color#', static function () {
+            && self::regexMatch('#color#',
+                static function () {
 
                 global $json;
 
@@ -521,18 +553,15 @@ SOCKET;
 
                 return View::content(CarbonPHP::$app_view . 'color' . DS . 'color.hbs', CarbonPHP::$app_root);
 
-            })()) {
+            })) {
 
             return true;
 
         }
 
-        $this->structure($this->wrap());
-
-
         ###################################### AdminLTE DOC
-        if ($this->regexMatch('#2.0/UIElements/?([A-Za-z]{0,2.0.0})#',
-            function ($AdminLTE = '') {
+        if (self::regexMatch('#2.0/UIElements/?([A-Za-z]{0,2.0.0})#',
+            static function ($AdminLTE = '') {
 
                 View::$wrapper = CarbonPHP::$app_root . CarbonPHP::$app_view . 'assets/AdminLTE/wrapper.hbs';
 
@@ -551,10 +580,12 @@ SOCKET;
                     $path = 'assets' . DS . 'AdminLTE' . DS . 'widgets.php';
                 }
 
-                $this->wrap()($path);    // still relative to CarbonPHP::$app_root
+                self::wrap($path);    // still relative to CarbonPHP::$app_root
 
-            })()) {
+            })) {
+
             return true;
+
         }
 
         $view = (self::$uriExplode[0] ?? false);
@@ -573,11 +604,11 @@ SOCKET;
 
                 if ($page && array_key_exists($page, $this->version2Dot0)) {
 
-                    $this->wrap()($this->version2Dot0[$page]);
+                    self::wrap($this->version2Dot0[$page]);
 
                 } else {
 
-                    $this->wrap()($this->version2Dot0['Home']);
+                    self::wrap($this->version2Dot0['Home']);
 
                 }
 
@@ -591,7 +622,7 @@ SOCKET;
 
                 self::$matched = true;
 
-                self::fullPage()($folderName . 'index.html');
+                self::fullPage($folderName . 'index.html');
 
                 return true;
 
@@ -599,10 +630,19 @@ SOCKET;
 
         }
 
+        if (self::authenticateCarbonPHPReactAPI()) {
 
+            return true;
 
+        }
 
-        if ($this->regexMatch('#carbon/authenticated#', static function () {
+        return false;
+    }
+
+    public static function authenticateCarbonPHPReactAPI(): bool
+    {
+
+        return Route::regexMatch('#carbon/authenticated#', static function () {
 
             global $json;
 
@@ -614,26 +654,38 @@ SOCKET;
 
             $json['success'] = !true;
 
-            print json_encode($json, JSON_THROW_ON_ERROR, 512);
+            print json_encode($json, JSON_THROW_ON_ERROR);
 
             return true;
 
-        })()) {
+        });
 
-            return true;
-
-        }
-
-        $this->structure($this->wrap());
-
-        return false;
     }
 
-    public static function getVersions() : array {
+    public static function getVersions(): array
+    {
 
-        $scannedDirectory = scandir(CarbonPHP::$app_root . 'view/releases');
+        try {
 
-        return array_diff($scannedDirectory, ['..', '.']);
+            $repoRoot = dirname(CarbonPHP::CARBON_ROOT) . DS;
+
+            $scannedDirectory = scandir($repoRoot . 'view/releases');
+
+            if (false === $scannedDirectory) {
+
+                throw new PublicAlert("Failed to run scandir('{$repoRoot}view/releases');");
+
+            }
+
+            return array_diff($scannedDirectory, ['..', '.']);
+
+        } catch (Throwable $e) {
+
+            ErrorCatcher::generateLog($e);
+
+            exit(0);
+
+        }
 
     }
 

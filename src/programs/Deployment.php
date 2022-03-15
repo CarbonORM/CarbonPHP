@@ -38,10 +38,10 @@ class Deployment implements iCommand
     ];
 
 
-    public static function github(Route $route, string $prefix = 'github') : Route {
+    public static function github(string $prefix = 'github') : bool {
 
         // @link https://gist.github.com/gka/4627519
-        return $route->regexMatch('#' . preg_quote($prefix, '#') . '#i', static function () {
+        return Route::regexMatch('#' . preg_quote($prefix, '#') . '#i', static function () {
 
             $json = file_get_contents('php://input'); // Raw POST date from STDIN
 

@@ -1,15 +1,10 @@
 <?php
-/*
-Plugin Name: CarbonPHP
-Plugin URI: https://www.carbonphp.com/
-Description: CarbonPHP
-Author: Richard Tyler Miles
-*/
-
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Documentation;
 use CarbonPHP\Interfaces\iConfig;
+use CarbonPHP\Tables\Carbons;
+use DropInGaming\PHP\Tables\Dig_Wallet_Transactions;
 
 if (false === defined('ABSPATH')) {
 
@@ -74,9 +69,24 @@ if (true === CarbonPHP::$setupComplete) {
 
         Documentation::$pureWordpressPluginConfigured = true;
 
+        $prefix = ABSPATH;
+
+        $str = dirname(CarbonPHP::CARBON_ROOT);
+
+        if (strpos($str, $prefix) === 0) {
+
+            $str = substr($str, strlen($prefix));
+
+        }
+
         return [
             CarbonPHP::SOCKET => [
                 CarbonPHP::PORT => defined('SOCKET_PORT') ? SOCKET_PORT : 8888,    // the ladder would case when boot-strapping server setup on aws invocation stating at dig.php
+            ],
+            CarbonPHP::VIEW => [
+                // TODO - THIS IS USED AS A URL AND DIRECTORY PATH. THIS IS BAD. WE NEED DS
+                CarbonPHP::VIEW => DS,  // This is where the MVC() function will map the HTML.PHP and HTML.HBS . See Carbonphp.com/mvc
+                CarbonPHP::WRAPPER => '2.0.0/Wrapper.hbs',     // View::content() will produce this
             ],
             // ERRORS on point
             CarbonPHP::ERROR => [
@@ -98,6 +108,11 @@ if (true === CarbonPHP::$setupComplete) {
                 CarbonPHP::DB_NAME => DB_NAME,
                 CarbonPHP::DB_USER => DB_USER,
                 CarbonPHP::DB_PASS => DB_PASSWORD,
+            ],
+            CarbonPHP::REST => [
+                // This section has a recursion property, as the generated data is input for its program
+                CarbonPHP::NAMESPACE => Carbons::CLASS_NAMESPACE,
+                CarbonPHP::TABLE_PREFIX => Carbons::TABLE_PREFIX
             ],
             CarbonPHP::SITE => [
                 CarbonPHP::URL => '', // todo - this should be changed back :: CarbonPHP::$app_local ? '127.0.0.1:8080' : basename(CarbonPHP::$app_root),    /* Evaluated and if not the accurate Redirect. Local php server okay. Remove for any domain */

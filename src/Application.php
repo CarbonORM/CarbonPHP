@@ -13,6 +13,7 @@ use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Error\PublicAlert;
 use Error;
 use Mustache_Exception_InvalidArgumentException;
+use Throwable;
 
 abstract class Application extends Route
 {
@@ -38,14 +39,12 @@ abstract class Application extends Route
      * App constructor. If no uri is set than
      * the Route constructor will execute the
      * defaultRoute method defined below.
-     * @return callable
-     * @throws Mustache_Exception_InvalidArgumentException
+     * @return mixed
      */
-
-    public static function fullPage(): callable
+    public static function fullPage(string $file)
     {
 
-        return static function (string $file) {
+        try {
 
             self::$matched = true;
 
@@ -57,24 +56,26 @@ abstract class Application extends Route
 
             return include $file;
 
-        };
+        } catch (Throwable $e) {
+
+            ErrorCatcher::generateLog($e);
+
+            exit(5);
+
+        }
 
     }
 
-    public function wrap(): callable
+    /**
+     * @param string $file
+     * @return bool
+     */
+    public static function wrap(string $file): bool
     {
-        /**
-         * @param string $file
-         * @return bool
-         * @throws Mustache_Exception_InvalidArgumentException
-         */
-        return static function (string $file): bool {
 
-            self::$matched = true;
+        self::$matched = true;
 
-            return View::content(CarbonPHP::$app_view . $file, CarbonPHP::$app_root);
-
-        };
+        return View::content(CarbonPHP::$app_view . $file, CarbonPHP::$app_root);
 
     }
 

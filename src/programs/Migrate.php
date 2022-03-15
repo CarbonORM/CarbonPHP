@@ -1600,10 +1600,10 @@ HALT;
      * @throws PublicAlert
      * @link https://stackoverflow.com/questions/27309773/is-there-a-limit-of-the-size-of-response-i-can-read-over-http
      */
-    public static function enablePull(Route $route, array $allowedDirectories): Route
+    public static function enablePull(array $allowedDirectories): bool
     {
 
-        return $route->regexMatch('#^' . self::$migrationUrl . '/?(.*)?#i', static function (string $getPath = '') use ($allowedDirectories) {
+        return Route::regexMatch('#^' . self::$migrationUrl . '/?(.*)?#i', static function (string $getPath = '') use ($allowedDirectories) {
 
             self::unlinkMigrationFiles();
 

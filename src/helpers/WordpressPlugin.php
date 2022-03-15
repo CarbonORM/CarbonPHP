@@ -1,4 +1,10 @@
 <?php
+/*
+Plugin Name: CarbonPHP
+Plugin URI: https://www.carbonphp.com/
+Description: CarbonPHP
+Author: Richard Tyler Miles
+*/
 
 $throwError = static function() {
     http_response_code(400);

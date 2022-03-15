@@ -725,18 +725,24 @@ class CarbonPHP
     private static function URI_FILTER(string $URL = '', array $cacheControl = []): bool
     {
         if (!empty($URL = strtolower($URL)) && $_SERVER['SERVER_NAME'] !== $URL && !self::$app_local) {
+
             header("Refresh:0; url=$URL");
+
             print '<html lang="en"><head><meta http-equiv="refresh" content="5; url=//' . $URL . '"></head><body>' .
                 self::$server_ip . '<h1>Whoa, this server you reached does not appear to have permission to access the website hosted on it.' .
                 ' The server name (' . $_SERVER["SERVER_NAME"] . ') must match that passed via ["SITE"]["URL"] to CarbonPHP.</h1>' .
                 '<h3>This message can be bypassed by leaving the configuration field "URL".</h3>' .
                 '<h2>Redirecting to <a href="//' . $URL . '"> ' . $URL . '</a></h2>' .
                 "<script>window.location.type = $URL</script></body></html>";
+
             exit(1);
+
         }
 
         if (empty($cacheControl)) {
+
             return true;
+
         }
 
         // It does not matter if this matches, we will take care of that in the next if.
@@ -749,38 +755,75 @@ class CarbonPHP
         $ext = $matches[2][0] ?? '';    // routes should be null
 
         if (empty($ext)) {              // We're requesting a file
+
             return true;
+
         }
 
         // we need to ensure valid access
         $allowedAccess = false;
+
         foreach ($cacheControl as $extension => $headers) {
+
             if (strpos($extension, $ext) !== false) {   // todo - this makes sense but will false positive for woff when only woff2 is allowed
+
                 $allowedAccess = true;
+
                 header($headers);
+
                 break;
+
             }
+
         }
 
         if (!$allowedAccess) {
+
+
+            ColorCode::colorCode("Sending 403 Forbidden for uri :: {$_SERVER['REQUEST_URI']}",
+                iColorCode::BACKGROUND_YELLOW);
+
             http_response_code(403);            // This is a Forbidden response
+
+
             exit(0);                                        // This is an exit with error
+
         }
 
         // Look for versioning
         View::unVersion($_SERVER['REQUEST_URI']);           // This may exit and send a file
 
-        // add cache control
-        if (file_exists(self::$composer_root . self::$uri)) {             // Composer is now always the base uri
-            View::sendResource(self::$composer_root . self::$uri, $ext);
+        // Not versioned, so see it it exists
+        if (self::$app_root !== self::$composer_root
+            && file_exists(self::$app_root . self::$uri)) {      //  also may send and exit
+
+            View::sendResource(self::$uri, $ext);
+
+        } else {
+
+            ColorCode::colorCode("File was not found ::\nfile://" . self::$app_root . self::$uri,
+                iColorCode::BACKGROUND_CYAN);
+
         }
 
-        // Not versioned, so see it it exists
-        if (file_exists(self::$app_root . self::$uri)) {      //  also may send and exit
-            View::sendResource(self::$uri, $ext);
+        if (file_exists(self::$composer_root . self::$uri)) {             // Composer is now always the base uri
+
+            View::sendResource(self::$composer_root . self::$uri, $ext);
+
+        } else {
+
+            ColorCode::colorCode("
+            File was not found ::\nfile://" . self::$composer_root . self::$uri,
+                iColorCode::BACKGROUND_CYAN);
+
         }
+
+        ColorCode::colorCode("Sending 404 for uri :: {$_SERVER['REQUEST_URI']}", iColorCode::BACKGROUND_RED);
+
         http_response_code(404);           // If we haven't found the request send code 404 not found
-        die(1);
+
+        exit(0);
+
     }
 
 
