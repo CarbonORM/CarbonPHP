@@ -119,7 +119,6 @@ if (true === CarbonPHP::$setupComplete) {
             ],
             CarbonPHP::SITE => [
                 CarbonPHP::URL => '', // todo - this should be changed back :: CarbonPHP::$app_local ? '127.0.0.1:8080' : basename(CarbonPHP::$app_root),    /* Evaluated and if not the accurate Redirect. Local php server okay. Remove for any domain */
-                CarbonPHP::ROOT => ABSPATH,
                 CarbonPHP::CACHE_CONTROL => [
                     'ico|pdf|flv' => 'Cache-Control: max-age=29030400, public',
                     'jpg|jpeg|png|gif|swf|xml|txt|css|woff2|tff|ttf|svg' => 'Cache-Control: max-age=604800, public',

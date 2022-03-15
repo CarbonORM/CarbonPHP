@@ -738,6 +738,13 @@ class ErrorCatcher
     public static function generateLog(Throwable $e = null, bool $return = false, string $level = null, array &$log_array = [], string $color = iColorCode::RED): array
     {
 
+        if (null !== $e) {
+
+            ColorCode::colorCode("Generating pretty error message using C6 tools. Message :: (" . $e->getMessage() . ')',
+                iColorCode::CYAN);
+
+        }
+
         if (null === $level) {
 
             $level = 'log';
@@ -938,13 +945,22 @@ class ErrorCatcher
     protected static function generateCallTrace(Throwable $e = null): array
     {
 
+        if (null === $e) {
+
+            ColorCode::colorCode("Generating new stack trace with Throwable. This might not capture all information needed :/",
+                iColorCode::YELLOW);
+
+        }
+
         $_SERVER["CONTENT_TYPE"] ??= '';
 
         self::$methodName = self::$className = '';
 
         if (false === CarbonPHP::$cli) {
+
             ob_start(null, null, PHP_OUTPUT_HANDLER_CLEANABLE
                 | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);     // start a new buffer for saving errors
+
         }
 
         if (null === $e) {
@@ -1036,7 +1052,7 @@ class ErrorCatcher
 
                 $resultCLI[] = [
                     "TRACE $call_number" => $line_one,
-                    'ARGUMENTS' => $args[$i]['args']
+                    'ARGUMENTS' => $args[$i]['args'] ?? ''
                 ];
 
                 $resultHTML[] = $line_one . "\n\t\t\t\t" . $line_two_html . PHP_EOL;
