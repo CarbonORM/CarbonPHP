@@ -7,7 +7,7 @@
 
 
 # CarbonPHP Tool Kit and Performance Library
-## The orm of your dreams & Wordpress Compatable 
+## The ORM of your dreams & Wordpress Compatable 
 
 [CarbonPHP.com](http://carbonphp.com/)
 
