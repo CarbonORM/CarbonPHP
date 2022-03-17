@@ -7,7 +7,6 @@
 
 
 # CarbonPHP Tool Kit and Performance Library
-## The ORM of your dreams & Wordpress Compatable 
 
 [CarbonPHP.com](http://carbonphp.com/)
 
@@ -21,7 +20,7 @@ called out in the Changelog with every minor release. Please read the changelog 
 Refer to the guide at [carbonphp.com](https://carbonphp.com)
 
 
-## Introduction
+## Introduction - The ORM of your dreams & Wordpress Compatable
 
 
 
