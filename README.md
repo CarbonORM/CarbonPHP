@@ -1,9 +1,14 @@
 ![PHP Version](https://img.shields.io/packagist/php-v/richardtmiles/carbonphp)
+![License](https://img.shields.io/packagist/l/richardtmiles/carbonphp)
+![Size](https://img.shields.io/github/languages/code-size/richardtmiles/carbonphp)
+![Lines](https://img.shields.io/tokei/lines/github/richardtmiles/carbonphp)
+![Documentation](https://img.shields.io/website?down_color=lightgrey&down_message=Offline&up_color=green&up_message=Online&url=https%3A%2F%2Fcarbonphp.com)
 ![CarbonPHP Feature Test Suit](https://github.com/RichardTMiles/CarbonPHP/workflows/CarbonPHP%20Feature%20Test%20Suit/badge.svg) 
 ![Monthly Downloads](https://img.shields.io/packagist/dm/richardtmiles/carbonphp)
 ![Daily Downloads](https://img.shields.io/packagist/dd/richardtmiles/carbonphp)
 ![All Downloads](https://img.shields.io/packagist/dt/richardtmiles/carbonphp)
 ![Star](https://img.shields.io/github/stars/richardtmiles/carbonphp?style=social)
+
 
 
 # CarbonPHP Tool Kit and Performance Library
