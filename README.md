@@ -1,5 +1,15 @@
+![PHP Version](https://img.shields.io/packagist/php-v/richardtmiles/carbonphp)
+![License](https://img.shields.io/packagist/l/richardtmiles/carbonphp)
+![Size](https://img.shields.io/github/languages/code-size/richardtmiles/carbonphp)
+![Lines](https://img.shields.io/tokei/lines/github/richardtmiles/carbonphp)
+![Documentation](https://img.shields.io/website?down_color=lightgrey&down_message=Offline&up_color=green&up_message=Online&url=https%3A%2F%2Fcarbonphp.com)
+![CarbonPHP Feature Test Suit](https://github.com/RichardTMiles/CarbonPHP/workflows/CarbonPHP%20Feature%20Test%20Suit/badge.svg) 
+![Monthly Downloads](https://img.shields.io/packagist/dm/richardtmiles/carbonphp)
+![Daily Downloads](https://img.shields.io/packagist/dd/richardtmiles/carbonphp)
+![All Downloads](https://img.shields.io/packagist/dt/richardtmiles/carbonphp)
+![Star](https://img.shields.io/github/stars/richardtmiles/carbonphp?style=social)
 
-![CarbonPHP Feature Test Suit](https://github.com/RichardTMiles/CarbonPHP/workflows/CarbonPHP%20Feature%20Test%20Suit/badge.svg)
+
 
 # CarbonPHP Tool Kit and Performance Library
 
@@ -15,9 +25,7 @@ called out in the Changelog with every minor release. Please read the changelog 
 Refer to the guide at [carbonphp.com](https://carbonphp.com)
 
 
-## Introduction
-
-
+## Introduction - The ORM of your dreams & Wordpress Compatable
 
 
 CarbonPHP is a PHP 7.4+ library to simplify the building of custom, dynamic web applications. Its main focus is to make
@@ -63,60 +71,7 @@ are currently scheduled for the summer of 2022.
 
 All function should have PHPDoc-style documentation in the code. [CarbonPHP.com](https://carbonphp.com/) also has full 
 explanations of the codebase. 
-
-### MVC
-We recommend that each request use the MVC structure, Pure ORM callback(s), or a combination of the two. 
-The controller must validate all input data and return the variable(s) needed for the model to manipulate. 
-This is a sample from the code library which backbones all mvc requests.
-
-```php
-    /**Stands for Controller -> Model .
-     *
-     * This will run the controller/$class.$method().
-     * If the method returns !empty() the model/$class.$method() will be
-     * invoked. If an array is returned from the controller its values
-     * will be passed as parameters to our model.
-     * @link http://php.net/manual/en/function.call-user-func-array.php
-     *
-     * @param string $class This class name to autoload
-     * @param string $method The method within the provided class
-     * @param array $argv Arguments to be passed to method
-     * @return mixed the returned value from model/$class.$method() or false | void
-     */
-    function CM(string $class, string &$method, array &$argv = []): callable
-    {
-        $class = ucfirst(strtolower($class));   // Prevent malformed class names
-        $controller = "Controller\\$class";     // add namespace for autoloader
-        $model = "Model\\$class";
-        $method = strtolower($method);          // Prevent malformed method names
-
-        // Make sure our class exists
-        if (!class_exists($controller)) {
-            print "Invalid Controller ({$controller}) Passed to MVC. Please ensure your namespace mappings are correct!";
-        }
-
-        if (!class_exists($model)) {
-            print "Invalid Model ({$model}) Passed to MVC. Please ensure your namespace mappings are correct!";
-        }
-
-        // the array $argv will be passed as arguments to the method requested, see link above
-        $exec = function &(string $class, array &$argv) use ($method) {
-            $argv = \call_user_func_array([new $class, $method], $argv);
-            return $argv;
-        };
-
-        return function () use ($exec, $controller, $model, &$argv) {    
-            if (!empty($argv = $exec($controller, $argv))) {
-                if (\is_array($argv)) {
-                    return $exec($model, $argv);        // array passed
-                }
-                $controller = [&$argv];                 // allow return by reference
-                return $exec($model, $controller);
-            }
-            return $argv;
-        };
-    }
-```
+ssed to MVC. Please ensure your namespace mappings are correct!";
 
 ### RESTFUL ORM
 CarbonPHP's largest feature is the MySQL ORM. By running a customizable CLI command our program 
