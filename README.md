@@ -1,4 +1,6 @@
 ![PHP Version](https://img.shields.io/packagist/php-v/richardtmiles/carbonphp)
+![GitHub Release](https://img.shields.io/github/v/release/richardtmiles/carbonphp)
+![Packagist Version](https://img.shields.io/packagist/v/richardtmiles/carbonphp)
 ![License](https://img.shields.io/packagist/l/richardtmiles/carbonphp)
 ![Size](https://img.shields.io/github/languages/code-size/richardtmiles/carbonphp)
 ![Lines](https://img.shields.io/tokei/lines/github/richardtmiles/carbonphp)
