@@ -784,7 +784,6 @@ class ErrorCatcher
 
         $log_array['[C6] CARBONPHP'] = 'ErrorCatcher::generateLog';
 
-
         $log_array[self::TRACE] = $traceHTML;
 
         $json = $GLOBALS['json'] ??= [];
@@ -901,16 +900,16 @@ class ErrorCatcher
                     if (true === self::$storeReport) {
 
                         print <<<REDIRECT
-                        <meta http-equiv="refresh" content="0; URL=/$log_file" />
-                        <script>window.location.replace("/$log_file");</script>
-                        REDIRECT;
+                            <meta http-equiv="refresh" content="0; URL=/$log_file" />
+                            <script>window.location.replace("/$log_file");</script>
+                            REDIRECT;
 
                         exit(1);
 
                     }
 
-                    ColorCode::colorCode("HEADERS ALREADY SENT! Reporting to the browser can potentially be made more readable if you choose"
-                        . " to store the reports (currently off). The CarbonPHP configuration will allow, on errors with the headers sent, to"
+                    ColorCode::colorCode('HEADERS ALREADY SENT! Reporting to the browser can potentially be made more readable if you choose'
+                        . ' to store the reports (currently off). The CarbonPHP configuration will allow, on errors with the headers sent, to'
                         . ' intelligently redirect the users to the error message. This is opposed to loading a non-compliant HTML '
                         . ' page and hoping the browser displays readable content. Surprisingly the browser does do well at this, but'
                         . ' you end user experience could be better. @note storing logs cost memory, for more information visit CarbonPHP.com',
