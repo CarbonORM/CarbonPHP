@@ -569,9 +569,13 @@ class Migrate implements iCommand
 
                 }
 
-                ColorCode::colorCode("Updates needed <$hash>($localPath)", iColorCode::BACKGROUND_CYAN);
+                if (CarbonPHP::$verbose) {
 
-                ColorCode::colorCode($mediaFile, $color ? iColorCode::BACKGROUND_GREEN : iColorCode::BACKGROUND_CYAN);
+                    ColorCode::colorCode("Updates needed <$hash>($localPath)", iColorCode::BACKGROUND_CYAN);
+
+                    ColorCode::colorCode($mediaFile, $color ? iColorCode::BACKGROUND_GREEN : iColorCode::BACKGROUND_CYAN);
+
+                }
 
                 $color = !$color;
 
@@ -596,7 +600,11 @@ class Migrate implements iCommand
 
                         $zipFileName = basename($localPath);
 
-                        ColorCode::colorCode("Exploding ($localPath)", iColorCode::YELLOW);
+                        if (CarbonPHP::$verbose) {
+
+                            ColorCode::colorCode("Exploding ($localPath)", iColorCode::YELLOW);
+
+                        }
 
                         [, $path, $md5] = explode('_', $zipFileName);
 
@@ -617,8 +625,12 @@ class Migrate implements iCommand
 
                         }
 
-                        ColorCode::colorCode("The next step is unzipping to path ($unzipToPath)",
-                            iColorCode::YELLOW);
+                        if (CarbonPHP::$verbose) {
+
+                            ColorCode::colorCode("Unzipping to path ($unzipToPath)",
+                                iColorCode::YELLOW);
+
+                        }
 
                         $unzipToPath = CarbonPHP::$app_root . $unzipToPath;
 
@@ -660,7 +672,11 @@ class Migrate implements iCommand
 
             if ([] === $localUpdates) {
 
-                ColorCode::colorCode("\nfile://$file\nThe file above was parsed and found no updates needed :)");
+                if (CarbonPHP::$verbose) {
+
+                    ColorCode::colorCode("\nfile://$file\nThe file above was parsed and found no updates needed :)");
+
+                }
 
             } else {
 
@@ -672,7 +688,7 @@ class Migrate implements iCommand
 
             fclose($fp);
 
-            CarbonPHP::$verbose and ColorCode::colorCode('Done.');
+            ColorCode::colorCode('Migration Complete.');
 
         } catch (Throwable $e) {
 
@@ -724,7 +740,7 @@ class Migrate implements iCommand
                         // todo - windows -> linux support
                         self::replaceInFile(rtrim(self::$remoteAbsolutePath, DS), rtrim(CarbonPHP::$app_root, DS), $file);
 
-                    } else {
+                    } else if (CarbonPHP::$verbose) {
 
                         ColorCode::colorCode('App absolute path is the same on both servers.', iColorCode::YELLOW);
 
@@ -737,7 +753,7 @@ class Migrate implements iCommand
 
                         self::replaceInFile($urlNoProtocol(self::$remoteUrl), $urlNoProtocol(self::$localUrl), $file);
 
-                    } else {
+                    } else if (CarbonPHP::$verbose) {
 
                         ColorCode::colorCode("Both servers point the same url.", iColorCode::YELLOW);
 
@@ -1561,7 +1577,11 @@ HALT;
 
         $rootPath = realpath($relativeFolderPath);
 
-        ColorCode::colorCode("zipping\nfile://$rootPath", iColorCode::MAGENTA);
+        if (CarbonPHP::$verbose) {
+
+            ColorCode::colorCode("zipping\nfile://$rootPath", iColorCode::MAGENTA);
+
+        }
 
         $zipPathHash = base64_encode($relativeFolderPath);
 
@@ -1586,7 +1606,11 @@ HALT;
 
         }
 
-        ColorCode::colorCode("zipped\nfile://$zipFileWithMd5\n\n\n", iColorCode::CYAN);
+        if (CarbonPHP::$verbose) {
+
+            ColorCode::colorCode("zipped\nfile://$zipFileWithMd5\n\n\n", iColorCode::CYAN);
+
+        }
 
         return $zipFolderRelative . $finalZipFileName;
 

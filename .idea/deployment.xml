@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="DropinGaming" createEmptyFolders="true" showAutoUploadSettingsWarning="false">
+  <component name="PublishConfigData" autoUpload="Always" createEmptyFolders="true" showAutoUploadSettingsWarning="false">
     <serverData>
-      <paths name="DropinGaming">
+      <paths name="DropingamingC6">
         <serverdata>
           <mappings>
-            <mapping deploy="/" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/var/www/business.dropingmaing.com/vendor/richardtmiles/carbonphp" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
