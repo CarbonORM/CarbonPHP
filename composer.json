@@ -84,8 +84,13 @@
       "mkdir -p \"`pwd`/wp-content/plugins/carbonphp\"",
       "cp \"`pwd`/CarbonPHP.php\" \"`pwd`/wp-content/plugins/carbonphp/CarbonPHP.php\""
     ],
+    "carbon:react": [
+      "mkdir -p \"`pwd`vendor/richardtmiles/carbonphp/view/releases\"",
+      "cp -rf view/releases/. vendor/richardtmiles/carbonphp/view/releases"
+    ],
     "post-install-cmd": [
       "@carbon:wordpress",
+      "@carbon:react",
       "mkdir -p \"`pwd`/wp-content/themes/c6documentation\"",
       "echo \"<?php use CarbonPHP\\Documentation; Documentation::getLatestReactBuild();\" > \"`pwd`/wp-content/themes/c6documentation/index.php\"",
       "touch \"`pwd`/wp-content/themes/c6documentation/style.css\"",
