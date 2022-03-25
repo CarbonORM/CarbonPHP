@@ -41,7 +41,9 @@ class Migrate implements iCommand
 
     public static bool $MySQLDataDump = true;
 
-    public static int $timeout = 90;
+    public static int $timeout = 180;
+
+    public static int $maxFolderSizeForCompressionInMb = 500;
 
     /**
      * @param string $path
@@ -82,7 +84,7 @@ class Migrate implements iCommand
     /**
      * @throws PublicAlert
      */
-    public static function directorySizeLessThan(string $path, int $megabytes = 25): bool
+    public static function directorySizeLessThan(string $path, int $megabytes): bool
     {
 
         $bytesMax = 1000000 * $megabytes;
@@ -105,7 +107,7 @@ class Migrate implements iCommand
 
             if ($bytesMax < $bytesTotal) {
 
-                ColorCode::colorCode("The directory (file://$path) is to large, moving to subdirectory to ZIP!");
+                ColorCode::colorCode("The directory (file://$path) is to large (over $megabytes mb), moving to subdirectory to ZIP!");
 
                 return false;
 
@@ -179,6 +181,12 @@ class Migrate implements iCommand
                 case '--timeout':
 
                     self::$timeout = $argv[++$i];
+
+                    break;
+
+                case '--max-folder-size-to-compress-mb':
+
+                    self::$maxFolderSizeForCompressionInMb = $argv[++$i];
 
                     break;
 
@@ -1065,7 +1073,11 @@ HALT;
 
             $url = trim($url);
 
-            ColorCode::colorCode("Attempting to get possibly large file\n$url\nfile://$toLocalFilePath", iColorCode::BACKGROUND_GREEN);
+            if (CarbonPHP::$verbose) {
+
+                ColorCode::colorCode("Attempting to get possibly large file\n$url\nfile://$toLocalFilePath", iColorCode::BACKGROUND_GREEN);
+
+            }
 
             $fileName = basename($toLocalFilePath);
 
@@ -1913,7 +1925,7 @@ HALT;
 
             } else if ($file->isDir()) {
 
-                if (false === self::directorySizeLessThan($filePath, 80)) {
+                if (false === self::directorySizeLessThan($filePath, self::$maxFolderSizeForCompressionInMb)) {
 
                     // recursive, logically simple; runtime expensive
                     $files += self::compileFolderFiles($filePath);

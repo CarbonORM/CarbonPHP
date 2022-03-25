@@ -8,6 +8,7 @@
       <sshConfig connectionConfig="{&quot;serverAliveInterval&quot;:300}" host="34.68.75.41" id="2134edcb-ef5b-4a7a-8b17-078a7918949f" keyPath="$USER_HOME$/.ssh/google_compute_engine" port="22" customName="mmmmmm" nameFormat="CUSTOM" username="richardmiles">
         <option name="customName" value="mmmmmm" />
       </sshConfig>
+      <sshConfig authType="PASSWORD" host="127.0.0.1" id="38dd17a4-cf5f-4072-9105-f1a0a2a0a2c3" port="9999" nameFormat="DESCRIPTIVE" username="www-data" useOpenSSHConfig="true" />
     </configs>
   </component>
 </project>

@@ -119,7 +119,8 @@
     ],
     "setup:generated": [
       "php index.php minify",
-      "cd view/assets/react && npm install && npm run build"
+      "cd view/assets/react && npm install && npm run build",
+      "@carbon:react"
     ],
     "start": [
       "php -S local.carbonphp.com:8080 dev-routing.php -d display_errors=1"

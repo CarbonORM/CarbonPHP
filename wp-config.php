@@ -34,7 +34,7 @@ if (false === (include __DIR__ . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPA
 
 }
 
-define( 'DS', DIRECTORY_SEPARATOR);
+const DS = DIRECTORY_SEPARATOR;
 
 
 /** Absolute path to the WordPress directory. */
@@ -63,10 +63,10 @@ define( 'DB_PASSWORD', $dbInfo[CarbonPHP::DB_PASS] );
 define( 'DB_HOST', $dbInfo[CarbonPHP::DB_HOST] );
 
 /** Database Charset to use in creating database tables. */
-define( 'DB_CHARSET', 'utf8mb4' );
+const DB_CHARSET = 'utf8mb4';
 
 /** The Database Collate type. Don't change this if in doubt. */
-define( 'DB_COLLATE', '' );
+const DB_COLLATE = '';
 
 /**#@+
  * Authentication Unique Keys and Salts.
@@ -77,14 +77,14 @@ define( 'DB_COLLATE', '' );
  *
  * @since 2.6.0
  */
-define( 'AUTH_KEY',         'put your unique phrase here' );
-define( 'SECURE_AUTH_KEY',  'put your unique phrase here' );
-define( 'LOGGED_IN_KEY',    'put your unique phrase here' );
-define( 'NONCE_KEY',        'put your unique phrase here' );
-define( 'AUTH_SALT',        'put your unique phrase here' );
-define( 'SECURE_AUTH_SALT', 'put your unique phrase here' );
-define( 'LOGGED_IN_SALT',   'put your unique phrase here' );
-define( 'NONCE_SALT',       'put your unique phrase here' );
+const AUTH_KEY = 'put your unique phrase here';
+const SECURE_AUTH_KEY = 'put your unique phrase here';
+const LOGGED_IN_KEY = 'put your unique phrase here';
+const NONCE_KEY = 'put your unique phrase here';
+const AUTH_SALT = 'put your unique phrase here';
+const SECURE_AUTH_SALT = 'put your unique phrase here';
+const LOGGED_IN_SALT = 'put your unique phrase here';
+const NONCE_SALT = 'put your unique phrase here';
 
 /**#@-*/
 
@@ -108,7 +108,7 @@ $table_prefix = 'carbon_wp_';
  *
  * @link https://wordpress.org/support/article/debugging-in-wordpress/
  */
-define( 'WP_DEBUG', false );
+const WP_DEBUG = false;
 
 /* That's all, stop editing! Happy publishing. */
 

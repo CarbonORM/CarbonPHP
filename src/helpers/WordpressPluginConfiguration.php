@@ -3,11 +3,14 @@
 use CarbonPHP\Application;
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Documentation;
+use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iConfig;
 use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Programs\Deployment;
 use CarbonPHP\Programs\Migrate;
 use CarbonPHP\Tables\Carbons;
+
+
 
 if (false === defined('ABSPATH')) {
 
@@ -19,7 +22,13 @@ if (false === defined('ABSPATH')) {
             composer. To lean more about how to use CarbonPHP please refer to 
             <a href="https://www.carbonphp.com/">https://CarbonPHP.com/</a></h1>';
 
-    exit(1);
+    if (class_exists('CarbonPHP\Programs\ColorCode')) {
+
+        ColorCode::colorCode('C6 Plugin Failed; ABSPATH not defined!', iColorCode::RED);
+
+    }
+
+    exit(59);
 
 }
 
@@ -33,6 +42,8 @@ if (false === (include_once ABSPATH . 'vendor' . DS . 'autoload.php')) {
     exit(2);
 
 }
+
+ColorCode::colorCode("Detected composer autoload in (" . __FILE__ . ')');
 
 function addCarbonPHPWordpressMenuItem(bool $advanced): void
 {
@@ -62,6 +73,9 @@ if (true === CarbonPHP::$setupComplete) {
     return true;
 
 }
+
+ColorCode::colorCode("Starting Full Wordpress CarbonPHP Configuration!",
+    iColorCode::BACKGROUND_CYAN);
 
 (new CarbonPHP(new class implements iConfig {
 
@@ -153,5 +167,7 @@ if (true === CarbonPHP::$setupComplete) {
         // TODO: Implement defaultRoute() method.
     }
 });
+
+ColorCode::colorCode("FINISHED Full Wordpress CarbonPHP Configuration!");
 
 return true;

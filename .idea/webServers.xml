@@ -12,10 +12,13 @@
       <webServer id="a590b354-bdbe-423e-88d2-fb0e1e8a5253" name="DropingamingC6" url="http://business.dropingaming.com">
         <fileTransfer rootFolder="/var/www/business.dropingaming.com/vendor/richardtmiles/carbonphp" accessType="SFTP" host="127.0.0.1" port="9999" sshConfigId="38dd17a4-cf5f-4072-9105-f1a0a2a0a2c3" sshConfig="www-data@127.0.0.1:9999 password">
           <advancedOptions>
-            <advancedOptions dataProtectionLevel="Private" keepAliveCommand="LIST" keepAliveTimeout="0" connections="1" shareSSLContext="true" showHiddenFiles="true" isUseRsync="true" />
+            <advancedOptions dataProtectionLevel="Private" keepAliveCommand="LIST" keepAliveTimeout="0" connections="1" shareSSLContext="true" showHiddenFiles="true" />
           </advancedOptions>
         </fileTransfer>
         <option name="numberOfConnections" value="1" />
+      </webServer>
+      <webServer id="2e9b5020-31ee-4b74-b06a-5fa44e91752a" name="dropingaming" url="http://localhost">
+        <fileTransfer mountedRoot="$PROJECT_DIR$/../dropingaming.com/vendor/richardtmiles/carbonphp" accessType="MOUNT" port="0" />
       </webServer>
     </option>
   </component>
