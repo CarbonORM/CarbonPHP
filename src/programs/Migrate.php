@@ -1252,6 +1252,13 @@ HALT;
      */
     public static function showStatus(int $done = null, int $total = null, int $size = null): void
     {
+        static $skipStatus = null;
+
+        if ($skipStatus) {
+
+            return;
+
+        }
 
         if (0 === $done) {
 
@@ -1282,9 +1289,29 @@ HALT;
 
         }
 
-        $currentColumns = (int)exec('tput cols');
+        $currentColumns = exec('tput cols', $output, $resultCode);
 
-        $currentLines = (int)exec('tput lines');
+        if (false !== strpos($output, 'No such device or address')) {
+
+            $skipStatus = true;
+
+            return;
+
+        }
+
+        if (0 !== $resultCode || false === $currentColumns) {
+
+            $currentColumns = 80;
+
+        }
+
+        $currentLines = exec('tput lines', $output, $resultCode);
+
+        if (0 !== $resultCode || false === $currentLines) {
+
+            $currentLines = 24;
+
+        }
 
         if ($currentColumns !== $shellColumns) {
 
@@ -1292,7 +1319,7 @@ HALT;
 
             if (null === $size) {
 
-                $size = $currentColumns;
+                $size = (int)$currentColumns;
 
                 $size -= 60;
 

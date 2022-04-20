@@ -305,11 +305,15 @@ class ErrorCatcher
 
                     }
                 }
-                /** @noinspection CallableParameterUseCaseInTypeContextInspection */
+
                 $argv = null;
+
             } finally {
+
                 if (ob_get_status() && ob_get_length()) {
+
                     $out = ob_get_clean();
+
                     print <<<END
                                 <div class="container">
                                 <div class="callout callout-info" style="margin-top: 40px">
@@ -396,6 +400,10 @@ class ErrorCatcher
 
         $_SERVER["CONTENT_TYPE"] ??= '';
 
+        $sendJson = $_SERVER["CONTENT_TYPE"] === 'application/json'
+            || $_SERVER["HTTP_X_REQUESTED_WITH"] === 'XMLHttpRequest'
+            || strpos($_SERVER["CONTENT_TYPE"], 'application/json');
+
         if (false === headers_sent()) {
 
             $code = $json['CODE'] ?? false;
@@ -406,8 +414,7 @@ class ErrorCatcher
 
             }
 
-            $_SERVER["CONTENT_TYPE"] =
-                false === strpos($_SERVER["CONTENT_TYPE"], 'application/json')
+            $_SERVER["CONTENT_TYPE"] = $sendJson
                     ? 'text/html'
                     : 'application/json';
 
@@ -417,8 +424,9 @@ class ErrorCatcher
 
         }
 
-        if ($_SERVER["CONTENT_TYPE"] === 'application/json') {
+        if ($sendJson) {
 
+            /** @noinspection JsonEncodingApiUsageInspection */
             $json = json_encode($json, JSON_PRETTY_PRINT);
 
             if (false === $json) {
@@ -1160,7 +1168,7 @@ DESCRIPTION;
 
         return (new \Mustache_Engine())->render(self::$errorTemplate, [
             'carbon_public_root' => $public_root,
-            'public_root' => trim(CarbonPHP::$public_root ?? '', '/'),
+            'public_root' => trim(CarbonPHP::$public_carbon_root ?? '', '/'),
             'code' => $code,
             'statusText' => $statusText,
             'actual_message' => $actual_message,

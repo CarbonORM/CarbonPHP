@@ -72,4 +72,6 @@ https://stackoverflow.com/questions/1332066/how-to-listen-udp-and-make-use-of-ph
 - specifically inetd
 
 
-
+______________________________________________________________
+AddType application/x-mpegURL .m3u8
+AddType video/MP2T .ts
