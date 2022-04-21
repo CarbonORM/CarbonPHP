@@ -415,8 +415,8 @@ class ErrorCatcher
             }
 
             $_SERVER["CONTENT_TYPE"] = $sendJson
-                    ? 'text/html'
-                    : 'application/json';
+                    ? 'application/json'
+                    : 'text/html';
 
             $contentType = 'Content-Type: ' . $_SERVER["CONTENT_TYPE"];
 

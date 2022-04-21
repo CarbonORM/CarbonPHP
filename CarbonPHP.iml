@@ -12,6 +12,7 @@
       <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="false" packagePrefix="Tests\" />
       <sourceFolder url="file://$MODULE_DIR$/tests/browser" isTestSource="false" packagePrefix="Tests\Browser\" />
       <sourceFolder url="file://$MODULE_DIR$/tests/feature" isTestSource="false" packagePrefix="Tests\Feature\" />
+      <sourceFolder url="file://$MODULE_DIR$/config" isTestSource="false" packagePrefix="Config\" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/richardtmiles/carbonphp" />
     </content>
     <orderEntry type="inheritedJdk" />
