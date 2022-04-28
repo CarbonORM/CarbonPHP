@@ -7,15 +7,12 @@ use CarbonPHP\CarbonPHP;
 use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
-use CarbonPHP\Interfaces\iRest;
-use CarbonPHP\Interfaces\iRestfulReferences;
 use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
 use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Rest;
 use CarbonPHP\Tables\Carbons;
 use CarbonPHP\Tables\History_Logs;
-use DirectoryIterator;
 use ReflectionException;
 use ReflectionMethod;
 use function count;
@@ -566,12 +563,12 @@ END;
                             if (false !== strpos($validation, 'public function __construct(array &$return = [])')) {
 
                                 // todo - add any method we want to allow "overrides for"
-                                $methods[]= '__construct';
+                                $methods[] = '__construct';
 
                             }
 
                             // todo - make real method and use a seek method to use less memory
-                            $getMethod = static function (ReflectionMethod $method) : string {
+                            $getMethod = static function (ReflectionMethod $method): string {
 
                                 $file = $method->getFileName();
 
@@ -778,7 +775,6 @@ END;
                         $rest[$references_table]['dependencies'][] = [$tableName => [$foreign_key => $references_column]];
                         //\\ DEPRECATED
 
-
                         break;
 
 
@@ -933,13 +929,13 @@ END;
 
                 }
                 // END SWITCH
+
             }
             // END PARSE
 
 
             #$allRestInfo = json_encode($rest, JSON_PRETTY_PRINT);
             #file_put_contents(CarbonPHP::$app_root . 'test.json', $allRestInfo);
-
 
 
             // We need to break from this tables too if the tables is not in ( -l -f )
@@ -1009,7 +1005,7 @@ END;
 
             if (false === file_put_contents($targetDir . $rest[$tableName]['ucEachTableName'] . '.php', $mustache->render($this->restTemplate(), $parsed))) {
 
-                self::colorCode('PHP internal file_put_contents failed while trying to store :: ('. $targetDir . $rest[$tableName]['ucEachTableName'] . '.php)', iColorCode::RED);
+                self::colorCode('PHP internal file_put_contents failed while trying to store :: (' . $targetDir . $rest[$tableName]['ucEachTableName'] . '.php)', iColorCode::RED);
 
             }
 
@@ -1024,9 +1020,9 @@ END;
 
         if ($react) {
 
-            [$restAccessors, $interfaces] = $this->reactTemplate();
+            [$vanillaNode, $typescript, $typescriptPolyfill] = $this->reactTemplate();
 
-            $references_tsx = $interfaces_tsx = $global_column_tsx = '';
+            $references_jsx = $references_tsx = $global_column_tsx = $deprecated_references_tsx = '';
 
             $all_interface_types = [];
 
@@ -1106,15 +1102,18 @@ END;
                     }
                 }
 
-                $references_tsx .= PHP_EOL . $mustache->render($restAccessors, $parsed);
+                $references_jsx .= PHP_EOL . $mustache->render($vanillaNode, $parsed);
 
-                $interfaces_tsx .= PHP_EOL . $mustache->render($interfaces, $parsed);
+                $references_tsx .= PHP_EOL . $mustache->render($typescript, $parsed);
+
+                $deprecated_references_tsx .= PHP_EOL . $mustache->render($typescriptPolyfill, $parsed);
 
                 $global_column_tsx .= PHP_EOL . $mustache->render(/** @lang Handlebars */ "{{#explode}}'{{TableName}}.{{name}}':'{{name}}',\n    {{/explode}}", $parsed);
 
                 $all_interface_types[] = 'i' . $rest[$tableName]['ucEachTableName'];
 
                 $all_table_names_types[] = $rest[$tableName]['TableName'];
+
             }
 
             if (empty($all_interface_types) || empty($all_table_names_types)) {
@@ -1122,12 +1121,25 @@ END;
                 exit(1);
             }
 
-            $all_interface_types = implode(' | ', $all_interface_types);
+            $all_interface_types = implode("\n\t| ", $all_interface_types);
 
             // $all_table_names_types = implode(PHP_EOL . '" | "', $all_table_names_types);
 
+            // the actual Typescript export, the jsx version is below
             $export = /** @lang TypeScript JSX */
                 "
+interface simpleMap {
+    [key: string]: string;
+}
+
+interface C6RestfulModel {
+    TABLE_NAME?: string,
+    PRIMARY?: string[],
+    COLUMNS?: simpleMap,
+    REGEX_VALIDATION?: simpleMap
+}
+
+$references_tsx
 
 export const C6 = {
 
@@ -1184,14 +1196,10 @@ export const C6 = {
     REST_REQUEST_FINNISH_CALLBACKS: '" . Rest::REST_REQUEST_FINNISH_CALLBACKS . "',
     FINISH: '" . Rest::FINISH . "',
     VALIDATE_C6_ENTITY_ID_REGEX: '" . Rest::VALIDATE_C6_ENTITY_ID_REGEX . "',
-
     
-    
-    $references_tsx
+    $deprecated_references_tsx
     
 };
-
-$interfaces_tsx
 
 export const COLUMNS = {
       $global_column_tsx
@@ -1205,7 +1213,9 @@ export const convertForRequestBody = function(restfulObject: RestTableInterfaces
   let payload = {};
   Object.keys(restfulObject).map(value => {
     let exactReference = value.toUpperCase();
+    // @ts-ignore todo - figure out how to type this
     if (exactReference in C6[tableName]) {
+      // @ts-ignore
       payload[C6[tableName][exactReference]] = restfulObject[value]
     }
     return true;
@@ -1279,7 +1289,7 @@ const C6 = {
     VALIDATE_C6_ENTITY_ID_REGEX: '" . Rest::VALIDATE_C6_ENTITY_ID_REGEX . "',
 
     
-    $references_tsx
+    $references_jsx
     
 };
 
@@ -1360,7 +1370,7 @@ const convertForRequestBody = function(restfulObject, tableName) {
     public static function trigger($table, $columns, $binary, $dependencies, $primary): string
     {
         // sys_resource_creation_logs sys_resource_history_logs
-        $history_sql = static function ($operation_type = 'POST') use ($binary, $table, $columns,$primary) {
+        $history_sql = static function ($operation_type = 'POST') use ($binary, $table, $columns, $primary) {
             $relative_time = 'OLD';
 
             switch ($operation_type) {
@@ -1501,11 +1511,36 @@ TRIGGER);
     }
 
   },", /** @lang Handlebars */ "
-export interface  i{{ucEachTableName}}{
-      {{#explode}}'{{name}}'?: string;
+export interface  i{{ucEachTableName}} {
+       {{#explode}}
+      '{{name}}'?: string;
       {{/explode}}
 }
-  "];
+
+export const {{strtolowerNoPrefixTableName}} = {
+    TABLE_NAME:'{{strtolowerNoPrefixTableName}}',
+    {{#explode}}
+    {{caps}}: '{{TableName}}.{{name}}',
+    {{/explode}}
+    PRIMARY: [
+        {{#primary}}{{#name}}'{{TableName}}.{{name}}',{{/name}}
+        {{/primary}}
+    ],
+    COLUMNS: {
+      {{#explode}}'{{TableName}}.{{name}}':'{{name}}',
+      {{/explode}}
+    },
+    REGEX_VALIDATION: {
+        {{#regex_validation}}
+        '{{name}}': {{validation}},
+        {{/regex_validation}}
+    }
+
+}
+
+  ", /** @lang Handlebars */ "  {{strtolowerNoPrefixTableName}}: {{strtolowerNoPrefixTableName}},"
+        ];
+
     }
 
 

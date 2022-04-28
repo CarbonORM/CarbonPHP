@@ -427,15 +427,15 @@ class ErrorCatcher
         if ($sendJson) {
 
             /** @noinspection JsonEncodingApiUsageInspection */
-            $json = json_encode($json, JSON_PRETTY_PRINT);
+            $jsonEncoded = json_encode($json, JSON_PRETTY_PRINT);
 
-            if (false === $json) {
+            if (false === $jsonEncoded) {
 
                 sortDump(['FAILED TO JSON ENCODE THE FOLLOWING (Retrying with sortDump) ::', $json]);
 
             }
 
-            print $json;
+            print $jsonEncoded;
 
         } else {
 
