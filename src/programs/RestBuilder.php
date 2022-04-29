@@ -1022,7 +1022,7 @@ END;
 
             [$vanillaNode, $typescript, $typescriptPolyfill] = $this->reactTemplate();
 
-            $references_jsx = $references_tsx = $global_column_tsx = $deprecated_references_tsx = '';
+            $references_jsx = $references_tsx = $global_column_tsx = $quick_references_tsx = '';
 
             $all_interface_types = [];
 
@@ -1106,7 +1106,7 @@ END;
 
                 $references_tsx .= PHP_EOL . $mustache->render($typescript, $parsed);
 
-                $deprecated_references_tsx .= PHP_EOL . $mustache->render($typescriptPolyfill, $parsed);
+                $quick_references_tsx .= PHP_EOL . $mustache->render($typescriptPolyfill, $parsed);
 
                 $global_column_tsx .= PHP_EOL . $mustache->render(/** @lang Handlebars */ "{{#explode}}'{{TableName}}.{{name}}':'{{name}}',\n    {{/explode}}", $parsed);
 
@@ -1196,13 +1196,15 @@ export const C6 = {
     REST_REQUEST_FINNISH_CALLBACKS: '" . Rest::REST_REQUEST_FINNISH_CALLBACKS . "',
     FINISH: '" . Rest::FINISH . "',
     VALIDATE_C6_ENTITY_ID_REGEX: '" . Rest::VALIDATE_C6_ENTITY_ID_REGEX . "',
-    
-    $deprecated_references_tsx
+    TABLES: {
+        $quick_references_tsx
+    },
+    $quick_references_tsx
     
 };
 
 export const COLUMNS = {
-      $global_column_tsx
+    $global_column_tsx
 };
 
 //export type RestTables = \"\$all_table_names_types\";
