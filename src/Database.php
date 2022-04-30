@@ -1087,9 +1087,9 @@ FOOT;
 
             if (property_exists($table, 'REFRESH_SCHEMA')) {
 
-                $tableInstanciated = new $table;
+                $tableInstantiated = new $table;
 
-                $refreshFunctions += $tableInstanciated->REFRESH_SCHEMA;
+                $refreshFunctions += $tableInstantiated->REFRESH_SCHEMA;
 
             }
 

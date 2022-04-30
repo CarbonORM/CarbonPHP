@@ -547,7 +547,9 @@ abstract class Rest extends Database
                 throw new PublicAlert("The column ($column) was set to be compared with a value who did not pass the regex test. Please check this value and try again.");
 
             }
+
             // todo - add injection logic here // double down on aggregate placement (low priority as it's done elsewhere)
+
         }
 
         // run validation on the whole request give column now exists
@@ -562,6 +564,7 @@ abstract class Rest extends Database
             }
 
             self::runValidations(self::$compiled_PHP_validations[self::PREPROCESS][$column]);
+
         }
 
         // run validation on each condition
@@ -945,7 +948,17 @@ abstract class Rest extends Database
 
             if (defined("$table::PHP_VALIDATION")) {
 
-                $php_validations[] = constant("$table::PHP_VALIDATION");
+                $singleTableValidations = $table::PHP_VALIDATION;
+
+                if (property_exists($table, 'PHP_VALIDATION')) {
+
+                    $tableInstantiated = new $table;
+
+                    $singleTableValidations += $tableInstantiated->PHP_VALIDATION;
+
+                }
+
+                $php_validations[] = $singleTableValidations;
 
             } else {
 

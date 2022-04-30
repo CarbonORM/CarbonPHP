@@ -82,7 +82,7 @@
     ],
     "carbon:wordpress": [
       "mkdir -p \"`pwd`/wp-content/plugins/carbonphp\"",
-      "cp \"`pwd`/CarbonPHP.php\" \"`pwd`/wp-content/plugins/carbonphp/CarbonPHP.php\""
+      "cp \"`pwd`/src/helpers/WordpressPlugin.php\" \"`pwd`/wp-content/plugins/carbonphp/CarbonPHP.php\""
     ],
     "carbon:react": [
       "mkdir -p \"`pwd`vendor/richardtmiles/carbonphp/view/releases\"",
@@ -149,5 +149,10 @@
       "chmod +x wp-cli.phar",
       "mv wp-cli.phar /usr/local/bin/wp"
     ]
+  },
+  "config": {
+    "allow-plugins": {
+      "cweagans/composer-patches": true
+    }
   }
 }

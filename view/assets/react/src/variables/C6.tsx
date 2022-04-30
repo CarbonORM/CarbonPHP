@@ -1,66 +1,38 @@
 
+export interface stringMap {
+    [key: string]: string;
+}
 
-export const C6 = {
+export interface RegExpMap {
+    [key: string]: RegExp;
+}
 
-    // try to 1=1 match the Rest abstract class
-    AS: 'AS',
-    ASC: 'ASC',
-    COUNT: 'COUNT',
-    CURRENT_TIMESTAMP: 'CURRENT_TIMESTAMP',
-    DESC: 'DESC',
-    DISTINCT: 'DISTINCT',
-    EQUAL: '=',
-    EQUAL_NULL_SAFE: '<=>',
-    FULL_OUTER: 'FULL_OUTER',
-    GREATER_THAN: '>',
-    GROUP_BY: 'GROUP_BY',
-    GROUP_CONCAT: 'GROUP_CONCAT',
-    GREATER_THAN_OR_EQUAL_TO: '>=',
-    HAVING: 'HAVING',
-    INNER: 'INNER',
-    JOIN: 'JOIN',
-    LEFT: 'LEFT',
-    LEFT_OUTER: 'LEFT_OUTER',
-    LESS_THAN: '<',
-    LESS_THAN_OR_EQUAL_TO: '<=',
-    LIKE: 'LIKE',
-    LIMIT: 'LIMIT',
-    MIN: 'MIN',
-    MAX: 'MAX',
-    NOW: 'NOW',
-    NOT_EQUAL: '<>',
-    ORDER: 'ORDER',
-    PAGE: 'PAGE',
-    PAGINATION: 'PAGINATION',
-    RIGHT_OUTER: 'RIGHT_OUTER',
-    SELECT: 'SELECT',
-    SUM: 'SUM',
-    TRANSACTION_TIMESTAMP: 'TRANSACTION_TIMESTAMP',
-    UPDATE: 'UPDATE',
-    UNHEX: 'UNHEX',
-    WHERE: 'WHERE',
-    
-    // carbon identifiers
-    DEPENDANT_ON_ENTITY: 'DEPENDANT_ON_ENTITY',
-   
-    // PHP validation
-    OPTIONS: 'OPTIONS',
-    GET: 'GET',
-    POST: 'POST',
-    PUT: 'PUT',
-    REPLACE: 'REPLACE INTO',
-    DELETE: 'DELETE',
-    REST_REQUEST_PREPROCESS_CALLBACKS: 'PREPROCESS',
-    PREPROCESS: 'PREPROCESS',
-    REST_REQUEST_FINNISH_CALLBACKS: 'FINISH',
-    FINISH: 'FINISH',
-    VALIDATE_C6_ENTITY_ID_REGEX: '#^([a-fA-F0-9]{20,35})$#',
+export interface complexMap {
+    [key: string]: string | string[] | stringMap | RegExpMap;
+}
 
-    
-    
-    
+export interface C6RestfulModel {
+    TABLE_NAME?: string,
+    PRIMARY?: string[],
+    COLUMNS?: stringMap,
+    REGEX_VALIDATION?: RegExpMap
+}
 
-  carbons: {
+
+
+export interface  iCarbons {
+      'entity_pk'?: string;
+      'entity_fk'?: string;
+      'entity_tag'?: string;
+}
+
+interface iDefineCarbons {
+      'ENTITY_PK': string;
+      'ENTITY_FK': string;
+      'ENTITY_TAG': string;
+}
+
+export const carbons : C6RestfulModel & iDefineCarbons = {
     TABLE_NAME:'carbons',
     ENTITY_PK: 'carbon_carbons.entity_pk',
     ENTITY_FK: 'carbon_carbons.entity_fk',
@@ -76,9 +48,25 @@ export const C6 = {
     REGEX_VALIDATION: {
     }
 
-  },
+}
 
-  comments: {
+  
+
+export interface  iComments {
+      'parent_id'?: string;
+      'comment_id'?: string;
+      'user_id'?: string;
+      'comment'?: string;
+}
+
+interface iDefineComments {
+      'PARENT_ID': string;
+      'COMMENT_ID': string;
+      'USER_ID': string;
+      'COMMENT': string;
+}
+
+export const comments : C6RestfulModel & iDefineComments = {
     TABLE_NAME:'comments',
     PARENT_ID: 'carbon_comments.parent_id',
     COMMENT_ID: 'carbon_comments.comment_id',
@@ -96,9 +84,21 @@ export const C6 = {
     REGEX_VALIDATION: {
     }
 
-  },
+}
 
-  feature_group_references: {
+  
+
+export interface  iFeature_Group_References {
+      'feature_entity_id'?: string;
+      'group_entity_id'?: string;
+}
+
+interface iDefineFeature_Group_References {
+      'FEATURE_ENTITY_ID': string;
+      'GROUP_ENTITY_ID': string;
+}
+
+export const feature_group_references : C6RestfulModel & iDefineFeature_Group_References = {
     TABLE_NAME:'feature_group_references',
     FEATURE_ENTITY_ID: 'carbon_feature_group_references.feature_entity_id',
     GROUP_ENTITY_ID: 'carbon_feature_group_references.group_entity_id',
@@ -111,9 +111,23 @@ export const C6 = {
     REGEX_VALIDATION: {
     }
 
-  },
+}
 
-  features: {
+  
+
+export interface  iFeatures {
+      'feature_entity_id'?: string;
+      'feature_code'?: string;
+      'feature_creation_date'?: string;
+}
+
+interface iDefineFeatures {
+      'FEATURE_ENTITY_ID': string;
+      'FEATURE_CODE': string;
+      'FEATURE_CREATION_DATE': string;
+}
+
+export const features : C6RestfulModel & iDefineFeatures = {
     TABLE_NAME:'features',
     FEATURE_ENTITY_ID: 'carbon_features.feature_entity_id',
     FEATURE_CODE: 'carbon_features.feature_code',
@@ -129,9 +143,21 @@ export const C6 = {
     REGEX_VALIDATION: {
     }
 
-  },
+}
 
-  group_references: {
+  
+
+export interface  iGroup_References {
+      'group_id'?: string;
+      'allowed_to_grant_group_id'?: string;
+}
+
+interface iDefineGroup_References {
+      'GROUP_ID': string;
+      'ALLOWED_TO_GRANT_GROUP_ID': string;
+}
+
+export const group_references : C6RestfulModel & iDefineGroup_References = {
     TABLE_NAME:'group_references',
     GROUP_ID: 'carbon_group_references.group_id',
     ALLOWED_TO_GRANT_GROUP_ID: 'carbon_group_references.allowed_to_grant_group_id',
@@ -144,9 +170,25 @@ export const C6 = {
     REGEX_VALIDATION: {
     }
 
-  },
+}
 
-  groups: {
+  
+
+export interface  iGroups {
+      'group_name'?: string;
+      'entity_id'?: string;
+      'created_by'?: string;
+      'creation_date'?: string;
+}
+
+interface iDefineGroups {
+      'GROUP_NAME': string;
+      'ENTITY_ID': string;
+      'CREATED_BY': string;
+      'CREATION_DATE': string;
+}
+
+export const groups : C6RestfulModel & iDefineGroups = {
     TABLE_NAME:'groups',
     GROUP_NAME: 'carbon_groups.group_name',
     ENTITY_ID: 'carbon_groups.entity_id',
@@ -164,9 +206,29 @@ export const C6 = {
     REGEX_VALIDATION: {
     }
 
-  },
+}
 
-  history_logs: {
+  
+
+export interface  iHistory_Logs {
+      'history_uuid'?: string;
+      'history_table'?: string;
+      'history_type'?: string;
+      'history_data'?: string;
+      'history_original_query'?: string;
+      'history_time'?: string;
+}
+
+interface iDefineHistory_Logs {
+      'HISTORY_UUID': string;
+      'HISTORY_TABLE': string;
+      'HISTORY_TYPE': string;
+      'HISTORY_DATA': string;
+      'HISTORY_ORIGINAL_QUERY': string;
+      'HISTORY_TIME': string;
+}
+
+export const history_logs : C6RestfulModel & iDefineHistory_Logs = {
     TABLE_NAME:'history_logs',
     HISTORY_UUID: 'carbon_history_logs.history_uuid',
     HISTORY_TABLE: 'carbon_history_logs.history_table',
@@ -187,9 +249,23 @@ export const C6 = {
     REGEX_VALIDATION: {
     }
 
-  },
+}
 
-  location_references: {
+  
+
+export interface  iLocation_References {
+      'entity_reference'?: string;
+      'location_reference'?: string;
+      'location_time'?: string;
+}
+
+interface iDefineLocation_References {
+      'ENTITY_REFERENCE': string;
+      'LOCATION_REFERENCE': string;
+      'LOCATION_TIME': string;
+}
+
+export const location_references : C6RestfulModel & iDefineLocation_References = {
     TABLE_NAME:'location_references',
     ENTITY_REFERENCE: 'carbon_location_references.entity_reference',
     LOCATION_REFERENCE: 'carbon_location_references.location_reference',
@@ -204,9 +280,33 @@ export const C6 = {
     REGEX_VALIDATION: {
     }
 
-  },
+}
 
-  locations: {
+  
+
+export interface  iLocations {
+      'entity_id'?: string;
+      'latitude'?: string;
+      'longitude'?: string;
+      'street'?: string;
+      'city'?: string;
+      'state'?: string;
+      'elevation'?: string;
+      'zip'?: string;
+}
+
+interface iDefineLocations {
+      'ENTITY_ID': string;
+      'LATITUDE': string;
+      'LONGITUDE': string;
+      'STREET': string;
+      'CITY': string;
+      'STATE': string;
+      'ELEVATION': string;
+      'ZIP': string;
+}
+
+export const locations : C6RestfulModel & iDefineLocations = {
     TABLE_NAME:'locations',
     ENTITY_ID: 'carbon_locations.entity_id',
     LATITUDE: 'carbon_locations.latitude',
@@ -232,9 +332,27 @@ export const C6 = {
     REGEX_VALIDATION: {
     }
 
-  },
+}
 
-  photos: {
+  
+
+export interface  iPhotos {
+      'parent_id'?: string;
+      'photo_id'?: string;
+      'user_id'?: string;
+      'photo_path'?: string;
+      'photo_description'?: string;
+}
+
+interface iDefinePhotos {
+      'PARENT_ID': string;
+      'PHOTO_ID': string;
+      'USER_ID': string;
+      'PHOTO_PATH': string;
+      'PHOTO_DESCRIPTION': string;
+}
+
+export const photos : C6RestfulModel & iDefinePhotos = {
     TABLE_NAME:'photos',
     PARENT_ID: 'carbon_photos.parent_id',
     PHOTO_ID: 'carbon_photos.photo_id',
@@ -254,9 +372,25 @@ export const C6 = {
     REGEX_VALIDATION: {
     }
 
-  },
+}
 
-  reports: {
+  
+
+export interface  iReports {
+      'log_level'?: string;
+      'report'?: string;
+      'date'?: string;
+      'call_trace'?: string;
+}
+
+interface iDefineReports {
+      'LOG_LEVEL': string;
+      'REPORT': string;
+      'DATE': string;
+      'CALL_TRACE': string;
+}
+
+export const reports : C6RestfulModel & iDefineReports = {
     TABLE_NAME:'reports',
     LOG_LEVEL: 'carbon_reports.log_level',
     REPORT: 'carbon_reports.report',
@@ -273,9 +407,29 @@ export const C6 = {
     REGEX_VALIDATION: {
     }
 
-  },
+}
 
-  sessions: {
+  
+
+export interface  iSessions {
+      'user_id'?: string;
+      'user_ip'?: string;
+      'session_id'?: string;
+      'session_expires'?: string;
+      'session_data'?: string;
+      'user_online_status'?: string;
+}
+
+interface iDefineSessions {
+      'USER_ID': string;
+      'USER_IP': string;
+      'SESSION_ID': string;
+      'SESSION_EXPIRES': string;
+      'SESSION_DATA': string;
+      'USER_ONLINE_STATUS': string;
+}
+
+export const sessions : C6RestfulModel & iDefineSessions = {
     TABLE_NAME:'sessions',
     USER_ID: 'carbon_sessions.user_id',
     USER_IP: 'carbon_sessions.user_ip',
@@ -297,9 +451,23 @@ export const C6 = {
     REGEX_VALIDATION: {
     }
 
-  },
+}
 
-  user_followers: {
+  
+
+export interface  iUser_Followers {
+      'follower_table_id'?: string;
+      'follows_user_id'?: string;
+      'user_id'?: string;
+}
+
+interface iDefineUser_Followers {
+      'FOLLOWER_TABLE_ID': string;
+      'FOLLOWS_USER_ID': string;
+      'USER_ID': string;
+}
+
+export const user_followers : C6RestfulModel & iDefineUser_Followers = {
     TABLE_NAME:'user_followers',
     FOLLOWER_TABLE_ID: 'carbon_user_followers.follower_table_id',
     FOLLOWS_USER_ID: 'carbon_user_followers.follows_user_id',
@@ -315,9 +483,21 @@ export const C6 = {
     REGEX_VALIDATION: {
     }
 
-  },
+}
 
-  user_groups: {
+  
+
+export interface  iUser_Groups {
+      'group_id'?: string;
+      'user_id'?: string;
+}
+
+interface iDefineUser_Groups {
+      'GROUP_ID': string;
+      'USER_ID': string;
+}
+
+export const user_groups : C6RestfulModel & iDefineUser_Groups = {
     TABLE_NAME:'user_groups',
     GROUP_ID: 'carbon_user_groups.group_id',
     USER_ID: 'carbon_user_groups.user_id',
@@ -330,9 +510,29 @@ export const C6 = {
     REGEX_VALIDATION: {
     }
 
-  },
+}
 
-  user_messages: {
+  
+
+export interface  iUser_Messages {
+      'message_id'?: string;
+      'from_user_id'?: string;
+      'to_user_id'?: string;
+      'message'?: string;
+      'message_read'?: string;
+      'creation_date'?: string;
+}
+
+interface iDefineUser_Messages {
+      'MESSAGE_ID': string;
+      'FROM_USER_ID': string;
+      'TO_USER_ID': string;
+      'MESSAGE': string;
+      'MESSAGE_READ': string;
+      'CREATION_DATE': string;
+}
+
+export const user_messages : C6RestfulModel & iDefineUser_Messages = {
     TABLE_NAME:'user_messages',
     MESSAGE_ID: 'carbon_user_messages.message_id',
     FROM_USER_ID: 'carbon_user_messages.from_user_id',
@@ -354,9 +554,29 @@ export const C6 = {
     REGEX_VALIDATION: {
     }
 
-  },
+}
 
-  user_sessions: {
+  
+
+export interface  iUser_Sessions {
+      'user_id'?: string;
+      'user_ip'?: string;
+      'session_id'?: string;
+      'session_expires'?: string;
+      'session_data'?: string;
+      'user_online_status'?: string;
+}
+
+interface iDefineUser_Sessions {
+      'USER_ID': string;
+      'USER_IP': string;
+      'SESSION_ID': string;
+      'SESSION_EXPIRES': string;
+      'SESSION_DATA': string;
+      'USER_ONLINE_STATUS': string;
+}
+
+export const user_sessions : C6RestfulModel & iDefineUser_Sessions = {
     TABLE_NAME:'user_sessions',
     USER_ID: 'carbon_user_sessions.user_id',
     USER_IP: 'carbon_user_sessions.user_ip',
@@ -378,9 +598,33 @@ export const C6 = {
     REGEX_VALIDATION: {
     }
 
-  },
+}
 
-  user_tasks: {
+  
+
+export interface  iUser_Tasks {
+      'task_id'?: string;
+      'user_id'?: string;
+      'from_id'?: string;
+      'task_name'?: string;
+      'task_description'?: string;
+      'percent_complete'?: string;
+      'start_date'?: string;
+      'end_date'?: string;
+}
+
+interface iDefineUser_Tasks {
+      'TASK_ID': string;
+      'USER_ID': string;
+      'FROM_ID': string;
+      'TASK_NAME': string;
+      'TASK_DESCRIPTION': string;
+      'PERCENT_COMPLETE': string;
+      'START_DATE': string;
+      'END_DATE': string;
+}
+
+export const user_tasks : C6RestfulModel & iDefineUser_Tasks = {
     TABLE_NAME:'user_tasks',
     TASK_ID: 'carbon_user_tasks.task_id',
     USER_ID: 'carbon_user_tasks.user_id',
@@ -406,9 +650,71 @@ export const C6 = {
     REGEX_VALIDATION: {
     }
 
-  },
+}
 
-  users: {
+  
+
+export interface  iUsers {
+      'user_username'?: string;
+      'user_password'?: string;
+      'user_id'?: string;
+      'user_type'?: string;
+      'user_sport'?: string;
+      'user_session_id'?: string;
+      'user_facebook_id'?: string;
+      'user_first_name'?: string;
+      'user_last_name'?: string;
+      'user_profile_pic'?: string;
+      'user_profile_uri'?: string;
+      'user_cover_photo'?: string;
+      'user_birthday'?: string;
+      'user_gender'?: string;
+      'user_about_me'?: string;
+      'user_rank'?: string;
+      'user_email'?: string;
+      'user_email_code'?: string;
+      'user_email_confirmed'?: string;
+      'user_generated_string'?: string;
+      'user_membership'?: string;
+      'user_deactivated'?: string;
+      'user_last_login'?: string;
+      'user_ip'?: string;
+      'user_education_history'?: string;
+      'user_location'?: string;
+      'user_creation_date'?: string;
+}
+
+interface iDefineUsers {
+      'USER_USERNAME': string;
+      'USER_PASSWORD': string;
+      'USER_ID': string;
+      'USER_TYPE': string;
+      'USER_SPORT': string;
+      'USER_SESSION_ID': string;
+      'USER_FACEBOOK_ID': string;
+      'USER_FIRST_NAME': string;
+      'USER_LAST_NAME': string;
+      'USER_PROFILE_PIC': string;
+      'USER_PROFILE_URI': string;
+      'USER_COVER_PHOTO': string;
+      'USER_BIRTHDAY': string;
+      'USER_GENDER': string;
+      'USER_ABOUT_ME': string;
+      'USER_RANK': string;
+      'USER_EMAIL': string;
+      'USER_EMAIL_CODE': string;
+      'USER_EMAIL_CONFIRMED': string;
+      'USER_GENERATED_STRING': string;
+      'USER_MEMBERSHIP': string;
+      'USER_DEACTIVATED': string;
+      'USER_LAST_LOGIN': string;
+      'USER_IP': string;
+      'USER_EDUCATION_HISTORY': string;
+      'USER_LOCATION': string;
+      'USER_CREATION_DATE': string;
+}
+
+export const users : C6RestfulModel & iDefineUsers = {
     TABLE_NAME:'users',
     USER_USERNAME: 'carbon_users.user_username',
     USER_PASSWORD: 'carbon_users.user_password',
@@ -472,188 +778,723 @@ export const C6 = {
     REGEX_VALIDATION: {
     }
 
-  },
+}
+
+  
+
+export interface  iWp_Commentmeta {
+      'meta_id'?: string;
+      'comment_id'?: string;
+      'meta_key'?: string;
+      'meta_value'?: string;
+}
+
+interface iDefineWp_Commentmeta {
+      'META_ID': string;
+      'COMMENT_ID': string;
+      'META_KEY': string;
+      'META_VALUE': string;
+}
+
+export const wp_commentmeta : C6RestfulModel & iDefineWp_Commentmeta = {
+    TABLE_NAME:'wp_commentmeta',
+    META_ID: 'carbon_wp_commentmeta.meta_id',
+    COMMENT_ID: 'carbon_wp_commentmeta.comment_id',
+    META_KEY: 'carbon_wp_commentmeta.meta_key',
+    META_VALUE: 'carbon_wp_commentmeta.meta_value',
+    PRIMARY: [
+        'carbon_wp_commentmeta.meta_id',
+    ],
+    COLUMNS: {
+      'carbon_wp_commentmeta.meta_id':'meta_id',
+'carbon_wp_commentmeta.comment_id':'comment_id',
+'carbon_wp_commentmeta.meta_key':'meta_key',
+'carbon_wp_commentmeta.meta_value':'meta_value',
+    },
+    REGEX_VALIDATION: {
+    }
+
+}
+
+  
+
+export interface  iWp_Comments {
+      'comment_ID'?: string;
+      'comment_post_ID'?: string;
+      'comment_author'?: string;
+      'comment_author_email'?: string;
+      'comment_author_url'?: string;
+      'comment_author_IP'?: string;
+      'comment_date'?: string;
+      'comment_date_gmt'?: string;
+      'comment_content'?: string;
+      'comment_karma'?: string;
+      'comment_approved'?: string;
+      'comment_agent'?: string;
+      'comment_type'?: string;
+      'comment_parent'?: string;
+      'user_id'?: string;
+}
+
+interface iDefineWp_Comments {
+      'COMMENT_ID': string;
+      'COMMENT_POST_ID': string;
+      'COMMENT_AUTHOR': string;
+      'COMMENT_AUTHOR_EMAIL': string;
+      'COMMENT_AUTHOR_URL': string;
+      'COMMENT_AUTHOR_IP': string;
+      'COMMENT_DATE': string;
+      'COMMENT_DATE_GMT': string;
+      'COMMENT_CONTENT': string;
+      'COMMENT_KARMA': string;
+      'COMMENT_APPROVED': string;
+      'COMMENT_AGENT': string;
+      'COMMENT_TYPE': string;
+      'COMMENT_PARENT': string;
+      'USER_ID': string;
+}
+
+export const wp_comments : C6RestfulModel & iDefineWp_Comments = {
+    TABLE_NAME:'wp_comments',
+    COMMENT_ID: 'carbon_wp_comments.comment_ID',
+    COMMENT_POST_ID: 'carbon_wp_comments.comment_post_ID',
+    COMMENT_AUTHOR: 'carbon_wp_comments.comment_author',
+    COMMENT_AUTHOR_EMAIL: 'carbon_wp_comments.comment_author_email',
+    COMMENT_AUTHOR_URL: 'carbon_wp_comments.comment_author_url',
+    COMMENT_AUTHOR_IP: 'carbon_wp_comments.comment_author_IP',
+    COMMENT_DATE: 'carbon_wp_comments.comment_date',
+    COMMENT_DATE_GMT: 'carbon_wp_comments.comment_date_gmt',
+    COMMENT_CONTENT: 'carbon_wp_comments.comment_content',
+    COMMENT_KARMA: 'carbon_wp_comments.comment_karma',
+    COMMENT_APPROVED: 'carbon_wp_comments.comment_approved',
+    COMMENT_AGENT: 'carbon_wp_comments.comment_agent',
+    COMMENT_TYPE: 'carbon_wp_comments.comment_type',
+    COMMENT_PARENT: 'carbon_wp_comments.comment_parent',
+    USER_ID: 'carbon_wp_comments.user_id',
+    PRIMARY: [
+        'carbon_wp_comments.comment_ID',
+    ],
+    COLUMNS: {
+      'carbon_wp_comments.comment_ID':'comment_ID',
+'carbon_wp_comments.comment_post_ID':'comment_post_ID',
+'carbon_wp_comments.comment_author':'comment_author',
+'carbon_wp_comments.comment_author_email':'comment_author_email',
+'carbon_wp_comments.comment_author_url':'comment_author_url',
+'carbon_wp_comments.comment_author_IP':'comment_author_IP',
+'carbon_wp_comments.comment_date':'comment_date',
+'carbon_wp_comments.comment_date_gmt':'comment_date_gmt',
+'carbon_wp_comments.comment_content':'comment_content',
+'carbon_wp_comments.comment_karma':'comment_karma',
+'carbon_wp_comments.comment_approved':'comment_approved',
+'carbon_wp_comments.comment_agent':'comment_agent',
+'carbon_wp_comments.comment_type':'comment_type',
+'carbon_wp_comments.comment_parent':'comment_parent',
+'carbon_wp_comments.user_id':'user_id',
+    },
+    REGEX_VALIDATION: {
+    }
+
+}
+
+  
+
+export interface  iWp_Links {
+      'link_id'?: string;
+      'link_url'?: string;
+      'link_name'?: string;
+      'link_image'?: string;
+      'link_target'?: string;
+      'link_description'?: string;
+      'link_visible'?: string;
+      'link_owner'?: string;
+      'link_rating'?: string;
+      'link_updated'?: string;
+      'link_rel'?: string;
+      'link_notes'?: string;
+      'link_rss'?: string;
+}
+
+interface iDefineWp_Links {
+      'LINK_ID': string;
+      'LINK_URL': string;
+      'LINK_NAME': string;
+      'LINK_IMAGE': string;
+      'LINK_TARGET': string;
+      'LINK_DESCRIPTION': string;
+      'LINK_VISIBLE': string;
+      'LINK_OWNER': string;
+      'LINK_RATING': string;
+      'LINK_UPDATED': string;
+      'LINK_REL': string;
+      'LINK_NOTES': string;
+      'LINK_RSS': string;
+}
+
+export const wp_links : C6RestfulModel & iDefineWp_Links = {
+    TABLE_NAME:'wp_links',
+    LINK_ID: 'carbon_wp_links.link_id',
+    LINK_URL: 'carbon_wp_links.link_url',
+    LINK_NAME: 'carbon_wp_links.link_name',
+    LINK_IMAGE: 'carbon_wp_links.link_image',
+    LINK_TARGET: 'carbon_wp_links.link_target',
+    LINK_DESCRIPTION: 'carbon_wp_links.link_description',
+    LINK_VISIBLE: 'carbon_wp_links.link_visible',
+    LINK_OWNER: 'carbon_wp_links.link_owner',
+    LINK_RATING: 'carbon_wp_links.link_rating',
+    LINK_UPDATED: 'carbon_wp_links.link_updated',
+    LINK_REL: 'carbon_wp_links.link_rel',
+    LINK_NOTES: 'carbon_wp_links.link_notes',
+    LINK_RSS: 'carbon_wp_links.link_rss',
+    PRIMARY: [
+        'carbon_wp_links.link_id',
+    ],
+    COLUMNS: {
+      'carbon_wp_links.link_id':'link_id',
+'carbon_wp_links.link_url':'link_url',
+'carbon_wp_links.link_name':'link_name',
+'carbon_wp_links.link_image':'link_image',
+'carbon_wp_links.link_target':'link_target',
+'carbon_wp_links.link_description':'link_description',
+'carbon_wp_links.link_visible':'link_visible',
+'carbon_wp_links.link_owner':'link_owner',
+'carbon_wp_links.link_rating':'link_rating',
+'carbon_wp_links.link_updated':'link_updated',
+'carbon_wp_links.link_rel':'link_rel',
+'carbon_wp_links.link_notes':'link_notes',
+'carbon_wp_links.link_rss':'link_rss',
+    },
+    REGEX_VALIDATION: {
+    }
+
+}
+
+  
+
+export interface  iWp_Options {
+      'option_id'?: string;
+      'option_name'?: string;
+      'option_value'?: string;
+      'autoload'?: string;
+}
+
+interface iDefineWp_Options {
+      'OPTION_ID': string;
+      'OPTION_NAME': string;
+      'OPTION_VALUE': string;
+      'AUTOLOAD': string;
+}
+
+export const wp_options : C6RestfulModel & iDefineWp_Options = {
+    TABLE_NAME:'wp_options',
+    OPTION_ID: 'carbon_wp_options.option_id',
+    OPTION_NAME: 'carbon_wp_options.option_name',
+    OPTION_VALUE: 'carbon_wp_options.option_value',
+    AUTOLOAD: 'carbon_wp_options.autoload',
+    PRIMARY: [
+        'carbon_wp_options.option_id',
+    ],
+    COLUMNS: {
+      'carbon_wp_options.option_id':'option_id',
+'carbon_wp_options.option_name':'option_name',
+'carbon_wp_options.option_value':'option_value',
+'carbon_wp_options.autoload':'autoload',
+    },
+    REGEX_VALIDATION: {
+    }
+
+}
+
+  
+
+export interface  iWp_Postmeta {
+      'meta_id'?: string;
+      'post_id'?: string;
+      'meta_key'?: string;
+      'meta_value'?: string;
+}
+
+interface iDefineWp_Postmeta {
+      'META_ID': string;
+      'POST_ID': string;
+      'META_KEY': string;
+      'META_VALUE': string;
+}
+
+export const wp_postmeta : C6RestfulModel & iDefineWp_Postmeta = {
+    TABLE_NAME:'wp_postmeta',
+    META_ID: 'carbon_wp_postmeta.meta_id',
+    POST_ID: 'carbon_wp_postmeta.post_id',
+    META_KEY: 'carbon_wp_postmeta.meta_key',
+    META_VALUE: 'carbon_wp_postmeta.meta_value',
+    PRIMARY: [
+        'carbon_wp_postmeta.meta_id',
+    ],
+    COLUMNS: {
+      'carbon_wp_postmeta.meta_id':'meta_id',
+'carbon_wp_postmeta.post_id':'post_id',
+'carbon_wp_postmeta.meta_key':'meta_key',
+'carbon_wp_postmeta.meta_value':'meta_value',
+    },
+    REGEX_VALIDATION: {
+    }
+
+}
+
+  
+
+export interface  iWp_Posts {
+      'ID'?: string;
+      'post_author'?: string;
+      'post_date'?: string;
+      'post_date_gmt'?: string;
+      'post_content'?: string;
+      'post_title'?: string;
+      'post_excerpt'?: string;
+      'post_status'?: string;
+      'comment_status'?: string;
+      'ping_status'?: string;
+      'post_password'?: string;
+      'post_name'?: string;
+      'to_ping'?: string;
+      'pinged'?: string;
+      'post_modified'?: string;
+      'post_modified_gmt'?: string;
+      'post_content_filtered'?: string;
+      'post_parent'?: string;
+      'guid'?: string;
+      'menu_order'?: string;
+      'post_type'?: string;
+      'post_mime_type'?: string;
+      'comment_count'?: string;
+}
+
+interface iDefineWp_Posts {
+      'ID': string;
+      'POST_AUTHOR': string;
+      'POST_DATE': string;
+      'POST_DATE_GMT': string;
+      'POST_CONTENT': string;
+      'POST_TITLE': string;
+      'POST_EXCERPT': string;
+      'POST_STATUS': string;
+      'COMMENT_STATUS': string;
+      'PING_STATUS': string;
+      'POST_PASSWORD': string;
+      'POST_NAME': string;
+      'TO_PING': string;
+      'PINGED': string;
+      'POST_MODIFIED': string;
+      'POST_MODIFIED_GMT': string;
+      'POST_CONTENT_FILTERED': string;
+      'POST_PARENT': string;
+      'GUID': string;
+      'MENU_ORDER': string;
+      'POST_TYPE': string;
+      'POST_MIME_TYPE': string;
+      'COMMENT_COUNT': string;
+}
+
+export const wp_posts : C6RestfulModel & iDefineWp_Posts = {
+    TABLE_NAME:'wp_posts',
+    ID: 'carbon_wp_posts.ID',
+    POST_AUTHOR: 'carbon_wp_posts.post_author',
+    POST_DATE: 'carbon_wp_posts.post_date',
+    POST_DATE_GMT: 'carbon_wp_posts.post_date_gmt',
+    POST_CONTENT: 'carbon_wp_posts.post_content',
+    POST_TITLE: 'carbon_wp_posts.post_title',
+    POST_EXCERPT: 'carbon_wp_posts.post_excerpt',
+    POST_STATUS: 'carbon_wp_posts.post_status',
+    COMMENT_STATUS: 'carbon_wp_posts.comment_status',
+    PING_STATUS: 'carbon_wp_posts.ping_status',
+    POST_PASSWORD: 'carbon_wp_posts.post_password',
+    POST_NAME: 'carbon_wp_posts.post_name',
+    TO_PING: 'carbon_wp_posts.to_ping',
+    PINGED: 'carbon_wp_posts.pinged',
+    POST_MODIFIED: 'carbon_wp_posts.post_modified',
+    POST_MODIFIED_GMT: 'carbon_wp_posts.post_modified_gmt',
+    POST_CONTENT_FILTERED: 'carbon_wp_posts.post_content_filtered',
+    POST_PARENT: 'carbon_wp_posts.post_parent',
+    GUID: 'carbon_wp_posts.guid',
+    MENU_ORDER: 'carbon_wp_posts.menu_order',
+    POST_TYPE: 'carbon_wp_posts.post_type',
+    POST_MIME_TYPE: 'carbon_wp_posts.post_mime_type',
+    COMMENT_COUNT: 'carbon_wp_posts.comment_count',
+    PRIMARY: [
+        'carbon_wp_posts.ID',
+    ],
+    COLUMNS: {
+      'carbon_wp_posts.ID':'ID',
+'carbon_wp_posts.post_author':'post_author',
+'carbon_wp_posts.post_date':'post_date',
+'carbon_wp_posts.post_date_gmt':'post_date_gmt',
+'carbon_wp_posts.post_content':'post_content',
+'carbon_wp_posts.post_title':'post_title',
+'carbon_wp_posts.post_excerpt':'post_excerpt',
+'carbon_wp_posts.post_status':'post_status',
+'carbon_wp_posts.comment_status':'comment_status',
+'carbon_wp_posts.ping_status':'ping_status',
+'carbon_wp_posts.post_password':'post_password',
+'carbon_wp_posts.post_name':'post_name',
+'carbon_wp_posts.to_ping':'to_ping',
+'carbon_wp_posts.pinged':'pinged',
+'carbon_wp_posts.post_modified':'post_modified',
+'carbon_wp_posts.post_modified_gmt':'post_modified_gmt',
+'carbon_wp_posts.post_content_filtered':'post_content_filtered',
+'carbon_wp_posts.post_parent':'post_parent',
+'carbon_wp_posts.guid':'guid',
+'carbon_wp_posts.menu_order':'menu_order',
+'carbon_wp_posts.post_type':'post_type',
+'carbon_wp_posts.post_mime_type':'post_mime_type',
+'carbon_wp_posts.comment_count':'comment_count',
+    },
+    REGEX_VALIDATION: {
+    }
+
+}
+
+  
+
+export interface  iWp_Term_Relationships {
+      'object_id'?: string;
+      'term_taxonomy_id'?: string;
+      'term_order'?: string;
+}
+
+interface iDefineWp_Term_Relationships {
+      'OBJECT_ID': string;
+      'TERM_TAXONOMY_ID': string;
+      'TERM_ORDER': string;
+}
+
+export const wp_term_relationships : C6RestfulModel & iDefineWp_Term_Relationships = {
+    TABLE_NAME:'wp_term_relationships',
+    OBJECT_ID: 'carbon_wp_term_relationships.object_id',
+    TERM_TAXONOMY_ID: 'carbon_wp_term_relationships.term_taxonomy_id',
+    TERM_ORDER: 'carbon_wp_term_relationships.term_order',
+    PRIMARY: [
+        'carbon_wp_term_relationships.object_id',
+'carbon_wp_term_relationships.term_taxonomy_id',
+    ],
+    COLUMNS: {
+      'carbon_wp_term_relationships.object_id':'object_id',
+'carbon_wp_term_relationships.term_taxonomy_id':'term_taxonomy_id',
+'carbon_wp_term_relationships.term_order':'term_order',
+    },
+    REGEX_VALIDATION: {
+    }
+
+}
+
+  
+
+export interface  iWp_Term_Taxonomy {
+      'term_taxonomy_id'?: string;
+      'term_id'?: string;
+      'taxonomy'?: string;
+      'description'?: string;
+      'parent'?: string;
+      'count'?: string;
+}
+
+interface iDefineWp_Term_Taxonomy {
+      'TERM_TAXONOMY_ID': string;
+      'TERM_ID': string;
+      'TAXONOMY': string;
+      'DESCRIPTION': string;
+      'PARENT': string;
+      'COUNT': string;
+}
+
+export const wp_term_taxonomy : C6RestfulModel & iDefineWp_Term_Taxonomy = {
+    TABLE_NAME:'wp_term_taxonomy',
+    TERM_TAXONOMY_ID: 'carbon_wp_term_taxonomy.term_taxonomy_id',
+    TERM_ID: 'carbon_wp_term_taxonomy.term_id',
+    TAXONOMY: 'carbon_wp_term_taxonomy.taxonomy',
+    DESCRIPTION: 'carbon_wp_term_taxonomy.description',
+    PARENT: 'carbon_wp_term_taxonomy.parent',
+    COUNT: 'carbon_wp_term_taxonomy.count',
+    PRIMARY: [
+        'carbon_wp_term_taxonomy.term_taxonomy_id',
+    ],
+    COLUMNS: {
+      'carbon_wp_term_taxonomy.term_taxonomy_id':'term_taxonomy_id',
+'carbon_wp_term_taxonomy.term_id':'term_id',
+'carbon_wp_term_taxonomy.taxonomy':'taxonomy',
+'carbon_wp_term_taxonomy.description':'description',
+'carbon_wp_term_taxonomy.parent':'parent',
+'carbon_wp_term_taxonomy.count':'count',
+    },
+    REGEX_VALIDATION: {
+    }
+
+}
+
+  
+
+export interface  iWp_Termmeta {
+      'meta_id'?: string;
+      'term_id'?: string;
+      'meta_key'?: string;
+      'meta_value'?: string;
+}
+
+interface iDefineWp_Termmeta {
+      'META_ID': string;
+      'TERM_ID': string;
+      'META_KEY': string;
+      'META_VALUE': string;
+}
+
+export const wp_termmeta : C6RestfulModel & iDefineWp_Termmeta = {
+    TABLE_NAME:'wp_termmeta',
+    META_ID: 'carbon_wp_termmeta.meta_id',
+    TERM_ID: 'carbon_wp_termmeta.term_id',
+    META_KEY: 'carbon_wp_termmeta.meta_key',
+    META_VALUE: 'carbon_wp_termmeta.meta_value',
+    PRIMARY: [
+        'carbon_wp_termmeta.meta_id',
+    ],
+    COLUMNS: {
+      'carbon_wp_termmeta.meta_id':'meta_id',
+'carbon_wp_termmeta.term_id':'term_id',
+'carbon_wp_termmeta.meta_key':'meta_key',
+'carbon_wp_termmeta.meta_value':'meta_value',
+    },
+    REGEX_VALIDATION: {
+    }
+
+}
+
+  
+
+export interface  iWp_Terms {
+      'term_id'?: string;
+      'name'?: string;
+      'slug'?: string;
+      'term_group'?: string;
+}
+
+interface iDefineWp_Terms {
+      'TERM_ID': string;
+      'NAME': string;
+      'SLUG': string;
+      'TERM_GROUP': string;
+}
+
+export const wp_terms : C6RestfulModel & iDefineWp_Terms = {
+    TABLE_NAME:'wp_terms',
+    TERM_ID: 'carbon_wp_terms.term_id',
+    NAME: 'carbon_wp_terms.name',
+    SLUG: 'carbon_wp_terms.slug',
+    TERM_GROUP: 'carbon_wp_terms.term_group',
+    PRIMARY: [
+        'carbon_wp_terms.term_id',
+    ],
+    COLUMNS: {
+      'carbon_wp_terms.term_id':'term_id',
+'carbon_wp_terms.name':'name',
+'carbon_wp_terms.slug':'slug',
+'carbon_wp_terms.term_group':'term_group',
+    },
+    REGEX_VALIDATION: {
+    }
+
+}
+
+  
+
+export interface  iWp_Usermeta {
+      'umeta_id'?: string;
+      'user_id'?: string;
+      'meta_key'?: string;
+      'meta_value'?: string;
+}
+
+interface iDefineWp_Usermeta {
+      'UMETA_ID': string;
+      'USER_ID': string;
+      'META_KEY': string;
+      'META_VALUE': string;
+}
+
+export const wp_usermeta : C6RestfulModel & iDefineWp_Usermeta = {
+    TABLE_NAME:'wp_usermeta',
+    UMETA_ID: 'carbon_wp_usermeta.umeta_id',
+    USER_ID: 'carbon_wp_usermeta.user_id',
+    META_KEY: 'carbon_wp_usermeta.meta_key',
+    META_VALUE: 'carbon_wp_usermeta.meta_value',
+    PRIMARY: [
+        'carbon_wp_usermeta.umeta_id',
+    ],
+    COLUMNS: {
+      'carbon_wp_usermeta.umeta_id':'umeta_id',
+'carbon_wp_usermeta.user_id':'user_id',
+'carbon_wp_usermeta.meta_key':'meta_key',
+'carbon_wp_usermeta.meta_value':'meta_value',
+    },
+    REGEX_VALIDATION: {
+    }
+
+}
+
+  
+
+export interface  iWp_Users {
+      'ID'?: string;
+      'user_login'?: string;
+      'user_pass'?: string;
+      'user_nicename'?: string;
+      'user_email'?: string;
+      'user_url'?: string;
+      'user_registered'?: string;
+      'user_activation_key'?: string;
+      'user_status'?: string;
+      'display_name'?: string;
+}
+
+interface iDefineWp_Users {
+      'ID': string;
+      'USER_LOGIN': string;
+      'USER_PASS': string;
+      'USER_NICENAME': string;
+      'USER_EMAIL': string;
+      'USER_URL': string;
+      'USER_REGISTERED': string;
+      'USER_ACTIVATION_KEY': string;
+      'USER_STATUS': string;
+      'DISPLAY_NAME': string;
+}
+
+export const wp_users : C6RestfulModel & iDefineWp_Users = {
+    TABLE_NAME:'wp_users',
+    ID: 'carbon_wp_users.ID',
+    USER_LOGIN: 'carbon_wp_users.user_login',
+    USER_PASS: 'carbon_wp_users.user_pass',
+    USER_NICENAME: 'carbon_wp_users.user_nicename',
+    USER_EMAIL: 'carbon_wp_users.user_email',
+    USER_URL: 'carbon_wp_users.user_url',
+    USER_REGISTERED: 'carbon_wp_users.user_registered',
+    USER_ACTIVATION_KEY: 'carbon_wp_users.user_activation_key',
+    USER_STATUS: 'carbon_wp_users.user_status',
+    DISPLAY_NAME: 'carbon_wp_users.display_name',
+    PRIMARY: [
+        'carbon_wp_users.ID',
+    ],
+    COLUMNS: {
+      'carbon_wp_users.ID':'ID',
+'carbon_wp_users.user_login':'user_login',
+'carbon_wp_users.user_pass':'user_pass',
+'carbon_wp_users.user_nicename':'user_nicename',
+'carbon_wp_users.user_email':'user_email',
+'carbon_wp_users.user_url':'user_url',
+'carbon_wp_users.user_registered':'user_registered',
+'carbon_wp_users.user_activation_key':'user_activation_key',
+'carbon_wp_users.user_status':'user_status',
+'carbon_wp_users.display_name':'display_name',
+    },
+    REGEX_VALIDATION: {
+    }
+
+}
+
+  
+
+export const TABLES = {
+    
+  carbons: carbons,
+  comments: comments,
+  feature_group_references: feature_group_references,
+  features: features,
+  group_references: group_references,
+  groups: groups,
+  history_logs: history_logs,
+  location_references: location_references,
+  locations: locations,
+  photos: photos,
+  reports: reports,
+  sessions: sessions,
+  user_followers: user_followers,
+  user_groups: user_groups,
+  user_messages: user_messages,
+  user_sessions: user_sessions,
+  user_tasks: user_tasks,
+  users: users,
+  wp_commentmeta: wp_commentmeta,
+  wp_comments: wp_comments,
+  wp_links: wp_links,
+  wp_options: wp_options,
+  wp_postmeta: wp_postmeta,
+  wp_posts: wp_posts,
+  wp_term_relationships: wp_term_relationships,
+  wp_term_taxonomy: wp_term_taxonomy,
+  wp_termmeta: wp_termmeta,
+  wp_terms: wp_terms,
+  wp_usermeta: wp_usermeta,
+  wp_users: wp_users,
+};
+
+export const C6 = {
+
+    // try to 1=1 match the Rest abstract class
+    AS: 'AS',
+    ASC: 'ASC',
+    COUNT: 'COUNT',
+    CURRENT_TIMESTAMP: 'CURRENT_TIMESTAMP',
+    DESC: 'DESC',
+    DISTINCT: 'DISTINCT',
+    EQUAL: '=',
+    EQUAL_NULL_SAFE: '<=>',
+    FULL_OUTER: 'FULL_OUTER',
+    GREATER_THAN: '>',
+    GROUP_BY: 'GROUP_BY',
+    GROUP_CONCAT: 'GROUP_CONCAT',
+    GREATER_THAN_OR_EQUAL_TO: '>=',
+    HAVING: 'HAVING',
+    INNER: 'INNER',
+    JOIN: 'JOIN',
+    LEFT: 'LEFT',
+    LEFT_OUTER: 'LEFT_OUTER',
+    LESS_THAN: '<',
+    LESS_THAN_OR_EQUAL_TO: '<=',
+    LIKE: 'LIKE',
+    LIMIT: 'LIMIT',
+    MIN: 'MIN',
+    MAX: 'MAX',
+    NOW: 'NOW',
+    NOT_EQUAL: '<>',
+    ORDER: 'ORDER',
+    PAGE: 'PAGE',
+    PAGINATION: 'PAGINATION',
+    RIGHT_OUTER: 'RIGHT_OUTER',
+    SELECT: 'SELECT',
+    SUM: 'SUM',
+    TRANSACTION_TIMESTAMP: 'TRANSACTION_TIMESTAMP',
+    UPDATE: 'UPDATE',
+    UNHEX: 'UNHEX',
+    WHERE: 'WHERE',
+    
+    // carbon identifiers
+    DEPENDANT_ON_ENTITY: 'DEPENDANT_ON_ENTITY',
+   
+    // PHP validation
+    OPTIONS: 'OPTIONS',
+    GET: 'GET',
+    POST: 'POST',
+    PUT: 'PUT',
+    REPLACE: 'REPLACE INTO',
+    DELETE: 'DELETE',
+    REST_REQUEST_PREPROCESS_CALLBACKS: 'PREPROCESS',
+    PREPROCESS: 'PREPROCESS',
+    REST_REQUEST_FINNISH_CALLBACKS: 'FINISH',
+    FINISH: 'FINISH',
+    VALIDATE_C6_ENTITY_ID_REGEX: '#^([a-fA-F0-9]{20,35})$#',
+    TABLES: TABLES,
+    ...TABLES
     
 };
 
-
-
-export interface  iCarbons{
-      'entity_pk'?: string;
-'entity_fk'?: string;
-'entity_tag'?: string;
-}
-  
-
-export interface  iComments{
-      'parent_id'?: string;
-'comment_id'?: string;
-'user_id'?: string;
-'comment'?: string;
-}
-  
-
-export interface  iFeature_Group_References{
-      'feature_entity_id'?: string;
-'group_entity_id'?: string;
-}
-  
-
-export interface  iFeatures{
-      'feature_entity_id'?: string;
-'feature_code'?: string;
-'feature_creation_date'?: string;
-}
-  
-
-export interface  iGroup_References{
-      'group_id'?: string;
-'allowed_to_grant_group_id'?: string;
-}
-  
-
-export interface  iGroups{
-      'group_name'?: string;
-'entity_id'?: string;
-'created_by'?: string;
-'creation_date'?: string;
-}
-  
-
-export interface  iHistory_Logs{
-      'history_uuid'?: string;
-'history_table'?: string;
-'history_type'?: string;
-'history_data'?: string;
-'history_original_query'?: string;
-'history_time'?: string;
-}
-  
-
-export interface  iLocation_References{
-      'entity_reference'?: string;
-'location_reference'?: string;
-'location_time'?: string;
-}
-  
-
-export interface  iLocations{
-      'entity_id'?: string;
-'latitude'?: string;
-'longitude'?: string;
-'street'?: string;
-'city'?: string;
-'state'?: string;
-'elevation'?: string;
-'zip'?: string;
-}
-  
-
-export interface  iPhotos{
-      'parent_id'?: string;
-'photo_id'?: string;
-'user_id'?: string;
-'photo_path'?: string;
-'photo_description'?: string;
-}
-  
-
-export interface  iReports{
-      'log_level'?: string;
-'report'?: string;
-'date'?: string;
-'call_trace'?: string;
-}
-  
-
-export interface  iSessions{
-      'user_id'?: string;
-'user_ip'?: string;
-'session_id'?: string;
-'session_expires'?: string;
-'session_data'?: string;
-'user_online_status'?: string;
-}
-  
-
-export interface  iUser_Followers{
-      'follower_table_id'?: string;
-'follows_user_id'?: string;
-'user_id'?: string;
-}
-  
-
-export interface  iUser_Groups{
-      'group_id'?: string;
-'user_id'?: string;
-}
-  
-
-export interface  iUser_Messages{
-      'message_id'?: string;
-'from_user_id'?: string;
-'to_user_id'?: string;
-'message'?: string;
-'message_read'?: string;
-'creation_date'?: string;
-}
-  
-
-export interface  iUser_Sessions{
-      'user_id'?: string;
-'user_ip'?: string;
-'session_id'?: string;
-'session_expires'?: string;
-'session_data'?: string;
-'user_online_status'?: string;
-}
-  
-
-export interface  iUser_Tasks{
-      'task_id'?: string;
-'user_id'?: string;
-'from_id'?: string;
-'task_name'?: string;
-'task_description'?: string;
-'percent_complete'?: string;
-'start_date'?: string;
-'end_date'?: string;
-}
-  
-
-export interface  iUsers{
-      'user_username'?: string;
-'user_password'?: string;
-'user_id'?: string;
-'user_type'?: string;
-'user_sport'?: string;
-'user_session_id'?: string;
-'user_facebook_id'?: string;
-'user_first_name'?: string;
-'user_last_name'?: string;
-'user_profile_pic'?: string;
-'user_profile_uri'?: string;
-'user_cover_photo'?: string;
-'user_birthday'?: string;
-'user_gender'?: string;
-'user_about_me'?: string;
-'user_rank'?: string;
-'user_email'?: string;
-'user_email_code'?: string;
-'user_email_confirmed'?: string;
-'user_generated_string'?: string;
-'user_membership'?: string;
-'user_deactivated'?: string;
-'user_last_login'?: string;
-'user_ip'?: string;
-'user_education_history'?: string;
-'user_location'?: string;
-'user_creation_date'?: string;
-}
-  
-
 export const COLUMNS = {
-      
+    
 'carbon_carbons.entity_pk':'entity_pk',
 'carbon_carbons.entity_fk':'entity_fk',
 'carbon_carbons.entity_tag':'entity_tag',
@@ -774,17 +1615,154 @@ export const COLUMNS = {
 'carbon_users.user_location':'user_location',
 'carbon_users.user_creation_date':'user_creation_date',
 
+'carbon_wp_commentmeta.meta_id':'meta_id',
+'carbon_wp_commentmeta.comment_id':'comment_id',
+'carbon_wp_commentmeta.meta_key':'meta_key',
+'carbon_wp_commentmeta.meta_value':'meta_value',
+
+'carbon_wp_comments.comment_ID':'comment_ID',
+'carbon_wp_comments.comment_post_ID':'comment_post_ID',
+'carbon_wp_comments.comment_author':'comment_author',
+'carbon_wp_comments.comment_author_email':'comment_author_email',
+'carbon_wp_comments.comment_author_url':'comment_author_url',
+'carbon_wp_comments.comment_author_IP':'comment_author_IP',
+'carbon_wp_comments.comment_date':'comment_date',
+'carbon_wp_comments.comment_date_gmt':'comment_date_gmt',
+'carbon_wp_comments.comment_content':'comment_content',
+'carbon_wp_comments.comment_karma':'comment_karma',
+'carbon_wp_comments.comment_approved':'comment_approved',
+'carbon_wp_comments.comment_agent':'comment_agent',
+'carbon_wp_comments.comment_type':'comment_type',
+'carbon_wp_comments.comment_parent':'comment_parent',
+'carbon_wp_comments.user_id':'user_id',
+
+'carbon_wp_links.link_id':'link_id',
+'carbon_wp_links.link_url':'link_url',
+'carbon_wp_links.link_name':'link_name',
+'carbon_wp_links.link_image':'link_image',
+'carbon_wp_links.link_target':'link_target',
+'carbon_wp_links.link_description':'link_description',
+'carbon_wp_links.link_visible':'link_visible',
+'carbon_wp_links.link_owner':'link_owner',
+'carbon_wp_links.link_rating':'link_rating',
+'carbon_wp_links.link_updated':'link_updated',
+'carbon_wp_links.link_rel':'link_rel',
+'carbon_wp_links.link_notes':'link_notes',
+'carbon_wp_links.link_rss':'link_rss',
+
+'carbon_wp_options.option_id':'option_id',
+'carbon_wp_options.option_name':'option_name',
+'carbon_wp_options.option_value':'option_value',
+'carbon_wp_options.autoload':'autoload',
+
+'carbon_wp_postmeta.meta_id':'meta_id',
+'carbon_wp_postmeta.post_id':'post_id',
+'carbon_wp_postmeta.meta_key':'meta_key',
+'carbon_wp_postmeta.meta_value':'meta_value',
+
+'carbon_wp_posts.ID':'ID',
+'carbon_wp_posts.post_author':'post_author',
+'carbon_wp_posts.post_date':'post_date',
+'carbon_wp_posts.post_date_gmt':'post_date_gmt',
+'carbon_wp_posts.post_content':'post_content',
+'carbon_wp_posts.post_title':'post_title',
+'carbon_wp_posts.post_excerpt':'post_excerpt',
+'carbon_wp_posts.post_status':'post_status',
+'carbon_wp_posts.comment_status':'comment_status',
+'carbon_wp_posts.ping_status':'ping_status',
+'carbon_wp_posts.post_password':'post_password',
+'carbon_wp_posts.post_name':'post_name',
+'carbon_wp_posts.to_ping':'to_ping',
+'carbon_wp_posts.pinged':'pinged',
+'carbon_wp_posts.post_modified':'post_modified',
+'carbon_wp_posts.post_modified_gmt':'post_modified_gmt',
+'carbon_wp_posts.post_content_filtered':'post_content_filtered',
+'carbon_wp_posts.post_parent':'post_parent',
+'carbon_wp_posts.guid':'guid',
+'carbon_wp_posts.menu_order':'menu_order',
+'carbon_wp_posts.post_type':'post_type',
+'carbon_wp_posts.post_mime_type':'post_mime_type',
+'carbon_wp_posts.comment_count':'comment_count',
+
+'carbon_wp_term_relationships.object_id':'object_id',
+'carbon_wp_term_relationships.term_taxonomy_id':'term_taxonomy_id',
+'carbon_wp_term_relationships.term_order':'term_order',
+
+'carbon_wp_term_taxonomy.term_taxonomy_id':'term_taxonomy_id',
+'carbon_wp_term_taxonomy.term_id':'term_id',
+'carbon_wp_term_taxonomy.taxonomy':'taxonomy',
+'carbon_wp_term_taxonomy.description':'description',
+'carbon_wp_term_taxonomy.parent':'parent',
+'carbon_wp_term_taxonomy.count':'count',
+
+'carbon_wp_termmeta.meta_id':'meta_id',
+'carbon_wp_termmeta.term_id':'term_id',
+'carbon_wp_termmeta.meta_key':'meta_key',
+'carbon_wp_termmeta.meta_value':'meta_value',
+
+'carbon_wp_terms.term_id':'term_id',
+'carbon_wp_terms.name':'name',
+'carbon_wp_terms.slug':'slug',
+'carbon_wp_terms.term_group':'term_group',
+
+'carbon_wp_usermeta.umeta_id':'umeta_id',
+'carbon_wp_usermeta.user_id':'user_id',
+'carbon_wp_usermeta.meta_key':'meta_key',
+'carbon_wp_usermeta.meta_value':'meta_value',
+
+'carbon_wp_users.ID':'ID',
+'carbon_wp_users.user_login':'user_login',
+'carbon_wp_users.user_pass':'user_pass',
+'carbon_wp_users.user_nicename':'user_nicename',
+'carbon_wp_users.user_email':'user_email',
+'carbon_wp_users.user_url':'user_url',
+'carbon_wp_users.user_registered':'user_registered',
+'carbon_wp_users.user_activation_key':'user_activation_key',
+'carbon_wp_users.user_status':'user_status',
+'carbon_wp_users.display_name':'display_name',
+
 };
 
 //export type RestTables = "$all_table_names_types";
 
-export type RestTableInterfaces = iCarbons | iComments | iFeature_Group_References | iFeatures | iGroup_References | iGroups | iHistory_Logs | iLocation_References | iLocations | iPhotos | iReports | iSessions | iUser_Followers | iUser_Groups | iUser_Messages | iUser_Sessions | iUser_Tasks | iUsers;
+export type RestTableInterfaces = iCarbons
+	| iComments
+	| iFeature_Group_References
+	| iFeatures
+	| iGroup_References
+	| iGroups
+	| iHistory_Logs
+	| iLocation_References
+	| iLocations
+	| iPhotos
+	| iReports
+	| iSessions
+	| iUser_Followers
+	| iUser_Groups
+	| iUser_Messages
+	| iUser_Sessions
+	| iUser_Tasks
+	| iUsers
+	| iWp_Commentmeta
+	| iWp_Comments
+	| iWp_Links
+	| iWp_Options
+	| iWp_Postmeta
+	| iWp_Posts
+	| iWp_Term_Relationships
+	| iWp_Term_Taxonomy
+	| iWp_Termmeta
+	| iWp_Terms
+	| iWp_Usermeta
+	| iWp_Users;
 
 export const convertForRequestBody = function(restfulObject: RestTableInterfaces, tableName: string) {
   let payload = {};
   Object.keys(restfulObject).map(value => {
     let exactReference = value.toUpperCase();
+    // @ts-ignore todo - figure out how to type this
     if (exactReference in C6[tableName]) {
+      // @ts-ignore
       payload[C6[tableName][exactReference]] = restfulObject[value]
     }
     return true;
