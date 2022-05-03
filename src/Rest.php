@@ -2301,7 +2301,9 @@ abstract class Rest extends Database
                              **/
                             $maxLength = $info[self::MAX_LENGTH] === '' ? null : (int)$info[self::MAX_LENGTH];
 
-                            $stmt->bindParam(":$shortName", $iValue[$fullName], $info[self::PDO_TYPE],
+                            $stmt->bindParam(":$shortName",
+                                $iValue[$fullName],
+                                $info[self::PDO_TYPE],
                                 $maxLength);
 
                         } elseif ('json' === $info[self::MYSQL_TYPE]) {
@@ -3807,7 +3809,27 @@ TRIGGER;
 
             if (!is_array($validation)) {
 
-                throw new PublicAlert('Each PHP_VALIDATION should equal an array of arrays with [ call => method , structure followed by any additional arguments ]. Refer to Carbonphp.com for more information.');
+                if (is_callable($validation)) {
+
+                    if (empty($rest)) {
+
+                        if (false === call_user_func_array($validation, [&self::$REST_REQUEST_PARAMETERS])) {
+
+                            throw new PublicAlert('A global request callable validation failed, please make sure the arguments are correct.');
+
+                        }
+
+                    } else if (false === call_user_func_array($validation, [&$rest])) {
+
+                        throw new PublicAlert('A column request validation callable validation failed, please make sure arguments are correct.');
+
+                    }
+
+                    return;
+
+                }
+
+                throw new PublicAlert('Each PHP_VALIDATION should equal an array of arrays or callables with [ call => method , structure followed by any additional arguments ]. Refer to Carbonphp.com for more information.');
 
             }
 

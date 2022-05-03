@@ -1291,6 +1291,12 @@ HALT;
 
         $currentColumns = exec('tput cols', $output, $resultCode);
 
+        if (is_array($output)) {
+
+            $output = implode(' ', $output);
+
+        }
+
         if (false !== strpos($output, 'No such device or address')) {
 
             $skipStatus = true;
