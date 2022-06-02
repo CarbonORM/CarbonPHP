@@ -13,6 +13,7 @@
       <sourceFolder url="file://$MODULE_DIR$/tests/browser" isTestSource="false" packagePrefix="Tests\Browser\" />
       <sourceFolder url="file://$MODULE_DIR$/tests/feature" isTestSource="false" packagePrefix="Tests\Feature\" />
       <sourceFolder url="file://$MODULE_DIR$/config" isTestSource="false" packagePrefix="Config\" />
+      <sourceFolder url="file://$MODULE_DIR$/src/restful" isTestSource="false" packagePrefix="CarbonPHP\Restful\" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/richardtmiles/carbonphp" />
     </content>
     <orderEntry type="inheritedJdk" />

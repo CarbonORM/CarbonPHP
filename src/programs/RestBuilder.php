@@ -1133,6 +1133,152 @@ END;
 
             // $all_table_names_types = implode(PHP_EOL . '" | "', $all_table_names_types);
 
+            $constants = "    // try to 1=1 match the Rest abstract class
+    ADDDATE: '" . Rest::ADDDATE . "',
+    ADDTIME: '" . Rest::ADDTIME . "',
+    AS: '" . Rest::AS . "',
+    ASC: '" . Rest::ASC . "',
+    
+    BETWEEN: '" . Rest::BETWEEN . "',
+    
+    CONVERT_TZ: '" . Rest::CONVERT_TZ . "',
+    COUNT: '" . Rest::COUNT . "',
+    COUNT_ALL: '" . Rest::COUNT_ALL . "',
+    CURRENT_DATE: '" . Rest::CURRENT_DATE . "',
+    CURRENT_TIMESTAMP: '" . Rest::CURRENT_TIMESTAMP . "',
+    
+    DAY: '" . Rest::DAY . "',
+    DAY_HOUR: '" . Rest::DAY_HOUR . "',
+    DAY_MICROSECOND: '" . Rest::DAY_MICROSECOND . "',
+    DAY_MINUTE: '" . Rest::DAY_MINUTE . "',
+    DAY_SECOND: '" . Rest::DAY_SECOND . "',
+    DAYNAME: '" . Rest::DAYNAME . "',
+    DAYOFMONTH: '" . Rest::DAYOFMONTH . "',
+    DAYOFWEEK: '" . Rest::DAYOFWEEK . "',
+    DAYOFYEAR: '" . Rest::DAYOFYEAR . "',
+    DATE: '" . Rest::DATE . "',
+    DATE_ADD: '" . Rest::DATE_ADD . "',
+    DATEDIFF: '" . Rest::DATEDIFF . "',
+    DATE_SUB: '" . Rest::DATE_SUB . "',
+    DATE_FORMAT: '" . Rest::DATE_FORMAT . "',
+    DESC: '" . Rest::DESC . "',
+    DISTINCT: '" . Rest::DISTINCT . "',
+    
+    EXTRACT: '" . Rest::EXTRACT . "',
+    EQUAL: '" . Rest::EQUAL . "',
+    EQUAL_NULL_SAFE: '" . Rest::EQUAL_NULL_SAFE . "',
+    
+    FALSE: '" . Rest::FALSE . "',
+    FULL_OUTER: '" . Rest::FULL_OUTER . "',
+    FROM_DAYS: '" . Rest::FROM_DAYS . "',
+    FROM_UNIXTIME: '" . Rest::FROM_UNIXTIME . "',
+    
+    GET_FORMAT: '" . Rest::GET_FORMAT . "',
+    GREATER_THAN: '" . Rest::GREATER_THAN . "',
+    GROUP_BY: '" . Rest::GROUP_BY . "',
+    GROUP_CONCAT: '" . Rest::GROUP_CONCAT . "',
+    GREATER_THAN_OR_EQUAL_TO: '" . Rest::GREATER_THAN_OR_EQUAL_TO . "',
+    
+    HAVING: '" . Rest::HAVING . "',
+    HEX: '" . Rest::HEX . "',
+    HOUR: '" . Rest::HOUR . "',
+    HOUR_MICROSECOND: '" . Rest::HOUR_MICROSECOND . "',
+    HOUR_SECOND: '" . Rest::HOUR_SECOND . "',
+    HOUR_MINUTE: '" . Rest::HOUR_MINUTE . "',
+    
+    IN: '" . Rest::IN . "',
+    IS: '" . Rest::IS . "',
+    INNER: '" . Rest::INNER . "',
+    INTERVAL: '" . Rest::INTERVAL . "',
+    
+    JOIN: '" . Rest::JOIN . "',
+    
+    LEFT: '" . Rest::LEFT . "',
+    LEFT_OUTER: '" . Rest::LEFT_OUTER . "',
+    LESS_THAN: '" . Rest::LESS_THAN . "',
+    LESS_THAN_OR_EQUAL_TO: '" . Rest::LESS_THAN_OR_EQUAL_TO . "',
+    LIKE: '" . Rest::LIKE . "',
+    LIMIT: '" . Rest::LIMIT . "',
+    LOCALTIME: '" . Rest::LOCALTIME . "',
+    LOCALTIMESTAMP: '" . Rest::LOCALTIMESTAMP . "',
+    
+    MAKEDATE: '" . Rest::MAKEDATE . "',
+    MAKETIME: '" . Rest::MAKETIME . "',
+    MONTHNAME: '" . Rest::MONTHNAME . "',
+    MICROSECOND: '" . Rest::MICROSECOND . "',
+    MINUTE: '" . Rest::MINUTE . "',
+    MINUTE_MICROSECOND: '" . Rest::MINUTE_MICROSECOND . "',
+    MINUTE_SECOND: '" . Rest::MINUTE_SECOND . "',
+    MIN: '" . Rest::MIN . "',
+    MAX: '" . Rest::MAX . "',
+    MONTH: '" . Rest::MONTH . "',
+    
+    NOT_LIKE: '" . Rest::NOT_LIKE . "',
+    NOT_EQUAL: '" . Rest::NOT_EQUAL . "',
+    NOT_IN: '" . Rest::NOT_IN . "',
+    NOW: '" . Rest::NOW . "',
+    NULL: '" . Rest::NULL . "',
+    
+    ORDER: '" . Rest::ORDER . "',
+    
+    PAGE: '" . Rest::PAGE . "',
+    PAGINATION: '" . Rest::PAGINATION . "',
+    RIGHT_OUTER: '" . Rest::RIGHT_OUTER . "',
+    
+    SECOND: '" . Rest::SECOND . "',
+    SECOND_MICROSECOND: '" . Rest::SECOND_MICROSECOND . "',
+    SELECT: '" . Rest::SELECT . "',
+    STR_TO_DATE: '" . Rest::STR_TO_DATE . "',
+    SUBDATE: '" . Rest::SUBDATE . "',
+    SUBTIME: '" . Rest::SUBTIME . "',
+    SUM: '" . Rest::SUM . "',
+    SYSDATE: '" . Rest::SYSDATE . "',
+    
+    TIME: '" . Rest::TIME . "',
+    TIME_FORMAT: '" . Rest::TIME_FORMAT . "',
+    TIME_TO_SEC: '" . Rest::TIME_TO_SEC . "',
+    TIMEDIFF: '" . Rest::TIMEDIFF . "',
+    TIMESTAMP: '" . Rest::TIMESTAMP . "',
+    TIMESTAMPADD: '" . Rest::TIMESTAMPADD . "',
+    TIMESTAMPDIFF: '" . Rest::TIMESTAMPDIFF . "',
+    TO_DAYS: '" . Rest::TO_DAYS . "',
+    TO_SECONDS: '" . Rest::TO_SECONDS . "',
+    TRANSACTION_TIMESTAMP: '" . Rest::TRANSACTION_TIMESTAMP . "',
+    TRUE: '" . Rest::TRUE . "',
+    
+    UNIX_TIMESTAMP: '" . Rest::UNIX_TIMESTAMP . "',
+    UNKNOWN: '" . Rest::UNKNOWN . "',
+    UPDATE: '" . Rest::UPDATE . "',
+    UNHEX: '" . Rest::UNHEX . "',
+    UTC_DATE: '" . Rest::UNHEX . "',
+    UTC_TIME: '" . Rest::UNHEX . "',
+    UTC_TIMESTAMP: '" . Rest::UNHEX . "',
+    
+    WHERE: '" . Rest::WHERE . "',
+    WEEKDAY: '" . Rest::WEEKDAY . "',
+    WEEKOFYEAR: '" . Rest::WEEKOFYEAR . "',
+    
+    YEARWEEK: '" . Rest::YEARWEEK . "',
+   
+    
+    // carbon identifiers
+    DEPENDANT_ON_ENTITY: '" . Rest::DEPENDANT_ON_ENTITY . "',
+   
+    // PHP validation
+    OPTIONS: '" . Rest::OPTIONS . "',
+    GET: '" . Rest::GET . "',
+    POST: '" . Rest::POST . "',
+    PUT: '" . Rest::PUT . "',
+    REPLACE: '" . Rest::REPLACE . "',
+    DELETE: '" . Rest::DELETE . "',
+    REST_REQUEST_PREPROCESS_CALLBACKS: '" . Rest::REST_REQUEST_PREPROCESS_CALLBACKS . "',
+    PREPROCESS: '" . Rest::PREPROCESS . "',
+    REST_REQUEST_FINNISH_CALLBACKS: '" . Rest::REST_REQUEST_FINNISH_CALLBACKS . "',
+    FINISH: '" . Rest::FINISH . "',
+    VALIDATE_C6_ENTITY_ID_REGEX: '" . Rest::VALIDATE_C6_ENTITY_ID_REGEX . "',
+";
+
+
             // the actual Typescript export, the jsx version is below
             $export = /** @lang TypeScript JSX */
                 "
@@ -1163,59 +1309,7 @@ export const TABLES = {
 
 export const C6 = {
 
-    // try to 1=1 match the Rest abstract class
-    AS: '" . Rest::AS . "',
-    ASC: '" . Rest::ASC . "',
-    COUNT: '" . Rest::COUNT . "',
-    CURRENT_TIMESTAMP: '" . Rest::CURRENT_TIMESTAMP . "',
-    DESC: '" . Rest::DESC . "',
-    DISTINCT: '" . Rest::DISTINCT . "',
-    EQUAL: '" . Rest::EQUAL . "',
-    EQUAL_NULL_SAFE: '" . Rest::EQUAL_NULL_SAFE . "',
-    FULL_OUTER: '" . Rest::FULL_OUTER . "',
-    GREATER_THAN: '" . Rest::GREATER_THAN . "',
-    GROUP_BY: '" . Rest::GROUP_BY . "',
-    GROUP_CONCAT: '" . Rest::GROUP_CONCAT . "',
-    GREATER_THAN_OR_EQUAL_TO: '" . Rest::GREATER_THAN_OR_EQUAL_TO . "',
-    HAVING: '" . Rest::HAVING . "',
-    INNER: '" . Rest::INNER . "',
-    JOIN: '" . Rest::JOIN . "',
-    LEFT: '" . Rest::LEFT . "',
-    LEFT_OUTER: '" . Rest::LEFT_OUTER . "',
-    LESS_THAN: '" . Rest::LESS_THAN . "',
-    LESS_THAN_OR_EQUAL_TO: '" . Rest::LESS_THAN_OR_EQUAL_TO . "',
-    LIKE: '" . Rest::LIKE . "',
-    LIMIT: '" . Rest::LIMIT . "',
-    MIN: '" . Rest::MIN . "',
-    MAX: '" . Rest::MAX . "',
-    NOW: '" . Rest::NOW . "',
-    NOT_EQUAL: '" . Rest::NOT_EQUAL . "',
-    ORDER: '" . Rest::ORDER . "',
-    PAGE: '" . Rest::PAGE . "',
-    PAGINATION: '" . Rest::PAGINATION . "',
-    RIGHT_OUTER: '" . Rest::RIGHT_OUTER . "',
-    SELECT: '" . Rest::SELECT . "',
-    SUM: '" . Rest::SUM . "',
-    TRANSACTION_TIMESTAMP: '" . Rest::TRANSACTION_TIMESTAMP . "',
-    UPDATE: '" . Rest::UPDATE . "',
-    UNHEX: '" . Rest::UNHEX . "',
-    WHERE: '" . Rest::WHERE . "',
-    
-    // carbon identifiers
-    DEPENDANT_ON_ENTITY: '" . Rest::DEPENDANT_ON_ENTITY . "',
-   
-    // PHP validation
-    OPTIONS: '" . Rest::OPTIONS . "',
-    GET: '" . Rest::GET . "',
-    POST: '" . Rest::POST . "',
-    PUT: '" . Rest::PUT . "',
-    REPLACE: '" . Rest::REPLACE . "',
-    DELETE: '" . Rest::DELETE . "',
-    REST_REQUEST_PREPROCESS_CALLBACKS: '" . Rest::REST_REQUEST_PREPROCESS_CALLBACKS . "',
-    PREPROCESS: '" . Rest::PREPROCESS . "',
-    REST_REQUEST_FINNISH_CALLBACKS: '" . Rest::REST_REQUEST_FINNISH_CALLBACKS . "',
-    FINISH: '" . Rest::FINISH . "',
-    VALIDATE_C6_ENTITY_ID_REGEX: '" . Rest::VALIDATE_C6_ENTITY_ID_REGEX . "',
+    $constants
     TABLES: TABLES,
     ...TABLES
     
@@ -1253,61 +1347,7 @@ export const convertForRequestBody = function(restfulObject: RestTableInterfaces
 
 const C6 = {
     
-    // try to 1=1 match the Rest abstract class
-    AS: '" . Rest::AS . "',
-    ASC: '" . Rest::ASC . "',
-    COUNT: '" . Rest::COUNT . "',
-    CURRENT_TIMESTAMP: '" . Rest::CURRENT_TIMESTAMP . "',
-    DESC: '" . Rest::DESC . "',
-    DISTINCT: '" . Rest::DISTINCT . "',
-    EQUAL: '" . Rest::EQUAL . "',
-    EQUAL_NULL_SAFE: '" . Rest::EQUAL_NULL_SAFE . "',
-    FULL_OUTER: '" . Rest::FULL_OUTER . "',
-    GREATER_THAN: '" . Rest::GREATER_THAN . "',
-    GROUP_BY: '" . Rest::GROUP_BY . "',
-    GROUP_CONCAT: '" . Rest::GROUP_CONCAT . "',
-    GREATER_THAN_OR_EQUAL_TO: '" . Rest::GREATER_THAN_OR_EQUAL_TO . "',
-    HAVING: '" . Rest::HAVING . "',
-    INNER: '" . Rest::INNER . "',
-    JOIN: '" . Rest::JOIN . "',
-    LEFT: '" . Rest::LEFT . "',
-    LEFT_OUTER: '" . Rest::LEFT_OUTER . "',
-    LESS_THAN: '" . Rest::LESS_THAN . "',
-    LESS_THAN_OR_EQUAL_TO: '" . Rest::LESS_THAN_OR_EQUAL_TO . "',
-    LIKE: '" . Rest::LIKE . "',
-    LIMIT: '" . Rest::LIMIT . "',
-    MIN: '" . Rest::MIN . "',
-    MAX: '" . Rest::MAX . "',
-    NOT_LIKE: '" . Rest::NOT_LIKE . "',
-    NOW: '" . Rest::NOW . "',
-    NOT_EQUAL: '" . Rest::NOT_EQUAL . "',
-    ORDER: '" . Rest::ORDER . "',
-    PAGE: '" . Rest::PAGE . "',
-    PAGINATION: '" . Rest::PAGINATION . "',
-    RIGHT_OUTER: '" . Rest::RIGHT_OUTER . "',
-    SELECT: '" . Rest::SELECT . "',
-    SUM: '" . Rest::SUM . "',
-    TRANSACTION_TIMESTAMP: '" . Rest::TRANSACTION_TIMESTAMP . "',
-    UPDATE: '" . Rest::UPDATE . "',
-    UNHEX: '" . Rest::UNHEX . "',
-    WHERE: '" . Rest::WHERE . "',
-    
-    // carbon identifiers
-    DEPENDANT_ON_ENTITY: '" . Rest::DEPENDANT_ON_ENTITY . "',
-   
-    // PHP validation
-    OPTIONS: '" . Rest::OPTIONS . "',
-    GET: '" . Rest::GET . "',
-    POST: '" . Rest::POST . "',
-    PUT: '" . Rest::PUT . "',
-    REPLACE: '" . Rest::REPLACE . "',
-    DELETE: '" . Rest::DELETE . "',
-    REST_REQUEST_PREPROCESS_CALLBACKS: '" . Rest::REST_REQUEST_PREPROCESS_CALLBACKS . "',
-    PREPROCESS: '" . Rest::PREPROCESS . "',
-    REST_REQUEST_FINNISH_CALLBACKS: '" . Rest::REST_REQUEST_FINNISH_CALLBACKS . "',
-    FINISH: '" . Rest::FINISH . "',
-    VALIDATE_C6_ENTITY_ID_REGEX: '" . Rest::VALIDATE_C6_ENTITY_ID_REGEX . "',
-
+    $constants
     
     $references_jsx
     

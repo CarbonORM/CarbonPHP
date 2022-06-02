@@ -51,6 +51,7 @@
       "CarbonPHP\\Helpers\\": "src/helpers/",
       "CarbonPHP\\Interfaces\\": "src/interfaces/",
       "CarbonPHP\\Programs\\": "src/programs/",
+      "CarbonPHP\\Restful\\": "src/restful/",
       "CarbonPHP\\Tables\\": "src/tables/",
       "CarbonPHP\\": "src/",
       "Tests\\Browser\\": "tests/browser/",

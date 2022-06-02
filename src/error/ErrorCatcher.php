@@ -1051,6 +1051,8 @@ class ErrorCatcher
 
                 $line_two_html = '';
 
+                $line_one = preg_replace('/(.*) \((\d+)\): (.*)/s','$1:$2: $3', $line_one);
+
                 if (array_key_exists('args', $args[$i])) {
 
                     $line_two_html = json_encode($args[$i]['args'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
