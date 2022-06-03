@@ -16,10 +16,9 @@ abstract class RestQueryValidation extends RestAutoTargeting {
     /**
      * returns true if it is a column name that exists and all user validations pass.
      * return is false otherwise.
-     * @param string $method
      * @param mixed $column
      * @param string|null $operator
-     * @param string|null $value
+     * @param string|null|mixed $value
      * @param bool $default
      * @return bool
      * @throws PublicAlert
@@ -54,6 +53,7 @@ abstract class RestQueryValidation extends RestAutoTargeting {
             }
 
             return true;
+
         }
 
         if (array_key_exists($column, self::$compiled_PDO_validations)) {      // allow short tags
@@ -586,12 +586,6 @@ abstract class RestQueryValidation extends RestAutoTargeting {
 
         }
 
-        if (in_array($array[1], [self::IN, self::NOT_IN, self::AS], true)) {
-
-            return true;
-
-        }
-
         if (in_array($array[0], self::AGGREGATES, true)) {
 
             return true;
@@ -723,6 +717,20 @@ abstract class RestQueryValidation extends RestAutoTargeting {
     public static function has_string_keys(array $array): bool
     {
         return count(array_filter(array_keys($array), 'is_string')) > 0;
+    }
+
+
+    /**
+     * @param mixed $args
+     */
+    public static function sortDump($args): void
+    {
+        sortDump($args);
+    }
+
+    public static function allowSubSelect(): void
+    {
+        self::$allowSubSelectQueries = true;
     }
 
 

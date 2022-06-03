@@ -129,6 +129,7 @@
     "open": "open http://local.carbonphp.com:8080/",
     "socket": "php index.php websocket",
     "test": [
+      "echo 'Use the following to enable XDEBUG :: export XDEBUG_MODE=debug XDEBUG_SESSION=1'",
       "./vendor/bin/phpunit --log-junit junit.xml  --testdox || ./vendor/bin/phpunit --verbose --log-junit junit.xml"
     ],
     "wp": [

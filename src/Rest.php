@@ -25,7 +25,6 @@ use Throwable;
 abstract class Rest extends RestLifeCycle
 {
 
-
     protected static function remove(array &$remove, array $argv, array $primary = null): bool
     {
 
@@ -893,6 +892,5 @@ abstract class Rest extends RestLifeCycle
         return false;
 
     }
-
-
+    
 }

@@ -4,6 +4,7 @@
 namespace Tests\Feature;
 
 
+use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Rest;
 use CarbonPHP\Tables\Location_References;
 use CarbonPHP\Tables\Locations;
@@ -13,34 +14,35 @@ use CarbonPHP\Tables\Users;
 
 class FullRestTest extends CarbonRestTest
 {
+
     public function testGenerateCorrectDistinctCountAndThreeArgumentBooleanConditionsUsingIntAndStringSql(): void
     {
 
         $_GET = [
-            Rest::SELECT => [
-                [Rest::COUNT, Photos::PHOTO_ID, 'countCustomNamed'],
-                [Rest::DISTINCT, Photos::PHOTO_PATH, 'distCustomNamed']
+            iRest::SELECT => [
+                [iRest::COUNT, Photos::PHOTO_ID, 'countCustomNamed'],
+                [iRest::DISTINCT, Photos::PHOTO_PATH, 'distCustomNamed']
             ],
-            Rest::JOIN => [
-                Rest::INNER => [
+            iRest::JOIN => [
+                iRest::INNER => [
                     Locations::TABLE_NAME => [
                         [
                             Locations::ENTITY_ID,
-                            Rest::EQUAL,
+                            iRest::EQUAL,
                             Location_References::LOCATION_REFERENCE
                         ]
                     ],
                 ]
             ],
-            Rest::WHERE => [
-                [Photos::PHOTO_ID, Rest::NOT_EQUAL, 1],
+            iRest::WHERE => [
+                [Photos::PHOTO_ID, iRest::NOT_EQUAL, 1],
                 [Photos::PHOTO_ID => Location_References::ENTITY_REFERENCE],
             ],
-            Rest::GROUP_BY => [
+            iRest::GROUP_BY => [
                 Photos::PHOTO_ID
             ],
-            Rest::PAGINATION => [
-                Rest::LIMIT => 1000,
+            iRest::PAGINATION => [
+                iRest::LIMIT => 1000,
             ]
         ];
 
@@ -52,7 +54,8 @@ class FullRestTest extends CarbonRestTest
 
         $out = trim(ob_get_clean());
 
-        $json_array = json_decode(trim($out), true);
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $json_array = json_decode(trim($out), true, 512, JSON_THROW_ON_ERROR);
 
         self::assertArrayHasKey('sql', $json_array);
 
@@ -68,12 +71,12 @@ class FullRestTest extends CarbonRestTest
     public function testRootLevelJoinConditionBooleanSwitch(): void
     {
         $_GET = [
-            Rest::SELECT => [
+            iRest::SELECT => [
                 Users::USER_USERNAME,
                 Locations::STATE,
             ],
-            Rest::JOIN => [
-                Rest::INNER => [
+            iRest::JOIN => [
+                iRest::INNER => [
                     Location_References::TABLE_NAME => [
                         Users::USER_ID => Location_References::ENTITY_REFERENCE,
                         Users::USER_EMAIL => 'example@example.com', // this very much does not matter
@@ -93,13 +96,13 @@ class FullRestTest extends CarbonRestTest
                     ]
                 ]
             ],
-            Rest::WHERE => [
-                [Users::USER_USERNAME, Rest::LIKE, '%rock%']
+            iRest::WHERE => [
+                [Users::USER_USERNAME, iRest::LIKE, '%rock%']
             ],
-            Rest::PAGINATION => [
-                Rest::LIMIT => 10,
-                Rest::ORDER => [
-                    Users::USER_USERNAME => Rest::ASC
+            iRest::PAGINATION => [
+                iRest::LIMIT => 10,
+                iRest::ORDER => [
+                    Users::USER_USERNAME => iRest::ASC
                 ] // todo - I think Users::USER_USERNAME . Users::ASC worked, or didnt throw an error..
             ]
         ];
@@ -112,6 +115,7 @@ class FullRestTest extends CarbonRestTest
 
         $out = trim(ob_get_clean());
 
+        /** @noinspection JsonEncodingApiUsageInspection */
         $json_array = json_decode(trim($out), true);
 
         self::assertArrayHasKey('sql', $json_array);
@@ -128,12 +132,12 @@ class FullRestTest extends CarbonRestTest
     public function testMultipleJoinConditionsOnSingleTableNoLimit(): void
     {
         $_GET = [
-            Rest::SELECT => [
+            iRest::SELECT => [
                 Users::USER_USERNAME,
                 Locations::STATE,
             ],
-            Rest::JOIN => [
-                Rest::INNER => [
+            iRest::JOIN => [
+                iRest::INNER => [
                     Location_References::TABLE_NAME => [
                         [Users::USER_ID =>
                             Location_References::ENTITY_REFERENCE]
@@ -144,13 +148,13 @@ class FullRestTest extends CarbonRestTest
                     ]
                 ]
             ],
-            Rest::WHERE => [
-                [Users::USER_USERNAME, Rest::LIKE, '%admin%']
+            iRest::WHERE => [
+                [Users::USER_USERNAME, iRest::LIKE, '%admin%']
             ],
-            Rest::PAGINATION => [
-                Rest::LIMIT => null,
-                Rest::ORDER => [
-                    Users::USER_USERNAME => Rest::ASC
+            iRest::PAGINATION => [
+                iRest::LIMIT => null,
+                iRest::ORDER => [
+                    Users::USER_USERNAME => iRest::ASC
                 ] // todo - I think Users::USER_USERNAME . Users::ASC worked, or didnt throw an error..
             ]
         ];
@@ -175,18 +179,90 @@ class FullRestTest extends CarbonRestTest
 
     }
 
+    public function testCanUseIsAggregate(): void {
+
+        $_GET = [
+            iRest::SELECT => [
+                Users::USER_USERNAME,
+            ],
+            iRest::WHERE => [
+                Users::USER_MEMBERSHIP => [ iRest::LESS_THAN, 2],
+                Users::USER_LOCATION => [iRest::IS, iRest::UNKNOWN ],
+            ],
+            iRest::PAGINATION => [
+                iRest::LIMIT => 1,
+                iRest::ORDER => [
+                    Users::USER_USERNAME => iRest::ASC
+                ] // todo - I think Users::USER_USERNAME . Users::ASC worked, or didnt throw an error..
+            ],
+            iRest::GROUP_BY => [
+                Users::USER_USERNAME
+            ],
+        ];
+
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+
+        ob_start(null, 0, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
+
+        self::assertTrue(Rest::ExternalRestfulRequestsAPI(Users::TABLE_NAME, null, Users::CLASS_NAMESPACE));
+
+        $out = trim(ob_get_clean());
+
+        $json_array = json_decode(trim($out), true);
+
+        self::assertCount(1, $json_array['rest']);
+
+        $_GET = [
+            iRest::SELECT => [
+                Users::USER_USERNAME,
+                [ Users::USER_SESSION_ID, iRest::IS, iRest::NULL ],
+                [ Users::USER_SESSION_ID, iRest::IS, iRest::UNKNOWN ],
+                [ Users::USER_SESSION_ID, iRest::IS, iRest::TRUE ],
+                [ Users::USER_SESSION_ID, iRest::IS, iRest::FALSE ]
+            ],
+            iRest::WHERE => [
+                Users::USER_LOCATION => [iRest::IS, iRest::UNKNOWN ],
+                [ Users::USER_SESSION_ID, iRest::IS, iRest::NULL ],
+                [Users::USER_USERNAME, iRest::LIKE, '%admin%']
+            ],
+            iRest::PAGINATION => [
+                iRest::LIMIT => 1,
+                iRest::ORDER => [
+                    Users::USER_USERNAME => iRest::ASC
+                ] // todo - I think Users::USER_USERNAME . Users::ASC worked, or didnt throw an error..
+            ],
+            iRest::GROUP_BY => [
+                Users::USER_USERNAME
+            ],
+        ];
+
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+
+        ob_start(null, 0, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
+
+        self::assertTrue(Rest::ExternalRestfulRequestsAPI(Users::TABLE_NAME, null, Users::CLASS_NAMESPACE));
+
+        $out = trim(ob_get_clean());
+
+        $json_array = json_decode(trim($out), true);
+
+        self::assertCount(5, $json_array['rest']);
+
+    }
+
+
 
     public function testBooleanJoinToNestedAggregateHavingAndGroupBy(): void
     {
         $_GET = [
-            Rest::SELECT => [
+            iRest::SELECT => [
                 Users::USER_USERNAME,
                 Users::USER_ABOUT_ME,
-                [Rest::COUNT, Location_References::ENTITY_REFERENCE],
-                [Rest::DISTINCT, Location_References::ENTITY_REFERENCE],
+                [iRest::COUNT, Location_References::ENTITY_REFERENCE],
+                [iRest::DISTINCT, Location_References::ENTITY_REFERENCE],
             ],
-            Rest::JOIN => [
-                Rest::INNER => [
+            iRest::JOIN => [
+                iRest::INNER => [
                     Location_References::TABLE_NAME => [
                         [Users::USER_ID =>
                             Location_References::ENTITY_REFERENCE]
@@ -197,22 +273,22 @@ class FullRestTest extends CarbonRestTest
                     ]
                 ]
             ],
-            Rest::WHERE => [
-                [Users::USER_USERNAME, Rest::LIKE, '%rock%'],
+            iRest::WHERE => [
+                [Users::USER_USERNAME, iRest::LIKE, '%rock%'],
             ],
-            Rest::GROUP_BY => [
+            iRest::GROUP_BY => [
                 Users::USER_USERNAME
             ],
-            Rest::HAVING => [
+            iRest::HAVING => [
                 Users::USER_ABOUT_ME => [
-                    Rest::NOT_EQUAL,
-                    [Rest::COUNT, Location_References::ENTITY_REFERENCE]
+                    iRest::NOT_EQUAL,
+                    [iRest::COUNT, Location_References::ENTITY_REFERENCE]
                 ]
             ],
-            Rest::PAGINATION => [
-                Rest::LIMIT => null,
-                Rest::ORDER => [
-                    Users::USER_USERNAME => Rest::ASC
+            iRest::PAGINATION => [
+                iRest::LIMIT => null,
+                iRest::ORDER => [
+                    Users::USER_USERNAME => iRest::ASC
                 ]
             ]
         ];
@@ -236,6 +312,7 @@ class FullRestTest extends CarbonRestTest
             $GLOBALS['json']['sql'][0][1] ?? $GLOBALS['json']);
 
     }
+
 
 
 }

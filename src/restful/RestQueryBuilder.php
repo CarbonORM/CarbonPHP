@@ -2,9 +2,11 @@
 
 namespace CarbonPHP\Restful;
 
+use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iColorCode;
+use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
 use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
@@ -13,7 +15,8 @@ use CarbonPHP\Tables\History_Logs;
 use PDO;
 
 
-abstract class RestQueryBuilder extends  RestQueryValidation {
+abstract class RestQueryBuilder extends RestQueryValidation
+{
 
     public static function parseAggregateWithNoOperators(&$aggregate): string
     {
@@ -32,6 +35,9 @@ abstract class RestQueryBuilder extends  RestQueryValidation {
     }
 
 
+    /**
+     * @throws PublicAlert
+     */
     public static function handleSubSelectAggregate(array $stmt): string
     {
 
@@ -81,6 +87,7 @@ abstract class RestQueryBuilder extends  RestQueryValidation {
 
             switch ($setLength) {
 
+                /** @noinspection PhpMissingBreakStatementInspection */
                 case 4:
 
                     [, , , $as] = $stmt;
@@ -124,6 +131,7 @@ abstract class RestQueryBuilder extends  RestQueryValidation {
             };
 
             switch ($setLength) {
+                /** @noinspection PhpMissingBreakStatementInspection */
                 case 5:
 
                     [, , , , $as] = $stmt;
@@ -197,6 +205,27 @@ abstract class RestQueryBuilder extends  RestQueryValidation {
 
     }
 
+    /**
+     * @throws PublicAlert
+     */
+    public static function isAggregate(string $column, $name): string
+    {
+
+        if (true === is_string($name)) {
+
+            $allowedIsAggregations = [self::NULL, self::FALSE, self::TRUE, self::UNKNOWN];
+
+            if (in_array($name, $allowedIsAggregations, true)) {
+
+                return "$column IS $name";
+
+            }
+
+        }
+
+        throw new PublicAlert("The aggregate IS used on column ($column) must be one of (" . implode(', ', $allowedIsAggregations) . ") exclusively; the value ($name) in incorrect.");
+
+    }
 
 
     /**
@@ -231,7 +260,7 @@ abstract class RestQueryBuilder extends  RestQueryValidation {
 
         };
 
-        self::$aggregateSelectEncountered = true;
+        self::$aggregateSelectEncountered = true; # todo - is this correct?
 
         $stmtCount = count($stmt);
 
@@ -259,6 +288,7 @@ abstract class RestQueryBuilder extends  RestQueryValidation {
             switch ($aggregate) {
                 case self::AS:
                 case self::IN:
+                case self::IS:
                 case self::INTERVAL:
                 case self::NOT_IN:
                     break;
@@ -290,10 +320,12 @@ abstract class RestQueryBuilder extends  RestQueryValidation {
 
         }
 
-        if (false === in_array($aggregate, self::AGGREGATES, true)) {
+        $allowedValues = [...self::AGGREGATES, ...self::OPERATORS];
 
-            throw new PublicAlert('The aggregate ( ' . json_encode($stmt) . ') method in the GET request must be one of the following: '
-                . implode(', ', self::AGGREGATES));
+        if (false === in_array($aggregate, $allowedValues, true)) {
+
+            throw new PublicAlert('The attempted aggregate ('.$aggregate.') in query ( ' . json_encode($stmt) . ') in the GET request must be one of the following: '
+                . implode(', ', $allowedValues));
 
         }
 
@@ -305,16 +337,7 @@ abstract class RestQueryBuilder extends  RestQueryValidation {
 
         if (self::IS === $aggregate) {
 
-            $allowedIsAggregates = [self::NULL, self::FALSE, self::UNKNOWN];
-
-            if (in_array($aggregate, $allowedIsAggregates)) {
-
-                return "$column $aggregate $name";
-
-            }
-
-            throw new PublicAlert("The aggregate IS used on column ($column) must be one of (" . implode(', ', $allowedIsAggregates) . ") exclusively; the value ($name) in incorrect.");
-
+            return self::isAggregate($column, $name);
         }
 
         if ('' !== $name) {
@@ -611,7 +634,7 @@ TRIGGER;
 
                     case self::POST:
 
-                        throw new PublicAlert('The post method was executed while running buildQueryWhereValues against table (' . static::class . ')');
+                        throw new PublicAlert('The post method was detected while running buildQueryWhereValues against table (' . static::class . ')');
 
 
                 }
@@ -1015,7 +1038,6 @@ TRIGGER;
     }
 
 
-
     /**
      * @throws PublicAlert
      */
@@ -1146,7 +1168,6 @@ TRIGGER;
             self::NOT_LIKE,
             self::IS
         ];
-
 
         // we have to determine when an aggregate might occur early
         if (true === self::array_of_numeric_keys_and_string_int_or_aggregate_values($set)) {
@@ -1325,7 +1346,6 @@ TRIGGER;
     }
 
 
-
     /**
      * @param array|null $primary
      * @param array $argv
@@ -1386,7 +1406,7 @@ TRIGGER;
 
             } else {
 
-                throw new PublicAlert("Restful error! While trying to add a single condition an array was encountered which was not a valid Aggregate. ($valueOne)");
+                throw new PublicAlert("Restful error! While trying to add a single condition an array was encountered which was not a valid Aggregate. (" . implode(',', $valueOne) . ")");
 
             }
 
@@ -1395,6 +1415,19 @@ TRIGGER;
         } else {
 
             $key_is_custom = false === self::validateInternalColumn($valueOne, $operator, $valueTwo);
+
+        }
+
+
+        if ($operator === iRest::IS) {
+
+            if ($key_is_custom) {
+
+                throw new PublicAlert("A non-internal column key was used in conjunction with the IS aggrogate. addSingleConditionToWhereOrJoin was given (" . implode(',', func_get_args()) . ").");
+
+            }
+
+            return self::isAggregate($valueOne, $valueTwo);
 
         }
 
@@ -1457,7 +1490,6 @@ TRIGGER;
         return self::addInjection($valueOne) . " $operator $valueTwo";
 
     }
-
 
 
 }
