@@ -56,6 +56,8 @@ class Database
      */
     private static ?PDO $database = null;
 
+    private static ?PDO $databaseReader = null;
+
     public static string $carbonDatabaseUsername;
 
     public static string $carbonDatabasePassword;
@@ -66,11 +68,15 @@ class Database
 
     public static string $carbonDatabaseHost;
 
+    public static string $carbonDatabaseReader;
+
     /**
      * @var string $carbonDatabaseDSN holds the connection protocol
      * @link http://php.net/manual/en/pdo.construct.php
      */
     public static string $carbonDatabaseDSN;
+
+    public static string $carbonDatabaseReaderDSN;
 
     /**
      * @var string holds the path of the users database set up file
@@ -116,24 +122,28 @@ HEAD;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 FOOT;
 
-    public static function database(): PDO
+    public static function database(bool $reader = false): PDO
     {
 
-        if (null === self::$database) { // todo - can we get the ini of mysql timeout?
+        $database = $reader ? self::$databaseReader : self::$database;
 
-            return static::reset();
+        if (null === $database) { // todo - can we get the ini of mysql timeout?
+
+            return static::reset($reader);
 
         }
 
         $oldLevel = error_reporting(0);
 
+        $database = $reader ? self::$databaseReader : self::$database;
+
         try {
 
-            self::$database->prepare('SELECT 1')->execute();
+            $database->prepare('SELECT 1')->execute();
 
             error_reporting($oldLevel);
 
-            return static::$database;                       // Why should this work again?
+            return $database;
 
         } catch (Throwable $e) {                            // added for socket support
 
@@ -143,7 +153,7 @@ FOOT;
 
             error_reporting($oldLevel);
 
-            return static::reset();
+            return static::reset($reader);
         }
 
     }
@@ -173,6 +183,8 @@ FOOT;
                     . ' please make sure you are not manually terminating the connection. Attempting to parse error.', iColorCode::BACKGROUND_RED);
 
                 self::reset();
+
+                self::reset(true);
 
                 return;
 
@@ -233,7 +245,7 @@ FOOT;
 
     }
 
-    protected static function newInstance(): PDO
+    protected static function newInstance(bool $reader = false): PDO
     {
 
         $attempts = 0;
@@ -249,14 +261,22 @@ FOOT;
 
                 // exceptions will still fall
                 $db = new PDO(
-                    static::$carbonDatabaseDSN,
+                    $reader ? static::$carbonDatabaseReaderDSN : static::$carbonDatabaseDSN,
                     static::$carbonDatabaseUsername,
                     static::$carbonDatabasePassword,
                     $user_options);
 
                 restore_error_handler();
 
-                self::$database = $db;
+                if ($reader) {
+
+                    self::$database = $db;
+
+                } else {
+
+                    self::$databaseReader = $db;
+
+                }
 
                 $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
@@ -288,7 +308,9 @@ FOOT;
 
         } while ($attempts < 3);
 
-        $message = "Failed to connect to database after ($attempts) attempts.";
+        $databaseType = $reader ? 'reader ' : '';
+
+        $message = "Failed to connect to database {$databaseType}after ($attempts) attempts.";
 
         ColorCode::colorCode($message, iColorCode::RED);
 
@@ -298,10 +320,12 @@ FOOT;
     /** Clears and restarts the PDO connection
      * @return PDO
      */
-    public static function reset(): PDO // built to help preserve database in sockets and forks
+    public static function reset(bool $reader = false): PDO // built to help preserve database in sockets and forks
     {
 
-        if (null !== self::$database) {
+        $database = $reader ? self::$databaseReader : self::$database;
+
+        if (null !== $database) {
 
             self::colorCode('Running PDO resource reset <close/start>', iColorCode::BACKGROUND_CYAN);
 
@@ -313,7 +337,7 @@ FOOT;
 
         }
 
-        return self::newInstance();
+        return self::newInstance($reader);
 
     }
 

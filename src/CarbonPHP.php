@@ -56,6 +56,7 @@ class CarbonPHP
     // CarbonPHP Configuration Keys
     public const DATABASE = 'DATABASE';
     public const DB_HOST = 'DB_HOST';
+    public const DB_READER = 'DB_READER';
     public const DB_PORT = 'DB_PORT';
     public const DB_NAME = 'DB_NAME';
     public const DB_USER = 'DB_USER';
@@ -368,7 +369,6 @@ class CarbonPHP
 
             $imp = array_map('strtolower', array_keys(class_implements($configuration)));
 
-            /** @noinspection ClassConstantUsageCorrectnessInspection */
             if (!in_array(strtolower(iConfig::class), $imp, true)) {
                 print 'The configuration class passed to C6 must implement the interface iConfig!';
                 self::$safelyExit = true;
@@ -529,6 +529,8 @@ class CarbonPHP
 
                 Database::$carbonDatabaseHost = $config[self::DATABASE][self::DB_HOST] ?? '';
 
+                Database::$carbonDatabaseReader = $config[self::DATABASE][self::DB_READER] ?? '';
+
                 Database::$carbonDatabaseDSN = 'mysql:host='
                     . Database::$carbonDatabaseHost
                     . ';dbname='
@@ -536,6 +538,18 @@ class CarbonPHP
                     . (!empty(Database::$carbonDatabasePort)
                         ? ';port=' . Database::$carbonDatabasePort
                         : '');
+
+                if ('' !== Database::$carbonDatabaseReader) {
+
+                    Database::$carbonDatabaseReaderDSN = 'mysql:host='
+                        . Database::$carbonDatabaseReader
+                        . ';dbname='
+                        . Database::$carbonDatabaseName
+                        . (!empty(Database::$carbonDatabasePort)
+                            ? ';port=' . Database::$carbonDatabasePort
+                            : '');
+
+                }
 
                 Database::$carbonDatabaseInitialized = true;
 

@@ -324,7 +324,7 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
         if (false === in_array($aggregate, $allowedValues, true)) {
 
-            throw new PublicAlert('The attempted aggregate ('.$aggregate.') in query ( ' . json_encode($stmt) . ') in the GET request must be one of the following: '
+            throw new PublicAlert('The attempted aggregate (' . $aggregate . ') in query ( ' . json_encode($stmt) . ') in the GET request must be one of the following: '
                 . implode(', ', $allowedValues));
 
         }
@@ -1439,7 +1439,7 @@ TRIGGER;
 
             } else {
 
-                throw new PublicAlert("Restful error! While trying to add a single condition an array was encountered which was not a valid Aggregate. ($valueTwo)");
+                throw new PublicAlert("Restful error! While trying to add a single condition an array was encountered which was not a valid Aggregate. (" . implode(', ', $valueTwo) . ")");
 
             }
 
@@ -1453,7 +1453,7 @@ TRIGGER;
 
         if ($key_is_custom && $value_is_custom) {
 
-            throw new PublicAlert("Rest failed in as you have custom columns ($valueOne) &| ($valueTwo). This may mean you need to regenerate your rest tables or have misspellings in your request. Please uses dedicated constants.");
+            throw new PublicAlert("Rest failed in as you have custom columns ($valueOne) &| ($valueTwo). This may mean you need to regenerate your rest tables, have misspellings in your request, have incorrect aggregation, or join conditions. Please uses dedicated constants; modify your request and try again.");
 
         }
 

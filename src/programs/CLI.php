@@ -234,7 +234,9 @@ class CLI implements iCommand
     {
         $PHP = $this->CONFIG;
         // I do this so the I can pass the argvs correctly to the php executables
-        self::colorCode("\nRunning Command", 'blue');
+        self::colorCode("\nRunning Command", iColorCode::BLUE);
+
+        self::colorCode(implode(' ', $argv), iColorCode::BACKGROUND_MAGENTA);
 
         array_shift($argv);
 

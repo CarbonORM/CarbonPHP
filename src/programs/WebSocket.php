@@ -940,7 +940,7 @@ class WebSocket extends Request implements iCommand
 
         Session::pause();           // Close the current session
 
-        Database::setDatabase(null);    // This will clear the connection
+        Database::setDatabase();    // This will clear the connection
 
         $read = [$this->user, $fifoFile]; // todo I remember this not working when removed.
 

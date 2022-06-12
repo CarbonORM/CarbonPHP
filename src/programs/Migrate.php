@@ -1289,7 +1289,7 @@ HALT;
 
         }
 
-        $currentColumns = exec('tput cols', $output, $resultCode);
+        $currentColumns = exec('tput cols 2> /dev/null', $output, $resultCode);
 
         if (is_array($output)) {
 
@@ -1299,6 +1299,7 @@ HALT;
 
         if (false !== strpos($output, 'No such device or address')) {
 
+            // I believe this to mean no output is being captured?
             $skipStatus = true;
 
             return;
@@ -1311,7 +1312,7 @@ HALT;
 
         }
 
-        $currentLines = exec('tput lines', $output, $resultCode);
+        $currentLines = exec('tput lines 2> /dev/null', $output, $resultCode);
 
         if (0 !== $resultCode || false === $currentLines) {
 
