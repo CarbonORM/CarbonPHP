@@ -1494,7 +1494,7 @@ TRIGGER;
 
             } else {
 
-                throw new PublicAlert("Restful error! While trying to add a single condition an array was encountered which was not a valid Aggregate ($valueOne $operator (" . implode(', ', $valueTwo) . "))");
+                throw new PublicAlert("Restful error! While trying to add a single condition an array was encountered which was not a valid Aggregate (" . implode(',', func_get_args()) . ")");
 
             }
 
