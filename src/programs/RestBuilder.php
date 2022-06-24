@@ -1142,6 +1142,7 @@ END;
     
     BETWEEN: '" . iRest::BETWEEN . "',
     
+    CONCAT: '" . iRest::CONCAT . "',
     CONVERT_TZ: '" . iRest::CONVERT_TZ . "',
     COUNT: '" . iRest::COUNT . "',
     COUNT_ALL: '" . iRest::COUNT_ALL . "',

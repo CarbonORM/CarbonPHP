@@ -17,6 +17,7 @@ interface iRest
 
     public const BETWEEN = 'BETWEEN';
 
+    public const CONCAT = 'CONCAT';
     public const CONVERT_TZ = 'CONVERT_TZ';
     public const COUNT = 'COUNT';
     public const COUNT_ALL = 'COUNT_ALL';
@@ -202,6 +203,7 @@ interface iRest
         '#\s?;$#' => '',
     ];
 
+    // https://dev.mysql.com/doc/refman/8.0/en/aggregate-functions.html
     public const AGGREGATES = [
         self::ADDDATE,
         self::ADDTIME,
@@ -217,12 +219,10 @@ interface iRest
         self::DISTINCT,
         self::NOW,
         self::GROUP_CONCAT,
+        self::CONCAT,
         self::COUNT,
         self::AS,                // just in case were using  $column => [ self::AS, '' ]  syntax
-        self::IN,
-        //self::IS,
         self::INTERVAL,
-        self::NOT_IN,            // Sub-select was handled earlier
     ];
 
     public const OPERATORS = [

@@ -196,7 +196,7 @@ abstract class RestQueryBuilder extends RestQueryValidation
         $sql = "($sql)";
 
         if (!empty($as)) {
-            $sql = "$sql AS $as";
+            $sql = "$sql AS " . self::addInjection($as, [self::PDO_TYPE => null]);
         }
 
         $tableName::completeRest(true);
@@ -229,6 +229,25 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
 
     /**
+     * @throws PublicAlert
+     */
+    private static function validateInternalOrAddInjection(string &$columnOrInjection, string $aggregate, &...$rest): string
+    {
+
+        $value_is_custom = false === self::validateInternalColumn($columnOrInjection, $aggregate, $rest);
+
+        if ($value_is_custom) {
+
+            // this is just a technicality as name could be injected but also referenced in the query
+            $columnOrInjection = self::addInjection($columnOrInjection, [self::PDO_TYPE => null]);
+
+        }
+
+        return $columnOrInjection;
+
+    }
+
+    /**
      * @param array $stmt
      * @param bool $isSubSelect
      * @return string
@@ -245,20 +264,6 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
         }
 
-        $validateInternalOrAddInjection = static function (string $columnOrInjection, string $aggregate, &...$rest) {
-
-            $value_is_custom = false === self::validateInternalColumn($columnOrInjection, $operator, $rest);
-
-            if ($value_is_custom) {
-
-                // this is just a technicality as name could be injected but also referenced in the query
-                return self::addInjection($columnOrInjection, [self::PDO_TYPE => null]);
-
-            }
-
-            return $columnOrInjection;
-
-        };
 
         self::$aggregateSelectEncountered = true; # todo - is this correct?
 
@@ -275,9 +280,9 @@ abstract class RestQueryBuilder extends RestQueryValidation
             }
 
             return $aggregate .
-                "({$validateInternalOrAddInjection($time, $aggregate, $zoneOne, $zoneTwo)},
-                {$validateInternalOrAddInjection($zoneOne, $aggregate, $time, $zoneTwo)},
-                {$validateInternalOrAddInjection($zoneTwo, $aggregate, $time, $zoneOne)})";
+                "(" . self::validateInternalOrAddInjection($time, $aggregate, $zoneOne, $zoneTwo) . ","
+                . self::validateInternalOrAddInjection($zoneOne, $aggregate, $time, $zoneTwo) . ','
+                . self::validateInternalOrAddInjection($zoneTwo, $aggregate, $time, $zoneOne) . ')';
 
         }
 
@@ -286,13 +291,14 @@ abstract class RestQueryBuilder extends RestQueryValidation
             [$column, $aggregate, $name] = $stmt;
 
             switch ($aggregate) {
-                case self::AS:
-                case self::IN:
                 case self::IS:
+                case self::AS:
                 case self::INTERVAL:
+                case self::IN:
                 case self::NOT_IN:
                     break;
                 default:
+                    // this just flips order for aggregates like SUM(), the variable $name is preserved
                     [$aggregate, $column] = $stmt;
             }
 
@@ -329,15 +335,44 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
         }
 
-        if (false === self::validateInternalColumn($column, $aggregate)) {
+        if ($aggregate === self::CONCAT) {
 
-            throw new PublicAlert("The column value of ($column) caused validateInternalColumn to fail. Possible values include (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
+            if (false === is_array($column) || empty($column)) {
+
+                throw new PublicAlert("Aggregation failed for $aggregate. Arguments must be a sub-array. ($column)");
+
+            }
+
+            $returnIsAggregate = [];
+
+            foreach ($column as $item) {
+
+                $returnIsAggregate [] = self::validateInternalOrAddInjection($item, $aggregate, $column);
+
+            }
+
+            return self::CONCAT . '(' . implode(',', $returnIsAggregate) . ')';
 
         }
 
-        if (self::IS === $aggregate) {
 
-            return self::isAggregate($column, $name);
+        if (false === self::validateInternalColumn($column, $aggregate)) {
+
+            /** @noinspection JsonEncodingApiUsageInspection */
+            throw new PublicAlert("The column value of stmt (" . json_encode($stmt) . ") caused validateInternalColumn to fail. Possible values include (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
+
+        }
+
+        switch ($aggregate) {
+            case self::NOT_IN:
+            case self::IN:
+
+                return self::inAggergaation($column, $aggregate, $name);
+
+            case self::IS:
+
+                return self::isAggregate($column, $name);
+
         }
 
         if ('' !== $name) {
@@ -409,6 +444,25 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
         }
 
+    }
+
+    public static function inAggergaation($column, $aggregate, array $values)
+    {
+        if (false === is_array($values)) {
+
+            throw new PublicAlert('Rest IN aggregate error (' . $column . ') required an array!');
+
+        }
+
+        $returnIsAggregate = [];
+
+        foreach ($values as $item) {
+
+            $returnIsAggregate [] = self::validateInternalOrAddInjection($item, $aggregate, $column);
+
+        }
+
+        return "$column $aggregate ( " . implode(',', $returnIsAggregate) . ' )';
     }
 
     public static function buildMysqlHistoryTrigger(string $table): void
@@ -583,7 +637,7 @@ TRIGGER;
 
         }
 
-        return $inject;
+        return " $inject ";
 
     }
 
@@ -1154,20 +1208,7 @@ TRIGGER;
         $sql = '';
 
         // this is designed to be different than buildAggregate
-        $supportedOperators = [
-            self::GREATER_THAN_OR_EQUAL_TO,
-            self::GREATER_THAN,
-            self::LESS_THAN_OR_EQUAL_TO,
-            self::LESS_THAN,
-            self::EQUAL,
-            self::EQUAL_NULL_SAFE,
-            self::NOT_EQUAL,
-            self::IN,
-            self::NOT_IN,
-            self::LIKE,
-            self::NOT_LIKE,
-            self::IS
-        ];
+        $supportedOperators = iRest::OPERATORS;
 
         // we have to determine when an aggregate might occur early
         if (true === self::array_of_numeric_keys_and_string_int_or_aggregate_values($set)) {
@@ -1406,7 +1447,7 @@ TRIGGER;
 
             } else {
 
-                throw new PublicAlert("Restful error! While trying to add a single condition an array was encountered which was not a valid Aggregate. (" . implode(',', $valueOne) . ")");
+                throw new PublicAlert("Restful error! While trying to add a single condition an array was encountered which was not a valid Aggregate ($operator). (" . implode(',', $valueOne) . ")");
 
             }
 
@@ -1418,18 +1459,32 @@ TRIGGER;
 
         }
 
+        switch ($operator) {
 
-        if ($operator === iRest::IS) {
+            case iRest::IN:
+            case str_replace('_', ' ', iRest::NOT_IN):
+
 
             if ($key_is_custom) {
 
-                throw new PublicAlert("A non-internal column key was used in conjunction with the IS aggrogate. addSingleConditionToWhereOrJoin was given (" . implode(',', func_get_args()) . ").");
+                    throw new PublicAlert("A non-internal column key was used in conjunction with the IN or NOT IN aggregate. addSingleConditionToWhereOrJoin was given (" . implode(',', func_get_args()) . ").");
 
-            }
+                }
 
-            return self::isAggregate($valueOne, $valueTwo);
+                return self::inAggergaation($valueOne, $operator, $valueTwo);
+
+            case iRest::IS:
+
+                if ($key_is_custom) {
+
+                    throw new PublicAlert("A non-internal column key was used in conjunction with the IS aggregate. addSingleConditionToWhereOrJoin was given (" . implode(',', func_get_args()) . ").");
+
+                }
+
+                return self::isAggregate($valueOne, $valueTwo);
 
         }
+
 
         if (is_array($valueTwo)) {
 
@@ -1439,7 +1494,7 @@ TRIGGER;
 
             } else {
 
-                throw new PublicAlert("Restful error! While trying to add a single condition an array was encountered which was not a valid Aggregate. (" . implode(', ', $valueTwo) . ")");
+                throw new PublicAlert("Restful error! While trying to add a single condition an array was encountered which was not a valid Aggregate ($valueOne $operator (" . implode(', ', $valueTwo) . "))");
 
             }
 

@@ -193,6 +193,8 @@ abstract class Rest extends RestLifeCycle
     protected static function select(array &$return, array $argv, array $primary = null): bool
     {
 
+        static $selectSQLs = [];
+
         do {
 
             try {
@@ -221,6 +223,8 @@ abstract class Rest extends RestLifeCycle
                 self::jsonSQLReporting(func_get_args(), $sql);
 
                 self::postpreprocessRestRequest($sql);
+
+                $selectSQLs [] = $sql;
 
                 $stmt = $pdo->prepare($sql);
 
@@ -282,6 +286,8 @@ abstract class Rest extends RestLifeCycle
                 return true;
 
             } catch (Throwable $e) {
+
+                //print json_encode($selectSQLs, JSON_THROW_ON_ERROR); die;
 
                 self::handleRestException($e);
 
@@ -892,5 +898,5 @@ abstract class Rest extends RestLifeCycle
         return false;
 
     }
-    
+
 }

@@ -243,10 +243,15 @@ class CLI implements iCommand
         $program = array_shift($argv);
 
         if (isset(self::$program)) {
+
             $cmd = self::$program;
+
             $cmd->run($argv);
+
             $cmd->cleanUp();
+
             return;
+
         }
 
         // executables switch TODO - make these programs
