@@ -270,11 +270,11 @@ FOOT;
 
                 if ($reader) {
 
-                    self::$database = $db;
+                    self::$databaseReader = $db;
 
                 } else {
 
-                    self::$databaseReader = $db;
+                    self::$database = $db;
 
                 }
 
@@ -496,7 +496,12 @@ FOOT;
 
         }
 
-        return $db->commit() || static::verify();
+        if ($db->commit()) {
+            return true;
+        }
+
+        // rollback
+        return static::verify();
 
     }
 

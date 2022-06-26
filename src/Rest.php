@@ -304,264 +304,262 @@ abstract class Rest extends RestLifeCycle
     protected static function updateReplace(array &$returnUpdated, array $argv = [], array $primary = null): bool
     {
 
-        do {
+        try {
 
-            try {
+            self::startRest(self::PUT, $returnUpdated, $argv, $primary);
 
-                self::startRest(self::PUT, $returnUpdated, $argv, $primary);
+            $replace = false;
 
-                $replace = false;
+            $where = [];
 
-                $where = [];
+            if (array_key_exists(self::WHERE, $argv)) {
 
-                if (array_key_exists(self::WHERE, $argv)) {
+                $where = $argv[self::WHERE];
 
-                    $where = $argv[self::WHERE];
+                unset($argv[self::WHERE]);
+            }
 
-                    unset($argv[self::WHERE]);
-                }
+            if (array_key_exists(self::REPLACE, $argv)) {
 
-                if (array_key_exists(self::REPLACE, $argv)) {
+                $replace = true;
 
-                    $replace = true;
+                $argv = $argv[self::REPLACE];
 
-                    $argv = $argv[self::REPLACE];
+            } else if (array_key_exists(self::UPDATE, $argv)) {
 
-                } else if (array_key_exists(self::UPDATE, $argv)) {
-
-                    $argv = $argv[self::UPDATE];
-
-                }
-
-                if (null === static::PRIMARY) {
-
-                    if (false === self::$allowFullTableUpdates && [] === $where) {
-
-                        return self::signalError('Restful tables which have no primary key must be updated using conditions given to \$argv[self::WHERE] and values to be updated given to \$argv[self::UPDATE]. No WHERE attribute given. To bypass this set `self::\$allowFullTableUpdates = true;` during the PREPROCESS events, or just directly before this request.');
-
-                    }
-
-                    // todo - more validations on payload not empty
-                    if (empty($argv)) {
-
-                        return self::signalError('Restful tables which have no primary key must be updated using conditions given to \$argv[self::WHERE] and values to be updated given to \$argv[self::UPDATE]. No UPDATE attribute given.');
-
-                    }
-
-                } else {
-
-                    $emptyPrimary = null === $primary || [] === $primary;
-
-                    if (false === $replace
-                        && false === self::$allowFullTableUpdates
-                        && $emptyPrimary) {
-
-                        return self::signalError('Restful tables which have a primary key must be updated by its primary key. To bypass this set you may set `self::\$allowFullTableUpdates = true;` during the PREPROCESS events.');
-
-                    }
-
-                    if (is_array(static::PRIMARY)) {
-
-                        if (false === self::$allowFullTableUpdates
-                            || false === $emptyPrimary) {
-
-                            $primary ??= [];
-
-                            $primaryCount = count(static::PRIMARY);
-
-                            $explicitPrimaryCount = count(array_intersect(array_keys($primary), static::PRIMARY));
-
-                            if ($explicitPrimaryCount !== $primaryCount) {
-
-                                $implicitPrimaryCount = count(array_intersect(array_keys($primary), static::PRIMARY));
-
-                                if (($explicitPrimaryCount + $implicitPrimaryCount) !== $primaryCount) {
-
-                                    return self::signalError('You must provide all primary keys (' . implode(', ', static::PRIMARY) . ').');
-
-                                }
-                            }
-
-                            $where = array_merge($argv, $primary);
-
-                        }
-
-                    } elseif (!$emptyPrimary) {
-
-                        $where = $primary;
-
-                    }
-                }
-
-                foreach ($argv as $key => &$value) {
-
-                    if (false === array_key_exists($key, self::$compiled_PDO_validations)) {
-
-                        return self::signalError("Restful table could not update column $key, because it does not appear to exist. Please re-run RestBuilder if you believe this is incorrect.");
-
-                    }
-
-                    $op = self::EQUAL;
-
-                    if (false === self::validateInternalColumn($key, $op, $value)) {
-
-                        return self::signalError("Your custom restful api validations caused the request to fail on column ($key).");
-
-                    }
-
-                }
-                unset($value);
-
-                $update_or_replace = $replace ? self::REPLACE : self::UPDATE;
-
-                $sql = $update_or_replace . ' '
-                    . (static::QUERY_WITH_DATABASE ? static::DATABASE . '.' : '')
-                    . static::TABLE_NAME . ' SET ';
-
-                $set = '';
-
-                foreach ($argv as $fullName => $value) {
-
-                    $shortName = static::COLUMNS[$fullName];
-
-                    $set .= " $fullName = " .
-                        ('binary' === self::$compiled_PDO_validations[$fullName][self::MYSQL_TYPE]
-                            ? "UNHEX(:$shortName) ,"
-                            : ":$shortName ,");
-
-                }
-
-                $sql .= substr($set, 0, -1);
-
-                $pdo = self::database();
-
-                if (!$pdo->inTransaction()) {
-
-                    $pdo->beginTransaction();
-
-                }
-
-                if (true === $replace) {
-
-                    if (!empty($where)) {
-
-                        return self::signalError('Replace queries may not be given a where clause. Use Put instead.');
-
-                    }
-
-                } else if (false === self::$allowFullTableUpdates || !empty($where)) {
-
-                    if (empty($where)) {
-                        throw new PublicAlert('The where clause is required but has been detected as empty. Arguments were :: ' . json_encode(func_get_args(), JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
-                    }
-
-                    $sql .= ' WHERE ' . self::buildBooleanJoinedConditions($where);
-
-                }
-
-                self::jsonSQLReporting(func_get_args(), $sql);
-
-                self::postpreprocessRestRequest($sql);
-
-                $stmt = $pdo->prepare($sql);
-
-                if (false === $stmt) {
-
-                    return self::signalError("PDO failed to prepare the sql generated! ($sql)");
-
-                }
-
-                foreach (static::COLUMNS as $fullName => $shortName) {
-
-                    if (array_key_exists($fullName, $argv)) {
-
-                        $op = self::EQUAL;
-
-                        if (false === self::validateInternalColumn($fullName, $op, $value)) {
-
-                            return self::signalError("Your custom restful api validations caused the request to fail on column ($fullName).");
-
-                        }
-
-                        if ('' === static::PDO_VALIDATION[$fullName][self::MAX_LENGTH]) { // does length exist
-
-                            $value = static::PDO_VALIDATION[$fullName][self::MYSQL_TYPE] === 'json'
-                                ? json_encode($argv[$fullName])
-                                : $argv[$fullName];
-
-
-                            if (false === $stmt->bindValue(":$shortName", $value, static::PDO_VALIDATION[$fullName][self::PDO_TYPE])) {
-
-                                return self::signalError("Failed to bind (:$shortName) with value ($value)");
-
-                            }
-
-                        } else if (false === $stmt->bindParam(":$shortName", $argv[$fullName],
-                                static::PDO_VALIDATION[$fullName][self::PDO_TYPE],
-                                (int)static::PDO_VALIDATION[$fullName][self::MAX_LENGTH])) {
-
-                            return self::signalError("Failed to bind (:$shortName) with value ({$argv[$fullName]})");
-
-                        }
-
-
-                    }
-
-                }
-
-                self::bind($stmt);
-
-                if (false === $stmt->execute()) {
-
-                    self::completeRest();
-
-                    return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
-
-                }
-
-                if (0 === $stmt->rowCount()) {
-
-                    return self::signalError("MySQL failed to find the target row during ($update_or_replace) on "
-                        . 'table (' . static::TABLE_NAME . ") while executing query ($sql). By default CarbonPHP passes "
-                        . 'PDO::MYSQL_ATTR_FOUND_ROWS => true, to the PDO driver; aka return the number of found (matched) rows, '
-                        . 'not the number of changed rows. Thus; if you have not manually updated these options, your issue is '
-                        . 'the target row not existing.');
-
-                }
-
-                $argv = array_combine(
-                    array_map(
-                        static fn($k) => str_replace(static::TABLE_NAME . '.', '', $k),
-                        array_keys($argv)
-                    ),
-                    array_values($argv)
-                );
-
-                $returnUpdated = array_merge($returnUpdated, $argv);
-
-                self::prepostprocessRestRequest($returnUpdated);
-
-                if (self::$commit && !Database::commit()) {
-
-                    return self::signalError('Failed to store commit transaction on table {{TableName}}');
-
-                }
-
-                self::postprocessRestRequest($returnUpdated);
-
-                self::completeRest();
-
-                return true;
-
-            } catch (Throwable $e) {
-
-                self::handleRestException($e);
+                $argv = $argv[self::UPDATE];
 
             }
 
-            $tries ??= 0;   // dont make this static
+            if (null === static::PRIMARY) {
 
-        } while (3 !== $tries++);
+                if (false === self::$allowFullTableUpdates && [] === $where) {
+
+                    return self::signalError('Restful tables which have no primary key must be updated using conditions given to \$argv[self::WHERE] and values to be updated given to \$argv[self::UPDATE]. No WHERE attribute given. To bypass this set `self::\$allowFullTableUpdates = true;` during the PREPROCESS events, or just directly before this request.');
+
+                }
+
+                // todo - more validations on payload not empty
+                if (empty($argv)) {
+
+                    return self::signalError('Restful tables which have no primary key must be updated using conditions given to \$argv[self::WHERE] and values to be updated given to \$argv[self::UPDATE]. No UPDATE attribute given.');
+
+                }
+
+            } else {
+
+                $emptyPrimary = null === $primary || [] === $primary;
+
+                if (false === $replace
+                    && false === self::$allowFullTableUpdates
+                    && $emptyPrimary) {
+
+                    return self::signalError('Restful tables which have a primary key must be updated by its primary key. To bypass this set you may set `self::\$allowFullTableUpdates = true;` during the PREPROCESS events.');
+
+                }
+
+                if (is_array(static::PRIMARY)) {
+
+                    if (false === self::$allowFullTableUpdates
+                        || false === $emptyPrimary) {
+
+                        $primary ??= [];
+
+                        $primaryCount = count(static::PRIMARY);
+
+                        $explicitPrimaryCount = count(array_intersect(array_keys($primary), static::PRIMARY));
+
+                        if ($explicitPrimaryCount !== $primaryCount) {
+
+                            $implicitPrimaryCount = count(array_intersect(array_keys($primary), static::PRIMARY));
+
+                            if (($explicitPrimaryCount + $implicitPrimaryCount) !== $primaryCount) {
+
+                                return self::signalError('You must provide all primary keys (' . implode(', ', static::PRIMARY) . ').');
+
+                            }
+                        }
+
+                        $where = array_merge($argv, $primary);
+
+                    }
+
+                } elseif (!$emptyPrimary) {
+
+                    $where = $primary;
+
+                }
+            }
+
+            foreach ($argv as $key => &$value) {
+
+                if (false === array_key_exists($key, self::$compiled_PDO_validations)) {
+
+                    return self::signalError("Restful table could not update column $key, because it does not appear to exist. Please re-run RestBuilder if you believe this is incorrect.");
+
+                }
+
+                $op = self::EQUAL;
+
+                if (false === self::validateInternalColumn($key, $op, $value)) {
+
+                    return self::signalError("Your custom restful api validations caused the request to fail on column ($key).");
+
+                }
+
+            }
+            unset($value);
+
+            $update_or_replace = $replace ? self::REPLACE : self::UPDATE;
+
+            $sql = $update_or_replace . ' '
+                . (static::QUERY_WITH_DATABASE ? static::DATABASE . '.' : '')
+                . static::TABLE_NAME . ' SET ';
+
+            $set = '';
+
+            foreach ($argv as $fullName => $value) {
+
+                $shortName = static::COLUMNS[$fullName];
+
+                $set .= " $fullName = " .
+                    ('binary' === self::$compiled_PDO_validations[$fullName][self::MYSQL_TYPE]
+                        ? "UNHEX(:$shortName) ,"
+                        : ":$shortName ,");
+
+            }
+
+            $sql .= substr($set, 0, -1);
+
+            $pdo = self::database();
+
+            if (false === $pdo->inTransaction() &&
+                false === $pdo->beginTransaction()) {
+
+                throw new PublicAlert('Failed to start a PDO transaction for the restful Put request!');
+
+            }
+
+            if (true === $replace) {
+
+                if (!empty($where)) {
+
+                    return self::signalError('Replace queries may not be given a where clause. Use Put instead.');
+
+                }
+
+            } else if (false === self::$allowFullTableUpdates || !empty($where)) {
+
+                if (empty($where)) {
+                    throw new PublicAlert('The where clause is required but has been detected as empty. Arguments were :: ' . json_encode(func_get_args(), JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
+                }
+
+                $sql .= ' WHERE ' . self::buildBooleanJoinedConditions($where);
+
+            }
+
+            self::jsonSQLReporting(func_get_args(), $sql);
+
+            self::postpreprocessRestRequest($sql);
+
+            $stmt = $pdo->prepare($sql);
+
+            if (false === $stmt) {
+
+                return self::signalError("PDO failed to prepare the sql generated! ($sql)");
+
+            }
+
+            foreach (static::COLUMNS as $fullName => $shortName) {
+
+                if (array_key_exists($fullName, $argv)) {
+
+                    $op = self::EQUAL;
+
+                    if (false === self::validateInternalColumn($fullName, $op, $value)) {
+
+                        return self::signalError("Your custom restful api validations caused the request to fail on column ($fullName).");
+
+                    }
+
+                    if ('' === static::PDO_VALIDATION[$fullName][self::MAX_LENGTH]) { // does length exist
+
+                        $value = static::PDO_VALIDATION[$fullName][self::MYSQL_TYPE] === 'json'
+                            ? json_encode($argv[$fullName])
+                            : $argv[$fullName];
+
+
+                        if (false === $stmt->bindValue(":$shortName", $value, static::PDO_VALIDATION[$fullName][self::PDO_TYPE])) {
+
+                            return self::signalError("Failed to bind (:$shortName) with value ($value)");
+
+                        }
+
+                    } else if (false === $stmt->bindParam(":$shortName", $argv[$fullName],
+                            static::PDO_VALIDATION[$fullName][self::PDO_TYPE],
+                            (int)static::PDO_VALIDATION[$fullName][self::MAX_LENGTH])) {
+
+                        return self::signalError("Failed to bind (:$shortName) with value ({$argv[$fullName]})");
+
+                    }
+
+
+                }
+
+            }
+
+            self::bind($stmt);
+
+            if (false === $stmt->execute()) {
+
+                self::completeRest();
+
+                return self::signalError('The REST generated PDOStatement failed to execute with error :: ' . json_encode($stmt->errorInfo(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT));
+
+            }
+
+            $rowCount = $stmt->rowCount();
+
+            if (0 === $rowCount) {
+
+                return self::signalError("MySQL failed to find the target row during ($update_or_replace) on "
+                    . 'table (' . static::TABLE_NAME . ") while executing query ($sql). By default CarbonPHP passes "
+                    . 'PDO::MYSQL_ATTR_FOUND_ROWS => true, to the PDO driver; aka return the number of found (matched) rows, '
+                    . 'not the number of changed rows. Thus; if you have not manually updated these options, your issue is '
+                    . 'the target row not existing.');
+
+            }
+
+            $argv = array_combine(
+                array_map(
+                    static fn($k) => str_replace(static::TABLE_NAME . '.', '', $k),
+                    array_keys($argv)
+                ),
+                array_values($argv)
+            );
+
+            $returnUpdated = array_merge($returnUpdated, $argv);
+
+            self::prepostprocessRestRequest($returnUpdated);
+
+            if (true === self::$commit &&
+                false === Database::commit()) {
+
+                return self::signalError('Failed to store commit transaction on table (' . static::TABLE_NAME . ')');
+
+            }
+
+            self::postprocessRestRequest($returnUpdated);
+
+            self::completeRest();
+
+            return true;
+
+        } catch (Throwable $e) {
+
+            self::handleRestException($e);
+
+        }
 
         return false;
 

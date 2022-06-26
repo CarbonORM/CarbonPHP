@@ -13,7 +13,8 @@ use PDOException;
 use PDOStatement;
 use Throwable;
 
-abstract class RestLifeCycle extends RestQueryBuilder {
+abstract class RestLifeCycle extends RestQueryBuilder
+{
 
 
     /**
@@ -42,7 +43,6 @@ abstract class RestLifeCycle extends RestQueryBuilder {
         }
 
     }
-
 
 
     /**
@@ -262,7 +262,6 @@ abstract class RestLifeCycle extends RestQueryBuilder {
     }
 
 
-
     /**
      * This should only be used for api requests.
      * @param string $mainTable
@@ -426,23 +425,22 @@ abstract class RestLifeCycle extends RestQueryBuilder {
 
             ErrorCatcher::generateLog($e);
 
-        } finally {
+        }
 
-            if (false === headers_sent($filename, $line)) {
+        if (false === headers_sent($filename, $line)) {
 
-                header('Content-Type: application/json', true, 200);
+            header('Content-Type: application/json', true, 200);
 
-            } else {
+        } else {
 
-                $json['headers_sent:filename'] = $filename;
+            $json['headers_sent:filename'] = $filename;
 
-                $json['headers_sent:line'] = $line;
-
-            }
-
-            print PHP_EOL . json_encode($json) . PHP_EOL;
+            $json['headers_sent:line'] = $line;
 
         }
+
+        print PHP_EOL . json_encode($json) . PHP_EOL;
+
 
         return true;
     }
