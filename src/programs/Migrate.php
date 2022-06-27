@@ -1095,7 +1095,7 @@ HALT;
 
             $timeout = self::$timeout;
 
-            ColorCode::colorCode("Setting the timeout to ($timeout) <" . self::secondsToReadable($timeout) . '>', iColorCode::BACKGROUND_YELLOW);
+            ColorCode::colorCode("Setting the get ($url) timeout to ($timeout) <" . self::secondsToReadable($timeout) . '>', iColorCode::BACKGROUND_YELLOW);
 
             curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
 
