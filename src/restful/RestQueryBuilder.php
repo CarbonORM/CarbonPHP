@@ -37,11 +37,18 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
     /**
      * @throws PublicAlert
+     * @noinspection PhpUndefinedMethodInspection
      */
     public static function handleSubSelectAggregate(array $stmt): string
     {
 
         $tableName = $stmt[1];
+
+        $tableName = explode('_', $tableName);      // table name semantics vs class name
+
+        $tableName = array_map('ucfirst', $tableName);
+
+        $tableName = implode('_', $tableName);
 
         if (false === self::$allowSubSelectQueries) {
 

@@ -1987,7 +1987,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
      *        \$this->\$PHP_VALIDATION = [ 
      *            self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
      *                self::PREPROCESS => [
-     *                    () => self::disallowPublicAccess(self::class)
+     *                    static fn() => self::disallowPublicAccess(self::class)
      *                ]
      *            ]
      *        ];
