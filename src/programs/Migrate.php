@@ -951,7 +951,7 @@ HALT;
 
         $timeout = self::$timeout;
 
-        ColorCode::colorCode("Setting the post timeout to ($timeout) <" . self::secondsToReadable($timeout) . '>', iColorCode::YELLOW);
+        ColorCode::colorCode("Setting the post ($url) timeout to ($timeout) <" . self::secondsToReadable($timeout) . '>', iColorCode::YELLOW);
 
         curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
 
