@@ -352,27 +352,20 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
             $table_regular_expressions = constant("$table::REGEX_VALIDATION");
 
-            if (!is_array($table_regular_expressions)) {
+            if (false === is_array($table_regular_expressions)) {
 
                 throw new PublicAlert("The class constant $table::REGEX_VALIDATION must equal an array.");
 
             }
 
-            if (!empty($table_regular_expressions)) {
-
-                if (!is_array($table_regular_expressions)) {
-
-                    throw new PublicAlert("The class constant $table::REGEX_VALIDATION should equal an array. Please see CarbonPHP.com for more information.");
-
-                }
+            if (false === empty($table_regular_expressions)) {
 
                 // todo - run table validation on cli command to save time??
                 foreach ($table_regular_expressions as $columnName => $regex) {
-                    # [$table_name, $columnName] = ... explode $columnName
 
-                    if (!is_string($regex)) {
+                    if (false === is_string($regex)) {
 
-                        throw new PublicAlert("A key => value pair encountered in $table::REGEX_VALIDATION is invalid. All values must equal a string.");
+                        throw new PublicAlert("A key => value pair ($columnName => " . print_r($regex, true) . ") encountered in $table::REGEX_VALIDATION is invalid. All values must equal a string.");
 
                     }
 
@@ -382,21 +375,11 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
             }
 
-            $table_columns_full = [];
-
             if (defined("$table::COLUMNS")) {
 
                 $table_columns_constant = constant("$table::COLUMNS");
 
                 foreach ($table_columns_constant as $key => $value) {
-
-                    if (!is_string($key)) {
-
-                        throw new PublicAlert("A key in the constant $table::COLUMNS was found not to be a string. Please try regenerating the restbuilder.");
-
-                    }
-
-                    $table_columns_full[] = $key;
 
                     if (!is_string($value)) {
 
@@ -430,9 +413,18 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
             $table_pdo_validation = constant("$table::PDO_VALIDATION");
 
-            $table_php_validations_static = constant("$table::PHP_VALIDATION");
+            $pdo_validations[] = $table_pdo_validation;
 
-            $table_php_validations_public = (new $table)->PHP_VALIDATION;
+        }
+        unset($table);
+
+
+        self::$compiled_valid_columns = array_merge(self::$compiled_valid_columns, ... $compiled_columns);
+
+        // We compiled all the request columns before gathering all callables that should run.
+        foreach ($tables as $table) {
+
+            $table_php_validations_static = constant("$table::PHP_VALIDATION");
 
             if (!is_array($table_php_validations_static)) {
 
@@ -440,29 +432,21 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
             }
 
+            self::validateAndConcatenate($table, $table_php_validations_static);
+
+            $table_php_validations_public = (new $table)->PHP_VALIDATION;
+
             if (!is_array($table_php_validations_public)) {
 
                 throw new PublicAlert("The class constant {$table}->PDO_VALIDATION must equal an array.");
 
             }
 
-
-            $pdo_validations[] = $table_pdo_validation;
-
-        }
-        unset($table);
-
-        foreach ($tables as $table) {
-
-            self::validateAndConcatenate($table, $table_php_validations_static, $table_columns_full);
-
-            self::validateAndConcatenate($table, $table_php_validations_public, $table_columns_full);
+            self::validateAndConcatenate($table, $table_php_validations_public);
 
         }
 
         self::$join_tables = $tables;
-
-        self::$compiled_valid_columns = array_merge(self::$compiled_valid_columns, ... $compiled_columns);
 
         // were merging for sub-selects
         self::$compiled_PDO_validations = array_merge(self::$compiled_PDO_validations, ... $pdo_validations);
@@ -477,15 +461,10 @@ abstract class RestQueryValidation extends RestAutoTargeting
      */
     public static function gatherValidation(string $firstKey, string $secondKey, string $table, array $table_php_validations): void
     {
-        self::$compiled_PHP_validations[$firstKey][$secondKey] ??= [];
 
         $table_php_validations[$firstKey][$secondKey] ??= [];
 
         $table_php_validation = $table_php_validations[$firstKey][$secondKey];
-
-        if (false === is_array($table_php_validation)) {
-            throw new PublicAlert("The class constant $table::PDO_VALIDATION[$firstKey][$secondKey] must be an array.");
-        }
 
         if (empty($table_php_validation)) {
 
@@ -493,6 +472,13 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
         }
 
+        self::$compiled_PHP_validations[$firstKey][$secondKey] ??= [];
+
+        if (false === is_array($table_php_validation)) {
+
+            throw new PublicAlert("The class constant $table::PDO_VALIDATION[$firstKey][$secondKey] must be an array. This is unexpected, please send a stack trace to CarbonPHP.com");
+
+        }
 
         self::pushCallables(self::$compiled_PHP_validations[$firstKey][$secondKey], $table_php_validation, "$table::PDO_VALIDATION[$firstKey][$secondKey]");
 
@@ -504,9 +490,15 @@ abstract class RestQueryValidation extends RestAutoTargeting
     public static function gatherValidations(string $firstKey, string $table, array $table_php_validation): void
     {
 
+        if (empty($table_php_validation)) {
+
+            return;
+
+        }
+
         if (!is_array($table_php_validation[$firstKey])) {
 
-            throw new PublicAlert("The class constant $table::PDO_VALIDATION[$firstKey] must be an array.");
+            throw new PublicAlert("The class constant ( $table::PDO_VALIDATION[$firstKey] || {$table}->PDO_VALIDATION[$firstKey] )   must be an array.");
 
         }
 
@@ -588,7 +580,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
      * @return void
      * @throws PublicAlert
      */
-    public static function validateAndConcatenate(string $table, array $table_php_validation, array $table_columns_full): void
+    public static function validateAndConcatenate(string $table, array $table_php_validation): void
     {
 
         if ($table_php_validation[self::PREPROCESS] ?? false) {
@@ -609,8 +601,10 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
         }
 
+        $fullyQualifiedColumnNames = array_keys(self::$compiled_valid_columns);
+
         // doing the foreach like this allows us to avoid multiple loops later,.... wonder what the best case is though... this is more readable for sure
-        foreach ($table_columns_full as $column) {
+        foreach ($fullyQualifiedColumnNames as $column) {
 
             self::gatherValidation(self::PREPROCESS, $column, $table, $table_php_validation);
 
@@ -732,8 +726,6 @@ abstract class RestQueryValidation extends RestAutoTargeting
             unset($validation[$class]);
 
             if (!class_exists($class)) {
-
-                sortDump(print_r($php_validation, true));
 
                 throw new PublicAlert("A class reference in PHP_VALIDATION failed. Class ($class) not found.");
 

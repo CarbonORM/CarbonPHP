@@ -203,7 +203,10 @@ abstract class RestQueryBuilder extends RestQueryValidation
         $sql = "($sql)";
 
         if (!empty($as)) {
-            $sql = "$sql AS " . self::addInjection($as, [self::PDO_TYPE => null]);
+
+            $injection = self::addInjection($as, [self::PDO_TYPE => null]);
+
+            $sql = "$sql AS " . $injection;
         }
 
         $tableName::completeRest(true);
@@ -412,6 +415,12 @@ abstract class RestQueryBuilder extends RestQueryValidation
                 if (empty($name)) {
 
                     $name = self::$compiled_valid_columns[$column];
+
+                }
+
+                if (empty($name)) {
+
+                    throw new PublicAlert('An unexpected error has occurred in CarbonPHP. Please save this stack trace and submit it to CarbonPHP.com');
 
                 }
 
@@ -1423,7 +1432,10 @@ TRIGGER;
             $sql = "($sql)";
 
             if (!empty($as)) {
+
+
                 $sql = "$sql AS $as";
+
             }
 
             static::completeRest(true);
