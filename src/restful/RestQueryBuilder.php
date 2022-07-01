@@ -644,7 +644,7 @@ TRIGGER;
 
         }
 
-        return " $inject ";
+        return $inject;
 
     }
 

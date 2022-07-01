@@ -548,14 +548,14 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
             if (false === $isCallable) {
 
-                if (2 > count($callable)) {
+                $class = array_key_first($callable);
+
+                if (is_numeric($class)) {
 
                     /** @noinspection JsonEncodingApiUsageInspection */
-                    throw new PublicAlert("The restful validation ($errorMessageContext) failed as an 'callable' array argument passed did not contain the required number of arguments. At least 2 needed. (" . json_encode($b) . ')');
+                    throw new PublicAlert("The restful validation ($errorMessageContext) failed as an 'callable' array argument failed validation. The first key must be a fully qualified class name. Numeric value ($class) provided is incorrect.");
 
                 }
-
-                $class = array_key_first($callable);
 
                 $method = $callable[$class];
 

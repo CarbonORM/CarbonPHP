@@ -671,27 +671,15 @@ END;
 
 
                         foreach ($primary as $key) {
-                            if (in_array($key, $binary, true)) {
-                                // binary data is expected as hex @ rest call (GET,PUT,DELETE)
-                                $sql[] = ' ' . $key . '=UNHEX(\'.self::addInjection($primary, $pdo).\')';
-                            } else {
-                                // otherwise just create the stmt normally
-                                $sql[] = ' ' . $key . '=\'.self::addInjection($primary, $pdo).\'';
-                            }
-
 
                             // if the user has duplicate constr (which is legal mysql) this will fail on some envs (redhat)
                             $rest[$tableName]['primary'][] = [
                                 'name' => $key,
                                 'binary' => in_array($key, $binary, true)
                             ];
+
                         }
 
-
-                        $rest[$tableName]['sql'][] = ['sql' => '$sql .= \' WHERE ' . implode(' OR ', $sql) . '\';'];
-
-
-                        // end - soon to deprecate todo remove
                         break;
 
                     case 'CONSTRAINT':
