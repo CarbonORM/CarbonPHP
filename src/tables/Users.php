@@ -573,7 +573,10 @@ class Users extends Rest implements iRestSinglePrimaryKey
         self::GET => [ 
 
         ],    
-        self::POST => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
+        self::POST => [ self::PREPROCESS => [
+            [ self::class => 'disallowPublicAccess', self::class ]
+        ]
+        ],
         self::PUT => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
         self::DELETE => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],
         self::REST_REQUEST_FINNISH_CALLBACKS => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]]    

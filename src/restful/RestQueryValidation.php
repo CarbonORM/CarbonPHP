@@ -9,7 +9,8 @@ use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
 use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 
-abstract class RestQueryValidation extends RestAutoTargeting {
+abstract class RestQueryValidation extends RestAutoTargeting
+{
 
     public const DISALLOW_PUBLIC_ACCESS = [self::class => 'disallowPublicAccess'];
 
@@ -270,14 +271,13 @@ abstract class RestQueryValidation extends RestAutoTargeting {
 
     }
 
-
-
     /**
      * @return void
      * @throws PublicAlert
      */
     public static function gatherValidationsForRequest(): void
     {
+        static $count = 0;
 
         $tables = [static::CLASS_NAME];
 
@@ -301,7 +301,7 @@ abstract class RestQueryValidation extends RestAutoTargeting {
 
         }
 
-        $compiled_columns = $pdo_validations = $php_validations = $regex_validations = [];
+        $compiled_columns = $pdo_validations = $regex_validations = [];
 
         foreach ($tables as &$table) {
 
@@ -346,43 +346,39 @@ abstract class RestQueryValidation extends RestAutoTargeting {
 
             // It is possible to have a column validation assigned to another table,
             // which would cause rest to only run it when joined
-            if (defined("$table::REGEX_VALIDATION")) {
+            if (false === defined("$table::REGEX_VALIDATION")) {
+                throw new PublicAlert('The table does not implement REGEX_VALIDATION. This should be an empty static array. Try re-running the RestBuilder.');
+            }
 
-                $table_regular_expressions = constant("$table::REGEX_VALIDATION");
+            $table_regular_expressions = constant("$table::REGEX_VALIDATION");
+
+            if (!is_array($table_regular_expressions)) {
+
+                throw new PublicAlert("The class constant $table::REGEX_VALIDATION must equal an array.");
+
+            }
+
+            if (!empty($table_regular_expressions)) {
 
                 if (!is_array($table_regular_expressions)) {
 
-                    throw new PublicAlert("The class constant $table::REGEX_VALIDATION must equal an array.");
+                    throw new PublicAlert("The class constant $table::REGEX_VALIDATION should equal an array. Please see CarbonPHP.com for more information.");
 
                 }
 
-                if (!empty($table_regular_expressions)) {
+                // todo - run table validation on cli command to save time??
+                foreach ($table_regular_expressions as $columnName => $regex) {
+                    # [$table_name, $columnName] = ... explode $columnName
 
-                    if (!is_array($table_regular_expressions)) {
+                    if (!is_string($regex)) {
 
-                        throw new PublicAlert("The class constant $table::REGEX_VALIDATION should equal an array. Please see CarbonPHP.com for more information.");
-
-                    }
-
-                    // todo - run table validation on cli command to save time??
-                    foreach ($table_regular_expressions as $columnName => $regex) {
-                        # [$table_name, $columnName] = ... explode $columnName
-
-                        if (!is_string($regex)) {
-
-                            throw new PublicAlert("A key => value pair encountered in $table::REGEX_VALIDATION is invalid. All values must equal a string.");
-
-                        }
+                        throw new PublicAlert("A key => value pair encountered in $table::REGEX_VALIDATION is invalid. All values must equal a string.");
 
                     }
-
-                    $regex_validations[] = $table_regular_expressions;
 
                 }
 
-            } else {
-
-                throw new PublicAlert('The table does not implement REGEX_VALIDATION. This should be an empty static array. Try re-running the RestBuilder.');
+                $regex_validations[] = $table_regular_expressions;
 
             }
 
@@ -420,151 +416,209 @@ abstract class RestQueryValidation extends RestAutoTargeting {
 
             // their is no way to know exactly were the validations come from after this moment in the rest lifecycle
             // this makes this validation segment valuable
-            if (defined("$table::PDO_VALIDATION")) {
+            if (false === defined("$table::PDO_VALIDATION")) {
 
-                $table_php_validation = constant("$table::PDO_VALIDATION");
-
-                if (!is_array($table_php_validation)) {
-
-                    throw new PublicAlert("The class constant $table::PDO_VALIDATION must equal an array.");
-
-                }
-
-                if (!empty($table_php_validation)) {
-
-                    // doing the foreach like this allows us to avoid multiple loops later,.... wonder what the best case is though... this is more readable for sure
-                    foreach ($table_columns_full as $column) {
-
-                        if (($table_php_validation[self::PREPROCESS][$column] ?? false) && !is_array($table_php_validation[self::PREPROCESS][$column])) {
-
-                            throw new PublicAlert("The class constant $table_php_validation\[self::PREPROCESS][$column] should be an array of numeric indexed arrays. See CarbonPHP.com for examples.");
-
-                        }
-
-                        if (($table_php_validation[self::FINISH][$column] ?? false) && !is_array($table_php_validation[self::PREPROCESS][$column])) {
-
-                            throw new PublicAlert("The class constant $table_php_validation\[self::FINISH][$column] should be an array of numeric indexed arrays. See CarbonPHP.com for examples.");
-
-                        }
-
-                        // Only validate the columns the request is coming on to save time.
-                        if (($table_php_validation[self::$REST_REQUEST_METHOD][$column] ?? false) && !is_array($table_php_validation[self::$REST_REQUEST_METHOD][$column])) {
-
-                            throw new PublicAlert("The class constant $table_php_validation\[self::" . self::$REST_REQUEST_METHOD . "][$column] should be an array of numeric indexed arrays. See CarbonPHP.com for examples.");
-
-                        }
-
-                    }
-
-                    if ($table_php_validation[self::PREPROCESS] ?? false) {
-
-                        if (!is_array($table_php_validation[self::PREPROCESS])) {
-
-                            throw new PublicAlert("The class constant $table::PDO_VALIDATION[self::PREPROCESS] must be an array.");
-
-                        }
-
-                        if (($table_php_validation[self::PREPROCESS][self::PREPROCESS] ?? false) && !is_array($table_php_validation[self::PREPROCESS][self::PREPROCESS])) {
-
-                            throw new PublicAlert("The class constant $table::PDO_VALIDATION[self::PREPROCESS][self::PREPROCESS] must be an array.");
-
-                        }
-
-                        if (($table_php_validation[self::PREPROCESS][self::FINISH] ?? false) && !is_array($table_php_validation[self::PREPROCESS][self::FINISH])) {
-
-                            throw new PublicAlert("The class constant $table::PDO_VALIDATION[self::PREPROCESS][self::FINISH] must be an array.");
-
-                        }
-
-                    }
-
-                    if ($table_php_validation[self::FINISH] ?? false) {
-
-                        if (!is_array($table_php_validation[self::FINISH])) {
-
-                            throw new PublicAlert("The class constant $table::PDO_VALIDATION[self::FINISH] must be an array.");
-
-                        }
-
-                        if (($table_php_validation[self::FINISH][self::PREPROCESS] ?? false) && !is_array($table_php_validation[self::FINISH][self::PREPROCESS])) {
-
-                            throw new PublicAlert("The class constant $table::PDO_VALIDATION[self::FINISH][self::PREPROCESS] must be an array.");
-
-                        }
-
-                        if (($table_php_validation[self::FINISH][self::FINISH] ?? false) && !is_array($table_php_validation[self::FINISH][self::FINISH])) {
-
-                            throw new PublicAlert("The class constant $table::PDO_VALIDATION[self::FINISH][self::FINISH] must be an array.");
-
-                        }
-
-                    }
-
-                    if ($table_php_validation[self::$REST_REQUEST_METHOD] ?? false) {
-
-                        if (!is_array($table_php_validation[self::$REST_REQUEST_METHOD])) {
-
-                            throw new PublicAlert("The class constant $table::PDO_VALIDATION[self::" . self::$REST_REQUEST_METHOD . "] must be an array.");
-
-                        }
-
-                        if (($table_php_validation[self::$REST_REQUEST_METHOD][self::PREPROCESS] ?? false) && !is_array($table_php_validation[self::$REST_REQUEST_METHOD][self::PREPROCESS])) {
-
-                            throw new PublicAlert("The class constant $table::PDO_VALIDATION[self::" . self::$REST_REQUEST_METHOD . "][self::PREPROCESS] must be an array.");
-
-                        }
-
-                        if (($table_php_validation[self::$REST_REQUEST_METHOD][self::FINISH] ?? false) && !is_array($table_php_validation[self::$REST_REQUEST_METHOD][self::FINISH])) {
-
-                            throw new PublicAlert("The class constant $table::PDO_VALIDATION[self::" . self::$REST_REQUEST_METHOD . "][self::FINISH] must be an array.");
-
-                        }
-
-                    }
-
-                }
-
-                $pdo_validations[] = $table_php_validation;
-
-            } else {
-
-                throw new PublicAlert('The table  does not implement PHP_VALIDATION. This should be an empty static array. Try re-running the RestBuilder.');
+                throw new PublicAlert("The ($table) does not implement PHP_VALIDATION. This should be an empty static array. Try re-running the RestBuilder.");
 
             }
 
-            if (defined("$table::PHP_VALIDATION")) {
+            if (false === property_exists($table, 'PHP_VALIDATION')) {
 
-                $singleTableValidations = $table::PHP_VALIDATION;
-
-                if (property_exists($table, 'PHP_VALIDATION')) {
-
-                    $tableInstantiated = new $table;
-
-                    $singleTableValidations += $tableInstantiated->PHP_VALIDATION;
-
-                }
-
-                $php_validations[] = $singleTableValidations;
-
-            } else {
-
-                throw new PublicAlert('The table does not implement PHP_VALIDATION. This should be an empty static array. Try re-running the RestBuilder.');
+                throw new PublicAlert("The ($table) does not implement \${$table}->PHP_VALIDATION. This could be an empty public array. Try re-running the RestBuilder.");
 
             }
+
+            $table_pdo_validation = constant("$table::PDO_VALIDATION");
+
+            $table_php_validations_static = constant("$table::PHP_VALIDATION");
+
+            $table_php_validations_public = (new $table)->PHP_VALIDATION;
+
+            if (!is_array($table_php_validations_static)) {
+
+                throw new PublicAlert("The class constant $table::PDO_VALIDATION must equal an array.");
+
+            }
+
+            if (!is_array($table_php_validations_public)) {
+
+                throw new PublicAlert("The class constant {$table}->PDO_VALIDATION must equal an array.");
+
+            }
+
+
+            $pdo_validations[] = $table_pdo_validation;
 
         }
-
         unset($table);
+
+        foreach ($tables as $table) {
+
+            self::validateAndConcatenate($table, $table_php_validations_static, $table_columns_full);
+
+            self::validateAndConcatenate($table, $table_php_validations_public, $table_columns_full);
+
+        }
 
         self::$join_tables = $tables;
 
         self::$compiled_valid_columns = array_merge(self::$compiled_valid_columns, ... $compiled_columns);
 
+        // were merging for sub-selects
         self::$compiled_PDO_validations = array_merge(self::$compiled_PDO_validations, ... $pdo_validations);
 
-        self::$compiled_PHP_validations = array_merge_recursive(self::$compiled_PHP_validations, ... $php_validations);
-
+        // were merging for sub-selects
         self::$compiled_regex_validations = array_merge(self::$compiled_regex_validations, ...$regex_validations); // a nice way to avoid running a merge in a loop.
+
+    }
+
+    /**
+     * @throws PublicAlert
+     */
+    public static function gatherValidation(string $firstKey, string $secondKey, string $table, array $table_php_validations): void
+    {
+        self::$compiled_PHP_validations[$firstKey][$secondKey] ??= [];
+
+        $table_php_validations[$firstKey][$secondKey] ??= [];
+
+        $table_php_validation = $table_php_validations[$firstKey][$secondKey];
+
+        if (false === is_array($table_php_validation)) {
+            throw new PublicAlert("The class constant $table::PDO_VALIDATION[$firstKey][$secondKey] must be an array.");
+        }
+
+        if (empty($table_php_validation)) {
+
+            return;
+
+        }
+
+
+        self::pushCallables(self::$compiled_PHP_validations[$firstKey][$secondKey], $table_php_validation, "$table::PDO_VALIDATION[$firstKey][$secondKey]");
+
+    }
+
+    /**
+     * @throws PublicAlert
+     */
+    public static function gatherValidations(string $firstKey, string $table, array $table_php_validation): void
+    {
+
+        if (!is_array($table_php_validation[$firstKey])) {
+
+            throw new PublicAlert("The class constant $table::PDO_VALIDATION[$firstKey] must be an array.");
+
+        }
+
+        self::gatherValidation($firstKey, self::PREPROCESS, $table, $table_php_validation);
+
+        self::gatherValidation($firstKey, self::FINISH, $table, $table_php_validation);
+
+    }
+
+
+    /**
+     * @param array $a
+     * @param array $b
+     * @param string $errorMessageContext
+     * @return void
+     * @throws PublicAlert
+     */
+    public static function pushCallables(array &$a, array $b, string $errorMessageContext): void
+    {
+
+        if (empty($b)) {
+
+            throw new PublicAlert('An unexpected error has occurred in which an empty array was passed, but not expected. Please report this to CarbonPHP.');
+
+        }
+
+        // error reporting gets messed up when you use array_pop/while directly on the function arguments, use foreach
+        foreach ($b as $callable) {
+
+            $isCallable = is_callable($callable);
+
+            if (false === is_array($callable) &&
+                false === $isCallable) {
+
+                /** @noinspection JsonEncodingApiUsageInspection */
+                throw new PublicAlert("The Restful validations ($errorMessageContext) failed to compile. Value (" . json_encode($b) . ') must be a callable, or an array with structure [ self::class => \'method\', ...$extraArguments ].');
+
+            }
+
+            if (false === $isCallable) {
+
+                if (2 > count($callable)) {
+
+                    /** @noinspection JsonEncodingApiUsageInspection */
+                    throw new PublicAlert("The restful validation ($errorMessageContext) failed as an 'callable' array argument passed did not contain the required number of arguments. At least 2 needed. (" . json_encode($b) . ')');
+
+                }
+
+                $class = array_key_first($callable);
+
+                $method = $callable[$class];
+
+                if (false === class_exists($class)) {
+
+                    throw new PublicAlert("The class name provided in ($errorMessageContext) could not be resolved: ($class).");
+
+                }
+
+                if (false === method_exists($class, $method)) {
+
+
+                    throw new PublicAlert("Failed to verify that method ($method) exists in the class ($class), found in ($errorMessageContext).");
+
+                }
+
+            }
+
+            $a[] = $callable;
+
+        }
+
+    }
+
+
+    /**
+     * @param string $table - the table to gather php validations for
+     * @param array $table_php_validation - the public and static member
+     * @param array $table_columns_full - all columns from any joining table
+     * @return void
+     * @throws PublicAlert
+     */
+    public static function validateAndConcatenate(string $table, array $table_php_validation, array $table_columns_full): void
+    {
+
+        if ($table_php_validation[self::PREPROCESS] ?? false) {
+
+            self::gatherValidations(self::PREPROCESS, $table, $table_php_validation);
+
+        }
+
+        if ($table_php_validation[self::FINISH] ?? false) {
+
+            self::gatherValidations(self::FINISH, $table, $table_php_validation);
+
+        }
+
+        if ($table_php_validation[self::$REST_REQUEST_METHOD] ?? false) {
+
+            self::gatherValidations(self::$REST_REQUEST_METHOD, $table, $table_php_validation);
+
+        }
+
+        // doing the foreach like this allows us to avoid multiple loops later,.... wonder what the best case is though... this is more readable for sure
+        foreach ($table_columns_full as $column) {
+
+            self::gatherValidation(self::PREPROCESS, $column, $table, $table_php_validation);
+
+            self::gatherValidation(self::FINISH, $column, $table, $table_php_validation);
+
+            self::gatherValidation(self::$REST_REQUEST_METHOD, $column, $table, $table_php_validation);
+
+        }
 
     }
 
@@ -639,6 +693,12 @@ abstract class RestQueryValidation extends RestAutoTargeting {
 
             }
 
+            if (empty($validation)) {
+
+                continue;
+
+            }
+
             if (!is_array($validation)) {
 
                 if (is_callable($validation)) {
@@ -672,6 +732,8 @@ abstract class RestQueryValidation extends RestAutoTargeting {
             unset($validation[$class]);
 
             if (!class_exists($class)) {
+
+                sortDump(print_r($php_validation, true));
 
                 throw new PublicAlert("A class reference in PHP_VALIDATION failed. Class ($class) not found.");
 

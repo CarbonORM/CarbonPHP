@@ -52,8 +52,8 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
         if (false === self::$allowSubSelectQueries) {
 
-            throw new PublicAlert('Whoa, looks like a sub-select was encountered without `self::$allowSubSelectQueries` explicitly set to true. '
-                . ' This is a security precaution and is recommend to only be set to true when explicitly needed. You should'
+            throw new PublicAlert("Whoa, looks like a sub-select was encountered without `$tableName::\$allowSubSelectQueries` explicitly set to true. "
+                . ' This is a security precaution and is required to only be set to true when explicitly needed. You should'
                 . " consider doing this in the ($tableName::PHP_VALIDATION['PREPROCESS']) event cycle.");
 
         }

@@ -42,7 +42,7 @@ abstract class Serialized
                 throw new PublicAlert(self::NOT_STRING_ERROR);
             }
             if (self::$base64) {
-                self::is_serialized( base64_decode(  $_SESSION[__CLASS__][$value] ??= null), $GLOBALS[$value] );
+                self::is_serialized(base64_decode($_SESSION[__CLASS__][$value] ??= null), $GLOBALS[$value]);
             } else {
                 $GLOBALS[$value] = $_SESSION[__CLASS__][$value] ??= null;
             }
@@ -60,7 +60,7 @@ abstract class Serialized
                 }
                 if (isset($GLOBALS[$value])) {
                     if (self::$base64) {
-                        $_SESSION[__CLASS__][$value] = base64_encode( serialize( $GLOBALS[$value] ) );
+                        $_SESSION[__CLASS__][$value] = base64_encode(serialize($GLOBALS[$value]));
                     } else {
                         $_SESSION[__CLASS__][$value] = $GLOBALS[$value] ??= null;
                     }
@@ -106,10 +106,11 @@ abstract class Serialized
      * @param mixed $result Result of unserialize() of the $value
      * @return        boolean            True if $value is serialized data, otherwise false
      * @author        Chris Smith <code+php@chris.cs278.org>
-     * @auther        Richard Miles, modified for carbonPHP and php ^8
+     * @auther        Richard Miles, modified/improved for carbonPHP and php ^8
      * @copyright    Copyright (c) 2009 Chris Smith (http://www.cs278.org/)
      * @license        http://sam.zoy.org/wtfpl/ WTFPL
      */
+
     public static function is_serialized($value, &$result = null): bool
     {
         // Bit of a give away this one
@@ -175,11 +176,18 @@ abstract class Serialized
         }
 
         try {
+
             /** @noinspection UnserializeExploitsInspection */
-            if (($result = unserialize($value, true)) === false) {
+            $result = unserialize($value, []);
+
+            if (false === $result) {
+
                 $result = null;
+
                 return false;
+
             }
+
         } catch (\Throwable $e) {
 
             ErrorCatcher::generateLog($e);
@@ -189,4 +197,5 @@ abstract class Serialized
         return true;
 
     }
+
 }

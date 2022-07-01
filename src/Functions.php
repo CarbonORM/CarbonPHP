@@ -280,7 +280,7 @@ namespace {                                     // This runs the following code 
 
         } else {
 
-            print $report = $output(false);
+            print $output(false);
 
             ColorCode::colorCode($output(true) . PHP_EOL, 'red');
 
