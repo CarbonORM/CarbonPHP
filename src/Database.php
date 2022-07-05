@@ -122,8 +122,16 @@ HEAD;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 FOOT;
 
-    public static function database(bool $reader = false): PDO
+    public static function database(bool $reader): PDO
     {
+
+        if (true === $reader &&
+            null === self::$carbonDatabaseReader) {
+
+            $reader = false;
+
+        }
+
 
         $database = $reader ? self::$databaseReader : self::$database;
 
@@ -139,6 +147,7 @@ FOOT;
 
         try {
 
+            // this has a lot of waist at this point
             $database->prepare('SELECT 1')->execute();
 
             error_reporting($oldLevel);
@@ -428,7 +437,7 @@ FOOT;
 
         }
 
-        return static::database();
+        return static::database(false);
 
     }
 
@@ -447,7 +456,7 @@ FOOT;
     public static function verify(): bool
     {
 
-        $pdo = self::database();
+        $pdo = self::database(false);
 
         if (!$pdo->inTransaction()) {        // We're verifying that we do not have an un finished transaction
 
@@ -488,7 +497,7 @@ FOOT;
     public static function commit(): bool
     {
 
-        $db = self::database();
+        $db = self::database(false);
 
         if (false === $db->inTransaction()) {
 
@@ -554,7 +563,7 @@ FOOT;
     protected static function beginTransaction(string $tag_id, string $dependant = null)
     {
 
-        $db = self::database();
+        $db = self::database(false);
 
         $key = self::new_entity($tag_id, $dependant);
 
@@ -640,14 +649,17 @@ FOOT;
         $carbons = Rest::getDynamicRestClass(Carbons::class);
 
         /** @noinspection PhpUndefinedMethodInspection */
-        return $carbons::delete($ref, $id, []); //Database::database()->prepare('DELETE FROM carbon WHERE entity_pk = ?')->execute([$id]);
+        return $carbons::delete($ref, $id, []); // Database::database()->prepare('DELETE FROM carbon WHERE entity_pk = ?')->execute([$id]);
 
     }
 
 
     public static function execute(string $sql, ...$execute): bool
     {
-        return self::database()->prepare($sql)->execute($execute);
+
+        $reader = false === self::isWriteQuery($sql);
+
+        return self::database($reader)->prepare($sql)->execute($execute);
     }
 
     /**
@@ -669,7 +681,9 @@ FOOT;
     {
         try {
 
-            $stmt = self::database()->prepare($sql);
+            $reader = false === self::isWriteQuery($sql);
+
+            $stmt = self::database($reader)->prepare($sql);
 
             if (!$stmt->execute($execute) && !$stmt->execute($execute)) { // try it twice, you never know..
                 return [];
@@ -710,7 +724,9 @@ FOOT;
 
         try {
 
-            $stmt = self::database()->prepare($sql);
+            $reader = false === self::isWriteQuery($sql);
+
+            $stmt = self::database($reader)->prepare($sql);
 
             if (false === $stmt->execute($execute)) { // try it twice, you never know..
 
@@ -746,27 +762,42 @@ FOOT;
      */
     public static function fetchColumn(string $sql, ...$execute): array
     {
-        $stmt = self::database()->prepare($sql);
+        $reader = false === self::isWriteQuery($sql);
+
+        $stmt = self::database($reader)->prepare($sql);
+
         if (!$stmt->execute($execute)) {
+
             return [];
+
         }
+
         // pdo's version of fetchColumn is flawed see note
         $count = count($stmt = $stmt->fetchAll(PDO::FETCH_ASSOC));
+
         if ($count === 0) {
             return $stmt;
         }
+
         if ($count === 1) {
             while (is_array($stmt)) {
                 $stmt = array_shift($stmt);
             }
             return [$stmt];
         }
+
         foreach ($stmt as &$value) {
+
             while (is_array($value)) {
+
                 $value = array_shift($value);
+
             }
+
         }
+
         return $stmt;
+
     }
 
     /** TODO - see if this even still works
@@ -782,13 +813,23 @@ FOOT;
      */
     protected static function fetch_object(string $sql, ...$execute): stdClass
     {
-        $stmt = self::database()->prepare($sql);
+
+        $reader = false === self::isWriteQuery($sql);
+
+        $stmt = self::database($reader)->prepare($sql);
+
         $stmt->setFetchMode(PDO::FETCH_CLASS, \stdClass::class);
+
         if (!$stmt->execute($execute)) {
+
             throw new RuntimeException('Failed to Execute');
+
         }
+
         $stmt = $stmt->fetchAll();  // user obj
+
         return (is_array($stmt) && count($stmt) === 1 ? $stmt[0] : new stdClass);
+
     }
 
     /** Each row received will be converted into its own object
@@ -798,12 +839,21 @@ FOOT;
      */
     protected static function fetch_classes(string $sql, ...$execute): array
     {
-        $stmt = self::database()->prepare($sql);
+
+        $reader = false === self::isWriteQuery($sql);
+
+        $stmt = self::database($reader)->prepare($sql);
+
         $stmt->setFetchMode(PDO::FETCH_CLASS, \stdClass::class);
+
         if (!$stmt->execute($execute)) {
+
             return [];
+
         }
+
         return $stmt->fetchAll();  // user obj
+
     }
 
     /** Run an sql statement and return results as attributes of a stdClass
@@ -813,12 +863,20 @@ FOOT;
      */
     protected static function fetch_into_class(&$object, $sql, ...$execute): void
     {
-        $stmt = self::database()->prepare($sql);
+        $reader = false === self::isWriteQuery($sql);
+
+        $stmt = self::database($reader)->prepare($sql);
+
         $stmt->execute($execute);
+
         $array = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
         foreach ($array as $key => $value) {
+
             $object->$key = $value;
+
         }
+
     }
 
     protected static function runRefreshSchema(array $REFRESH_SCHEMA): void
@@ -1127,7 +1185,7 @@ FOOT;
 
             self::$tablesToValidateAfterRefresh[$table] = $table::CREATE_TABLE_SQL;
 
-            $db = self::database();
+            $db = self::database(false);
 
             if ($db->inTransaction()) {
 
@@ -1652,18 +1710,18 @@ FOOT;
      * 2. begin with SELECT etc.
      *
      * @since 1.0.0
-     * @source https://github.com/Drop-In-Gaming/scalingWPDB/blob/master/ludicrousdb/includes/class-ludicrousdb.php
+     * @source /ludicrousdb/includes/class-ludicrousdb.php
      * @param string $q Query.
      *
      * @return bool
      */
-    public function is_write_query( string $q = '' ) : bool {
+    public static function isWriteQuery( string $q = '' ) : bool {
 
         // Trim potential whitespace or subquery chars
         $q = ltrim( $q, "\r\n\t (" );
 
         // Possible writes
-        if ( preg_match( '/(?:^|\s)(?:ALTER|CREATE|ANALYZE|CHECK|OPTIMIZE|REPAIR|CALL|DELETE|DROP|INSERT|LOAD|REPLACE|UPDATE|SET|RENAME\s+TABLE)(?:\s|$)/i', $q ) ) {
+        if ( preg_match( '/(?:^|\s)(?:ALTER|CREATE|ANALYZE|CHECK|OPTIMIZE|REPAIR|CALL|DELETE|DROP|INSERT|LOAD|REPLACE|UPDATE|SHARE|SET|RENAME\s+TABLE)(?:\s|$)/i', $q ) ) {
             return true;
         }
 

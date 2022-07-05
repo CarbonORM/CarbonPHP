@@ -34,7 +34,7 @@ abstract class Rest extends RestLifeCycle
 
                 self::startRest(self::DELETE, $remove, $argv, $primary);
 
-                $pdo = self::database();
+                $pdo = self::database(false);
 
                 $emptyPrimary = null === $primary || [] === $primary;
 
@@ -201,7 +201,8 @@ abstract class Rest extends RestLifeCycle
 
                 self::startRest(self::GET, $return, $argv, $primary);
 
-                $pdo = self::database();
+                // If we need use table or row level locks we should use the main writer instance
+                $pdo = self::database(false === array_key_exists(self::LOCK, $argv));
 
                 if (null !== $primary && false === is_array($primary)) {
 
@@ -431,7 +432,7 @@ abstract class Rest extends RestLifeCycle
 
             $sql .= substr($set, 0, -1);
 
-            $pdo = self::database();
+            $pdo = self::database(false);
 
             if (false === $pdo->inTransaction() &&
                 false === $pdo->beginTransaction()) {
@@ -647,7 +648,7 @@ abstract class Rest extends RestLifeCycle
 
                 if ($primaryBinary) {
 
-                    $pdo = self::database();
+                    $pdo = self::database(false);
 
                     if (false === $pdo->inTransaction()) {
 
@@ -661,7 +662,7 @@ abstract class Rest extends RestLifeCycle
 
                 self::postpreprocessRestRequest($sql);
 
-                $pdo ??= self::database();
+                $pdo ??= self::database(false);
 
                 $stmt = $pdo->prepare($sql);
 

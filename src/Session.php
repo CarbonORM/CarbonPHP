@@ -303,9 +303,9 @@ class Session implements SessionHandlerInterface
             return false;
         }
 
-        $db = Database::database();
-
         $session = Rest::getDynamicRestClass(Sessions::class);
+
+        $db = Database::database(true);
 
         $sql = 'SELECT count(*) FROM ' . $session::TABLE_NAME . ' WHERE ' . $session::USER_IP . ' = ? AND ' . $session::SESSION_ID . ' = ? LIMIT 1';
 
@@ -360,21 +360,17 @@ class Session implements SessionHandlerInterface
 
         try {
 
-            return Database::database()
+            return Database::database(true)
                 ->prepare('SELECT count(*) FROM ' . self::getSessionTable()::TABLE_NAME . ' LIMIT 1')
                 ->execute();
 
+        } catch (PDOException $e) {
+
+            Database::TryCatchPDOException($e); // this will terminate 99% of the time
+
         } catch (Throwable $e) {
 
-            if ($e instanceof PDOException) {
-
-                Database::TryCatchPDOException($e); // this will terminate 99% of the time
-
-            } else {
-
-                ErrorCatcher::generateLog($e); // this will terminate
-
-            }
+            ErrorCatcher::generateLog($e); // this will terminate
 
         }
 
@@ -513,9 +509,9 @@ class Session implements SessionHandlerInterface
     public function gc($maxLife): bool
     {
 
-        $db = Database::database();
-
         $session = Rest::getDynamicRestClass(Sessions::class);
+
+        $db = Database::database(false);
 
         return $db->prepare('DELETE FROM ' . $session::TABLE_NAME . ' WHERE (UNIX_TIMESTAMP(' . $session::SESSION_EXPIRES . ') + ? ) < UNIX_TIMESTAMP(?)')->execute([$maxLife, date('Y-m-d H:i:s')]);
 

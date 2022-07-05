@@ -241,6 +241,16 @@ interface iRest
     ];
 
 
+    // https://dev.mysql.com/worklog/task/?id=3597
+    // SELECT * FROM tab1 WHERE col1 = 1 FOR UPDATE NOWAIT;
+    // SELECT * FROM tab1 WHERE col1 = 1 FOR UPDATE NOWAIT SKIP LOCKED;
+    public const LOCK = 'LOCK';
+    public const FOR_SHARE = 'FOR_SHARE';
+    public const FOR_UPDATE = 'FOR_UPDATE';
+    public const NOWAIT = 'NOWAIT';
+    public const SKIP_LOCKED = 'SKIP_LOCKED';
+
+
     public const AGGREGATES_WITH_NO_PARAMETERS = [
         'COUNT(*)',
         self::COUNT_ALL,

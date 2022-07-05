@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use CarbonPHP\Database;
 use CarbonPHP\Helpers\Bcrypt;
+use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Rest;
 use CarbonPHP\Tables\Carbons;
 use CarbonPHP\Tables\History_Logs;
@@ -118,11 +119,11 @@ class CarbonRestTest extends Config
         $return = [];
 
         self::assertTrue(Carbons::Get($return, null, [
-            Rest::WHERE => [
+            iRest::WHERE => [
                 Carbons::ENTITY_TAG => self::class
             ],
-            Rest::PAGINATION => [
-                Rest::LIMIT => 1
+            iRest::PAGINATION => [
+                iRest::LIMIT => 1
             ]
         ]));
 
@@ -150,11 +151,11 @@ class CarbonRestTest extends Config
         $temp = [];
 
         self::assertTrue(Carbons::Get($temp, null, [
-            Rest::WHERE => [
+            iRest::WHERE => [
                 Carbons::ENTITY_TAG => self::class
             ],
-            Rest::PAGINATION => [
-                Rest::LIMIT => 1
+            iRest::PAGINATION => [
+                iRest::LIMIT => 1
             ]
         ]));
 
@@ -163,22 +164,22 @@ class CarbonRestTest extends Config
         $temp = [];
 
         self::assertTrue(Carbons::Get($temp, null, [
-            Rest::SELECT => [
-                [Rest::COUNT, Carbons::ENTITY_PK, Carbons::COLUMNS[Carbons::ENTITY_PK]]
+            iRest::SELECT => [
+                [iRest::COUNT, Carbons::ENTITY_PK, Carbons::COLUMNS[Carbons::ENTITY_PK]]
             ],
-            Rest::PAGINATION => [
-                Rest::LIMIT => 1
+            iRest::PAGINATION => [
+                iRest::LIMIT => 1
             ]
         ]));
 
         self::assertArrayHasKey(Carbons::COLUMNS[Carbons::ENTITY_PK], $temp, 'failed on PAGINATION:LIMIT');
 
         self::assertTrue(Carbons::Get($temp, null, [
-            Rest::SELECT => [
-                [Rest::COUNT, Carbons::ENTITY_PK, Carbons::COLUMNS[Carbons::ENTITY_PK]]
+            iRest::SELECT => [
+                [iRest::COUNT, Carbons::ENTITY_PK, Carbons::COLUMNS[Carbons::ENTITY_PK]]
             ],
-            Rest::PAGINATION => [
-                Rest::LIMIT => 2   // check the limit
+            iRest::PAGINATION => [
+                iRest::LIMIT => 2   // check the limit
             ]
         ]));
 
@@ -226,14 +227,14 @@ class CarbonRestTest extends Config
         $user = [];
 
         if (Users::Get($user, null, [
-                Rest::SELECT => [
+                iRest::SELECT => [
                     Users::USER_ID
                 ],
-                Rest::WHERE => [
+                iRest::WHERE => [
                     Users::USER_USERNAME => Config::ADMIN_USERNAME
                 ],
-                Rest::PAGINATION => [
-                    Rest::LIMIT => 1
+                iRest::PAGINATION => [
+                    iRest::LIMIT => 1
                 ]
             ]) && !empty($user)) {
 
@@ -265,7 +266,7 @@ class CarbonRestTest extends Config
 
         $user = [];
 
-        $db = Database::database();
+        $db = Database::database(true);
 
         self::assertFalse($db->inTransaction(), 'Failed closing transaction');
 
@@ -274,12 +275,12 @@ class CarbonRestTest extends Config
         self::assertArrayHasKey(Users::COLUMNS[Users::USER_ABOUT_ME], $user);
 
         self::assertTrue(Users::Get($user, $uid, [
-            Rest::SELECT => [
+            iRest::SELECT => [
                 Users::USER_USERNAME,
                 Locations::STATE
             ],
-            Rest::JOIN => [
-                Rest::INNER => [
+            iRest::JOIN => [
+                iRest::INNER => [
                     Location_References::TABLE_NAME => [
                         Users::USER_ID => Location_References::ENTITY_REFERENCE
                     ],
@@ -288,9 +289,9 @@ class CarbonRestTest extends Config
                     ]
                 ]
             ],
-            Rest::PAGINATION => [
-                Rest::LIMIT => 1,
-                Rest::ORDER => [Users::USER_USERNAME => Rest::ASC]
+            iRest::PAGINATION => [
+                iRest::LIMIT => 1,
+                iRest::ORDER => [Users::USER_USERNAME => iRest::ASC]
             ]
         ]), 'Failed to run inner join.');
 
@@ -307,12 +308,12 @@ class CarbonRestTest extends Config
         $user = [];
 
         self::assertTrue(Users::Get($user, null, [
-                Rest::WHERE => [
-                    [Users::USER_USERNAME, Rest::LIKE, Config::ADMIN_USERNAME . '%'],
+                iRest::WHERE => [
+                    [Users::USER_USERNAME, iRest::LIKE, Config::ADMIN_USERNAME . '%'],
                     Users::USER_PASSWORD => Config::ADMIN_PASSWORD
                 ],
-                Rest::PAGINATION => [
-                    Rest::LIMIT => 1
+                iRest::PAGINATION => [
+                    iRest::LIMIT => 1
                 ]
             ]
         ), 'The user could not be retrieved.');
@@ -358,9 +359,9 @@ class CarbonRestTest extends Config
 
         self::assertArrayHasKey(1, self::$restChallenge[1]);
 
-        self::assertEquals(Rest::POST, self::$restChallenge[1][1]); // start at 0 ;)
+        self::assertEquals(iRest::POST, self::$restChallenge[1][1]); // start at 0 ;)
 
-        self::assertEquals(Rest::PREPROCESS, self::$restChallenge[1][2]); // start at 0 ;)
+        self::assertEquals(iRest::PREPROCESS, self::$restChallenge[1][2]); // start at 0 ;)
 
         self::assertEquals(User_Tasks::PERCENT_COMPLETE, self::$restChallenge[3][1]);
 
@@ -373,25 +374,25 @@ class CarbonRestTest extends Config
 
         $user = [];
         self::assertTrue(Carbons::Get($user, null, [
-            Rest::SELECT => [
+            iRest::SELECT => [
                 Carbons::ENTITY_PK
             ],
-            Rest::WHERE => [
+            iRest::WHERE => [
                 Carbons::ENTITY_PK =>
                     Users::subSelect(null, [
-                        Rest::SELECT => [
+                        iRest::SELECT => [
                             Users::USER_ID
                         ],
-                        Rest::WHERE => [
-                            [Users::USER_USERNAME, Rest::LIKE, Config::ADMIN_USERNAME . '%']
+                        iRest::WHERE => [
+                            [Users::USER_USERNAME, iRest::LIKE, Config::ADMIN_USERNAME . '%']
                         ],
-                        Rest::PAGINATION => [
-                            Rest::LIMIT => 1
+                        iRest::PAGINATION => [
+                            iRest::LIMIT => 1
                         ]
                     ])
             ],
-            Rest::PAGINATION => [
-                Rest::LIMIT =>
+            iRest::PAGINATION => [
+                iRest::LIMIT =>
                     1
             ]
         ]));
@@ -407,30 +408,30 @@ class CarbonRestTest extends Config
         Rest::$allowSubSelectQueries = true;
 
         self::assertTrue(Carbons::Get($user, null, [
-            Rest::SELECT => [
+            iRest::SELECT => [
                 Carbons::ENTITY_PK
             ],
-            Rest::WHERE => [
+            iRest::WHERE => [
                 Carbons::ENTITY_PK =>
                     [
-                        Rest::SELECT,
+                        iRest::SELECT,
                         Users::class,
                         null,
                         [
-                            Rest::SELECT => [
+                            iRest::SELECT => [
                                 Users::USER_ID
                             ],
-                            Rest::WHERE => [
-                                [Users::USER_USERNAME, Rest::LIKE, Config::ADMIN_USERNAME . '%']
+                            iRest::WHERE => [
+                                [Users::USER_USERNAME, iRest::LIKE, Config::ADMIN_USERNAME . '%']
                             ],
-                            Rest::PAGINATION => [
-                                Rest::LIMIT => 1
+                            iRest::PAGINATION => [
+                                iRest::LIMIT => 1
                             ]
                         ]
                     ]
             ],
-            Rest::PAGINATION => [
-                Rest::LIMIT =>
+            iRest::PAGINATION => [
+                iRest::LIMIT =>
                     1
             ]
         ]));
@@ -454,7 +455,7 @@ class CarbonRestTest extends Config
 
 
         self::assertTrue(Users::Get($user, null, [
-            Rest::WHERE => [
+            iRest::WHERE => [
                 Users::USER_USERNAME => Config::ADMIN_USERNAME
             ]
         ]));
@@ -606,11 +607,11 @@ class CarbonRestTest extends Config
         $post = [];
         // Should return a unique hex id
         self::assertTrue(History_Logs::Put($ignore, [
-            Rest::UPDATE => [
+            iRest::UPDATE => [
                 History_Logs::HISTORY_UUID => $UUID = Carbons::Post($post),
                 History_Logs::HISTORY_DATA => '{}',
             ],
-            Rest::WHERE => [
+            iRest::WHERE => [
                 History_Logs::HISTORY_TABLE => $condition,
             ]
         ]));
@@ -618,12 +619,12 @@ class CarbonRestTest extends Config
         $return = [];
 
         self::assertTrue(History_Logs::Get($return, [
-            Rest::WHERE => [
+            iRest::WHERE => [
                 History_Logs::HISTORY_TABLE => $condition
             ],
-            Rest::PAGINATION => [
-                Rest::LIMIT => 1,
-                Rest::ORDER => [History_Logs::HISTORY_TIME => Rest::ASC]
+            iRest::PAGINATION => [
+                iRest::LIMIT => 1,
+                iRest::ORDER => [History_Logs::HISTORY_TIME => iRest::ASC]
             ]
         ]));
 
@@ -650,10 +651,10 @@ class CarbonRestTest extends Config
 
         // Should return a unique hex id
         self::assertTrue(History_Logs::Put($ignore, [
-            Rest::UPDATE => [
+            iRest::UPDATE => [
                 History_Logs::HISTORY_UUID => '8544e3d581ba11e8942cd89ef3fc55fb',
             ],
-            Rest::WHERE => [
+            iRest::WHERE => [
                 History_Logs::HISTORY_TABLE => $condition,
             ]
         ]));
@@ -661,12 +662,12 @@ class CarbonRestTest extends Config
         $return = [];
 
         self::assertTrue(History_Logs::get($return, [
-            Rest::WHERE => [
+            iRest::WHERE => [
                 History_Logs::HISTORY_TABLE => $condition
             ],
-            Rest::PAGINATION => [
-                Rest::LIMIT => 1,
-                Rest::ORDER => [History_Logs::HISTORY_TIME => Rest::ASC]
+            iRest::PAGINATION => [
+                iRest::LIMIT => 1,
+                iRest::ORDER => [History_Logs::HISTORY_TIME => iRest::ASC]
             ]
         ]));
 

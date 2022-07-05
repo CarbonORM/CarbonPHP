@@ -800,6 +800,16 @@ class ErrorCatcher
 
         $log_array[self::DEBUG_BACKTRACE] = debug_backtrace();
 
+        try {
+
+            $log_array['INNODB_STATUS'] = Database::fetchAll('SHOW ENGINE INNODB STATUS');
+
+        } catch (Throwable $e) {
+
+            $log_array['INNODB_STATUS'] = 'Unable to fetch! (SHOW ENGINE INNODB STATUS)';
+
+        }
+
         $html_error_log = self::generateBrowserReport($log_array, true);
 
         $log_array[self::TRACE] = $traceCLI;
@@ -812,6 +822,7 @@ class ErrorCatcher
 
                     $reports = Rest::getDynamicRestClass(Reports::class);
 
+                    /** @noinspection PhpUndefinedMethodInspection */
                     if (false === $reports::post([
                             $reports::LOG_LEVEL => $level,
                             $reports::REPORT => $traceHTML,

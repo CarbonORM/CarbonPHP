@@ -39,7 +39,7 @@ final class RestWordpressTest extends Config
     {
         self::assertGreaterThan(1, $primary = self::createUser());
 
-        $db = Database::database();
+        $db = Database::database(false);
 
         self::assertFalse($db->inTransaction(), 'Transaction did not commit');
 

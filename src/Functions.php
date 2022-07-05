@@ -3,6 +3,7 @@
 namespace {                                     // This runs the following code in the global scope
     use CarbonPHP\CarbonPHP;
     use CarbonPHP\Error\PublicAlert;
+    use CarbonPHP\Interfaces\iColorCode;
     use CarbonPHP\Programs\ColorCode;
     use CarbonPHP\View;
 
@@ -264,7 +265,7 @@ namespace {                                     // This runs the following code 
 
                 CarbonPHP::$test = false;   // this will ensure default out of this fn goes to std_error
 
-                ColorCode::colorCode($output(true) . PHP_EOL, 'blue');
+                ColorCode::colorCode($output(true) . PHP_EOL, iColorCode::BLUE);
 
                 die(1);
 
@@ -282,7 +283,7 @@ namespace {                                     // This runs the following code 
 
             print $output(false);
 
-            ColorCode::colorCode($output(true) . PHP_EOL, 'red');
+            ColorCode::colorCode($output(true) . PHP_EOL, iColorCode::RED);
 
         }
 

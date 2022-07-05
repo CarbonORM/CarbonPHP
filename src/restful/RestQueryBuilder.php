@@ -628,10 +628,11 @@ TRIGGER;
     {
         switch ($pdo_column_validation[self::PDO_TYPE] ?? null) {
 
+            /** @noinspection PhpMissingBreakStatementInspection */
             default:
 
                 // todo - cache db better (startRest?)
-                $value = (Database::database())->quote($value);        // boolean, string
+                $value = (Database::database(true))->quote($value);        // boolean, string
 
             case null:
             case PDO::PARAM_INT:
@@ -952,7 +953,8 @@ TRIGGER;
 
             }
 
-            if ('' === $limit || array_key_exists(self::ORDER, $argv[self::PAGINATION])) {
+            if ('' === $limit ||
+                array_key_exists(self::ORDER, $argv[self::PAGINATION])) {
 
                 $order = ' ORDER BY ';
 
@@ -1049,6 +1051,7 @@ TRIGGER;
 
 
     /**
+     * @link https://dev.mysql.com/doc/refman/8.0/en/select.html
      * @param array|null $primary
      * @param array $argv
      * @param bool $isSubSelect
@@ -1070,7 +1073,8 @@ TRIGGER;
 
                 if (false === is_array($argv[$key])) {
 
-                    throw new PublicAlert("The restful join field ($argv) passed to (" . static::class . ") must be an array.");
+                    /** @noinspection JsonEncodingApiUsageInspection */
+                    throw new PublicAlert("The restful join field (" . json_encode($argv) . ") passed to (" . static::class . ") must be an array.");
                 }
 
                 return true;
@@ -1104,7 +1108,213 @@ TRIGGER;
 
         $sql .= self::buildQueryPaginationValues($argv, $isSubSelect, $primary);
 
+        //
+        // https://dev.mysql.com/worklog/task/?id=3597
+        // SELECT * FROM tab1 WHERE col1 = 1 FOR UPDATE NOWAIT;
+        // SELECT * FROM tab1 WHERE col1 = 1 FOR UPDATE NOWAIT SKIP LOCKED;
+        //public const LOCK = 'LOCK';
+        //public const FOR_SHARE = 'FOR_SHARE';
+        //public const FOR_UPDATE = 'FOR_UPDATE';
+        //public const NOWAIT = 'NOWAIT';
+        //public const SKIP_LOCKED = 'SKIP_LOCKED';
+
+
+        // https://dev.mysql.com/blog-archive/mysql-8-0-1-using-skip-locked-and-nowait-to-handle-hot-rows/
+        // SELECT seat_no
+        // FROM seats JOIN seat_rows USING ( row_no )
+        // WHERE seat_no IN (3,4) AND seat_rows.row_no IN (12)
+        // AND booked = 'NO'
+        // FOR UPDATE OF seats SKIP LOCKED
+        // FOR SHARE OF seat_rows NOWAIT;
+
+        $sql .= self::buildSelectLockStatement($argv);
+
+
         return $sql;
+    }
+
+
+    /**
+     * @throws PublicAlert
+     */
+    public static function addSimpleLock(string $lockAggregateValue): string
+    {
+        switch ($lockAggregateValue) {
+            case self::NOWAIT:
+            case self::FOR_SHARE:
+            case self::FOR_UPDATE:
+            case self::SKIP_LOCKED:
+                return $lockAggregateValue;
+            default:
+                throw new PublicAlert('A SELECT LOCK which was not one of (NOWAIT, FOR_SHARE, FOR_UPDATE, or SKIP_LOCKED) was encounter. The value (' . $lockAggregateValue . ') is incorrect.');
+        }
+    }
+
+    /**
+     * @throws PublicAlert
+     */
+    public static function buildSelectLockStatement(array $argv): string
+    {
+
+        if (false === array_key_exists(self::LOCK, $argv)) {
+
+            return '';
+
+        }
+
+        if (self::$externalRestfulRequestsAPI) {
+
+            throw new PublicAlert('A SELECT LOCK was supplied for an external request!');
+
+        }
+
+        if (false === is_array($argv[self::LOCK])) {
+
+            if (false === is_string($argv[self::LOCK])) {
+
+                throw new PublicAlert('Failed to parse LOCK argument passed to REST. An array or string is required! The value (' . json_encode($argv) . ') was given.');
+
+            }
+
+            // this should be like 99% of the time
+            return self::addSimpleLock($argv[self::LOCK]);
+
+        }
+
+        $lockArgc = count($argv[self::LOCK]);
+
+        if (0 === $lockArgc) {
+
+            throw new PublicAlert('An empty array was passed to rest in the LOCK parameter!');
+
+        }
+
+        // [LIMIT {[offset,] row_count | row_count OFFSET offset}]
+        //    [into_option]
+        //    [FOR {UPDATE | SHARE}
+        //        [OF tbl_name [, tbl_name] ...]
+        //        [NOWAIT | SKIP LOCKED]
+        //      | LOCK IN SHARE MODE]
+        //    [into_option]
+
+        // SELECT seat_no
+        // FROM seats JOIN seat_rows USING ( row_no )
+        // WHERE seat_no IN (3,4) AND seat_rows.row_no IN (12)
+        // AND booked = 'NO'
+
+        $lockStatement = '';
+        // FOR UPDATE OF seats SKIP LOCKED
+        // FOR SHARE OF seat_rows NOWAIT;
+
+
+        do {
+
+            $specificTableLockOnJoin = array_shift($argv[self::LOCK]);
+
+            if (false === is_array($specificTableLockOnJoin)) {
+
+                throw new PublicAlert('Either a single string or array of arrays must be passed to the LOCK.');
+
+            }
+
+
+        } while (false === empty($argv[self::LOCK]));
+
+        return $lockStatement;
+
+    }
+
+    public static function isArrayOfStrings(array $argv): bool
+    {
+
+        foreach ($argv as $value) {
+            if (false === is_string($value)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * @throws PublicAlert
+     */
+    public static function addSingleConditionToLock(array $specificTableLockOnJoin): string
+    {
+
+        if (false === self::isArrayOfStrings($specificTableLockOnJoin)) {
+
+            /** @noinspection JsonEncodingApiUsageInspection */
+            throw new PublicAlert('The LOCK array (' . json_encode($specificTableLockOnJoin) . ') must be comprised of only strings at this point!');
+
+        }
+
+        $lockArgc = count($specificTableLockOnJoin);
+
+        switch ($lockArgc) {
+            default:
+                throw new PublicAlert('The LOCK parameter passed contained (' . $lockArgc . ') elements, between 1 and 3 must be provided.');
+
+            case 0:
+                throw new PublicAlert('The LOCK parameter passed was an empty array!');
+
+            case 1:
+
+                $singleTableLockOnJoin = array_shift($specificTableLockOnJoin);
+
+                return self::addSimpleLock($singleTableLockOnJoin);
+
+            case 2:
+
+                [$ShareOrUpdate, $NoWaitOrSkip] = $specificTableLockOnJoin;
+
+                switch ($ShareOrUpdate) {
+                    case self::FOR_SHARE:
+                    case self::FOR_UPDATE:
+                        break;
+                    default:
+                        throw new PublicAlert('A SELECT LOCK which was not one of (FOR_SHARE or FOR_UPDATE) was encounter. The value (' . $ShareOrUpdate . ') is incorrect.');
+                }
+
+                switch ($NoWaitOrSkip) {
+                    case self::NOWAIT:
+                    case self::SKIP_LOCKED:
+                        return $ShareOrUpdate . ' ' . $NoWaitOrSkip;
+                    default:
+                        throw new PublicAlert('A SELECT LOCK value which was not one of (NOWAIT or SKIP_LOCKED) was encounter. The value (' . $NoWaitOrSkip . ') is incorrect.');
+                }
+
+            case 3:
+
+                /** @noinspection SuspiciousAssignmentsInspection */
+                [$ShareOrUpdate, $tableToLock, $NoWaitOrSkip] = $specificTableLockOnJoin;
+
+                switch ($ShareOrUpdate) {
+                    case self::FOR_SHARE:
+                    case self::FOR_UPDATE:
+                        break;
+                    default:
+                        throw new PublicAlert('A SELECT LOCK which was not one of (FOR_SHARE or FOR_UPDATE) was encounter. The value (' . $ShareOrUpdate . ') is incorrect.');
+                }
+
+                $allTables = [...self::$join_tables, static::TABLE_NAME];
+
+                if (false === in_array($tableToLock, $allTables, true)) {
+
+                    /** @noinspection JsonEncodingApiUsageInspection */
+                    throw new PublicAlert("A LOCK argument was incorrect, the value ($tableToLock) was expected to be one of (" . json_encode($allTables) . ")");
+
+                }
+
+                switch ($NoWaitOrSkip) {
+                    case self::NOWAIT:
+                    case self::SKIP_LOCKED:
+                        return $ShareOrUpdate . ' OF ' . $tableToLock . ' ' . $NoWaitOrSkip;
+                    default:
+                        throw new PublicAlert('A SELECT LOCK value which was not one of (NOWAIT or SKIP_LOCKED) was encounter. The value (' . $NoWaitOrSkip . ') is incorrect.');
+                }
+
+        }
+
     }
 
 
@@ -1484,7 +1694,7 @@ TRIGGER;
             case str_replace('_', ' ', iRest::NOT_IN):
 
 
-            if ($key_is_custom) {
+                if ($key_is_custom) {
 
                     throw new PublicAlert("A non-internal column key was used in conjunction with the IN or NOT IN aggregate. addSingleConditionToWhereOrJoin was given (" . implode(',', func_get_args()) . ").");
 
