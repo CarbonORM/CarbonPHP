@@ -36,6 +36,7 @@ class ErrorCatcher
 
     public const TRACE = 'TRACE';
     public const GLOBALS_JSON = '$GLOBALS[\'json\']';
+    public const INNODB_STATUS = 'INNODB_STATUS';
     public const DEBUG_BACKTRACE = 'debug_backtrace()';
 
     // todo - defaultLocation this does nothing.
@@ -401,7 +402,7 @@ class ErrorCatcher
         $_SERVER["CONTENT_TYPE"] ??= '';
 
         $sendJson = $_SERVER["CONTENT_TYPE"] === 'application/json'
-            || $_SERVER["HTTP_X_REQUESTED_WITH"] === 'XMLHttpRequest'
+            || 'XMLHttpRequest' === ($_SERVER["HTTP_X_REQUESTED_WITH"] ?? '')
             || strpos($_SERVER["CONTENT_TYPE"], 'application/json');
 
         if (false === headers_sent()) {
@@ -798,11 +799,25 @@ class ErrorCatcher
 
         $log_array[self::GLOBALS_JSON] = $json;
 
-        $log_array[self::DEBUG_BACKTRACE] = debug_backtrace();
+        if (false === CarbonPHP::$cli) {
+
+            $log_array[self::DEBUG_BACKTRACE] = debug_backtrace();
+
+        } else {
+
+            $log_array[self::DEBUG_BACKTRACE] = 'Omitted in CLI mode. The TRACE above should be more useful anyway. (' . __FILE__ . ')';
+
+        }
 
         try {
 
-            $log_array['INNODB_STATUS'] = Database::fetchAll('SHOW ENGINE INNODB STATUS');
+            $preparse = $status = Database::fetchAll('SHOW ENGINE INNODB STATUS');
+
+            $status = $status[0] ?? [];
+
+            $status = explode(PHP_EOL,$status['Status'] ?? '');
+
+            $log_array['INNODB_STATUS'] = empty($status) ? $preparse : $status;
 
         } catch (Throwable $e) {
 
@@ -1133,7 +1148,8 @@ class ErrorCatcher
 
                 $blocks = $left === self::TRACE
                     || $left === self::GLOBALS_JSON
-                    || $left === self::DEBUG_BACKTRACE;
+                    || $left === self::DEBUG_BACKTRACE
+                    || $left === self::INNODB_STATUS;
 
                 if ($blocks) {
 

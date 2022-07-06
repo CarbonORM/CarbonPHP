@@ -64,19 +64,19 @@ class Database
 
     public static string $carbonDatabaseName;
 
-    public static string $carbonDatabasePort;
+    public static string $carbonDatabasePort = '3306';
 
-    public static string $carbonDatabaseHost;
+    public static ?string $carbonDatabaseHost = null;
 
-    public static string $carbonDatabaseReader;
+    public static ?string $carbonDatabaseReader = null;
 
     /**
-     * @var string $carbonDatabaseDSN holds the connection protocol
+     * @var string|null $carbonDatabaseDSN holds the connection protocol
      * @link http://php.net/manual/en/pdo.construct.php
      */
-    public static string $carbonDatabaseDSN;
+    public static ?string $carbonDatabaseDSN = null;
 
-    public static string $carbonDatabaseReaderDSN;
+    public static ?string $carbonDatabaseReaderDSN = null;
 
     /**
      * @var string holds the path of the users database set up file
@@ -125,13 +125,7 @@ FOOT;
     public static function database(bool $reader): PDO
     {
 
-        if (true === $reader &&
-            null === self::$carbonDatabaseReader) {
-
-            $reader = false;
-
-        }
-
+        self::readerCheck($reader);
 
         $database = $reader ? self::$databaseReader : self::$database;
 
@@ -254,10 +248,24 @@ FOOT;
 
     }
 
+    public static function readerCheck(bool &$reader): void {
+
+        if (true === $reader &&
+            (null === self::$carbonDatabaseReader ||
+                '' === self::$carbonDatabaseReader)) {
+
+            $reader = false;
+
+        }
+
+    }
+
     protected static function newInstance(bool $reader = false): PDO
     {
 
         $attempts = 0;
+
+        self::readerCheck($reader);
 
         do {
 
@@ -266,7 +274,8 @@ FOOT;
                 // @link https://stackoverflow.com/questions/10522520/pdo-were-rows-affected-during-execute-statement
                 $user_options = self::getPdoOptions();
 
-                set_error_handler(static function () { /* ignore errors // warnings */ });
+                set_error_handler(static function () { /* ignore errors // warnings */
+                });
 
                 // exceptions will still fall
                 $db = new PDO(
@@ -295,19 +304,15 @@ FOOT;
 
                 return $db;
 
+            } catch (PDOException $e) {
+
+                ColorCode::colorCode('$e instanceof PDOException', iColorCode::BACKGROUND_RED);
+
+                self::TryCatchPDOException($e); // this might exit todo - make sure this is perfect
+
             } catch (Throwable $e) {
 
-                if ($e instanceof PDOException) {
-
-                    ColorCode::colorCode('$e instanceof PDOException', iColorCode::BACKGROUND_RED);
-
-                    self::TryCatchPDOException($e); // this might exit
-
-                } else {
-
-                    ErrorCatcher::generateLog($e);  // this will exit
-
-                }
+                ErrorCatcher::generateLog($e);  // this will exit
 
             } finally {
 
@@ -324,13 +329,17 @@ FOOT;
         ColorCode::colorCode($message, iColorCode::RED);
 
         die(5);
+
     }
 
     /** Clears and restarts the PDO connection
+     * @param bool $reader
      * @return PDO
      */
     public static function reset(bool $reader = false): PDO // built to help preserve database in sockets and forks
     {
+
+        self::readerCheck($reader); // check if the connection information is set
 
         $database = $reader ? self::$databaseReader : self::$database;
 
@@ -526,7 +535,7 @@ FOOT;
             PDO::ATTR_EMULATE_PREPARES => true,
             PDO::ATTR_PERSISTENT => CarbonPHP::$cli,                // only in cli (including websockets)
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::MYSQL_ATTR_FOUND_ROWS => true,                     // Return the number of found (matched) rows, not the number of changed rows.
+            PDO::MYSQL_ATTR_FOUND_ROWS => false,                     // Return the number of found (matched) rows = true; the number of changed rows = false. Row level locking will not work if this is set to true
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_CASE => PDO::CASE_NATURAL,
             PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL
@@ -984,7 +993,8 @@ FOOT;
         }
     }
 
-    public static function verifyAndCreateForeignKeyRelations(string $fullyQualifiedClassName, callable $cb) : bool {
+    public static function verifyAndCreateForeignKeyRelations(string $fullyQualifiedClassName, callable $cb): bool
+    {
 
         $constraintsAdded = $failureEncountered = false;
 
@@ -1022,7 +1032,7 @@ FOOT;
 
                 if (false === preg_match_all($constraintNameRegex, $tableCreateSTMT, $cMatches)) {
 
-                    throw new PublicAlert("Failed to preg_match with :: " . print_r([ 'regex' => $constraintNameRegex, 'matches' => $cMatches, '$tableCreateSTMT'=> $tableCreateSTMT], true));
+                    throw new PublicAlert("Failed to preg_match with :: " . print_r(['regex' => $constraintNameRegex, 'matches' => $cMatches, '$tableCreateSTMT' => $tableCreateSTMT], true));
 
                 }
 
@@ -1303,7 +1313,7 @@ FOOT;
 
             if (null === $preUpdateSQL) {
 
-                throw new PublicAlert("The \$preUpdateSQL variable is null; this is very unexptected. \n\n" . print_r(self::$tablesToValidateAfterRefresh,true));
+                throw new PublicAlert("The \$preUpdateSQL variable is null; this is very unexptected. \n\n" . print_r(self::$tablesToValidateAfterRefresh, true));
 
             }
 
@@ -1319,7 +1329,7 @@ FOOT;
 
             $postUpdateSQL = '';
 
-            $pregMatchSchema = static function () use (&$postUpdateSQL, $tableName, $preUpdateSQL, &$mysqldump, $getCurrentSchema, &$failureEncountered) : bool {
+            $pregMatchSchema = static function () use (&$postUpdateSQL, $tableName, $preUpdateSQL, &$mysqldump, $getCurrentSchema, &$failureEncountered): bool {
 
                 static $hasRun = [];
 
@@ -1580,7 +1590,7 @@ FOOT;
             || false !== strpos($sqlReplaced, "`carbon_carbons`")
             || false === is_string($sqlReplaced)) {
 
-            self::colorCode("Preg_replace failed to add prefix to table; (". print_r($sqlReplaced, true) . ")", iColorCode::RED);
+            self::colorCode("Preg_replace failed to add prefix to table; (" . print_r($sqlReplaced, true) . ")", iColorCode::RED);
 
             exit(1);
 
@@ -1709,24 +1719,25 @@ FOOT;
      * 1. not including UPDATE nor other "may-be-write" strings
      * 2. begin with SELECT etc.
      *
-     * @since 1.0.0
-     * @source /ludicrousdb/includes/class-ludicrousdb.php
      * @param string $q Query.
      *
      * @return bool
+     * @since 1.0.0
+     * @source /ludicrousdb/includes/class-ludicrousdb.php
      */
-    public static function isWriteQuery( string $q = '' ) : bool {
+    public static function isWriteQuery(string $q = ''): bool
+    {
 
         // Trim potential whitespace or subquery chars
-        $q = ltrim( $q, "\r\n\t (" );
+        $q = ltrim($q, "\r\n\t (");
 
         // Possible writes
-        if ( preg_match( '/(?:^|\s)(?:ALTER|CREATE|ANALYZE|CHECK|OPTIMIZE|REPAIR|CALL|DELETE|DROP|INSERT|LOAD|REPLACE|UPDATE|SHARE|SET|RENAME\s+TABLE)(?:\s|$)/i', $q ) ) {
+        if (preg_match('/(?:^|\s)(?:ALTER|CREATE|ANALYZE|CHECK|OPTIMIZE|REPAIR|CALL|DELETE|DROP|INSERT|LOAD|REPLACE|UPDATE|SHARE|SET|RENAME\s+TABLE)(?:\s|$)/i', $q)) {
             return true;
         }
 
         // Not possible non-writes (phew!)
-        return ! preg_match( '/^(?:SELECT|SHOW|DESCRIBE|DESC|EXPLAIN)(?:\s|$)/i', $q );
+        return !preg_match('/^(?:SELECT|SHOW|DESCRIBE|DESC|EXPLAIN)(?:\s|$)/i', $q);
     }
 
 }

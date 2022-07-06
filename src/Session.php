@@ -20,6 +20,7 @@ use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Helpers\Serialized;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
+use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Programs\Background;
 use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Programs\WebSocket;
@@ -148,7 +149,7 @@ class Session implements SessionHandlerInterface
 
         if ($session_id !== null) {
 
-           static::$session_id = $session_id;
+            static::$session_id = $session_id;
 
         }
 
@@ -360,9 +361,9 @@ class Session implements SessionHandlerInterface
 
         try {
 
-            return Database::database(true)
-                ->prepare('SELECT count(*) FROM ' . self::getSessionTable()::TABLE_NAME . ' LIMIT 1')
-                ->execute();
+            Database::database(false);
+
+            return true;
 
         } catch (PDOException $e) {
 
@@ -416,10 +417,10 @@ class Session implements SessionHandlerInterface
 
         /** @noinspection PhpPossiblePolymorphicInvocationInspection */
         if (false === $session_table::Get($session_table_row, $id, [
-            Rest::SELECT => [
-                $session_table::SESSION_DATA
-            ]
-        ])) {
+                iRest::SELECT => [
+                    $session_table::SESSION_DATA
+                ],
+            ])) {
 
             return false;
 
@@ -451,7 +452,7 @@ class Session implements SessionHandlerInterface
             $session_table = self::getSessionTable();
 
             return $session_table::put($session_table_row, null, [
-                Rest::REPLACE => [
+                iRest::REPLACE => [
                     $session_table::SESSION_ID => $id,
                     $session_table::USER_ID => static::$user_id,
                     $session_table::USER_IP => CarbonPHP::$server_ip,
@@ -483,7 +484,7 @@ class Session implements SessionHandlerInterface
             $session_table = self::getSessionTable();
 
             return $session_table::Delete($session_table_row, $session_id, [
-                Rest::WHERE => [
+                iRest::WHERE => [
                     [
                         $session_table::USER_ID => self::$user_id,
                         $session_table::SESSION_ID => $session_id

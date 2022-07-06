@@ -1144,7 +1144,7 @@ TRIGGER;
             case self::FOR_SHARE:
             case self::FOR_UPDATE:
             case self::SKIP_LOCKED:
-                return $lockAggregateValue;
+                return ' ' . str_replace('_', ' ', $lockAggregateValue);
             default:
                 throw new PublicAlert('A SELECT LOCK which was not one of (NOWAIT, FOR_SHARE, FOR_UPDATE, or SKIP_LOCKED) was encounter. The value (' . $lockAggregateValue . ') is incorrect.');
         }
