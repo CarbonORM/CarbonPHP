@@ -1282,11 +1282,19 @@ export interface complexMap {
     [key: string]: string | string[] | stringMap | RegExpMap;
 }
 
+export interface iTypeValidation {
+    MYSQL_TYPE: string,
+    MAX_LENGTH: string,
+    AUTO_INCREMENT: boolean,
+    SKIP_COLUMN_IN_POST: boolean
+}
+
 export interface C6RestfulModel {
     TABLE_NAME?: string,
     PRIMARY?: string[],
     COLUMNS?: stringMap,
-    REGEX_VALIDATION?: RegExpMap
+    REGEX_VALIDATION?: RegExpMap,
+    TYPE_VALIDATION?: {[key: string]: iTypeValidation},
 }
 
 $references_tsx
@@ -1539,18 +1547,30 @@ TRIGGER);
     private function reactTemplate(): array
     {
         return [/** @lang Handlebars */ "
-  {{strtolowerNoPrefixTableName}}: {
+    {{strtolowerNoPrefixTableName}}: {
     TABLE_NAME:'{{strtolowerNoPrefixTableName}}',
     {{#explode}}
     {{caps}}: '{{TableName}}.{{name}}',
     {{/explode}}
     PRIMARY: [
-        {{#primary}}{{#name}}'{{TableName}}.{{name}}',{{/name}}
+        {{#primary}}
+        {{#name}}'{{TableName}}.{{name}}',{{/name}}
         {{/primary}}
     ],
     COLUMNS: {
-      {{#explode}}'{{TableName}}.{{name}}':'{{name}}',
-      {{/explode}}
+        {{#explode}}
+        '{{TableName}}.{{name}}':'{{name}}',
+        {{/explode}}
+    },
+    TYPE_VALIDATION: {
+        {{#explode}}
+        '{{TableName}}.{{name}}': { 
+            MYSQL_TYPE: '{{mysql_type}}', 
+            MAX_LENGTH: '{{length}}', 
+            AUTO_INCREMENT: {{#auto_increment}}true{{/auto_increment}}{{^auto_increment}}false{{/auto_increment}}, 
+            SKIP_COLUMN_IN_POST: {{#skip}}true{{/skip}}{{^skip}}false{{/skip}} 
+        },
+        {{/explode}}
     },
     REGEX_VALIDATION: {
         {{#regex_validation}}
@@ -1577,12 +1597,24 @@ export const {{strtolowerNoPrefixTableName}} : C6RestfulModel & iDefine{{ucEachT
     {{caps}}: '{{TableName}}.{{name}}',
     {{/explode}}
     PRIMARY: [
-        {{#primary}}{{#name}}'{{TableName}}.{{name}}',{{/name}}
+        {{#primary}}
+        {{#name}}'{{TableName}}.{{name}}',{{/name}}
         {{/primary}}
     ],
     COLUMNS: {
-      {{#explode}}'{{TableName}}.{{name}}':'{{name}}',
+      {{#explode}}
+      '{{TableName}}.{{name}}':'{{name}}',
       {{/explode}}
+    },
+    TYPE_VALIDATION: {
+        {{#explode}}
+        '{{TableName}}.{{name}}': { 
+            MYSQL_TYPE: '{{mysql_type}}', 
+            MAX_LENGTH: '{{length}}', 
+            AUTO_INCREMENT: {{#auto_increment}}true{{/auto_increment}}{{^auto_increment}}false{{/auto_increment}}, 
+            SKIP_COLUMN_IN_POST: {{#skip}}true{{/skip}}{{^skip}}false{{/skip}} 
+        },
+        {{/explode}}
     },
     REGEX_VALIDATION: {
         {{#regex_validation}}

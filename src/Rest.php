@@ -143,7 +143,7 @@ abstract class Rest extends RestLifeCycle
 
                 }
 
-                self::jsonSQLReporting(func_get_args(), $sql);
+                $moreReporting = self::jsonSQLReporting(func_get_args(), $sql);
 
                 self::postpreprocessRestRequest($sql);
 
@@ -160,6 +160,12 @@ abstract class Rest extends RestLifeCycle
 
                 }
 
+                if (is_callable($moreReporting)) {
+
+                    $moreReporting = $moreReporting($stmt);
+
+                }
+
                 $remove = [];
 
                 self::prepostprocessRestRequest($remove);
@@ -167,6 +173,12 @@ abstract class Rest extends RestLifeCycle
                 if (self::$commit && !Database::commit()) {
 
                     return self::signalError('Failed to store commit transaction on table {{TableName}}');
+
+                }
+
+                if (is_callable($moreReporting)) {
+
+                    $moreReporting();
 
                 }
 
@@ -459,7 +471,7 @@ abstract class Rest extends RestLifeCycle
 
             }
 
-            self::jsonSQLReporting(func_get_args(), $sql);
+            $moreReporting = self::jsonSQLReporting(func_get_args(), $sql);
 
             self::postpreprocessRestRequest($sql);
 
@@ -519,13 +531,19 @@ abstract class Rest extends RestLifeCycle
 
             }
 
+            if (is_callable($moreReporting)) {
+
+                $moreReporting = $moreReporting($stmt);
+
+            }
+
             $rowCount = $stmt->rowCount();
 
             if (0 === $rowCount) {
 
                 return self::signalError("MySQL failed to find the target row during ($update_or_replace) on "
                     . 'table (' . static::TABLE_NAME . ") while executing query ($sql). By default CarbonPHP passes "
-                    . 'PDO::MYSQL_ATTR_FOUND_ROWS => true, to the PDO driver; aka return the number of found (matched) rows, '
+                    . 'PDO::MYSQL_ATTR_FOUND_ROWS => false, to the PDO driver; aka return the number of affected rows, '
                     . 'not the number of changed rows. Thus; if you have not manually updated these options, your issue is '
                     . 'the target row not existing.');
 
@@ -547,6 +565,12 @@ abstract class Rest extends RestLifeCycle
                 false === Database::commit()) {
 
                 return self::signalError('Failed to store commit transaction on table (' . static::TABLE_NAME . ')');
+
+            }
+
+            if (is_callable($moreReporting)) {
+
+                $moreReporting($stmt);
 
             }
 
@@ -658,7 +682,7 @@ abstract class Rest extends RestLifeCycle
 
                 }
 
-                self::jsonSQLReporting(func_get_args(), $sql);
+                $moreReporting = self::jsonSQLReporting(func_get_args(), $sql);
 
                 self::postpreprocessRestRequest($sql);
 
@@ -808,7 +832,6 @@ abstract class Rest extends RestLifeCycle
 
                 }
 
-
                 if (false === $stmt->execute()) {
 
                     self::completeRest();
@@ -817,17 +840,44 @@ abstract class Rest extends RestLifeCycle
 
                 }
 
+                if (is_callable($moreReporting)) {
+
+                    $moreReporting = $moreReporting($stmt);
+
+                }
+
                 # https://dev.mysql.com/doc/refman/5.6/en/information-functions.html#function_last-insert-id
-                if (static::AUTO_INCREMENT_PRIMARY_KEY || $primaryBinary) {
+                if (!(static::AUTO_INCREMENT_PRIMARY_KEY || $primaryBinary)) {
 
-                    /** @noinspection NotOptimalIfConditionsInspection */
-                    if (static::AUTO_INCREMENT_PRIMARY_KEY) {
+                    self::prepostprocessRestRequest();
 
-                        $post[0][static::PRIMARY] = $id = $pdo->lastInsertId();
+                    if (self::$commit && false === Database::commit()) {
 
-                        if (1 < $rowsToInsert) {
+                        return self::signalError('Failed to commit transaction on table ' . static::class);
 
-                            PublicAlert::warning(<<<WARNING
+                    }
+
+                    if (is_callable($moreReporting)) {
+
+                        $moreReporting();
+
+                    }
+
+                    self::postprocessRestRequest();
+
+                    self::completeRest();
+
+                    return true;
+
+                }
+
+                if (static::AUTO_INCREMENT_PRIMARY_KEY) {
+
+                    $post[0][static::PRIMARY] = $id = $pdo->lastInsertId();
+
+                    if (1 < $rowsToInsert) {
+
+                        PublicAlert::warning(<<<WARNING
                                                 Auto increment keys used indiscriminately are a waste of the primary key access which is always the fastest way to get to a row in a table.
                                                 Auto increment locks can and do impact concurrency and scalability of your database.
                                                 In an HA replication environment using standard Async Replication, auto increment risks orphan rows during a master failure event.
@@ -835,54 +885,46 @@ abstract class Rest extends RestLifeCycle
                                                 @quote @author John Schulz
                                                 @source @reference @link https://blog.pythian.com/case-auto-increment-mysql/
                                                 WARNING
-                            );
+                        );
 
-                            PublicAlert::warning('CarbonPHP offers a scalable primary key solution using UUIDs. Please refer to the documentation.');
+                        PublicAlert::warning('CarbonPHP offers a scalable primary key solution using UUIDs. Please refer to the documentation.');
 
-                            PublicAlert::success("The first key ($id) is the primary key id of the first row inserted in the request. Please understand implications of sharded environments. Refer to link :: https://dev.mysql.com/doc/refman/5.6/en/information-functions.html#function_last-insert-id");
-
-                        }
-
-                    } else {
-
-                        $id = $post[0][static::PRIMARY];
+                        PublicAlert::success("The first key ($id) is the primary key id of the first row inserted in the request. Please understand implications of sharded environments. Refer to link :: https://dev.mysql.com/doc/refman/5.6/en/information-functions.html#function_last-insert-id");
 
                     }
 
-                    if (null === $id) {
+                } else {
 
-                        return self::signalError("Failed to parse the id of the first inserted element after running ($sql); (" . json_encode($post) . ')');
-
-                    }
-
-                    self::prepostprocessRestRequest($id);
-
-                    if (self::$commit && !Database::commit()) {
-
-                        return self::signalError('Failed to store commit transaction on table ' . static::TABLE_NAME);
-
-                    }
-
-                    self::postprocessRestRequest($id);
-
-                    self::completeRest();
-
-                    return $id;
-                }
-
-                self::prepostprocessRestRequest();
-
-                if (self::$commit && false === Database::commit()) {
-
-                    return self::signalError('Failed to commit transaction on table ' . static::class);
+                    $id = $post[0][static::PRIMARY];
 
                 }
 
-                self::postprocessRestRequest();
+                if (null === $id) {
+
+                    return self::signalError("Failed to parse the id of the first inserted element after running ($sql); (" . json_encode($post) . ')');
+
+                }
+
+                self::prepostprocessRestRequest($id);
+
+                if (self::$commit && !Database::commit()) {
+
+                    return self::signalError('Failed to store commit transaction on table ' . static::TABLE_NAME);
+
+                }
+
+                if (is_callable($moreReporting)) {
+
+                    $moreReporting($stmt);
+
+                }
+
+                self::postprocessRestRequest($id);
 
                 self::completeRest();
 
-                return true;
+                return $id;
+
 
             } catch (Throwable $e) {
 

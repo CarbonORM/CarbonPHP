@@ -228,17 +228,13 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
     }
 
-    /**
-     * @param $argv
-     * @param $sql
-     */
-    public static function jsonSQLReporting($argv, $sql): void
+    public static function jsonSQLReporting($argv, $sql): ?callable
     {
         global $json;
 
         if (false === self::$jsonReport) {
 
-            return;
+            return null;
 
         }
 
@@ -254,10 +250,46 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
         }
 
+        if (self::$REST_REQUEST_METHOD === self::GET) {
+
+            $json['sql'][] = [
+                'argv' => $argv,
+                'stmt' => [
+                    $sql,
+                    self::$injection
+                ]
+            ];
+
+            return null;
+
+        }
+
+        $committed = false;
+
+        $affected_rows = -1;
+
+        /** @noinspection PhpConditionAlreadyCheckedInspection */
         $json['sql'][] = [
-            $argv,
-            $sql
+            'argv' => $argv,
+            'affected_rows' => &$affected_rows,
+            'committed' => &$committed,
+            'stmt' => [
+                $sql,
+                self::$injection
+            ]
         ];
+
+        return static function (PDOStatement $stmt) use (&$affected_rows, &$committed) {
+
+            $affected_rows = $stmt->rowCount();
+
+            return static function () use (&$committed) {
+
+                $committed = true;
+
+            };
+
+        };
 
     }
 
