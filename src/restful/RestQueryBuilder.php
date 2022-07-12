@@ -1129,7 +1129,6 @@ TRIGGER;
 
         $sql .= self::buildSelectLockStatement($argv);
 
-
         return $sql;
     }
 
@@ -1139,6 +1138,15 @@ TRIGGER;
      */
     public static function addSimpleLock(string $lockAggregateValue): string
     {
+        // todo - verify // remove NOWAIT & SKIP_LOCKED as positionally not allowed?
+        // [LIMIT {[offset,] row_count | row_count OFFSET offset}]
+        //    [into_option]
+        //    [FOR {UPDATE | SHARE}
+        //        [OF tbl_name [, tbl_name] ...]
+        //        [NOWAIT | SKIP LOCKED]
+        //      | LOCK IN SHARE MODE]
+        //    [into_option]
+
         switch ($lockAggregateValue) {
             case self::NOWAIT:
             case self::FOR_SHARE:
@@ -1189,13 +1197,7 @@ TRIGGER;
 
         }
 
-        // [LIMIT {[offset,] row_count | row_count OFFSET offset}]
-        //    [into_option]
-        //    [FOR {UPDATE | SHARE}
-        //        [OF tbl_name [, tbl_name] ...]
-        //        [NOWAIT | SKIP LOCKED]
-        //      | LOCK IN SHARE MODE]
-        //    [into_option]
+
 
         // SELECT seat_no
         // FROM seats JOIN seat_rows USING ( row_no )
