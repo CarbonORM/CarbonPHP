@@ -32,7 +32,7 @@ interface iDefineCarbons {
       'ENTITY_TAG': string;
 }
 
-export const carbons : C6RestfulModel & iDefineCarbons = {
+export const carbons : Readonly<C6RestfulModel & iDefineCarbons> = {
     TABLE_NAME:'carbons',
     ENTITY_PK: 'carbon_carbons.entity_pk',
     ENTITY_FK: 'carbon_carbons.entity_fk',

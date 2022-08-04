@@ -998,13 +998,13 @@ END;
 
             }
 
-            if (false === file_put_contents($targetDir . $rest[$tableName]['ucEachTableName'] . '.php', $mustache->render($this->restTemplate(), $parsed))) {
+            if (false === file_put_contents($targetDir . $parsed['ucEachTableName'] . '.php', $mustache->render($this->restTemplate(), $parsed))) {
 
-                self::colorCode('PHP internal file_put_contents failed while trying to store :: (' . $targetDir . $rest[$tableName]['ucEachTableName'] . '.php)', iColorCode::RED);
+                self::colorCode('PHP internal file_put_contents failed while trying to store :: (' . $targetDir . $parsed['ucEachTableName'] . '.php)', iColorCode::RED);
 
             }
 
-            if (empty($rest[$tableName]['explode'])) {
+            if (empty($parsed['explode'])) {
 
                 self::colorCode("\nYou have a reference with wasn't resolved in the dump. Please search for '$tableName' in your "
                     . "./mysqldump.sql file. This typically occurs when resolving to an outside schema, which probably indicates an error.\n", iColorCode::RED);
@@ -1023,7 +1023,7 @@ END;
 
             foreach ($rest as $tableName => $parsed) {
 
-                if (empty($rest[$tableName]['explode'])) {
+                if (empty($parsed['explode'])) {
                     continue;
                 }
 
@@ -1034,7 +1034,7 @@ END;
                 }
 
 
-                if (!class_exists($table = $rest[$tableName]['namespace'] . '\\' . $rest[$tableName]['ucEachTableName'])) {
+                if (!class_exists($table = $parsed['namespace'] . '\\' . $parsed['ucEachTableName'])) {
                     self::colorCode("\n\nCouldn't locate class '$table' for react validations. This may indicate a new or unused table.\n", 'yellow');
                     continue;
                 }
@@ -1105,9 +1105,11 @@ END;
 
                 $global_column_tsx .= PHP_EOL . $mustache->render(/** @lang Handlebars */ "{{#explode}}'{{TableName}}.{{name}}':'{{name}}',\n    {{/explode}}", $parsed);
 
-                $all_interface_types[] = 'i' . $rest[$tableName]['ucEachTableName'];
+                $all_interface_types[] = 'i' . $parsed['ucEachTableName'];
 
-                $all_table_names_types[] = $rest[$tableName]['TableName'];
+                $all_table_names_no_prefix_types[] = "'{$parsed['strtolowerNoPrefixTableName']}'";
+
+                $all_table_names_types[] = "'{$parsed['TableName']}'";
 
             }
 
@@ -1118,7 +1120,9 @@ END;
 
             $all_interface_types = implode("\n\t| ", $all_interface_types);
 
-            // $all_table_names_types = implode(PHP_EOL . '" | "', $all_table_names_types);
+            $all_table_names_types = implode("\n\t| ", $all_table_names_types);
+
+            $all_table_names_no_prefix_types = implode("\n\t| ", $all_table_names_no_prefix_types ?? []);
 
             $constants = "    // try to 1=1 match the Rest abstract class
     ADDDATE: '" . iRest::ADDDATE . "',
@@ -1289,8 +1293,12 @@ export interface iTypeValidation {
     SKIP_COLUMN_IN_POST: boolean
 }
 
+export type RestTableNames = $all_table_names_types;
+
+export type RestShortTableNames = $all_table_names_no_prefix_types;
+
 export interface C6RestfulModel {
-    TABLE_NAME?: string,
+    TABLE_NAME?: RestShortTableNames,
     PRIMARY?: string[],
     COLUMNS?: stringMap,
     REGEX_VALIDATION?: RegExpMap,
@@ -1304,7 +1312,6 @@ export const TABLES = {
 };
 
 export const C6 = {
-
     $constants
     TABLES: TABLES,
     ...TABLES
@@ -1314,8 +1321,6 @@ export const C6 = {
 export const COLUMNS = {
     $global_column_tsx
 };
-
-//export type RestTables = \"\$all_table_names_types\";
 
 export type RestTableInterfaces = $all_interface_types;
 

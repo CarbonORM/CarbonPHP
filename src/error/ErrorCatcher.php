@@ -416,8 +416,8 @@ class ErrorCatcher
             }
 
             $_SERVER["CONTENT_TYPE"] = $sendJson
-                    ? 'application/json'
-                    : 'text/html';
+                ? 'application/json'
+                : 'text/html';
 
             $contentType = 'Content-Type: ' . $_SERVER["CONTENT_TYPE"];
 
@@ -691,7 +691,7 @@ class ErrorCatcher
 
     }
 
-    public static function jsonEncodeAndWrapForHTML($code) : string
+    public static function jsonEncodeAndWrapForHTML($code): string
     {
 
         if (false === is_string($code)) {
@@ -760,10 +760,15 @@ class ErrorCatcher
 
         }
 
-        if (!CarbonPHP::$test && ob_get_status()) {
+        if (!CarbonPHP::$test &&
+            (CarbonPHP::$http || CarbonPHP::$https)) {
 
             // Attempt to remove any previous in-progress output buffers
-            ob_end_clean();
+            while (1 !== ob_get_level()) {
+
+                ob_end_clean();
+
+            }
 
         }
 
@@ -815,7 +820,7 @@ class ErrorCatcher
 
             $status = $status[0] ?? [];
 
-            $status = explode(PHP_EOL,$status['Status'] ?? '');
+            $status = explode(PHP_EOL, $status['Status'] ?? '');
 
             $log_array['INNODB_STATUS'] = empty($status) ? $preparse : $status;
 
@@ -1077,7 +1082,7 @@ class ErrorCatcher
 
                 $line_two_html = '';
 
-                $line_one = preg_replace('/(.*) \((\d+)\): (.*)/s','$1:$2: $3', $line_one);
+                $line_one = preg_replace('/(.*) \((\d+)\): (.*)/s', '$1:$2: $3', $line_one);
 
                 if (array_key_exists('args', $args[$i])) {
 

@@ -3,23 +3,10 @@
 
 namespace CarbonPHP;
 
-use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Error\PublicAlert;
-use CarbonPHP\Interfaces\iColorCode;
-use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
-use CarbonPHP\Interfaces\iRestNoPrimaryKey;
-use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
-use CarbonPHP\Programs\MySQL;
-use CarbonPHP\Restful\RestAutoTargeting;
 use CarbonPHP\Restful\RestLifeCycle;
-use CarbonPHP\Restful\RestQueryBuilder;
-use CarbonPHP\Restful\RestQueryValidation;
 use CarbonPHP\Tables\Carbons;
-use CarbonPHP\Tables\History_Logs;
-use CarbonPHP\Tables\User_Tasks;
 use PDO;
-use PDOException;
-use PDOStatement;
 use Throwable;
 
 abstract class Rest extends RestLifeCycle
@@ -597,6 +584,7 @@ abstract class Rest extends RestLifeCycle
 
                 self::startRest(self::POST, [], $post);
 
+                // format the data as it multiple rows are to be posted at the same time
                 if ([] !== $post && true === self::has_string_keys($post)) {
 
                     $post = [
@@ -607,8 +595,10 @@ abstract class Rest extends RestLifeCycle
 
                 }
 
+                // loop through each row of new values
                 foreach ($post as $iValue) {
 
+                    // loop throw and validate each of the values // column names
                     foreach ($iValue as $columnName => $postValue) {
 
                         if (false === array_key_exists($columnName, static::COLUMNS)) {
@@ -877,19 +867,23 @@ abstract class Rest extends RestLifeCycle
 
                     if (1 < $rowsToInsert) {
 
-                        PublicAlert::warning(<<<WARNING
-                                                Auto increment keys used indiscriminately are a waste of the primary key access which is always the fastest way to get to a row in a table.
-                                                Auto increment locks can and do impact concurrency and scalability of your database.
-                                                In an HA replication environment using standard Async Replication, auto increment risks orphan rows during a master failure event.
-                                                If you are lucky enough to need to scale writes beyond a single server and end up having to shard auto increment no longer produces unique keys.
-                                                @quote @author John Schulz
-                                                @source @reference @link https://blog.pythian.com/case-auto-increment-mysql/
-                                                WARNING
-                        );
+                        $GLOBALS['json'] ??= [];
 
-                        PublicAlert::warning('CarbonPHP offers a scalable primary key solution using UUIDs. Please refer to the documentation.');
+                        $GLOBALS['json']['AUTO_INCREMENT_PRIMARY_KEY_WARNING'] = [
+                            'background' => [
+                                'Auto increment keys used indiscriminately are a waste of the primary key access which is always the fastest way to get to a row in a table.',
+                                'Auto increment locks can and do impact concurrency and scalability of your database.',
+                                'In an Highly Available replication environment using standard Async Replication, auto increment risks orphan rows during a master failure event.',
+                                'If you are lucky enough to need to scale writes beyond a single server and end up having to shard auto increment no longer produces unique keys.',
+                                '@quote @author John Schulz',
+                                '@source @reference @link https://blog.pythian.com/case-auto-increment-mysql/',
+                            ],
+                            'C6' => 'CarbonPHP offers a scalable primary key solution using UUIDs. Please refer to the documentation.'
+                        ];
 
-                        PublicAlert::success("The first key ($id) is the primary key id of the first row inserted in the request. Please understand implications of sharded environments. Refer to link :: https://dev.mysql.com/doc/refman/5.6/en/information-functions.html#function_last-insert-id");
+                        $GLOBALS['json']['LAST_INSERT_ID_WARNING'] ??= [];
+
+                        $GLOBALS['json']['LAST_INSERT_ID_WARNING'][] = "The first key ($id) is the primary key id of the first row inserted in the request. Please understand implications of sharded environments. Refer to link :: https://dev.mysql.com/doc/refman/5.6/en/information-functions.html#function_last-insert-id";
 
                     }
 
