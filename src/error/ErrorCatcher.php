@@ -11,6 +11,7 @@ use CarbonPHP\Programs\Background;
 use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Rest;
 use CarbonPHP\Tables\Reports;
+use PDOException;
 use ReflectionException;
 use ReflectionMethod;
 use Throwable;
@@ -836,7 +837,11 @@ class ErrorCatcher
 
         if (self::$storeReport === true) {
 
-            if (Database::$carbonDatabaseInitialized) {
+            if (false === $e instanceof PDOException) {
+
+                $log_array['[C6] STORAGE ISSUE'] = 'Errors which are instances of PDOException currently are not stored to database! This helps prevent recursive issues.';
+
+            } else if (Database::$carbonDatabaseInitialized) {
 
                 try {
 
