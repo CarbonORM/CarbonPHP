@@ -857,7 +857,7 @@ class ErrorCatcher
 
                     }
 
-                } catch (PublicAlert $e) {
+                } catch (Throwable $e) {
 
                     error_log($message = 'Failed storing log in database. The restful Carbon_Reports table through and error :: ' . $e->getMessage());
 

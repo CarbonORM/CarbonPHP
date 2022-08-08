@@ -41,7 +41,7 @@ class Database
 {
     use ColorCode, Composer;
 
-    private static array $pdo_options;
+    private static array $pdo_options = [];
 
     /**
      * @var bool - error catcher needs to initialize quickly,
@@ -58,11 +58,11 @@ class Database
 
     private static ?PDO $databaseReader = null;
 
-    public static string $carbonDatabaseUsername;
+    public static ?string $carbonDatabaseUsername = null;
 
-    public static string $carbonDatabasePassword;
+    public static ?string $carbonDatabasePassword = null;
 
-    public static string $carbonDatabaseName;
+    public static ?string $carbonDatabaseName = null;
 
     public static string $carbonDatabasePort = '3306';
 
@@ -248,7 +248,8 @@ FOOT;
 
     }
 
-    public static function readerCheck(bool &$reader): void {
+    public static function readerCheck(bool &$reader): void
+    {
 
         if (true === $reader &&
             (null === self::$carbonDatabaseReader ||
