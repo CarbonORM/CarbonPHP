@@ -9,8 +9,8 @@
           </advancedOptions>
         </fileTransfer>
       </webServer>
-      <webServer id="a590b354-bdbe-423e-88d2-fb0e1e8a5253" name="DropingamingC6" url="http://business.dropingaming.com">
-        <fileTransfer rootFolder="/var/www/business.dropingaming.com/vendor/richardtmiles/carbonphp" accessType="SFTP" host="127.0.0.1" port="9999" sshConfigId="38dd17a4-cf5f-4072-9105-f1a0a2a0a2c3" sshConfig="www-data@127.0.0.1:9999 password">
+      <webServer id="a590b354-bdbe-423e-88d2-fb0e1e8a5253" name="DropingamingC6" url="http://preprod.dropingaming.com">
+        <fileTransfer rootFolder="/var/www/preprod.dropingaming.com/vendor/richardtmiles/carbonphp" accessType="SFTP" host="127.0.0.1" port="9999" sshConfigId="38dd17a4-cf5f-4072-9105-f1a0a2a0a2c3" sshConfig="www-data@127.0.0.1:9999 password">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" keepAliveCommand="LIST" keepAliveTimeout="0" connections="1" shareSSLContext="true" showHiddenFiles="true" />
           </advancedOptions>

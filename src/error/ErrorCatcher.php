@@ -750,7 +750,7 @@ class ErrorCatcher
 
         if (null !== $e) {
 
-            ColorCode::colorCode("Generating pretty error message using C6 tools. Message :: (" . $e->getMessage() . ')',
+            ColorCode::colorCode("Generating pretty error message using C6 tools. Message :: (" . $e->getMessage() . ")",
                 iColorCode::CYAN);
 
         }
@@ -767,7 +767,9 @@ class ErrorCatcher
             // Attempt to remove any previous in-progress output buffers
             while (1 !== ob_get_level()) {
 
-                ob_end_clean();
+                // this is ideal as ob_end_flush() would remove the back-to-browser buffer.
+                // it also doesn't bother returning the buffer
+                ob_clean();
 
             }
 
@@ -815,19 +817,30 @@ class ErrorCatcher
 
         }
 
-        try {
+        if (CarbonPHP::$setupComplete) {
 
-            $preparse = $status = Database::fetchAll('SHOW ENGINE INNODB STATUS');
+            if (Database::$carbonDatabaseInitialized) {
 
-            $status = $status[0] ?? [];
+                try {
 
-            $status = explode(PHP_EOL, $status['Status'] ?? '');
+                    $preparse = $status = Database::fetchAll('SHOW ENGINE INNODB STATUS');
 
-            $log_array['INNODB_STATUS'] = empty($status) ? $preparse : $status;
+                    $status = $status[0] ?? [];
 
-        } catch (Throwable $e) {
+                    $status = explode(PHP_EOL, $status['Status'] ?? '');
 
-            $log_array['INNODB_STATUS'] = 'Unable to fetch! (SHOW ENGINE INNODB STATUS)';
+                    $log_array['INNODB_STATUS'] = empty($status) ? $preparse : $status;
+
+                } catch (Throwable $e) {
+
+                    $log_array['INNODB_STATUS'] = 'Unable to fetch! (SHOW ENGINE INNODB STATUS)';
+
+                }
+
+            } else {
+
+                $log_array['INNODB_STATUS'] = 'Database::$carbonDatabaseInitialized was set to false! This was probably set in Database::newInstance. (SHOW ENGINE INNODB STATUS) will only log';
+            }
 
         }
 

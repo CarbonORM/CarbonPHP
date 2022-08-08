@@ -552,7 +552,6 @@ class CarbonPHP
 
                 }
 
-                Database::$carbonDatabaseInitialized = true;
 
             }
 
@@ -675,12 +674,19 @@ class CarbonPHP
             }
             // PHPUnit testing should not exit on explicit http(s) requests
             if (!self::$test && self::$http && !($config[self::SITE][self::HTTP] ?? true)) {
+
                 if (headers_sent()) {
+
                     print '<h1>Failed to switch to https, headers already sent! Please contact the server administrator.</h1>';
+
                 } else {
-                    header('Location: https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
+
+                    header('Location: https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'], true, 302);
+
                 }
+
                 die(1);
+
             }
 
             ########################  Session Management ######################
@@ -710,8 +716,11 @@ class CarbonPHP
             self::$setupComplete = true;
 
         } catch (Throwable $e) {
+
             ErrorCatcher::generateLog($e);   // this will exit if executed
+
         }
+
     }
 
 

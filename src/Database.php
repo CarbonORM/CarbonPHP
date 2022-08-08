@@ -173,7 +173,13 @@ FOOT;
         $log_array = $error_array[ErrorCatcher::LOG_ARRAY];
 
         // todo - handle all pdo exceptions
-        switch ($e->getCode()) {        // Database has not been created
+        switch ((string)$e->getCode()) {        // Database has not been created
+            case '0':
+
+                print ErrorCatcher::generateBrowserReport($log_array);  // this terminates
+
+                exit(1);
+
             case 'HY000':
 
                 ColorCode::colorCode('Caught connection reset code (HY000)', iColorCode::BACKGROUND_MAGENTA);
@@ -191,7 +197,7 @@ FOOT;
 
                 return;
 
-            case 1049:
+            case '1049':
 
                 try {
 
@@ -312,6 +318,8 @@ FOOT;
                 self::TryCatchPDOException($e); // this might exit todo - make sure this is perfect
 
             } catch (Throwable $e) {
+
+                self::$carbonDatabaseInitialized = false;
 
                 ErrorCatcher::generateLog($e);  // this will exit
 
@@ -732,27 +740,17 @@ FOOT;
     public static function fetchAll(string $sql, ...$execute)
     {
 
-        try {
+        $reader = false === self::isWriteQuery($sql);
 
-            $reader = false === self::isWriteQuery($sql);
+        $stmt = self::database($reader)->prepare($sql);
 
-            $stmt = self::database($reader)->prepare($sql);
+        if (false === $stmt->execute($execute)) { // try it twice, you never know..
 
-            if (false === $stmt->execute($execute)) { // try it twice, you never know..
-
-                return [];
-
-            }
-
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);   // promise this is needed and will still return the desired array
-
-        } catch (Throwable $e) {
-
-            ErrorCatcher::generateLog($e);  // this terminates
-
-            exit(1);
+            return [];
 
         }
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);   // promise this is needed and will still return the desired array
 
     }
 

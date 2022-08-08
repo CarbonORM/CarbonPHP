@@ -90,7 +90,6 @@ trait ColorCode
 
             }
 
-
             ErrorCatcher::checkCreateLogFile($message);
 
             switch ($location) {
