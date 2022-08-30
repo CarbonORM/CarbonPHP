@@ -87,7 +87,7 @@
       "cp \"`pwd`/src/helpers/WordpressPlugin.php\" \"`pwd`/wp-content/plugins/carbonphp/CarbonPHP.php\""
     ],
     "carbon:react": [
-      "mkdir -p \"`pwd`vendor/richardtmiles/carbonphp/view/releases\"",
+      "mkdir -p \"`pwd`/vendor/richardtmiles/carbonphp/view/releases\"",
       "cp -rf view/releases/. vendor/richardtmiles/carbonphp/view/releases"
     ],
     "post-install-cmd": [
@@ -132,7 +132,7 @@
       "@restart:apache:mac"
     ],
     "start:apache:mac": [
-      "@apache:linkApplication",
+      "@apache:linkApplication"
     ],
     "connect": "gcloud compute ssh purpleteam",
     "start": "@start:apache:mac",
@@ -144,16 +144,16 @@
       "./vendor/bin/phpunit --log-junit junit.xml  --testdox || ./vendor/bin/phpunit --verbose --log-junit junit.xml"
     ],
     "wp": [
-      "mv index.php index.php.og",
+      "cp index.php index.og.php",
       "@wordpress:download:nightly-build",
       "@wordpress:download:unpack",
-      "mv index.php index.php.wp",
-      "mv index.php.og index.php"
+      "mv index.php index.wp.php",
+      "cp index.og.php index.php"
     ],
     "wordpress:download:latest-stable": "php -r \"copy('https://wordpress.org/latest.tar.gz', 'latest.tar.gz');\"",
-    "wordpress:download:nightly-build": "php -r \"copy('https://wordpress.org/nightly-builds/wordpress-latest.zip', 'latest.tar.gz');\"",
+    "wordpress:download:nightly-build": "php -r \"copy('https://wordpress.org/nightly-builds/wordpress-latest.zip', 'latest.zip');\"",
     "wordpress:download:unpack": [
-      "tar xfz latest.tar.gz",
+      "unzip latest.zip",
       "cp -R wordpress/* ./",
       "rm -rf wordpress",
       "rm -f latest.tar.gz"
