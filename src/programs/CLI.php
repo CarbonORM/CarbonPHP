@@ -185,7 +185,7 @@ class CLI implements iCommand
 
                 }
 
-                $userDefinedPrograms = scandir($programDirectory, null);
+                $userDefinedPrograms = scandir($programDirectory);
 
                 $userDefinedPrograms = array_diff(
                     $userDefinedPrograms,

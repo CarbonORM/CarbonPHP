@@ -82,6 +82,7 @@
       "php ./vendor/bin/phpmetrics --config=php-metrics.json ."
     ],
     "carbon:wordpress": [
+      "@wp",
       "mkdir -p \"`pwd`/wp-content/plugins/carbonphp\"",
       "cp \"`pwd`/src/helpers/WordpressPlugin.php\" \"`pwd`/wp-content/plugins/carbonphp/CarbonPHP.php\""
     ],
@@ -102,6 +103,7 @@
       "@test"
     ],
     "post-update-cmd": [
+      "@carbon:wordpress",
       "@rest",
       "@test"
     ],
@@ -123,9 +125,18 @@
       "cd view/assets/react && npm install && npm run build",
       "@carbon:react"
     ],
-    "start": [
-      "php -S local.carbonphp.com:8080 dev-routing.php -d display_errors=1"
+    "restart:apache:mac": "sudo brew services restart httpd",
+    "apache:linkApplication": [
+      "([[ -f /usr/local/var/www ||  -L /usr/local/var/www || -d /usr/local/var/www  ]] &&  rm -rf /usr/local/var/www) || echo 'File /usr/local/var/www does not exist.'",
+      "sudo ln -s \"`pwd`\" /usr/local/var/www",
+      "@restart:apache:mac"
     ],
+    "start:apache:mac": [
+      "@apache:linkApplication",
+    ],
+    "connect": "gcloud compute ssh purpleteam",
+    "start": "@start:apache:mac",
+    "start:legacy": "php -S local.carbonphp.com:8080 dev-routing.php -d display_errors=1",
     "open": "open http://local.carbonphp.com:8080/",
     "socket": "php index.php websocket",
     "test": [
@@ -133,8 +144,11 @@
       "./vendor/bin/phpunit --log-junit junit.xml  --testdox || ./vendor/bin/phpunit --verbose --log-junit junit.xml"
     ],
     "wp": [
+      "mv index.php index.php.og",
       "@wordpress:download:nightly-build",
-      "@wordpress:download:unpack"
+      "@wordpress:download:unpack",
+      "mv index.php index.php.wp",
+      "mv index.php.og index.php"
     ],
     "wordpress:download:latest-stable": "php -r \"copy('https://wordpress.org/latest.tar.gz', 'latest.tar.gz');\"",
     "wordpress:download:nightly-build": "php -r \"copy('https://wordpress.org/nightly-builds/wordpress-latest.zip', 'latest.tar.gz');\"",
