@@ -4,6 +4,7 @@
 namespace CarbonPHP\Helpers;
 
 use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
 use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
@@ -48,11 +49,11 @@ trait RestfulValidations
         $noPrimary = in_array(strtolower(iRestNoPrimaryKey::class), $intersect, true);
 
         $query = [
-            Rest::WHERE => [
+            iRest::WHERE => [
                 $columnName => $columnValue
             ],
-            Rest::PAGINATION => [
-                Rest::LIMIT => 1
+            iRest::PAGINATION => [
+                iRest::LIMIT => 1
             ]
         ];
 

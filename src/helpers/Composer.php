@@ -3,6 +3,7 @@
 namespace CarbonPHP\Programs;
 
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Helpers\ColorCode;
 
 trait Composer
 {
