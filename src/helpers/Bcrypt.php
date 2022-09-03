@@ -8,7 +8,7 @@ namespace CarbonPHP\Helpers;
 
 use CarbonPHP\Error\PublicAlert;
 
-class Bcrypt
+abstract class Bcrypt
 {
     private static $rounds = 10;
 

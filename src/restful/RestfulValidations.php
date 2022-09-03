@@ -1,14 +1,13 @@
 <?php
 
 
-namespace CarbonPHP\Helpers;
+namespace CarbonPHP\Restful;
 
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
 use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
-use CarbonPHP\Rest;
 use CarbonPHP\Session;
 
 trait RestfulValidations
@@ -38,7 +37,9 @@ trait RestfulValidations
         ];
 
         $imp = array_map('strtolower', array_keys(class_implements($className)));
+
         $opt = array_map('strtolower', array_keys(class_implements($options)));
+
         $intersect = array_intersect($imp, $opt);
 
         if (empty($intersect)) {

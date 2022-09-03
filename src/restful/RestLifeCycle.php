@@ -4,7 +4,7 @@ namespace CarbonPHP\Restful;
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
-use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Error\ThrowableCatcher;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
@@ -81,7 +81,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
         } else {
 
-            ErrorCatcher::generateLog($e);  // this terminates
+            ThrowableCatcher::catchThrowable($e);  // this terminates
 
         }
 
@@ -455,7 +455,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
             }
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);
+            ThrowableCatcher::catchThrowable($e);
 
         }
 

@@ -3,12 +3,12 @@
 namespace CarbonPHP\Programs;
 
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Helpers\Pipe;
 use CarbonPHP\Interfaces\iCommand;
 
 class SendToUserPipe implements iCommand
 {
-    use ColorCode;
 
     public function __construct($CONFIG)
     {

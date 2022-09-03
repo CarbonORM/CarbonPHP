@@ -9,13 +9,11 @@
 namespace CarbonPHP;
 
 
-use CarbonPHP\Error\ErrorCatcher;
-use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Error\ThrowableCatcher;
+use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Interfaces\iColorCode;
-use CarbonPHP\Programs\ColorCode;
 use Throwable;
 use function count;
-use function defined;
 use function explode;
 use function substr_count;
 
@@ -93,7 +91,7 @@ abstract class Route
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);
+            ThrowableCatcher::catchThrowable($e);
 
         }
 
@@ -172,7 +170,7 @@ abstract class Route
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);
+            ThrowableCatcher::catchThrowable($e);
 
             exit(0);
 

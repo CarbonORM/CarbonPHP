@@ -10,12 +10,13 @@ namespace CarbonPHP\Programs;
 
 
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Helpers\Background;
+use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
 
 class CLI implements iCommand
 {
-    use Background, ColorCode;
 
     private array $CONFIG;
     private array $ARGV;
@@ -41,9 +42,9 @@ class CLI implements iCommand
 
         $fullCommand = 'php ' . implode(' ', $argv);
 
-        self::colorCode("CLI Command Parsed >>", iColorCode::BLUE);
+        ColorCode::colorCode("CLI Command Parsed >>", iColorCode::BLUE);
 
-        self::colorCode($fullCommand, iColorCode::BACKGROUND_GREEN);
+        ColorCode::colorCode($fullCommand, iColorCode::BACKGROUND_GREEN);
 
         array_shift($argv);
 
@@ -62,7 +63,7 @@ class CLI implements iCommand
 
             if (self::$showEmptyCliWarning) {
 
-                self::colorCode('No command provided. Printing help.');
+                ColorCode::colorCode('No command provided. Printing help.');
 
                 $this->usage();
             }
@@ -88,7 +89,7 @@ class CLI implements iCommand
 
                 if (!class_exists($namespace)) {
 
-                    self::colorCode("Failed to load the class ($namespace). Your namespace is probably incorrect.\n");
+                    ColorCode::colorCode("Failed to load the class ($namespace). Your namespace is probably incorrect.\n");
 
                     die("Failed to load the class ($namespace). Your namespace is probably incorrect.\n");
 
@@ -102,7 +103,7 @@ class CLI implements iCommand
 
                 }
 
-                self::colorCode("\nConstructing Program >> $namespace", 'blue');
+                ColorCode::colorCode("\nConstructing Program >> $namespace", 'blue');
 
                 $cmd = new $namespace([$PHP, $argv]);
 
@@ -112,7 +113,7 @@ class CLI implements iCommand
 
                 } else {
 
-                    self::colorCode("\nA very unexpected error occurred. Your command doesn't implement iCommand?", iColorCode::RED);
+                    ColorCode::colorCode("\nA very unexpected error occurred. Your command doesn't implement iCommand?", iColorCode::RED);
 
                     exit(1);
 
@@ -137,7 +138,7 @@ class CLI implements iCommand
 
         }
 
-        self::colorCode("Program not found in CarbonPHP. Use help to list all CarbonPHP programs. Safely moving on.", iColorCode::YELLOW);
+        ColorCode::colorCode("Program not found in CarbonPHP. Use help to list all CarbonPHP programs. Safely moving on.", iColorCode::YELLOW);
 
     }
 
@@ -152,7 +153,7 @@ class CLI implements iCommand
 
         if (!file_exists(CarbonPHP::$app_root . 'composer.json')) {
 
-            self::colorCode("\tCouldn't find composer.json under the CarbonPHP::\$app_root ( " . CarbonPHP::$app_root . " ).\n\tLearn how to add cli programs at CarbonPHP.com", 'red');
+            ColorCode::colorCode("\tCouldn't find composer.json under the CarbonPHP::\$app_root ( " . CarbonPHP::$app_root . " ).\n\tLearn how to add cli programs at CarbonPHP.com", 'red');
 
         } else {
 
@@ -179,7 +180,7 @@ class CLI implements iCommand
 
                     $message = "The directory defined for the Programs Namespace ($programDirectory) in composer.json does not exist.";
 
-                    self::colorCode( $message, iColorCode::RED);
+                    ColorCode::colorCode( $message, iColorCode::RED);
 
                     exit($message);
 
@@ -234,9 +235,9 @@ class CLI implements iCommand
     {
         $PHP = $this->CONFIG;
         // I do this so the I can pass the argvs correctly to the php executables
-        self::colorCode("\nRunning Command", iColorCode::BLUE);
+        ColorCode::colorCode("\nRunning Command", iColorCode::BLUE);
 
-        self::colorCode(implode(' ', $argv), iColorCode::BACKGROUND_MAGENTA);
+        ColorCode::colorCode(implode(' ', $argv), iColorCode::BACKGROUND_MAGENTA);
 
         array_shift($argv);
 
@@ -286,7 +287,7 @@ class CLI implements iCommand
             if (!empty($this->UserPrograms)) {
                 $UserPrograms = implode("\n                        ", $this->UserPrograms);
 
-                self::colorCode( <<<END
+                ColorCode::colorCode( <<<END
           Available CarbonPHP CLI Commands  
             
           User Defined Commands :: 
@@ -297,7 +298,7 @@ END);
 
             } else {
 
-                self::colorCode(<<<END
+                ColorCode::colorCode(<<<END
           You can create custom commands by adding the "Programs//" namespace to 
           
                   CarbonPHP::\$app_root . composers.json
@@ -334,7 +335,7 @@ END, iColorCode::YELLOW);
             }
         }
 
-        self::colorCode("
+        ColorCode::colorCode("
           
           CarbonPHP Built-in commands (case insensitive)::
         

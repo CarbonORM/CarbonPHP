@@ -2,14 +2,14 @@
 
 namespace CarbonPHP;
 
-use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Error\ThrowableCatcher;
 use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Helpers\Files;
 use CarbonPHP\Helpers\Serialized;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iConfig;
 use CarbonPHP\Programs\CLI;
-use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Programs\WebSocket;
 use Tests\Feature\CarbonRestTest;
 use Throwable;
@@ -34,7 +34,6 @@ use function is_callable;
  */
 class CarbonPHP
 {
-    use ColorCode;
 
     // folder locations
     public const CARBON_ROOT = __DIR__ . DIRECTORY_SEPARATOR;
@@ -268,7 +267,7 @@ class CarbonPHP
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);  // this terminates
+            ThrowableCatcher::catchThrowable($e);  // this terminates
 
             exit(1);
 
@@ -451,7 +450,7 @@ class CarbonPHP
 
                 $message = "\nCould not change current working directory from " . getcwd() . " to " . self::$app_root . ".\n\n";
 
-                self::colorCode($message, iColorCode::RED);
+                ColorCode::colorCode($message, iColorCode::RED);
 
                 exit($message);
 
@@ -472,7 +471,7 @@ class CarbonPHP
 
                 if (!self::$test) {
 
-                    self::colorCode('The composer directory ie C6 should be in a child directory of the application root (' . self::$app_root . '). Currently set to :: ' . self::$app_root . "\n
+                    ColorCode::colorCode('The composer directory ie C6 should be in a child directory of the application root (' . self::$app_root . '). Currently set to :: ' . self::$app_root . "\n
                         Continuing gracefully, but some features may not work as expected.\n", iColorCode::RED);
 
                 }
@@ -573,15 +572,15 @@ class CarbonPHP
             #####################   ERRORS + Warnings + Alerts    #######################
             if ($config[self::ERROR] ??= false) {
 
-                ErrorCatcher::$defaultLocation ??= self::$reports . 'default_log.txt';
+                ThrowableCatcher::$defaultLocation ??= self::$reports . 'default_log.txt';
 
-                ErrorCatcher::$printToScreen = $config[self::ERROR][self::SHOW] ?? ErrorCatcher::$printToScreen;
+                ThrowableCatcher::$printToScreen = $config[self::ERROR][self::SHOW] ?? ThrowableCatcher::$printToScreen;
 
-                ErrorCatcher::$storeReport = $config[self::ERROR][self::STORE] ?? ErrorCatcher::$storeReport;
+                ThrowableCatcher::$storeReport = $config[self::ERROR][self::STORE] ?? ThrowableCatcher::$storeReport;
 
-                ErrorCatcher::$level = $config[self::ERROR][self::LEVEL] ?? ErrorCatcher::$level;
+                ThrowableCatcher::$level = $config[self::ERROR][self::LEVEL] ?? ThrowableCatcher::$level;
 
-                ErrorCatcher::start();
+                ThrowableCatcher::start();
 
             }
 
@@ -717,7 +716,7 @@ class CarbonPHP
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);   // this will exit if executed
+            ThrowableCatcher::catchThrowable($e);   // this will exit if executed
 
         }
 
@@ -893,7 +892,7 @@ class CarbonPHP
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);  // this should terminate
+            ThrowableCatcher::catchThrowable($e);  // this should terminate
 
         }
 

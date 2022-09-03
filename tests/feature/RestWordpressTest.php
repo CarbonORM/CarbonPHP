@@ -11,7 +11,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use CarbonPHP\Database;
-use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Error\ThrowableCatcher;
 use CarbonPHP\Tables\Wp_Users;
 use Throwable;
 
@@ -86,7 +86,7 @@ final class RestWordpressTest extends Config
             return $primary;
 
         } catch (Throwable $e) {
-            ErrorCatcher::generateLog($e);
+            ThrowableCatcher::catchThrowable($e);
             die(1);
         }
     }
@@ -100,7 +100,7 @@ final class RestWordpressTest extends Config
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);
+            ThrowableCatcher::catchThrowable($e);
 
             die(1);
         }

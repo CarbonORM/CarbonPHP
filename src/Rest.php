@@ -495,9 +495,9 @@ abstract class Rest extends RestLifeCycle
 
                         }
 
-                    } else if (false === $stmt->bindParam(":$shortName", $argv[$fullName],
-                            static::PDO_VALIDATION[$fullName][self::PDO_TYPE],
-                            (int)static::PDO_VALIDATION[$fullName][self::MAX_LENGTH])) {
+                    } else if (false === $stmt->bindParam(":$shortName",
+                            $argv[$fullName],
+                            static::PDO_VALIDATION[$fullName][self::PDO_TYPE])) {
 
                         return self::signalError("Failed to bind (:$shortName) with value ({$argv[$fullName]})");
 
@@ -734,18 +734,13 @@ abstract class Rest extends RestLifeCycle
                             }
 
                             /**
-                             * I'm fairly confident the length attribute does nothing.
-                             * @todo - hex / unhex length conversion on any binary data
-                             * @link https://stackoverflow.com/questions/28251144/inserting-and-selecting-uuids-as-binary16
                              * @link https://www.php.net/ChangeLog-8.php
                              * @notice PDO type validation has a bug until 8
                              **/
-                            $maxLength = $info[self::MAX_LENGTH] === '' ? null : (int)$info[self::MAX_LENGTH];
 
                             $stmt->bindParam(":$shortName",
                                 $iValue[$fullName],
-                                $info[self::PDO_TYPE],
-                                $maxLength);
+                                $info[self::PDO_TYPE]);
 
                         } elseif ('json' === $info[self::MYSQL_TYPE]) {
 
@@ -799,13 +794,13 @@ abstract class Rest extends RestLifeCycle
 
                             }
 
-                            if (false === self::validateInternalColumn($fullName, $op, $iValue[$fullName], array_key_exists(self::DEFAULT_POST_VALUE, $info) ? $iValue[$fullName] === $info[self::DEFAULT_POST_VALUE] : false)) {
+                            if (false === self::validateInternalColumn($fullName, $op, $iValue[$fullName], array_key_exists(self::DEFAULT_POST_VALUE, $info) && $iValue[$fullName] === $info[self::DEFAULT_POST_VALUE])) {
 
                                 return self::signalError("Your custom restful api validations for ('" . static::class . "') caused the request to fail on required column ($fullName).");
 
                             }
 
-                            $stmt->bindParam(":$shortName", $iValue[$fullName], $info[self::PDO_TYPE], $info[self::MAX_LENGTH] === '' ? null : (int)$info[self::MAX_LENGTH]);
+                            $stmt->bindParam(":$shortName", $iValue[$fullName], $info[self::PDO_TYPE]);
 
                         }
                         // end foreach bind

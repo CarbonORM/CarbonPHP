@@ -4,7 +4,11 @@ namespace CarbonPHP\Programs;
 
 
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Error\ThrowableCatcher;
+use CarbonPHP\Helpers\Background;
+use CarbonPHP\Helpers\ColorCode;
+use CarbonPHP\Helpers\Composer;
+use CarbonPHP\Helpers\MySQL;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
 use CarbonPHP\Interfaces\iRest;
@@ -22,9 +26,6 @@ use function in_array;
 
 class RestBuilder implements iCommand
 {
-    use ColorCode, Composer, Background, MySQL {
-        cleanUp as removeFiles;
-    }
 
     // database
     private string $schema;
@@ -41,7 +42,7 @@ class RestBuilder implements iCommand
 
     public function cleanUp(): void
     {
-        $this->cleanUp and $this->removeFiles();
+        $this->cleanUp and MySQL::cleanUp();
     }
 
     public function usage(): void
@@ -143,19 +144,19 @@ END;
     public function run(array $argv): void
     {
         // Check command line args, password is optional
-        self::colorCode("Building Rest Api!", iColorCode::BLUE);
+        ColorCode::colorCode("Building Rest Api!", iColorCode::BLUE);
 
         // C syntax
         $argc = count($argv);
 
         // set default values
         $rest = [];
-        $QueryWithDatabaseName = $clean = true;
+        $QueryWithDatabaseName = true;
         $json = $carbon_namespace = CarbonPHP::isCarbonPHPDocumentation();
 
         $targetDir = CarbonPHP::$app_root . ($carbon_namespace ? 'src/tables/' : 'tables/');
         $only_these_tables = $history_table_query = $mysql = null;
-        $verbose = $debug = $primary_required = $delete_dump = $skipTable = $logClasses =
+        $verbose = $debug = $primary_required = $skipTable = $logClasses =
         $javascriptBindings = $dumpData = false;
         $target_namespace = $this->target_namespace ??= 'Tables\\';
         $prefix = $this->table_prefix ??= '';
@@ -184,7 +185,7 @@ END;
                     break;
                 case '-react':
                     if ($carbon_namespace) {
-                        self::colorCode("\tReact directory hardcoded for C6, unnecessary flag.\n", 'blue');
+                        ColorCode::colorCode("\tReact directory hardcoded for C6, unnecessary flag.\n", 'blue');
                         break;
                     }
                     $react = $argv[++$i];
@@ -206,12 +207,12 @@ END;
                     if (count($target_namespace_array) === 1) {
                         switch (strtolower(readline("Does the namespace ($target_namespace) look correct? [Y,n]"))) {
                             default:
-                                self::colorCode('TTY not active. Skipping namespace double check.', iColorCode::BACKGROUND_YELLOW);
+                                ColorCode::colorCode('TTY not active. Skipping namespace double check.', iColorCode::BACKGROUND_YELLOW);
                                 break;
                             case 'no':
                             case 'n':
-                                /** @noinspection PhpUnhandledExceptionInspection */
-                                self::colorCode('You may need to add more escaping "\\" depending on how may contexts the string goes through. We will try to fix over escaped namespaces.', iColorCode::RED);
+
+                                ColorCode::colorCode('You may need to add more escaping "\\" depending on how may contexts the string goes through. We will try to fix over escaped namespaces.', iColorCode::RED);
 
                                 exit(1);
 
@@ -220,13 +221,21 @@ END;
 
                     break;
                 case '-json':
+
                     $json = true;
+
                     break;
+
                 case '-autoTarget':
+
                     if ($carbon_namespace) {
+
                         break;
+
                     }
-                    $composer = self::getComposerConfig();
+
+                    $composer = Composer::getComposerConfig();
+
                     $composer = $composer['autoload']['psr-4']["Tables\\"] ?? false;
                     if (!$composer) {
                         print "\n\nFailed to find an entry for ['autoload']['psr-4']['Tables\\'] in your composer.json\n" .
@@ -312,7 +321,7 @@ END;
                     break;
                 case '-cnf':
                     // path to an sql cnf pass file
-                    self::buildCNF($argv[++$i]);
+                    MySQL::buildCNF($argv[++$i]);
                     break;
                 case '-logClasses':
                     $logClasses = true;
@@ -367,16 +376,22 @@ END;
             }
         }
 
-        if ('/' !== substr($targetDir, -1)) {
+
+        if (!str_ends_with($targetDir, '/')) {
+
             $targetDir .= DS;
+
         }
 
         if (empty($this->schema) || $this->schema === '') {
+
             print 'You must specify the table schema!' . PHP_EOL;
+
             exit(1);
+
         }
 
-        self::$mysqldump = $dumpFilePath = $dump ?? self::mysqldump($mysqldump ?? null, $dumpData);
+        self::$mysqldump = $dumpFilePath = $dump ?? MySQL::mysqldump($mysqldump ?? null, $dumpData);
 
         if (!file_exists(self::$mysqldump)) {
             print 'Could not load mysql dump file!' . PHP_EOL;
@@ -624,7 +639,7 @@ END;
 
                                 } catch (ReflectionException $e) {
 
-                                    ErrorCatcher::generateLog($e);
+                                    ThrowableCatcher::catchThrowable($e);
 
                                     exit(1);
 
@@ -638,7 +653,7 @@ END;
 
                         if ($verbose) {
 
-                            self::colorCode("\tGenerating {$tableName}\n", iColorCode::BLUE);
+                            ColorCode::colorCode("\tGenerating {$tableName}\n", iColorCode::BLUE);
 
                             $debug and var_dump($table);
 
@@ -765,7 +780,7 @@ END;
 
                         }
 
-                        $verbose and self::colorCode("\nreference found ::\t$tableName([$foreign_key => $references_column])\n", 'magenta');
+                        $verbose and ColorCode::colorCode("\nreference found ::\t$tableName([$foreign_key => $references_column])\n", 'magenta');
 
                         $rest[$references_table]['dependencies'][] = [$tableName => [$foreign_key => $references_column]];
                         //\\ DEPRECATED
@@ -912,7 +927,7 @@ END;
 
                                 $rest[$tableName]['explode'][$column]['auto_increment'] = true;
 
-                                $verbose and self::colorCode("\tThe Table '$tableName' contains an AUTO_INCREMENT column. This is bad for scaling.
+                                $verbose and ColorCode::colorCode("\tThe Table '$tableName' contains an AUTO_INCREMENT column. This is bad for scaling.
                                                                         \tConsider switching to binary(16) and letting this rest API manage column uniqueness.\n", iColorCode::RED);
                             }
 
@@ -945,11 +960,11 @@ END;
             // Make sure we didn't specify a flag that could cause us to move on...
             if (empty($rest[$tableName]['primary'])) {
 
-                $verbose and self::colorCode("\n\nThe tables {$rest[$tableName]['TableName']} does not have a primary key.\n", iColorCode::YELLOW);
+                $verbose and ColorCode::colorCode("\n\nThe tables {$rest[$tableName]['TableName']} does not have a primary key.\n", iColorCode::YELLOW);
 
                 if ($primary_required) {    // todo - this is a legacy option
 
-                    self::colorCode(" \tSkipping...\n ",);
+                    ColorCode::colorCode(" \tSkipping...\n ",);
 
                     continue;
 
@@ -963,7 +978,7 @@ END;
                         'pageNumber'
                     ])) {
 
-                        self::colorCode($rest[$tableName]['TableName'] . " uses reserved C6 RESTFULL keywords as a column identifier => $value\n\tRest Failed", iColorCode::RED);
+                        ColorCode::colorCode($rest[$tableName]['TableName'] . " uses reserved C6 RESTFULL keywords as a column identifier => $value\n\tRest Failed", iColorCode::RED);
 
                         die(1);
                     }
@@ -1000,13 +1015,13 @@ END;
 
             if (false === file_put_contents($targetDir . $parsed['ucEachTableName'] . '.php', $mustache->render($this->restTemplate(), $parsed))) {
 
-                self::colorCode('PHP internal file_put_contents failed while trying to store :: (' . $targetDir . $parsed['ucEachTableName'] . '.php)', iColorCode::RED);
+                ColorCode::colorCode('PHP internal file_put_contents failed while trying to store :: (' . $targetDir . $parsed['ucEachTableName'] . '.php)', iColorCode::RED);
 
             }
 
             if (empty($parsed['explode'])) {
 
-                self::colorCode("\nYou have a reference with wasn't resolved in the dump. Please search for '$tableName' in your "
+                ColorCode::colorCode("\nYou have a reference with wasn't resolved in the dump. Please search for '$tableName' in your "
                     . "./mysqldump.sql file. This typically occurs when resolving to an outside schema, which probably indicates an error.\n", iColorCode::RED);
 
             }
@@ -1035,7 +1050,7 @@ END;
 
 
                 if (!class_exists($table = $parsed['namespace'] . '\\' . $parsed['ucEachTableName'])) {
-                    self::colorCode("\n\nCouldn't locate class '$table' for react validations. This may indicate a new or unused table.\n", 'yellow');
+                    ColorCode::colorCode("\n\nCouldn't locate class '$table' for react validations. This may indicate a new or unused table.\n", 'yellow');
                     continue;
                 }
 
@@ -1060,7 +1075,7 @@ END;
 
                     if (!is_array($regex_validations)) {
 
-                        self::colorCode("\nRegex validations for $table must be an array!", iColorCode::RED);
+                        ColorCode::colorCode("\nRegex validations for $table must be an array!", iColorCode::RED);
 
                         exit(1);
 
@@ -1114,7 +1129,7 @@ END;
             }
 
             if (empty($all_interface_types) || empty($all_table_names_types)) {
-                self::colorCode('The value of $all_interface_types must not be empty. This would mean no tables were parsed from the dump. Rest Failed.', 'red');
+                ColorCode::colorCode('The value of $all_interface_types must not be empty. This would mean no tables were parsed from the dump. Rest Failed.', 'red');
                 exit(1);
             }
 
@@ -1381,7 +1396,7 @@ const convertForRequestBody = function(restfulObject, tableName) {
         // todo - log classes
         $logClasses && print "\n";
 
-        self::colorCode("\tFinished Building REST ORM!\n\n");
+        ColorCode::colorCode("\tFinished Building REST ORM!\n\n");
 
 
         // TODO - validate the methods defined in table space
@@ -1416,7 +1431,7 @@ const convertForRequestBody = function(restfulObject, tableName) {
         /** @noinspection ForgottenDebugOutputInspection */
         $debug and var_dump($rest['clients']);
 
-        self::colorCode("\tSuccess!\n\n");
+        ColorCode::colorCode("\tSuccess!\n\n");
 
     }
 

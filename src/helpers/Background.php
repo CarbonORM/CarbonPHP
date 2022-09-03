@@ -1,12 +1,11 @@
 <?php
 
-namespace CarbonPHP\Programs;
+namespace CarbonPHP\Helpers;
 
-use CarbonPHP\Helpers\Files;
 use CarbonPHP\Interfaces\iColorCode;
 use Throwable;
 
-trait Background
+abstract class Background
 {
     /**
      * Attempt to run shell command in the background on any os.
@@ -16,7 +15,7 @@ trait Background
      * @param bool $append
      * @return string|int
      */
-    public static function background(string $cmd, string $outputFile = '/dev/null', bool $append = false)
+    public static function background(string $cmd, string $outputFile = '/dev/null', bool $append = false): int|string
     {
 
         try {
@@ -25,7 +24,7 @@ trait Background
 
                 $cmd = "start /B $cmd > $outputFile";
 
-                print $cmd . PHP_EOL . PHP_EOL;
+                ColorCode::colorCode( "Running Background CMD ($cmd)");
 
                 return pclose(popen($cmd, 'r'));
 

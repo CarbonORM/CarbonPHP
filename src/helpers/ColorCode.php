@@ -1,14 +1,17 @@
 <?php
 
-namespace CarbonPHP\Programs;
+namespace CarbonPHP\Helpers;
 
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Error\ThrowableCatcher;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iColorCode;
+use Psr\Log\AbstractLogger;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 use Throwable;
 
-trait ColorCode
+abstract class ColorCode extends AbstractLogger
 {
 
     public static string $generalWarning = 'As seen in comments of (@link https://www.php.net/manual/en/function.ini-set.php); I have experienced on some systems that ini_set() will fail and return a false, when trying to set a setting that was set inside php.ini inside a per-host setting. This would also include php-fpm configuration (php_admin_value[error_log] and php_admin_flag[log_errors]). You should comment out these lines if they exist. Beware of this.';
@@ -17,10 +20,36 @@ trait ColorCode
 
     public static bool $changingLocationsFailed = false;
 
+
+    /**
+     * Logs with an arbitrary level; psr defined explicitly in LoggerTrait
+     * @param mixed $level
+     * @param string|\Stringable $message
+     * @param array $context
+     *
+     * @return void
+     *
+     * @throws \Psr\Log\InvalidArgumentException
+     * @link https://www.php-fig.org/psr/psr-3/
+     */
+    public function log($level, $message, array $context = []): void
+    {
+        // these refer ot the functions in trait LoggerTrait
+        self::colorCode($message, match ($level) {
+            LogLevel::ERROR => iColorCode::RED,
+            LogLevel::CRITICAL, LogLevel::EMERGENCY => iColorCode::BACKGROUND_RED,
+            LogLevel::ALERT => iColorCode::BLUE,
+            LogLevel::WARNING => iColorCode::BACKGROUND_YELLOW,
+            LogLevel::NOTICE => iColorCode::YELLOW,
+            LogLevel::INFO => iColorCode::CYAN,
+            LogLevel::DEBUG => iColorCode::MAGENTA,
+            default => iColorCode::BACKGROUND_GREEN,
+        });
+    }
+
     /**
      * @param string $message
      * @param string $color
-     * @param bool $exit
      * @link https://www.php.net/manual/en/function.syslog.php
      * @noinspection ForgottenDebugOutputInspection
      */
@@ -84,25 +113,25 @@ trait ColorCode
             }    // do not double quote args passed here
 
 
-            if (null === ErrorCatcher::$defaultLocation || '' === ErrorCatcher::$defaultLocation) {
+            if (null === ThrowableCatcher::$defaultLocation || '' === ThrowableCatcher::$defaultLocation) {
 
                 return;
 
             }
 
-            ErrorCatcher::checkCreateLogFile($message);
+            ThrowableCatcher::checkCreateLogFile($message);
 
             switch ($location) {
                 case '':
-                    if (false === ini_set('error_log', ErrorCatcher::$defaultLocation)) {
+                    if (false === ini_set('error_log', ThrowableCatcher::$defaultLocation)) {
 
-                        throw new PublicAlert('Failed to set the log location to (' . ErrorCatcher::$defaultLocation . '). ' . self::$generalWarning);
+                        throw new PublicAlert('Failed to set the log location to (' . ThrowableCatcher::$defaultLocation . '). ' . self::$generalWarning);
 
                     } // log to file too
 
                     break;
 
-                case ErrorCatcher::$defaultLocation:
+                case ThrowableCatcher::$defaultLocation:
 
                     if (false === CarbonPHP::$cli) {
 
@@ -120,7 +149,7 @@ trait ColorCode
 
                 default:
 
-                    $additional = sprintf($colors[$color], "\n\nThe error_log location set ($location) did not match the CarbonPHP ColorCode enabled error log path ErrorCatcher::\$defaultLocation = (" . ErrorCatcher::$defaultLocation . "); or was not set to an empty string which enables cli output.\n\n", iColorCode::YELLOW);
+                    $additional = sprintf($colors[$color], "\n\nThe error_log location set ($location) did not match the CarbonPHP ColorCode enabled error log path ThrowableCatcher::\$defaultLocation = (" . ThrowableCatcher::$defaultLocation . "); or was not set to an empty string which enables cli output.\n\n", iColorCode::YELLOW);
 
                     /** @noinspection ForgottenDebugOutputInspection */
                     if (false === error_log($additional)) {
@@ -131,11 +160,11 @@ trait ColorCode
 
                     $message .= $additional; // for old log location
 
-                    $lastLoggingLocation = ini_set('error_log', ErrorCatcher::$defaultLocation);
+                    $lastLoggingLocation = ini_set('error_log', ThrowableCatcher::$defaultLocation);
 
                     if (false === $lastLoggingLocation) {
 
-                        throw new PublicAlert('All color coded enabled logs must print to (' . ErrorCatcher::$defaultLocation . ") but switching from ($location) failed. "  . self::$generalWarning);
+                        throw new PublicAlert('All color coded enabled logs must print to (' . ThrowableCatcher::$defaultLocation . ") but switching from ($location) failed. " . self::$generalWarning);
 
                     }
 
@@ -171,7 +200,7 @@ trait ColorCode
 
             self::$changingLocationsFailed = true;
 
-            ErrorCatcher::generateLog($e);
+            ThrowableCatcher::catchThrowable($e);
 
             exit(1);
 

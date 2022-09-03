@@ -3,8 +3,8 @@
 namespace {                                     // This runs the following code in the global scope
     use CarbonPHP\CarbonPHP;
     use CarbonPHP\Error\PublicAlert;
+    use CarbonPHP\Helpers\ColorCode;
     use CarbonPHP\Interfaces\iColorCode;
-    use CarbonPHP\Programs\ColorCode;
     use CarbonPHP\View;
 
     //  Displays alerts nicely
@@ -71,7 +71,7 @@ namespace {                                     // This runs the following code 
      * @return string -- the text highlighted and converted to html
      * @noinspection PhpExpressionResultUnusedInspection
      */
-    function highlight($argv, $fileExt = false): string
+    function highlight(string $argv, string $fileExt = null): string
     {
         if ($fileExt === 'java') {
             ini_set('highlight.comment', '#008000');

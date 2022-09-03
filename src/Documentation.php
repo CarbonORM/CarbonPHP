@@ -3,10 +3,10 @@
 namespace CarbonPHP;
 
 
-use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Error\ThrowableCatcher;
 use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Interfaces\iConfig;
-use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Programs\Deployment;
 use CarbonPHP\Programs\Migrate;
 use CarbonPHP\Programs\WebSocket;
@@ -679,7 +679,7 @@ SOCKET;
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);
+            ThrowableCatcher::catchThrowable($e);
 
             exit(0);
 

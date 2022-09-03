@@ -33,14 +33,14 @@ function deploy() {
 
       # TODO - Username auth for DIG
       gcloud compute ssh "$varname" --zone="us-central1-a" --command \
-        "     git clone https://github.com/RichardTMiles/CarbonPHP.git && sudo chmod 777 ./CarbonPHP/src/programs/gcpDeployment.sh && ./CarbonPHP/src/programs/gcpDeployment.sh -ubuntu;"
+        "     git clone https://github.com/RichardTMiles/CarbonPHP.git && sudo chmod 777 ./CarbonPHP/src/programs/shell/gcpDeployment.sh && ./CarbonPHP/src/programs/shell/gcpDeployment.sh -ubuntu;"
     exit 0
   fi
 
   gcloud compute instances add-tags "$1" --tags=websocket
 
   gcloud compute ssh "$1" --command \
-    "     git clone https://github.com/RichardTMiles/CarbonPHP.git && sudo chmod 777 ./CarbonPHP/src/programs/gcpDeployment.sh && ./CarbonPHP/src/programs/gcpDeployment.sh -ubuntu;"
+    "     git clone https://github.com/RichardTMiles/CarbonPHP.git && sudo chmod 777 ./CarbonPHP/src/programs/shell/gcpDeployment.sh && ./CarbonPHP/src/programs/shell/gcpDeployment.sh -ubuntu;"
 
 }
 

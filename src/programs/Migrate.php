@@ -4,9 +4,12 @@ namespace CarbonPHP\Programs;
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
-use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Error\ThrowableCatcher;
 use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Helpers\Background;
+use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Helpers\Files;
+use CarbonPHP\Helpers\MySQL;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
 use CarbonPHP\Route;
@@ -136,7 +139,7 @@ class Migrate implements iCommand
 
             } catch (Throwable $e) {
 
-                ErrorCatcher::generateLog($e);
+                ThrowableCatcher::catchThrowable($e);
 
             } finally {
 
@@ -700,7 +703,7 @@ class Migrate implements iCommand
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);
+            ThrowableCatcher::catchThrowable($e);
 
             exit(1);
 
@@ -1232,7 +1235,7 @@ HALT;
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);
+            ThrowableCatcher::catchThrowable($e);
 
             exit(0);
 
@@ -1565,7 +1568,7 @@ HALT;
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);
+            ThrowableCatcher::catchThrowable($e);
 
             exit(0);
 
@@ -1923,7 +1926,7 @@ HALT;
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);
+            ThrowableCatcher::catchThrowable($e);
 
             exit(0);
 
@@ -2015,7 +2018,7 @@ HALT;
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);
+            ThrowableCatcher::catchThrowable($e);
 
             exit(4);
 

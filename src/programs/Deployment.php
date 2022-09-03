@@ -4,6 +4,8 @@
 namespace CarbonPHP\Programs;
 
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Helpers\Background;
+use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
 use CarbonPHP\Route;
@@ -17,7 +19,6 @@ use CarbonPHP\Route;
  */
 class Deployment implements iCommand
 {
-    use Background, ColorCode;
 
     private string $ipAddress;
 
@@ -83,7 +84,7 @@ class Deployment implements iCommand
         }
         $this->ipAddress = trim(`dig +short myip.opendns.com @resolver1.opendns.com`);
         if (!empty($this->ipAddress)) {
-            self::colorCode("IP ADDRESS = {$this->ipAddress} \n\n");
+            ColorCode::colorCode("IP ADDRESS = {$this->ipAddress} \n\n");
         }
     }
 
@@ -102,26 +103,26 @@ class Deployment implements iCommand
         $filename = $file;
         $index = file_get_contents($filename);
         if (false === $index) {
-            self::colorCode("\nFailed to get file $index.\n\n");
+            ColorCode::colorCode("\nFailed to get file $index.\n\n");
             exit(1);
         }
         $index = self::addComposer($index);
         if (!file_put_contents($filename, $index)) {
-            self::colorCode('Failed to add composer to wordpress.', 'red');
+            ColorCode::colorCode('Failed to add composer to wordpress.', 'red');
             exit(1);
         }
-        self::colorCode('Complete.');
+        ColorCode::colorCode('Complete.');
     }
 
     public static function permissions(): void
     {
-        self::executeAndCheckStatus('sudo chown -R root:c6devteam /var/www');
-        self::executeAndCheckStatus('sudo chmod g+rwX /var/www/ -R');
+        Background::executeAndCheckStatus('sudo chown -R root:c6devteam /var/www');
+        Background::executeAndCheckStatus('sudo chmod g+rwX /var/www/ -R');
     }
 
     public static function updateGoogleDynamicDNS($ip): void
     {
-        self::executeAndCheckStatus('sudo systemctl restart apache2');
+        Background::executeAndCheckStatus('sudo systemctl restart apache2');
 
         $dynamicDNS = static function (string $USERNAME, string $PASSWORD, string $HOSTNAME, string $IP) {
             // create curl resource
@@ -149,34 +150,34 @@ class Deployment implements iCommand
             $output = trim(trim($output, $IP)); // could be way better, but eh.. then it got worse and oh well
 
             // $output contains the output string
-            self::colorCode("DNS Update for $HOSTNAME returned code ({$info['http_code']}) with response ::\n\t $output \n\n");
+            ColorCode::colorCode("DNS Update for $HOSTNAME returned code ({$info['http_code']}) with response ::\n\t $output \n\n");
 
             switch ($output) {
                 case 'badauth':
-                    self::colorCode('The username/password you provided was not valid for the specified host.', 'red');
+                    ColorCode::colorCode('The username/password you provided was not valid for the specified host.', 'red');
                     break;
                 case 'nohost':
-                    self::colorCode('The hostname you provided does not exist, or dynamic DNS is not enabled.', 'red');
+                    ColorCode::colorCode('The hostname you provided does not exist, or dynamic DNS is not enabled.', 'red');
                     break;
                 case 'notfqdn':
-                    self::colorCode('The supplied hostname is not a valid fully-qualified domain name.', 'red');
+                    ColorCode::colorCode('The supplied hostname is not a valid fully-qualified domain name.', 'red');
                     break;
                 case 'badagent':
-                    self::colorCode('You are making bad agent requests, or are making a request with IPV6 address (not supported).', 'red');
+                    ColorCode::colorCode('You are making bad agent requests, or are making a request with IPV6 address (not supported).', 'red');
                     break;
                 case 'abuse':
-                    self::colorCode('Dynamic DNS access for the hostname has been blocked due to failure to interperet previous responses correctly.', 'red');
+                    ColorCode::colorCode('Dynamic DNS access for the hostname has been blocked due to failure to interperet previous responses correctly.', 'red');
                     break;
                 case '911':
-                    self::colorCode('An error happened on Google\'s end; wait 5 minutes and try again.', 'red');
+                    ColorCode::colorCode('An error happened on Google\'s end; wait 5 minutes and try again.', 'red');
                     break;
                 default:
                     if (strpos($output, 'nochg') === 0) {
-                        self::colorCode("No change to IP for $HOSTNAME (already set to $IP).");
+                        ColorCode::colorCode("No change to IP for $HOSTNAME (already set to $IP).");
                     } else if (strpos($output, 'good') === 0) {
-                        self::colorCode("IP successfully updated for $HOSTNAME to $IP.");
+                        ColorCode::colorCode("IP successfully updated for $HOSTNAME to $IP.");
                     } else {
-                        self::colorCode('Could not parse results from Google Domains.', 'red');
+                        ColorCode::colorCode('Could not parse results from Google Domains.', 'red');
                         exit(1);
                     }
                     break;
@@ -196,7 +197,7 @@ class Deployment implements iCommand
             }
         }
 
-        self::colorCode("\n\n\tDone updating DNS.\n\n", 'blue');
+        ColorCode::colorCode("\n\n\tDone updating DNS.\n\n", 'blue');
     }
 
 
@@ -212,46 +213,46 @@ class Deployment implements iCommand
 CONF;
 
         if (!file_put_contents($filename = __DIR__ . '/dir.conf', $dirMods)) {
-            self::colorCode("\n\nFailed to create files in current repository?\n\n", 'red');
+            ColorCode::colorCode("\n\nFailed to create files in current repository?\n\n", 'red');
             exit(1);
         }
 
-        self::executeAndCheckStatus("sudo mv $filename /etc/apache2/mods-enabled/dir.conf");
+        Background::executeAndCheckStatus("sudo mv $filename /etc/apache2/mods-enabled/dir.conf");
 
         $apacheConf = self::configFile();
 
         if (!file_put_contents($filename = __DIR__ . '/apache2.conf', $apacheConf)) {
-            self::colorCode("\n\nFailed to create files in current repository?\n\n", 'red');
+            ColorCode::colorCode("\n\nFailed to create files in current repository?\n\n", 'red');
             exit(1);
         }
 
-        self::executeAndCheckStatus("sudo mv $filename /etc/apache2/apache2.conf");
+        Background::executeAndCheckStatus("sudo mv $filename /etc/apache2/apache2.conf");
 
-        self::executeAndCheckStatus('sudo a2enmod rewrite');
+        Background::executeAndCheckStatus('sudo a2enmod rewrite');
 
-        self::executeAndCheckStatus('sudo a2enmod headers');
+        Background::executeAndCheckStatus('sudo a2enmod headers');
 
         // https://tecadmin.net/enable-gzip-compression-apache-ubuntu/  TODO - see if were using gzip correctly, h2 works so moot? gzip ws?
-        self::executeAndCheckStatus('sudo a2enmod deflate');
+        Background::executeAndCheckStatus('sudo a2enmod deflate');
 
         // Socket atm - todo - allow php to handle ssl wss
-        self::executeAndCheckStatus('sudo a2enmod proxy');
-        self::executeAndCheckStatus('sudo a2enmod proxy_http');
-        self::executeAndCheckStatus('sudo a2enmod proxy_wstunnel');
-        self::executeAndCheckStatus('sudo a2enmod proxy_balancer');
-        self::executeAndCheckStatus('sudo a2enmod lbmethod_byrequests');
+        Background::executeAndCheckStatus('sudo a2enmod proxy');
+        Background::executeAndCheckStatus('sudo a2enmod proxy_http');
+        Background::executeAndCheckStatus('sudo a2enmod proxy_wstunnel');
+        Background::executeAndCheckStatus('sudo a2enmod proxy_balancer');
+        Background::executeAndCheckStatus('sudo a2enmod lbmethod_byrequests');
 
-        // self::executeAndCheckStatus('sudo ln -s /etc/apache2/mods-available/headers.load /etc/apache2/mods-enabled/headers.load');
+        // Background::executeAndCheckStatus('sudo ln -s /etc/apache2/mods-available/headers.load /etc/apache2/mods-enabled/headers.load');
 
-        // self::executeAndCheckStatus('sudo systemctl restart apache2');
+        // Background::executeAndCheckStatus('sudo systemctl restart apache2');
 
-        self::colorCode("\n\n\tYou must add the IP address '$ip' to your Public IP Authorized networks @\n\thttps://console.cloud.google.com/sql/\n\n\tPress enter when done to continue!!", 'background_blue');
+        ColorCode::colorCode("\n\n\tYou must add the IP address '$ip' to your Public IP Authorized networks @\n\thttps://console.cloud.google.com/sql/\n\n\tPress enter when done to continue!!", 'background_blue');
 
         $handle = fopen('php://stdin', 'rb');
         fgets($handle);
         fclose($handle);
 
-        self::colorCode("\n\n\tStarting Config For Each Website\n\n", 'blue');
+        ColorCode::colorCode("\n\n\tStarting Config For Each Website\n\n", 'blue');
 
         $apacheConfigDir = '/etc/apache2/sites-available/';
 
@@ -259,20 +260,20 @@ CONF;
             $name = strtolower($info['Domain']);
 
             if (!is_string($info['Repository'] ?? false)) {
-                self::colorCode("\n\n\tRepository was not set.\n\n", 'yellow');
+                ColorCode::colorCode("\n\n\tRepository was not set.\n\n", 'yellow');
             } else if (($exists = file_exists("/var/www/$name")) && !$reset) {
-                self::colorCode("\n\n\tRepository already exists.\n\n", 'green');
+                ColorCode::colorCode("\n\n\tRepository already exists.\n\n", 'green');
             } else if ($reset && $exists) {
-                self::colorCode("\n\n\tAttempting to update repository.\n\n", 'blue');
-                self::executeAndCheckStatus("sudo git -C '/var/www/$name' pull");
+                ColorCode::colorCode("\n\n\tAttempting to update repository.\n\n", 'blue');
+                Background::executeAndCheckStatus("sudo git -C '/var/www/$name' pull");
             } else {
-                self::executeAndCheckStatus("sudo git clone {$info['Repository']} /var/www/$name");
+                Background::executeAndCheckStatus("sudo git clone {$info['Repository']} /var/www/$name");
 
                 self::permissions();                                                    // todo double check working
 
                 if (false === file_put_contents($htaccessDir = "/var/www/$name/.htaccess", $htaccessData = self::htaccess($name))) {
-                    self::colorCode("\n\n\tFailed to write .htaccess. in ($htaccessDir).\n\n", 'red');
-                    self::colorCode("\n\n\n\n$htaccessData\n\n\n\n", 'red');
+                    ColorCode::colorCode("\n\n\tFailed to write .htaccess. in ($htaccessDir).\n\n", 'red');
+                    ColorCode::colorCode("\n\n\n\n$htaccessData\n\n\n\n", 'red');
                 }
 
                 self::permissions();
@@ -298,11 +299,11 @@ CONF;
                     exit(1);
                 }
 
-                self::executeAndCheckStatus("sudo mv \"$tempFile\" \"$confFile\";");
+                Background::executeAndCheckStatus("sudo mv \"$tempFile\" \"$confFile\";");
             }
         }
 
-        self::colorCode("\n\n\tDone Running Apache setup\n\n", 'blue');
+        ColorCode::colorCode("\n\n\tDone Running Apache setup\n\n", 'blue');
 
     }
 
@@ -314,17 +315,17 @@ CONF;
             if (true === ($info['Composer'] ?? false)) {
 
                 # I could make the next two commands more specific, but no reason to
-                self::executeAndCheckStatus('sudo chown -R root:c6devteam /var/www/');
+                Background::executeAndCheckStatus('sudo chown -R root:c6devteam /var/www/');
 
-                self::executeAndCheckStatus('sudo chmod g+rwX /var/www/ -R');
+                Background::executeAndCheckStatus('sudo chmod g+rwX /var/www/ -R');
 
-                self::executeAndCheckStatus("sg c6devteam -c \"composer install --no-suggest -d /var/www/$name\"");
+                Background::executeAndCheckStatus("sg c6devteam -c \"composer install --no-suggest -d /var/www/$name\"");
 
-                self::colorCode("\n\n\tAttempting to run 'composer setup'.\n");
+                ColorCode::colorCode("\n\n\tAttempting to run 'composer setup'.\n");
 
-                self::executeAndCheckStatus("sg c6devteam -c \"composer setup -d /var/www/$name || echo 'Set a setup script in your composer.json to gain more control over your build.'\"");
+                Background::executeAndCheckStatus("sg c6devteam -c \"composer setup -d /var/www/$name || echo 'Set a setup script in your composer.json to gain more control over your build.'\"");
 
-                self::executeAndCheckStatus("sudo a2ensite $name");
+                Background::executeAndCheckStatus("sudo a2ensite $name");
             }
         }
         print PHP_EOL;
@@ -370,7 +371,7 @@ CONF;
                                 $table_prefix = array_shift($argv);
                                 break;
                             default:
-                                self::colorCode("\n\n\tInvalid setup argument supplied to wordpress:configuration '{$value}'.\n\n", 'red');
+                                ColorCode::colorCode("\n\n\tInvalid setup argument supplied to wordpress:configuration '{$value}'.\n\n", 'red');
                                 exit(1);
                         }
                     }
@@ -378,29 +379,29 @@ CONF;
                     $wp_config = self::wordpressConfiguration($db_name, $db_user, $db_password, $db_host, $table_prefix, $salts);
 
                     if (false === file_put_contents('wp-config.php', $wp_config)) {
-                        self::colorCode('Failed to place wp-config.php');
+                        ColorCode::colorCode('Failed to place wp-config.php');
                         exit(1);
                     }
-                    self::colorCode('Command completed successfully. (wp-config.php placed in application root)');
+                    ColorCode::colorCode('Command completed successfully. (wp-config.php placed in application root)');
                     exit(0);
                 case 'Insert Composer':
-                    self::colorCode("Adding composer php autoload to file {$argv[1]}");
+                    ColorCode::colorCode("Adding composer php autoload to file {$argv[1]}");
                     self::addComposer($argv[1]);
                     exit(0);
                 case 'dns':
-                    self::colorCode("\n\n\tRunning DNS setup\n\n", 'blue');
+                    ColorCode::colorCode("\n\n\tRunning DNS setup\n\n", 'blue');
                     self::updateGoogleDynamicDNS($this->ipAddress);
                     exit(0);
                 case 'composer':
-                    self::colorCode("\n\n\tRunning composer setup\n\n", 'blue');
+                    ColorCode::colorCode("\n\n\tRunning composer setup\n\n", 'blue');
                     self::composer();
                     exit(0);
                 case 'apache':
-                    self::colorCode("\n\n\tRunning apache setup\n\n", 'blue');
+                    ColorCode::colorCode("\n\n\tRunning apache setup\n\n", 'blue');
                     self::apache($this->ipAddress, true);
                     exit(0);
                 default:
-                    self::colorCode("\n\n\tInvalid argument '{$argv[0]}'.\n\n", 'red');
+                    ColorCode::colorCode("\n\n\tInvalid argument '{$argv[0]}'.\n\n", 'red');
                     exit(1);
                     break;
             }
@@ -412,7 +413,7 @@ CONF;
 
         self::updateGoogleDynamicDNS($this->ipAddress);
 
-        self::colorCode("\n\n\tThe php/apache/dns deployment finished, REVIEW logs because IDK what happened.\n\n", 'yellow');
+        ColorCode::colorCode("\n\n\tThe php/apache/dns deployment finished, REVIEW logs because IDK what happened.\n\n", 'yellow');
     }
 
     private static function apacheConfig(string $siteName): string
@@ -867,7 +868,7 @@ APACHE;
         }
 
         if (empty($salts)) {
-            self::colorCode("\nFailed to generate wordpress salts\n\n", 'red');
+            ColorCode::colorCode("\nFailed to generate wordpress salts\n\n", 'red');
             exit(1);
         }
         

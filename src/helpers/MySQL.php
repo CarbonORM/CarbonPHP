@@ -8,16 +8,16 @@
  * Time: 11:27 PM
  */
 
-namespace CarbonPHP\Programs;
+namespace CarbonPHP\Helpers;
 
 
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Error\ThrowableCatcher;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iColorCode;
 use Throwable;
 
-trait MySQL
+abstract class MySQL
 {
 
     private static string $mysql = '';
@@ -57,7 +57,7 @@ IDENTIFIED;
 
             print 'Failed to change mysql auth method' . PHP_EOL;
 
-            ErrorCatcher::generateLog($e);
+            ThrowableCatcher::catchThrowable($e);
 
             exit(1);
 
@@ -192,7 +192,7 @@ IDENTIFIED;
         Background::executeAndCheckStatus($cmd);
     }
 
-    public function cleanUp(): void
+    public static function cleanUp(): void
     {
         if (file_exists(CarbonPHP::$app_root . 'mysql.cnf') && !unlink('./mysql.cnf')) {
             ColorCode::colorCode('Failed to unlink mysql.cnf', iColorCode::BACKGROUND_RED);

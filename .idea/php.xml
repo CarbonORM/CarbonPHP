@@ -11,7 +11,6 @@
       <path value="$PROJECT_DIR$/vendor/mustache/mustache" />
       <path value="$PROJECT_DIR$/vendor/phar-io/manifest" />
       <path value="$PROJECT_DIR$/vendor/patchwork/jsqueeze" />
-      <path value="$PROJECT_DIR$/vendor/webmozart/assert" />
       <path value="$PROJECT_DIR$/vendor/phpunit/php-file-iterator" />
       <path value="$PROJECT_DIR$/vendor/phpunit/phpunit" />
       <path value="$PROJECT_DIR$/vendor/phpunit/php-code-coverage" />
@@ -22,20 +21,16 @@
       <path value="$PROJECT_DIR$/vendor/symfony/polyfill-ctype" />
       <path value="$PROJECT_DIR$/vendor/phpunit/php-timer" />
       <path value="$PROJECT_DIR$/vendor/phpunit/phpunit-selenium" />
-      <path value="$PROJECT_DIR$/vendor/phpspec/prophecy" />
       <path value="$PROJECT_DIR$/vendor/matthiasmullie/path-converter" />
       <path value="$PROJECT_DIR$/vendor/doctrine/instantiator" />
       <path value="$PROJECT_DIR$/vendor/phar-io/version" />
       <path value="$PROJECT_DIR$/vendor/psr/log" />
       <path value="$PROJECT_DIR$/vendor/sebastian/environment" />
-      <path value="$PROJECT_DIR$/vendor/phpdocumentor/reflection-docblock" />
       <path value="$PROJECT_DIR$/vendor/sebastian/comparator" />
-      <path value="$PROJECT_DIR$/vendor/phpdocumentor/type-resolver" />
       <path value="$PROJECT_DIR$/vendor/sebastian/exporter" />
       <path value="$PROJECT_DIR$/vendor/sebastian/code-unit-reverse-lookup" />
       <path value="$PROJECT_DIR$/vendor/sebastian/object-enumerator" />
       <path value="$PROJECT_DIR$/vendor/sebastian/diff" />
-      <path value="$PROJECT_DIR$/vendor/phpdocumentor/reflection-common" />
       <path value="$PROJECT_DIR$/vendor/sebastian/global-state" />
       <path value="$PROJECT_DIR$/vendor/phpmetrics/phpmetrics" />
       <path value="$PROJECT_DIR$/vendor/nikic/php-parser" />
@@ -52,7 +47,6 @@
       <path value="$PROJECT_DIR$/vendor/justinrainbow/json-schema" />
       <path value="$PROJECT_DIR$/vendor/gettext/languages" />
       <path value="$PROJECT_DIR$/vendor/mck89/peast" />
-      <path value="$PROJECT_DIR$/vendor/cweagans/composer-patches" />
       <path value="$PROJECT_DIR$/vendor/wp-cli/package-command" />
       <path value="$PROJECT_DIR$/vendor/wp-cli/eval-command" />
       <path value="$PROJECT_DIR$/vendor/wp-cli/language-command" />
@@ -101,6 +95,8 @@
       <path value="$PROJECT_DIR$/vendor/bin/chromedriver" />
       <path value="$PROJECT_DIR$/vendor/wp-cli/cache-command" />
       <path value="$PROJECT_DIR$/vendor/richardtmiles/carbonphp" />
+      <path value="$PROJECT_DIR$/vendor/eftec/bladeone" />
+      <path value="$PROJECT_DIR$/vendor/seld/signal-handler" />
     </include_path>
   </component>
   <component name="PhpProjectServersManager">
@@ -112,7 +108,7 @@
       </server>
     </servers>
   </component>
-  <component name="PhpProjectSharedConfiguration" php_language_level="7.4">
+  <component name="PhpProjectSharedConfiguration" php_language_level="8.1">
     <option name="suggestChangeDefaultLanguageLevel" value="false" />
   </component>
   <component name="PhpRuntimeConfiguration">

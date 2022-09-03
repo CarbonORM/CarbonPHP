@@ -27,6 +27,8 @@ config/buildDatabase.php
 /wp-includes
 /logs
 /temp
+index.og.php
+index.wp.php
 
 # recursive documentation (keep both)
 /view/assets/react/src/assets/src/*
