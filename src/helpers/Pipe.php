@@ -8,7 +8,7 @@
 
 namespace CarbonPHP\Helpers;
 
-use CarbonPHP\Error\ThrowableCatcher;
+use CarbonPHP\Throwables\ThrowableCatcher;
 
 /**
  * Class Pipe

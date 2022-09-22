@@ -3,7 +3,7 @@
 namespace CarbonPHP\Helpers;
 
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\Error\ThrowableCatcher;
+use CarbonPHP\Throwables\ThrowableCatcher;
 use JsonException;
 
 abstract class Composer

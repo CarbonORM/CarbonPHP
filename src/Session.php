@@ -16,8 +16,8 @@
 
 namespace CarbonPHP;
 
-use CarbonPHP\Error\ThrowableCatcher;
-use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Throwables\ThrowableCatcher;
+use CarbonPHP\Throwables\PublicAlert;
 use CarbonPHP\Helpers\Background;
 use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Helpers\Serialized;
@@ -238,7 +238,7 @@ class Session implements SessionHandlerInterface
 
     /**
      * This will remove our session data from our scope and the database
-     * @throws Error\PublicAlert
+     * @throws Throwables\PublicAlert
      */
     public static function clear(): void
     {

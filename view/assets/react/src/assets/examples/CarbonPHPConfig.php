@@ -6,7 +6,7 @@ namespace Config;
 use CarbonPHP\Application;
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
-use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Throwables\PublicAlert;
 use CarbonPHP\Interfaces\iConfig;
 use CarbonPHP\Request;
 use CarbonPHP\Rest;

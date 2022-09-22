@@ -13,8 +13,8 @@
 
 namespace CarbonPHP\Helpers;
 
-use CarbonPHP\Error\ThrowableCatcher;
-use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Throwables\ThrowableCatcher;
+use CarbonPHP\Throwables\PublicAlert;
 
 abstract class Serialized
 {
@@ -36,6 +36,7 @@ abstract class Serialized
      */
     public static function start(...$argv): void
     {
+
         self::$sessionVar = $argv;
         foreach (self::$sessionVar as $value) {
             if (!is_string($value)) {

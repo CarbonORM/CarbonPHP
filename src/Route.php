@@ -9,7 +9,7 @@
 namespace CarbonPHP;
 
 
-use CarbonPHP\Error\ThrowableCatcher;
+use CarbonPHP\Throwables\ThrowableCatcher;
 use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Interfaces\iColorCode;
 use Throwable;

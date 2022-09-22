@@ -2,7 +2,7 @@
 
 // http://php.net/manual/en/function.debug-backtrace.php
 
-namespace CarbonPHP\Error;
+namespace CarbonPHP\Throwables;
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
@@ -18,10 +18,10 @@ use ReflectionMethod;
 use Throwable;
 
 /**
- * This is really an Error and Exception handler
+ * This is really an Throwables and Exception handler
  *
  * Class ThrowableCatcher
- * @package CarbonPHP\Error
+ * @package CarbonPHP\Throwables
  *
  * Provide a global error and exception handler.
  *
@@ -36,8 +36,11 @@ class ThrowableCatcher
     public const STORED_HTML_LOG_FILE_PATH = 'STORED_HTML_LOG_FILE_PATH';
 
     public const TRACE = 'TRACE';
+
     public const GLOBALS_JSON = '$GLOBALS[\'json\']';
+
     public const INNODB_STATUS = 'INNODB_STATUS';
+
     public const DEBUG_BACKTRACE = 'debug_backtrace()';
 
     // todo - defaultLocation this does nothing.
@@ -299,7 +302,7 @@ class ThrowableCatcher
 
                     } catch (Throwable $e) {
 
-                        PublicAlert::danger('Error handling failed.');
+                        PublicAlert::danger('Throwables handling failed.');
 
                         print $e->getMessage();
 
@@ -568,7 +571,7 @@ class ThrowableCatcher
 
             ColorCode::colorCode("Note :: warnings will not be caught by a try catch block, they signal error and should corrected but typically may be 'recoverable'. Some warnings PHP, such as 'max file descriptors reached', are more critical and should be handled with care. For this reason it's important to keep logs of warnings and correct/suppress when nessicary. For suppression see @link https://stackoverflow.com/questions/1241728/can-i-try-catch-a-warning", iColorCode::CYAN);
 
-            ColorCode::colorCode('The Global Error (set_error_handler) Handler has been invoked.' . PHP_EOL . "int $errorLevel, string $errorString, string $errorFile, int $errorLine", iColorCode::CYAN);
+            ColorCode::colorCode('The Global Throwables (set_error_handler) Handler has been invoked.' . PHP_EOL . "int $errorLevel, string $errorString, string $errorFile, int $errorLine", iColorCode::CYAN);
 
             // refer to link on this one
             /*if (!(error_reporting() & $errorLevel)) {
@@ -840,7 +843,7 @@ class ThrowableCatcher
 
             } else {
 
-                $log_array['INNODB_STATUS'] = 'Database::$carbonDatabaseInitialized was set to false! This was probably set in Database::newInstance. (SHOW ENGINE INNODB STATUS) will only log';
+                $log_array['INNODB_STATUS'] = 'Database::$carbonDatabaseInitialized was set to false! The failure occurred before database initialization or during a new connection attempt. (SHOW ENGINE INNODB STATUS) will only log';
             }
 
         }
@@ -983,7 +986,7 @@ class ThrowableCatcher
 
         }
 
-        ColorCode::colorCode('Returning Error Information', iColorCode::CYAN);
+        ColorCode::colorCode('Returning Throwables Information', iColorCode::CYAN);
 
         return [
             self::LOG_ARRAY => $log_array,
@@ -1270,7 +1273,7 @@ DESCRIPTION;
                 415 => 'Unsupported Media Type',
                 416 => 'Requested Range Not Satisfiable',
                 417 => 'Expectation Failed',
-                500 => 'Internal Server Error',
+                500 => 'Internal Server Throwables',
                 501 => 'Not Implemented',
                 502 => 'Bad Gateway',
                 503 => 'Service Unavailable',

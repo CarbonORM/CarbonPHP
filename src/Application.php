@@ -9,8 +9,8 @@
 namespace CarbonPHP;
 
 
-use CarbonPHP\Error\ThrowableCatcher;
-use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Throwables\ThrowableCatcher;
+use CarbonPHP\Throwables\PublicAlert;
 use Error;
 use Mustache_Exception_InvalidArgumentException;
 use Throwable;

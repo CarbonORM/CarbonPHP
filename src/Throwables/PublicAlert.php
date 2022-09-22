@@ -6,11 +6,11 @@
  * Time: 5:19 PM
  */
 
-namespace CarbonPHP\Error;
+namespace CarbonPHP\Throwables;
 
 /**
  * Class PublicAlert
- * @package Modules\Helpers\Error
+ * @package Modules\Helpers\Throwables
  *
  * The public alert class is designed to be used with the carbon.js extra.
  * If the java script method Carbon() is not defiend in the html document head, or

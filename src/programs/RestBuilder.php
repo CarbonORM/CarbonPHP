@@ -4,7 +4,7 @@ namespace CarbonPHP\Programs;
 
 
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\Error\ThrowableCatcher;
+use CarbonPHP\Throwables\ThrowableCatcher;
 use CarbonPHP\Helpers\Background;
 use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Helpers\Composer;
@@ -1654,7 +1654,7 @@ export const {{strtolowerNoPrefixTableName}} : C6RestfulModel & iDefine{{ucEachT
     {
         return [
             #'use CarbonPHP\Database;',
-            #'use CarbonPHP\Error\PublicAlert;',
+            #'use CarbonPHP\Throwables\PublicAlert;',
             'use CarbonPHP\Helpers\RestfulValidations;',
             'use CarbonPHP\Rest;',
             #'use JsonException;',

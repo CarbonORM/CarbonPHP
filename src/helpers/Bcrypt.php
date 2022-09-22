@@ -6,7 +6,7 @@
 
 namespace CarbonPHP\Helpers;
 
-use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Throwables\PublicAlert;
 
 abstract class Bcrypt
 {

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="GhActionsToolbarSettings">
+    <option name="customRepos">
+      <map>
+        <entry key="git@github.com:Drop-In-Gaming/dropingaming.com.git">
+          <value>
+            <RepoSettings />
+          </value>
+        </entry>
+        <entry key="https://github.com/RichardTMiles/CarbonPHP.git">
+          <value>
+            <RepoSettings />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

@@ -3,8 +3,8 @@
 namespace CarbonPHP;
 
 
-use CarbonPHP\Error\ThrowableCatcher;
-use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Throwables\ThrowableCatcher;
+use CarbonPHP\Throwables\PublicAlert;
 use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Interfaces\iConfig;
 use CarbonPHP\Programs\Deployment;
@@ -492,7 +492,7 @@ $(document).ready(function () {
 
    
     websocket.onerror = function (ev) {
-      $('#message_box').append("<div class=\"system_error\"><p class=\"innerText\">Error Occurred - " + ev.data + "</p></div>");
+      $('#message_box').append("<div class=\"system_error\"><p class=\"innerText\">Throwables Occurred - " + ev.data + "</p></div>");
     };
     websocket.onclose = function (ev) {
       $('#message_box').append("<div class=\"system_msg\"><p class=\"innerText\">Connection Closed</p></div>");

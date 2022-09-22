@@ -479,7 +479,7 @@ const CarbonPHP = (function($) {
         console.log('Socket Sent An Update');
         (this.isJson(data.data) ? this.MustacheWidgets(JSON.parse(data.data)) : console.log('Not Json', data.data));
       };
-      this.statsSocket.onerror = () => console.log('Web Socket Error');
+      this.statsSocket.onerror = () => console.log('Web Socket Throwables');
       this.statsSocket.onopen = () => {
         console.log('Socket Started');
         this.statsSocket.onclose = () => {                 /* prevent the race condition */

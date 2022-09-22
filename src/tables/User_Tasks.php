@@ -4,7 +4,7 @@ namespace CarbonPHP\Tables;
 
 // Restful defaults
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Throwables\PublicAlert;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Rest;
 use CarbonPHP\Restful\RestfulValidations;

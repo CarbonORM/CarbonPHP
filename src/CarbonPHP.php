@@ -2,8 +2,8 @@
 
 namespace CarbonPHP;
 
-use CarbonPHP\Error\ThrowableCatcher;
-use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Throwables\ThrowableCatcher;
+use CarbonPHP\Throwables\PublicAlert;
 use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Helpers\Files;
 use CarbonPHP\Helpers\Serialized;
@@ -97,7 +97,7 @@ class CarbonPHP
     public const KEY = 'KEY';
     public const CERT = 'CERT';
 
-    // Error Catcher
+    // Throwables Catcher
     public const ERROR = 'ERROR';
     public const LOCATION = 'LOCATION';
     public const LEVEL = 'LEVEL';

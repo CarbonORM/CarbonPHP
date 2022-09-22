@@ -3,7 +3,7 @@
 
 namespace CarbonPHP;
 
-use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Throwables\PublicAlert;
 use CarbonPHP\Restful\RestLifeCycle;
 use CarbonPHP\Tables\Carbons;
 use PDO;

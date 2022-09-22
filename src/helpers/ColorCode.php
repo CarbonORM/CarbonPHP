@@ -3,8 +3,8 @@
 namespace CarbonPHP\Helpers;
 
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\Error\ThrowableCatcher;
-use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Throwables\ThrowableCatcher;
+use CarbonPHP\Throwables\PublicAlert;
 use CarbonPHP\Interfaces\iColorCode;
 use Psr\Log\AbstractLogger;
 use Psr\Log\LoggerInterface;

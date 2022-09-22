@@ -164,7 +164,7 @@ class SectionBasics extends React.Component {
               </GridItem>
               <GridItem xs={12} sm={4} md={4} lg={3}>
                 <CustomInput
-                  labelText="Error input"
+                  labelText="Throwables input"
                   id="error"
                   error
                   formControlProps={{

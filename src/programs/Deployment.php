@@ -533,7 +533,7 @@ DefaultLanguage en-US
 # pass the default character set
 AddDefaultCharset utf-8
 
-# Error Redirects
+# Throwables Redirects
 ErrorDocument 404 $site/404/
 
 # God forbid an uncaught error - Display contact method

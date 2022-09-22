@@ -4,7 +4,7 @@ namespace CarbonPHP\Restful;
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
-use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Throwables\PublicAlert;
 use CarbonPHP\Helpers\MySQL;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iRest;
@@ -776,7 +776,7 @@ TRIGGER;
         // concatenation and aggregation
         if (true === self::$columnSelectEncountered && true === self::$aggregateSelectEncountered && [] === $group) {
 
-            throw new PublicAlert("Restful Error! A simple column select and aggregate function were used in the same query without the ['GROUP_BY'] clause explicitly set. This has been deprecated. Failed after compiling only :: ($sql)");
+            throw new PublicAlert("Restful Throwables! A simple column select and aggregate function were used in the same query without the ['GROUP_BY'] clause explicitly set. This has been deprecated. Failed after compiling only :: ($sql)");
 
         }
 

@@ -4,7 +4,7 @@
  * http://php.net/manual/en/language.exceptions.php
  */
 
-namespace CarbonPHP\Error;
+namespace CarbonPHP\Throwables;
 
 use CarbonPHP\Interfaces\iException;
 use Exception;

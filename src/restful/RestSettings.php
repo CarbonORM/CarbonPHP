@@ -4,8 +4,8 @@ namespace CarbonPHP\Restful;
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
-use CarbonPHP\Error\ThrowableCatcher;
-use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Throwables\ThrowableCatcher;
+use CarbonPHP\Throwables\PublicAlert;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;

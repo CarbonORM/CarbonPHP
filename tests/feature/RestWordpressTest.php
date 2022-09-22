@@ -11,7 +11,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use CarbonPHP\Database;
-use CarbonPHP\Error\ThrowableCatcher;
+use CarbonPHP\Throwables\ThrowableCatcher;
 use CarbonPHP\Tables\Wp_Users;
 use Throwable;
 

@@ -4,8 +4,8 @@ namespace CarbonPHP\Programs;
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
-use CarbonPHP\Error\ThrowableCatcher;
-use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Throwables\ThrowableCatcher;
+use CarbonPHP\Throwables\PublicAlert;
 use CarbonPHP\Helpers\Background;
 use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Helpers\Files;

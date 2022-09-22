@@ -8,7 +8,7 @@
 
 namespace CarbonPHP;
 
-use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Throwables\PublicAlert;
 use CarbonPHP\Helpers\Files;
 use InvalidArgumentException;
 use function count;
