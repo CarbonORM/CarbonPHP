@@ -1011,18 +1011,20 @@ FOOT;
 
             self::addTablePrefix($internalTableName, $fullyQualifiedClassName::TABLE_PREFIX, $ignoreRef);
 
-            $values = self::fetch('SELECT CONSTRAINT_NAME
+            $verifySqlConstraint ='SELECT CONSTRAINT_NAME
                                         FROM  INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
                                         WHERE REFERENCED_TABLE_SCHEMA = ?
                                         AND REFERENCED_TABLE_NAME = ?
                                         AND REFERENCED_COLUMN_NAME = ?
                                         AND TABLE_NAME = ?
                                         AND COLUMN_NAME = ?
-                ;', self::$carbonDatabaseName, $externalTableName, $externalColumnName, $internalTableName, $internalColumnName);
+                ;';
+
+            $values = self::fetch($verifySqlConstraint, self::$carbonDatabaseName, $externalTableName, $externalColumnName, $internalTableName, $internalColumnName);
 
             if ([] === $values) {
 
-                self::colorCode("Failed to verify that the table ($internalTableName) contains FOREIGN KEY CONSTRAINT ($externalTableName.$externalColumnName) => ($internalTableName.$internalColumnName)", iColorCode::RED);
+                self::colorCode("Failed to verify that the table ($internalTableName) contains FOREIGN KEY CONSTRAINT ($externalTableName.$externalColumnName) => ($internalTableName.$internalColumnName) using sql ($verifySqlConstraint) with key values (" . self::$carbonDatabaseName . ", $externalTableName, $externalColumnName, $internalTableName, $internalColumnName) respectively.", iColorCode::RED);
 
                 $tableCreateSTMT = $fullyQualifiedClassName::CREATE_TABLE_SQL;
 
@@ -1053,7 +1055,7 @@ FOOT;
 
                 $addConstraint = "ALTER TABLE $internalTableName ADD CONSTRAINT $constraintName FOREIGN KEY ($internalColumnName) REFERENCES $externalTableName ($externalColumnName) $constraintProperties;";
 
-                self::colorCode("Attmpting to run :: ($addConstraint)", iColorCode::CYAN);
+                self::colorCode("Attempting to run :: ($addConstraint)", iColorCode::CYAN);
 
                 if (false === self::execute($addConstraint)) {
 
