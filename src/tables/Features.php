@@ -382,9 +382,9 @@ CREATE TABLE IF NOT EXISTS `carbon_features` (
 `feature_code` varchar(30) NOT NULL,
 `feature_creation_date` datetime DEFAULT CURRENT_TIMESTAMP,
 PRIMARY KEY (`feature_entity_id`),
-UNIQUE Key (`feature_code`),
-UNIQUE Key (`feature_entity_id`),
-CONSTRAINT FOREIGN KEY (`feature_entity_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+UNIQUE KEY `carbon_features_feature_code_uindex` (`feature_code`),
+UNIQUE KEY `carbon_features_feature_entity_id_uindex` (`feature_entity_id`),
+CONSTRAINT `carbon_features_carbons_entity_pk_fk` FOREIGN KEY (`feature_entity_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 MYSQL;
        

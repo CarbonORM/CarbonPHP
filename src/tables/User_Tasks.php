@@ -521,12 +521,12 @@ CREATE TABLE IF NOT EXISTS `carbon_user_tasks` (
 `start_date` datetime,
 `end_date` datetime,
 PRIMARY KEY (`task_id`),
-Key (`from_id`),
-Key (`task_id`),
-Key (`user_id`),
-CONSTRAINT FOREIGN KEY (`task_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-CONSTRAINT FOREIGN KEY (`user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-CONSTRAINT FOREIGN KEY (`from_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+KEY `user_tasks_entity_entity_pk_fk` (`from_id`),
+KEY `user_tasks_entity_task_pk_fk` (`task_id`),
+KEY `carbon_user_tasks_carbons_entity_pk_fk_2` (`user_id`),
+CONSTRAINT `carbon_user_tasks_carbons_entity_pk_fk` FOREIGN KEY (`task_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+CONSTRAINT `carbon_user_tasks_carbons_entity_pk_fk_2` FOREIGN KEY (`user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+CONSTRAINT `carbon_user_tasks_carbons_entity_pk_fk_3` FOREIGN KEY (`from_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 MYSQL;
        

@@ -403,9 +403,9 @@ CREATE TABLE IF NOT EXISTS `carbon_groups` (
 `created_by` binary(16) NOT NULL,
 `creation_date` datetime DEFAULT CURRENT_TIMESTAMP,
 PRIMARY KEY (`entity_id`),
-Key (`created_by`),
-CONSTRAINT FOREIGN KEY (`entity_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-CONSTRAINT FOREIGN KEY (`created_by`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+KEY `carbon_feature_groups_carbons_entity_pk_fk_2` (`created_by`),
+CONSTRAINT `carbon_feature_groups_carbons_entity_pk_fk` FOREIGN KEY (`entity_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+CONSTRAINT `carbon_feature_groups_carbons_entity_pk_fk_2` FOREIGN KEY (`created_by`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 MYSQL;
        

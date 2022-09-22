@@ -426,9 +426,9 @@ CREATE TABLE IF NOT EXISTS `carbon_carbons` (
 `entity_fk` binary(16) DEFAULT NULL,
 `entity_tag` varchar(100) NOT NULL DEFAULT 'manually',
 PRIMARY KEY (`entity_pk`),
-UNIQUE Key (`entity_pk`),
-Key (`entity_fk`),
-CONSTRAINT FOREIGN KEY (`entity_fk`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+UNIQUE KEY `entity_entity_pk_uindex` (`entity_pk`),
+KEY `entity_entity_entity_pk_fk` (`entity_fk`),
+CONSTRAINT `entity_entity_entity_pk_fk` FOREIGN KEY (`entity_fk`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 MYSQL;
        

@@ -448,12 +448,12 @@ CREATE TABLE IF NOT EXISTS `carbon_user_messages` (
 `message_read` tinyint DEFAULT '0',
 `creation_date` datetime DEFAULT CURRENT_TIMESTAMP,
 PRIMARY KEY (`message_id`),
-Key (`message_id`),
-Key (`to_user_id`),
-Key (`from_user_id`),
-CONSTRAINT FOREIGN KEY (`from_user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-CONSTRAINT FOREIGN KEY (`message_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-CONSTRAINT FOREIGN KEY (`to_user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+KEY `messages_entity_entity_pk_fk` (`message_id`),
+KEY `messages_entity_user_from_pk_fk` (`to_user_id`),
+KEY `carbon_user_messages_carbon_entity_pk_fk` (`from_user_id`),
+CONSTRAINT `carbon_user_messages_carbon_entity_pk_fk` FOREIGN KEY (`from_user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+CONSTRAINT `messages_entity_entity_pk_fk` FOREIGN KEY (`message_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+CONSTRAINT `messages_entity_user_from_pk_fk` FOREIGN KEY (`to_user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 MYSQL;
        

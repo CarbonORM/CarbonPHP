@@ -406,10 +406,10 @@ CREATE TABLE IF NOT EXISTS `carbon_location_references` (
 `entity_reference` binary(16) NOT NULL,
 `location_reference` binary(16) NOT NULL,
 `location_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-Key (`entity_reference`),
-Key (`location_reference`),
-CONSTRAINT FOREIGN KEY (`entity_reference`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-CONSTRAINT FOREIGN KEY (`location_reference`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+KEY `carbon_location_references_carbons_entity_pk_fk` (`entity_reference`),
+KEY `carbon_location_references_carbons_entity_pk_fk_2` (`location_reference`),
+CONSTRAINT `carbon_location_references_carbons_entity_pk_fk` FOREIGN KEY (`entity_reference`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+CONSTRAINT `carbon_location_references_carbons_entity_pk_fk_2` FOREIGN KEY (`location_reference`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 MYSQL;
        

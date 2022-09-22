@@ -434,11 +434,11 @@ CREATE TABLE IF NOT EXISTS `carbon_photos` (
 `photo_path` varchar(225) NOT NULL,
 `photo_description` text,
 PRIMARY KEY (`parent_id`),
-UNIQUE Key (`photo_id`),
-Key (`user_id`),
-CONSTRAINT FOREIGN KEY (`photo_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-CONSTRAINT FOREIGN KEY (`parent_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-CONSTRAINT FOREIGN KEY (`user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+UNIQUE KEY `entity_photos_photo_id_uindex` (`photo_id`),
+KEY `photos_entity_user_pk_fk` (`user_id`),
+CONSTRAINT `entity_photos_entity_entity_pk_fk` FOREIGN KEY (`photo_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+CONSTRAINT `photos_entity_entity_pk_fk` FOREIGN KEY (`parent_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+CONSTRAINT `photos_entity_user_pk_fk` FOREIGN KEY (`user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 MYSQL;
        

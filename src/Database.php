@@ -1029,7 +1029,7 @@ FOOT;
                 $tableCreateSTMT = $fullyQualifiedClassName::CREATE_TABLE_SQL;
 
                 // CONSTRAINT_NAME
-                $constraintNameRegex = "#CONSTRAINT `(.*)` FOREIGN KEY \(`$internalColumnName`\) REFERENCES `(?:$externalTableName|$preUpdateExternalTableName)` \(`$externalColumnName`\)(.*)?#";
+                $constraintNameRegex = "#CONSTRAINT (?:FOREIGN KEY )?(?:\()`(.*)`(?:\))(?: FOREIGN KEY)? \(`$internalColumnName`\) REFERENCES `(?:$externalTableName|$preUpdateExternalTableName)` \(`$externalColumnName`\)(.*)?#";
 
                 if (false === preg_match_all($constraintNameRegex, $tableCreateSTMT, $cMatches)) {
 

@@ -636,10 +636,10 @@ CREATE TABLE IF NOT EXISTS `carbon_users` (
 `user_location` varchar(20) DEFAULT NULL,
 `user_creation_date` datetime DEFAULT CURRENT_TIMESTAMP,
 PRIMARY KEY (`user_id`),
-UNIQUE Key (`user_username`),
-UNIQUE Key (`user_profile_uri`),
-UNIQUE Key (`user_facebook_id`),
-CONSTRAINT FOREIGN KEY (`user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+UNIQUE KEY `carbon_users_user_username_uindex` (`user_username`),
+UNIQUE KEY `user_user_profile_uri_uindex` (`user_profile_uri`),
+UNIQUE KEY `carbon_users_user_facebook_id_uindex` (`user_facebook_id`),
+CONSTRAINT `user_entity_entity_pk_fk` FOREIGN KEY (`user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 MYSQL;
        

@@ -471,8 +471,8 @@ CREATE TABLE IF NOT EXISTS `carbon_locations` (
 `elevation` varchar(40) DEFAULT NULL,
 `zip` int DEFAULT NULL,
 PRIMARY KEY (`entity_id`),
-UNIQUE Key (`entity_id`),
-CONSTRAINT FOREIGN KEY (`entity_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+UNIQUE KEY `entity_location_entity_id_uindex` (`entity_id`),
+CONSTRAINT `entity_location_entity_entity_pk_fk` FOREIGN KEY (`entity_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 MYSQL;
        

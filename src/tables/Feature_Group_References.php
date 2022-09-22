@@ -377,10 +377,10 @@ class Feature_Group_References extends Rest implements iRestNoPrimaryKey
 CREATE TABLE IF NOT EXISTS `carbon_feature_group_references` (
 `feature_entity_id` binary(16) DEFAULT NULL,
 `group_entity_id` binary(16) DEFAULT NULL,
-Key (`feature_entity_id`),
-Key (`group_entity_id`),
-CONSTRAINT FOREIGN KEY (`group_entity_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
-CONSTRAINT FOREIGN KEY (`feature_entity_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+KEY `carbon_feature_references_carbons_entity_pk_fk_2` (`feature_entity_id`),
+KEY `carbon_feature_group_references_carbons_entity_pk_fk` (`group_entity_id`),
+CONSTRAINT `carbon_feature_group_references_carbons_entity_pk_fk` FOREIGN KEY (`group_entity_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE,
+CONSTRAINT `carbon_feature_references_carbons_entity_pk_fk` FOREIGN KEY (`feature_entity_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 MYSQL;
        
