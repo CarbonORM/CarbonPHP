@@ -178,10 +178,6 @@ interface iRest
         /** @lang PhpRegExp */
         '#bigint\(\d+\)#' => 'bigint',
         /** @lang PhpRegExp */
-        '#KEY `[^`]*`#' => 'Key ',
-        /** @lang PhpRegExp */
-        '#CONSTRAINT `[^`]*`#' => 'CONSTRAINT ',
-        /** @lang PhpRegExp */
         '#int\(\d+\)#' => 'int',
         /** @lang PhpRegExp */
         '#CHARACTER\sSET\s[A-Za-z0-9_]+#' => '',
@@ -205,6 +201,13 @@ interface iRest
         '#\s?,$#' => '',
         /** @lang PhpRegExp */
         '#\s?;$#' => '',
+    ];
+
+    public const SQL_IRRELEVANT_REPLACEMENTS = [
+        /** @lang PhpRegExp */
+        '#KEY `[^`]*`#' => 'Key ',
+        /** @lang PhpRegExp */
+        '#CONSTRAINT `[^`]*`#' => 'CONSTRAINT ',
     ];
 
     // https://dev.mysql.com/doc/refman/8.0/en/aggregate-functions.html
