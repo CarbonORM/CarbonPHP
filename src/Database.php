@@ -1395,7 +1395,7 @@ FOOT;
             // Rest::parseSchemaSQL() is only done on $preUpdateSQL for legacy builds
             // we add 'CONSTRAINT\s`.*' => '' only to the post updated query as AWS will not include
             // FK constraints in mysql dump files // post update
-            $awsLoose = Interfaces\iRest::SQL_VERSION_PREG_REPLACE + Interfaces\iRest::SQL_IRRELEVANT_REPLACEMENTS;
+            $awsLoose = Interfaces\iRest::SQL_IRRELEVANT_REPLACEMENTS + Interfaces\iRest::SQL_VERSION_PREG_REPLACE;
 
             $preUpdateSQL = trim(Rest::parseSchemaSQL($preUpdateSQL, $awsLoose));
 

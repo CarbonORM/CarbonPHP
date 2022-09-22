@@ -205,9 +205,9 @@ interface iRest
 
     public const SQL_IRRELEVANT_REPLACEMENTS = [
         /** @lang PhpRegExp */
-        '#KEY `[^`]*`#' => 'Key ',
+        '#KEY `[^`]*`#' => 'Key',
         /** @lang PhpRegExp */
-        '#CONSTRAINT `[^`]*`#' => 'CONSTRAINT ',
+        '#CONSTRAINT `[^`]*`#' => 'CONSTRAINT',
     ];
 
     // https://dev.mysql.com/doc/refman/8.0/en/aggregate-functions.html
