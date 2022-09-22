@@ -101,6 +101,7 @@
       <path value="$PROJECT_DIR$/vendor/bin/chromedriver" />
       <path value="$PROJECT_DIR$/vendor/wp-cli/cache-command" />
       <path value="$PROJECT_DIR$/vendor/richardtmiles/carbonphp" />
+      <path value="$PROJECT_DIR$/vendor/eftec/bladeone" />
     </include_path>
   </component>
   <component name="PhpProjectServersManager">

@@ -11,11 +11,81 @@ export interface complexMap {
     [key: string]: string | string[] | stringMap | RegExpMap;
 }
 
+export interface iTypeValidation {
+    MYSQL_TYPE: string,
+    MAX_LENGTH: string,
+    AUTO_INCREMENT: boolean,
+    SKIP_COLUMN_IN_POST: boolean
+}
+
+export type RestTableNames = 'carbon_carbons'
+	| 'carbon_comments'
+	| 'carbon_feature_group_references'
+	| 'carbon_features'
+	| 'carbon_group_references'
+	| 'carbon_groups'
+	| 'carbon_history_logs'
+	| 'carbon_location_references'
+	| 'carbon_locations'
+	| 'carbon_photos'
+	| 'carbon_reports'
+	| 'carbon_sessions'
+	| 'carbon_user_followers'
+	| 'carbon_user_groups'
+	| 'carbon_user_messages'
+	| 'carbon_user_sessions'
+	| 'carbon_user_tasks'
+	| 'carbon_users'
+	| 'carbon_wp_commentmeta'
+	| 'carbon_wp_comments'
+	| 'carbon_wp_links'
+	| 'carbon_wp_options'
+	| 'carbon_wp_postmeta'
+	| 'carbon_wp_posts'
+	| 'carbon_wp_term_relationships'
+	| 'carbon_wp_term_taxonomy'
+	| 'carbon_wp_termmeta'
+	| 'carbon_wp_terms'
+	| 'carbon_wp_usermeta'
+	| 'carbon_wp_users';
+
+export type RestShortTableNames = 'carbons'
+	| 'comments'
+	| 'feature_group_references'
+	| 'features'
+	| 'group_references'
+	| 'groups'
+	| 'history_logs'
+	| 'location_references'
+	| 'locations'
+	| 'photos'
+	| 'reports'
+	| 'sessions'
+	| 'user_followers'
+	| 'user_groups'
+	| 'user_messages'
+	| 'user_sessions'
+	| 'user_tasks'
+	| 'users'
+	| 'wp_commentmeta'
+	| 'wp_comments'
+	| 'wp_links'
+	| 'wp_options'
+	| 'wp_postmeta'
+	| 'wp_posts'
+	| 'wp_term_relationships'
+	| 'wp_term_taxonomy'
+	| 'wp_termmeta'
+	| 'wp_terms'
+	| 'wp_usermeta'
+	| 'wp_users';
+
 export interface C6RestfulModel {
-    TABLE_NAME?: string,
+    TABLE_NAME?: RestShortTableNames,
     PRIMARY?: string[],
     COLUMNS?: stringMap,
-    REGEX_VALIDATION?: RegExpMap
+    REGEX_VALIDATION?: RegExpMap,
+    TYPE_VALIDATION?: {[key: string]: iTypeValidation},
 }
 
 
@@ -32,7 +102,7 @@ interface iDefineCarbons {
       'ENTITY_TAG': string;
 }
 
-export const carbons : Readonly<C6RestfulModel & iDefineCarbons> = {
+export const carbons : C6RestfulModel & iDefineCarbons = {
     TABLE_NAME:'carbons',
     ENTITY_PK: 'carbon_carbons.entity_pk',
     ENTITY_FK: 'carbon_carbons.entity_fk',
@@ -42,8 +112,28 @@ export const carbons : Readonly<C6RestfulModel & iDefineCarbons> = {
     ],
     COLUMNS: {
       'carbon_carbons.entity_pk':'entity_pk',
-'carbon_carbons.entity_fk':'entity_fk',
-'carbon_carbons.entity_tag':'entity_tag',
+      'carbon_carbons.entity_fk':'entity_fk',
+      'carbon_carbons.entity_tag':'entity_tag',
+    },
+    TYPE_VALIDATION: {
+        'carbon_carbons.entity_pk': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_carbons.entity_fk': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_carbons.entity_tag': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '100', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -77,9 +167,35 @@ export const comments : C6RestfulModel & iDefineComments = {
     ],
     COLUMNS: {
       'carbon_comments.parent_id':'parent_id',
-'carbon_comments.comment_id':'comment_id',
-'carbon_comments.user_id':'user_id',
-'carbon_comments.comment':'comment',
+      'carbon_comments.comment_id':'comment_id',
+      'carbon_comments.user_id':'user_id',
+      'carbon_comments.comment':'comment',
+    },
+    TYPE_VALIDATION: {
+        'carbon_comments.parent_id': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_comments.comment_id': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_comments.user_id': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_comments.comment': { 
+            MYSQL_TYPE: 'blob', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -103,10 +219,24 @@ export const feature_group_references : C6RestfulModel & iDefineFeature_Group_Re
     FEATURE_ENTITY_ID: 'carbon_feature_group_references.feature_entity_id',
     GROUP_ENTITY_ID: 'carbon_feature_group_references.group_entity_id',
     PRIMARY: [
-            ],
+    ],
     COLUMNS: {
       'carbon_feature_group_references.feature_entity_id':'feature_entity_id',
-'carbon_feature_group_references.group_entity_id':'group_entity_id',
+      'carbon_feature_group_references.group_entity_id':'group_entity_id',
+    },
+    TYPE_VALIDATION: {
+        'carbon_feature_group_references.feature_entity_id': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_feature_group_references.group_entity_id': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -137,8 +267,28 @@ export const features : C6RestfulModel & iDefineFeatures = {
     ],
     COLUMNS: {
       'carbon_features.feature_entity_id':'feature_entity_id',
-'carbon_features.feature_code':'feature_code',
-'carbon_features.feature_creation_date':'feature_creation_date',
+      'carbon_features.feature_code':'feature_code',
+      'carbon_features.feature_creation_date':'feature_creation_date',
+    },
+    TYPE_VALIDATION: {
+        'carbon_features.feature_entity_id': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_features.feature_code': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '30', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_features.feature_creation_date': { 
+            MYSQL_TYPE: 'datetime', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: true 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -162,10 +312,24 @@ export const group_references : C6RestfulModel & iDefineGroup_References = {
     GROUP_ID: 'carbon_group_references.group_id',
     ALLOWED_TO_GRANT_GROUP_ID: 'carbon_group_references.allowed_to_grant_group_id',
     PRIMARY: [
-            ],
+    ],
     COLUMNS: {
       'carbon_group_references.group_id':'group_id',
-'carbon_group_references.allowed_to_grant_group_id':'allowed_to_grant_group_id',
+      'carbon_group_references.allowed_to_grant_group_id':'allowed_to_grant_group_id',
+    },
+    TYPE_VALIDATION: {
+        'carbon_group_references.group_id': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_group_references.allowed_to_grant_group_id': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -199,9 +363,35 @@ export const groups : C6RestfulModel & iDefineGroups = {
     ],
     COLUMNS: {
       'carbon_groups.group_name':'group_name',
-'carbon_groups.entity_id':'entity_id',
-'carbon_groups.created_by':'created_by',
-'carbon_groups.creation_date':'creation_date',
+      'carbon_groups.entity_id':'entity_id',
+      'carbon_groups.created_by':'created_by',
+      'carbon_groups.creation_date':'creation_date',
+    },
+    TYPE_VALIDATION: {
+        'carbon_groups.group_name': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '20', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_groups.entity_id': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_groups.created_by': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_groups.creation_date': { 
+            MYSQL_TYPE: 'datetime', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: true 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -237,14 +427,52 @@ export const history_logs : C6RestfulModel & iDefineHistory_Logs = {
     HISTORY_ORIGINAL_QUERY: 'carbon_history_logs.history_original_query',
     HISTORY_TIME: 'carbon_history_logs.history_time',
     PRIMARY: [
-            ],
+    ],
     COLUMNS: {
       'carbon_history_logs.history_uuid':'history_uuid',
-'carbon_history_logs.history_table':'history_table',
-'carbon_history_logs.history_type':'history_type',
-'carbon_history_logs.history_data':'history_data',
-'carbon_history_logs.history_original_query':'history_original_query',
-'carbon_history_logs.history_time':'history_time',
+      'carbon_history_logs.history_table':'history_table',
+      'carbon_history_logs.history_type':'history_type',
+      'carbon_history_logs.history_data':'history_data',
+      'carbon_history_logs.history_original_query':'history_original_query',
+      'carbon_history_logs.history_time':'history_time',
+    },
+    TYPE_VALIDATION: {
+        'carbon_history_logs.history_uuid': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_history_logs.history_table': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '255', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_history_logs.history_type': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '20', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_history_logs.history_data': { 
+            MYSQL_TYPE: 'json', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_history_logs.history_original_query': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '1024', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_history_logs.history_time': { 
+            MYSQL_TYPE: 'datetime', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: true 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -271,11 +499,31 @@ export const location_references : C6RestfulModel & iDefineLocation_References =
     LOCATION_REFERENCE: 'carbon_location_references.location_reference',
     LOCATION_TIME: 'carbon_location_references.location_time',
     PRIMARY: [
-            ],
+    ],
     COLUMNS: {
       'carbon_location_references.entity_reference':'entity_reference',
-'carbon_location_references.location_reference':'location_reference',
-'carbon_location_references.location_time':'location_time',
+      'carbon_location_references.location_reference':'location_reference',
+      'carbon_location_references.location_time':'location_time',
+    },
+    TYPE_VALIDATION: {
+        'carbon_location_references.entity_reference': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_location_references.location_reference': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_location_references.location_time': { 
+            MYSQL_TYPE: 'datetime', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: true 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -321,13 +569,63 @@ export const locations : C6RestfulModel & iDefineLocations = {
     ],
     COLUMNS: {
       'carbon_locations.entity_id':'entity_id',
-'carbon_locations.latitude':'latitude',
-'carbon_locations.longitude':'longitude',
-'carbon_locations.street':'street',
-'carbon_locations.city':'city',
-'carbon_locations.state':'state',
-'carbon_locations.elevation':'elevation',
-'carbon_locations.zip':'zip',
+      'carbon_locations.latitude':'latitude',
+      'carbon_locations.longitude':'longitude',
+      'carbon_locations.street':'street',
+      'carbon_locations.city':'city',
+      'carbon_locations.state':'state',
+      'carbon_locations.elevation':'elevation',
+      'carbon_locations.zip':'zip',
+    },
+    TYPE_VALIDATION: {
+        'carbon_locations.entity_id': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_locations.latitude': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '225', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_locations.longitude': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '225', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_locations.street': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '225', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_locations.city': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '40', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_locations.state': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '10', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_locations.elevation': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '40', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_locations.zip': { 
+            MYSQL_TYPE: 'int', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -364,10 +662,42 @@ export const photos : C6RestfulModel & iDefinePhotos = {
     ],
     COLUMNS: {
       'carbon_photos.parent_id':'parent_id',
-'carbon_photos.photo_id':'photo_id',
-'carbon_photos.user_id':'user_id',
-'carbon_photos.photo_path':'photo_path',
-'carbon_photos.photo_description':'photo_description',
+      'carbon_photos.photo_id':'photo_id',
+      'carbon_photos.user_id':'user_id',
+      'carbon_photos.photo_path':'photo_path',
+      'carbon_photos.photo_description':'photo_description',
+    },
+    TYPE_VALIDATION: {
+        'carbon_photos.parent_id': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_photos.photo_id': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_photos.user_id': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_photos.photo_path': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '225', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_photos.photo_description': { 
+            MYSQL_TYPE: 'text', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -397,12 +727,38 @@ export const reports : C6RestfulModel & iDefineReports = {
     DATE: 'carbon_reports.date',
     CALL_TRACE: 'carbon_reports.call_trace',
     PRIMARY: [
-            ],
+    ],
     COLUMNS: {
       'carbon_reports.log_level':'log_level',
-'carbon_reports.report':'report',
-'carbon_reports.date':'date',
-'carbon_reports.call_trace':'call_trace',
+      'carbon_reports.report':'report',
+      'carbon_reports.date':'date',
+      'carbon_reports.call_trace':'call_trace',
+    },
+    TYPE_VALIDATION: {
+        'carbon_reports.log_level': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '20', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_reports.report': { 
+            MYSQL_TYPE: 'text', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_reports.date': { 
+            MYSQL_TYPE: 'datetime', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: true 
+        },
+        'carbon_reports.call_trace': { 
+            MYSQL_TYPE: 'text', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -442,11 +798,49 @@ export const sessions : C6RestfulModel & iDefineSessions = {
     ],
     COLUMNS: {
       'carbon_sessions.user_id':'user_id',
-'carbon_sessions.user_ip':'user_ip',
-'carbon_sessions.session_id':'session_id',
-'carbon_sessions.session_expires':'session_expires',
-'carbon_sessions.session_data':'session_data',
-'carbon_sessions.user_online_status':'user_online_status',
+      'carbon_sessions.user_ip':'user_ip',
+      'carbon_sessions.session_id':'session_id',
+      'carbon_sessions.session_expires':'session_expires',
+      'carbon_sessions.session_data':'session_data',
+      'carbon_sessions.user_online_status':'user_online_status',
+    },
+    TYPE_VALIDATION: {
+        'carbon_sessions.user_id': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_sessions.user_ip': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '20', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_sessions.session_id': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '255', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_sessions.session_expires': { 
+            MYSQL_TYPE: 'datetime', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_sessions.session_data': { 
+            MYSQL_TYPE: 'text', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_sessions.user_online_status': { 
+            MYSQL_TYPE: 'tinyint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -477,8 +871,28 @@ export const user_followers : C6RestfulModel & iDefineUser_Followers = {
     ],
     COLUMNS: {
       'carbon_user_followers.follower_table_id':'follower_table_id',
-'carbon_user_followers.follows_user_id':'follows_user_id',
-'carbon_user_followers.user_id':'user_id',
+      'carbon_user_followers.follows_user_id':'follows_user_id',
+      'carbon_user_followers.user_id':'user_id',
+    },
+    TYPE_VALIDATION: {
+        'carbon_user_followers.follower_table_id': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_user_followers.follows_user_id': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_user_followers.user_id': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -502,10 +916,24 @@ export const user_groups : C6RestfulModel & iDefineUser_Groups = {
     GROUP_ID: 'carbon_user_groups.group_id',
     USER_ID: 'carbon_user_groups.user_id',
     PRIMARY: [
-            ],
+    ],
     COLUMNS: {
       'carbon_user_groups.group_id':'group_id',
-'carbon_user_groups.user_id':'user_id',
+      'carbon_user_groups.user_id':'user_id',
+    },
+    TYPE_VALIDATION: {
+        'carbon_user_groups.group_id': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_user_groups.user_id': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -545,11 +973,49 @@ export const user_messages : C6RestfulModel & iDefineUser_Messages = {
     ],
     COLUMNS: {
       'carbon_user_messages.message_id':'message_id',
-'carbon_user_messages.from_user_id':'from_user_id',
-'carbon_user_messages.to_user_id':'to_user_id',
-'carbon_user_messages.message':'message',
-'carbon_user_messages.message_read':'message_read',
-'carbon_user_messages.creation_date':'creation_date',
+      'carbon_user_messages.from_user_id':'from_user_id',
+      'carbon_user_messages.to_user_id':'to_user_id',
+      'carbon_user_messages.message':'message',
+      'carbon_user_messages.message_read':'message_read',
+      'carbon_user_messages.creation_date':'creation_date',
+    },
+    TYPE_VALIDATION: {
+        'carbon_user_messages.message_id': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_user_messages.from_user_id': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_user_messages.to_user_id': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_user_messages.message': { 
+            MYSQL_TYPE: 'text', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_user_messages.message_read': { 
+            MYSQL_TYPE: 'tinyint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_user_messages.creation_date': { 
+            MYSQL_TYPE: 'datetime', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: true 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -589,11 +1055,49 @@ export const user_sessions : C6RestfulModel & iDefineUser_Sessions = {
     ],
     COLUMNS: {
       'carbon_user_sessions.user_id':'user_id',
-'carbon_user_sessions.user_ip':'user_ip',
-'carbon_user_sessions.session_id':'session_id',
-'carbon_user_sessions.session_expires':'session_expires',
-'carbon_user_sessions.session_data':'session_data',
-'carbon_user_sessions.user_online_status':'user_online_status',
+      'carbon_user_sessions.user_ip':'user_ip',
+      'carbon_user_sessions.session_id':'session_id',
+      'carbon_user_sessions.session_expires':'session_expires',
+      'carbon_user_sessions.session_data':'session_data',
+      'carbon_user_sessions.user_online_status':'user_online_status',
+    },
+    TYPE_VALIDATION: {
+        'carbon_user_sessions.user_id': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_user_sessions.user_ip': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_user_sessions.session_id': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '255', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_user_sessions.session_expires': { 
+            MYSQL_TYPE: 'datetime', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_user_sessions.session_data': { 
+            MYSQL_TYPE: 'text', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_user_sessions.user_online_status': { 
+            MYSQL_TYPE: 'tinyint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -639,13 +1143,63 @@ export const user_tasks : C6RestfulModel & iDefineUser_Tasks = {
     ],
     COLUMNS: {
       'carbon_user_tasks.task_id':'task_id',
-'carbon_user_tasks.user_id':'user_id',
-'carbon_user_tasks.from_id':'from_id',
-'carbon_user_tasks.task_name':'task_name',
-'carbon_user_tasks.task_description':'task_description',
-'carbon_user_tasks.percent_complete':'percent_complete',
-'carbon_user_tasks.start_date':'start_date',
-'carbon_user_tasks.end_date':'end_date',
+      'carbon_user_tasks.user_id':'user_id',
+      'carbon_user_tasks.from_id':'from_id',
+      'carbon_user_tasks.task_name':'task_name',
+      'carbon_user_tasks.task_description':'task_description',
+      'carbon_user_tasks.percent_complete':'percent_complete',
+      'carbon_user_tasks.start_date':'start_date',
+      'carbon_user_tasks.end_date':'end_date',
+    },
+    TYPE_VALIDATION: {
+        'carbon_user_tasks.task_id': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_user_tasks.user_id': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_user_tasks.from_id': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_user_tasks.task_name': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '40', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_user_tasks.task_description': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '225', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_user_tasks.percent_complete': { 
+            MYSQL_TYPE: 'int', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_user_tasks.start_date': { 
+            MYSQL_TYPE: 'datetime', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_user_tasks.end_date': { 
+            MYSQL_TYPE: 'datetime', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -748,32 +1302,196 @@ export const users : C6RestfulModel & iDefineUsers = {
     ],
     COLUMNS: {
       'carbon_users.user_username':'user_username',
-'carbon_users.user_password':'user_password',
-'carbon_users.user_id':'user_id',
-'carbon_users.user_type':'user_type',
-'carbon_users.user_sport':'user_sport',
-'carbon_users.user_session_id':'user_session_id',
-'carbon_users.user_facebook_id':'user_facebook_id',
-'carbon_users.user_first_name':'user_first_name',
-'carbon_users.user_last_name':'user_last_name',
-'carbon_users.user_profile_pic':'user_profile_pic',
-'carbon_users.user_profile_uri':'user_profile_uri',
-'carbon_users.user_cover_photo':'user_cover_photo',
-'carbon_users.user_birthday':'user_birthday',
-'carbon_users.user_gender':'user_gender',
-'carbon_users.user_about_me':'user_about_me',
-'carbon_users.user_rank':'user_rank',
-'carbon_users.user_email':'user_email',
-'carbon_users.user_email_code':'user_email_code',
-'carbon_users.user_email_confirmed':'user_email_confirmed',
-'carbon_users.user_generated_string':'user_generated_string',
-'carbon_users.user_membership':'user_membership',
-'carbon_users.user_deactivated':'user_deactivated',
-'carbon_users.user_last_login':'user_last_login',
-'carbon_users.user_ip':'user_ip',
-'carbon_users.user_education_history':'user_education_history',
-'carbon_users.user_location':'user_location',
-'carbon_users.user_creation_date':'user_creation_date',
+      'carbon_users.user_password':'user_password',
+      'carbon_users.user_id':'user_id',
+      'carbon_users.user_type':'user_type',
+      'carbon_users.user_sport':'user_sport',
+      'carbon_users.user_session_id':'user_session_id',
+      'carbon_users.user_facebook_id':'user_facebook_id',
+      'carbon_users.user_first_name':'user_first_name',
+      'carbon_users.user_last_name':'user_last_name',
+      'carbon_users.user_profile_pic':'user_profile_pic',
+      'carbon_users.user_profile_uri':'user_profile_uri',
+      'carbon_users.user_cover_photo':'user_cover_photo',
+      'carbon_users.user_birthday':'user_birthday',
+      'carbon_users.user_gender':'user_gender',
+      'carbon_users.user_about_me':'user_about_me',
+      'carbon_users.user_rank':'user_rank',
+      'carbon_users.user_email':'user_email',
+      'carbon_users.user_email_code':'user_email_code',
+      'carbon_users.user_email_confirmed':'user_email_confirmed',
+      'carbon_users.user_generated_string':'user_generated_string',
+      'carbon_users.user_membership':'user_membership',
+      'carbon_users.user_deactivated':'user_deactivated',
+      'carbon_users.user_last_login':'user_last_login',
+      'carbon_users.user_ip':'user_ip',
+      'carbon_users.user_education_history':'user_education_history',
+      'carbon_users.user_location':'user_location',
+      'carbon_users.user_creation_date':'user_creation_date',
+    },
+    TYPE_VALIDATION: {
+        'carbon_users.user_username': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '100', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_users.user_password': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '225', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_users.user_id': { 
+            MYSQL_TYPE: 'binary', 
+            MAX_LENGTH: '16', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_users.user_type': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '20', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_users.user_sport': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '20', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_users.user_session_id': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '225', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_users.user_facebook_id': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '225', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_users.user_first_name': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '25', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_users.user_last_name': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '25', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_users.user_profile_pic': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '225', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_users.user_profile_uri': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '225', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_users.user_cover_photo': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '225', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_users.user_birthday': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '9', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_users.user_gender': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '25', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_users.user_about_me': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '225', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_users.user_rank': { 
+            MYSQL_TYPE: 'int', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_users.user_email': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '50', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_users.user_email_code': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '225', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_users.user_email_confirmed': { 
+            MYSQL_TYPE: 'tinyint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_users.user_generated_string': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '200', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_users.user_membership': { 
+            MYSQL_TYPE: 'int', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_users.user_deactivated': { 
+            MYSQL_TYPE: 'tinyint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_users.user_last_login': { 
+            MYSQL_TYPE: 'datetime', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: true 
+        },
+        'carbon_users.user_ip': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '20', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_users.user_education_history': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '200', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_users.user_location': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '20', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_users.user_creation_date': { 
+            MYSQL_TYPE: 'datetime', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: true 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -807,9 +1525,35 @@ export const wp_commentmeta : C6RestfulModel & iDefineWp_Commentmeta = {
     ],
     COLUMNS: {
       'carbon_wp_commentmeta.meta_id':'meta_id',
-'carbon_wp_commentmeta.comment_id':'comment_id',
-'carbon_wp_commentmeta.meta_key':'meta_key',
-'carbon_wp_commentmeta.meta_value':'meta_value',
+      'carbon_wp_commentmeta.comment_id':'comment_id',
+      'carbon_wp_commentmeta.meta_key':'meta_key',
+      'carbon_wp_commentmeta.meta_value':'meta_value',
+    },
+    TYPE_VALIDATION: {
+        'carbon_wp_commentmeta.meta_id': { 
+            MYSQL_TYPE: 'bigint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: true, 
+            SKIP_COLUMN_IN_POST: true 
+        },
+        'carbon_wp_commentmeta.comment_id': { 
+            MYSQL_TYPE: 'bigint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_commentmeta.meta_key': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '255', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_commentmeta.meta_value': { 
+            MYSQL_TYPE: 'longtext', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -876,20 +1620,112 @@ export const wp_comments : C6RestfulModel & iDefineWp_Comments = {
     ],
     COLUMNS: {
       'carbon_wp_comments.comment_ID':'comment_ID',
-'carbon_wp_comments.comment_post_ID':'comment_post_ID',
-'carbon_wp_comments.comment_author':'comment_author',
-'carbon_wp_comments.comment_author_email':'comment_author_email',
-'carbon_wp_comments.comment_author_url':'comment_author_url',
-'carbon_wp_comments.comment_author_IP':'comment_author_IP',
-'carbon_wp_comments.comment_date':'comment_date',
-'carbon_wp_comments.comment_date_gmt':'comment_date_gmt',
-'carbon_wp_comments.comment_content':'comment_content',
-'carbon_wp_comments.comment_karma':'comment_karma',
-'carbon_wp_comments.comment_approved':'comment_approved',
-'carbon_wp_comments.comment_agent':'comment_agent',
-'carbon_wp_comments.comment_type':'comment_type',
-'carbon_wp_comments.comment_parent':'comment_parent',
-'carbon_wp_comments.user_id':'user_id',
+      'carbon_wp_comments.comment_post_ID':'comment_post_ID',
+      'carbon_wp_comments.comment_author':'comment_author',
+      'carbon_wp_comments.comment_author_email':'comment_author_email',
+      'carbon_wp_comments.comment_author_url':'comment_author_url',
+      'carbon_wp_comments.comment_author_IP':'comment_author_IP',
+      'carbon_wp_comments.comment_date':'comment_date',
+      'carbon_wp_comments.comment_date_gmt':'comment_date_gmt',
+      'carbon_wp_comments.comment_content':'comment_content',
+      'carbon_wp_comments.comment_karma':'comment_karma',
+      'carbon_wp_comments.comment_approved':'comment_approved',
+      'carbon_wp_comments.comment_agent':'comment_agent',
+      'carbon_wp_comments.comment_type':'comment_type',
+      'carbon_wp_comments.comment_parent':'comment_parent',
+      'carbon_wp_comments.user_id':'user_id',
+    },
+    TYPE_VALIDATION: {
+        'carbon_wp_comments.comment_ID': { 
+            MYSQL_TYPE: 'bigint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: true, 
+            SKIP_COLUMN_IN_POST: true 
+        },
+        'carbon_wp_comments.comment_post_ID': { 
+            MYSQL_TYPE: 'bigint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_comments.comment_author': { 
+            MYSQL_TYPE: 'tinytext', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_comments.comment_author_email': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '100', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_comments.comment_author_url': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '200', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_comments.comment_author_IP': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '100', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_comments.comment_date': { 
+            MYSQL_TYPE: 'datetime', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_comments.comment_date_gmt': { 
+            MYSQL_TYPE: 'datetime', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_comments.comment_content': { 
+            MYSQL_TYPE: 'text', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_comments.comment_karma': { 
+            MYSQL_TYPE: 'int', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_comments.comment_approved': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '20', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_comments.comment_agent': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '255', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_comments.comment_type': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '20', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_comments.comment_parent': { 
+            MYSQL_TYPE: 'bigint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_comments.user_id': { 
+            MYSQL_TYPE: 'bigint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -950,18 +1786,98 @@ export const wp_links : C6RestfulModel & iDefineWp_Links = {
     ],
     COLUMNS: {
       'carbon_wp_links.link_id':'link_id',
-'carbon_wp_links.link_url':'link_url',
-'carbon_wp_links.link_name':'link_name',
-'carbon_wp_links.link_image':'link_image',
-'carbon_wp_links.link_target':'link_target',
-'carbon_wp_links.link_description':'link_description',
-'carbon_wp_links.link_visible':'link_visible',
-'carbon_wp_links.link_owner':'link_owner',
-'carbon_wp_links.link_rating':'link_rating',
-'carbon_wp_links.link_updated':'link_updated',
-'carbon_wp_links.link_rel':'link_rel',
-'carbon_wp_links.link_notes':'link_notes',
-'carbon_wp_links.link_rss':'link_rss',
+      'carbon_wp_links.link_url':'link_url',
+      'carbon_wp_links.link_name':'link_name',
+      'carbon_wp_links.link_image':'link_image',
+      'carbon_wp_links.link_target':'link_target',
+      'carbon_wp_links.link_description':'link_description',
+      'carbon_wp_links.link_visible':'link_visible',
+      'carbon_wp_links.link_owner':'link_owner',
+      'carbon_wp_links.link_rating':'link_rating',
+      'carbon_wp_links.link_updated':'link_updated',
+      'carbon_wp_links.link_rel':'link_rel',
+      'carbon_wp_links.link_notes':'link_notes',
+      'carbon_wp_links.link_rss':'link_rss',
+    },
+    TYPE_VALIDATION: {
+        'carbon_wp_links.link_id': { 
+            MYSQL_TYPE: 'bigint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: true, 
+            SKIP_COLUMN_IN_POST: true 
+        },
+        'carbon_wp_links.link_url': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '255', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_links.link_name': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '255', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_links.link_image': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '255', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_links.link_target': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '25', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_links.link_description': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '255', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_links.link_visible': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '20', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_links.link_owner': { 
+            MYSQL_TYPE: 'bigint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_links.link_rating': { 
+            MYSQL_TYPE: 'int', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_links.link_updated': { 
+            MYSQL_TYPE: 'datetime', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_links.link_rel': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '255', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_links.link_notes': { 
+            MYSQL_TYPE: 'mediumtext', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_links.link_rss': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '255', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -995,9 +1911,35 @@ export const wp_options : C6RestfulModel & iDefineWp_Options = {
     ],
     COLUMNS: {
       'carbon_wp_options.option_id':'option_id',
-'carbon_wp_options.option_name':'option_name',
-'carbon_wp_options.option_value':'option_value',
-'carbon_wp_options.autoload':'autoload',
+      'carbon_wp_options.option_name':'option_name',
+      'carbon_wp_options.option_value':'option_value',
+      'carbon_wp_options.autoload':'autoload',
+    },
+    TYPE_VALIDATION: {
+        'carbon_wp_options.option_id': { 
+            MYSQL_TYPE: 'bigint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: true, 
+            SKIP_COLUMN_IN_POST: true 
+        },
+        'carbon_wp_options.option_name': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '191', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_options.option_value': { 
+            MYSQL_TYPE: 'longtext', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_options.autoload': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '20', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -1031,9 +1973,35 @@ export const wp_postmeta : C6RestfulModel & iDefineWp_Postmeta = {
     ],
     COLUMNS: {
       'carbon_wp_postmeta.meta_id':'meta_id',
-'carbon_wp_postmeta.post_id':'post_id',
-'carbon_wp_postmeta.meta_key':'meta_key',
-'carbon_wp_postmeta.meta_value':'meta_value',
+      'carbon_wp_postmeta.post_id':'post_id',
+      'carbon_wp_postmeta.meta_key':'meta_key',
+      'carbon_wp_postmeta.meta_value':'meta_value',
+    },
+    TYPE_VALIDATION: {
+        'carbon_wp_postmeta.meta_id': { 
+            MYSQL_TYPE: 'bigint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: true, 
+            SKIP_COLUMN_IN_POST: true 
+        },
+        'carbon_wp_postmeta.post_id': { 
+            MYSQL_TYPE: 'bigint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_postmeta.meta_key': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '255', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_postmeta.meta_value': { 
+            MYSQL_TYPE: 'longtext', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -1124,28 +2092,168 @@ export const wp_posts : C6RestfulModel & iDefineWp_Posts = {
     ],
     COLUMNS: {
       'carbon_wp_posts.ID':'ID',
-'carbon_wp_posts.post_author':'post_author',
-'carbon_wp_posts.post_date':'post_date',
-'carbon_wp_posts.post_date_gmt':'post_date_gmt',
-'carbon_wp_posts.post_content':'post_content',
-'carbon_wp_posts.post_title':'post_title',
-'carbon_wp_posts.post_excerpt':'post_excerpt',
-'carbon_wp_posts.post_status':'post_status',
-'carbon_wp_posts.comment_status':'comment_status',
-'carbon_wp_posts.ping_status':'ping_status',
-'carbon_wp_posts.post_password':'post_password',
-'carbon_wp_posts.post_name':'post_name',
-'carbon_wp_posts.to_ping':'to_ping',
-'carbon_wp_posts.pinged':'pinged',
-'carbon_wp_posts.post_modified':'post_modified',
-'carbon_wp_posts.post_modified_gmt':'post_modified_gmt',
-'carbon_wp_posts.post_content_filtered':'post_content_filtered',
-'carbon_wp_posts.post_parent':'post_parent',
-'carbon_wp_posts.guid':'guid',
-'carbon_wp_posts.menu_order':'menu_order',
-'carbon_wp_posts.post_type':'post_type',
-'carbon_wp_posts.post_mime_type':'post_mime_type',
-'carbon_wp_posts.comment_count':'comment_count',
+      'carbon_wp_posts.post_author':'post_author',
+      'carbon_wp_posts.post_date':'post_date',
+      'carbon_wp_posts.post_date_gmt':'post_date_gmt',
+      'carbon_wp_posts.post_content':'post_content',
+      'carbon_wp_posts.post_title':'post_title',
+      'carbon_wp_posts.post_excerpt':'post_excerpt',
+      'carbon_wp_posts.post_status':'post_status',
+      'carbon_wp_posts.comment_status':'comment_status',
+      'carbon_wp_posts.ping_status':'ping_status',
+      'carbon_wp_posts.post_password':'post_password',
+      'carbon_wp_posts.post_name':'post_name',
+      'carbon_wp_posts.to_ping':'to_ping',
+      'carbon_wp_posts.pinged':'pinged',
+      'carbon_wp_posts.post_modified':'post_modified',
+      'carbon_wp_posts.post_modified_gmt':'post_modified_gmt',
+      'carbon_wp_posts.post_content_filtered':'post_content_filtered',
+      'carbon_wp_posts.post_parent':'post_parent',
+      'carbon_wp_posts.guid':'guid',
+      'carbon_wp_posts.menu_order':'menu_order',
+      'carbon_wp_posts.post_type':'post_type',
+      'carbon_wp_posts.post_mime_type':'post_mime_type',
+      'carbon_wp_posts.comment_count':'comment_count',
+    },
+    TYPE_VALIDATION: {
+        'carbon_wp_posts.ID': { 
+            MYSQL_TYPE: 'bigint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: true, 
+            SKIP_COLUMN_IN_POST: true 
+        },
+        'carbon_wp_posts.post_author': { 
+            MYSQL_TYPE: 'bigint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_posts.post_date': { 
+            MYSQL_TYPE: 'datetime', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_posts.post_date_gmt': { 
+            MYSQL_TYPE: 'datetime', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_posts.post_content': { 
+            MYSQL_TYPE: 'longtext', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_posts.post_title': { 
+            MYSQL_TYPE: 'text', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_posts.post_excerpt': { 
+            MYSQL_TYPE: 'text', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_posts.post_status': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '20', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_posts.comment_status': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '20', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_posts.ping_status': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '20', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_posts.post_password': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '255', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_posts.post_name': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '200', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_posts.to_ping': { 
+            MYSQL_TYPE: 'text', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_posts.pinged': { 
+            MYSQL_TYPE: 'text', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_posts.post_modified': { 
+            MYSQL_TYPE: 'datetime', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_posts.post_modified_gmt': { 
+            MYSQL_TYPE: 'datetime', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_posts.post_content_filtered': { 
+            MYSQL_TYPE: 'longtext', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_posts.post_parent': { 
+            MYSQL_TYPE: 'bigint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_posts.guid': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '255', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_posts.menu_order': { 
+            MYSQL_TYPE: 'int', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_posts.post_type': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '20', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_posts.post_mime_type': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '100', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_posts.comment_count': { 
+            MYSQL_TYPE: 'bigint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -1173,12 +2281,32 @@ export const wp_term_relationships : C6RestfulModel & iDefineWp_Term_Relationshi
     TERM_ORDER: 'carbon_wp_term_relationships.term_order',
     PRIMARY: [
         'carbon_wp_term_relationships.object_id',
-'carbon_wp_term_relationships.term_taxonomy_id',
+        'carbon_wp_term_relationships.term_taxonomy_id',
     ],
     COLUMNS: {
       'carbon_wp_term_relationships.object_id':'object_id',
-'carbon_wp_term_relationships.term_taxonomy_id':'term_taxonomy_id',
-'carbon_wp_term_relationships.term_order':'term_order',
+      'carbon_wp_term_relationships.term_taxonomy_id':'term_taxonomy_id',
+      'carbon_wp_term_relationships.term_order':'term_order',
+    },
+    TYPE_VALIDATION: {
+        'carbon_wp_term_relationships.object_id': { 
+            MYSQL_TYPE: 'bigint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_term_relationships.term_taxonomy_id': { 
+            MYSQL_TYPE: 'bigint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_term_relationships.term_order': { 
+            MYSQL_TYPE: 'int', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -1218,11 +2346,49 @@ export const wp_term_taxonomy : C6RestfulModel & iDefineWp_Term_Taxonomy = {
     ],
     COLUMNS: {
       'carbon_wp_term_taxonomy.term_taxonomy_id':'term_taxonomy_id',
-'carbon_wp_term_taxonomy.term_id':'term_id',
-'carbon_wp_term_taxonomy.taxonomy':'taxonomy',
-'carbon_wp_term_taxonomy.description':'description',
-'carbon_wp_term_taxonomy.parent':'parent',
-'carbon_wp_term_taxonomy.count':'count',
+      'carbon_wp_term_taxonomy.term_id':'term_id',
+      'carbon_wp_term_taxonomy.taxonomy':'taxonomy',
+      'carbon_wp_term_taxonomy.description':'description',
+      'carbon_wp_term_taxonomy.parent':'parent',
+      'carbon_wp_term_taxonomy.count':'count',
+    },
+    TYPE_VALIDATION: {
+        'carbon_wp_term_taxonomy.term_taxonomy_id': { 
+            MYSQL_TYPE: 'bigint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: true, 
+            SKIP_COLUMN_IN_POST: true 
+        },
+        'carbon_wp_term_taxonomy.term_id': { 
+            MYSQL_TYPE: 'bigint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_term_taxonomy.taxonomy': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '32', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_term_taxonomy.description': { 
+            MYSQL_TYPE: 'longtext', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_term_taxonomy.parent': { 
+            MYSQL_TYPE: 'bigint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_term_taxonomy.count': { 
+            MYSQL_TYPE: 'bigint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -1256,9 +2422,35 @@ export const wp_termmeta : C6RestfulModel & iDefineWp_Termmeta = {
     ],
     COLUMNS: {
       'carbon_wp_termmeta.meta_id':'meta_id',
-'carbon_wp_termmeta.term_id':'term_id',
-'carbon_wp_termmeta.meta_key':'meta_key',
-'carbon_wp_termmeta.meta_value':'meta_value',
+      'carbon_wp_termmeta.term_id':'term_id',
+      'carbon_wp_termmeta.meta_key':'meta_key',
+      'carbon_wp_termmeta.meta_value':'meta_value',
+    },
+    TYPE_VALIDATION: {
+        'carbon_wp_termmeta.meta_id': { 
+            MYSQL_TYPE: 'bigint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: true, 
+            SKIP_COLUMN_IN_POST: true 
+        },
+        'carbon_wp_termmeta.term_id': { 
+            MYSQL_TYPE: 'bigint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_termmeta.meta_key': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '255', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_termmeta.meta_value': { 
+            MYSQL_TYPE: 'longtext', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -1292,9 +2484,35 @@ export const wp_terms : C6RestfulModel & iDefineWp_Terms = {
     ],
     COLUMNS: {
       'carbon_wp_terms.term_id':'term_id',
-'carbon_wp_terms.name':'name',
-'carbon_wp_terms.slug':'slug',
-'carbon_wp_terms.term_group':'term_group',
+      'carbon_wp_terms.name':'name',
+      'carbon_wp_terms.slug':'slug',
+      'carbon_wp_terms.term_group':'term_group',
+    },
+    TYPE_VALIDATION: {
+        'carbon_wp_terms.term_id': { 
+            MYSQL_TYPE: 'bigint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: true, 
+            SKIP_COLUMN_IN_POST: true 
+        },
+        'carbon_wp_terms.name': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '200', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_terms.slug': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '200', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_terms.term_group': { 
+            MYSQL_TYPE: 'bigint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -1328,9 +2546,35 @@ export const wp_usermeta : C6RestfulModel & iDefineWp_Usermeta = {
     ],
     COLUMNS: {
       'carbon_wp_usermeta.umeta_id':'umeta_id',
-'carbon_wp_usermeta.user_id':'user_id',
-'carbon_wp_usermeta.meta_key':'meta_key',
-'carbon_wp_usermeta.meta_value':'meta_value',
+      'carbon_wp_usermeta.user_id':'user_id',
+      'carbon_wp_usermeta.meta_key':'meta_key',
+      'carbon_wp_usermeta.meta_value':'meta_value',
+    },
+    TYPE_VALIDATION: {
+        'carbon_wp_usermeta.umeta_id': { 
+            MYSQL_TYPE: 'bigint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: true, 
+            SKIP_COLUMN_IN_POST: true 
+        },
+        'carbon_wp_usermeta.user_id': { 
+            MYSQL_TYPE: 'bigint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_usermeta.meta_key': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '255', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_usermeta.meta_value': { 
+            MYSQL_TYPE: 'longtext', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -1382,15 +2626,77 @@ export const wp_users : C6RestfulModel & iDefineWp_Users = {
     ],
     COLUMNS: {
       'carbon_wp_users.ID':'ID',
-'carbon_wp_users.user_login':'user_login',
-'carbon_wp_users.user_pass':'user_pass',
-'carbon_wp_users.user_nicename':'user_nicename',
-'carbon_wp_users.user_email':'user_email',
-'carbon_wp_users.user_url':'user_url',
-'carbon_wp_users.user_registered':'user_registered',
-'carbon_wp_users.user_activation_key':'user_activation_key',
-'carbon_wp_users.user_status':'user_status',
-'carbon_wp_users.display_name':'display_name',
+      'carbon_wp_users.user_login':'user_login',
+      'carbon_wp_users.user_pass':'user_pass',
+      'carbon_wp_users.user_nicename':'user_nicename',
+      'carbon_wp_users.user_email':'user_email',
+      'carbon_wp_users.user_url':'user_url',
+      'carbon_wp_users.user_registered':'user_registered',
+      'carbon_wp_users.user_activation_key':'user_activation_key',
+      'carbon_wp_users.user_status':'user_status',
+      'carbon_wp_users.display_name':'display_name',
+    },
+    TYPE_VALIDATION: {
+        'carbon_wp_users.ID': { 
+            MYSQL_TYPE: 'bigint', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: true, 
+            SKIP_COLUMN_IN_POST: true 
+        },
+        'carbon_wp_users.user_login': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '60', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_users.user_pass': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '255', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_users.user_nicename': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '50', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_users.user_email': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '100', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_users.user_url': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '100', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_users.user_registered': { 
+            MYSQL_TYPE: 'datetime', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_users.user_activation_key': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '255', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_users.user_status': { 
+            MYSQL_TYPE: 'int', 
+            MAX_LENGTH: '', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
+        'carbon_wp_users.display_name': { 
+            MYSQL_TYPE: 'varchar', 
+            MAX_LENGTH: '250', 
+            AUTO_INCREMENT: false, 
+            SKIP_COLUMN_IN_POST: false 
+        },
     },
     REGEX_VALIDATION: {
     }
@@ -1434,7 +2740,6 @@ export const TABLES = {
 };
 
 export const C6 = {
-
         // try to 1=1 match the Rest abstract class
     ADDDATE: 'ADDDATE',
     ADDTIME: 'ADDTIME',
@@ -1814,8 +3119,6 @@ export const COLUMNS = {
 'carbon_wp_users.display_name':'display_name',
 
 };
-
-//export type RestTables = "$all_table_names_types";
 
 export type RestTableInterfaces = iCarbons
 	| iComments

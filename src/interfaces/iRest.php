@@ -178,6 +178,10 @@ interface iRest
         /** @lang PhpRegExp */
         '#bigint\(\d+\)#' => 'bigint',
         /** @lang PhpRegExp */
+        '#KEY `[^`]*`#' => 'Key ',
+        /** @lang PhpRegExp */
+        '#CONSTRAINT `[^`]*`#' => 'CONSTRAINT ',
+        /** @lang PhpRegExp */
         '#int\(\d+\)#' => 'int',
         /** @lang PhpRegExp */
         '#CHARACTER\sSET\s[A-Za-z0-9_]+#' => '',
