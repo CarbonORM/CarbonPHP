@@ -14,7 +14,7 @@
     "@types/react-dom": "16.8.4",
     "@types/react-router-dom": "^4.3.4",
     "animate.css": "^3.7.2",
-    "axios": "^0.18.0",
+    "axios": "^0.21.2",
     "chartist": "0.10.1",
     "classnames": "^2.2.6",
     "history": "^4.9.0",
