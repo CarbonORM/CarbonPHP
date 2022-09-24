@@ -1547,7 +1547,7 @@ FOOT;
         $currentSchema = self::$carbonDatabaseName;
 
         // Check if exist the column named image
-        $existed = self::fetch("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '$currentSchema' AND TABLE_NAME = '$table_name' AND COLUMN_NAME = '$column'");
+        $existed = self::fetchColumn("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '$currentSchema' AND TABLE_NAME = '$table_name' AND COLUMN_NAME = '$column'");
 
         // If not exists
         if ([] === $existed) {
@@ -1561,6 +1561,47 @@ FOOT;
             } else {
 
                 self::colorCode("failure", iColorCode::RED);
+
+                exit(94);
+
+            }
+
+        } else {
+
+            self::colorCode("The ($column) already exists on table ($table_name).");
+
+        }
+
+    }
+
+
+    public static function columnIsTypeOrChange(string $column, string $table_name, string $type): void
+    {
+
+        $currentSchema = self::$carbonDatabaseName;
+
+        // Check if exist the column named image
+        $currentType = self::fetchColumn("SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '$currentSchema' AND TABLE_NAME = '$table_name' AND COLUMN_NAME = '$column'")[0] ?? '';
+
+        // If not exists
+        if ($type !== $currentType) {
+
+            ColorCode::colorCode("The ($column) on table ($table_name) is currently ($currentType) not of type ($type). Preparing to change.", iColorCode::RED);
+
+            $sql = "ALTER TABLE $table_name MODIFY $column $type;";
+
+            self::colorCode("Column ($column) did not appear to exist. Attempting to run ($sql).");
+
+            if (self::execute($sql)) {
+
+                self::colorCode("success");
+
+            } else {
+
+                self::colorCode("failure", iColorCode::RED);
+
+                exit(95);
+
             }
 
         } else {

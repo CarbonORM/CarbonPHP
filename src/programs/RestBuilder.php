@@ -400,15 +400,14 @@ END;
         $matches = $matches[0];
 
         // Every CREATE TABLE as tables
-        foreach ($matches as $table) {
+        foreach ($matches as $createTableSQL) {
+
             if (isset($foreign_key)) {
                 unset($foreign_key);
             }
 
-            $createTableSQL = $table;
-
             // Separate each insert line by new line feed \n
-            $table = explode(PHP_EOL, $table);
+            $linesInCreateTableStatement = explode(PHP_EOL, $createTableSQL);
 
             $binary = $skipping_col = $primary = [];
 
@@ -417,19 +416,19 @@ END;
             $column = 0;
 
             // Every line in tables insert
-            foreach ($table as $words_in_insert_stmt) {
+            foreach ($linesInCreateTableStatement as $fullLineInCreateTableStatement) {
 
                 // binary column default values are handled by mysql.
                 $cast_binary_default = false;
 
                 // Separate each line in the tables creation by spaces
-                $words_in_insert_stmt = explode(' ', trim($words_in_insert_stmt));
+                $wordsInLine = explode(' ', trim($fullLineInCreateTableStatement));
 
                 // We can assume that this is the first line of the tables insert
 
-                switch ($words_in_insert_stmt[0]) {
+                switch ($wordsInLine[0]) {
                     case 'CREATE':
-                        $tableName = trim($words_in_insert_stmt[2], '`');               // Table Name
+                        $tableName = trim($wordsInLine[2], '`');               // Table Name
 
                         // TRY to load previous validation functions
                         $rest[$tableName] ??= [];
@@ -640,7 +639,7 @@ END;
 
                             self::colorCode("\tGenerating {$tableName}\n", iColorCode::BLUE);
 
-                            $debug and var_dump($table);
+                            $debug and var_dump($linesInCreateTableStatement);
 
                         }
 
@@ -648,7 +647,7 @@ END;
 
                     case 'PRIMARY':
                         // Composite Primary Keys are a thing,  TODO - optimise the template for none vs single vs double key
-                        $primary = explode('`,`', trim($words_in_insert_stmt[2], '(`),'));
+                        $primary = explode('`,`', trim($wordsInLine[2], '(`),'));
 
                         // todo return composite primary key correctly (also, multiple auto increments a thing?)
 
@@ -686,11 +685,11 @@ END;
                         //      print  PHP_EOL . $tableName  . PHP_EOL and die;
                         //  }
 
-                        $foreign_key = trim($words_in_insert_stmt[4], '()`');
+                        $foreign_key = trim($wordsInLine[4], '()`');
 
-                        $references_table = trim($words_in_insert_stmt[6], '`');
+                        $references_table = trim($wordsInLine[6], '`');
 
-                        $references_column = trim($words_in_insert_stmt[7], '()`,');
+                        $references_column = trim($wordsInLine[7], '()`,');
 
                         $rest[$tableName]['CARBON_CARBONS_PRIMARY_KEY'] ??= false;
 
@@ -775,18 +774,26 @@ END;
 
                     default:
 
-                        if ($words_in_insert_stmt[0][0] === '`') {
+                        if ($wordsInLine[0][0] === '`') {
 
                             // This is expected to be the second condition run in foreach
                             // columns is just a list of column
-                            $name = $rest[$tableName]['columns'][] = trim($words_in_insert_stmt[0], '`');
+                            $name = $rest[$tableName]['columns'][] = trim($wordsInLine[0], '`');
 
                             // Explode hold all information about column
                             $rest[$tableName]['explode'][$column]['name'] = $name;
 
                             $rest[$tableName]['explode'][$column]['caps'] = strtoupper($name);
 
-                            $type = strtolower($words_in_insert_stmt[1]);
+                            $simpleType = strtolower($wordsInLine[1]);
+
+                            $type = $simpleType;
+
+                            if ('unsigned' === ($wordsInLine[2] ?? '')) {
+
+                                $type .= ' unsigned';
+
+                            }
 
                             // exploding strings like 'mediumint(9)' and 'binary(16)'
                             if (count($argv = explode('(', $type)) > 1) {
@@ -817,7 +824,7 @@ END;
                             // These are PDO const types, so we'll eliminate one complexity by evaluating them before inserting into the template
                             # $PDO = [0 => PDO::PARAM_NULL, 1 => PDO::PARAM_BOOL, 2 => PDO::PARAM_INT, 3 => PDO::PARAM_STR];
 
-                            switch ($type) {                // Use pdo for what it can actually do
+                            switch ($simpleType) {                // Use pdo for what it can actually do
                                 case 'bigint':
                                 case 'tinyint': // @link https://stackoverflow.com/questions/12839927/mysql-tinyint-2-vs-tinyint1-what-is-the-difference
                                 case 'int':
@@ -849,62 +856,79 @@ END;
                             // Explode hold all information about column
                             $rest[$tableName]['explode'][$column]['type'] = $type;
 
-                            // Lets check if a default value is set for column
-                            $key = array_search('DEFAULT', $words_in_insert_stmt, true);
+                            if (false !== strpos($fullLineInCreateTableStatement, 'NOT NULL')) {
 
-                            if ($key !== false) {
-                                ++$key; // move from the word default to the default value
+                                if (false !== strpos($fullLineInCreateTableStatement, 'AUTO_INCREMENT')) {
 
-                                $default = '';
+                                    $rest[$tableName]['explode'][$column]['default'] = '\'NOT NULL AUTO_INCREMENT\'';
 
-                                // todo - the negitive case  && substr($words_in_insert_stmt[$key], -w) === '\\\\''
-
-                                // if it ends in '  aka '0'
-                                if (substr($words_in_insert_stmt[$key], -1) === '\'') {
-                                    $default = $words_in_insert_stmt[$key];
-                                    // if it ends with ',  as '0',
-                                } else if (substr($words_in_insert_stmt[$key], -2) === '\',') {
-                                    $default = trim($words_in_insert_stmt[$key], ',');
-                                    // if it doesnt start with '  as CURRENT_TIMESTAMP
-                                } else if ($words_in_insert_stmt[$key][0] !== '\'') {
-                                    $default = rtrim($words_in_insert_stmt[$key], ',');
                                 } else {
-                                    // the first index does start in ' and doesnt end in '
 
-                                    do {
-                                        if ($key > 10) {
-                                            ColorCode::colorCode('Failed to understand MySQLDump File. Printing line ::');
-                                            sortDump($words_in_insert_stmt);
-                                        }
-                                        $default .= ' ' . $words_in_insert_stmt[$key];
-                                        $key++;
-                                    } while (substr($words_in_insert_stmt[$key], -1) !== '\''
-                                    && substr($words_in_insert_stmt[$key], -2) !== '\',');
-                                    $default .= ' ' . $words_in_insert_stmt[$key];
-                                    $default = trim($default, ', ');
+                                    $rest[$tableName]['explode'][$column]['default'] = '\'NOT NULL\'';
+
                                 }
 
-                                if ($default === 'CURRENT_TIMESTAMP') {
+                            } else {
 
-                                    // Were going to skip columns with this set as the default value
-                                    // Trying to insert this condition w/ PDO is problematic
-                                    $skipping_col[] = $name;
+                                // Lets check if a default value is set for column
+                                $key = array_search('DEFAULT', $wordsInLine, true);
 
-                                    $rest[$tableName]['explode'][$column]['skip'] = true;
+                                if ($key !== false) {
 
-                                    $rest[$tableName]['explode'][$column]['CURRENT_TIMESTAMP'] = true;
+                                    ++$key; // move from the word default to the default value
 
-                                } else if (strpos($default, '\'') !== 0) {
-                                    // We need to escape values for php
-                                    $default = "'$default'";
+                                    $default = '';
+
+                                    // todo - the negitive case  && substr($words_in_insert_stmt[$key], -w) === '\\\\''
+
+                                    // if it ends in '  aka '0'
+                                    if (substr($wordsInLine[$key], -1) === '\'') {
+                                        $default = $wordsInLine[$key];
+                                        // if it ends with ',  as '0',
+                                    } else if (substr($wordsInLine[$key], -2) === '\',') {
+                                        $default = trim($wordsInLine[$key], ',');
+                                        // if it doesnt start with '  as CURRENT_TIMESTAMP
+                                    } else if ($wordsInLine[$key][0] !== '\'') {
+                                        $default = rtrim($wordsInLine[$key], ',');
+                                    } else {
+                                        // the first index does start in ' and doesnt end in '
+
+                                        do {
+                                            if ($key > 10) {
+                                                ColorCode::colorCode('Failed to understand MySQLDump File. Printing line ::');
+                                                sortDump($wordsInLine);
+                                            }
+                                            $default .= ' ' . $wordsInLine[$key];
+                                            $key++;
+                                        } while (substr($wordsInLine[$key], -1) !== '\''
+                                        && substr($wordsInLine[$key], -2) !== '\',');
+                                        $default .= ' ' . $wordsInLine[$key];
+                                        $default = trim($default, ', ');
+                                    }
+
+                                    if ($default === 'CURRENT_TIMESTAMP') {
+
+                                        // Were going to skip columns with this set as the default value
+                                        // Trying to insert this condition w/ PDO is problematic
+                                        $skipping_col[] = $name;
+
+                                        $rest[$tableName]['explode'][$column]['skip'] = true;
+
+                                        $rest[$tableName]['explode'][$column]['CURRENT_TIMESTAMP'] = true;
+
+                                    } else if (strpos($default, '\'') !== 0) {
+                                        // We need to escape values for php
+                                        $default = "'$default'";
+                                    }
+                                    /** @noinspection NestedTernaryOperatorInspection */
+                                    $rest[$tableName]['explode'][$column]['default'] = ($default === "'NULL'" ? 'null' : ($cast_binary_default ? 'null' : $default));
                                 }
-                                /** @noinspection NestedTernaryOperatorInspection */
-                                $rest[$tableName]['explode'][$column]['default'] = ($default === "'NULL'" ? 'null' : ($cast_binary_default ? 'null' : $default));
+
                             }
 
                             // As far as I can tell the AUTO_INCREMENT condition the last possible word in the query
-                            $auto_inc = count($words_in_insert_stmt) - 1;
-                            if (isset($words_in_insert_stmt[$auto_inc]) && $words_in_insert_stmt[$auto_inc] === 'AUTO_INCREMENT,') {
+                            $auto_inc = count($wordsInLine) - 1;
+                            if (isset($wordsInLine[$auto_inc]) && $wordsInLine[$auto_inc] === 'AUTO_INCREMENT,') {
 
                                 $skipping_col[] = $name;
 
@@ -1034,16 +1058,16 @@ END;
                 }
 
 
-                if (!class_exists($table = $parsed['namespace'] . '\\' . $parsed['ucEachTableName'])) {
-                    self::colorCode("\n\nCouldn't locate class '$table' for react validations. This may indicate a new or unused table.\n", 'yellow');
+                if (!class_exists($linesInCreateTableStatement = $parsed['namespace'] . '\\' . $parsed['ucEachTableName'])) {
+                    self::colorCode("\n\nCouldn't locate class '$linesInCreateTableStatement' for react validations. This may indicate a new or unused table.\n", 'yellow');
                     continue;
                 }
 
-                if (!is_subclass_of($table, Rest::class)) {
+                if (!is_subclass_of($linesInCreateTableStatement, Rest::class)) {
                     continue;
                 }
 
-                $imp = array_map('strtolower', array_keys(class_implements($table)));
+                $imp = array_map('strtolower', array_keys(class_implements($linesInCreateTableStatement)));
 
                 if (!in_array(strtolower(iRestMultiplePrimaryKeys::class), $imp, true)
                     && !in_array(strtolower(iRestSinglePrimaryKey::class), $imp, true)
@@ -1054,13 +1078,13 @@ END;
 
                 }
 
-                if (defined("$table::REGEX_VALIDATION")) {
+                if (defined("$linesInCreateTableStatement::REGEX_VALIDATION")) {
 
-                    $regex_validations = constant("$table::REGEX_VALIDATION");
+                    $regex_validations = constant("$linesInCreateTableStatement::REGEX_VALIDATION");
 
                     if (!is_array($regex_validations)) {
 
-                        self::colorCode("\nRegex validations for $table must be an array!", iColorCode::RED);
+                        self::colorCode("\nRegex validations for $linesInCreateTableStatement must be an array!", iColorCode::RED);
 
                         exit(1);
 
@@ -1394,16 +1418,16 @@ const convertForRequestBody = function(restfulObject, tableName) {
         if ($history_table_query) {
             ColorCode::colorCode("\tBuilding Triggers!");
             $triggers = '';
-            foreach ($rest as $table) {
-                if ($table['TableName'] === $this->table_prefix . History_Logs::TABLE_NAME
-                    || $table['TableName'] === History_Logs::TABLE_NAME
-                    || $table['TableName'] === Carbons::TABLE_NAME
-                    || $table['TableName'] === $this->table_prefix . Carbons::TABLE_NAME
+            foreach ($rest as $linesInCreateTableStatement) {
+                if ($linesInCreateTableStatement['TableName'] === $this->table_prefix . History_Logs::TABLE_NAME
+                    || $linesInCreateTableStatement['TableName'] === History_Logs::TABLE_NAME
+                    || $linesInCreateTableStatement['TableName'] === Carbons::TABLE_NAME
+                    || $linesInCreateTableStatement['TableName'] === $this->table_prefix . Carbons::TABLE_NAME
                 ) {
                     continue;
                 }
-                if ($only_these_tables === null || in_array($table['TableName'], $only_these_tables, true)) {
-                    $triggers .= self::trigger($table['TableName'], $table['columns'], $table['binary_trigger'] ?? [], $table['dependencies'], $table['primary']);
+                if ($only_these_tables === null || in_array($linesInCreateTableStatement['TableName'], $only_these_tables, true)) {
+                    $triggers .= self::trigger($linesInCreateTableStatement['TableName'], $linesInCreateTableStatement['columns'], $linesInCreateTableStatement['binary_trigger'] ?? [], $linesInCreateTableStatement['dependencies'], $linesInCreateTableStatement['primary']);
                 }
             }
 
@@ -1838,8 +1862,11 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
      *            static fn() => self::execute('ALTER TABLE mytbl ALTER j SET DEFAULT 1000;'),
      *            static fn() => self::execute('ALTER TABLE mytbl ALTER k DROP DEFAULT;'),
      *            static fn() => self::buildMysqlHistoryTrigger(self::TABLE_NAME),
+     *            # create the column in your local database first, re-run the table builder, then add the following line with you new refrences
      *            static fn() => self::columnExistsOrExecuteSQL(self::COLUMNS[self::MODIFIED], self::TABLE_NAME,
      *                  'alter table '.self::TABLE_NAME.' add '.self::COLUMNS[self::MODIFIED].' DATETIME default CURRENT_TIMESTAMP;'),
+     *            # this is fully dynamic and just requires your restbuilder be generted with our local schema, refer to the previous example 
+     *            static fn() => self::columnIsTypeOrChange(self::COLUMNS[self::MODIFIED], self::TABLE_NAME, self::PDO_VALIDATION[self::MODIFIED][self::MYSQL_TYPE]),
      *        ];
      *    }
      *
@@ -2007,7 +2034,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
      *    {
      *        parent::__construct(\$return);
      *        
-     *        \$this->\$PHP_VALIDATION = [ 
+     *        \$this->PHP_VALIDATION = [ 
      *            self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
      *                self::PREPROCESS => [
      *                    static fn() => self::disallowPublicAccess(self::class)
