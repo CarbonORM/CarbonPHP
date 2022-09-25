@@ -413,7 +413,7 @@ END;
 
             $tableName = '';
 
-            $column = 0;
+            $explodeArrayPosition = 0;
 
             // Every line in tables insert
             foreach ($linesInCreateTableStatement as $fullLineInCreateTableStatement) {
@@ -685,11 +685,17 @@ END;
                         //      print  PHP_EOL . $tableName  . PHP_EOL and die;
                         //  }
 
+                        $constraintName = trim($wordsInLine[1], '`');
+
                         $foreign_key = trim($wordsInLine[4], '()`');
 
                         $references_table = trim($wordsInLine[6], '`');
 
                         $references_column = trim($wordsInLine[7], '()`,');
+
+                        $onDelete = trim($wordsInLine[10] ?? 'RESTRICT', '()`,');
+
+                        $onUpdate = trim($wordsInLine[13] ?? 'RESTRICT', '()`,');
 
                         $rest[$tableName]['CARBON_CARBONS_PRIMARY_KEY'] ??= false;
 
@@ -730,6 +736,17 @@ END;
                         $rest[$tableName]['TABLE_CONSTRAINTS'][] = [
                             'key' => 'self::' . strtoupper($foreign_key),
                             'references' => $isGenerated
+                        ];
+
+                        $columnNames = array_column($rest[$tableName]['explode'], 'name');
+
+                        $index = array_search($foreign_key, $columnNames, true);
+
+                        $rest[$tableName]['explode'][$index][iRest::COLUMN_CONSTRAINTS][] = [
+                            'key' => $isGenerated,
+                            'CONSTRAINT_NAME' => $constraintName,
+                            'UPDATE_RULE' => "'$onUpdate'",
+                            'DELETE_RULE' => "'$onDelete'",
                         ];
 
                         // We need to catch circular dependencies as mysql dumps print schemas alphabetically
@@ -781,9 +798,9 @@ END;
                             $name = $rest[$tableName]['columns'][] = trim($wordsInLine[0], '`');
 
                             // Explode hold all information about column
-                            $rest[$tableName]['explode'][$column]['name'] = $name;
+                            $rest[$tableName]['explode'][$explodeArrayPosition]['name'] = $name;
 
-                            $rest[$tableName]['explode'][$column]['caps'] = strtoupper($name);
+                            $rest[$tableName]['explode'][$explodeArrayPosition]['caps'] = strtoupper($name);
 
                             $simpleType = strtolower($wordsInLine[1]);
 
@@ -811,15 +828,15 @@ END;
                                 }
 
                                 // This being set determines what type of PDO stmt we use
-                                $rest[$tableName]['explode'][$column]['length'] = $length;
+                                $rest[$tableName]['explode'][$explodeArrayPosition]['length'] = $length;
 
                             }
 
                             $type = rtrim($type, ',');
 
-                            $rest[$tableName]['explode'][$column]['mysql_type'] = $type;
+                            $rest[$tableName]['explode'][$explodeArrayPosition]['mysql_type'] = $type;
 
-                            $rest[$tableName]['explode'][$column]['json'] = $type === 'json';
+                            $rest[$tableName]['explode'][$explodeArrayPosition]['json'] = $type === 'json';
 
                             // These are PDO const types, so we'll eliminate one complexity by evaluating them before inserting into the template
                             # $PDO = [0 => PDO::PARAM_NULL, 1 => PDO::PARAM_BOOL, 2 => PDO::PARAM_INT, 3 => PDO::PARAM_STR];
@@ -847,24 +864,24 @@ END;
                                     $binary[] = $name;
                                     $rest[$tableName]['binary_trigger'][] = $name;
                                     $rest[$tableName]['binary_list'][] = ['name' => $name];
-                                    $rest[$tableName]['explode'][$column]['binary'] = true;
+                                    $rest[$tableName]['explode'][$explodeArrayPosition]['binary'] = true;
                                     $cast_binary_default = true;
                                 default:
                                 case 'varchar':
                                     $type = 'PDO::PARAM_STR';
                             }
                             // Explode hold all information about column
-                            $rest[$tableName]['explode'][$column]['type'] = $type;
+                            $rest[$tableName]['explode'][$explodeArrayPosition]['type'] = $type;
 
                             if (false !== strpos($fullLineInCreateTableStatement, 'NOT NULL')) {
 
                                 if (false !== strpos($fullLineInCreateTableStatement, 'AUTO_INCREMENT')) {
 
-                                    $rest[$tableName]['explode'][$column]['default'] = '\'NOT NULL AUTO_INCREMENT\'';
+                                    $rest[$tableName]['explode'][$explodeArrayPosition]['default'] = '\'NOT NULL AUTO_INCREMENT\'';
 
                                 } else {
 
-                                    $rest[$tableName]['explode'][$column]['default'] = '\'NOT NULL\'';
+                                    $rest[$tableName]['explode'][$explodeArrayPosition]['default'] = '\'NOT NULL\'';
 
                                 }
 
@@ -912,16 +929,16 @@ END;
                                         // Trying to insert this condition w/ PDO is problematic
                                         $skipping_col[] = $name;
 
-                                        $rest[$tableName]['explode'][$column]['skip'] = true;
+                                        $rest[$tableName]['explode'][$explodeArrayPosition]['skip'] = true;
 
-                                        $rest[$tableName]['explode'][$column]['CURRENT_TIMESTAMP'] = true;
+                                        $rest[$tableName]['explode'][$explodeArrayPosition]['CURRENT_TIMESTAMP'] = true;
 
                                     } else if (strpos($default, '\'') !== 0) {
                                         // We need to escape values for php
                                         $default = "'$default'";
                                     }
                                     /** @noinspection NestedTernaryOperatorInspection */
-                                    $rest[$tableName]['explode'][$column]['default'] = ($default === "'NULL'" ? 'null' : ($cast_binary_default ? 'null' : $default));
+                                    $rest[$tableName]['explode'][$explodeArrayPosition]['default'] = ($default === "'NULL'" ? 'null' : ($cast_binary_default ? 'null' : $default));
                                 }
 
                             }
@@ -932,15 +949,15 @@ END;
 
                                 $skipping_col[] = $name;
 
-                                $rest[$tableName]['explode'][$column]['skip'] = true;
+                                $rest[$tableName]['explode'][$explodeArrayPosition]['skip'] = true;
 
-                                $rest[$tableName]['explode'][$column]['auto_increment'] = true;
+                                $rest[$tableName]['explode'][$explodeArrayPosition]['auto_increment'] = true;
 
                                 $verbose and self::colorCode("\tThe Table '$tableName' contains an AUTO_INCREMENT column. This is bad for scaling.
                                                                         \tConsider switching to binary(16) and letting this rest API manage column uniqueness.\n", iColorCode::RED);
                             }
 
-                            $column++;
+                            $explodeArrayPosition++;
 
                         }
 
@@ -1832,7 +1849,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
      * This is automatically generated. Modify your mysql table directly and rerun RestBuilder to see changes.
     **/
     public const PDO_VALIDATION = [{{#explode}}
-        self::{{caps}} => [self::MYSQL_TYPE => '{{mysql_type}}', self::PDO_TYPE => {{type}}, self::MAX_LENGTH => '{{length}}', self::AUTO_INCREMENT => {{#auto_increment}}true{{/auto_increment}}{{^auto_increment}}false{{/auto_increment}}, self::SKIP_COLUMN_IN_POST => {{#skip}}true{{/skip}}{{^skip}}false{{/skip}}{{#default}}, self::DEFAULT_POST_VALUE => {{#CURRENT_TIMESTAMP}}self::CURRENT_TIMESTAMP{{/CURRENT_TIMESTAMP}}{{^CURRENT_TIMESTAMP}}{{{default}}}{{/CURRENT_TIMESTAMP}}{{/default}}],{{/explode}}
+        self::{{caps}} => [self::MYSQL_TYPE => '{{mysql_type}}', self::COLUMN_CONSTRAINTS => [{{#COLUMN_CONSTRAINTS}}{{key}} => [ self::CONSTRAINT_NAME => '{{CONSTRAINT_NAME}}', self::UPDATE_RULE => {{UPDATE_RULE}}, self::DELETE_RULE => {{DELETE_RULE}}]{{/COLUMN_CONSTRAINTS}}], self::PDO_TYPE => {{type}}, self::MAX_LENGTH => '{{length}}', self::AUTO_INCREMENT => {{#auto_increment}}true{{/auto_increment}}{{^auto_increment}}false{{/auto_increment}}, self::SKIP_COLUMN_IN_POST => {{#skip}}true{{/skip}}{{^skip}}false{{/skip}}{{#default}}, self::DEFAULT_POST_VALUE => {{#CURRENT_TIMESTAMP}}self::CURRENT_TIMESTAMP{{/CURRENT_TIMESTAMP}}{{^CURRENT_TIMESTAMP}}{{{default}}}{{/CURRENT_TIMESTAMP}}{{/default}}],{{/explode}}
     ];
      
     /**

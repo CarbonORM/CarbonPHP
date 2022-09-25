@@ -1011,7 +1011,7 @@ FOOT;
 
             self::addTablePrefix($internalTableName, $fullyQualifiedClassName::TABLE_PREFIX, $ignoreRef);
 
-            $verifySqlConstraint ='SELECT CONSTRAINT_NAME
+            $verifySqlConstraint = 'SELECT CONSTRAINT_NAME
                                         FROM  INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
                                         WHERE REFERENCED_TABLE_SCHEMA = ?
                                         AND REFERENCED_TABLE_NAME = ?
@@ -1536,6 +1536,85 @@ FOOT;
             ErrorCatcher::generateLog($e);
 
             exit(1);        // exit 1 is phpunit // composer scripts safe to === error
+
+        }
+
+    }
+
+    public static function columnConstraintVerification(
+        string $constraintName,
+        string $tableName,
+        string $columnName,
+        string $referenceTable,
+        string $referenceColumn,
+        string $onDelete, string $onUpdate): void
+    {
+
+        $getCurrentConstraintName = "SELECT CONSTRAINT_NAME
+FROM information_schema.KEY_COLUMN_USAGE
+WHERE TABLE_NAME = '$tableName'
+AND COLUMN_NAME = '$columnName'
+AND REFERENCED_COLUMN_NAME = '$referenceColumn'
+AND REFERENCED_TABLE_NAME = '$referenceTable'";
+
+        $constraintOld = self::fetchColumn($getCurrentConstraintName)[0] ?? null;
+
+        if (null !== $constraintOld) {
+
+            $result = self::execute("ALTER TABLE `$tableName` DROP FOREIGN KEY `$constraintName`");
+
+            if (false === $result) {
+
+                self::colorCode("Failed to drop foreign key `$constraintName` on table `$tableName`", iColorCode::RED);
+
+                exit(60);
+
+            }
+
+            ColorCode::colorCode("Dropped foreign key `$constraintName` on table `$tableName`. Preparing to update.", iColorCode::CYAN);
+
+        }
+
+        if ($constraintOld !== $constraintName) {
+
+            ColorCode::colorCode("Updating foreign key constraint `$constraintName` on table `$tableName`. The old constraint name ($constraintOld) was removed. Checking if new name already exists.", iColorCode::CYAN);
+
+            $doesCurrentConstraintNameExist = self::fetchColumn("SELECT CONSTRAINT_NAME, TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME
+FROM information_schema.KEY_COLUMN_USAGE
+WHERE TABLE_NAME = '$tableName'
+AND CONSTRAINT_NAME = '$constraintName'");
+
+            if ([] !== $doesCurrentConstraintNameExist) {
+
+                ColorCode::colorCode("The constraint name `$constraintName` already exists on table `$tableName`. We will remove the old relation. Please make sure this is intended.", iColorCode::WARNING);
+
+                $result = self::execute("ALTER TABLE `$tableName` DROP FOREIGN KEY `$constraintName`");
+
+                if (false === $result) {
+
+                    self::colorCode("Failed to drop foreign key `$constraintName` on table `$tableName`", iColorCode::RED);
+
+                    exit(62);
+
+                }
+
+                ColorCode::colorCode("Dropped foreign key `$constraintName` on table `$tableName`. Preparing to update.", iColorCode::CYAN);
+
+            } else {
+
+                ColorCode::colorCode("The foreign key `$constraintName` on table `$tableName` does not exist. Preparing to update.", iColorCode::CYAN);
+
+            }
+
+        }
+
+        $result = self::execute("ALTER TABLE `$tableName` ADD CONSTRAINT `$constraintName` FOREIGN KEY (`$columnName`) REFERENCES `$referenceTable` (`$referenceColumn`) ON DELETE $onDelete ON UPDATE $onUpdate");
+
+        if (false === $result) {
+
+            ColorCode::colorCode("Failed to add foreign key `$constraintName` on table `$tableName`", iColorCode::RED);
+
+            exit(61);
 
         }
 

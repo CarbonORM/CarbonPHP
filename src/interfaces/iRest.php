@@ -18,6 +18,7 @@ interface iRest
     public const BETWEEN = 'BETWEEN';
 
     public const CONCAT = 'CONCAT';
+    public const CONSTRAINT_NAME = 'CONSTRAINT_NAME';
     public const CONVERT_TZ = 'CONVERT_TZ';
     public const COUNT = 'COUNT';
     public const COUNT_ALL = 'COUNT_ALL';
@@ -38,6 +39,7 @@ interface iRest
     public const DATEDIFF = 'DATEDIFF';
     public const DATE_SUB = 'DATE_SUB';
     public const DATE_FORMAT = 'DATE_FORMAT';
+    public const DELETE_RULE = 'DELETE_RULE'; // not case sensitive but helpful for reporting to remain uppercase
     public const DESC = 'DESC'; // not case sensitive but helpful for reporting to remain uppercase
     public const DISTINCT = 'DISTINCT';
 
@@ -130,6 +132,8 @@ interface iRest
     public const UNIX_TIMESTAMP = 'UNIX_TIMESTAMP';
     public const UNKNOWN = 'UNKNOWN';
     public const UPDATE = 'UPDATE';
+    public const UPDATE_RULE = 'UPDATE_RULE';
+    public const COLUMN_CONSTRAINTS = 'COLUMN_CONSTRAINTS';
     public const UTC_DATE = 'UTC_DATE';
     public const UTC_TIME = 'UTC_TIME';
     public const UTC_TIMESTAMP = 'UTC_TIMESTAMP';
