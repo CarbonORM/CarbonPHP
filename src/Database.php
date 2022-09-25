@@ -741,17 +741,27 @@ FOOT;
     public static function fetchAll(string $sql, ...$execute)
     {
 
-        $reader = false === self::isWriteQuery($sql);
+        try {
 
-        $stmt = self::database($reader)->prepare($sql);
+            $reader = false === self::isWriteQuery($sql);
 
-        if (false === $stmt->execute($execute)) { // try it twice, you never know..
+            $stmt = self::database($reader)->prepare($sql);
 
-            return [];
+            if (false === $stmt->execute($execute)) {
+
+                throw new PublicAlert("Failed to execute query ($sql).");
+
+            }
+
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);   // promise this is needed and will still return the desired array
+
+        } catch (Throwable $e) {
+
+            ErrorCatcher::generateLog($e);  // this terminates
+
+            exit(112);
 
         }
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);   // promise this is needed and will still return the desired array
 
     }
 
@@ -1016,20 +1026,50 @@ FOOT;
 
             $onUpdate = $fullyQualifiedClassName::PDO_VALIDATION[$internalTableColumn][iRest::COLUMN_CONSTRAINTS][$externalTableColumn][iRest::UPDATE_RULE];
 
-            $verifySqlConstraint = 'SELECT CONSTRAINT_NAME
-                                        FROM  INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
-                                        WHERE REFERENCED_TABLE_SCHEMA = ?
-                                        AND REFERENCED_TABLE_NAME = ?
-                                        AND REFERENCED_COLUMN_NAME = ?
-                                        AND TABLE_NAME = ?
-                                        AND COLUMN_NAME = ?
-                                        AND CONSTRAINT_NAME = ?;';
+            // @link https://stackoverflow.com/questions/4004205/show-constraints-on-tables-command
+            $verifySqlConstraint = /** @lang MySQL */
+                'SELECT cols.TABLE_NAME, cols.COLUMN_NAME, cols.ORDINAL_POSITION,
+       cols.COLUMN_DEFAULT, cols.IS_NULLABLE, cols.DATA_TYPE,
+       cols.CHARACTER_MAXIMUM_LENGTH, cols.CHARACTER_OCTET_LENGTH,
+       cols.NUMERIC_PRECISION, cols.NUMERIC_SCALE,
+       cols.COLUMN_TYPE, cols.COLUMN_KEY, cols.EXTRA,
+       cols.COLUMN_COMMENT, refs.REFERENCED_TABLE_NAME, refs.REFERENCED_COLUMN_NAME,
+       cRefs.UPDATE_RULE, cRefs.DELETE_RULE,
+       links.TABLE_NAME, links.COLUMN_NAME,
+       cLinks.UPDATE_RULE, cLinks.DELETE_RULE
+FROM INFORMATION_SCHEMA.`COLUMNS` as cols
+         LEFT JOIN INFORMATION_SCHEMA.`KEY_COLUMN_USAGE` AS refs
+                   ON refs.TABLE_SCHEMA=cols.TABLE_SCHEMA
+                       AND refs.REFERENCED_TABLE_SCHEMA=cols.TABLE_SCHEMA
+                       AND refs.TABLE_NAME=cols.TABLE_NAME
+                       AND refs.COLUMN_NAME=cols.COLUMN_NAME
+         LEFT JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS AS cRefs
+                   ON cRefs.CONSTRAINT_SCHEMA=cols.TABLE_SCHEMA
+                       AND cRefs.CONSTRAINT_NAME=refs.CONSTRAINT_NAME
+         LEFT JOIN INFORMATION_SCHEMA.`KEY_COLUMN_USAGE` AS links
+                   ON links.TABLE_SCHEMA=cols.TABLE_SCHEMA
+                       AND links.REFERENCED_TABLE_SCHEMA=cols.TABLE_SCHEMA
+                       AND links.REFERENCED_TABLE_NAME=cols.TABLE_NAME
+                       AND links.REFERENCED_COLUMN_NAME=cols.COLUMN_NAME
+         LEFT JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS AS cLinks
+                   ON cLinks.CONSTRAINT_SCHEMA=cols.TABLE_SCHEMA
+                       AND cLinks.CONSTRAINT_NAME=links.CONSTRAINT_NAME
+WHERE cols.TABLE_SCHEMA=?
+    AND links.REFERENCED_TABLE_NAME = ?
+    AND links.REFERENCED_COLUMN_NAME = ?
+    AND links.TABLE_NAME = ?
+    AND links.COLUMN_NAME = ?
+    AND links.CONSTRAINT_NAME = ?
+    AND cLinks.DELETE_RULE = ?
+    AND cLinks.UPDATE_RULE = ?
+';
 
-            $values = self::fetchColumn($verifySqlConstraint, self::$carbonDatabaseName, $externalTableName, $externalColumnName, $internalTableName, $internalColumnName, $constraintName);
+            $values = self::fetchAll($verifySqlConstraint, self::$carbonDatabaseName, $externalTableName,
+                $externalColumnName, $internalTableName, $internalColumnName, $constraintName, $onDelete, $onUpdate);
 
             if ([] === $values) {
 
-                self::colorCode("Failed to verify that the table ($internalTableName) contains FOREIGN KEY NAME ($constraintName) CONSTRAINT ($externalTableName.$externalColumnName) => ($internalTableName.$internalColumnName) using sql ($verifySqlConstraint) with key values (" . self::$carbonDatabaseName . ", $externalTableName, $externalColumnName, $internalTableName, $internalColumnName, $constraintName) respectively.", iColorCode::RED);
+                self::colorCode("Failed to verify that the table ($internalTableName) contains FOREIGN KEY NAME ($constraintName) CONSTRAINT ($externalTableName.$externalColumnName) => ($internalTableName.$internalColumnName) using sql ($verifySqlConstraint) with key values (" . self::$carbonDatabaseName . ", $externalTableName, $externalColumnName, $internalTableName, $internalColumnName, $constraintName, $onDelete, $onUpdate) respectively.", iColorCode::BACKGROUND_YELLOW);
 
                 self::recreateColumnConstraint(
                     $constraintName, $internalTableName,
@@ -1038,11 +1078,9 @@ FOOT;
 
                 $constraintsAdded = true;
 
-                continue;
-
             }
 
-            self::colorCode("Verified relation $internalTableName.$internalColumnName => $externalTableName.$externalColumnName", iColorCode::BACKGROUND_MAGENTA);
+            self::colorCode("Verified relation $internalTableName.$internalColumnName => $externalTableName.$externalColumnName; onDelete $onDelete; onUpdate $onUpdate", iColorCode::BACKGROUND_MAGENTA);
 
         }
 
@@ -1195,7 +1233,7 @@ FOOT;
                         ? ' DEFAULT ' . ($pdoValidations[$fullyQualified][iRest::DEFAULT_POST_VALUE] ?? 'NULL')
                         : '')
                     . (array_key_exists(iRest::COMMENT, $pdoValidations[$fullyQualified])
-                        ? ' '. iRest::COMMENT . ' \'' . $pdoValidations[$fullyQualified][iRest::COMMENT] . '\''
+                        ? ' ' . iRest::COMMENT . ' \'' . $pdoValidations[$fullyQualified][iRest::COMMENT] . '\''
                         : '')
                     . ';';
 
@@ -1581,49 +1619,92 @@ FOOT;
         string $onDelete, string $onUpdate): void
     {
 
-        $getCurrentConstraintName = "SELECT CONSTRAINT_NAME
-FROM information_schema.KEY_COLUMN_USAGE
-WHERE TABLE_NAME = '$tableName'
-AND COLUMN_NAME = '$columnName'
-AND REFERENCED_COLUMN_NAME = '$referenceColumn'
-AND REFERENCED_TABLE_NAME = '$referenceTable'";
+        $getCurrentConstraintName = /** @lang MySQL */
+            "SELECT 
+    links.CONSTRAINT_NAME,
+    cols.TABLE_NAME, cols.COLUMN_NAME, cols.ORDINAL_POSITION,
+    cols.COLUMN_DEFAULT, cols.IS_NULLABLE, cols.DATA_TYPE,
+    cols.CHARACTER_MAXIMUM_LENGTH, cols.CHARACTER_OCTET_LENGTH,
+    cols.NUMERIC_PRECISION, cols.NUMERIC_SCALE,
+    cols.COLUMN_TYPE, cols.COLUMN_KEY, cols.EXTRA,
+    cols.COLUMN_COMMENT, refs.REFERENCED_TABLE_NAME, refs.REFERENCED_COLUMN_NAME,
+    cRefs.UPDATE_RULE, cRefs.DELETE_RULE,
+    links.TABLE_NAME, links.COLUMN_NAME,
+    cLinks.UPDATE_RULE, cLinks.DELETE_RULE
+FROM INFORMATION_SCHEMA.`COLUMNS` as cols
+         LEFT JOIN INFORMATION_SCHEMA.`KEY_COLUMN_USAGE` AS refs
+                   ON refs.TABLE_SCHEMA=cols.TABLE_SCHEMA
+                       AND refs.REFERENCED_TABLE_SCHEMA=cols.TABLE_SCHEMA
+                       AND refs.TABLE_NAME=cols.TABLE_NAME
+                       AND refs.COLUMN_NAME=cols.COLUMN_NAME
+         LEFT JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS AS cRefs
+                   ON cRefs.CONSTRAINT_SCHEMA=cols.TABLE_SCHEMA
+                       AND cRefs.CONSTRAINT_NAME=refs.CONSTRAINT_NAME
+         LEFT JOIN INFORMATION_SCHEMA.`KEY_COLUMN_USAGE` AS links
+                   ON links.TABLE_SCHEMA=cols.TABLE_SCHEMA
+                       AND links.REFERENCED_TABLE_SCHEMA=cols.TABLE_SCHEMA
+                       AND links.REFERENCED_TABLE_NAME=cols.TABLE_NAME
+                       AND links.REFERENCED_COLUMN_NAME=cols.COLUMN_NAME
+         LEFT JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS AS cLinks
+                   ON cLinks.CONSTRAINT_SCHEMA=cols.TABLE_SCHEMA
+                       AND cLinks.CONSTRAINT_NAME=links.CONSTRAINT_NAME
+WHERE cols.TABLE_SCHEMA=?
+AND links.TABLE_NAME = ?
+AND links.COLUMN_NAME = ?
+AND links.REFERENCED_COLUMN_NAME = ?
+AND links.REFERENCED_TABLE_NAME = ?";
 
-        $constraintOld = self::fetchColumn($getCurrentConstraintName)[0] ?? null;
+        $constraintOld = self::fetchAll($getCurrentConstraintName,
+                self::$carbonDatabaseName, $tableName, $columnName, $referenceColumn, $referenceTable)[0] ?? null;
 
-        if (null !== $constraintOld) {
+        $oldConstraintName = $constraintOld['CONSTRAINT_NAME'] ?? null;
 
-            $result = self::execute("ALTER TABLE `$tableName` DROP FOREIGN KEY `$constraintName`");
+        if (null !== $oldConstraintName) {  // [0] ?? null;
+
+            ColorCode::colorCode("Dropping old constraint ($oldConstraintName) to replace with new name ($constraintName) from table ($tableName). Old values :: \n" . print_r($constraintOld, true), iColorCode::YELLOW);
+
+            $dropConstraint = /** @lang MySQL */
+                "ALTER TABLE ".self::$carbonDatabaseName.".". $tableName . " DROP FOREIGN KEY $oldConstraintName;";
+
+            $result = self::execute($dropConstraint);
 
             if (false === $result) {
 
-                self::colorCode("Failed to drop foreign key `$constraintName` on table `$tableName`", iColorCode::RED);
+                self::colorCode("Failed to drop old foreign key ($oldConstraintName) on table ($tableName) using sql ($dropConstraint); Values: ( " . self::$carbonDatabaseName . ".$tableName , $oldConstraintName )", iColorCode::RED);
 
                 exit(60);
 
             }
 
-            ColorCode::colorCode("Dropped foreign key `$constraintName` on table `$tableName`. Preparing to update.", iColorCode::CYAN);
+            ColorCode::colorCode("Successfully dropped old foreign key ($oldConstraintName) on table ($tableName). Preparing to update ($constraintName).", iColorCode::CYAN);
 
         }
 
-        if ($constraintOld !== $constraintName) {
+        if ($oldConstraintName !== $constraintName) {
 
-            ColorCode::colorCode("Updating foreign key constraint `$constraintName` on table `$tableName`. The old constraint name ($constraintOld) was removed. Checking if new name already exists.", iColorCode::CYAN);
+            ColorCode::colorCode("Updating foreign key constraint ($constraintName) on table ($tableName)."
+                . (null === $oldConstraintName ? '' : " The old constraint name ($oldConstraintName) was removed.")
+                . " Checking if new name ($constraintName) already exists.", iColorCode::CYAN);
 
-            $doesCurrentConstraintNameExist = self::fetchColumn("SELECT CONSTRAINT_NAME, TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME
+            // this only checks if a name collision may happen.
+            $doesCurrentConstraintNameExist = self::fetchColumn(/** @lang MySQL */ "SELECT CONSTRAINT_NAME, TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME
 FROM information_schema.KEY_COLUMN_USAGE
-WHERE TABLE_NAME = '$tableName'
-AND CONSTRAINT_NAME = '$constraintName'");
+WHERE TABLE_SCHEMA = '" . self::$carbonDatabaseName . "'
+AND TABLE_NAME = '$tableName'
+AND CONSTRAINT_NAME = '$constraintName'" );
 
             if ([] !== $doesCurrentConstraintNameExist) {
 
-                ColorCode::colorCode("The constraint name `$constraintName` already exists on table `$tableName`. We will remove the old relation. Please make sure this is intended.", iColorCode::YELLOW);
+                ColorCode::colorCode("The constraint name ($constraintName) already exists on table ($tableName). We will remove the old relation. Please make sure this is intended.", iColorCode::YELLOW);
 
-                $result = self::execute("ALTER TABLE `$tableName` DROP FOREIGN KEY `$constraintName`");
+                $dropConstraint = /** @lang MySQL */
+                    "ALTER TABLE $tableName DROP FOREIGN KEY ?";
+
+                $result = self::execute($dropConstraint, $constraintName);
 
                 if (false === $result) {
 
-                    self::colorCode("Failed to drop foreign key `$constraintName` on table `$tableName`", iColorCode::RED);
+                    self::colorCode("Failed to drop foreign key ($constraintName) on table ($tableName) using sql: ($dropConstraint)", iColorCode::RED);
 
                     exit(62);
 
@@ -1639,15 +1720,17 @@ AND CONSTRAINT_NAME = '$constraintName'");
 
         }
 
-        $result = self::execute("ALTER TABLE `$tableName` ADD CONSTRAINT `$constraintName` FOREIGN KEY (`$columnName`) REFERENCES `$referenceTable` (`$referenceColumn`) ON DELETE $onDelete ON UPDATE $onUpdate");
+        $result = self::execute(/** @lang MySQL */ "ALTER TABLE `$tableName` ADD CONSTRAINT `$constraintName` FOREIGN KEY (`$columnName`) REFERENCES `$referenceTable` (`$referenceColumn`) ON DELETE $onDelete ON UPDATE $onUpdate");
 
         if (false === $result) {
 
-            ColorCode::colorCode("Failed to add foreign key `$constraintName` on table `$tableName`", iColorCode::RED);
+            ColorCode::colorCode("Failed to add foreign key ($constraintName) on table ($tableName)", iColorCode::RED);
 
             exit(61);
 
         }
+
+        ColorCode::colorCode("Successfully added foreign key ($constraintName) on table ($tableName)");
 
     }
 
@@ -1716,7 +1799,7 @@ AND CONSTRAINT_NAME = '$constraintName'");
         $commentSet = array_key_exists(iRest::COMMENT, $generatedInformation);
 
         $comment = $commentSet
-            ? ' '. iRest::COMMENT . ' \'' . $generatedInformation[iRest::COMMENT] . '\''
+            ? ' ' . iRest::COMMENT . ' \'' . $generatedInformation[iRest::COMMENT] . '\''
             : '';
 
         $nullable = false === $generatedInformation[iRest::NOT_NULL]
