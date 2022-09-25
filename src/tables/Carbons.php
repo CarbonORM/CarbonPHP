@@ -177,7 +177,7 @@ class Carbons extends Rest implements iRestSinglePrimaryKey
     public const PDO_VALIDATION = [
         self::ENTITY_PK => [ self::MYSQL_TYPE => 'binary', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '16', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],
         self::ENTITY_FK => [ self::MYSQL_TYPE => 'binary', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [Carbons::ENTITY_PK => [ self::CONSTRAINT_NAME => 'entity_entity_entity_pk_fk', self::UPDATE_RULE => 'CASCADE', self::DELETE_RULE => 'CASCADE']], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '16', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null ],
-        self::ENTITY_TAG => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '100', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => 'manually' ],
+        self::ENTITY_TAG => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '100', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => '"manually"' ],
     ];
      
     /**
@@ -203,15 +203,14 @@ class Carbons extends Rest implements iRestSinglePrimaryKey
      *    {
      *        parent::__construct($return);
      *        
+     *        # always create the column in your local database first, re-run the table builder, then add the needed functions
      *        $this->REFRESH_SCHEMA = [
      *            static fn() => self::execute('ALTER TABLE mytbl ALTER j SET DEFAULT 1000;'),
      *            static fn() => self::execute('ALTER TABLE mytbl ALTER k DROP DEFAULT;'),
      *            static fn() => self::buildMysqlHistoryTrigger(self::TABLE_NAME),
-     *            # create the column in your local database first, re-run the table builder, then add the following line with you new refrences
-     *            static fn() => self::columnExistsOrExecuteSQL(self::COLUMNS[self::MODIFIED], self::TABLE_NAME,
+     *            static fn() => self::columnExistsOrExecuteSQL(self::COLUMNS[self::MODIFIED], self::class,
      *                  'alter table '.self::TABLE_NAME.' add '.self::COLUMNS[self::MODIFIED].' DATETIME default CURRENT_TIMESTAMP;'),
-     *            # this is fully dynamic and just requires your restbuilder be generted with our local schema, refer to the previous example 
-     *            static fn() => self::columnIsTypeOrChange(self::COLUMNS[self::MODIFIED], self::TABLE_NAME, self::PDO_VALIDATION[self::MODIFIED][self::MYSQL_TYPE]),
+     *            static fn() => self::columnIsTypeOrChange(self::COLUMNS[self::MODIFIED], self::class, self::PDO_VALIDATION[self::MODIFIED][self::MYSQL_TYPE]),
      *        ];
      *    }
      *

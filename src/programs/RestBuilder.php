@@ -409,7 +409,7 @@ END;
             // Separate each insert line by new line feed \n
             $linesInCreateTableStatement = explode(PHP_EOL, $createTableSQL);
 
-            $binary = $skipping_col = $primary = [];
+            $binary = $primary = [];
 
             $tableName = '';
 
@@ -890,7 +890,7 @@ END;
 
                                 $default = '';
 
-                                // todo - the negitive case  && substr($words_in_insert_stmt[$key], -w) === '\\\\''
+                                // todo - the negative case  && substr($words_in_insert_stmt[$key], -w) === '\\\\''
 
                                 // if it ends in '  aka '0'
                                 if (substr($wordsInLine[$key], -1) === '\'') {
@@ -903,12 +903,8 @@ END;
                                     $default = rtrim($wordsInLine[$key], ',');
                                 } else {
                                     // the first index does start in ' and doesnt end in '
-
+                                    // todo - switch this with a regex
                                     do {
-                                        if ($key > 10) {
-                                            ColorCode::colorCode('Failed to understand MySQLDump File. Printing line ::');
-                                            sortDump($wordsInLine);
-                                        }
                                         $default .= ' ' . $wordsInLine[$key];
                                         $key++;
                                     } while (substr($wordsInLine[$key], -1) !== '\''
@@ -921,26 +917,53 @@ END;
 
                                     // Were going to skip columns with this set as the default value
                                     // Trying to insert this condition w/ PDO is problematic
-                                    $skipping_col[] = $name;
-
                                     $rest[$tableName]['explode'][$explodeArrayPosition]['skip'] = true;
 
                                     $rest[$tableName]['explode'][$explodeArrayPosition]['CURRENT_TIMESTAMP'] = true;
 
                                 } else if (strpos($default, '\'') !== 0) {
+
                                     // We need to escape values for php
                                     $default = "'$default'";
+
+                                } else {
+
+                                    $default = trim($default, '\'');
+
+                                    $default = "'\"$default\"'";
+
                                 }
+
                                 /** @noinspection NestedTernaryOperatorInspection */
                                 $rest[$tableName]['explode'][$explodeArrayPosition]['default'] = ($default === "'NULL'" ? 'null' : ($cast_binary_default ? 'null' : $default));
                             }
 
+                            $key = array_search('COMMENT', $wordsInLine, true);
+
+                            if ($key !== false) {
+
+                                $comment = '';
+
+                                do {
+                                    $key++;
+                                    $comment .= ' ' . $wordsInLine[$key];
+                                } while (
+                                    (
+                                        substr($wordsInLine[$key], -1) !== '\''
+                                        && substr($wordsInLine[$key], -2) !== '\\\''
+                                    )
+                                    && substr($wordsInLine[$key], -2) !== '\','
+                                );
+
+                                $rest[$tableName]['explode'][$explodeArrayPosition][iRest::COMMENT] = rtrim($comment, ',');
+
+                            }
 
                             // As far as I can tell the AUTO_INCREMENT condition the last possible word in the query
-                            $auto_inc = count($wordsInLine) - 1;
-                            if (isset($wordsInLine[$auto_inc]) && $wordsInLine[$auto_inc] === 'AUTO_INCREMENT,') {
+                            // todo - use a regex that ensures you dont write AUTO_INCREMENT in a comment
+                            $auto_inc = false !== strpos($fullLineInCreateTableStatement, 'AUTO_INCREMENT');
 
-                                $skipping_col[] = $name;
+                            if ($auto_inc) {
 
                                 $rest[$tableName]['explode'][$explodeArrayPosition]['skip'] = true;
 
@@ -1842,7 +1865,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
      * This is automatically generated. Modify your mysql table directly and rerun RestBuilder to see changes.
     **/
     public const PDO_VALIDATION = [{{#explode}}
-        self::{{caps}} => [ self::MYSQL_TYPE => '{{mysql_type}}', self::NOT_NULL => {{#NOT_NULL}}true{{/NOT_NULL}}{{^NOT_NULL}}false{{/NOT_NULL}}, self::COLUMN_CONSTRAINTS => [{{#COLUMN_CONSTRAINTS}}{{key}} => [ self::CONSTRAINT_NAME => '{{CONSTRAINT_NAME}}', self::UPDATE_RULE => {{UPDATE_RULE}}, self::DELETE_RULE => {{DELETE_RULE}}]{{/COLUMN_CONSTRAINTS}}], self::PDO_TYPE => {{type}}, self::MAX_LENGTH => '{{length}}', self::AUTO_INCREMENT => {{#auto_increment}}true{{/auto_increment}}{{^auto_increment}}false{{/auto_increment}}, self::SKIP_COLUMN_IN_POST => {{#skip}}true{{/skip}}{{^skip}}false{{/skip}}{{#default}}, self::DEFAULT_POST_VALUE => {{#CURRENT_TIMESTAMP}}self::CURRENT_TIMESTAMP{{/CURRENT_TIMESTAMP}}{{^CURRENT_TIMESTAMP}}{{{default}}}{{/CURRENT_TIMESTAMP}}{{/default}} ],{{/explode}}
+        self::{{caps}} => [ self::MYSQL_TYPE => '{{mysql_type}}', self::NOT_NULL => {{#NOT_NULL}}true{{/NOT_NULL}}{{^NOT_NULL}}false{{/NOT_NULL}}, self::COLUMN_CONSTRAINTS => [{{#COLUMN_CONSTRAINTS}}{{key}} => [ self::CONSTRAINT_NAME => '{{CONSTRAINT_NAME}}', self::UPDATE_RULE => {{UPDATE_RULE}}, self::DELETE_RULE => {{DELETE_RULE}}]{{/COLUMN_CONSTRAINTS}}], self::PDO_TYPE => {{type}}, self::MAX_LENGTH => '{{length}}', self::AUTO_INCREMENT => {{#auto_increment}}true{{/auto_increment}}{{^auto_increment}}false{{/auto_increment}}, self::SKIP_COLUMN_IN_POST => {{#skip}}true{{/skip}}{{^skip}}false{{/skip}}{{#default}}, self::DEFAULT_POST_VALUE => {{#CURRENT_TIMESTAMP}}self::CURRENT_TIMESTAMP{{/CURRENT_TIMESTAMP}}{{^CURRENT_TIMESTAMP}}{{{default}}}{{/CURRENT_TIMESTAMP}}{{/default}}{{#COMMENT}}, self::COMMENT => {{COMMENT}}{{/COMMENT}} ],{{/explode}}
     ];
      
     /**
@@ -1868,15 +1891,14 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
      *    {
      *        parent::__construct(\$return);
      *        
+     *        # always create the column in your local database first, re-run the table builder, then add the needed functions
      *        \$this->REFRESH_SCHEMA = [
      *            static fn() => self::execute('ALTER TABLE mytbl ALTER j SET DEFAULT 1000;'),
      *            static fn() => self::execute('ALTER TABLE mytbl ALTER k DROP DEFAULT;'),
      *            static fn() => self::buildMysqlHistoryTrigger(self::TABLE_NAME),
-     *            # create the column in your local database first, re-run the table builder, then add the following line with you new refrences
-     *            static fn() => self::columnExistsOrExecuteSQL(self::COLUMNS[self::MODIFIED], self::TABLE_NAME,
+     *            static fn() => self::columnExistsOrExecuteSQL(self::COLUMNS[self::MODIFIED], self::class,
      *                  'alter table '.self::TABLE_NAME.' add '.self::COLUMNS[self::MODIFIED].' DATETIME default CURRENT_TIMESTAMP;'),
-     *            # this is fully dynamic and just requires your restbuilder be generted with our local schema, refer to the previous example 
-     *            static fn() => self::columnIsTypeOrChange(self::COLUMNS[self::MODIFIED], self::TABLE_NAME, self::PDO_VALIDATION[self::MODIFIED][self::MYSQL_TYPE]),
+     *            static fn() => self::columnIsTypeOrChange(self::COLUMNS[self::MODIFIED], self::class, self::PDO_VALIDATION[self::MODIFIED][self::MYSQL_TYPE]),
      *        ];
      *    }
      *

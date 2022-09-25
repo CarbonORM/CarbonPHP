@@ -22,6 +22,7 @@ interface iRest
     public const CONVERT_TZ = 'CONVERT_TZ';
     public const COUNT = 'COUNT';
     public const COUNT_ALL = 'COUNT_ALL';
+    public const COMMENT = 'COMMENT';
     public const CURRENT_DATE = 'CURRENT_DATE';
     public const CURRENT_TIMESTAMP = 'CURRENT_TIMESTAMP';
 

@@ -1004,8 +1004,6 @@ FOOT;
 
             [$externalTableName, $externalColumnName] = explode('.', $externalTableColumn);
 
-            $preUpdateExternalTableName = $externalTableName;
-
             self::addTablePrefix($externalTableName, $fullyQualifiedClassName::TABLE_PREFIX, $ignoreRef);
 
             [$internalTableName, $internalColumnName] = explode('.', $internalTableColumn);
@@ -1172,26 +1170,43 @@ FOOT;
 
             $compiledColumns = $table::COLUMNS;
 
-
             foreach ($compiledColumns as $fullyQualified => $shortName) {
 
-                $defaultValue = $pdoValidations[$shortName]['default'] ?? null;
+                if (false === array_key_exists(iRest::NOT_NULL, $pdoValidations[$fullyQualified])) {
+
+                    ColorCode::colorCode("The generated constant $table::PDO_VALIDATION does not contain the key (iRest::NOT_NULL). Rerun RestBuilder to repopulate." . print_r($pdoValidations, true), iColorCode::YELLOW);
+
+                    exit(24);
+
+                }
 
                 $notNull = $pdoValidations[$fullyQualified][iRest::NOT_NULL] ? ' NOT NULL ' : '';
 
                 $autoIncrement = $pdoValidations[$fullyQualified][iRest::AUTO_INCREMENT] ? ' AUTO_INCREMENT ' : '';
 
-                self::columnExistsOrExecuteSQL($shortName, $tableName,
-                    'ALTER TABLE ' . $tableName . ' ADD ' . $tableName
-                    . ' ' . $pdoValidations[$fullyQualified][iRest::MYSQL_TYPE]
+                $maxLength = (false !== $pdoValidations[$fullyQualified][iRest::MAX_LENGTH] ?? false)
+                    ? '(' . $pdoValidations[$fullyQualified][iRest::MAX_LENGTH] . ') '
+                    : '';
+
+                $sql = 'ALTER TABLE ' . $tableName . ' ADD ' . $shortName
+                    . ' ' . $pdoValidations[$fullyQualified][iRest::MYSQL_TYPE] . $maxLength
                     . $notNull . $autoIncrement
-                    . ( null === $defaultValue ?:' DEFAULT ' . $pdoValidations[$fullyQualified][iRest::DEFAULT_POST_VALUE]) . ';');
+                    . (array_key_exists('default', $pdoValidations[$fullyQualified])
+                        ? ' DEFAULT ' . ($pdoValidations[$fullyQualified][iRest::DEFAULT_POST_VALUE] ?? 'NULL')
+                        : '')
+                    . (array_key_exists(iRest::COMMENT, $pdoValidations[$fullyQualified])
+                        ? ' '. iRest::COMMENT . ' \'' . $pdoValidations[$fullyQualified][iRest::COMMENT] . '\''
+                        : '')
+                    . ';';
+
+
+                self::columnExistsOrExecuteSQL($shortName, $table, $sql);
 
                 ColorCode::colorCode("Verified column ($fullyQualified) exists.", iColorCode::BACKGROUND_MAGENTA);
 
                 $maxLength = $pdoValidations[$fullyQualified][iRest::MAX_LENGTH] ?? '';
 
-                self::columnIsTypeOrChange($shortName, $tableName,
+                self::columnIsTypeOrChange($shortName, $table,
                     $pdoValidations[$fullyQualified][iRest::MYSQL_TYPE]
                     . ('' === $maxLength ? '' : '(' . $maxLength . ')'));
 
@@ -1316,9 +1331,7 @@ FOOT;
 
                 ColorCode::colorCode('Verifying schema failed during preg_match_all for sql ' . $preUpdateSQL, iColorCode::RED);
 
-                $failureEncountered = true;
-
-                continue;
+                exit(70);
 
             }
 
@@ -1328,9 +1341,7 @@ FOOT;
 
                 ColorCode::colorCode("Regex failed to match a schema using preg_match_all('$regex', '$preUpdateSQL',...", iColorCode::RED);
 
-                $failureEncountered = true;
-
-                continue;
+                exit(71);
 
             }
 
@@ -1338,7 +1349,7 @@ FOOT;
 
             if (null === $preUpdateSQL) {
 
-                throw new PublicAlert("The \$preUpdateSQL variable is null; this is very unexptected. \n\n" . print_r(self::$tablesToValidateAfterRefresh, true));
+                throw new PublicAlert("The \$preUpdateSQL variable is null; this is very unexpected. \n\n" . print_r(self::$tablesToValidateAfterRefresh, true));
 
             }
 
@@ -1374,9 +1385,7 @@ FOOT;
 
                     ColorCode::colorCode("Verifying schema using regex ($table_regex) failed during preg_match_all on the ./mysqlDump.sql", iColorCode::RED);
 
-                    $failureEncountered = true;
-
-                    return false;
+                    exit(72);
 
                 }
 
@@ -1386,9 +1395,7 @@ FOOT;
 
                     ColorCode::colorCode("Regex failed to match a schema using preg_match_all('$table_regex', '$mysqldump',...", iColorCode::RED);
 
-                    $failureEncountered = true;
-
-                    return false;
+                    exit(75);
 
                 }
 
@@ -1406,15 +1413,13 @@ FOOT;
 
                 self::colorCode("Failed during verifyAndCreateForeignKeyRelations:", iColorCode::RED);
 
-                $failureEncountered = true;
-
-                continue;
+                exit(76);
 
             }
 
             if ($failureEncountered) {
 
-                continue;
+                exit(77);
 
             }
 
@@ -1479,7 +1484,7 @@ FOOT;
 
         if ($failureEncountered) {
 
-            return false;
+            exit(79);
 
         }
 
@@ -1525,6 +1530,9 @@ FOOT;
             if (false === $isC6) {
 
                 $status = self::scanAndRunRefreshDatabase(Carbons::DIRECTORY);
+
+                ColorCode::colorCode('CarbonPHP [C6] Tables Built ' . ($status ? '<success>' : '<failure>'),
+                    $status ? iColorCode::CYAN : iColorCode::RED);
 
             }
 
@@ -1643,13 +1651,23 @@ AND CONSTRAINT_NAME = '$constraintName'");
 
     }
 
-    public static function columnExistsOrExecuteSQL(string $column, string $table_name, string $sql): void
+    /**
+     * @param string $column
+     * @param string $table_name
+     * @param string $sql
+     * @return void
+     * @throws PublicAlert
+     */
+    public static function columnExistsOrExecuteSQL(string $column, string $fullyQualifiedClassName, string $sql): void
     {
+        $tableName = $fullyQualifiedClassName::TABLE_NAME;
+
+        self::addTablePrefix($tableName, $fullyQualifiedClassName::TABLE_PREFIX, $sql);
 
         $currentSchema = self::$carbonDatabaseName;
 
         // Check if exist the column named image
-        $existed = self::fetchColumn("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '$currentSchema' AND TABLE_NAME = '$table_name' AND COLUMN_NAME = '$column'");
+        $existed = self::fetchColumn("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ?", $currentSchema, $tableName, $column);
 
         // If not exists
         if ([] === $existed) {
@@ -1670,29 +1688,107 @@ AND CONSTRAINT_NAME = '$constraintName'");
 
         } else {
 
-            self::colorCode("The column ($column) was validated to already exists on table ($table_name).");
+            self::colorCode("The column ($column) was validated to already exists on table ($tableName).");
 
         }
 
     }
 
 
-    public static function columnIsTypeOrChange(string $column, string $table_name, string $type): void
+    /**
+     * @throws PublicAlert
+     */
+    public static function columnIsTypeOrChange(string $column, string $fullyQualifiedClassName, string $type): void
     {
 
         $currentSchema = self::$carbonDatabaseName;
 
+        $tableName = $fullyQualifiedClassName::TABLE_NAME;
+
+        $pdoValidations = $fullyQualifiedClassName::PDO_VALIDATION;
+
+        $generatedInformation = $pdoValidations[$tableName . '.' . $column];
+
+        $defaultAutoIncrement = $generatedInformation[iRest::AUTO_INCREMENT];
+
+        $defaultValue = $generatedInformation[iRest::DEFAULT_POST_VALUE] ?? null;
+
+        $commentSet = array_key_exists(iRest::COMMENT, $generatedInformation);
+
+        $comment = $commentSet
+            ? ' '. iRest::COMMENT . ' \'' . $generatedInformation[iRest::COMMENT] . '\''
+            : '';
+
+        $nullable = false === $generatedInformation[iRest::NOT_NULL]
+            ? 'YES'
+            : 'NO';
+
+        $nullableSQL = $generatedInformation[iRest::NOT_NULL]
+            ? 'NOT NULL'
+            : '';
+
+        $sql = "SELECT COLUMN_TYPE, COLUMN_DEFAULT, IS_NULLABLE, COLUMN_COMMENT, EXTRA FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ?";
+
+        self::addTablePrefix($tableName, $fullyQualifiedClassName::TABLE_PREFIX, $sql);
+
         // Check if exist the column named image
-        $currentType = self::fetchColumn("SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '$currentSchema' AND TABLE_NAME = '$table_name' AND COLUMN_NAME = '$column'")[0] ?? '';
+        $columnInformation = self::fetchAll($sql, $currentSchema, $tableName, $column)[0] ?? '';
+
+        $currentType = $columnInformation['COLUMN_TYPE'];
+
+        $currentDefault = $columnInformation['COLUMN_DEFAULT'];
+
+        $currentNullable = $columnInformation['IS_NULLABLE'];
+
+        $currentComment = $columnInformation['COLUMN_COMMENT'];
+
+        $currentAutoIncrement = $columnInformation['EXTRA'] === 'auto_increment';
+
+        $typesMatch = $currentType === $type;
+
+        $defaultsMatch = $currentDefault === $defaultValue
+            || '"' . $currentDefault . '"' === $defaultValue;
+
+        $currentNullablesMatch = $currentNullable === $nullable;
+
+        $commentsMatch = ('' === $currentComment && false === $commentSet)
+            || $currentComment === ($generatedInformation[iRest::COMMENT] ?? null);
+
+        $autoIncrementMatches = $currentAutoIncrement === $defaultAutoIncrement;
 
         // If not exists
-        if ($type !== $currentType) {
+        if (false === $typesMatch
+            || false === $currentNullablesMatch
+            || false === $autoIncrementMatches
+            || false === $commentsMatch
+            || false === $defaultsMatch) {
 
-            ColorCode::colorCode("The ($column) on table ($table_name) is currently ($currentType) not of type ($type). Preparing to change.", iColorCode::RED);
 
-            $sql = "ALTER TABLE $table_name MODIFY $column $type;";
+            ColorCode::colorCode("The column ($tableName.$column) was validated to not match the expected type information.", iColorCode::YELLOW);
 
-            self::colorCode("Column ($column) did not appear to exist. Attempting to run ($sql).");
+            ColorCode::colorCode(" The values set in code are :: " . print_r([
+                    'type' => $type,
+                    'default' => $defaultValue,
+                    'nullable' => $nullable,
+                    'auto_increment' => $defaultAutoIncrement,
+                    'comment' => $generatedInformation[iRest::COMMENT] ?? '',
+                ], true), iColorCode::CYAN);
+
+            ColorCode::colorCode(" The values set on the database are :: " . print_r([
+                    'type' => $currentType,
+                    'default' => $currentDefault,
+                    'nullable' => $currentNullable,
+                    'auto_increment' => $currentAutoIncrement,
+                    'comment' => $currentComment,
+                ], true), iColorCode::YELLOW);
+
+            $optionalDefault = false === $defaultsMatch || null !== $defaultValue ? "DEFAULT " . ($defaultValue ?? 'NULL') : '';
+
+            $autoIncrementSQL = $defaultAutoIncrement ? 'AUTO_INCREMENT' : '';
+
+            $sql = "ALTER TABLE $tableName MODIFY $column $type $nullableSQL $autoIncrementSQL $optionalDefault $comment;";
+
+            self::colorCode("Column ($tableName.$column) needs to be modified. Attempting to run ($sql).");
 
             if (self::execute($sql)) {
 
@@ -1708,7 +1804,7 @@ AND CONSTRAINT_NAME = '$constraintName'");
 
         } else {
 
-            self::colorCode("Verified column ($column) already exists as type ($type) on table ($table_name).");
+            self::colorCode("Verified column ($tableName.$column) already exists as type ($type) on table ($tableName) with comment ($comment)=($currentComment) default ($currentDefault).");
 
         }
 
@@ -1719,7 +1815,6 @@ AND CONSTRAINT_NAME = '$constraintName'");
     {
 
         $prefix = CarbonPHP::$configuration[CarbonPHP::REST][CarbonPHP::TABLE_PREFIX] ?? '';
-
 
         if ($prefix === '' || $prefix === $table_prefix) {
 
@@ -1740,7 +1835,13 @@ AND CONSTRAINT_NAME = '$constraintName'");
 
         }
 
-        $sql = $sqlReplaced;
+        if (false === is_string($sqlReplaced)) {
+
+            throw new PublicAlert('Failed to replace schema.');
+
+        }
+
+        $sql = (string)$sqlReplaced;
 
         $table_name = $prefix . $table_name;
 

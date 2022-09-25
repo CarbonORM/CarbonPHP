@@ -173,7 +173,7 @@ class Sessions extends Rest implements iRestSinglePrimaryKey
         self::SESSION_ID => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '255', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],
         self::SESSION_EXPIRES => [ self::MYSQL_TYPE => 'datetime', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],
         self::SESSION_DATA => [ self::MYSQL_TYPE => 'text', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],
-        self::USER_ONLINE_STATUS => [ self::MYSQL_TYPE => 'tinyint', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_INT, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => '1' ],
+        self::USER_ONLINE_STATUS => [ self::MYSQL_TYPE => 'tinyint', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_INT, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => '"1"' ],
     ];
      
     /**
@@ -199,15 +199,14 @@ class Sessions extends Rest implements iRestSinglePrimaryKey
      *    {
      *        parent::__construct($return);
      *        
+     *        # always create the column in your local database first, re-run the table builder, then add the needed functions
      *        $this->REFRESH_SCHEMA = [
      *            static fn() => self::execute('ALTER TABLE mytbl ALTER j SET DEFAULT 1000;'),
      *            static fn() => self::execute('ALTER TABLE mytbl ALTER k DROP DEFAULT;'),
      *            static fn() => self::buildMysqlHistoryTrigger(self::TABLE_NAME),
-     *            # create the column in your local database first, re-run the table builder, then add the following line with you new refrences
-     *            static fn() => self::columnExistsOrExecuteSQL(self::COLUMNS[self::MODIFIED], self::TABLE_NAME,
+     *            static fn() => self::columnExistsOrExecuteSQL(self::COLUMNS[self::MODIFIED], self::class,
      *                  'alter table '.self::TABLE_NAME.' add '.self::COLUMNS[self::MODIFIED].' DATETIME default CURRENT_TIMESTAMP;'),
-     *            # this is fully dynamic and just requires your restbuilder be generted with our local schema, refer to the previous example 
-     *            static fn() => self::columnIsTypeOrChange(self::COLUMNS[self::MODIFIED], self::TABLE_NAME, self::PDO_VALIDATION[self::MODIFIED][self::MYSQL_TYPE]),
+     *            static fn() => self::columnIsTypeOrChange(self::COLUMNS[self::MODIFIED], self::class, self::PDO_VALIDATION[self::MODIFIED][self::MYSQL_TYPE]),
      *        ];
      *    }
      *
