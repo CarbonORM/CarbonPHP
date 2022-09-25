@@ -273,33 +273,33 @@ class Users extends Rest implements iRestSinglePrimaryKey
      * This is automatically generated. Modify your mysql table directly and rerun RestBuilder to see changes.
     **/
     public const PDO_VALIDATION = [
-        self::USER_USERNAME => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '100', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
-        self::USER_PASSWORD => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '225', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
-        self::USER_ID => [self::MYSQL_TYPE => 'binary', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '16', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
-        self::USER_TYPE => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '20', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => 'Athlete'],
-        self::USER_SPORT => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '20', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => 'GOLF'],
-        self::USER_SESSION_ID => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '225', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null],
-        self::USER_FACEBOOK_ID => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '225', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null],
-        self::USER_FIRST_NAME => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '25', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
-        self::USER_LAST_NAME => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '25', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
-        self::USER_PROFILE_PIC => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '225', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null],
-        self::USER_PROFILE_URI => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '225', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null],
-        self::USER_COVER_PHOTO => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '225', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null],
-        self::USER_BIRTHDAY => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '9', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null],
-        self::USER_GENDER => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '25', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null],
-        self::USER_ABOUT_ME => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '225', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null],
-        self::USER_RANK => [self::MYSQL_TYPE => 'int', self::PDO_TYPE => PDO::PARAM_INT, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => '0'],
-        self::USER_EMAIL => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '50', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
-        self::USER_EMAIL_CODE => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '225', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null],
-        self::USER_EMAIL_CONFIRMED => [self::MYSQL_TYPE => 'tinyint', self::PDO_TYPE => PDO::PARAM_INT, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => '0'],
-        self::USER_GENERATED_STRING => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '200', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null],
-        self::USER_MEMBERSHIP => [self::MYSQL_TYPE => 'int', self::PDO_TYPE => PDO::PARAM_INT, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => '0'],
-        self::USER_DEACTIVATED => [self::MYSQL_TYPE => 'tinyint', self::PDO_TYPE => PDO::PARAM_INT, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => '0'],
-        self::USER_LAST_LOGIN => [self::MYSQL_TYPE => 'datetime', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => self::CURRENT_TIMESTAMP],
-        self::USER_IP => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '20', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false],
-        self::USER_EDUCATION_HISTORY => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '200', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null],
-        self::USER_LOCATION => [self::MYSQL_TYPE => 'varchar', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '20', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null],
-        self::USER_CREATION_DATE => [self::MYSQL_TYPE => 'datetime', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => self::CURRENT_TIMESTAMP],
+        self::USER_USERNAME => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '100', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],
+        self::USER_PASSWORD => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '225', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],
+        self::USER_ID => [ self::MYSQL_TYPE => 'binary', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [Carbons::ENTITY_PK => [ self::CONSTRAINT_NAME => 'user_entity_entity_pk_fk', self::UPDATE_RULE => 'CASCADE', self::DELETE_RULE => 'CASCADE']], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '16', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],
+        self::USER_TYPE => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '20', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => 'Athlete' ],
+        self::USER_SPORT => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '20', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => 'GOLF' ],
+        self::USER_SESSION_ID => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '225', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null ],
+        self::USER_FACEBOOK_ID => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '225', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null ],
+        self::USER_FIRST_NAME => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '25', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],
+        self::USER_LAST_NAME => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '25', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],
+        self::USER_PROFILE_PIC => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '225', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null ],
+        self::USER_PROFILE_URI => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '225', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null ],
+        self::USER_COVER_PHOTO => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '225', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null ],
+        self::USER_BIRTHDAY => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '9', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null ],
+        self::USER_GENDER => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '25', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null ],
+        self::USER_ABOUT_ME => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '225', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null ],
+        self::USER_RANK => [ self::MYSQL_TYPE => 'int', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_INT, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => '0' ],
+        self::USER_EMAIL => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '50', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],
+        self::USER_EMAIL_CODE => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '225', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null ],
+        self::USER_EMAIL_CONFIRMED => [ self::MYSQL_TYPE => 'tinyint', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_INT, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => '0' ],
+        self::USER_GENERATED_STRING => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '200', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null ],
+        self::USER_MEMBERSHIP => [ self::MYSQL_TYPE => 'int', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_INT, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => '0' ],
+        self::USER_DEACTIVATED => [ self::MYSQL_TYPE => 'tinyint', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_INT, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => '0' ],
+        self::USER_LAST_LOGIN => [ self::MYSQL_TYPE => 'datetime', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => self::CURRENT_TIMESTAMP ],
+        self::USER_IP => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '20', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],
+        self::USER_EDUCATION_HISTORY => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '200', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null ],
+        self::USER_LOCATION => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '20', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null ],
+        self::USER_CREATION_DATE => [ self::MYSQL_TYPE => 'datetime', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => self::CURRENT_TIMESTAMP ],
     ];
      
     /**
@@ -318,7 +318,7 @@ class Users extends Rest implements iRestSinglePrimaryKey
      *
      *
      * Hint: the following may be uncommented and used to allow explicitly referencing methods with callbacks. No 
-     * parameters will be passed to the callbacks. The refrencing style above will also be respected in this array. The
+     * parameters will be passed to the callbacks. The referencing style above will also be respected in this array. The
      * example callables maybe removed. 
      *
      *    public function __construct(array &$return = [])
@@ -329,12 +329,19 @@ class Users extends Rest implements iRestSinglePrimaryKey
      *            static fn() => self::execute('ALTER TABLE mytbl ALTER j SET DEFAULT 1000;'),
      *            static fn() => self::execute('ALTER TABLE mytbl ALTER k DROP DEFAULT;'),
      *            static fn() => self::buildMysqlHistoryTrigger(self::TABLE_NAME),
+     *            # create the column in your local database first, re-run the table builder, then add the following line with you new refrences
      *            static fn() => self::columnExistsOrExecuteSQL(self::COLUMNS[self::MODIFIED], self::TABLE_NAME,
      *                  'alter table '.self::TABLE_NAME.' add '.self::COLUMNS[self::MODIFIED].' DATETIME default CURRENT_TIMESTAMP;'),
+     *            # this is fully dynamic and just requires your restbuilder be generted with our local schema, refer to the previous example 
+     *            static fn() => self::columnIsTypeOrChange(self::COLUMNS[self::MODIFIED], self::TABLE_NAME, self::PDO_VALIDATION[self::MODIFIED][self::MYSQL_TYPE]),
      *        ];
      *    }
      *
-     */
+     * @note columnExistsOrExecuteSQL and columnIsTypeOrChange are both automatically generated and process in the 
+     * background durnging a database refresh. You do not need to add them to your REFRESH_SCHEMA array. You can use them 
+     * in complex use cases shuch as data type manipulation as a refrence for your own custom directives.
+     *
+    **/
     public array $REFRESH_SCHEMA = [];
      
 
@@ -567,13 +574,13 @@ class Users extends Rest implements iRestSinglePrimaryKey
      *
      * @Note: the following may be uncommented and used to allow explicitly referencing methods with callbacks. No 
      * parameters will be passed to the callbacks. The refrencing style above will also be respected in this array. The
-     * example callables maybe removed. The static array value will be uninioned with the the public ( static += public ).
+     * example callables maybe removed. The static array value will be merged using php `[] + []` with the the public ( static += public ).
      *
      *    public function __construct(array &$return = [])
      *    {
      *        parent::__construct($return);
      *        
-     *        $this->$PHP_VALIDATION = [ 
+     *        $this->PHP_VALIDATION = [ 
      *            self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
      *                self::PREPROCESS => [
      *                    static fn() => self::disallowPublicAccess(self::class)

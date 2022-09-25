@@ -875,73 +875,66 @@ END;
 
                             if (false !== strpos($fullLineInCreateTableStatement, 'NOT NULL')) {
 
-                                if (false !== strpos($fullLineInCreateTableStatement, 'AUTO_INCREMENT')) {
 
-                                    $rest[$tableName]['explode'][$explodeArrayPosition]['default'] = '\'NOT NULL AUTO_INCREMENT\'';
+                                $rest[$tableName]['explode'][$explodeArrayPosition][iRest::NOT_NULL] = '\'NOT NULL\'';
 
-                                } else {
-
-                                    $rest[$tableName]['explode'][$explodeArrayPosition]['default'] = '\'NOT NULL\'';
-
-                                }
-
-                            } else {
-
-                                // Lets check if a default value is set for column
-                                $key = array_search('DEFAULT', $wordsInLine, true);
-
-                                if ($key !== false) {
-
-                                    ++$key; // move from the word default to the default value
-
-                                    $default = '';
-
-                                    // todo - the negitive case  && substr($words_in_insert_stmt[$key], -w) === '\\\\''
-
-                                    // if it ends in '  aka '0'
-                                    if (substr($wordsInLine[$key], -1) === '\'') {
-                                        $default = $wordsInLine[$key];
-                                        // if it ends with ',  as '0',
-                                    } else if (substr($wordsInLine[$key], -2) === '\',') {
-                                        $default = trim($wordsInLine[$key], ',');
-                                        // if it doesnt start with '  as CURRENT_TIMESTAMP
-                                    } else if ($wordsInLine[$key][0] !== '\'') {
-                                        $default = rtrim($wordsInLine[$key], ',');
-                                    } else {
-                                        // the first index does start in ' and doesnt end in '
-
-                                        do {
-                                            if ($key > 10) {
-                                                ColorCode::colorCode('Failed to understand MySQLDump File. Printing line ::');
-                                                sortDump($wordsInLine);
-                                            }
-                                            $default .= ' ' . $wordsInLine[$key];
-                                            $key++;
-                                        } while (substr($wordsInLine[$key], -1) !== '\''
-                                        && substr($wordsInLine[$key], -2) !== '\',');
-                                        $default .= ' ' . $wordsInLine[$key];
-                                        $default = trim($default, ', ');
-                                    }
-
-                                    if ($default === 'CURRENT_TIMESTAMP') {
-
-                                        // Were going to skip columns with this set as the default value
-                                        // Trying to insert this condition w/ PDO is problematic
-                                        $skipping_col[] = $name;
-
-                                        $rest[$tableName]['explode'][$explodeArrayPosition]['skip'] = true;
-
-                                        $rest[$tableName]['explode'][$explodeArrayPosition]['CURRENT_TIMESTAMP'] = true;
-
-                                    } else if (strpos($default, '\'') !== 0) {
-                                        // We need to escape values for php
-                                        $default = "'$default'";
-                                    }
-                                    /** @noinspection NestedTernaryOperatorInspection */
-                                    $rest[$tableName]['explode'][$explodeArrayPosition]['default'] = ($default === "'NULL'" ? 'null' : ($cast_binary_default ? 'null' : $default));
-                                }
 
                             }
+
+                            // Lets check if a default value is set for column
+                            $key = array_search('DEFAULT', $wordsInLine, true);
+
+                            if ($key !== false) {
+
+                                ++$key; // move from the word default to the default value
+
+                                $default = '';
+
+                                // todo - the negitive case  && substr($words_in_insert_stmt[$key], -w) === '\\\\''
+
+                                // if it ends in '  aka '0'
+                                if (substr($wordsInLine[$key], -1) === '\'') {
+                                    $default = $wordsInLine[$key];
+                                    // if it ends with ',  as '0',
+                                } else if (substr($wordsInLine[$key], -2) === '\',') {
+                                    $default = trim($wordsInLine[$key], ',');
+                                    // if it doesnt start with '  as CURRENT_TIMESTAMP
+                                } else if ($wordsInLine[$key][0] !== '\'') {
+                                    $default = rtrim($wordsInLine[$key], ',');
+                                } else {
+                                    // the first index does start in ' and doesnt end in '
+
+                                    do {
+                                        if ($key > 10) {
+                                            ColorCode::colorCode('Failed to understand MySQLDump File. Printing line ::');
+                                            sortDump($wordsInLine);
+                                        }
+                                        $default .= ' ' . $wordsInLine[$key];
+                                        $key++;
+                                    } while (substr($wordsInLine[$key], -1) !== '\''
+                                    && substr($wordsInLine[$key], -2) !== '\',');
+                                    $default .= ' ' . $wordsInLine[$key];
+                                    $default = trim($default, ', ');
+                                }
+
+                                if ($default === 'CURRENT_TIMESTAMP') {
+
+                                    // Were going to skip columns with this set as the default value
+                                    // Trying to insert this condition w/ PDO is problematic
+                                    $skipping_col[] = $name;
+
+                                    $rest[$tableName]['explode'][$explodeArrayPosition]['skip'] = true;
+
+                                    $rest[$tableName]['explode'][$explodeArrayPosition]['CURRENT_TIMESTAMP'] = true;
+
+                                } else if (strpos($default, '\'') !== 0) {
+                                    // We need to escape values for php
+                                    $default = "'$default'";
+                                }
+                                /** @noinspection NestedTernaryOperatorInspection */
+                                $rest[$tableName]['explode'][$explodeArrayPosition]['default'] = ($default === "'NULL'" ? 'null' : ($cast_binary_default ? 'null' : $default));
+                            }
+
 
                             // As far as I can tell the AUTO_INCREMENT condition the last possible word in the query
                             $auto_inc = count($wordsInLine) - 1;
@@ -1849,7 +1842,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
      * This is automatically generated. Modify your mysql table directly and rerun RestBuilder to see changes.
     **/
     public const PDO_VALIDATION = [{{#explode}}
-        self::{{caps}} => [self::MYSQL_TYPE => '{{mysql_type}}', self::COLUMN_CONSTRAINTS => [{{#COLUMN_CONSTRAINTS}}{{key}} => [ self::CONSTRAINT_NAME => '{{CONSTRAINT_NAME}}', self::UPDATE_RULE => {{UPDATE_RULE}}, self::DELETE_RULE => {{DELETE_RULE}}]{{/COLUMN_CONSTRAINTS}}], self::PDO_TYPE => {{type}}, self::MAX_LENGTH => '{{length}}', self::AUTO_INCREMENT => {{#auto_increment}}true{{/auto_increment}}{{^auto_increment}}false{{/auto_increment}}, self::SKIP_COLUMN_IN_POST => {{#skip}}true{{/skip}}{{^skip}}false{{/skip}}{{#default}}, self::DEFAULT_POST_VALUE => {{#CURRENT_TIMESTAMP}}self::CURRENT_TIMESTAMP{{/CURRENT_TIMESTAMP}}{{^CURRENT_TIMESTAMP}}{{{default}}}{{/CURRENT_TIMESTAMP}}{{/default}}],{{/explode}}
+        self::{{caps}} => [ self::MYSQL_TYPE => '{{mysql_type}}', self::NOT_NULL => {{#NOT_NULL}}true{{/NOT_NULL}}{{^NOT_NULL}}false{{/NOT_NULL}}, self::COLUMN_CONSTRAINTS => [{{#COLUMN_CONSTRAINTS}}{{key}} => [ self::CONSTRAINT_NAME => '{{CONSTRAINT_NAME}}', self::UPDATE_RULE => {{UPDATE_RULE}}, self::DELETE_RULE => {{DELETE_RULE}}]{{/COLUMN_CONSTRAINTS}}], self::PDO_TYPE => {{type}}, self::MAX_LENGTH => '{{length}}', self::AUTO_INCREMENT => {{#auto_increment}}true{{/auto_increment}}{{^auto_increment}}false{{/auto_increment}}, self::SKIP_COLUMN_IN_POST => {{#skip}}true{{/skip}}{{^skip}}false{{/skip}}{{#default}}, self::DEFAULT_POST_VALUE => {{#CURRENT_TIMESTAMP}}self::CURRENT_TIMESTAMP{{/CURRENT_TIMESTAMP}}{{^CURRENT_TIMESTAMP}}{{{default}}}{{/CURRENT_TIMESTAMP}}{{/default}} ],{{/explode}}
     ];
      
     /**
@@ -1868,7 +1861,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
      *
      *
      * Hint: the following may be uncommented and used to allow explicitly referencing methods with callbacks. No 
-     * parameters will be passed to the callbacks. The refrencing style above will also be respected in this array. The
+     * parameters will be passed to the callbacks. The referencing style above will also be respected in this array. The
      * example callables maybe removed. 
      *
      *    public function __construct(array &\$return = [])
@@ -1887,7 +1880,11 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
      *        ];
      *    }
      *
-     */{{^REFRESH_SCHEMA_PUBLIC}}
+     * @note columnExistsOrExecuteSQL and columnIsTypeOrChange are both automatically generated and process in the 
+     * background durnging a database refresh. You do not need to add them to your REFRESH_SCHEMA array. You can use them 
+     * in complex use cases shuch as data type manipulation as a refrence for your own custom directives.
+     *
+    **/{{^REFRESH_SCHEMA_PUBLIC}}
     public array \$REFRESH_SCHEMA = [];{{/REFRESH_SCHEMA_PUBLIC}}
      {{#REFRESH_SCHEMA_PUBLIC}}{{{REFRESH_SCHEMA_PUBLIC}}}{{/REFRESH_SCHEMA_PUBLIC}}
      {{^REFRESH_SCHEMA}}
@@ -2045,7 +2042,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
      *
      * @Note: the following may be uncommented and used to allow explicitly referencing methods with callbacks. No 
      * parameters will be passed to the callbacks. The refrencing style above will also be respected in this array. The
-     * example callables maybe removed. The static array value will be uninioned with the the public ( static += public ).
+     * example callables maybe removed. The static array value will be merged using php `[] + []` with the the public ( static += public ).
      *
      *    public function __construct(array &\$return = [])
      *    {

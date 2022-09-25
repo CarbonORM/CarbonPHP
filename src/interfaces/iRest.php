@@ -96,6 +96,7 @@ interface iRest
     public const NOT_LIKE = 'NOT_LIKE';
     public const NOT_EQUAL = '<>';
     public const NOT_IN = 'NOT_IN';
+    public const NOT_NULL = 'NOT_NULL';
     public const NOW = 'NOW';
     public const NULL = 'NULL';
 

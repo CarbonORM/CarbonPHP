@@ -149,8 +149,8 @@ class Group_References extends Rest implements iRestNoPrimaryKey
      * This is automatically generated. Modify your mysql table directly and rerun RestBuilder to see changes.
     **/
     public const PDO_VALIDATION = [
-        self::GROUP_ID => [self::MYSQL_TYPE => 'binary', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '16', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null],
-        self::ALLOWED_TO_GRANT_GROUP_ID => [self::MYSQL_TYPE => 'binary', self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '16', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null],
+        self::GROUP_ID => [ self::MYSQL_TYPE => 'binary', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [Carbons::ENTITY_PK => [ self::CONSTRAINT_NAME => 'carbon_group_references_carbons_entity_pk_fk', self::UPDATE_RULE => 'CASCADE', self::DELETE_RULE => 'CASCADE']], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '16', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null ],
+        self::ALLOWED_TO_GRANT_GROUP_ID => [ self::MYSQL_TYPE => 'binary', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [Carbons::ENTITY_PK => [ self::CONSTRAINT_NAME => 'carbon_group_references_carbons_entity_pk_fk_2', self::UPDATE_RULE => 'CASCADE', self::DELETE_RULE => 'CASCADE']], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '16', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null ],
     ];
      
     /**
@@ -169,7 +169,7 @@ class Group_References extends Rest implements iRestNoPrimaryKey
      *
      *
      * Hint: the following may be uncommented and used to allow explicitly referencing methods with callbacks. No 
-     * parameters will be passed to the callbacks. The refrencing style above will also be respected in this array. The
+     * parameters will be passed to the callbacks. The referencing style above will also be respected in this array. The
      * example callables maybe removed. 
      *
      *    public function __construct(array &$return = [])
@@ -180,12 +180,19 @@ class Group_References extends Rest implements iRestNoPrimaryKey
      *            static fn() => self::execute('ALTER TABLE mytbl ALTER j SET DEFAULT 1000;'),
      *            static fn() => self::execute('ALTER TABLE mytbl ALTER k DROP DEFAULT;'),
      *            static fn() => self::buildMysqlHistoryTrigger(self::TABLE_NAME),
+     *            # create the column in your local database first, re-run the table builder, then add the following line with you new refrences
      *            static fn() => self::columnExistsOrExecuteSQL(self::COLUMNS[self::MODIFIED], self::TABLE_NAME,
      *                  'alter table '.self::TABLE_NAME.' add '.self::COLUMNS[self::MODIFIED].' DATETIME default CURRENT_TIMESTAMP;'),
+     *            # this is fully dynamic and just requires your restbuilder be generted with our local schema, refer to the previous example 
+     *            static fn() => self::columnIsTypeOrChange(self::COLUMNS[self::MODIFIED], self::TABLE_NAME, self::PDO_VALIDATION[self::MODIFIED][self::MYSQL_TYPE]),
      *        ];
      *    }
      *
-     */
+     * @note columnExistsOrExecuteSQL and columnIsTypeOrChange are both automatically generated and process in the 
+     * background durnging a database refresh. You do not need to add them to your REFRESH_SCHEMA array. You can use them 
+     * in complex use cases shuch as data type manipulation as a refrence for your own custom directives.
+     *
+    **/
     public array $REFRESH_SCHEMA = [];
      
 
@@ -342,13 +349,13 @@ class Group_References extends Rest implements iRestNoPrimaryKey
      *
      * @Note: the following may be uncommented and used to allow explicitly referencing methods with callbacks. No 
      * parameters will be passed to the callbacks. The refrencing style above will also be respected in this array. The
-     * example callables maybe removed. The static array value will be uninioned with the the public ( static += public ).
+     * example callables maybe removed. The static array value will be merged using php `[] + []` with the the public ( static += public ).
      *
      *    public function __construct(array &$return = [])
      *    {
      *        parent::__construct($return);
      *        
-     *        $this->$PHP_VALIDATION = [ 
+     *        $this->PHP_VALIDATION = [ 
      *            self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
      *                self::PREPROCESS => [
      *                    static fn() => self::disallowPublicAccess(self::class)

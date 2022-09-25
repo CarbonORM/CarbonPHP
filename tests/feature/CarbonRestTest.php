@@ -723,6 +723,8 @@ class CarbonRestTest extends Config
             ]
         ];
 
+        define('WP_DEBUG_TEST', true);
+
         $id = Wp_Users::post($data);
 
         //$first_id =

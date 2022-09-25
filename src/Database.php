@@ -5,6 +5,7 @@ namespace CarbonPHP;
 use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iColorCode;
+use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
 use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
@@ -764,7 +765,7 @@ FOOT;
      * $array['following'] = self::fetchColumn('SELECT follows_user_id FROM user_followers WHERE user_id = ?', $id);
      *
      * @param string $sql - variables should be denoted by question marks
-     * @param array ...$execute -
+     * @param ...$execute -
      *  if multiple question marks exist you may use comma separated parameters to fill the statement
      * @return array
      */
@@ -1011,6 +1012,12 @@ FOOT;
 
             self::addTablePrefix($internalTableName, $fullyQualifiedClassName::TABLE_PREFIX, $ignoreRef);
 
+            $constraintName = $fullyQualifiedClassName::PDO_VALIDATION[$internalTableColumn][iRest::COLUMN_CONSTRAINTS][$externalTableColumn][iRest::CONSTRAINT_NAME];
+
+            $onDelete = $fullyQualifiedClassName::PDO_VALIDATION[$internalTableColumn][iRest::COLUMN_CONSTRAINTS][$externalTableColumn][iRest::DELETE_RULE];
+
+            $onUpdate = $fullyQualifiedClassName::PDO_VALIDATION[$internalTableColumn][iRest::COLUMN_CONSTRAINTS][$externalTableColumn][iRest::UPDATE_RULE];
+
             $verifySqlConstraint = 'SELECT CONSTRAINT_NAME
                                         FROM  INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
                                         WHERE REFERENCED_TABLE_SCHEMA = ?
@@ -1018,58 +1025,18 @@ FOOT;
                                         AND REFERENCED_COLUMN_NAME = ?
                                         AND TABLE_NAME = ?
                                         AND COLUMN_NAME = ?
-                ;';
+                                        AND CONSTRAINT_NAME = ?;';
 
-            $values = self::fetch($verifySqlConstraint, self::$carbonDatabaseName, $externalTableName, $externalColumnName, $internalTableName, $internalColumnName);
+            $values = self::fetchColumn($verifySqlConstraint, self::$carbonDatabaseName, $externalTableName, $externalColumnName, $internalTableName, $internalColumnName, $constraintName);
 
             if ([] === $values) {
 
-                self::colorCode("Failed to verify that the table ($internalTableName) contains FOREIGN KEY CONSTRAINT ($externalTableName.$externalColumnName) => ($internalTableName.$internalColumnName) using sql ($verifySqlConstraint) with key values (" . self::$carbonDatabaseName . ", $externalTableName, $externalColumnName, $internalTableName, $internalColumnName) respectively.", iColorCode::RED);
+                self::colorCode("Failed to verify that the table ($internalTableName) contains FOREIGN KEY NAME ($constraintName) CONSTRAINT ($externalTableName.$externalColumnName) => ($internalTableName.$internalColumnName) using sql ($verifySqlConstraint) with key values (" . self::$carbonDatabaseName . ", $externalTableName, $externalColumnName, $internalTableName, $internalColumnName, $constraintName) respectively.", iColorCode::RED);
 
-                $tableCreateSTMT = $fullyQualifiedClassName::CREATE_TABLE_SQL;
-
-                // CONSTRAINT_NAME
-                $constraintNameRegex = "#CONSTRAINT (?:FOREIGN KEY )?(?:\()?`(.*)`(?:\))?(?: FOREIGN KEY)? \(`$internalColumnName`\) REFERENCES `(?:$externalTableName|$preUpdateExternalTableName)` \(`$externalColumnName`\)(.*)?#";
-
-                if (false === preg_match_all($constraintNameRegex, $tableCreateSTMT, $cMatches)) {
-
-                    throw new PublicAlert("Failed to preg_match with :: " . print_r(['regex' => $constraintNameRegex, 'matches' => $cMatches, '$tableCreateSTMT' => $tableCreateSTMT], true));
-
-                }
-
-                $constraintName = $cMatches[1][0] ?? '';
-
-                $constraintProperties = $cMatches[2][0] ?? '';
-
-                $constraintProperties = rtrim($constraintProperties, ' ,');
-
-                if ('' === $constraintName) {
-
-                    self::colorCode("Failed to find the constraint name in the table creation SQL \n($tableCreateSTMT)\n with regex ($constraintNameRegex)\n\n", iColorCode::RED);
-
-                    $failureEncountered = true;
-
-                    continue;
-
-                }
-
-                $addConstraint = "ALTER TABLE $internalTableName ADD CONSTRAINT $constraintName FOREIGN KEY ($internalColumnName) REFERENCES $externalTableName ($externalColumnName) $constraintProperties;";
-
-                self::colorCode("Attempting to run :: ($addConstraint)", iColorCode::CYAN);
-
-                if (false === self::execute($addConstraint)) {
-
-                    self::colorCode("Failed to create constraint using generated sql ::", iColorCode::RED);
-
-                    self::colorCode("$addConstraint\n\n", iColorCode::RED);
-
-                    $failureEncountered = true;
-
-                    continue;
-
-                }
-
-                self::colorCode('The missing constraint was automatically added. You should re-run the build.');
+                self::recreateColumnConstraint(
+                    $constraintName, $internalTableName,
+                    $internalColumnName, $externalTableName,
+                    $externalColumnName, $onDelete, $onUpdate);
 
                 $constraintsAdded = true;
 
@@ -1171,13 +1138,70 @@ FOOT;
 
         $getCurrentSchema = self::$carbonDatabaseName;
 
-        self::colorCode("\n\n\nDone Creating Tables. REFRESH_SCHEMA <$getCurrentSchema>\n\n", iColorCode::BACKGROUND_GREEN);
+        self::colorCode("\n\n\nDone Creating New Tables. <$getCurrentSchema>\n\n", iColorCode::BACKGROUND_GREEN);
 
         self::scanAnd(static function (string $table): void {
+
+            if (!defined("$table::COLUMNS")) {
+
+                ColorCode::colorCode("The generated constant $table::COLUMNS does not exist. Rerun RestBuilder to repopulate.", iColorCode::YELLOW);
+
+                exit(24);
+
+            }
+
+            if (!defined("$table::TABLE_NAME")) {
+
+                ColorCode::colorCode("The generated constant $table::TABLE_NAME does not exist. Rerun RestBuilder to repopulate.", iColorCode::YELLOW);
+
+                exit(24);
+
+            }
+
+            if (!defined("$table::PDO_VALIDATION")) {
+
+                ColorCode::colorCode("The generated constant $table::PDO_VALIDATION does not exist. Rerun RestBuilder to repopulate.", iColorCode::YELLOW);
+
+                exit(24);
+
+            }
+
+            $pdoValidations = $table::PDO_VALIDATION;
+
+            $tableName = $table::TABLE_NAME;
+
+            $compiledColumns = $table::COLUMNS;
+
+
+            foreach ($compiledColumns as $fullyQualified => $shortName) {
+
+                $defaultValue = $pdoValidations[$shortName]['default'] ?? null;
+
+                $notNull = $pdoValidations[$fullyQualified][iRest::NOT_NULL] ? ' NOT NULL ' : '';
+
+                $autoIncrement = $pdoValidations[$fullyQualified][iRest::AUTO_INCREMENT] ? ' AUTO_INCREMENT ' : '';
+
+                self::columnExistsOrExecuteSQL($shortName, $tableName,
+                    'ALTER TABLE ' . $tableName . ' ADD ' . $tableName
+                    . ' ' . $pdoValidations[$fullyQualified][iRest::MYSQL_TYPE]
+                    . $notNull . $autoIncrement
+                    . ( null === $defaultValue ?:' DEFAULT ' . $pdoValidations[$fullyQualified][iRest::DEFAULT_POST_VALUE]) . ';');
+
+                ColorCode::colorCode("Verified column ($fullyQualified) exists.", iColorCode::BACKGROUND_MAGENTA);
+
+                $maxLength = $pdoValidations[$fullyQualified][iRest::MAX_LENGTH] ?? '';
+
+                self::columnIsTypeOrChange($shortName, $tableName,
+                    $pdoValidations[$fullyQualified][iRest::MYSQL_TYPE]
+                    . ('' === $maxLength ? '' : '(' . $maxLength . ')'));
+
+            }
 
             if (!defined("$table::REFRESH_SCHEMA")) {
 
                 ColorCode::colorCode("The generated constant $table::REFRESH_SCHEMA does not exist. Rerun RestBuilder to repopulate.", iColorCode::YELLOW);
+
+                exit(24);
 
             }
 
@@ -1380,7 +1404,7 @@ FOOT;
 
             if (false === self::verifyAndCreateForeignKeyRelations($fullyQualifiedClassName, $pregMatchSchema)) {
 
-                self::colorCode("Failed druing verifyAndCreateForeignKeyRelations:", iColorCode::RED);
+                self::colorCode("Failed during verifyAndCreateForeignKeyRelations:", iColorCode::RED);
 
                 $failureEncountered = true;
 
@@ -1423,7 +1447,7 @@ FOOT;
                     . "($fullyQualifiedClassName::VALIDATE_AFTER_REBUILD = false;) and re-try; this can also be set to "
                     . ' false if you would like to manage table definition(s) using other means.'
                     . ' To update your table using REFRESH_SCHEMA, please refer to the documentation that is been provided'
-                    . " above this constant in the php class for $tableName.", iColorCode::RED);
+                    . " above this constant in the php class for ($tableName).", iColorCode::RED);
 
                 self::colorCode("If the new SQL appears correct you probably"
                     . " just need to re-run the RestBuilder program (not the database rebuild program currently raising error).", iColorCode::BACKGROUND_YELLOW);
@@ -1433,7 +1457,6 @@ FOOT;
                 ColorCode::colorCode("Expected (pre-updated sql) :: $preUpdateSQL\n\n", iColorCode::YELLOW);
 
                 ColorCode::colorCode("GOT (post-updated sql) :: $postUpdateSQL\n\n", iColorCode::BLUE);    // I want to bring your attention back to the red ^^ then down to blue
-
 
                 ColorCode::colorCode("\tChanges <$databaseName>\n", iColorCode::ITALIC);
                 ColorCode::colorCode("\tWhat's currently in your local database:", iColorCode::CYAN);
@@ -1541,7 +1564,7 @@ FOOT;
 
     }
 
-    public static function columnConstraintVerification(
+    public static function recreateColumnConstraint(
         string $constraintName,
         string $tableName,
         string $columnName,
@@ -1586,7 +1609,7 @@ AND CONSTRAINT_NAME = '$constraintName'");
 
             if ([] !== $doesCurrentConstraintNameExist) {
 
-                ColorCode::colorCode("The constraint name `$constraintName` already exists on table `$tableName`. We will remove the old relation. Please make sure this is intended.", iColorCode::WARNING);
+                ColorCode::colorCode("The constraint name `$constraintName` already exists on table `$tableName`. We will remove the old relation. Please make sure this is intended.", iColorCode::YELLOW);
 
                 $result = self::execute("ALTER TABLE `$tableName` DROP FOREIGN KEY `$constraintName`");
 
@@ -1647,7 +1670,7 @@ AND CONSTRAINT_NAME = '$constraintName'");
 
         } else {
 
-            self::colorCode("The ($column) already exists on table ($table_name).");
+            self::colorCode("The column ($column) was validated to already exists on table ($table_name).");
 
         }
 
@@ -1660,7 +1683,7 @@ AND CONSTRAINT_NAME = '$constraintName'");
         $currentSchema = self::$carbonDatabaseName;
 
         // Check if exist the column named image
-        $currentType = self::fetchColumn("SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '$currentSchema' AND TABLE_NAME = '$table_name' AND COLUMN_NAME = '$column'")[0] ?? '';
+        $currentType = self::fetchColumn("SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '$currentSchema' AND TABLE_NAME = '$table_name' AND COLUMN_NAME = '$column'")[0] ?? '';
 
         // If not exists
         if ($type !== $currentType) {
@@ -1685,7 +1708,7 @@ AND CONSTRAINT_NAME = '$constraintName'");
 
         } else {
 
-            self::colorCode("The ($column) already exists on table ($table_name).");
+            self::colorCode("Verified column ($column) already exists as type ($type) on table ($table_name).");
 
         }
 

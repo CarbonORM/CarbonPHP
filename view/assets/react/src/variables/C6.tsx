@@ -1531,13 +1531,13 @@ export const wp_commentmeta : C6RestfulModel & iDefineWp_Commentmeta = {
     },
     TYPE_VALIDATION: {
         'carbon_wp_commentmeta.meta_id': { 
-            MYSQL_TYPE: 'bigint', 
+            MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: true, 
             SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_commentmeta.comment_id': { 
-            MYSQL_TYPE: 'bigint', 
+            MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
             SKIP_COLUMN_IN_POST: false 
@@ -1637,13 +1637,13 @@ export const wp_comments : C6RestfulModel & iDefineWp_Comments = {
     },
     TYPE_VALIDATION: {
         'carbon_wp_comments.comment_ID': { 
-            MYSQL_TYPE: 'bigint', 
+            MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: true, 
             SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_comments.comment_post_ID': { 
-            MYSQL_TYPE: 'bigint', 
+            MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
             SKIP_COLUMN_IN_POST: false 
@@ -1715,13 +1715,13 @@ export const wp_comments : C6RestfulModel & iDefineWp_Comments = {
             SKIP_COLUMN_IN_POST: false 
         },
         'carbon_wp_comments.comment_parent': { 
-            MYSQL_TYPE: 'bigint', 
+            MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
             SKIP_COLUMN_IN_POST: false 
         },
         'carbon_wp_comments.user_id': { 
-            MYSQL_TYPE: 'bigint', 
+            MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
             SKIP_COLUMN_IN_POST: false 
@@ -1801,7 +1801,7 @@ export const wp_links : C6RestfulModel & iDefineWp_Links = {
     },
     TYPE_VALIDATION: {
         'carbon_wp_links.link_id': { 
-            MYSQL_TYPE: 'bigint', 
+            MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: true, 
             SKIP_COLUMN_IN_POST: true 
@@ -1843,7 +1843,7 @@ export const wp_links : C6RestfulModel & iDefineWp_Links = {
             SKIP_COLUMN_IN_POST: false 
         },
         'carbon_wp_links.link_owner': { 
-            MYSQL_TYPE: 'bigint', 
+            MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
             SKIP_COLUMN_IN_POST: false 
@@ -1917,7 +1917,7 @@ export const wp_options : C6RestfulModel & iDefineWp_Options = {
     },
     TYPE_VALIDATION: {
         'carbon_wp_options.option_id': { 
-            MYSQL_TYPE: 'bigint', 
+            MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: true, 
             SKIP_COLUMN_IN_POST: true 
@@ -1979,13 +1979,13 @@ export const wp_postmeta : C6RestfulModel & iDefineWp_Postmeta = {
     },
     TYPE_VALIDATION: {
         'carbon_wp_postmeta.meta_id': { 
-            MYSQL_TYPE: 'bigint', 
+            MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: true, 
             SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_postmeta.post_id': { 
-            MYSQL_TYPE: 'bigint', 
+            MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
             SKIP_COLUMN_IN_POST: false 
@@ -2117,13 +2117,13 @@ export const wp_posts : C6RestfulModel & iDefineWp_Posts = {
     },
     TYPE_VALIDATION: {
         'carbon_wp_posts.ID': { 
-            MYSQL_TYPE: 'bigint', 
+            MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: true, 
             SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_posts.post_author': { 
-            MYSQL_TYPE: 'bigint', 
+            MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
             SKIP_COLUMN_IN_POST: false 
@@ -2219,7 +2219,7 @@ export const wp_posts : C6RestfulModel & iDefineWp_Posts = {
             SKIP_COLUMN_IN_POST: false 
         },
         'carbon_wp_posts.post_parent': { 
-            MYSQL_TYPE: 'bigint', 
+            MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
             SKIP_COLUMN_IN_POST: false 
@@ -2290,13 +2290,13 @@ export const wp_term_relationships : C6RestfulModel & iDefineWp_Term_Relationshi
     },
     TYPE_VALIDATION: {
         'carbon_wp_term_relationships.object_id': { 
-            MYSQL_TYPE: 'bigint', 
+            MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
             SKIP_COLUMN_IN_POST: false 
         },
         'carbon_wp_term_relationships.term_taxonomy_id': { 
-            MYSQL_TYPE: 'bigint', 
+            MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
             SKIP_COLUMN_IN_POST: false 
@@ -2354,13 +2354,13 @@ export const wp_term_taxonomy : C6RestfulModel & iDefineWp_Term_Taxonomy = {
     },
     TYPE_VALIDATION: {
         'carbon_wp_term_taxonomy.term_taxonomy_id': { 
-            MYSQL_TYPE: 'bigint', 
+            MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: true, 
             SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_term_taxonomy.term_id': { 
-            MYSQL_TYPE: 'bigint', 
+            MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
             SKIP_COLUMN_IN_POST: false 
@@ -2378,7 +2378,7 @@ export const wp_term_taxonomy : C6RestfulModel & iDefineWp_Term_Taxonomy = {
             SKIP_COLUMN_IN_POST: false 
         },
         'carbon_wp_term_taxonomy.parent': { 
-            MYSQL_TYPE: 'bigint', 
+            MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
             SKIP_COLUMN_IN_POST: false 
@@ -2428,13 +2428,13 @@ export const wp_termmeta : C6RestfulModel & iDefineWp_Termmeta = {
     },
     TYPE_VALIDATION: {
         'carbon_wp_termmeta.meta_id': { 
-            MYSQL_TYPE: 'bigint', 
+            MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: true, 
             SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_termmeta.term_id': { 
-            MYSQL_TYPE: 'bigint', 
+            MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
             SKIP_COLUMN_IN_POST: false 
@@ -2490,7 +2490,7 @@ export const wp_terms : C6RestfulModel & iDefineWp_Terms = {
     },
     TYPE_VALIDATION: {
         'carbon_wp_terms.term_id': { 
-            MYSQL_TYPE: 'bigint', 
+            MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: true, 
             SKIP_COLUMN_IN_POST: true 
@@ -2552,13 +2552,13 @@ export const wp_usermeta : C6RestfulModel & iDefineWp_Usermeta = {
     },
     TYPE_VALIDATION: {
         'carbon_wp_usermeta.umeta_id': { 
-            MYSQL_TYPE: 'bigint', 
+            MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: true, 
             SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_usermeta.user_id': { 
-            MYSQL_TYPE: 'bigint', 
+            MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
             SKIP_COLUMN_IN_POST: false 
@@ -2638,7 +2638,7 @@ export const wp_users : C6RestfulModel & iDefineWp_Users = {
     },
     TYPE_VALIDATION: {
         'carbon_wp_users.ID': { 
-            MYSQL_TYPE: 'bigint', 
+            MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: true, 
             SKIP_COLUMN_IN_POST: true 
