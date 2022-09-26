@@ -1226,7 +1226,7 @@ WHERE cols.TABLE_SCHEMA=?
 
                 $type = $pdoValidations[$fullyQualified][iRest::MYSQL_TYPE];
 
-                $maxLength = '' === $maxLength || ( $maxLength === '1' && $type === 'tinyint' )
+                $maxLength = '' === $maxLength || ($maxLength === '1' && $type === 'tinyint')
                     ? '' : "($maxLength) ";
 
                 $sql = 'ALTER TABLE ' . $tableName . ' ADD ' . $shortName
@@ -1247,8 +1247,8 @@ WHERE cols.TABLE_SCHEMA=?
 
                 $maxLength = $pdoValidations[$fullyQualified][iRest::MAX_LENGTH] ?? '';
 
-                $maxLength = '' === $maxLength || ( $maxLength === '1' && $type === 'tinyint' )
-                    ? '' : "($maxLength) ";
+                $maxLength = '' === $maxLength || ($maxLength === '1' && $type === 'tinyint')
+                    ? '' : "($maxLength)";
 
 
                 self::columnIsTypeOrChange($shortName, $table,
@@ -1594,7 +1594,7 @@ WHERE cols.TABLE_SCHEMA=?
 
             }
 
-            self::colorCode('After Refreshing the database one should rerun the RestBuilder program to capture any changes made to tables with (public const VALIDATE_AFTER_REBUILD = false;)!', iColorCode::CYAN);
+            self::colorCode('After refreshing the database one should rerun the RestBuilder program to capture any changes made to tables with (public const VALIDATE_AFTER_REBUILD = false;)!', iColorCode::CYAN);
 
         } catch (Throwable $e) {
 
@@ -1670,7 +1670,7 @@ AND links.REFERENCED_TABLE_NAME = ?";
             ColorCode::colorCode("Dropping old constraint ($oldConstraintName) to replace with new name ($constraintName) from table ($tableName). Old values :: \n" . print_r($constraintOld, true), iColorCode::YELLOW);
 
             $dropConstraint = /** @lang MySQL */
-                "ALTER TABLE ".self::$carbonDatabaseName.".". $tableName . " DROP FOREIGN KEY $oldConstraintName;";
+                "ALTER TABLE " . self::$carbonDatabaseName . "." . $tableName . " DROP FOREIGN KEY $oldConstraintName;";
 
             $result = self::execute($dropConstraint);
 
@@ -1697,7 +1697,7 @@ AND links.REFERENCED_TABLE_NAME = ?";
 FROM information_schema.KEY_COLUMN_USAGE
 WHERE TABLE_SCHEMA = '" . self::$carbonDatabaseName . "'
 AND TABLE_NAME = '$tableName'
-AND CONSTRAINT_NAME = '$constraintName'" );
+AND CONSTRAINT_NAME = '$constraintName'");
 
             if ([] !== $doesCurrentConstraintNameExist) {
 
@@ -1865,10 +1865,15 @@ AND CONSTRAINT_NAME = '$constraintName'" );
 
             ColorCode::colorCode(" The values set on the database are :: " . print_r([
                     'type' => $currentType,
+                    'typesMatch' => $typesMatch,
                     'default' => $currentDefault,
+                    'defaultsMatch' => $defaultsMatch,
                     'nullable' => $currentNullable,
+                    'currentNullablesMatch' => $currentNullablesMatch,
                     'auto_increment' => $currentAutoIncrement,
+                    'autoIncrementMatches' => $autoIncrementMatches,
                     'comment' => $currentComment,
+                    'commentsMatch' => $commentsMatch
                 ], true), iColorCode::YELLOW);
 
             $optionalDefault = false === $defaultsMatch || null !== $defaultValue ? "DEFAULT " . ($defaultValue ?? 'NULL') : '';
@@ -1893,7 +1898,7 @@ AND CONSTRAINT_NAME = '$constraintName'" );
 
         } else {
 
-            self::colorCode("Verified column ($tableName.$column) already exists as type ($type) on table ($tableName) with comment ($comment)=($currentComment) default ($currentDefault).");
+            self::colorCode("Verified column ($tableName.$column) already exists as type ($type) on table ($tableName) with comment ($currentComment) default ($currentDefault).", iColorCode::CYAN);
 
         }
 
