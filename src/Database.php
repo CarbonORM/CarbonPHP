@@ -1222,12 +1222,15 @@ WHERE cols.TABLE_SCHEMA=?
 
                 $autoIncrement = $pdoValidations[$fullyQualified][iRest::AUTO_INCREMENT] ? ' AUTO_INCREMENT ' : '';
 
-                $maxLength = (false !== $pdoValidations[$fullyQualified][iRest::MAX_LENGTH] ?? false)
-                    ? '(' . $pdoValidations[$fullyQualified][iRest::MAX_LENGTH] . ') '
-                    : '';
+                $maxLength = $pdoValidations[$fullyQualified][iRest::MAX_LENGTH] ?? '';
+
+                $type = $pdoValidations[$fullyQualified][iRest::MYSQL_TYPE];
+
+                $maxLength = '' === $maxLength || ( $maxLength === '1' && $type === 'tinyint' )
+                    ? '' : "($maxLength) ";
 
                 $sql = 'ALTER TABLE ' . $tableName . ' ADD ' . $shortName
-                    . ' ' . $pdoValidations[$fullyQualified][iRest::MYSQL_TYPE] . $maxLength
+                    . ' ' . $type . $maxLength
                     . $notNull . $autoIncrement
                     . (array_key_exists('default', $pdoValidations[$fullyQualified])
                         ? ' DEFAULT ' . ($pdoValidations[$fullyQualified][iRest::DEFAULT_POST_VALUE] ?? 'NULL')
@@ -1755,7 +1758,7 @@ AND CONSTRAINT_NAME = '$constraintName'" );
         // If not exists
         if ([] === $existed) {
 
-            self::colorCode("Column ($column) did not appear to exist. Attempting to run ($sql).");
+            self::colorCode("Column ($column) did not appear to exist. Attempting to run ($sql).", iColorCode::YELLOW);
 
             if (self::execute($sql)) {
 
