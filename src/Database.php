@@ -1247,9 +1247,12 @@ WHERE cols.TABLE_SCHEMA=?
 
                 $maxLength = $pdoValidations[$fullyQualified][iRest::MAX_LENGTH] ?? '';
 
+                $maxLength = '' === $maxLength || ( $maxLength === '1' && $type === 'tinyint' )
+                    ? '' : "($maxLength) ";
+
+
                 self::columnIsTypeOrChange($shortName, $table,
-                    $pdoValidations[$fullyQualified][iRest::MYSQL_TYPE]
-                    . ('' === $maxLength ? '' : '(' . $maxLength . ')'));
+                    $pdoValidations[$fullyQualified][iRest::MYSQL_TYPE] . $maxLength);
 
             }
 
