@@ -815,10 +815,8 @@ class Migrate implements iCommand
             return $string_after;
         };
 
-        $replace = "sed -e 's/" . $delimited($string)
-            . "/" . $delimited($replacement)
+        $replace = "sed -e 's/" . $delimited($string) . "/" . $delimited($replacement)
             . "/g' $absoluteFilePath > $absoluteFilePath.txt && rm $absoluteFilePath && mv $absoluteFilePath.txt $absoluteFilePath";
-
 
         Background::executeAndCheckStatus($replace);
 

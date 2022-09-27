@@ -67,9 +67,6 @@ jobs:
       - name: ./vendor/se/selenium-server-standalone/composer/bin/selenium-server-standalone &
         run: ./vendor/se/selenium-server-standalone/composer/bin/selenium-server-standalone &
 
-      - name: composer wordpress:download:unpack
-        run: composer wordpress:download:unpack
-
       - name: ./vendor/bin/wp core update-db
         run: ./vendor/bin/wp core update-db
 
