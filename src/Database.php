@@ -1069,7 +1069,10 @@ WHERE cols.TABLE_SCHEMA=?
 
             if ([] === $values) {
 
-                self::colorCode("Failed to verify that the table ($internalTableName) contains FOREIGN KEY NAME ($constraintName) CONSTRAINT ($externalTableName.$externalColumnName) => ($internalTableName.$internalColumnName) using sql ($verifySqlConstraint) with key values (" . self::$carbonDatabaseName . ", $externalTableName, $externalColumnName, $internalTableName, $internalColumnName, $constraintName, $onDelete, $onUpdate) respectively.", iColorCode::BACKGROUND_YELLOW);
+
+                self::colorCode("Failed to verify that the table ($internalTableName) contains FOREIGN KEY NAME ($constraintName) CONSTRAINT ($externalTableName.$externalColumnName) => ($internalTableName.$internalColumnName) using sql ($verifySqlConstraint)",iColorCode::BACKGROUND_YELLOW);
+
+                self::colorCode(" key values (" . self::$carbonDatabaseName . ", $externalTableName, $externalColumnName, $internalTableName, $internalColumnName, $constraintName, $onDelete, $onUpdate) respectively.", iColorCode::BACKGROUND_CYAN);
 
                 self::recreateColumnConstraint(
                     $constraintName, $internalTableName,
@@ -1704,9 +1707,9 @@ AND CONSTRAINT_NAME = '$constraintName'");
                 ColorCode::colorCode("The constraint name ($constraintName) already exists on table ($tableName). We will remove the old relation. Please make sure this is intended.", iColorCode::YELLOW);
 
                 $dropConstraint = /** @lang MySQL */
-                    "ALTER TABLE $tableName DROP FOREIGN KEY ?";
+                    "ALTER TABLE $tableName DROP FOREIGN KEY $constraintName";
 
-                $result = self::execute($dropConstraint, $constraintName);
+                $result = self::execute($dropConstraint);
 
                 if (false === $result) {
 
@@ -1717,6 +1720,8 @@ AND CONSTRAINT_NAME = '$constraintName'");
                 }
 
                 ColorCode::colorCode("Dropped foreign key `$constraintName` on table `$tableName`. Preparing to update.", iColorCode::CYAN);
+
+                sleep(1);
 
             } else {
 

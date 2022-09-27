@@ -693,9 +693,9 @@ END;
 
                         $references_column = trim($wordsInLine[7], '()`,');
 
-                        $onDelete = trim($wordsInLine[10] ?? 'RESTRICT', '()`,');
+                        $onDelete = trim($wordsInLine[10] ?? 'NO ACTION', '()`,');
 
-                        $onUpdate = trim($wordsInLine[13] ?? 'RESTRICT', '()`,');
+                        $onUpdate = trim($wordsInLine[13] ?? 'NO ACTION', '()`,');
 
                         $rest[$tableName]['CARBON_CARBONS_PRIMARY_KEY'] ??= false;
 
