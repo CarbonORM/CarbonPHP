@@ -693,21 +693,25 @@ END;
 
                         $references_column = trim($wordsInLine[7], '()`,');
 
-                        if ("wp_zesv6j_dig_comp_platform_ibfk_2" === $constraintName) {
-                            sortDump($wordsInLine);
-                        }
-
                         $deleteKey = array_search('DELETE', $wordsInLine, true);
 
                         $onDelete = false !== $deleteKey
                             ? trim($wordsInLine[$deleteKey + 1], ',')
-                            : 'NO ACTION';
+                            : 'NO';
 
                         $updateKey = array_search('UPDATE', $wordsInLine, true);
 
                         $onUpdate = false !== $updateKey
                             ? trim($wordsInLine[$updateKey + 1], ',')
-                            : 'NO ACTION';
+                            : 'NO';
+
+                        if ('NO' === $onDelete) {
+                            $onDelete .= ' ACTION';
+                        }
+
+                        if ('NO' === $onUpdate) {
+                            $onUpdate .= ' ACTION';
+                        }
 
                         $rest[$tableName]['CARBON_CARBONS_PRIMARY_KEY'] ??= false;
 

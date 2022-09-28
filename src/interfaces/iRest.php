@@ -202,9 +202,9 @@ interface iRest
         /** @lang PhpRegExp */
         '#DEFAULT CHARSET=[A-Za-z0-9_]+#' => '',   // todo - I feel like this makes sense to flag but Actions
         /** @lang PhpRegExp */
-        '#ON DELETE RESTRICT#' => ' ',
+        '#ON DELETE NO ACTION#' => ' ',
         /** @lang PhpRegExp */
-        '#ON UPDATE RESTRICT#' => ' ',   // delete and update are the default and mysql dump my choose to optionally print them
+        '#ON UPDATE NO ACTION#' => ' ',   // delete and update are the default and mysql dump my choose to optionally print them
         /** @lang PhpRegExp */
         '#\s{2,}#' => ' ',
         /** @lang PhpRegExp */
