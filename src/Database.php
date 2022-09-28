@@ -1696,15 +1696,43 @@ AND links.REFERENCED_TABLE_NAME = ?";
                 . " Checking if new name ($constraintName) already exists.", iColorCode::CYAN);
 
             // this only checks if a name collision may happen.
-            $doesCurrentConstraintNameExist = self::fetchColumn(/** @lang MySQL */ "SELECT CONSTRAINT_NAME, TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME
-FROM information_schema.KEY_COLUMN_USAGE
+            $doesCurrentConstraintNameExist = self::fetchColumn(/** @lang MySQL */ "SELECT 
+    links.CONSTRAINT_NAME,
+    cols.TABLE_NAME, cols.COLUMN_NAME, cols.ORDINAL_POSITION,
+    cols.COLUMN_DEFAULT, cols.IS_NULLABLE, cols.DATA_TYPE,
+    cols.CHARACTER_MAXIMUM_LENGTH, cols.CHARACTER_OCTET_LENGTH,
+    cols.NUMERIC_PRECISION, cols.NUMERIC_SCALE,
+    cols.COLUMN_TYPE, cols.COLUMN_KEY, cols.EXTRA,
+    cols.COLUMN_COMMENT, refs.REFERENCED_TABLE_NAME, refs.REFERENCED_COLUMN_NAME,
+    cRefs.UPDATE_RULE, cRefs.DELETE_RULE,
+    links.TABLE_NAME, links.COLUMN_NAME,
+    cLinks.UPDATE_RULE, cLinks.DELETE_RULE
+FROM INFORMATION_SCHEMA.`COLUMNS` as cols
+         LEFT JOIN INFORMATION_SCHEMA.`KEY_COLUMN_USAGE` AS refs
+                   ON refs.TABLE_SCHEMA=cols.TABLE_SCHEMA
+                       AND refs.REFERENCED_TABLE_SCHEMA=cols.TABLE_SCHEMA
+                       AND refs.TABLE_NAME=cols.TABLE_NAME
+                       AND refs.COLUMN_NAME=cols.COLUMN_NAME
+         LEFT JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS AS cRefs
+                   ON cRefs.CONSTRAINT_SCHEMA=cols.TABLE_SCHEMA
+                       AND cRefs.CONSTRAINT_NAME=refs.CONSTRAINT_NAME
+         LEFT JOIN INFORMATION_SCHEMA.`KEY_COLUMN_USAGE` AS links
+                   ON links.TABLE_SCHEMA=cols.TABLE_SCHEMA
+                       AND links.REFERENCED_TABLE_SCHEMA=cols.TABLE_SCHEMA
+                       AND links.REFERENCED_TABLE_NAME=cols.TABLE_NAME
+                       AND links.REFERENCED_COLUMN_NAME=cols.COLUMN_NAME
+         LEFT JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS AS cLinks
+                   ON cLinks.CONSTRAINT_SCHEMA=cols.TABLE_SCHEMA
+                       AND cLinks.CONSTRAINT_NAME=links.CONSTRAINT_NAME
 WHERE TABLE_SCHEMA = '" . self::$carbonDatabaseName . "'
 AND TABLE_NAME = '$tableName'
 AND CONSTRAINT_NAME = '$constraintName'");
 
             if ([] !== $doesCurrentConstraintNameExist) {
 
-                ColorCode::colorCode("The constraint name ($constraintName) already exists on table ($tableName). We will remove the old relation. Please make sure this is intended.", iColorCode::YELLOW);
+                ColorCode::colorCode("The constraint name ($constraintName) already exists on table ($tableName). We will remove the old relation. Please make sure this is intended. Old constraint::", iColorCode::YELLOW);
+
+                ColorCode::colorCode(print_r($doesCurrentConstraintNameExist, true), iColorCode::BACKGROUND_YELLOW);
 
                 $dropConstraint = /** @lang MySQL */
                     "ALTER TABLE $tableName DROP FOREIGN KEY $constraintName";
