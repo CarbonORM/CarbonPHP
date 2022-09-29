@@ -1762,11 +1762,14 @@ AND CONSTRAINT_NAME = '$constraintName'");
 
         }
 
-        $result = self::execute(/** @lang MySQL */ "ALTER TABLE `$tableName` ADD CONSTRAINT `$constraintName` FOREIGN KEY (`$columnName`) REFERENCES `$referenceTable` (`$referenceColumn`) ON DELETE $onDelete ON UPDATE $onUpdate");
+        $addConstraint = /** @lang MySQL */
+            "ALTER TABLE `$tableName` ADD CONSTRAINT `$constraintName` FOREIGN KEY (`$columnName`) REFERENCES `$referenceTable` (`$referenceColumn`) ON DELETE $onDelete ON UPDATE $onUpdate";
+
+        $result = self::execute($addConstraint);
 
         if (false === $result) {
 
-            ColorCode::colorCode("Failed to add foreign key ($constraintName) on table ($tableName)", iColorCode::RED);
+            ColorCode::colorCode("Failed to add foreign key ($constraintName) on table ($tableName) with SQL ($addConstraint)", iColorCode::RED);
 
             exit(61);
 
