@@ -1726,9 +1726,9 @@ FROM INFORMATION_SCHEMA.`COLUMNS` as cols
          LEFT JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS AS cLinks
                    ON cLinks.CONSTRAINT_SCHEMA=cols.TABLE_SCHEMA
                        AND cLinks.CONSTRAINT_NAME=links.CONSTRAINT_NAME
-WHERE TABLE_SCHEMA = '" . self::$carbonDatabaseName . "'
-AND TABLE_NAME = '$tableName'
-AND CONSTRAINT_NAME = '$constraintName'");
+WHERE cols.TABLE_SCHEMA = '" . self::$carbonDatabaseName . "'
+AND links.TABLE_NAME = '$tableName'
+AND links.CONSTRAINT_NAME = '$constraintName'");
 
             if ([] !== $doesCurrentConstraintNameExist) {
 
