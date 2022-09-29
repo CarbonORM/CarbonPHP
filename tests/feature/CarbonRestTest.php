@@ -359,11 +359,11 @@ class CarbonRestTest extends Config
 
         self::assertArrayHasKey(1, self::$restChallenge[1]);
 
-        self::assertEquals(iRest::POST, self::$restChallenge[1][1]); // start at 0 ;)
+        self::assertEquals(iRest::POST, self::$restChallenge[1][2]); // start at 0 ;)
 
-        self::assertEquals(iRest::PREPROCESS, self::$restChallenge[1][2]); // start at 0 ;)
+        self::assertEquals(iRest::PREPROCESS, self::$restChallenge[1][3]); // start at 0 ;)
 
-        self::assertEquals(User_Tasks::PERCENT_COMPLETE, self::$restChallenge[3][1]);
+        self::assertEquals(User_Tasks::PERCENT_COMPLETE, self::$restChallenge[4][2] ?? 'NOT SET', 'Failed to see the correct value at [3][1] => ' . print_r(self::$restChallenge, true));
 
     }
 

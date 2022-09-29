@@ -183,18 +183,21 @@ FOOT;
 
             case 'HY000':
 
-                ColorCode::colorCode('Caught connection reset code (HY000)', iColorCode::BACKGROUND_MAGENTA);
+                $code = $e->getMessage();
 
-                ColorCode::colorCode('A recursive error has been detected. C6 has detected the MySQL'
-                    . ' database in a broken pipe state. We have attempted to reset the database and rerun the'
-                    . ' query in question. This process then threw the exact same error. Please make sure no long'
-                    . ' running queries are being terminated by MySQL. If you have over ridden the driver settings '
-                    . ' and are in a long running process make sure PDO::ATTR_PERSISTENT => true is present. Finally,'
-                    . ' please make sure you are not manually terminating the connection. Attempting to parse error.', iColorCode::BACKGROUND_RED);
+                if ('SQLSTATE[HY000]: General error: 2006 MySQL server has gone away' === $code) {
 
-                self::reset();
+                    ColorCode::colorCode('Caught connection reset code (HY000)', iColorCode::BACKGROUND_MAGENTA);
 
-                self::reset(true);
+                    self::reset();
+
+                    self::reset(true);
+
+                    return;
+
+                }
+
+                ErrorCatcher::generateBrowserReport($log_array);  // this terminates
 
                 return;
 
@@ -1070,7 +1073,7 @@ WHERE cols.TABLE_SCHEMA=?
             if ([] === $values) {
 
 
-                self::colorCode("Failed to verify that the table ($internalTableName) contains FOREIGN KEY NAME ($constraintName) CONSTRAINT ($externalTableName.$externalColumnName) => ($internalTableName.$internalColumnName) using sql ($verifySqlConstraint)",iColorCode::BACKGROUND_YELLOW);
+                self::colorCode("Failed to verify that the table ($internalTableName) contains FOREIGN KEY NAME ($constraintName) CONSTRAINT ($externalTableName.$externalColumnName) => ($internalTableName.$internalColumnName) using sql ($verifySqlConstraint)", iColorCode::BACKGROUND_YELLOW);
 
                 self::colorCode(" key values (" . self::$carbonDatabaseName . ", $externalTableName, $externalColumnName, $internalTableName, $internalColumnName, $constraintName, $onDelete, $onUpdate) respectively.", iColorCode::BACKGROUND_CYAN);
 

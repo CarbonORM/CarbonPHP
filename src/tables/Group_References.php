@@ -149,8 +149,8 @@ class Group_References extends Rest implements iRestNoPrimaryKey
      * This is automatically generated. Modify your mysql table directly and rerun RestBuilder to see changes.
     **/
     public const PDO_VALIDATION = [
-        self::GROUP_ID => [ self::MYSQL_TYPE => 'binary', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [Carbons::ENTITY_PK => [ self::CONSTRAINT_NAME => 'carbon_group_references_carbons_entity_pk_fk', self::UPDATE_RULE => 'CASCADE', self::DELETE_RULE => 'CASCADE']], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '16', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null ],
-        self::ALLOWED_TO_GRANT_GROUP_ID => [ self::MYSQL_TYPE => 'binary', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [Carbons::ENTITY_PK => [ self::CONSTRAINT_NAME => 'carbon_group_references_carbons_entity_pk_fk_2', self::UPDATE_RULE => 'CASCADE', self::DELETE_RULE => 'CASCADE']], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '16', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null ],
+        self::GROUP_ID => [ self::MYSQL_TYPE => 'binary', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [Carbons::ENTITY_PK => [ self::CONSTRAINT_NAME => 'carbon_group_references_carbons_entity_pk_fk', self::UPDATE_RULE => 'CASCADE', self::DELETE_RULE => 'CASCADE']], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '16', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => null ],
+        self::ALLOWED_TO_GRANT_GROUP_ID => [ self::MYSQL_TYPE => 'binary', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [Carbons::ENTITY_PK => [ self::CONSTRAINT_NAME => 'carbon_group_references_carbons_entity_pk_fk_2', self::UPDATE_RULE => 'CASCADE', self::DELETE_RULE => 'CASCADE']], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '16', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => null ],
     ];
      
     /**

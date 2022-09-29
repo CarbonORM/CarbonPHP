@@ -126,13 +126,13 @@ export const carbons : C6RestfulModel & iDefineCarbons = {
             MYSQL_TYPE: 'binary', 
             MAX_LENGTH: '16', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_carbons.entity_tag': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '100', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
     },
     REGEX_VALIDATION: {
@@ -229,13 +229,13 @@ export const feature_group_references : C6RestfulModel & iDefineFeature_Group_Re
             MYSQL_TYPE: 'binary', 
             MAX_LENGTH: '16', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_feature_group_references.group_entity_id': { 
             MYSQL_TYPE: 'binary', 
             MAX_LENGTH: '16', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
     },
     REGEX_VALIDATION: {
@@ -322,13 +322,13 @@ export const group_references : C6RestfulModel & iDefineGroup_References = {
             MYSQL_TYPE: 'binary', 
             MAX_LENGTH: '16', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_group_references.allowed_to_grant_group_id': { 
             MYSQL_TYPE: 'binary', 
             MAX_LENGTH: '16', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
     },
     REGEX_VALIDATION: {
@@ -447,25 +447,25 @@ export const history_logs : C6RestfulModel & iDefineHistory_Logs = {
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '255', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_history_logs.history_type': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '20', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_history_logs.history_data': { 
             MYSQL_TYPE: 'json', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_history_logs.history_original_query': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '1024', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_history_logs.history_time': { 
             MYSQL_TYPE: 'datetime', 
@@ -588,43 +588,43 @@ export const locations : C6RestfulModel & iDefineLocations = {
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '225', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_locations.longitude': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '225', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_locations.street': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '225', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_locations.city': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '40', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_locations.state': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '10', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_locations.elevation': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '40', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_locations.zip': { 
             MYSQL_TYPE: 'int', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
     },
     REGEX_VALIDATION: {
@@ -739,7 +739,7 @@ export const reports : C6RestfulModel & iDefineReports = {
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '20', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_reports.report': { 
             MYSQL_TYPE: 'text', 
@@ -815,7 +815,7 @@ export const sessions : C6RestfulModel & iDefineSessions = {
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '20', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_sessions.session_id': { 
             MYSQL_TYPE: 'varchar', 
@@ -839,7 +839,7 @@ export const sessions : C6RestfulModel & iDefineSessions = {
             MYSQL_TYPE: 'tinyint', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
     },
     REGEX_VALIDATION: {
@@ -926,13 +926,13 @@ export const user_groups : C6RestfulModel & iDefineUser_Groups = {
             MYSQL_TYPE: 'binary', 
             MAX_LENGTH: '16', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_user_groups.user_id': { 
             MYSQL_TYPE: 'binary', 
             MAX_LENGTH: '16', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
     },
     REGEX_VALIDATION: {
@@ -1008,7 +1008,7 @@ export const user_messages : C6RestfulModel & iDefineUser_Messages = {
             MYSQL_TYPE: 'tinyint', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_user_messages.creation_date': { 
             MYSQL_TYPE: 'datetime', 
@@ -1072,7 +1072,7 @@ export const user_sessions : C6RestfulModel & iDefineUser_Sessions = {
             MYSQL_TYPE: 'binary', 
             MAX_LENGTH: '16', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_user_sessions.session_id': { 
             MYSQL_TYPE: 'varchar', 
@@ -1096,7 +1096,7 @@ export const user_sessions : C6RestfulModel & iDefineUser_Sessions = {
             MYSQL_TYPE: 'tinyint', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
     },
     REGEX_VALIDATION: {
@@ -1168,7 +1168,7 @@ export const user_tasks : C6RestfulModel & iDefineUser_Tasks = {
             MYSQL_TYPE: 'binary', 
             MAX_LENGTH: '16', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_user_tasks.task_name': { 
             MYSQL_TYPE: 'varchar', 
@@ -1180,25 +1180,25 @@ export const user_tasks : C6RestfulModel & iDefineUser_Tasks = {
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '225', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_user_tasks.percent_complete': { 
             MYSQL_TYPE: 'int', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_user_tasks.start_date': { 
             MYSQL_TYPE: 'datetime', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_user_tasks.end_date': { 
             MYSQL_TYPE: 'datetime', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
     },
     REGEX_VALIDATION: {
@@ -1352,25 +1352,25 @@ export const users : C6RestfulModel & iDefineUsers = {
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '20', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_users.user_sport': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '20', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_users.user_session_id': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '225', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_users.user_facebook_id': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '225', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_users.user_first_name': { 
             MYSQL_TYPE: 'varchar', 
@@ -1388,43 +1388,43 @@ export const users : C6RestfulModel & iDefineUsers = {
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '225', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_users.user_profile_uri': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '225', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_users.user_cover_photo': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '225', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_users.user_birthday': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '9', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_users.user_gender': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '25', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_users.user_about_me': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '225', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_users.user_rank': { 
             MYSQL_TYPE: 'int', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_users.user_email': { 
             MYSQL_TYPE: 'varchar', 
@@ -1436,31 +1436,31 @@ export const users : C6RestfulModel & iDefineUsers = {
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '225', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_users.user_email_confirmed': { 
             MYSQL_TYPE: 'tinyint', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_users.user_generated_string': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '200', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_users.user_membership': { 
             MYSQL_TYPE: 'int', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_users.user_deactivated': { 
             MYSQL_TYPE: 'tinyint', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_users.user_last_login': { 
             MYSQL_TYPE: 'datetime', 
@@ -1478,13 +1478,13 @@ export const users : C6RestfulModel & iDefineUsers = {
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '200', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_users.user_location': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '20', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_users.user_creation_date': { 
             MYSQL_TYPE: 'datetime', 
@@ -1540,13 +1540,13 @@ export const wp_commentmeta : C6RestfulModel & iDefineWp_Commentmeta = {
             MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_commentmeta.meta_key': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '255', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_commentmeta.meta_value': { 
             MYSQL_TYPE: 'longtext', 
@@ -1646,7 +1646,7 @@ export const wp_comments : C6RestfulModel & iDefineWp_Comments = {
             MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_comments.comment_author': { 
             MYSQL_TYPE: 'tinytext', 
@@ -1658,31 +1658,31 @@ export const wp_comments : C6RestfulModel & iDefineWp_Comments = {
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '100', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_comments.comment_author_url': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '200', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_comments.comment_author_IP': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '100', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_comments.comment_date': { 
             MYSQL_TYPE: 'datetime', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_comments.comment_date_gmt': { 
             MYSQL_TYPE: 'datetime', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_comments.comment_content': { 
             MYSQL_TYPE: 'text', 
@@ -1694,37 +1694,37 @@ export const wp_comments : C6RestfulModel & iDefineWp_Comments = {
             MYSQL_TYPE: 'int', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_comments.comment_approved': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '20', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_comments.comment_agent': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '255', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_comments.comment_type': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '20', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_comments.comment_parent': { 
             MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_comments.user_id': { 
             MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
     },
     REGEX_VALIDATION: {
@@ -1810,61 +1810,61 @@ export const wp_links : C6RestfulModel & iDefineWp_Links = {
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '255', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_links.link_name': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '255', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_links.link_image': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '255', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_links.link_target': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '25', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_links.link_description': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '255', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_links.link_visible': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '20', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_links.link_owner': { 
             MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_links.link_rating': { 
             MYSQL_TYPE: 'int', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_links.link_updated': { 
             MYSQL_TYPE: 'datetime', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_links.link_rel': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '255', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_links.link_notes': { 
             MYSQL_TYPE: 'mediumtext', 
@@ -1876,7 +1876,7 @@ export const wp_links : C6RestfulModel & iDefineWp_Links = {
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '255', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
     },
     REGEX_VALIDATION: {
@@ -1926,7 +1926,7 @@ export const wp_options : C6RestfulModel & iDefineWp_Options = {
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '191', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_options.option_value': { 
             MYSQL_TYPE: 'longtext', 
@@ -1938,7 +1938,7 @@ export const wp_options : C6RestfulModel & iDefineWp_Options = {
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '20', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
     },
     REGEX_VALIDATION: {
@@ -1988,13 +1988,13 @@ export const wp_postmeta : C6RestfulModel & iDefineWp_Postmeta = {
             MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_postmeta.meta_key': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '255', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_postmeta.meta_value': { 
             MYSQL_TYPE: 'longtext', 
@@ -2126,19 +2126,19 @@ export const wp_posts : C6RestfulModel & iDefineWp_Posts = {
             MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_posts.post_date': { 
             MYSQL_TYPE: 'datetime', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_posts.post_date_gmt': { 
             MYSQL_TYPE: 'datetime', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_posts.post_content': { 
             MYSQL_TYPE: 'longtext', 
@@ -2162,31 +2162,31 @@ export const wp_posts : C6RestfulModel & iDefineWp_Posts = {
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '20', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_posts.comment_status': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '20', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_posts.ping_status': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '20', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_posts.post_password': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '255', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_posts.post_name': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '200', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_posts.to_ping': { 
             MYSQL_TYPE: 'text', 
@@ -2204,13 +2204,13 @@ export const wp_posts : C6RestfulModel & iDefineWp_Posts = {
             MYSQL_TYPE: 'datetime', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_posts.post_modified_gmt': { 
             MYSQL_TYPE: 'datetime', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_posts.post_content_filtered': { 
             MYSQL_TYPE: 'longtext', 
@@ -2222,37 +2222,37 @@ export const wp_posts : C6RestfulModel & iDefineWp_Posts = {
             MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_posts.guid': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '255', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_posts.menu_order': { 
             MYSQL_TYPE: 'int', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_posts.post_type': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '20', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_posts.post_mime_type': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '100', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_posts.comment_count': { 
             MYSQL_TYPE: 'bigint', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
     },
     REGEX_VALIDATION: {
@@ -2293,19 +2293,19 @@ export const wp_term_relationships : C6RestfulModel & iDefineWp_Term_Relationshi
             MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_term_relationships.term_taxonomy_id': { 
             MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_term_relationships.term_order': { 
             MYSQL_TYPE: 'int', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
     },
     REGEX_VALIDATION: {
@@ -2363,13 +2363,13 @@ export const wp_term_taxonomy : C6RestfulModel & iDefineWp_Term_Taxonomy = {
             MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_term_taxonomy.taxonomy': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '32', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_term_taxonomy.description': { 
             MYSQL_TYPE: 'longtext', 
@@ -2381,13 +2381,13 @@ export const wp_term_taxonomy : C6RestfulModel & iDefineWp_Term_Taxonomy = {
             MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_term_taxonomy.count': { 
             MYSQL_TYPE: 'bigint', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
     },
     REGEX_VALIDATION: {
@@ -2437,13 +2437,13 @@ export const wp_termmeta : C6RestfulModel & iDefineWp_Termmeta = {
             MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_termmeta.meta_key': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '255', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_termmeta.meta_value': { 
             MYSQL_TYPE: 'longtext', 
@@ -2499,19 +2499,19 @@ export const wp_terms : C6RestfulModel & iDefineWp_Terms = {
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '200', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_terms.slug': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '200', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_terms.term_group': { 
             MYSQL_TYPE: 'bigint', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
     },
     REGEX_VALIDATION: {
@@ -2561,13 +2561,13 @@ export const wp_usermeta : C6RestfulModel & iDefineWp_Usermeta = {
             MYSQL_TYPE: 'bigint unsigned', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_usermeta.meta_key': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '255', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_usermeta.meta_value': { 
             MYSQL_TYPE: 'longtext', 
@@ -2647,55 +2647,55 @@ export const wp_users : C6RestfulModel & iDefineWp_Users = {
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '60', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_users.user_pass': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '255', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_users.user_nicename': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '50', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_users.user_email': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '100', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_users.user_url': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '100', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_users.user_registered': { 
             MYSQL_TYPE: 'datetime', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_users.user_activation_key': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '255', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_users.user_status': { 
             MYSQL_TYPE: 'int', 
             MAX_LENGTH: '', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
         'carbon_wp_users.display_name': { 
             MYSQL_TYPE: 'varchar', 
             MAX_LENGTH: '250', 
             AUTO_INCREMENT: false, 
-            SKIP_COLUMN_IN_POST: false 
+            SKIP_COLUMN_IN_POST: true 
         },
     },
     REGEX_VALIDATION: {

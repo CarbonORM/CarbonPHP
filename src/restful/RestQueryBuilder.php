@@ -1198,7 +1198,6 @@ TRIGGER;
         }
 
 
-
         // SELECT seat_no
         // FROM seats JOIN seat_rows USING ( row_no )
         // WHERE seat_no IN (3,4) AND seat_rows.row_no IN (12)
@@ -1637,7 +1636,7 @@ TRIGGER;
 
             self::$allowSubSelectQueries = true;
 
-            static::startRest(self::GET, self::$REST_REQUEST_PARAMETERS, $primary, $argv, true);
+            static::startRest(self::GET, self::$REST_REQUEST_PARAMETERS, $argv, $primary, true);
 
             $sql = self::buildSelectQuery($primary, $argv, true);
 

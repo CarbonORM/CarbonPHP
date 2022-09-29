@@ -157,7 +157,7 @@ class Reports extends Rest implements iRestNoPrimaryKey
      * This is automatically generated. Modify your mysql table directly and rerun RestBuilder to see changes.
     **/
     public const PDO_VALIDATION = [
-        self::LOG_LEVEL => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '20', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null ],
+        self::LOG_LEVEL => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '20', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => null ],
         self::REPORT => [ self::MYSQL_TYPE => 'text', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],
         self::DATE => [ self::MYSQL_TYPE => 'datetime', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => self::CURRENT_TIMESTAMP ],
         self::CALL_TRACE => [ self::MYSQL_TYPE => 'text', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],

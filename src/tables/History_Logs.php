@@ -168,10 +168,10 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
     **/
     public const PDO_VALIDATION = [
         self::HISTORY_UUID => [ self::MYSQL_TYPE => 'binary', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '16', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],
-        self::HISTORY_TABLE => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '255', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null ],
-        self::HISTORY_TYPE => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '20', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null ],
-        self::HISTORY_DATA => [ self::MYSQL_TYPE => 'json', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null ],
-        self::HISTORY_ORIGINAL_QUERY => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '1024', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false, self::DEFAULT_POST_VALUE => null ],
+        self::HISTORY_TABLE => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '255', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => null ],
+        self::HISTORY_TYPE => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '20', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => null ],
+        self::HISTORY_DATA => [ self::MYSQL_TYPE => 'json', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => null ],
+        self::HISTORY_ORIGINAL_QUERY => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '1024', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => null ],
         self::HISTORY_TIME => [ self::MYSQL_TYPE => 'datetime', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => self::CURRENT_TIMESTAMP ],
     ];
      

@@ -577,26 +577,26 @@ abstract class Rest extends RestLifeCycle
 
     }
 
-    protected static function insert(array &$post = [])
+    protected static function insert(array &$postRequestBody = [])
     {
         do {
             try {
 
-                self::startRest(self::POST, [], $post);
+                self::startRest(self::POST, [], $postRequestBody);
 
                 // format the data as it multiple rows are to be posted at the same time
-                if ([] !== $post && true === self::has_string_keys($post)) {
+                if ([] !== $postRequestBody && true === self::has_string_keys($postRequestBody)) {
 
-                    $post = [
+                    $postRequestBody = [
 
-                        $post
+                        $postRequestBody
 
                     ];
 
                 }
 
                 // loop through each row of new values
-                foreach ($post as $iValue) {
+                foreach ($postRequestBody as $iValue) {
 
                     // loop throw and validate each of the values // column names
                     foreach ($iValue as $columnName => $postValue) {
@@ -615,9 +615,15 @@ abstract class Rest extends RestLifeCycle
 
                 $pdo_values = $bound_values = [];
 
-                $rowsToInsert = count($post);
+                $rowsToInsert = count($postRequestBody);
 
-                $i = 0;
+                $totalKeys = $i = 0;
+
+                $firstKey = array_key_first($postRequestBody) ?? 0;
+
+                $firstRowKeys = array_keys($postRequestBody[$firstKey] ?? []);
+
+
 
                 do {
 
@@ -625,13 +631,23 @@ abstract class Rest extends RestLifeCycle
 
                     foreach (static::COLUMNS as $fullName => $shortName) {
 
-                        if (static::PDO_VALIDATION[$fullName][self::SKIP_COLUMN_IN_POST] ?? false) {
+                        $canSkip = static::PDO_VALIDATION[$fullName][self::SKIP_COLUMN_IN_POST] ?? false;
 
-                            continue;
+                        if (true === $canSkip) {
+
+                            if (false === in_array($fullName, $firstRowKeys, true)){
+
+                                continue;
+
+                            }
+
+                            PublicAlert::info('The column has a default value :: ' . $fullName);
 
                         }
 
                         if ($i === 0) {
+
+                            $totalKeys++;
 
                             $keys .= "$shortName, ";
 
@@ -650,6 +666,12 @@ abstract class Rest extends RestLifeCycle
                     ++$i;
 
                 } while ($i < $rowsToInsert);
+
+                if (0 === $totalKeys) {
+
+                    return self::signalError('An unexpected error has occurred, please open a support ticket at https://github.com/RichardTMiles/CarbonPHP/issues.');
+
+                }
 
                 $sql = self::INSERT . ' INTO '
                     . (static::QUERY_WITH_DATABASE ? static::DATABASE . '.' : '')
@@ -686,22 +708,29 @@ abstract class Rest extends RestLifeCycle
 
                 do {
 
-                    $post[$i] ??= [];
+                    $postRequestBody[$i] ??= [];
 
-                    $iValue = &$post[$i];   // this allows you to get your binary keys if they were C6 enabled.
+                    $iValue = &$postRequestBody[$i];   // this allows you to get your binary keys if they were C6 enabled.
 
                     foreach (static::PDO_VALIDATION as $fullName => $info) {
 
-                        if ($info[self::SKIP_COLUMN_IN_POST] ?? false) {
+                        $canSkip = $info[self::SKIP_COLUMN_IN_POST] ?? false;
 
-                            if (array_key_exists($fullName, $iValue)
-                                && self::CURRENT_TIMESTAMP === ($info[self::DEFAULT_POST_VALUE] ?? '')) {
+                        if ($canSkip) {
+
+                            $isExplicitlySet = array_key_exists($fullName, $iValue);
+
+                            if (false === $isExplicitlySet) {
+
+                                continue;
+
+                            }
+
+                            if (self::CURRENT_TIMESTAMP === ($info[self::DEFAULT_POST_VALUE] ?? '')) {
 
                                 return self::signalError("The column ($fullName) is set to default to CURRENT_TIMESTAMP. The Rest API does not allow POST requests with columns explicitly set whose default is CURRENT_TIMESTAMP. You can remove to the default in MySQL or the column ($fullName) from the request.");
 
                             }
-
-                            continue;
 
                         }
 
@@ -863,7 +892,7 @@ abstract class Rest extends RestLifeCycle
 
                 if (static::AUTO_INCREMENT_PRIMARY_KEY) {
 
-                    $post[0][static::PRIMARY] = $id = $pdo->lastInsertId();
+                    $postRequestBody[0][static::PRIMARY] = $id = $pdo->lastInsertId();
 
                     if (1 < $rowsToInsert) {
 
@@ -889,13 +918,13 @@ abstract class Rest extends RestLifeCycle
 
                 } else {
 
-                    $id = $post[0][static::PRIMARY];
+                    $id = $postRequestBody[0][static::PRIMARY];
 
                 }
 
                 if (null === $id) {
 
-                    return self::signalError("Failed to parse the id of the first inserted element after running ($sql); (" . json_encode($post) . ')');
+                    return self::signalError("Failed to parse the id of the first inserted element after running ($sql); (" . json_encode($postRequestBody) . ')');
 
                 }
 

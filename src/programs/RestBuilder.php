@@ -904,6 +904,10 @@ END;
 
                                 ++$key; // move from the word default to the default value
 
+                                // Were going to skip columns with this set as the default value
+                                // Trying to insert this condition w/ PDO is unneeded complexity
+                                $rest[$tableName]['explode'][$explodeArrayPosition]['skip'] = true;
+
                                 $default = '';
 
                                 // todo - the negative case  && substr($words_in_insert_stmt[$key], -w) === '\\\\''
@@ -930,10 +934,6 @@ END;
                                 }
 
                                 if ($default === 'CURRENT_TIMESTAMP') {
-
-                                    // Were going to skip columns with this set as the default value
-                                    // Trying to insert this condition w/ PDO is problematic
-                                    $rest[$tableName]['explode'][$explodeArrayPosition]['skip'] = true;
 
                                     $rest[$tableName]['explode'][$explodeArrayPosition]['CURRENT_TIMESTAMP'] = true;
 
