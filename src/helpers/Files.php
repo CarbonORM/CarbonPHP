@@ -174,7 +174,9 @@ class Files
 
         }
 
-        if (false === is_dir($directory) && (false === mkdir($directory, 775, true) || false === is_dir($directory))) {
+        if (false === is_dir($directory)
+            && false === mkdir($directory, 775, true)
+            && false === is_dir($directory)) {
 
             throw new PublicAlert('The directory (' . $directory . ') does not exists and failed to be created (' . $location . ') failed.');
 
