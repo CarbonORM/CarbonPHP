@@ -1232,8 +1232,7 @@ WHERE cols.TABLE_SCHEMA=?
 
                 $type = $pdoValidations[$fullyQualified][iRest::MYSQL_TYPE];
 
-                $maxLength = '' === $maxLength || ($maxLength === '1' && $type === 'tinyint')
-                    ? '' : "($maxLength) ";
+                $maxLength = '' === $maxLength ? '' : "($maxLength) ";
 
                 $sql = 'ALTER TABLE ' . $tableName . ' ADD ' . $shortName
                     . ' ' . $type . $maxLength
@@ -1762,6 +1761,7 @@ AND CONSTRAINT_NAME = '$constraintName'");
 
         }
 
+        // todo - check if the external constraint table exists. (could be non-rest in an timing issue)
         $addConstraint = /** @lang MySQL */
             "ALTER TABLE `$tableName` ADD CONSTRAINT `$constraintName` FOREIGN KEY (`$columnName`) REFERENCES `$referenceTable` (`$referenceColumn`) ON DELETE $onDelete ON UPDATE $onUpdate";
 
@@ -1872,7 +1872,9 @@ AND CONSTRAINT_NAME = '$constraintName'");
 
         $currentAutoIncrement = $columnInformation['EXTRA'] === 'auto_increment';
 
-        $typesMatch = $currentType === $type;
+        $typesMatch = $currentType === $type
+            || (($currentType === 'tinyint(1)' || $type === 'tinyint(1)')
+                && ($currentType === 'tinyint' || $type === 'tinyint'));
 
         $defaultsMatch = $currentDefault === $defaultValue
             || '"' . $currentDefault . '"' === $defaultValue;
