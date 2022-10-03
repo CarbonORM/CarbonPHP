@@ -277,7 +277,6 @@ abstract class RestQueryValidation extends RestAutoTargeting
      */
     public static function gatherValidationsForRequest(): void
     {
-        static $count = 0;
 
         $tables = [static::CLASS_NAME];
 
@@ -418,7 +417,6 @@ abstract class RestQueryValidation extends RestAutoTargeting
         }
         unset($table);
 
-
         self::$compiled_valid_columns = array_merge(self::$compiled_valid_columns, ... $compiled_columns);
 
         // We compiled all the request columns before gathering all callables that should run.
@@ -448,10 +446,10 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
         self::$join_tables = $tables;
 
-        // were merging for sub-selects
+        // we're merging for sub-selects
         self::$compiled_PDO_validations = array_merge(self::$compiled_PDO_validations, ... $pdo_validations);
 
-        // were merging for sub-selects
+        // we're merging for sub-selects
         self::$compiled_regex_validations = array_merge(self::$compiled_regex_validations, ...$regex_validations); // a nice way to avoid running a merge in a loop.
 
     }
@@ -711,7 +709,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
                     }
 
-                    return;
+                    continue;
 
                 }
 
