@@ -633,15 +633,10 @@ abstract class Rest extends RestLifeCycle
 
                         $canSkip = static::PDO_VALIDATION[$fullName][self::SKIP_COLUMN_IN_POST] ?? false;
 
-                        if (true === $canSkip) {
+                        if (true === $canSkip
+                            && false === in_array($fullName, $firstRowKeys, true)) {
 
-                            if (false === in_array($fullName, $firstRowKeys, true)){
-
-                                continue;
-
-                            }
-
-                            PublicAlert::info('The column has a default value :: ' . $fullName);
+                            continue;
 
                         }
 

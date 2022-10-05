@@ -74,7 +74,6 @@ class Documentation extends Application implements iConfig
 
         }
 
-
         self::getUser();
 
         View::$forceWrapper = true; // this will hard refresh the wrapper
