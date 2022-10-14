@@ -21,6 +21,8 @@ class Migrate implements iCommand
 {
     public static string $migrationUrl = 'c6migration';
 
+    public static string $migrationFolderPrefix = 'migration_';
+
     public static float $currentTime;
 
     public static ?string $license = null;
@@ -121,18 +123,37 @@ class Migrate implements iCommand
 
     public static function unlinkMigrationFiles(): void
     {
+        self::$currentTime ??= microtime(true);
 
         $updateCount = 0;
 
         $migrationFiles = glob(CarbonPHP::$app_root . "tmp/*migration*");
 
-        foreach ($migrationFiles as $file) {
+        foreach ($migrationFiles as $migrationFolder) {
+
+            if (false === is_dir($migrationFolder)) {
+
+                continue;
+
+            }
+
+            $migrationFolderExploded = explode(DIRECTORY_SEPARATOR, $migrationFolder);
+
+            $migrationFolderName = end($migrationFolderExploded);
+
+            $migrationTime = (float)substr($migrationFolderName, strlen(self::$migrationFolderPrefix));
+
+            if (self::$currentTime - $migrationTime < 86400) {
+
+                continue; // less than 24 hours old
+
+            }
 
             try {
 
-                unlink($file);
+                Background::executeAndCheckStatus("rm -rf $migrationFolder");
 
-                CarbonPHP::$verbose and ColorCode::colorCode('unlinked (' . $file . ')');
+                CarbonPHP::$verbose and ColorCode::colorCode('unlinked (' . $migrationFolder . ')');
 
             } catch (Throwable $e) {
 
@@ -257,21 +278,7 @@ class Migrate implements iCommand
             }
         }
 
-        if (null === self::$license) {
-
-            $importedLicense = include self::licenseFilePath();
-
-            if (true === is_string($importedLicense) && '' !== $importedLicense) {
-
-                self::$license = $importedLicense;
-
-            } else {
-
-                throw new PublicAlert("No license passed as argument or exists in (file://$importedLicense)");
-
-            }
-
-        }
+        self::getLicense();
 
         if (null === self::$localUrl || null === self::$remoteUrl) {
 
@@ -428,7 +435,7 @@ class Migrate implements iCommand
 
                 }
 
-                $importManifestFilePath = CarbonPHP::$app_root . 'tmp/import_' . $importManifestFilePath;
+                $importManifestFilePath = CarbonPHP::$app_root . 'tmp/' . $importManifestFilePath;
 
                 $importManifestFilePath = rtrim($importManifestFilePath, '.ph');
 
@@ -800,8 +807,8 @@ class Migrate implements iCommand
         ColorCode::colorCode("Attempting to replace ::\n$string\nwith replacement ::\n$replacement\n in file ::\nfile://$absoluteFilePath", iColorCode::BACKGROUND_MAGENTA);
 
         /**
-        * @throws PublicAlert
-        */
+         * @throws PublicAlert
+         */
         $delimited = static function (string $string_before): string {
 
             $string_after = preg_replace('#/#', "\/", $string_before);
@@ -859,6 +866,12 @@ class Migrate implements iCommand
     {
 
         $license = self::$license;
+
+        if (empty($license)) {
+
+            throw new PublicAlert('License is empty!');
+
+        }
 
         return <<<HALT
 <?php
@@ -954,6 +967,8 @@ if ('' !== \$_GET['file']) {
 
 fpassthru(\$fp);
 
+unlink(__FILE__);
+
 __HALT_COMPILER(); 
 
 HALT;
@@ -1008,10 +1023,16 @@ HALT;
 
         if (false === $bytesSent) {
 
-            ColorCode::colorCode("The method (" . __METHOD__ . ") failed to capture url \n($url) and save it to path\nfile://$toLocalFilePath",
+            ColorCode::colorCode("The method (" . __METHOD__ . ") failed to CURL url \n($url) and save it to path\n(file://$toLocalFilePath)",
                 iColorCode::BACKGROUND_RED);
 
             exit(4);
+
+        }
+
+        if (substr($toLocalFilePath, -4) === '.sql') {
+
+            Background::executeAndCheckStatus("[[ \"$( cat '$toLocalFilePath' | grep -o 'Dump completed' | wc -l )\" == *\"1\"* ]] && exit 0 || exit 16");
 
         }
 
@@ -1218,8 +1239,6 @@ HALT;
             $sha1 = sha1_file($tmpPath);
 
             if ('' !== $serverSentSha1 && $serverSentSha1 !== $sha1) {
-
-                sortDump($responseHeaders);
 
                 throw new PublicAlert("Failed to verify the sha1 ($sha1) equals server sent ($serverSentSha1) for file ($tmpPath)");
 
@@ -1579,12 +1598,6 @@ HALT;
 
                 }
 
-                if ($current > $size) {
-
-                    ColorCode::colorCode("");
-
-                }
-
                 return fread($fh, $length);
 
             });
@@ -1613,9 +1626,13 @@ HALT;
 
         $tables = Database::fetchColumn('SHOW TABLES');
 
+        $migrationPath = "tmp/" . self::$migrationFolderPrefix . "$currentTime/";
+
+        Files::createDirectoryIfNotExist(CarbonPHP::$app_root . $migrationPath);
+
         foreach ($tables as $table) {
 
-            $dumpFileName = "tmp/migration_replace_{$table}_$currentTime.sql";
+            $dumpFileName = "$migrationPath{$table}.sql";
 
             $absolutePath = CarbonPHP::$app_root . $dumpFileName;
 
@@ -1903,6 +1920,37 @@ HALT;
         return CarbonPHP::$app_root . 'migration-license.php';
     }
 
+    public static function getLicense(): void
+    {
+
+        if (null !== self::$license) {
+
+            return;
+
+        }
+
+        $licenseFile = self::licenseFilePath();
+
+        if (false === file_exists($licenseFile)) {
+
+            throw new PublicAlert("No license passed as argument or exists in (file://$licenseFile).");
+
+        }
+
+        $importedLicense = include $licenseFile;
+
+        $importedLicense = trim($importedLicense);
+
+        if ('' === $importedLicense) {
+
+            throw new PublicAlert("The license file (file://$licenseFile) provided returned an empty string. Please correct this.");
+
+        }
+
+        self::$license = $importedLicense;
+
+    }
+
     public static function checkLicense(string $checkLicense, string $licensePHPFilePath = null): void
     {
 
@@ -2025,7 +2073,7 @@ HALT;
 
             $hash = base64_encode($path);
 
-            $relativePath = 'tmp' . DS . 'migration_media_' . $hash . '_' . self::$currentTime . '.txt.php';
+            $relativePath = 'tmp' . DS . self::$migrationFolderPrefix . self::$currentTime . DS . 'media_' . $hash . '_' . self::$currentTime . '.txt.php';
 
             $storeToFile = CarbonPHP::$app_root . $relativePath;
 
