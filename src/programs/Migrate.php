@@ -25,6 +25,8 @@ class Migrate implements iCommand
 
     public static float $currentTime;
 
+    public static ?float $remoteServerTime = null;
+
     public static ?string $license = null;
 
     public static ?string $localUrl = null;
@@ -47,41 +49,6 @@ class Migrate implements iCommand
 
     public static int $maxFolderSizeForCompressionInMb = 500;
 
-    /**
-     * @param string $path
-     * @return int
-     * @throws PublicAlert
-     * @link https://stackoverflow.com/questions/478121/how-to-get-directory-size-in-php
-     */
-    public static function getDirectorySize(string $path)
-    {
-        $bytesTotal = 0;
-
-        $path = realpath($path);
-
-        if (false === is_dir($path)) {
-
-            throw new PublicAlert("Failed to verify that dir (file://$path) exists!");
-
-        }
-
-        if ($path !== false
-            && $path !== ''
-            && file_exists($path)) {
-
-            $dir = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS));
-
-            foreach ($dir as $object) {
-
-                $bytesTotal += $object->getSize();
-
-            }
-
-        }
-
-        return $bytesTotal;
-
-    }
 
     /**
      * @throws PublicAlert
@@ -288,10 +255,7 @@ class Migrate implements iCommand
 
         self::unlinkMigrationFiles();
 
-        $postData = [
-            'license' => self::$license,
-            'url' => self::$remoteUrl
-        ];
+        $postData = [];
 
 
         if (null === self::$directories && false === self::$MySQLDataDump) {
@@ -337,7 +301,7 @@ class Migrate implements iCommand
 
         }
 
-        $localManifestPath = CarbonPHP::$app_root . 'tmp/local_migration_manifest.txt';
+        $localManifestPath = CarbonPHP::$app_root . 'tmp' . DS . 'local_migration_manifest.txt';
 
         $responseHeaders = [];
 
@@ -371,6 +335,36 @@ class Migrate implements iCommand
 
         }
 
+        $manifest = fopen($localManifestPath, 'rb');
+
+        $firstImport = fgets($manifest);
+
+        $position = strpos($firstImport, self::$migrationFolderPrefix);
+
+        self::$remoteServerTime = (float) substr($firstImport, $position + strlen(self::$migrationFolderPrefix), strlen((string) microtime(true)));
+
+        if (null === self::$remoteServerTime) {
+
+            ColorCode::colorCode("Failed to parse remote server time from headers!\n" . print_r($header, true), iColorCode::BACKGROUND_RED);
+
+            exit(170);
+
+        }
+
+        $importFolderLocation = CarbonPHP::$app_root . 'tmp' . DS . self::$migrationFolderPrefix . self::$remoteServerTime . DS;
+
+        Files::createDirectoryIfNotExist($importFolderLocation);
+
+        $newLocalManifestPath = $importFolderLocation . 'local_migration_manifest.txt';
+
+        if (false === rename($localManifestPath, $newLocalManifestPath)) {
+
+            throw new PublicAlert("Failed to rename local manifest file ($localManifestPath) to ($newLocalManifestPath)");
+
+        }
+
+        $localManifestPath = $newLocalManifestPath;
+
         $manifestLineCount = self::getLineCount($localManifestPath);
 
         // todo - this could be  bottle neck and should be processed one at a time
@@ -382,22 +376,7 @@ class Migrate implements iCommand
 
         }
 
-        $firstLine = fgets($manifest);
-
-        if (0 === strpos($firstLine, '<html')) {
-
-            if (false === rename($localManifestPath, $localManifestPath . '.html')) {
-
-                ColorCode::colorCode("Failed to rename ($localManifestPath) to have .html suffix",
-                    iColorCode::BACKGROUND_RED);
-
-            }
-
-            passthru("cat $localManifestPath.html");
-
-            throw new PublicAlert("The manifest download detected an html document (file://$localManifestPath.html). A new line delimited list of files is expected. This is an error. View log file for more details");
-
-        }
+        echo "Manifest Line Count: $manifestLineCount\nFirst line: " . fgets($manifest) . "\n";
 
         if (null === self::$remoteAbsolutePath) {
 
@@ -439,7 +418,7 @@ class Migrate implements iCommand
 
                 $importManifestFilePath = rtrim($importManifestFilePath, '.ph');
 
-                self::largeHttpGetRequestsToFile(self::$remoteUrl . $uri . '?license=' . self::$license, $importManifestFilePath);
+                self::largeHttpPostRequestsToFile(self::$remoteUrl . $uri, $importManifestFilePath, []);
 
                 self::showStatus(++$done, $manifestLineCount);
 
@@ -609,7 +588,7 @@ class Migrate implements iCommand
 
                     }
 
-                    self::largeHttpGetRequestsToFile($getMetaUrl, $localPath);
+                    self::largeHttpPostRequestsToFile($getMetaUrl, $localPath);
 
                     if (1 === preg_match('/zip$/', $localPath)) {
 
@@ -869,7 +848,7 @@ class Migrate implements iCommand
 
         if (empty($license)) {
 
-            throw new PublicAlert('License is empty!');
+            #throw new PublicAlert('License is empty!');
 
         }
 
@@ -882,15 +861,15 @@ header("Cache-Control: post-check=0, pre-check=0", false);
 
 header("Pragma: no-cache");
 
-\$_GET['license'] ??= '';
+\$_POST['license'] ??= '';
 
-\$_GET['file'] ??= '';
+\$_POST['file'] ??= '';
 
-\$_GET['md5'] ??= '';
+\$_POST['md5'] ??= '';
 
-if ('$license' !== \$_GET['license']) {
+if ('$license' !== \$_POST['license']) {
 
-    http_response_code(401);
+    http_response_code(401); // Unauthorized
         
     exit(1);
 
@@ -901,9 +880,9 @@ if ('$license' !== \$_GET['license']) {
 // seek file pointer to data 
 fseek(\$fp, __COMPILER_HALT_OFFSET__);
 
-if ('' !== \$_GET['file']) {
-
-    \$_GET['file'] = base64_decode(\$_GET['file']);
+if ('' !== \$_POST['file']) {
+  
+    \$_POST['file'] = base64_decode(\$_POST['file']);
 
     \$valid = false; // init as false
     
@@ -911,7 +890,7 @@ if ('' !== \$_GET['file']) {
     
         \$buffer = fgets(\$fp);
     
-        if (strpos(\$buffer, \$_GET['file']) !== false) {
+        if (strpos(\$buffer, \$_POST['file']) !== false) {
     
             \$valid = true;
     
@@ -933,17 +912,17 @@ if ('' !== \$_GET['file']) {
     
     \$rootDir = dirname(__DIR__);
     
-    if ('' !== \$_GET['md5']) {
+    if ('' !== \$_POST['md5']) {
     
-        \$localHash = md5_file( \$rootDir . DIRECTORY_SEPARATOR . \$_GET['file'] );
+        \$localHash = md5_file( \$rootDir . DIRECTORY_SEPARATOR . \$_POST['file'] );
     
-        print \$localHash === \$_GET['md5'] ? 'true' : \$localHash;
+        print \$localHash === \$_POST['md5'] ? 'true' : \$localHash;
         
         exit(0);
     
     }
     
-    \$absolutePath = \$rootDir . DIRECTORY_SEPARATOR . \$_GET['file'];
+    \$absolutePath = \$rootDir . DIRECTORY_SEPARATOR . \$_POST['file'];
             
     \$fp = fopen(\$absolutePath, 'rb');
         
@@ -967,7 +946,12 @@ if ('' !== \$_GET['file']) {
 
 fpassthru(\$fp);
 
-unlink(__FILE__);
+if ('' !== \$_POST['unlink']) {
+
+    unlink(__FILE__);
+
+}
+
 
 __HALT_COMPILER(); 
 
@@ -979,60 +963,190 @@ HALT;
     /**
      * @throws PublicAlert
      */
-    public static function largeHttpPostRequestsToFile(string $url, string $toLocalFilePath, array $post, array &$responseHeaders = []): void
+    public static function largeHttpPostRequestsToFile(string $url, string $toLocalFilePath, array $post = [], array &$responseHeaders = []): void
     {
+        try {
 
-        $bytesSent = false;
+            $post += [
+                'license' => self::$license,
+                'url' => self::$remoteUrl
+            ];
 
-        $ch = curl_init();
+            $attempt = 0;
 
-        ColorCode::colorCode("Attempting to get possibly large POST response\n$url\nStoring to (file://$toLocalFilePath)\n" . print_r($post, true));
+            do {
 
-        curl_setopt($ch, CURLOPT_URL, $url);
 
-        curl_setopt($ch, CURLOPT_POST, 1);
+                $serverSentMd5 = '';
 
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post));
+                $serverSentSha1 = '';
 
-        $timeout = self::$timeout;
+                $attempt++;
 
-        ColorCode::colorCode("Setting the post ($url) timeout to ($timeout) <" . self::secondsToReadable($timeout) . '>', iColorCode::YELLOW);
+                $failed = false;
 
-        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+                $bytesSent = false;
 
-        // Receive server response ...
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                $ch = curl_init();
 
-        Files::createDirectoryIfNotExist(dirname($toLocalFilePath));
+                ColorCode::colorCode("Attempt ($attempt) to get possibly large POST response\n$url\nStoring to (file://$toLocalFilePath)\n" . print_r($post, true));
 
-        if (false === touch($toLocalFilePath)) {
+                curl_setopt($ch, CURLOPT_URL, $url);
 
-            throw new PublicAlert("Failed to run touch($toLocalFilePath). Please very correct permission are set on the directory!");
+                curl_setopt($ch, CURLOPT_POST, 1);
 
-        }
+                curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post));
 
-        self::curlProgress($ch);
+                $timeout = self::$timeout;
 
-        self::curlReturnFileAppend($ch, $toLocalFilePath, $bytesSent);
+                ColorCode::colorCode("Setting the post ($url) timeout to ($timeout) <" . self::secondsToReadable($timeout) . '>', iColorCode::YELLOW);
 
-        self::curlGetResponseHeaders($ch, $responseHeaders);
+                curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
 
-        curl_exec($ch);
+                // Receive server response ...
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-        curl_close($ch);
+                Files::createDirectoryIfNotExist(dirname($toLocalFilePath));
 
-        if (false === $bytesSent) {
+                if (false === touch($toLocalFilePath)) {
 
-            ColorCode::colorCode("The method (" . __METHOD__ . ") failed to CURL url \n($url) and save it to path\n(file://$toLocalFilePath)",
-                iColorCode::BACKGROUND_RED);
+                    throw new PublicAlert("Failed to run touch($toLocalFilePath). Please very correct permission are set on the directory!");
 
-            exit(4);
+                }
 
-        }
+                if (false === file_put_contents($toLocalFilePath, '')){
 
-        if (substr($toLocalFilePath, -4) === '.sql') {
+                    throw new PublicAlert("Failed to empty the file using file_put_contents ($toLocalFilePath)");
 
-            Background::executeAndCheckStatus("[[ \"$( cat '$toLocalFilePath' | grep -o 'Dump completed' | wc -l )\" == *\"1\"* ]] && exit 0 || exit 16");
+                }
+
+                self::curlProgress($ch);
+
+                self::curlReturnFileAppend($ch, $toLocalFilePath, $bytesSent);
+
+                self::curlGetResponseHeaders($ch, $responseHeaders);
+
+                $removePrefixSetVar = static function (string $header, string $prefix, string &$setVarToHeaderValue): bool {
+
+                    if (0 === strpos($header, $prefix)) {
+
+                        $test = substr($header, strlen($prefix));
+
+                        if (false !== $test) {
+
+                            $setVarToHeaderValue = trim($test);
+
+                        }
+
+                        return true;
+
+                    }
+
+                    return false;
+
+                };
+
+                foreach ($responseHeaders as $header) {
+
+                    if ('' !== $serverSentMd5
+                        && '' !== $serverSentSha1) {
+
+                        break;
+
+                    }
+
+                    if (('' !== $serverSentMd5)
+                        && $removePrefixSetVar($header, 'md5: ', $serverSentMd5)) {
+
+                        continue;
+
+                    }
+
+                    if ('' !== $serverSentSha1) {
+
+                        $removePrefixSetVar($header, 'sha1: ', $serverSentSha1);
+
+                    }
+
+                }
+
+                curl_exec($ch);
+
+                curl_close($ch);
+
+                ColorCode::colorCode("Stored to local tmp file (file://$toLocalFilePath)", iColorCode::BACKGROUND_RED);
+
+                $md5 = md5_file($toLocalFilePath);
+
+                if ('' !== $serverSentMd5 && $serverSentMd5 !== $md5) {
+
+                    $currentLocalMD5 = md5_file($toLocalFilePath);
+
+                    throw new PublicAlert("Failed to verify the md5 hash received <$md5> === expected <$serverSentMd5>, file received hashed to ($md5) on tmp file ($toLocalFilePath)! The local copy at ($toLocalFilePath) has ($currentLocalMD5)");
+
+                }
+
+                $sha1 = sha1_file($toLocalFilePath);
+
+                if ('' !== $serverSentSha1 && $serverSentSha1 !== $sha1) {
+
+                    throw new PublicAlert("Failed to verify the sha1 ($sha1) equals server sent ($serverSentSha1) for file ($toLocalFilePath)");
+
+                }
+
+                if (false === $bytesSent) {
+
+                    ColorCode::colorCode("The method (" . __METHOD__ . ") failed to CURL url \n($url) and save it to path\n(file://$toLocalFilePath)",
+                        iColorCode::BACKGROUND_RED);
+
+                    $failed = true;
+
+                    continue;
+
+                }
+
+                $downloadFilePointer = fopen($toLocalFilePath, 'rb');
+
+                if (false === $downloadFilePointer) {
+
+                    throw new PublicAlert("Failed to open file pointer to ($toLocalFilePath)");
+
+                }
+
+                $firstLine = fgets($downloadFilePointer);
+
+                fclose($downloadFilePointer);
+
+                if (0 === strpos($firstLine, '<html')
+                    || 0 === strpos($firstLine, '<!DOCTYPE html')) {
+
+                    if (false === rename($toLocalFilePath, $toLocalFilePath . '.html')) {
+
+                        ColorCode::colorCode("Failed to rename ($toLocalFilePath) to have .html suffix",
+                            iColorCode::BACKGROUND_RED);
+
+                    }
+
+                    passthru("cat $toLocalFilePath.html");
+
+                    throw new PublicAlert("The curl download detected an html document (file://$toLocalFilePath.html) using `strpos(\$firstLine, '<html')`, this is an unexpected error possibly thrown on the remote host. View downloaded file content above for (potentially) more details.");
+
+                }
+
+                if (substr($toLocalFilePath, -4) === '.sql'
+                    && 15 === Background::executeAndCheckStatus("[[ \"$( cat '$toLocalFilePath' | grep -o 'Dump completed' | wc -l )\" == *\"1\"* ]] && exit 0 || exit 15", false)) {
+
+                    $failed = true;
+
+                }
+
+            } while (true === $failed && $attempt < 3);
+
+        } catch (Throwable $e) {
+
+            ErrorCatcher::generateLog($e);
+
+            exit(8);
 
         }
 
@@ -1109,184 +1223,6 @@ HALT;
                 return strlen($header_line);
 
             });
-    }
-
-    public static function largeHttpGetRequestsToFile(string $url, string $toLocalFilePath, array &$responseHeaders = []): void
-    {
-
-        $serverSentMd5 = '';
-
-        $serverSentSha1 = '';
-
-        $bytesStored = false;
-
-        try {
-
-            $url = trim($url);
-
-            if (CarbonPHP::$verbose) {
-
-                ColorCode::colorCode("Attempting to get possibly large file\n$url\nfile://$toLocalFilePath", iColorCode::BACKGROUND_GREEN);
-
-            }
-
-            $fileName = basename($toLocalFilePath);
-
-            $tmpPath = CarbonPHP::$app_root . 'tmp' . DS . $fileName;
-
-            // create curl resource
-            $ch = curl_init();
-
-            // set url
-            curl_setopt($ch, CURLOPT_URL, $url);
-
-            self::curlReturnFileAppend($ch, $tmpPath, $bytesStored);
-
-            curl_setopt($ch, CURLOPT_COOKIEJAR, '-');
-
-            $timeout = self::$timeout;
-
-            ColorCode::colorCode("Setting the get ($url) timeout to ($timeout) <" . self::secondsToReadable($timeout) . '>', iColorCode::BACKGROUND_YELLOW);
-
-            curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-
-            curl_setopt($ch, CURLOPT_HEADER, 0);
-
-            $responseHeaders = [];
-
-            self::curlProgress($ch);
-
-            self::curlGetResponseHeaders($ch, $responseHeaders);
-
-            $removePrefixSetVar = static function (string $header, string $prefix, string &$setVarToHeaderValue): bool {
-
-                if (0 === strpos($header, $prefix)) {
-
-                    $test = substr($header, strlen($prefix));
-
-                    if (false !== $test) {
-
-                        $setVarToHeaderValue = trim($test);
-
-                    }
-
-                    return true;
-
-                }
-
-                return false;
-
-            };
-
-            foreach ($responseHeaders as $header) {
-
-                if ('' !== $serverSentMd5
-                    && '' !== $serverSentSha1) {
-
-                    break;
-
-                }
-
-                if (('' !== $serverSentMd5)
-                    && $removePrefixSetVar($header, 'md5: ', $serverSentMd5)) {
-
-                    continue;
-
-                }
-
-                if ('' !== $serverSentSha1) {
-
-                    $removePrefixSetVar($header, 'sha1: ', $serverSentSha1);
-
-                }
-
-            }
-
-            $dirname = dirname($toLocalFilePath);
-
-            Files::createDirectoryIfNotExist($dirname);
-
-            if (false === touch($tmpPath)) {
-
-                throw new PublicAlert("Failed to create tmp file (file://$tmpPath)");
-
-            }
-
-            // $output contains the output string
-            curl_exec($ch);
-
-            // close curl resource to free up system resources
-            curl_close($ch);
-
-            if (false === file_exists($tmpPath)) {
-
-                throw new PublicAlert("Failed to locate temp file ($tmpPath)");
-
-            }
-
-            ColorCode::colorCode("Stored to local tmp file (file://$tmpPath)", iColorCode::BACKGROUND_RED);
-
-            $md5 = md5_file($tmpPath);
-
-            if ('' !== $serverSentMd5 && $serverSentMd5 !== $md5) {
-
-                $currentLocalMD5 = md5_file($toLocalFilePath);
-
-                throw new PublicAlert("Failed to verify the md5 hash received <$md5> === expected <$serverSentMd5>, file received hashed to ($md5) on tmp file ($tmpPath)! The local copy at ($toLocalFilePath) has ($currentLocalMD5)");
-
-            }
-
-            $sha1 = sha1_file($tmpPath);
-
-            if ('' !== $serverSentSha1 && $serverSentSha1 !== $sha1) {
-
-                throw new PublicAlert("Failed to verify the sha1 ($sha1) equals server sent ($serverSentSha1) for file ($tmpPath)");
-
-            }
-
-            if (false === $bytesStored) {
-
-                ColorCode::colorCode("The method (" . __METHOD__ . ") received 0 bytes while fetching url\n($url) and storing to file\n(file://$toLocalFilePath). Empty file created.");
-
-            }
-
-            if ($toLocalFilePath !== $tmpPath) {
-
-                if (file_exists($toLocalFilePath) && false === unlink($toLocalFilePath)) {
-
-                    throw new PublicAlert("Failed to unlink <remove> file ($toLocalFilePath)");
-
-                }
-
-                if (false === copy($tmpPath, $toLocalFilePath)) {
-
-                    throw new PublicAlert("Failed to copy ($tmpPath) to ($toLocalFilePath)");
-
-                }
-
-            }
-
-            ColorCode::colorCode("Stored to file <$md5>\nfile://$toLocalFilePath", iColorCode::BACKGROUND_CYAN);
-
-            if (CarbonPHP::$verbose) {
-
-                ColorCode::colorCode("Detected in verbose mode, will not unlink file\nfile://$tmpPath",
-                    iColorCode::YELLOW);
-
-            } elseif ($toLocalFilePath !== $tmpPath) {
-
-                unlink($tmpPath);
-
-            }
-
-        } catch (Throwable $e) {
-
-            ErrorCatcher::generateLog($e);
-
-            exit(0);
-
-        }
-
     }
 
     /**
@@ -1724,13 +1660,13 @@ HALT;
 
             self::unlinkMigrationFiles();
 
-            self::$currentTime = microtime(true);
+            self::$currentTime = self::$remoteServerTime = microtime(true);
 
             ColorCode::colorCode("Migration Request " . print_r($_POST, true), iColorCode::CYAN);
 
             $requestedDirectoriesString = $_POST['directories'] ?? '';
 
-            self::$license = $_POST['license'] ?? $_GET['license'] ?? '';
+            self::$license = $_POST['license'] ?? '';
 
             self::$remoteUrl = $_POST['url'] ?? '';
 
@@ -1740,9 +1676,7 @@ HALT;
 
             ColorCode::colorCode('checkLicense Passed');
 
-            header("url: " . self::serverURL());
-
-            header("abspath: " . ABSPATH);
+            header("abspath: " . CarbonPHP::$app_root);
 
             if (array_key_exists(self::SKIP_MYSQL_DATA_DUMP_FLAG, $_POST)) {
 

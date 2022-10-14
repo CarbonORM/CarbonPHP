@@ -49,7 +49,7 @@ trait Background
 
     }
 
-    public static function executeAndCheckStatus(string $command, bool $exitOnFailure = true): void
+    public static function executeAndCheckStatus(string $command, bool $exitOnFailure = true): int
     {
 
         $output = [];
@@ -76,6 +76,8 @@ trait Background
             }
 
         }
+
+        return (int) $return_var;
 
     }
 
