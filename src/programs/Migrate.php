@@ -848,7 +848,7 @@ class Migrate implements iCommand
 
         if (empty($license)) {
 
-            #throw new PublicAlert('License is empty!');
+            throw new PublicAlert('License is empty!');
 
         }
 
@@ -1667,6 +1667,12 @@ HALT;
             $requestedDirectoriesString = $_POST['directories'] ?? '';
 
             self::$license = $_POST['license'] ?? '';
+
+            if ('' === self::$license) {
+
+                throw new PublicAlert('License is empty!');
+
+            }
 
             self::$remoteUrl = $_POST['url'] ?? '';
 
