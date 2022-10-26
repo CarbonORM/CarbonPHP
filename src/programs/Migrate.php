@@ -801,45 +801,19 @@ class Migrate implements iCommand
             return $string_after;
         };
 
-        // load dump file contents
-        $contents_string = (string)file_get_contents($absoluteFilePath);
+        // @link https://stackoverflow.com/questions/29902647/sed-match-replace-url-and-update-serialized-array-count
+        $replace = "cat $absoluteFilePath | \
+                        sed 's/;s:/;\\ns:/g'  | \
+                        awk -F'\"' '/^s:.+'$string'/ {sub(\"'$string'\", \"'$replacement'\"); n=length($2)-1; sub(/:[[:digit:]]+:/, \":\" n \":\")} 1' | \
+                        sed ':a;N;$!ba;s/;\ns:/;s:/g' | \
+                        sed -e 's/" . $delimited($string) . "/" . $delimited($replacement) . "/g' \
+                            > $absoluteFilePath.txt \
+                     && rm $absoluteFilePath \
+                     && mv $absoluteFilePath.txt $absoluteFilePath";
 
-        if (empty($contents_string)) {
-
-            throw new PublicAlert("Failed to load contents of $absoluteFilePath");
-
-        }
-
-        $delimited_replacement = $delimited($replacement);
-
-        // https://stackoverflow.com/questions/10152904/how-to-repair-a-serialized-string-which-has-been-corrupted-by-an-incorrect-byte
-        $replaced_str = preg_replace_callback(
-            ('/s:(\d+):[^{;]*?"([^;"]*?' . $delimited_replacement . '.*?)";/'),
-            function($match) {
-                // we do length - 1 because each string has a backslash at the end which is being counted and shouldn't be
-                return ((int)$match[1] === (strlen($match[2]) - 1)) ? $match[0] : 's:' . (strlen($match[2]) - 1) . ':"' . $match[2] . '";';
-            },
-            str_replace($string, $replacement, $contents_string)
-        );
-
-        if (!isset($replaced_str)) {
-
-            throw new PublicAlert("preg_replace_callback returned with error " . preg_last_error_msg());
-
-        }
-
-        // attempt to save our adjusted string back to the file
-        if (false === file_put_contents($absoluteFilePath . '.txt', $replaced_str)) {
-
-            throw new PublicAlert("Failed to add updated string to file");
-
-        }
-
-
-        Background::executeAndCheckStatus("rm $absoluteFilePath && mv $absoluteFilePath.txt $absoluteFilePath");
+        Background::executeAndCheckStatus($replace);
 
     }
-
 
     public static function selfHidingFile(): string
     {

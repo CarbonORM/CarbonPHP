@@ -673,7 +673,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
     }
 
-    protected static function runValidations(array $php_validation, &...$rest): void
+    public static function runValidations(array $php_validation, &...$rest): void
     {
 
         foreach ($php_validation as $key => $validation) {
