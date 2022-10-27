@@ -806,7 +806,7 @@ class Migrate implements iCommand
         $replacement = $delimited($replacement);
 
         // @link https://stackoverflow.com/questions/29902647/sed-match-replace-url-and-update-serialized-array-count
-        $replaceBashCmd = CarbonPHP::CARBON_ROOT . "extras/replaceInFileSerializeSafe.sh '$replace' '$replace' '$replacement'";
+        $replaceBashCmd = 'chmod +x ' . CarbonPHP::CARBON_ROOT . "extras/replaceInFileSerializeSafe.sh && " . CarbonPHP::CARBON_ROOT . "extras/replaceInFileSerializeSafe.sh '$replace' '$replace' '$replacement'";
 
         Background::executeAndCheckStatus($replaceBashCmd);
 
