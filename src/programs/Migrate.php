@@ -780,10 +780,10 @@ class Migrate implements iCommand
      * @throws PublicAlert
      * @todo - I could make sed replace multiple at a time, but would this be worth the debugging..?
      */
-    public static function replaceInFile(string $string, string $replacement, string $absoluteFilePath): void
+    public static function replaceInFile(string $replace, string $replacement, string $absoluteFilePath): void
     {
 
-        ColorCode::colorCode("Attempting to replace ::\n$string\nwith replacement ::\n$replacement\n in file ::\nfile://$absoluteFilePath", iColorCode::BACKGROUND_MAGENTA);
+        ColorCode::colorCode("Attempting to replace ::\n$replace\nwith replacement ::\n$replacement\n in file ::\nfile://$absoluteFilePath", iColorCode::BACKGROUND_MAGENTA);
 
         /**
          * @throws PublicAlert
@@ -801,17 +801,14 @@ class Migrate implements iCommand
             return $string_after;
         };
 
-        // @link https://stackoverflow.com/questions/29902647/sed-match-replace-url-and-update-serialized-array-count
-        $replace = "cat $absoluteFilePath | \
-                        sed 's/;s:/;\\ns:/g'  | \
-                        awk -F'\"' '/^s:.+'$string'/ {sub(\"'$string'\", \"'$replacement'\"); n=length($2)-1; sub(/:[[:digit:]]+:/, \":\" n \":\")} 1' | \
-                        sed ':a;N;$!ba;s/;\ns:/;s:/g' | \
-                        sed -e 's/" . $delimited($string) . "/" . $delimited($replacement) . "/g' \
-                            > $absoluteFilePath.txt \
-                     && rm $absoluteFilePath \
-                     && mv $absoluteFilePath.txt $absoluteFilePath";
+        $replace = $delimited($replace);
 
-        Background::executeAndCheckStatus($replace);
+        $replacement = $delimited($replacement);
+
+        // @link https://stackoverflow.com/questions/29902647/sed-match-replace-url-and-update-serialized-array-count
+        $replaceBashCmd = CarbonPHP::CARBON_ROOT . "extras/replaceInFileSerializeSafe.sh '$replace' '$replace' '$replacement'";
+
+        Background::executeAndCheckStatus($replaceBashCmd);
 
     }
 
