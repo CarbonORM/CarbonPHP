@@ -443,11 +443,12 @@ class Migrate implements iCommand
 
             CarbonPHP::$verbose and ColorCode::colorCode($importFileAbsolutePath, iColorCode::MAGENTA);
 
-            self::importManifestFile($importFileAbsolutePath, $uri, $requestedDirectoriesLocalCopyInfo);
+            self::importManifestFile($importFileAbsolutePath, $uri);
 
         }
 
         ColorCode::colorCode('Completed in ' . (microtime(true) - self::$currentTime) . ' sec');
+
         exit(0);
 
     }
@@ -697,7 +698,7 @@ class Migrate implements iCommand
     /**
      * @throws PublicAlert
      */
-    public static function importManifestFile(string $file, string $uri, array $requestedDirectoriesLocalCopyInfo): void
+    public static function importManifestFile(string $file, string $uri): void
     {
 
         CarbonPHP::$verbose and ColorCode::colorCode("Importing file ($file)");
@@ -777,36 +778,33 @@ class Migrate implements iCommand
     }
 
     /**
-     * @throws PublicAlert
      * @todo - I could make sed replace multiple at a time, but would this be worth the debugging..?
      */
     public static function replaceInFile(string $replace, string $replacement, string $absoluteFilePath): void
     {
 
+        static $hasRun = false;
+
+        if (false === $hasRun) {
+
+            $hasRun = true;
+
+            ColorCode::colorCode("Replacing in file ($absoluteFilePath)", iColorCode::YELLOW);
+
+            Background::executeAndCheckStatus('chmod +x ' . CarbonPHP::CARBON_ROOT . 'extras/replaceInFileSerializeSafe.sh');
+
+        }
+
         ColorCode::colorCode("Attempting to replace ::\n$replace\nwith replacement ::\n$replacement\n in file ::\nfile://$absoluteFilePath", iColorCode::BACKGROUND_MAGENTA);
 
-        /**
-         * @throws PublicAlert
-         */
-        $delimited = static function (string $string_before): string {
-
-            $string_after = preg_replace('#/#', "\/", $string_before);
-
-            if (PREG_NO_ERROR !== preg_last_error()) {
-
-                throw new PublicAlert("Regex replace failed on string ($string_before) using preg_replace( '#/#', '\/', ..");
-
-            }
-
-            return $string_after;
-        };
+        $delimited = static fn (string $string_before): string => preg_quote($string_before, "/");
 
         $replace = $delimited($replace);
 
         $replacement = $delimited($replacement);
 
         // @link https://stackoverflow.com/questions/29902647/sed-match-replace-url-and-update-serialized-array-count
-        $replaceBashCmd = 'chmod +x ' . CarbonPHP::CARBON_ROOT . "extras/replaceInFileSerializeSafe.sh && " . CarbonPHP::CARBON_ROOT . "extras/replaceInFileSerializeSafe.sh '$replace' '$replace' '$replacement'";
+        $replaceBashCmd = CarbonPHP::CARBON_ROOT . "extras/replaceInFileSerializeSafe.sh '$absoluteFilePath' '$replace' '$replacement'";
 
         Background::executeAndCheckStatus($replaceBashCmd);
 

@@ -8,6 +8,9 @@ use Throwable;
 
 trait Background
 {
+
+    public static array $backgroundProcessesStatusCodes = [];
+
     /**
      * Attempt to run shell command in the background on any os.
      * This is convent as appending an ampersand will not work universally, and may not work where expected
@@ -37,13 +40,15 @@ trait Background
 
             $cmd = sprintf('nohup %s ' . ($append ? '>>' : '>') . ' %s 2>&1 & echo $! ; disown', $cmd, $outputFile);
 
-            exec($cmd, $pid);
+            exec($cmd, $pid, $return);
 
             ColorCode::colorCode("Running Background CMD <disassociated> (parent<current> pid:: " . getmypid() . "; child pid::" . ($pid[0] ??='error') . ")>> " . $cmd,
                 iColorCode::BACKGROUND_BLUE);
 
         } catch (Throwable $e) {
         }
+
+        $backgroundProcessesStatusCodes[$pid[0] ??= 'error'] = &$return;
 
         return $pid[0] ?? 'Failed to execute cmd!';
 
