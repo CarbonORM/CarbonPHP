@@ -778,35 +778,66 @@ class Migrate implements iCommand
     }
 
     /**
+     * @throws PublicAlert
      * @todo - I could make sed replace multiple at a time, but would this be worth the debugging..?
      */
-    public static function replaceInFile(string $replace, string $replacement, string $absoluteFilePath): void
+    public static function replaceInFile(string $string, string $replacement, string $absoluteFilePath): void
     {
 
-        static $hasRun = false;
+        ColorCode::colorCode("Attempting to replace ::\n$string\nwith replacement ::\n$replacement\n in file ::\nfile://$absoluteFilePath", iColorCode::BACKGROUND_MAGENTA);
 
-        if (false === $hasRun) {
+        /**
+        * @throws PublicAlert
+        */
+        $delimited = static function (string $string_before): string {
 
-            $hasRun = true;
+            $string_after = preg_replace('#/#', "\/", $string_before);
 
-            ColorCode::colorCode("Replacing in file ($absoluteFilePath)", iColorCode::YELLOW);
+            if (PREG_NO_ERROR !== preg_last_error()) {
 
-            Background::executeAndCheckStatus('chmod +x ' . CarbonPHP::CARBON_ROOT . 'extras/replaceInFileSerializeSafe.sh');
+                throw new PublicAlert("Regex replace failed on string ($string_before) using preg_replace( '#/#', '\/', ..");
+
+            }
+
+            return $string_after;
+        };
+
+        // load dump file contents
+        $contents_string = (string)file_get_contents($absoluteFilePath);
+
+        if (empty($contents_string)) {
+
+            throw new PublicAlert("Failed to load contents of $absoluteFilePath");
 
         }
 
-        ColorCode::colorCode("Attempting to replace ::\n$replace\nwith replacement ::\n$replacement\n in file ::\nfile://$absoluteFilePath", iColorCode::BACKGROUND_MAGENTA);
+        $delimited_replacement = $delimited($replacement);
 
-        $delimited = static fn (string $string_before): string => preg_quote($string_before, "/");
+        // https://stackoverflow.com/questions/10152904/how-to-repair-a-serialized-string-which-has-been-corrupted-by-an-incorrect-byte
+        $replaced_str = preg_replace_callback(
+            ('/s:(\d+):[^{;]*?"([^;"]*?' . $delimited_replacement . '.*?)";/'),
+            function($match) {
+                // we do length - 1 because each string has a backslash at the end which is being counted and shouldn't be
+                return ((int)$match[1] === (strlen($match[2]) - 1)) ? $match[0] : 's:' . (strlen($match[2]) - 1) . ':"' . $match[2] . '";';
+            },
+            str_replace($string, $replacement, $contents_string)
+        );
 
-        $replace = $delimited($replace);
+        if (!isset($replaced_str)) {
 
-        $replacement = $delimited($replacement);
+            throw new PublicAlert("preg_replace_callback returned with error " . preg_last_error_msg());
 
-        // @link https://stackoverflow.com/questions/29902647/sed-match-replace-url-and-update-serialized-array-count
-        $replaceBashCmd = CarbonPHP::CARBON_ROOT . "extras/replaceInFileSerializeSafe.sh '$absoluteFilePath' '$replace' '$replacement'";
+        }
 
-        Background::executeAndCheckStatus($replaceBashCmd);
+        // attempt to save our adjusted string back to the file
+        if (false === file_put_contents($absoluteFilePath . '.txt', $replaced_str)) {
+
+            throw new PublicAlert("Failed to add updated string to file");
+
+        }
+
+
+        Background::executeAndCheckStatus("rm $absoluteFilePath && mv $absoluteFilePath.txt $absoluteFilePath");
 
     }
 
