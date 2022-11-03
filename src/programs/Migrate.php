@@ -94,7 +94,7 @@ class Migrate implements iCommand
 
         $updateCount = 0;
 
-        $migrationFiles = glob(CarbonPHP::$app_root . "tmp/*migration*");
+        $migrationFiles = glob(CarbonPHP::$app_root . "cache/*migration*");
 
         foreach ($migrationFiles as $migrationFolder) {
 
@@ -406,7 +406,7 @@ class Migrate implements iCommand
 
                 $importManifestFilePath = $uri;
 
-                $prefix = 'tmp/';
+                $prefix = 'cache/';
 
                 if (strpos($importManifestFilePath, $prefix) === 0) {
 
@@ -414,7 +414,7 @@ class Migrate implements iCommand
 
                 }
 
-                $importManifestFilePath = CarbonPHP::$app_root . 'tmp/' . $importManifestFilePath;
+                $importManifestFilePath = CarbonPHP::$app_root . 'cache/' . $importManifestFilePath;
 
                 $importManifestFilePath = rtrim($importManifestFilePath, '.ph');
 
@@ -779,84 +779,30 @@ class Migrate implements iCommand
 
     public static function replaceInFile(string $replace, string $replacement, string $absoluteFilePath): void
     {
+        static $hasRun = false;
 
-        ColorCode::colorCode("Attempting to replace ::\n$replace\nwith replacement ::\n$replacement\n in file ::\nfile://$absoluteFilePath", iColorCode::BACKGROUND_MAGENTA);
+        if (false === $hasRun) {
 
-        /**
-         * @throws PublicAlert
-         */
-        $delimited = static function (string $string_before): string {
+            $hasRun = true;
 
-            $string_after = preg_replace('#/#', "\/", $string_before);
+            ColorCode::colorCode("Replacing in file ($absoluteFilePath)", iColorCode::YELLOW);
 
-            if (PREG_NO_ERROR !== preg_last_error()) {
-
-                throw new PublicAlert("Regex replace failed on string ($string_before) using preg_replace( '#/#', '\/', ..");
-
-            }
-
-            return $string_after;
-        };
-
-        // load dump file contents
-        $replaceString = static function (string $contents_string) use ($replace, $replacement, $absoluteFilePath, $delimited): void {
-
-            $delimited_replacement = $delimited($replacement);
-
-            // https://stackoverflow.com/questions/10152904/how-to-repair-a-serialized-string-which-has-been-corrupted-by-an-incorrect-byte
-            $replaced_str = preg_replace_callback(
-                ('/s:(\d+):[^{;]*?"([^;"]*?' . $delimited_replacement . '.*?)";/'),
-                static fn($match) => ((int)$match[1] === (strlen($match[2]) - 1)) ? $match[0] : 's:' . (strlen($match[2]) - 1) . ':"' . $match[2] . '";',
-                // we do length - 1 because each string has a backslash at the end which is being counted and shouldn't be
-                str_replace($replace, $replacement, $contents_string)
-            );
-
-            if (!isset($replaced_str)) {
-
-                throw new PublicAlert("preg_replace_callback returned with error " . preg_last_error_msg());
-
-            }
-
-            // attempt to save our adjusted string back to the file
-            if (false === file_put_contents($absoluteFilePath . '.txt', $replaced_str, FILE_APPEND)) {
-
-                throw new PublicAlert("Failed to add updated string to file");
-
-            }
-
-        };
-
-        $file = new SplFileObject($absoluteFilePath);
-
-        $unbalancedParenthesis = '';
-
-        // Loop until we reach the end of the file.
-        while (!$file->eof()) {
-
-            $fullBuffer = $file->fgets();
-
-            // Echo one line from the file.
-            $contents_string = $unbalancedParenthesis . $fullBuffer;
-
-            $replaceReadString = self::captureBalancedParenthesis($contents_string);
-
-            $string_length = strlen($replaceReadString);
-
-            $string_position = strrpos($contents_string, $replaceReadString);
-
-            $unbalancedParenthesis = mb_substr($contents_string, $string_position + $string_length);
-
-            if (empty($contents_string)) {
-
-                throw new PublicAlert("Failed to load contents of $absoluteFilePath");
-
-            }
-
-            $replaceString($contents_string);
+            Background::executeAndCheckStatus('chmod +x ' . CarbonPHP::CARBON_ROOT . 'extras/replaceInFileSerializeSafe.sh');
 
         }
 
-        Background::executeAndCheckStatus("rm $absoluteFilePath && mv $absoluteFilePath.txt $absoluteFilePath");
+        ColorCode::colorCode("Attempting to replace ::\n$replace\nwith replacement ::\n$replacement\n in file ::\nfile://$absoluteFilePath", iColorCode::BACKGROUND_MAGENTA);
+
+        $delimited = static fn (string $string_before): string => preg_quote($string_before, "/");
+
+        $replace = $delimited($replace);
+
+        $replacement = $delimited($replacement);
+
+        // @link https://stackoverflow.com/questions/29902647/sed-match-replace-url-and-update-serialized-array-count
+        $replaceBashCmd = CarbonPHP::CARBON_ROOT . "extras/replaceInFileSerializeSafe.sh '$absoluteFilePath' '$replace' '$replacement'";
+
+        Background::executeAndCheckStatus($replaceBashCmd);
 
     }
 
@@ -1596,7 +1542,7 @@ HALT;
 
         $tables = Database::fetchColumn('SHOW TABLES');
 
-        $migrationPath = "tmp/" . self::$migrationFolderPrefix . "$currentTime/";
+        $migrationPath = "cache/" . self::$migrationFolderPrefix . "$currentTime/";
 
         Files::createDirectoryIfNotExist(CarbonPHP::$app_root . $migrationPath);
 
@@ -1790,7 +1736,7 @@ HALT;
 
             $haltPHP = self::selfHidingFile();
 
-            $pathHaltPHP = CarbonPHP::$app_root . 'tmp/haltPHP.php';
+            $pathHaltPHP = CarbonPHP::$app_root . 'cache/haltPHP.php';
 
             if (false === file_put_contents($pathHaltPHP, $haltPHP)) {
 
