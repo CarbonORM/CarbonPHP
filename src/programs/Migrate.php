@@ -1130,6 +1130,12 @@ HALT;
 
         }
 
+        if (true === $failed) {
+
+            throw new PublicAlert("Failed to download file ($url) to ($toLocalFilePath) after ($attempt) attempts");
+
+        }
+
     }
 
 
