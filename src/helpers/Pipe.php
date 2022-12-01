@@ -8,7 +8,7 @@
 
 namespace CarbonPHP\Helpers;
 
-use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Error\ThrowableHandler;
 
 /**
  * Class Pipe
@@ -106,7 +106,7 @@ abstract class Pipe
 
             fclose($fifo);
         } catch (\Exception $e) {
-            ErrorCatcher::generateLog($e);
+            ThrowableHandler::generateLog($e);
         }
         return true;
     }

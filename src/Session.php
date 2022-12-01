@@ -16,7 +16,7 @@
 
 namespace CarbonPHP;
 
-use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Helpers\Background;
 use CarbonPHP\Helpers\ColorCode;
@@ -119,7 +119,7 @@ class Session implements SessionHandlerInterface
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e); // This terminates!
+            ThrowableHandler::generateLog($e); // This terminates!
 
         }
 
@@ -261,7 +261,7 @@ class Session implements SessionHandlerInterface
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);   // this terminates!
+            ThrowableHandler::generateLog($e);   // this terminates!
 
         }
 
@@ -370,7 +370,7 @@ class Session implements SessionHandlerInterface
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e); // this will terminate
+            ThrowableHandler::generateLog($e); // this will terminate
 
         }
 
@@ -462,7 +462,7 @@ class Session implements SessionHandlerInterface
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);
+            ThrowableHandler::generateLog($e);
 
         }
 
@@ -493,7 +493,7 @@ class Session implements SessionHandlerInterface
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);
+            ThrowableHandler::generateLog($e);
 
         }
 

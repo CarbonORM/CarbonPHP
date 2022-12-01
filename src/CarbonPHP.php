@@ -2,7 +2,7 @@
 
 namespace CarbonPHP;
 
-use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Helpers\Files;
@@ -267,7 +267,7 @@ class CarbonPHP
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);  // this terminates
+            ThrowableHandler::generateLog($e);  // this terminates
 
             exit(1);
 
@@ -572,15 +572,15 @@ class CarbonPHP
             #####################   ERRORS + Warnings + Alerts    #######################
             if ($config[self::ERROR] ??= false) {
 
-                ErrorCatcher::$defaultLocation ??= self::$reports . 'default_log.txt';
+                ThrowableHandler::$defaultLocation ??= self::$reports . 'default_log.txt';
 
-                ErrorCatcher::$printToScreen = $config[self::ERROR][self::SHOW] ?? ErrorCatcher::$printToScreen;
+                ThrowableHandler::$printToScreen = $config[self::ERROR][self::SHOW] ?? ThrowableHandler::$printToScreen;
 
-                ErrorCatcher::$storeReport = $config[self::ERROR][self::STORE] ?? ErrorCatcher::$storeReport;
+                ThrowableHandler::$storeReport = $config[self::ERROR][self::STORE] ?? ThrowableHandler::$storeReport;
 
-                ErrorCatcher::$level = $config[self::ERROR][self::LEVEL] ?? ErrorCatcher::$level;
+                ThrowableHandler::$level = $config[self::ERROR][self::LEVEL] ?? ThrowableHandler::$level;
 
-                ErrorCatcher::start();
+                ThrowableHandler::start();
 
             }
 
@@ -716,7 +716,7 @@ class CarbonPHP
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);   // this will exit if executed
+            ThrowableHandler::generateLog($e);   // this will exit if executed
 
         }
 
@@ -892,7 +892,7 @@ class CarbonPHP
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);  // this should terminate
+            ThrowableHandler::generateLog($e);  // this should terminate
 
         }
 

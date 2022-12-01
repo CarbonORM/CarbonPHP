@@ -3,7 +3,7 @@
 namespace CarbonPHP\Helpers;
 
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iColorCode;
 use Psr\Log\InvalidArgumentException;
@@ -115,25 +115,25 @@ abstract class ColorCode
             }    // do not double quote args passed here
 
 
-            if (null === ErrorCatcher::$defaultLocation || '' === ErrorCatcher::$defaultLocation) {
+            if (null === ThrowableHandler::$defaultLocation || '' === ThrowableHandler::$defaultLocation) {
 
                 return;
 
             }
 
-            ErrorCatcher::checkCreateLogFile($message);
+            ThrowableHandler::checkCreateLogFile($message);
 
             switch ($location) {
                 case '':
-                    if (false === ini_set('error_log', ErrorCatcher::$defaultLocation)) {
+                    if (false === ini_set('error_log', ThrowableHandler::$defaultLocation)) {
 
-                        throw new PublicAlert('Failed to set the log location to (' . ErrorCatcher::$defaultLocation . '). ' . self::$generalWarning);
+                        throw new PublicAlert('Failed to set the log location to (' . ThrowableHandler::$defaultLocation . '). ' . self::$generalWarning);
 
                     } // log to file too
 
                     break;
 
-                case ErrorCatcher::$defaultLocation:
+                case ThrowableHandler::$defaultLocation:
 
                     if (false === CarbonPHP::$cli) {
 
@@ -151,7 +151,7 @@ abstract class ColorCode
 
                 default:
 
-                    $additional = sprintf($colors[$color], "\n\nThe error_log location set ($location) did not match the CarbonPHP ColorCode enabled error log path ErrorCatcher::\$defaultLocation = (" . ErrorCatcher::$defaultLocation . "); or was not set to an empty string which enables cli output.\n\n", iColorCode::YELLOW);
+                    $additional = sprintf($colors[$color], "\n\nThe error_log location set ($location) did not match the CarbonPHP ColorCode enabled error log path ErrorCatcher::\$defaultLocation = (" . ThrowableHandler::$defaultLocation . "); or was not set to an empty string which enables cli output.\n\n", iColorCode::YELLOW);
 
                     /** @noinspection ForgottenDebugOutputInspection */
                     if (false === error_log($additional)) {
@@ -162,11 +162,11 @@ abstract class ColorCode
 
                     $message .= $additional; // for old log location
 
-                    $lastLoggingLocation = ini_set('error_log', ErrorCatcher::$defaultLocation);
+                    $lastLoggingLocation = ini_set('error_log', ThrowableHandler::$defaultLocation);
 
                     if (false === $lastLoggingLocation) {
 
-                        throw new PublicAlert('All color coded enabled logs must print to (' . ErrorCatcher::$defaultLocation . ") but switching from ($location) failed. "  . self::$generalWarning);
+                        throw new PublicAlert('All color coded enabled logs must print to (' . ThrowableHandler::$defaultLocation . ") but switching from ($location) failed. "  . self::$generalWarning);
 
                     }
 
@@ -202,7 +202,7 @@ abstract class ColorCode
 
             self::$changingLocationsFailed = true;
 
-            ErrorCatcher::generateLog($e);
+            ThrowableHandler::generateLog($e);
 
             exit(1);
 

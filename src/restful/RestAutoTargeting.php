@@ -2,7 +2,6 @@
 
 namespace CarbonPHP\Restful;
 
-
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Helpers\Composer;

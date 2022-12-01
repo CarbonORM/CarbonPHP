@@ -3,7 +3,7 @@ namespace CarbonPHP\Programs;
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
-use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Helpers\Background;
 use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Helpers\Pipe;
@@ -887,7 +887,7 @@ class WebSocket extends Request implements iCommand
 
             if ($pid < 0) {
 
-                ErrorCatcher::generateLog();             // log errors
+                ThrowableHandler::generateLog();             // log errors
 
             }
 

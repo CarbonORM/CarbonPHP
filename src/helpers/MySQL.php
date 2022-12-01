@@ -12,7 +12,7 @@ namespace CarbonPHP\Helpers;
 
 
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iColorCode;
 use Throwable;
@@ -57,7 +57,7 @@ IDENTIFIED;
 
             print 'Failed to change mysql auth method' . PHP_EOL;
 
-            ErrorCatcher::generateLog($e);
+            ThrowableHandler::generateLog($e);
 
             exit(1);
 

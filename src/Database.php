@@ -2,7 +2,7 @@
 
 namespace CarbonPHP;
 
-use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Helpers\Composer;
@@ -150,7 +150,7 @@ FOOT;
 
         } catch (Throwable $e) {                            // added for socket support
 
-            ErrorCatcher::generateLog($e, true);
+            ThrowableHandler::generateLog($e, true);
 
             ColorCode::colorCode('Attempting to reset the database. Possible disconnect.', iColorCode::BACKGROUND_YELLOW);
 
@@ -168,15 +168,15 @@ FOOT;
     public static function TryCatchPDOException(PDOException $e): void
     {
 
-        $error_array = ErrorCatcher::generateLog($e, true);
+        $error_array = ThrowableHandler::generateLog($e, true);
 
-        $log_array = $error_array[ErrorCatcher::LOG_ARRAY];
+        $log_array = $error_array[ThrowableHandler::LOG_ARRAY];
 
         // todo - handle all pdo exceptions
         switch ((string)$e->getCode()) {        // Database has not been created
             case '0':
 
-                print ErrorCatcher::generateBrowserReport($log_array);  // this terminates
+                print ThrowableHandler::generateBrowserReport($log_array);  // this terminates
 
                 exit(1);
 
@@ -196,7 +196,7 @@ FOOT;
 
                 }
 
-                ErrorCatcher::generateBrowserReport($log_array);  // this terminates
+                ThrowableHandler::generateBrowserReport($log_array);  // this terminates
 
                 return;
 
@@ -208,7 +208,7 @@ FOOT;
 
                 } catch (Throwable $e) {
 
-                    $error_array_two = ErrorCatcher::generateLog($e);
+                    $error_array_two = ThrowableHandler::generateLog($e);
 
                     if ($e->getCode() === 1049) {
 
@@ -219,19 +219,19 @@ FOOT;
                         $error_array_two[] = '<p>It should follow the following format "mysql:host=127.0.0.1;dbname=C6".</p>';
                     }
 
-                    ErrorCatcher::generateBrowserReport($error_array_two);  // this terminates
+                    ThrowableHandler::generateBrowserReport($error_array_two);  // this terminates
 
                 }
 
                 static::refreshDatabase();
 
-                print ErrorCatcher::generateBrowserReport($log_array);  // this terminates
+                print ThrowableHandler::generateBrowserReport($log_array);  // this terminates
 
                 break;
 
             case '42S02':
 
-                print ErrorCatcher::generateBrowserReport($log_array);
+                print ThrowableHandler::generateBrowserReport($log_array);
 
                 static::setUp(!CarbonPHP::$cli, CarbonPHP::$cli);
 
@@ -249,7 +249,7 @@ FOOT;
 
                 }
 
-                print ErrorCatcher::generateBrowserReport($log_array);
+                print ThrowableHandler::generateBrowserReport($log_array);
 
         }
 
@@ -324,7 +324,7 @@ FOOT;
 
                 self::$carbonDatabaseInitialized = false;
 
-                ErrorCatcher::generateLog($e);  // this will exit
+                ThrowableHandler::generateLog($e);  // this will exit
 
             } finally {
 
@@ -502,7 +502,7 @@ FOOT;
 
         } catch (PDOException $e) {
 
-            ErrorCatcher::generateLog($e);
+            ThrowableHandler::generateLog($e);
 
         }
 
@@ -727,7 +727,7 @@ FOOT;
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);  // this terminates
+            ThrowableHandler::generateLog($e);  // this terminates
 
             exit(1);
 
@@ -759,7 +759,7 @@ FOOT;
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);  // this terminates
+            ThrowableHandler::generateLog($e);  // this terminates
 
             exit(112);
 
@@ -952,7 +952,7 @@ FOOT;
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);
+            ThrowableHandler::generateLog($e);
 
         }
     }
@@ -1309,7 +1309,7 @@ WHERE cols.TABLE_SCHEMA=?
 
             } catch (Throwable $e) {
 
-                ErrorCatcher::generateLog($e, true);
+                ThrowableHandler::generateLog($e, true);
 
             }
 
@@ -1612,7 +1612,7 @@ WHERE cols.TABLE_SCHEMA=?
 
             }
 
-            ErrorCatcher::generateLog($e);
+            ThrowableHandler::generateLog($e);
 
             exit(1);        // exit 1 is phpunit // composer scripts safe to === error
 

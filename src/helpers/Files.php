@@ -3,7 +3,7 @@
 namespace CarbonPHP\Helpers;
 
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iColorCode;
 use FilesystemIterator;
@@ -29,7 +29,7 @@ abstract class Files
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);
+            ThrowableHandler::generateLog($e);
 
         }
 
