@@ -19,7 +19,7 @@ trait Background
      * @param bool $append
      * @return string|int
      */
-    public static function background(string $cmd, string $outputFile = '/dev/null', bool $append = false)
+    public static function background(string $cmd, string $outputFile = '/dev/null', bool $append = false): int|string
     {
 
         try {

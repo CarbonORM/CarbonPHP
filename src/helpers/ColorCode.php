@@ -6,6 +6,8 @@ use CarbonPHP\CarbonPHP;
 use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iColorCode;
+use Psr\Log\InvalidArgumentException;
+use Psr\Log\LogLevel;
 use Throwable;
 
 trait ColorCode
@@ -16,6 +18,33 @@ trait ColorCode
     public static bool $colorCodeBool = true;
 
     public static bool $changingLocationsFailed = false;
+
+
+    /**
+     * Logs with an arbitrary level; psr defined explicitly in LoggerTrait
+     * @param mixed $level
+     * @param string|\Stringable $message
+     * @param array $context
+     *
+     * @return void
+     *
+     * @throws InvalidArgumentException
+     * @link https://www.php-fig.org/psr/psr-3/
+     */
+    public function log($level, $message, array $context = []): void
+    {
+        // these refer ot the functions in trait LoggerTrait
+        self::colorCode($message, match ($level) {
+            LogLevel::ERROR => iColorCode::RED,
+            LogLevel::CRITICAL, LogLevel::EMERGENCY => iColorCode::BACKGROUND_RED,
+            LogLevel::ALERT => iColorCode::BLUE,
+            LogLevel::WARNING => iColorCode::BACKGROUND_YELLOW,
+            LogLevel::NOTICE => iColorCode::YELLOW,
+            LogLevel::INFO => iColorCode::CYAN,
+            LogLevel::DEBUG => iColorCode::MAGENTA,
+            default => iColorCode::BACKGROUND_GREEN,
+        });
+    }
 
     /**
      * @param string $message

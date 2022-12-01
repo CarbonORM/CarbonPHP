@@ -10,7 +10,7 @@ use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Rest;
 use CarbonPHP\Session;
 
-trait RestfulValidations
+abstract class RestfulValidations
 {
 
     /**
