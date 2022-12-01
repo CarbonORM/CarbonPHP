@@ -1722,7 +1722,7 @@ export const {{strtolowerNoPrefixTableName}} : C6RestfulModel & iDefine{{ucEachT
         return [
             #'use CarbonPHP\Database;',
             #'use CarbonPHP\Error\PublicAlert;',
-            'use CarbonPHP\Helpers\RestfulValidations;',
+            'use CarbonPHP\Restful\RestfulValidations;',
             'use CarbonPHP\Rest;',
             #'use JsonException;',
             'use PDO;',
