@@ -5,8 +5,8 @@ namespace CarbonPHP;
 
 use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Interfaces\iConfig;
-use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Programs\Deployment;
 use CarbonPHP\Programs\Migrate;
 use CarbonPHP\Programs\WebSocket;

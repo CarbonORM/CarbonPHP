@@ -3,13 +3,12 @@
 use CarbonPHP\Application;
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Documentation;
+use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iConfig;
-use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Programs\Deployment;
 use CarbonPHP\Programs\Migrate;
 use CarbonPHP\Tables\Carbons;
-
 
 
 if (false === defined('ABSPATH')) {
@@ -22,7 +21,7 @@ if (false === defined('ABSPATH')) {
             composer. To lean more about how to use CarbonPHP please refer to 
             <a href="https://www.carbonphp.com/">https://CarbonPHP.com/</a></h1>';
 
-    if (class_exists('CarbonPHP\Programs\ColorCode')) {
+    if (class_exists('CarbonPHP\Helpers\ColorCode')) {
 
         ColorCode::colorCode('C6 Plugin Failed; ABSPATH not defined!', iColorCode::RED);
 

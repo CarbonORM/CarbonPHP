@@ -4,12 +4,12 @@ namespace CarbonPHP;
 
 use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Helpers\Files;
 use CarbonPHP\Helpers\Serialized;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iConfig;
 use CarbonPHP\Programs\CLI;
-use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Programs\WebSocket;
 use Tests\Feature\CarbonRestTest;
 use Throwable;
@@ -34,7 +34,6 @@ use function is_callable;
  */
 class CarbonPHP
 {
-    use ColorCode;
 
     // folder locations
     public const CARBON_ROOT = __DIR__ . DIRECTORY_SEPARATOR;
@@ -451,7 +450,7 @@ class CarbonPHP
 
                 $message = "\nCould not change current working directory from " . getcwd() . " to " . self::$app_root . ".\n\n";
 
-                self::colorCode($message, iColorCode::RED);
+                ColorCode::colorCode($message, iColorCode::RED);
 
                 exit($message);
 
@@ -472,7 +471,7 @@ class CarbonPHP
 
                 if (!self::$test) {
 
-                    self::colorCode('The composer directory ie C6 should be in a child directory of the application root (' . self::$app_root . '). Currently set to :: ' . self::$app_root . "\n
+                    ColorCode::colorCode('The composer directory ie C6 should be in a child directory of the application root (' . self::$app_root . '). Currently set to :: ' . self::$app_root . "\n
                         Continuing gracefully, but some features may not work as expected.\n", iColorCode::RED);
 
                 }

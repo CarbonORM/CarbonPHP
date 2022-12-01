@@ -6,9 +6,9 @@ namespace CarbonPHP\Error;
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
+use CarbonPHP\Helpers\Background;
+use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Interfaces\iColorCode;
-use CarbonPHP\Programs\Background;
-use CarbonPHP\Programs\ColorCode;
 use CarbonPHP\Rest;
 use CarbonPHP\Tables\Reports;
 use PDOException;
@@ -27,7 +27,6 @@ use Throwable;
  */
 class ErrorCatcher
 {
-    use Background, ColorCode;
 
     public const LOG_ARRAY = 'LOG_ARRAY';
 
@@ -63,9 +62,9 @@ class ErrorCatcher
 
     // The following two should be of type   ?Closure|array
     // @link https://www.php.net/manual/en/function.set-error-handler.php
-    public static $old_error_handler = null;
+    public static mixed $old_error_handler = null;
 
-    public static $old_exception_handler = null;
+    public static mixed $old_exception_handler = null;
 
     public static ?int $old_error_level = null;
 
@@ -912,7 +911,7 @@ class ErrorCatcher
 
             $log_copy = $log_array;
 
-            self::colorCode('The designated \$cliOutputArray failed to json_encode. This may be due to a call stack which passes objects as parameters, a cicilic reffrence (recursion), an extremely large callstack for long running, or forever-running, programs. Should the output below be unhelpful you should you explore further using xDebug.',
+            ColorCode::colorCode('The designated \$cliOutputArray failed to json_encode. This may be due to a call stack which passes objects as parameters, a cicilic reffrence (recursion), an extremely large callstack for long running, or forever-running, programs. Should the output below be unhelpful you should you explore further using xDebug.',
                 iColorCode::YELLOW);
 
             $log_copy[self::DEBUG_BACKTRACE] = '*EXCLUDED FOR POSSIBLE RECURSION*';
@@ -927,7 +926,7 @@ class ErrorCatcher
 
         }
 
-        self::colorCode($message, $color);
+        ColorCode::colorCode($message, $color);
 
         $log_file = 'logs/ErrorCatcherReport_' . ($_SESSION['id'] ?? 'guest') . '_' . session_id() . '_' . microtime(true) . '_' . getmypid() . '.html';
 
@@ -982,7 +981,7 @@ class ErrorCatcher
 
         }
 
-        self::colorCode('Returning Error Information', iColorCode::CYAN);
+        ColorCode::colorCode('Returning Error Information', iColorCode::CYAN);
 
         return [
             self::LOG_ARRAY => $log_array,

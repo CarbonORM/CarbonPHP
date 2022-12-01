@@ -1,12 +1,11 @@
 <?php
 
-namespace CarbonPHP\Programs;
+namespace CarbonPHP\Helpers;
 
-use CarbonPHP\Helpers\Files;
 use CarbonPHP\Interfaces\iColorCode;
 use Throwable;
 
-trait Background
+abstract class Background
 {
 
     public static array $backgroundProcessesStatusCodes = [];

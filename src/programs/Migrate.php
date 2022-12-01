@@ -6,7 +6,10 @@ use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
 use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Helpers\Background;
+use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Helpers\Files;
+use CarbonPHP\Helpers\MySQL;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
 use CarbonPHP\Route;
@@ -795,12 +798,12 @@ class Migrate implements iCommand
 
         $delimited = static fn (string $string_before): string => preg_quote($string_before, "/");
 
-        $replace = $delimited($replace);
-
-        $replacement = $delimited($replacement);
+        $replaceDelimited = $delimited($replace);
+ 
+        $replacementDelimited = $delimited($replacement);
 
         // @link https://stackoverflow.com/questions/29902647/sed-match-replace-url-and-update-serialized-array-count
-        $replaceBashCmd = CarbonPHP::CARBON_ROOT . "extras/replaceInFileSerializeSafe.sh '$absoluteFilePath' '$replace' '$replacement'";
+        $replaceBashCmd = CarbonPHP::CARBON_ROOT . "extras/replaceInFileSerializeSafe.sh '$absoluteFilePath' '$replaceDelimited' '$replace' '$replacementDelimited' '$replacement'";
 
         Background::executeAndCheckStatus($replaceBashCmd);
 

@@ -20,7 +20,7 @@ use CarbonPHP\Error\ErrorCatcher;
  * many different hosting solutions and I believe this
  * was a fix on one. But im not positive...
  */
-class Pipe
+abstract class Pipe
 {
     /** This will open a named pipe on our server. This is used for sending
      * information between two active processes on the server. Generally,

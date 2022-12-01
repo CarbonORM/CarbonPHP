@@ -7,7 +7,7 @@ use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Rest;
 use CarbonPHP\Route;
 
-class Swagger
+abstract class Swagger
 {
 
     public static array $restTablesArray = [];

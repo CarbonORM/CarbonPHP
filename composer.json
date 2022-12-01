@@ -11,11 +11,11 @@
     "Routing"
   ],
   "homepage": "https://github.com/richardtmiles/carbonphp",
-  "description": "A PHP 7.4+ tool kit featuring RESTFUL ORM, sockets, session management, and routing.",
+  "description": "A PHP 8.1+ tool kit featuring RESTFUL ORM, sockets, session management, and routing.",
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
-    "php": ">=7.4",
+    "php": ">=8.1",
     "mustache/mustache": "^2.13.0",
     "psr/log": "1.1.4",
     "matthiasmullie/minify": "^1.3",

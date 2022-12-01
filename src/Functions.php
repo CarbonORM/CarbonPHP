@@ -3,8 +3,8 @@
 namespace {                                     // This runs the following code in the global scope
     use CarbonPHP\CarbonPHP;
     use CarbonPHP\Error\PublicAlert;
+    use CarbonPHP\Helpers\ColorCode;
     use CarbonPHP\Interfaces\iColorCode;
-    use CarbonPHP\Programs\ColorCode;
     use CarbonPHP\View;
 
     //  Displays alerts nicely

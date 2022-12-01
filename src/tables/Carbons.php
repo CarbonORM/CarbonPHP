@@ -3,9 +3,9 @@
 namespace CarbonPHP\Tables;
 
 // Restful defaults
-use CarbonPHP\Helpers\RestfulValidations;
-use CarbonPHP\Rest;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
+use CarbonPHP\Rest;
+use CarbonPHP\Restful\RestfulValidations;
 use PDO;
 
 // Custom User Imports
@@ -33,8 +33,7 @@ use PDO;
  */
 class Carbons extends Rest implements iRestSinglePrimaryKey
 {
-    use RestfulValidations;
-    
+
     public const CLASS_NAME = 'Carbons';
     
     public const CLASS_NAMESPACE = 'CarbonPHP\Tables\\';

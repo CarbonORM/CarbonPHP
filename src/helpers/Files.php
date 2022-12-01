@@ -6,13 +6,12 @@ use CarbonPHP\CarbonPHP;
 use CarbonPHP\Error\ErrorCatcher;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iColorCode;
-use CarbonPHP\Programs\ColorCode;
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Throwable;
 
-class Files
+abstract class Files
 {
 
 

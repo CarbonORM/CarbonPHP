@@ -1,6 +1,6 @@
 <?php
 
-namespace CarbonPHP\Programs;
+namespace CarbonPHP\Helpers;
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Error\ErrorCatcher;
@@ -8,9 +8,11 @@ use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iColorCode;
 use Psr\Log\InvalidArgumentException;
 use Psr\Log\LogLevel;
+use Stringable;
 use Throwable;
+use function ini_set;
 
-trait ColorCode
+abstract class ColorCode
 {
 
     public static string $generalWarning = 'As seen in comments of (@link https://www.php.net/manual/en/function.ini-set.php); I have experienced on some systems that ini_set() will fail and return a false, when trying to set a setting that was set inside php.ini inside a per-host setting. This would also include php-fpm configuration (php_admin_value[error_log] and php_admin_flag[log_errors]). You should comment out these lines if they exist. Beware of this.';
@@ -23,7 +25,7 @@ trait ColorCode
     /**
      * Logs with an arbitrary level; psr defined explicitly in LoggerTrait
      * @param mixed $level
-     * @param string|\Stringable $message
+     * @param Stringable|string $message
      * @param array $context
      *
      * @return void
@@ -31,10 +33,10 @@ trait ColorCode
      * @throws InvalidArgumentException
      * @link https://www.php-fig.org/psr/psr-3/
      */
-    public function log($level, $message, array $context = []): void
+    public function log(mixed $level, Stringable|string $message, array $context = []): void
     {
         // these refer ot the functions in trait LoggerTrait
-        self::colorCode($message, match ($level) {
+        ColorCode::colorCode($message, match ($level) {
             LogLevel::ERROR => iColorCode::RED,
             LogLevel::CRITICAL, LogLevel::EMERGENCY => iColorCode::BACKGROUND_RED,
             LogLevel::ALERT => iColorCode::BLUE,

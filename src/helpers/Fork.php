@@ -8,7 +8,7 @@
 
 namespace CarbonPHP\Helpers;
 
-class Fork
+abstract class Fork
 {
 
     /** If a callable function is passes the interpreter will attempt to

@@ -3,20 +3,12 @@
 namespace CarbonPHP\Tables;
 
 // Restful defaults
-use CarbonPHP\Helpers\RestfulValidations;
-use CarbonPHP\Rest;
 use CarbonPHP\Interfaces\iRestNoPrimaryKey;
+use CarbonPHP\Rest;
+use CarbonPHP\Restful\RestfulValidations;
 use PDO;
 
 // Custom User Imports
-use CarbonPHP\Database;
-use CarbonPHP\Error\PublicAlert;
-use JsonException;
-use PDOException;
-use function array_key_exists;
-use function count;
-use function func_get_args;
-use function is_array;
 
 /**
  *
@@ -40,7 +32,7 @@ use function is_array;
  */
 class Feature_Group_References extends Rest implements iRestNoPrimaryKey
 {
-    use RestfulValidations;
+
     
     public const CLASS_NAME = 'Feature_Group_References';
     

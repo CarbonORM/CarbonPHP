@@ -7,40 +7,18 @@
 namespace CarbonPHP\Error;
 
 use CarbonPHP\Interfaces\iException;
+use Exception;
+use Throwable;
 
-abstract class CustomException extends \Exception implements iException
+abstract class CustomException extends Exception implements iException
 {
 
     protected $message = 'CustomException';     // Exception message
 
-    private   $string;                            // Unknown
+    protected $code = 0;                       // User-defined exception code
 
-    protected $code    = 0;                       // User-defined exception code
-
-    protected $file;                              // Source filename of exception
-
-    protected $line;                              // Source line of exception
-
-    private   $trace;                             // Unknown
-
-    public function __construct($message = null, $code = 0)
-    {
-
-        if (!$message) {
-
-            throw new $this('Unknown '. \get_class($this));
-
-        }
-
-        parent::__construct($message, $code);
-
-    }
-
-    public function __toString()
-    {
-
-        return \get_class($this) . " '{$this->message}' in {$this->file}({$this->line})\n" . $this->getTraceAsString();
-
+    public function __construct(string|null $message = "", int $code = 0, Throwable|null $previous = null) {
+        parent::__construct($message, $code, $previous);
     }
 
 }

@@ -5,6 +5,10 @@ namespace CarbonPHP\Programs;
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Helpers\Background;
+use CarbonPHP\Helpers\ColorCode;
+use CarbonPHP\Helpers\Composer;
+use CarbonPHP\Helpers\MySQL;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
 use CarbonPHP\Interfaces\iRest;
@@ -22,9 +26,6 @@ use function in_array;
 
 class RestBuilder implements iCommand
 {
-    use ColorCode, Composer, Background, MySQL {
-        cleanUp as removeFiles;
-    }
 
     // database
     private string $schema;
@@ -41,7 +42,7 @@ class RestBuilder implements iCommand
 
     public function cleanUp(): void
     {
-        $this->cleanUp and $this->removeFiles();
+        $this->cleanUp and MySQL::cleanUp();
     }
 
     public function usage(): void
@@ -143,7 +144,7 @@ END;
     public function run(array $argv): void
     {
         // Check command line args, password is optional
-        self::colorCode("Building Rest Api!", iColorCode::BLUE);
+        ColorCode::colorCode("Building Rest Api!", iColorCode::BLUE);
 
         // C syntax
         $argc = count($argv);
@@ -184,7 +185,7 @@ END;
                     break;
                 case '-react':
                     if ($carbon_namespace) {
-                        self::colorCode("\tReact directory hardcoded for C6, unnecessary flag.\n", 'blue');
+                        ColorCode::colorCode("\tReact directory hardcoded for C6, unnecessary flag.\n", 'blue');
                         break;
                     }
                     $react = $argv[++$i];
@@ -206,12 +207,12 @@ END;
                     if (count($target_namespace_array) === 1) {
                         switch (strtolower(readline("Does the namespace ($target_namespace) look correct? [Y,n]"))) {
                             default:
-                                self::colorCode('TTY not active. Skipping namespace double check.', iColorCode::BACKGROUND_YELLOW);
+                                ColorCode::colorCode('TTY not active. Skipping namespace double check.', iColorCode::BACKGROUND_YELLOW);
                                 break;
                             case 'no':
                             case 'n':
                                 /** @noinspection PhpUnhandledExceptionInspection */
-                                self::colorCode('You may need to add more escaping "\\" depending on how may contexts the string goes through. We will try to fix over escaped namespaces.', iColorCode::RED);
+                                ColorCode::colorCode('You may need to add more escaping "\\" depending on how may contexts the string goes through. We will try to fix over escaped namespaces.', iColorCode::RED);
 
                                 exit(1);
 
@@ -226,7 +227,7 @@ END;
                     if ($carbon_namespace) {
                         break;
                     }
-                    $composer = self::getComposerConfig();
+                    $composer = Composer::getComposerConfig();
                     $composer = $composer['autoload']['psr-4']["Tables\\"] ?? false;
                     if (!$composer) {
                         print "\n\nFailed to find an entry for ['autoload']['psr-4']['Tables\\'] in your composer.json\n" .
@@ -310,9 +311,9 @@ END;
                     // path to an sql dump file
                     $dump = $argv[++$i];
                     break;
-                case '-cnf':
+                case '--cnf':
                     // path to an sql cnf pass file
-                    self::buildCNF($argv[++$i]);
+                    MySQL::buildCNF($argv[++$i]);
                     break;
                 case '-logClasses':
                     $logClasses = true;
@@ -367,7 +368,7 @@ END;
             }
         }
 
-        if ('/' !== substr($targetDir, -1)) {
+        if (!str_ends_with($targetDir, '/')) {
             $targetDir .= DS;
         }
 
@@ -376,14 +377,14 @@ END;
             exit(1);
         }
 
-        self::$mysqldump = $dumpFilePath = $dump ?? self::mysqldump($mysqldump ?? null, $dumpData);
+        MySQL::$mysqldump  = $dump ?? MySQL::mysqldump($mysqldump ?? null, $dumpData);
 
-        if (!file_exists(self::$mysqldump)) {
+        if (!file_exists(MySQL::$mysqldump)) {
             print 'Could not load mysql dump file!' . PHP_EOL;
             exit(1);
         }
 
-        if (empty(self::$mysqldump = file_get_contents(self::$mysqldump))) {
+        if (empty(MySQL::$mysqldump = file_get_contents(MySQL::$mysqldump))) {
             print 'Contents of the mysql dump file appears empty. Build Failed!';
             exit(1);
         }
@@ -391,10 +392,10 @@ END;
         // This is our mustache template engine implemented in php, used for rendering user content
         $mustache = new \Mustache_Engine();
 
-        $verbose and var_dump(self::$mysqldump);
+        $verbose and var_dump(MySQL::$mysqldump);
 
         // match all tables from a mysql dump
-        preg_match_all('#CREATE\s+TABLE(.|\s)+?(?=ENGINE=)ENGINE=.+;#', self::$mysqldump, $matches);
+        preg_match_all('#CREATE\s+TABLE(.|\s)+?(?=ENGINE=)ENGINE=.+;#', MySQL::$mysqldump, $matches);
 
         // I just want the list of matches, nothing more.
         $matches = $matches[0];
@@ -467,7 +468,7 @@ END;
 
                             $validation = file_get_contents($validation);
 
-                            if (0 === strpos($etn, 'carbon_')) {    // as this would mean the table is prefixed
+                            if (str_starts_with($etn, 'carbon_')) {    // as this would mean the table is prefixed
 
                                 $rest[$tableName]['DONT_VALIDATE_AFTER_REBUILD'] = true;
 
@@ -569,7 +570,7 @@ END;
                                 'strcasecmp');         // or null.. smh
 
 
-                            if (false !== strpos($validation, 'public function __construct(array &$return = [])')) {
+                            if (str_contains($validation, 'public function __construct(array &$return = [])')) {
 
                                 // todo - add any method we want to allow "overrides for"
                                 $methods[] = '__construct';
@@ -637,7 +638,7 @@ END;
 
                         if ($verbose) {
 
-                            self::colorCode("\tGenerating {$tableName}\n", iColorCode::BLUE);
+                            ColorCode::colorCode("\tGenerating {$tableName}\n", iColorCode::BLUE);
 
                             $debug and var_dump($linesInCreateTableStatement);
 
@@ -733,13 +734,13 @@ END;
 
                         }
 
-                        $localTable = 0 === strpos($tableName, $prefix)
+                        $localTable = str_starts_with($tableName, $prefix)
                             ? substr($tableName, strlen($prefix))
                             : $tableName;
 
                         $localTable = ucwords($localTable, '_');
 
-                        $localTableRef = 0 === strpos($references_table, $prefix)
+                        $localTableRef = str_starts_with($references_table, $prefix)
                             ? substr($references_table, strlen($prefix))
                             : $references_table;
 
@@ -797,7 +798,7 @@ END;
 
                         }
 
-                        $verbose and self::colorCode("\nreference found ::\t$tableName([$foreign_key => $references_column])\n", 'magenta');
+                        $verbose and ColorCode::colorCode("\nreference found ::\t$tableName([$foreign_key => $references_column])\n", 'magenta');
 
                         $rest[$references_table]['dependencies'][] = [$tableName => [$foreign_key => $references_column]];
                         //\\ DEPRECATED
@@ -889,7 +890,7 @@ END;
                             // Explode hold all information about column
                             $rest[$tableName]['explode'][$explodeArrayPosition]['type'] = $type;
 
-                            if (false !== strpos($fullLineInCreateTableStatement, 'NOT NULL')) {
+                            if (str_contains($fullLineInCreateTableStatement, 'NOT NULL')) {
 
 
                                 $rest[$tableName]['explode'][$explodeArrayPosition][iRest::NOT_NULL] = '\'NOT NULL\'';
@@ -913,10 +914,10 @@ END;
                                 // todo - the negative case  && substr($words_in_insert_stmt[$key], -w) === '\\\\''
 
                                 // if it ends in '  aka '0'
-                                if (substr($wordsInLine[$key], -1) === '\'') {
+                                if (str_ends_with($wordsInLine[$key], '\'')) {
                                     $default = $wordsInLine[$key];
                                     // if it ends with ',  as '0',
-                                } else if (substr($wordsInLine[$key], -2) === '\',') {
+                                } else if (str_ends_with($wordsInLine[$key], '\',')) {
                                     $default = trim($wordsInLine[$key], ',');
                                     // if it doesnt start with '  as CURRENT_TIMESTAMP
                                 } else if ($wordsInLine[$key][0] !== '\'') {
@@ -927,8 +928,8 @@ END;
                                     do {
                                         $default .= ' ' . $wordsInLine[$key];
                                         $key++;
-                                    } while (substr($wordsInLine[$key], -1) !== '\''
-                                    && substr($wordsInLine[$key], -2) !== '\',');
+                                    } while (!str_ends_with($wordsInLine[$key], '\'')
+                                    && !str_ends_with($wordsInLine[$key], '\','));
                                     $default .= ' ' . $wordsInLine[$key];
                                     $default = trim($default, ', ');
                                 }
@@ -937,7 +938,7 @@ END;
 
                                     $rest[$tableName]['explode'][$explodeArrayPosition]['CURRENT_TIMESTAMP'] = true;
 
-                                } else if (strpos($default, '\'') !== 0) {
+                                } else if (!str_starts_with($default, '\'')) {
 
                                     // We need to escape values for php
                                     $default = "'$default'";
@@ -965,10 +966,10 @@ END;
                                     $comment .= ' ' . $wordsInLine[$key];
                                 } while (
                                     (
-                                        substr($wordsInLine[$key], -1) !== '\''
-                                        && substr($wordsInLine[$key], -2) !== '\\\''
+                                        !str_ends_with($wordsInLine[$key], '\'')
+                                        && !str_ends_with($wordsInLine[$key], '\\\'')
                                     )
-                                    && substr($wordsInLine[$key], -2) !== '\','
+                                    && !str_ends_with($wordsInLine[$key], '\',')
                                 );
 
                                 $rest[$tableName]['explode'][$explodeArrayPosition][iRest::COMMENT] = rtrim($comment, ',');
@@ -977,7 +978,7 @@ END;
 
                             // As far as I can tell the AUTO_INCREMENT condition the last possible word in the query
                             // todo - use a regex that ensures you dont write AUTO_INCREMENT in a comment
-                            $auto_inc = false !== strpos($fullLineInCreateTableStatement, 'AUTO_INCREMENT');
+                            $auto_inc = str_contains($fullLineInCreateTableStatement, 'AUTO_INCREMENT');
 
                             if ($auto_inc) {
 
@@ -985,7 +986,7 @@ END;
 
                                 $rest[$tableName]['explode'][$explodeArrayPosition]['auto_increment'] = true;
 
-                                $verbose and self::colorCode("\tThe Table '$tableName' contains an AUTO_INCREMENT column. This is bad for scaling.
+                                $verbose and ColorCode::colorCode("\tThe Table '$tableName' contains an AUTO_INCREMENT column. This is bad for scaling.
                                                                         \tConsider switching to binary(16) and letting this rest API manage column uniqueness.\n", iColorCode::RED);
                             }
 
@@ -1018,11 +1019,11 @@ END;
             // Make sure we didn't specify a flag that could cause us to move on...
             if (empty($rest[$tableName]['primary'])) {
 
-                $verbose and self::colorCode("\n\nThe tables {$rest[$tableName]['TableName']} does not have a primary key.\n", iColorCode::YELLOW);
+                $verbose and ColorCode::colorCode("\n\nThe tables {$rest[$tableName]['TableName']} does not have a primary key.\n", iColorCode::YELLOW);
 
                 if ($primary_required) {    // todo - this is a legacy option
 
-                    self::colorCode(" \tSkipping...\n ",);
+                    ColorCode::colorCode(" \tSkipping...\n ",);
 
                     continue;
 
@@ -1036,7 +1037,7 @@ END;
                         'pageNumber'
                     ])) {
 
-                        self::colorCode($rest[$tableName]['TableName'] . " uses reserved C6 RESTFULL keywords as a column identifier => $value\n\tRest Failed", iColorCode::RED);
+                        ColorCode::colorCode($rest[$tableName]['TableName'] . " uses reserved C6 RESTFULL keywords as a column identifier => $value\n\tRest Failed", iColorCode::RED);
 
                         die(1);
                     }
@@ -1073,13 +1074,13 @@ END;
 
             if (false === file_put_contents($targetDir . $parsed['ucEachTableName'] . '.php', $mustache->render($this->restTemplate(), $parsed))) {
 
-                self::colorCode('PHP internal file_put_contents failed while trying to store :: (' . $targetDir . $parsed['ucEachTableName'] . '.php)', iColorCode::RED);
+                ColorCode::colorCode('PHP internal file_put_contents failed while trying to store :: (' . $targetDir . $parsed['ucEachTableName'] . '.php)', iColorCode::RED);
 
             }
 
             if (empty($parsed['explode'])) {
 
-                self::colorCode("\nYou have a reference with wasn't resolved in the dump. Please search for '$tableName' in your "
+                ColorCode::colorCode("\nYou have a reference with wasn't resolved in the dump. Please search for '$tableName' in your "
                     . "./mysqldump.sql file. This typically occurs when resolving to an outside schema, which probably indicates an error.\n", iColorCode::RED);
 
             }
@@ -1108,7 +1109,7 @@ END;
 
 
                 if (!class_exists($linesInCreateTableStatement = $parsed['namespace'] . '\\' . $parsed['ucEachTableName'])) {
-                    self::colorCode("\n\nCouldn't locate class '$linesInCreateTableStatement' for react validations. This may indicate a new or unused table.\n", 'yellow');
+                    ColorCode::colorCode("\n\nCouldn't locate class '$linesInCreateTableStatement' for react validations. This may indicate a new or unused table.\n", 'yellow');
                     continue;
                 }
 
@@ -1133,7 +1134,7 @@ END;
 
                     if (!is_array($regex_validations)) {
 
-                        self::colorCode("\nRegex validations for $linesInCreateTableStatement must be an array!", iColorCode::RED);
+                        ColorCode::colorCode("\nRegex validations for $linesInCreateTableStatement must be an array!", iColorCode::RED);
 
                         exit(1);
 
@@ -1143,12 +1144,16 @@ END;
 
                     if (!empty($regex_validations)) {
 
+                        // this allows modifiers to be added to the regex
                         $str_lreplace = static function (string $search, string $replace, string $subject) {
 
-                            $pos = strrpos($subject, $search);
+                            $pos = strrpos($subject, $search);  // position for the next replace offset
 
                             if ($pos !== false) {
+
+                                // pos is the offset for the replace
                                 $subject = substr_replace($subject, $replace, $pos, strlen($search));
+
                             }
 
                             return $subject;
@@ -1187,7 +1192,7 @@ END;
             }
 
             if (empty($all_interface_types) || empty($all_table_names_types)) {
-                self::colorCode('The value of $all_interface_types must not be empty. This would mean no tables were parsed from the dump. Rest Failed.', 'red');
+                ColorCode::colorCode('The value of $all_interface_types must not be empty. This would mean no tables were parsed from the dump. Rest Failed.', 'red');
                 exit(1);
             }
 
@@ -1454,7 +1459,7 @@ const convertForRequestBody = function(restfulObject, tableName) {
         // todo - log classes
         $logClasses && print "\n";
 
-        self::colorCode("\tFinished Building REST ORM!\n\n");
+        ColorCode::colorCode("\tFinished Building REST ORM!\n\n");
 
 
         // TODO - validate the methods defined in table space
@@ -1473,23 +1478,27 @@ const convertForRequestBody = function(restfulObject, tableName) {
                     || $linesInCreateTableStatement['TableName'] === Carbons::TABLE_NAME
                     || $linesInCreateTableStatement['TableName'] === $this->table_prefix . Carbons::TABLE_NAME
                 ) {
+
                     continue;
+
                 }
+
                 if ($only_these_tables === null || in_array($linesInCreateTableStatement['TableName'], $only_these_tables, true)) {
                     $triggers .= self::trigger($linesInCreateTableStatement['TableName'], $linesInCreateTableStatement['columns'], $linesInCreateTableStatement['binary_trigger'] ?? [], $linesInCreateTableStatement['dependencies'], $linesInCreateTableStatement['primary']);
                 }
+
             }
 
             file_put_contents('triggers.sql', 'DELIMITER ;;' . PHP_EOL . $triggers . PHP_EOL . 'DELIMITER ;');
 
-            self::MySQLSource('triggers.sql', $mysql ?? null);
+            MySQL::MySQLSource('triggers.sql', $mysql ?? null);
         }
 
         // debug is a subset of the verbose flag
         /** @noinspection ForgottenDebugOutputInspection */
         $debug and var_dump($rest['clients']);
 
-        self::colorCode("\tSuccess!\n\n");
+        ColorCode::colorCode("\tSuccess!\n\n");
 
     }
 
@@ -1771,7 +1780,7 @@ $staticNamespaces
  */
 class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multiplePrimary}}iRestMultiplePrimaryKeys{{/multiplePrimary}}{{^multiplePrimary}}iRestSinglePrimaryKey{{/multiplePrimary}}{{/primaryExists}}{{^primaryExists}}iRestNoPrimaryKey{{/primaryExists}}
 {
-    use RestfulValidations;
+    
     
     public const CLASS_NAME = '{{ucEachTableName}}';
     
@@ -1971,7 +1980,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
      *  variables after the first key value pair. Only array values will be passed to the method. Thus, additional keys 
      *  listed in the array will be ignored. Take for example::
      *
-     *      [ self::class => 'validateUnique', self::class, self::EXAMPLE_COLUMN]
+     *      [ RestfulValidations::class => 'validateUnique', self::class, self::EXAMPLE_COLUMN]
      *  The above is defined in RestfulValidations::class. 
      *      RestfulValidations::validateUnique(string \$columnValue, string \$className, string \$columnName)
      *  Its definition is with a trait this classes inherits using `use` just after the `class` keyword. 
