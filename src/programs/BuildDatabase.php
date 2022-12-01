@@ -9,21 +9,17 @@
 namespace CarbonPHP\Programs;
 
 
-use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database as DB;
-use CarbonPHP\Interfaces\iColorCode;
+use CarbonPHP\Helpers\ColorCode;
+use CarbonPHP\Helpers\MySQL;
 use CarbonPHP\Interfaces\iCommand;
 
 class BuildDatabase implements iCommand
 {
-    use ColorCode, MySQL {
-        cleanUp as removeFiles;
-    }
-
 
     public function cleanUp(): void
     {
-        $this->removeFiles();
+        MySQL::cleanUp();
     }
 
     public function usage(): void
@@ -58,27 +54,39 @@ usage;
                     print 'Invalid argument ' . $argv[$i] . PHP_EOL;
                     $this->usage();
                     exit(1);
-                case '-targetDirectory':
-                    $tableDirectory = $argv[$i++];
-                    break;
+
+                case '--cnf':
+                    print MySQL::buildCNF() . PHP_EOL;
+                    exit(0);
+
                 case '-r':
                 case '--rebuild':
-                    self::colorCode('Starting Database Build');
+
+                    ColorCode::colorCode('Starting Database Build');
 
                     DB::setUp(false, true);   // Redirect = false
 
-                self::colorCode('Finished Database Build');
+                    ColorCode::colorCode('Finished Database Build');
+
                     // this is going to the CLI so no need to run/attach redirect scripts
                     exit(0);
+
                 case '-m':
                 case '--mysql_native_password':
-                    self::colorCode('Adjusting Mysql For PHP Compatibility');
-                    self::mysql_native_password();
-                    self::colorCode('Done with mysql password compatibility');
+
+                    ColorCode::colorCode('Adjusting Mysql For PHP Compatibility');
+
+                    MySQL::mysql_native_password();
+
+                    ColorCode::colorCode('Done with mysql password compatibility');
+
                     exit(0);
+
                 case '-s':
                 case'--save':
-                    self::colorCode('Saving current schema');
+
+                    ColorCode::colorCode('Saving current schema');
+
                     break;
             }
         }

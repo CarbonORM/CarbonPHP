@@ -11,7 +11,7 @@ jobs:
       max-parallel: 4
       matrix:
         operating-system: [ ubuntu-latest ]
-        php-versions: [ '7.4' ]
+        php-versions: [ '8.1' ]
 
     steps:
       - name: Checkout
@@ -45,9 +45,6 @@ jobs:
 
       - name: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e  "ALTER USER 'root'@'localhost' IDENTIFIED BY 'password';"
         run: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e  "ALTER USER 'root'@'localhost' IDENTIFIED BY 'password';"
-
-      - name: sudo update-alternatives --set php /usr/bin/php7.4
-        run: sudo update-alternatives --set php /usr/bin/php7.4
 
       - name: composer validate
         run: composer validate

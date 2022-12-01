@@ -19,5 +19,5 @@ interface iException
 
     /* Overridable methods inherited from Exception class */
     public function __toString();                 // formatted string for display
-    public function __construct($message = null, $code = 0);
+    public function __construct(string|null $message = null, int $code = 0);
 }

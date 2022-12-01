@@ -3,7 +3,9 @@ namespace CarbonPHP\Programs;
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
-use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Error\ThrowableHandler;
+use CarbonPHP\Helpers\Background;
+use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Helpers\Pipe;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
@@ -113,7 +115,7 @@ class WebSocket extends Request implements iCommand
 
         $config['SOCKET'] ??= [];
 
-        self::colorCode("\nConstructing Socket Class");
+        ColorCode::colorCode("\nConstructing Socket Class");
 
         CarbonPHP::$socket = true;
 
@@ -127,7 +129,7 @@ class WebSocket extends Request implements iCommand
 
         $signal = static function ($signal) {
 
-            self::colorCode("\nSignal Caught, :: $signal\n", 'blue');
+            ColorCode::colorCode("\nSignal Caught, :: $signal\n", 'blue');
 
             exit(1);
 
@@ -135,7 +137,7 @@ class WebSocket extends Request implements iCommand
 
         if (extension_loaded('pcntl')) {
 
-            self::colorCode("\nExtension pcntl loaded, Catching Signals\n", 'blue');
+            ColorCode::colorCode("\nExtension pcntl loaded, Catching Signals\n", 'blue');
 
             # https://www.leaseweb.com/labs/2013/08/catching-signals-in-php-scripts/
             pcntl_signal(SIGTERM, $signal); // Termination ('kill' was called')
@@ -148,7 +150,7 @@ class WebSocket extends Request implements iCommand
 
         } else {
 
-            self::colorCode("\nCarbonPHP Websockets require the PCNTL library. See CarbonPHP.com for more Documentation\n", 'red');
+            ColorCode::colorCode("\nCarbonPHP Websockets require the PCNTL library. See CarbonPHP.com for more Documentation\n", 'red');
 
             exit(1);
 
@@ -164,7 +166,7 @@ class WebSocket extends Request implements iCommand
                 default:
                 case '-help':
 
-                    self::colorCode("\tYou da bomb :)\n", 'blue');
+                    ColorCode::colorCode("\tYou da bomb :)\n", 'blue');
 
                     $this->usage();
 
@@ -234,13 +236,13 @@ class WebSocket extends Request implements iCommand
 
         }
 
-        self::colorCode("\nStream Context Created\n");
+        ColorCode::colorCode("\nStream Context Created\n");
 
         $socket = stream_socket_server("$protocol://" . ($config['SOCKET']['HOST'] ?? self::$host) . ':' . ($config['SOCKET']['PORT'] ?? self::$port), $errorNumber, $errorString, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, $context);
 
         if (!$socket) {
 
-            self::colorCode("\n$errorString ($errorNumber)\n", 'red');
+            ColorCode::colorCode("\n$errorString ($errorNumber)\n", 'red');
 
             die(1);
 
@@ -248,7 +250,7 @@ class WebSocket extends Request implements iCommand
 
         if (!is_resource($socket)) {
 
-            self::colorCode("\nThe socket creation failed unexpectedly.\n", 'red');
+            ColorCode::colorCode("\nThe socket creation failed unexpectedly.\n", 'red');
 
             die(1);
 
@@ -256,7 +258,7 @@ class WebSocket extends Request implements iCommand
 
         $this->socket = $socket;
 
-        self::colorCode("\nStream Socket Server Created on " . self::$host . '::' .self::$port. "\n\nws" . (self::$ssl ? 's' : '') . '://'.self::$host.':'.self::$port.'/ ');
+        ColorCode::colorCode("\nStream Socket Server Created on " . self::$host . '::' .self::$port. "\n\nws" . (self::$ssl ? 's' : '') . '://'.self::$host.':'.self::$port.'/ ');
 
         if (!self::$minimiseResources) {
 
@@ -271,7 +273,7 @@ class WebSocket extends Request implements iCommand
 
         if (self::$isWebsocketD) {
 
-            self::colorCode('Starting WebSocketD Method. The GO routine.');
+            ColorCode::colorCode('Starting WebSocketD Method. The GO routine.');
 
             $this->WebSocketD();
 
@@ -281,7 +283,7 @@ class WebSocket extends Request implements iCommand
 
         if (self::$minimiseResources) {
 
-            self::colorCode('Handle All Resource Stream Selects On Single Thread');
+            ColorCode::colorCode('Handle All Resource Stream Selects On Single Thread');
 
             $this->handleAllResourceStreamSelectOnSingleThread();
 
@@ -289,7 +291,7 @@ class WebSocket extends Request implements iCommand
 
         }
 
-        self::colorCode('Single Thread Per User');
+        ColorCode::colorCode('Single Thread Per User');
 
         self::$user_id = session_id();  // set who's logged in so when we fork we can reset
 
@@ -298,7 +300,7 @@ class WebSocket extends Request implements iCommand
         Database::setDatabase();    // This will clear the connection
 
         // php doesnt do tail call optimization, recursion doesn't work
-        self::colorCode("\nChild Thread Healthy\n");
+        ColorCode::colorCode("\nChild Thread Healthy\n");
 
         $this->serveSingleUserOnSingleThread();   // child thread will fall here and not stop until socket users disconnects
 
@@ -521,7 +523,7 @@ class WebSocket extends Request implements iCommand
 
         if (false === $data) {
 
-            self::colorCode("\nFailed to preform read for fifo file\n", 'red');
+            ColorCode::colorCode("\nFailed to preform read for fifo file\n", 'red');
 
             return;
 
@@ -553,7 +555,7 @@ class WebSocket extends Request implements iCommand
 
         $closeConnection = static function ($connection) use (&$allConnectedResources, &$WebsocketToPipeRelations) {
 
-            self::colorCode("\nClose Connection Requested.\n", 'red');
+            ColorCode::colorCode("\nClose Connection Requested.\n", 'red');
 
             $resourceToDelete = array_search($connection, $allConnectedResources, false);
 
@@ -561,7 +563,7 @@ class WebSocket extends Request implements iCommand
 
                 if ($information['user_pipe'] === $connection) {
 
-                    self::colorCode("\nUser connected named pipe closed before socket.\n", 'red');
+                    ColorCode::colorCode("\nUser connected named pipe closed before socket.\n", 'red');
 
                     exit(1);
 
@@ -569,13 +571,13 @@ class WebSocket extends Request implements iCommand
 
                 if ($information['user_socket'] === $connection) {
 
-                    self::colorCode('Socket Closed.', iColorCode::RED);
+                    ColorCode::colorCode('Socket Closed.', iColorCode::RED);
 
                     $pipeToDeleteKey = array_search($information['user_pipe'], $allConnectedResources, true);
 
                     if (!is_resource($WebsocketToPipeRelations[$key]['user_pipe'])) {
 
-                        self::colorCode('Pipe not resource. This is unexpected.', 'red');
+                        ColorCode::colorCode('Pipe not resource. This is unexpected.', 'red');
 
                     } else {
 
@@ -608,7 +610,7 @@ class WebSocket extends Request implements iCommand
             if ($number === 0) {
                 $manual_garbage_collection++;
                 $count = count(self::$userResourceConnections);
-                self::colorCode($count . ' user(s) connected. ' . ($count > 0 ? " (gc:$manual_garbage_collection)" : ''), 'cyan');
+                ColorCode::colorCode($count . ' user(s) connected. ' . ($count > 0 ? " (gc:$manual_garbage_collection)" : ''), 'cyan');
                 if ($manual_garbage_collection > 11) {
 
                 }
@@ -616,7 +618,7 @@ class WebSocket extends Request implements iCommand
             }
             $manual_garbage_collection = 0;
 
-            self::colorCode("\n$number, stream(s) are requesting to be processed.\n");
+            ColorCode::colorCode("\n$number, stream(s) are requesting to be processed.\n");
 
             foreach ($read as $connection) {
 
@@ -629,7 +631,7 @@ class WebSocket extends Request implements iCommand
                     // this is where we get the ip and port of the user
                     if ($connection === false) {
 
-                        self::colorCode("\nStream Socket Accept Failed\n", 'red');
+                        ColorCode::colorCode("\nStream Socket Accept Failed\n", 'red');
 
                         continue;
 
@@ -641,21 +643,21 @@ class WebSocket extends Request implements iCommand
 
                         @fclose($connection);
 
-                        self::colorCode("\nStream Handshake Failed\n", 'red');
+                        ColorCode::colorCode("\nStream Handshake Failed\n", 'red');
 
                         continue;
 
                     }
 
-                    self::colorCode("\nHandshake Successful\n", 'blue');
+                    ColorCode::colorCode("\nHandshake Successful\n", 'blue');
 
                     [$ip, $port] = explode(':', $peerName);
 
-                    self::colorCode("\nConnected $ip:$port\n", 'blue');
+                    ColorCode::colorCode("\nConnected $ip:$port\n", 'blue');
 
                     if (self::$verifyIP && !Session::verifySocket($ip)) {
 
-                        self::colorCode("\nFailed to verify socket ip for session.\n", 'red');
+                        ColorCode::colorCode("\nFailed to verify socket ip for session.\n", 'red');
 
                         continue;
 
@@ -665,7 +667,7 @@ class WebSocket extends Request implements iCommand
 
                     $session_id = $session::$session_id;
 
-                    self::colorCode("\nSession Verified $session_id\n", 'blue');
+                    ColorCode::colorCode("\nSession Verified $session_id\n", 'blue');
 
                     $session::writeCloseClean();  // we have to kill the static user id so were thread safe
 
@@ -673,7 +675,7 @@ class WebSocket extends Request implements iCommand
 
                     $_SESSION = [];
 
-                    self::colorCode("\nSession Closed Until Next Request $session_id\n", 'blue');
+                    ColorCode::colorCode("\nSession Closed Until Next Request $session_id\n", 'blue');
 
                     $sessionContinued = 0;
 
@@ -684,15 +686,15 @@ class WebSocket extends Request implements iCommand
 
                     if ($pipeRelation !== null) {
 
-                        self::colorCode("\nFound Multiple Session Connections For :: $session_id\n", 'blue');
+                        ColorCode::colorCode("\nFound Multiple Session Connections For :: $session_id\n", 'blue');
 
                         if ($pipeRelation['user_socket'] === $connection) {
 
-                            self::colorCode('User Socket Connecting Through Same Resource :)');
+                            ColorCode::colorCode('User Socket Connecting Through Same Resource :)');
 
                         } else {
 
-                            self::colorCode('User Socket Connecting Through Different Resource. Closing Old Connection.', 'blue');
+                            ColorCode::colorCode('User Socket Connecting Through Different Resource. Closing Old Connection.', 'blue');
 
                             $userToUpdateKey = array_search($pipeRelation['user_socket'], self::$userResourceConnections, true);
 
@@ -708,7 +710,7 @@ class WebSocket extends Request implements iCommand
 
                         if (!is_resource($pipeRelation['user_pipe'])) {
 
-                            self::colorCode("\nThe pipe went barron, this should never happen. Attempting to refresh.\n", 'red');
+                            ColorCode::colorCode("\nThe pipe went barron, this should never happen. Attempting to refresh.\n", 'red');
 
                             @fclose($pipeRelation['user_pipe']);
 
@@ -716,13 +718,13 @@ class WebSocket extends Request implements iCommand
 
                             if ($pipe === false) {
 
-                                self::colorCode("\nPipe failed to be created.\n", 'red');
+                                ColorCode::colorCode("\nPipe failed to be created.\n", 'red');
 
                                 continue;
 
                             }
 
-                            self::colorCode("\nPipe refreshed.\n", 'blue');
+                            ColorCode::colorCode("\nPipe refreshed.\n", 'blue');
 
                             $pipeRelation['user_pipe'] = &$pipe;
 
@@ -736,13 +738,13 @@ class WebSocket extends Request implements iCommand
 
                     if ($pipe === false) {
 
-                        self::colorCode("\nPipe failed to be created.\n", 'red');
+                        ColorCode::colorCode("\nPipe failed to be created.\n", 'red');
 
                         continue;
 
                     }
 
-                    self::colorCode("\nPipe created.\n", 'blue');
+                    ColorCode::colorCode("\nPipe created.\n", 'blue');
 
                     // add our new connection to the master list after we've checked for duplicates
                     $allConnectedResources[] = &$connection;
@@ -810,7 +812,7 @@ class WebSocket extends Request implements iCommand
 
                     default:
 
-                        self::colorCode("\nUnknown opcode given to websocket. Ignoring.\n", 'yellow');
+                        ColorCode::colorCode("\nUnknown opcode given to websocket. Ignoring.\n", 'yellow');
 
                         break;
 
@@ -835,7 +837,7 @@ class WebSocket extends Request implements iCommand
 
             if ($number === 0) {
 
-                self::colorCode('.', 'green');
+                ColorCode::colorCode('.', 'green');
 
                 continue;
 
@@ -885,7 +887,7 @@ class WebSocket extends Request implements iCommand
 
             if ($pid < 0) {
 
-                ErrorCatcher::generateLog();             // log errors
+                ThrowableHandler::generateLog();             // log errors
 
             }
 
@@ -906,7 +908,7 @@ class WebSocket extends Request implements iCommand
 
         if (false === is_resource($this->user)) {
 
-            self::colorCode("\nFailed to handle user connection\n", 'red');
+            ColorCode::colorCode("\nFailed to handle user connection\n", 'red');
 
             die(1);
 
@@ -918,25 +920,25 @@ class WebSocket extends Request implements iCommand
 
         }
 
-        self::colorCode("\nIP address verified\n", 'blue');
+        ColorCode::colorCode("\nIP address verified\n", 'blue');
 
-        self::colorCode("\nSession Started\n", 'blue');
+        ColorCode::colorCode("\nSession Started\n", 'blue');
 
         $session_id = session_id();
 
-        self::colorCode("\nSession ID Captured $session_id\n", 'blue');
+        ColorCode::colorCode("\nSession ID Captured $session_id\n", 'blue');
 
         $fifoFile = Pipe::named(CarbonPHP::$app_root . 'temp' . DS . session_id() . '.fifo');     // other users can notify us to update our application through this file
 
         if (false === $fifoFile) {
 
-            self::colorCode("\nFailed to create named pipe\n", 'red');
+            ColorCode::colorCode("\nFailed to create named pipe\n", 'red');
 
             die(1);
 
         }
 
-        self::colorCode("\nNamed Pipe Created\n", 'blue');
+        ColorCode::colorCode("\nNamed Pipe Created\n", 'blue');
 
         Session::pause();           // Close the current session
 
@@ -952,13 +954,13 @@ class WebSocket extends Request implements iCommand
 
             if ($mod_fd === 0) {
 
-                self::colorCode('..', 'blue');
+                ColorCode::colorCode('..', 'blue');
 
                 continue;
 
             }
 
-            self::colorCode($mod_fd . ', Stream is waiting to be processed', 'blue');
+            ColorCode::colorCode($mod_fd . ', Stream is waiting to be processed', 'blue');
 
             foreach ($read as $connection) {
 
@@ -976,7 +978,7 @@ class WebSocket extends Request implements iCommand
 
                     case self::CLOSE:
 
-                        self::colorCode('CLOSE', 'blue');
+                        ColorCode::colorCode('CLOSE', 'blue');
 
                         @fclose($fifoFile);
 
@@ -986,7 +988,7 @@ class WebSocket extends Request implements iCommand
 
                     case self::PING:
 
-                        self::colorCode('PING', 'blue');
+                        ColorCode::colorCode('PING', 'blue');
 
                         self::sendToResource('', $connection, self::PONG);
 
@@ -994,15 +996,15 @@ class WebSocket extends Request implements iCommand
 
                     case self::TEXT:
 
-                        self::colorCode('TEXT', 'blue');
+                        ColorCode::colorCode('TEXT', 'blue');
 
                         if (!is_string($data['payload'])) {
 
-                            self::colorCode('Stream did not send a string', 'blue');
+                            ColorCode::colorCode('Stream did not send a string', 'blue');
 
                         } else if ($data['payload'] = $this->set($data['payload'])->noHTML(true)) {
 
-                            self::colorCode('Payload :: ' . $data['payload'], 'blue');
+                            ColorCode::colorCode('Payload :: ' . $data['payload'], 'blue');
 
                             $this->forkStartApplication($data['payload'], [
                                 'session_id' => Session::$session_id,

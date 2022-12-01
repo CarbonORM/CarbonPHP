@@ -2,9 +2,9 @@
 
 namespace CarbonPHP\Restful;
 
-
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Helpers\Composer;
 use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
 use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
@@ -17,7 +17,7 @@ abstract class RestAutoTargeting extends RestSettings {
     public static function autoTargetTableDirectory(): string
     {
 
-        $composerJson = RestQueryValidation::getComposerConfig();
+        $composerJson = Composer::getComposerConfig();
 
         $tableNamespace = CarbonPHP::$configuration[CarbonPHP::REST][CarbonPHP::NAMESPACE] ??= "Tables\\";
 

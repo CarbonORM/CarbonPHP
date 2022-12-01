@@ -9,7 +9,7 @@
 namespace CarbonPHP;
 
 
-use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Error\PublicAlert;
 use Error;
 use Mustache_Exception_InvalidArgumentException;
@@ -58,7 +58,7 @@ abstract class Application extends Route
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);
+            ThrowableHandler::generateLog($e);
 
             exit(5);
 
@@ -166,7 +166,7 @@ abstract class Application extends Route
         self::$STACK_COUNT++;
 
         // make a call which may recurse
-        if (false === ErrorCatcher::catchErrors(static::CM($class, $method, $argv))()) {  // Controller -> Model
+        if (false === ThrowableHandler::catchErrors(static::CM($class, $method, $argv))()) {  // Controller -> Model
 
             return false;
 
@@ -226,7 +226,7 @@ abstract class Application extends Route
 
             self::$matched = true;
 
-            if (false === $return = ErrorCatcher::catchErrors(static::CM($class, $method, $argv))()) {
+            if (false === $return = ThrowableHandler::catchErrors(static::CM($class, $method, $argv))()) {
                 return null;
             }
 

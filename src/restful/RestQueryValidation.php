@@ -84,14 +84,16 @@ abstract class RestQueryValidation extends RestAutoTargeting
      * @param $request
      * @param string|null $calledFrom
      * @throws PublicAlert
-     * @noinspection PhpUnusedParameterInspection
      */
     public static function disallowPublicAccess($request, string $calledFrom = null): void
     {
 
         if (self::$externalRestfulRequestsAPI && !CarbonPHP::$test) {
 
-            throw new PublicAlert('Rest request denied by the PHP_VALIDATION\'s in the tables ORM. Remove DISALLOW_PUBLIC_ACCESS ' . (null !== $calledFrom ? "from ($calledFrom) " : '') . 'to gain privileges.');
+            /** @noinspection JsonEncodingApiUsageInspection */
+            throw new PublicAlert('Rest request denied by the PHP_VALIDATION\'s in the tables ORM. Remove DISALLOW_PUBLIC_ACCESS '
+                . (null !== $calledFrom ? "from ($calledFrom) " : '')
+                . 'to gain privileges. Method: ('.$_SERVER['REQUEST_METHOD'].') Uri: ('.$_SERVER['REQUEST_URI'].') Request: (' . json_encode($request, JSON_PRETTY_PRINT) . ')');
 
         }
 
@@ -205,10 +207,23 @@ abstract class RestQueryValidation extends RestAutoTargeting
             $equalsValidColumn = self::validateInternalColumn($value, $column);
 
             if (false === $equalsValidColumn
-                && array_key_exists($column, self::$compiled_regex_validations)
-                && 1 > preg_match_all(self::$compiled_regex_validations[$column], $value, $matches, PREG_SET_ORDER)) {  // can return 0 or false
+                && array_key_exists($column, self::$compiled_regex_validations)) {
 
-                throw new PublicAlert("The column ($column) was set to be compared with a value who did not pass the regex test. Please check this value and try again.");
+                if (false === is_array(self::$compiled_regex_validations[$column])) {
+
+                    self::$compiled_regex_validations[$column] = [self::$compiled_regex_validations[$column]];
+
+                }
+
+                foreach (self::$compiled_regex_validations[$column] as $regex) {
+
+                    if (1 > preg_match_all(self::$compiled_regex_validations[$column], $value, $matches, PREG_SET_ORDER)) {  // can return 0 or false
+
+                        throw new PublicAlert("The column ($column) was set to be compared with a value who did not pass the regex (" . self::$compiled_regex_validations[$column] . ") test. Please check this ($value) value and try again. preg_match_all Returned: " . var_export($matches, true) . ' Error(s): ' . preg_last_error_msg());
+
+                    }
+
+                }
 
             }
 

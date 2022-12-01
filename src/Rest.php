@@ -623,8 +623,6 @@ abstract class Rest extends RestLifeCycle
 
                 $firstRowKeys = array_keys($postRequestBody[$firstKey] ?? []);
 
-
-
                 do {
 
                     $pdo_values[$i] = '';
@@ -829,7 +827,7 @@ abstract class Rest extends RestLifeCycle
 
                             }
 
-                            $stmt->bindParam(":$shortName", $iValue[$fullName], $info[self::PDO_TYPE], $info[self::MAX_LENGTH] === '' ? null : (int)$info[self::MAX_LENGTH]);
+                            $stmt->bindParam(":$shortName", $iValue[$fullName], $info[self::PDO_TYPE]);
 
                         }
                         // end foreach bind

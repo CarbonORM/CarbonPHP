@@ -4,9 +4,12 @@ namespace CarbonPHP\Programs;
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
-use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Helpers\Background;
+use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Helpers\Files;
+use CarbonPHP\Helpers\MySQL;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
 use CarbonPHP\Route;
@@ -94,7 +97,7 @@ class Migrate implements iCommand
 
         $updateCount = 0;
 
-        $migrationFiles = glob(CarbonPHP::$app_root . "tmp/*migration*");
+        $migrationFiles = glob(CarbonPHP::$app_root . "cache/*migration*");
 
         foreach ($migrationFiles as $migrationFolder) {
 
@@ -124,7 +127,7 @@ class Migrate implements iCommand
 
             } catch (Throwable $e) {
 
-                ErrorCatcher::generateLog($e);
+                ThrowableHandler::generateLog($e);
 
             } finally {
 
@@ -341,7 +344,7 @@ class Migrate implements iCommand
 
         $position = strpos($firstImport, self::$migrationFolderPrefix);
 
-        self::$remoteServerTime = (float) substr($firstImport, $position + strlen(self::$migrationFolderPrefix), strlen((string) microtime(true)));
+        self::$remoteServerTime = (float)substr($firstImport, $position + strlen(self::$migrationFolderPrefix), strlen((string)microtime(true)));
 
         if (null === self::$remoteServerTime) {
 
@@ -406,7 +409,7 @@ class Migrate implements iCommand
 
                 $importManifestFilePath = $uri;
 
-                $prefix = 'tmp/';
+                $prefix = 'cache/';
 
                 if (strpos($importManifestFilePath, $prefix) === 0) {
 
@@ -414,7 +417,7 @@ class Migrate implements iCommand
 
                 }
 
-                $importManifestFilePath = CarbonPHP::$app_root . 'tmp/' . $importManifestFilePath;
+                $importManifestFilePath = CarbonPHP::$app_root . 'cache/' . $importManifestFilePath;
 
                 $importManifestFilePath = rtrim($importManifestFilePath, '.ph');
 
@@ -687,7 +690,7 @@ class Migrate implements iCommand
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);
+            ThrowableHandler::generateLog($e);
 
             exit(1);
 
@@ -777,6 +780,7 @@ class Migrate implements iCommand
 
     }
 
+
     /**
      * @throws PublicAlert
      * @todo - I could make sed replace multiple at a time, but would this be worth the debugging..?
@@ -800,6 +804,7 @@ class Migrate implements iCommand
             }
 
             return $string_after;
+        
         };
 
         // load dump file contents
@@ -836,8 +841,22 @@ class Migrate implements iCommand
 
         }
 
-
         Background::executeAndCheckStatus("rm $absoluteFilePath && mv $absoluteFilePath.txt $absoluteFilePath");
+
+    }
+
+    public static function captureBalancedParenthesis(string $subject): string
+    {
+
+        if (preg_match_all($pattern = '#\((?:[^)(]+|(?R))*+\),#', $subject, $matches)) {
+
+            sortDump($matches);
+
+            return $matches;
+
+        }
+
+        throw new PublicAlert("Failed to capture balanced parenthesis group from string ($subject) using pattern ($pattern)");
 
     }
 
@@ -1014,7 +1033,7 @@ HALT;
 
                 }
 
-                if (false === file_put_contents($toLocalFilePath, '')){
+                if (false === file_put_contents($toLocalFilePath, '')) {
 
                     throw new PublicAlert("Failed to empty the file using file_put_contents ($toLocalFilePath)");
 
@@ -1144,9 +1163,15 @@ HALT;
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);
+            ThrowableHandler::generateLog($e);
 
             exit(8);
+
+        }
+
+        if (true === $failed) {
+
+            throw new PublicAlert("Failed to download file ($url) to ($toLocalFilePath) after ($attempt) attempts");
 
         }
 
@@ -1544,7 +1569,7 @@ HALT;
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);
+            ThrowableHandler::generateLog($e);
 
             exit(0);
 
@@ -1562,7 +1587,7 @@ HALT;
 
         $tables = Database::fetchColumn('SHOW TABLES');
 
-        $migrationPath = "tmp/" . self::$migrationFolderPrefix . "$currentTime/";
+        $migrationPath = "cache/" . self::$migrationFolderPrefix . "$currentTime/";
 
         Files::createDirectoryIfNotExist(CarbonPHP::$app_root . $migrationPath);
 
@@ -1756,7 +1781,7 @@ HALT;
 
             $haltPHP = self::selfHidingFile();
 
-            $pathHaltPHP = CarbonPHP::$app_root . 'tmp/haltPHP.php';
+            $pathHaltPHP = CarbonPHP::$app_root . 'cache/haltPHP.php';
 
             if (false === file_put_contents($pathHaltPHP, $haltPHP)) {
 
@@ -1941,7 +1966,7 @@ HALT;
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);
+            ThrowableHandler::generateLog($e);
 
             exit(0);
 
@@ -2033,7 +2058,7 @@ HALT;
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);
+            ThrowableHandler::generateLog($e);
 
             exit(4);
 

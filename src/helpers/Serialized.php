@@ -13,7 +13,7 @@
 
 namespace CarbonPHP\Helpers;
 
-use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Error\PublicAlert;
 
 abstract class Serialized
@@ -190,7 +190,7 @@ abstract class Serialized
 
         } catch (\Throwable $e) {
 
-            ErrorCatcher::generateLog($e);
+            ThrowableHandler::generateLog($e);
 
         }
 

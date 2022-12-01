@@ -5,12 +5,12 @@ namespace CarbonPHP\Restful;
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
 use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Helpers\MySQL;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
 use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
-use CarbonPHP\Programs\MySQL;
 use CarbonPHP\Tables\History_Logs;
 use PDO;
 
@@ -612,7 +612,7 @@ TRIGGER;
 
         if (false === file_put_contents(CarbonPHP::$app_root . 'trigger.sql', 'DELIMITER ;;' . PHP_EOL . $trigger . PHP_EOL . 'DELIMITER ;')) {
 
-            self::colorCode('PHP file_put_contents failed to store (' . CarbonPHP::$app_root . 'trigger.sql)', iColorCode::RED);
+            ColorCode::colorCode('PHP file_put_contents failed to store (' . CarbonPHP::$app_root . 'trigger.sql)', iColorCode::RED);
 
             return;
 

@@ -4,6 +4,7 @@
 namespace CarbonPHP\Programs;
 
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Helpers\Composer;
 use CarbonPHP\Interfaces\iCommand;
 
 
@@ -124,7 +125,7 @@ END;
                 default:
                 case '-help':
                     if (\$C6) {
-                        self::colorCode("\tYou da bomb :)\n",'blue');
+                        ColorCode::colorCode("\tYou da bomb :)\n",'blue');
                         break;
                     }
                     \$this->usage();

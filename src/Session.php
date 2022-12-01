@@ -16,13 +16,13 @@
 
 namespace CarbonPHP;
 
-use CarbonPHP\Error\ErrorCatcher;
+use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Helpers\Background;
+use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Helpers\Serialized;
-use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Interfaces\iRest;
-use CarbonPHP\Programs\Background;
-use CarbonPHP\Programs\ColorCode;
+use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Programs\WebSocket;
 use CarbonPHP\Tables\Sessions;
 use PDOException;
@@ -37,7 +37,6 @@ use function is_callable;
 // most important line - session_set_save_handler($this, false)
 class Session implements SessionHandlerInterface
 {
-    use Background, ColorCode;
 
     protected static ?Session $singleton = null;
 
@@ -120,7 +119,7 @@ class Session implements SessionHandlerInterface
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e); // This terminates!
+            ThrowableHandler::generateLog($e); // This terminates!
 
         }
 
@@ -262,7 +261,7 @@ class Session implements SessionHandlerInterface
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);   // this terminates!
+            ThrowableHandler::generateLog($e);   // this terminates!
 
         }
 
@@ -278,7 +277,7 @@ class Session implements SessionHandlerInterface
     public static function verifySocket($ip): bool
     {
 
-        self::colorCode('Verify Socket');
+        ColorCode::colorCode('Verify Socket');
 
         if ($ip) {
             $_SERVER['REMOTE_ADDR'] = $ip;
@@ -286,20 +285,20 @@ class Session implements SessionHandlerInterface
 
         $_SERVER['HTTP_COOKIE'] ??= '';
 
-        self::colorCode('User sent Cookie(s) :: ' . $_SERVER['HTTP_COOKIE'] . "\n\n");
+        ColorCode::colorCode('User sent Cookie(s) :: ' . $_SERVER['HTTP_COOKIE'] . "\n\n");
 
         if (false === @preg_match('#PHPSESSID=([^;\s]+)#', $_SERVER['HTTP_COOKIE'], $array, PREG_OFFSET_CAPTURE)) {
-            self::colorCode('Failed to verify socket IP address.', 'red');
+            ColorCode::colorCode('Failed to verify socket IP address.', 'red');
 
             return false;
         }
 
-        self::colorCode('Parsed Session ID Correctly');
+        ColorCode::colorCode('Parsed Session ID Correctly');
 
         $session_id = $array[1][0] ?? false;
 
         if (false === $session_id) {
-            self::colorCode("\nCould not parse session id\n", 'red');
+            ColorCode::colorCode("\nCould not parse session id\n", 'red');
 
             return false;
         }
@@ -318,7 +317,7 @@ class Session implements SessionHandlerInterface
 
         if (!$session) {
 
-            self::colorCode('BAD ADDRESS :: ' . $_SERVER['REMOTE_ADDR'] . "\n\n", 'red');
+            ColorCode::colorCode('BAD ADDRESS :: ' . $_SERVER['REMOTE_ADDR'] . "\n\n", 'red');
 
             return false;
 
@@ -371,7 +370,7 @@ class Session implements SessionHandlerInterface
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e); // this will terminate
+            ThrowableHandler::generateLog($e); // this will terminate
 
         }
 
@@ -463,7 +462,7 @@ class Session implements SessionHandlerInterface
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);
+            ThrowableHandler::generateLog($e);
 
         }
 
@@ -494,7 +493,7 @@ class Session implements SessionHandlerInterface
 
         } catch (Throwable $e) {
 
-            ErrorCatcher::generateLog($e);
+            ThrowableHandler::generateLog($e);
 
         }
 
@@ -504,17 +503,18 @@ class Session implements SessionHandlerInterface
     /** This is our garbage collector. If a session is expired attempt to remove it.
      * This function is executed via a probability. See link for more details.
      * @link http://php.net/manual/en/features.gc.php
-     * @param int $maxLife
-     * @return bool
+     * @param int $max_lifetime
+     * @return int|false
+     * @throws PublicAlert
      */
-    public function gc($maxLife): bool
+    public function gc(int $max_lifetime): int|false
     {
 
         $session = Rest::getDynamicRestClass(Sessions::class);
 
         $db = Database::database(false);
 
-        return $db->prepare('DELETE FROM ' . $session::TABLE_NAME . ' WHERE (UNIX_TIMESTAMP(' . $session::SESSION_EXPIRES . ') + ? ) < UNIX_TIMESTAMP(?)')->execute([$maxLife, date('Y-m-d H:i:s')]);
+        return $db->prepare('DELETE FROM ' . $session::TABLE_NAME . ' WHERE (UNIX_TIMESTAMP(' . $session::SESSION_EXPIRES . ') + ? ) < UNIX_TIMESTAMP(?)')->execute([$max_lifetime, date('Y-m-d H:i:s')]);
 
     }
 

@@ -3,20 +3,13 @@
 namespace CarbonPHP\Tables;
 
 // Restful defaults
-use CarbonPHP\Helpers\RestfulValidations;
+use CarbonPHP\Restful\RestfulValidations;
 use CarbonPHP\Rest;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use PDO;
 
 // Custom User Imports
-use CarbonPHP\Database;
-use CarbonPHP\Error\PublicAlert;
-use JsonException;
-use PDOException;
-use function array_key_exists;
-use function count;
-use function func_get_args;
-use function is_array;
+
 
 /**
  *
@@ -40,7 +33,7 @@ use function is_array;
  */
 class Users extends Rest implements iRestSinglePrimaryKey
 {
-    use RestfulValidations;
+    
     
     public const CLASS_NAME = 'Users';
     
@@ -386,7 +379,7 @@ class Users extends Rest implements iRestSinglePrimaryKey
      *  variables after the first key value pair. Only array values will be passed to the method. Thus, additional keys 
      *  listed in the array will be ignored. Take for example::
      *
-     *      [ self::class => 'validateUnique', self::class, self::EXAMPLE_COLUMN]
+     *      [ RestfulValidations::class => 'validateUnique', self::class, self::EXAMPLE_COLUMN]
      *  The above is defined in RestfulValidations::class. 
      *      RestfulValidations::validateUnique(string $columnValue, string $className, string $columnName)
      *  Its definition is with a trait this classes inherits using `use` just after the `class` keyword. 
