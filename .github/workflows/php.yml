@@ -46,9 +46,6 @@ jobs:
       - name: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e  "ALTER USER 'root'@'localhost' IDENTIFIED BY 'password';"
         run: mysql --defaults-extra-file="`pwd`/mysql.cnf" -e  "ALTER USER 'root'@'localhost' IDENTIFIED BY 'password';"
 
-      - name: sudo update-alternatives --set php /usr/bin/php7.4
-        run: sudo update-alternatives --set php /usr/bin/php7.4
-
       - name: composer validate
         run: composer validate
 
