@@ -19,7 +19,6 @@ use CarbonPHP\Route;
  */
 class Deployment implements iCommand
 {
-    use Background, ColorCode;
 
     private string $ipAddress;
 
@@ -117,13 +116,13 @@ class Deployment implements iCommand
 
     public static function permissions(): void
     {
-        self::executeAndCheckStatus('sudo chown -R root:c6devteam /var/www');
-        self::executeAndCheckStatus('sudo chmod g+rwX /var/www/ -R');
+        Background::executeAndCheckStatus('sudo chown -R root:c6devteam /var/www');
+        Background::executeAndCheckStatus('sudo chmod g+rwX /var/www/ -R');
     }
 
     public static function updateGoogleDynamicDNS($ip): void
     {
-        self::executeAndCheckStatus('sudo systemctl restart apache2');
+        Background::executeAndCheckStatus('sudo systemctl restart apache2');
 
         $dynamicDNS = static function (string $USERNAME, string $PASSWORD, string $HOSTNAME, string $IP) {
             // create curl resource
@@ -135,7 +134,6 @@ class Deployment implements iCommand
             //return the transfer as a string
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-
 
             $output = curl_exec($ch);
 
@@ -218,7 +216,7 @@ CONF;
             exit(1);
         }
 
-        self::executeAndCheckStatus("sudo mv $filename /etc/apache2/mods-enabled/dir.conf");
+        Background::executeAndCheckStatus("sudo mv $filename /etc/apache2/mods-enabled/dir.conf");
 
         $apacheConf = self::configFile();
 
@@ -227,25 +225,25 @@ CONF;
             exit(1);
         }
 
-        self::executeAndCheckStatus("sudo mv $filename /etc/apache2/apache2.conf");
+        Background::executeAndCheckStatus("sudo mv $filename /etc/apache2/apache2.conf");
 
-        self::executeAndCheckStatus('sudo a2enmod rewrite');
+        Background::executeAndCheckStatus('sudo a2enmod rewrite');
 
-        self::executeAndCheckStatus('sudo a2enmod headers');
+        Background::executeAndCheckStatus('sudo a2enmod headers');
 
         // https://tecadmin.net/enable-gzip-compression-apache-ubuntu/  TODO - see if were using gzip correctly, h2 works so moot? gzip ws?
-        self::executeAndCheckStatus('sudo a2enmod deflate');
+        Background::executeAndCheckStatus('sudo a2enmod deflate');
 
         // Socket atm - todo - allow php to handle ssl wss
-        self::executeAndCheckStatus('sudo a2enmod proxy');
-        self::executeAndCheckStatus('sudo a2enmod proxy_http');
-        self::executeAndCheckStatus('sudo a2enmod proxy_wstunnel');
-        self::executeAndCheckStatus('sudo a2enmod proxy_balancer');
-        self::executeAndCheckStatus('sudo a2enmod lbmethod_byrequests');
+        Background::executeAndCheckStatus('sudo a2enmod proxy');
+        Background::executeAndCheckStatus('sudo a2enmod proxy_http');
+        Background::executeAndCheckStatus('sudo a2enmod proxy_wstunnel');
+        Background::executeAndCheckStatus('sudo a2enmod proxy_balancer');
+        Background::executeAndCheckStatus('sudo a2enmod lbmethod_byrequests');
 
-        // self::executeAndCheckStatus('sudo ln -s /etc/apache2/mods-available/headers.load /etc/apache2/mods-enabled/headers.load');
+        // Background::executeAndCheckStatus('sudo ln -s /etc/apache2/mods-available/headers.load /etc/apache2/mods-enabled/headers.load');
 
-        // self::executeAndCheckStatus('sudo systemctl restart apache2');
+        // Background::executeAndCheckStatus('sudo systemctl restart apache2');
 
         ColorCode::colorCode("\n\n\tYou must add the IP address '$ip' to your Public IP Authorized networks @\n\thttps://console.cloud.google.com/sql/\n\n\tPress enter when done to continue!!", 'background_blue');
 
@@ -266,9 +264,9 @@ CONF;
                 ColorCode::colorCode("\n\n\tRepository already exists.\n\n", 'green');
             } else if ($reset && $exists) {
                 ColorCode::colorCode("\n\n\tAttempting to update repository.\n\n", 'blue');
-                self::executeAndCheckStatus("sudo git -C '/var/www/$name' pull");
+                Background::executeAndCheckStatus("sudo git -C '/var/www/$name' pull");
             } else {
-                self::executeAndCheckStatus("sudo git clone {$info['Repository']} /var/www/$name");
+                Background::executeAndCheckStatus("sudo git clone {$info['Repository']} /var/www/$name");
 
                 self::permissions();                                                    // todo double check working
 
@@ -300,7 +298,7 @@ CONF;
                     exit(1);
                 }
 
-                self::executeAndCheckStatus("sudo mv \"$tempFile\" \"$confFile\";");
+                Background::executeAndCheckStatus("sudo mv \"$tempFile\" \"$confFile\";");
             }
         }
 
@@ -316,17 +314,17 @@ CONF;
             if (true === ($info['Composer'] ?? false)) {
 
                 # I could make the next two commands more specific, but no reason to
-                self::executeAndCheckStatus('sudo chown -R root:c6devteam /var/www/');
+                Background::executeAndCheckStatus('sudo chown -R root:c6devteam /var/www/');
 
-                self::executeAndCheckStatus('sudo chmod g+rwX /var/www/ -R');
+                Background::executeAndCheckStatus('sudo chmod g+rwX /var/www/ -R');
 
-                self::executeAndCheckStatus("sg c6devteam -c \"composer install --no-suggest -d /var/www/$name\"");
+                Background::executeAndCheckStatus("sg c6devteam -c \"composer install --no-suggest -d /var/www/$name\"");
 
                 ColorCode::colorCode("\n\n\tAttempting to run 'composer setup'.\n");
 
-                self::executeAndCheckStatus("sg c6devteam -c \"composer setup -d /var/www/$name || echo 'Set a setup script in your composer.json to gain more control over your build.'\"");
+                Background::executeAndCheckStatus("sg c6devteam -c \"composer setup -d /var/www/$name || echo 'Set a setup script in your composer.json to gain more control over your build.'\"");
 
-                self::executeAndCheckStatus("sudo a2ensite $name");
+                Background::executeAndCheckStatus("sudo a2ensite $name");
             }
         }
         print PHP_EOL;

@@ -40,7 +40,6 @@ use function ord;
  */
 class WebSocket extends Request implements iCommand
 {
-    use Background, ColorCode;
 
     /**
      * @var $socket resource
@@ -345,7 +344,7 @@ class WebSocket extends Request implements iCommand
             . (($this->CONFIG['SOCKET']['SSL'] ?? false) ? "--ssl --sslkey='{$argv['SOCKET']['SSL']['KEY']}' --sslcert='{$argv['SOCKET']['SSL']['CERT']}' " : ' ')
             . 'php index.php WebSocket -go';
 
-        print 'pid == ' . self::background($CMD, CarbonPHP::$app_root . 'websocketd_log.txt');
+        print 'pid == ' . Background::background($CMD, CarbonPHP::$app_root . 'websocketd_log.txt');
 
         print "\n\n\tWebsocket started in the background, done!\n\n";
         //`$CMD`;
@@ -559,7 +558,7 @@ class WebSocket extends Request implements iCommand
 
             $resourceToDelete = array_search($connection, $allConnectedResources, false);
 
-            foreach ($WebsocketToPipeRelations as $key => $information) {
+            foreach ($WebsocketToPipeRelations as $key => &$information) {
 
                 if ($information['user_pipe'] === $connection) {
 
@@ -575,13 +574,13 @@ class WebSocket extends Request implements iCommand
 
                     $pipeToDeleteKey = array_search($information['user_pipe'], $allConnectedResources, true);
 
-                    if (!is_resource($WebsocketToPipeRelations[$key]['user_pipe'])) {
+                    if (!is_resource($information['user_pipe'])) {
 
                         ColorCode::colorCode('Pipe not resource. This is unexpected.', 'red');
 
                     } else {
 
-                        @fclose($WebsocketToPipeRelations[$key]['user_pipe']);
+                        @fclose($information['user_pipe']);
 
                     }
 
