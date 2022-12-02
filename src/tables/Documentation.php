@@ -198,10 +198,8 @@ class Documentation extends Rest implements iRestNoPrimaryKey
     public array $REFRESH_SCHEMA = [];
      
 
-    public const REFRESH_SCHEMA = [
-        [self::class => 'buildMysqlHistoryTrigger', self::class]
-    ];
-    
+    public const REFRESH_SCHEMA = [];
+
     /** Custom User Methods Are Placed Here **/
     
 
