@@ -865,6 +865,7 @@ END;
                                 case 'smallint':
                                 case 'mediumint':
                                     $type = 'PDO::PARAM_INT'; // $PDO[2];
+                                    $rest[$tableName]['explode'][$explodeArrayPosition]['tsxType'] = 'number';
                                     break;
                                 case 'boolean':
                                     $type = 'PDO::PARAM_BOOL';
@@ -1350,10 +1351,10 @@ END;
 
 
             // the actual Typescript export, the jsx version is below
-            $export = /** @lang TypeScript JSX */
+            $export = /** @lang TypeScript */
                 "
 export interface stringMap {
-    [key: string]: string;
+    [key: string]: string | number;
 }
 
 export interface RegExpMap {
@@ -1361,7 +1362,7 @@ export interface RegExpMap {
 }
 
 export interface complexMap {
-    [key: string]: string | string[] | stringMap | RegExpMap;
+    [key: string]: stringMap | stringMap[] | RegExpMap;
 }
 
 export interface iTypeValidation {
@@ -1668,7 +1669,7 @@ TRIGGER);
   },", /** @lang Handlebars */ "
 export interface  i{{ucEachTableName}} {
        {{#explode}}
-      '{{name}}'?: string;
+      '{{name}}'?: {{#tsxType}}{{tsxType}}{{/tsxType}}{{^tsxType}}string{{/tsxType}};
       {{/explode}}
 }
 

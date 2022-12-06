@@ -13,6 +13,7 @@ use CarbonPHP\Helpers\MySQL;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
 use CarbonPHP\Route;
+use CurlHandle;
 use DirectoryIterator;
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
@@ -1225,7 +1226,7 @@ HALT;
      */
     public static function testCurlResource($ch): void
     {
-        if (false === is_resource($ch)) {
+        if (false === $ch instanceof CurlHandle) {
 
             throw new PublicAlert('The first argument passed to curlReturnFileAppend must be a curl_init resource connection');
 
