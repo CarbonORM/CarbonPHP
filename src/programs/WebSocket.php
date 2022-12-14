@@ -1,4 +1,5 @@
 <?php
+
 namespace CarbonPHP\Programs;
 
 use CarbonPHP\CarbonPHP;
@@ -42,9 +43,11 @@ class WebSocket extends Request implements iCommand
 {
 
     /**
-     * @var $socket resource
+     * @var \Socket $socket rhttps://www.php.net/manual/en/function.stream-set-timeout.php#100676
      */
-    public $socket;
+    public static \Socket $socket;
+
+    public static $serverResource;
 
     public static bool $isWebsocketD = false;
 
@@ -257,7 +260,7 @@ class WebSocket extends Request implements iCommand
 
         $this->socket = $socket;
 
-        ColorCode::colorCode("\nStream Socket Server Created on " . self::$host . '::' .self::$port. "\n\nws" . (self::$ssl ? 's' : '') . '://'.self::$host.':'.self::$port.'/ ');
+        ColorCode::colorCode("\nStream Socket Server Created on " . self::$host . '::' . self::$port . "\n\nws" . (self::$ssl ? 's' : '') . '://' . self::$host . ':' . self::$port . '/ ');
 
         if (!self::$minimiseResources) {
 
@@ -308,11 +311,11 @@ class WebSocket extends Request implements iCommand
     public static function sendToResource(string $data, &$connection, $opCode = self::TEXT): bool
     {
 
-        return 0 <= @fwrite($connection, self::encode($data, $opCode));
+        return 0 <= fwrite($connection, self::encode($data, $opCode));
 
     }
 
-    public static function sendToAllExternalResources(string $data, $opCode = self::TEXT) : void
+    public static function sendToAllExternalResources(string $data, $opCode = self::TEXT): void
     {
         foreach (self::$userResourceConnections as $resourceConnection) {
 
@@ -455,7 +458,7 @@ class WebSocket extends Request implements iCommand
 
                 sleep(1);
 
-                endif;
+            endif;
 
         }
 
@@ -623,8 +626,12 @@ class WebSocket extends Request implements iCommand
 
                 if ($connection === $this->socket) { // accepting a new connection?
 
+                    $timeout = ini_get('default_socket_timeout');
+
+                    print_r('default timeout: ' . $timeout);
+
                     $connection = stream_socket_accept($connection,
-                        ini_get('default_socket_timeout'),
+                        $timeout,
                         $peerName);
 
                     // this is where we get the ip and port of the user
@@ -876,6 +883,16 @@ class WebSocket extends Request implements iCommand
 
             }
 
+            if (false === stream_set_timeout($connection, 60)) {
+
+                ColorCode::colorCode("Failed to update user connection timeout", iColorCode::RED);
+
+                fclose($connection);
+
+                continue;
+
+            }
+
             self::$userResourceConnections[] = &$connection;
 
             if (($pid = pcntl_fork()) > 0) {                     // if parent restart looking for incoming connections
@@ -1090,7 +1107,7 @@ class WebSocket extends Request implements iCommand
 
         $rsv3 = 0x0;
 
-        $message = json_encode($message);
+        $message = is_string($message) ? $message : json_encode($message);
 
         $length = strlen($message);
 
@@ -1114,12 +1131,13 @@ class WebSocket extends Request implements iCommand
 
     }
 
-    public static function decode($socket): array
+    public static function decode($socketResource): array
     {
 
-        if (!$socket || !is_resource($socket)) {
+        if (!$socketResource || !is_resource($socketResource)) {
 
             return [
+                'error' => 'Resource gone away',
                 'opcode' => self::CLOSE,
                 'payload' => ''
             ];
@@ -1128,12 +1146,33 @@ class WebSocket extends Request implements iCommand
 
         $out = [];
 
-        $read = @fread($socket, 1);
+        //$read = fread($socketResource, 1);
+        // should things be unexpectedly sending with a length of 0 @link https://stackoverflow.com/questions/64855794/proxy-timeout-with-rewriterule
+        $read = stream_get_contents($socketResource, 1);
+
+        if (false === $read) {
+
+            return [
+                'socketStatus' => socket_get_status($socketResource),
+                'error' => 'socket read failure',
+                'socket_last_error' => $code = socket_last_error(self::$socket),
+                'socket_strerror' => socket_strerror($code),
+                'opcode' => self::CLOSE,
+                'payload' => ''
+            ];
+
+        }
 
         if (empty($read)) {
 
+            ColorCode::colorCode('Empty WS Read', iColorCode::BACKGROUND_YELLOW);
+
             return [
-                'opcode' => self::CLOSE,
+                'socketStatus' => socket_get_status($socketResource),
+                'error' => 'empty socket read, if your proxying this could be a timeout. @link https://stackoverflow.com/questions/64855794/proxy-timeout-with-rewriterule',
+                'socket_last_error' => $code = socket_last_error(self::$socket),
+                'socket_strerror' => socket_strerror($code),
+                'opcode' => self::PING,
                 'payload' => ''
             ];
 
@@ -1151,6 +1190,12 @@ class WebSocket extends Request implements iCommand
 
         $out['opcode'] = $handle & 0xf;
 
+        if (self::CLOSE === $out['opcode']) {
+
+            $out['dataframe'] = $handle & 0xff;
+
+        }
+
         if (!in_array($out['opcode'], [
             self::TEXT,
             self::BINARY,
@@ -1165,7 +1210,7 @@ class WebSocket extends Request implements iCommand
             ];
         }
 
-        $handle = ord(fread($socket, 1));
+        $handle = ord(fread($socketResource, 1));
 
         $out['mask'] = ($handle >> 7) & 0x1;
 
@@ -1181,9 +1226,13 @@ class WebSocket extends Request implements iCommand
             ];
         }
 
-        if ($length === 0) {
+        print_r($out);
+
+        if ((int)$length === 0) {
 
             $out['payload'] = '';
+
+            $out['error'] = 'length 0';
 
             return $out;
 
@@ -1191,13 +1240,13 @@ class WebSocket extends Request implements iCommand
 
         if ($length === 0x7e) {
 
-            $handle = unpack('nl', fread($socket, 2));
+            $handle = unpack('nl', fread($socketResource, 2));
 
             $length = $handle['l'];
 
         } elseif ($length === 0x7f) {
 
-            $handle = unpack('N*l', fread($socket, 8));
+            $handle = unpack('N*l', fread($socketResource, 8));
 
             $length = $handle['l2'] ?? $length;
 
@@ -1222,7 +1271,7 @@ class WebSocket extends Request implements iCommand
 
                 $toRead = $length - $readLength;
 
-                $msg .= fread($socket, $toRead);
+                $msg .= fread($socketResource, $toRead);
 
                 if ($readLength === strlen($msg)) {
 
@@ -1240,7 +1289,7 @@ class WebSocket extends Request implements iCommand
 
         }
 
-        $maskN = array_map('ord', str_split(fread($socket, 4)));
+        $maskN = array_map('ord', str_split(fread($socketResource, 4)));
 
         $maskC = 0;
 
@@ -1252,7 +1301,7 @@ class WebSocket extends Request implements iCommand
 
             $buffer = min($bufferLength, $length - $i);
 
-            $handle = fread($socket, $buffer);
+            $handle = fread($socketResource, $buffer);
 
             for ($j = 0, $_length = strlen($handle); $j < $_length; ++$j) {
 
@@ -1266,7 +1315,9 @@ class WebSocket extends Request implements iCommand
 
         }
 
-        $out['payload'] = json_decode($message, true);
+        $isJson = json_decode($message, true);
+
+        $out['payload'] = $isJson ?: $message;
 
         return $out;
 

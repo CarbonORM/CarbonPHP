@@ -48,6 +48,7 @@
   "autoload": {
     "psr-4": {
       "CarbonPHP\\Error\\": "src/error/",
+      "CarbonPHP\\Enums\\": "src/Enums/",
       "CarbonPHP\\Helpers\\": "src/helpers/",
       "CarbonPHP\\Interfaces\\": "src/interfaces/",
       "CarbonPHP\\Programs\\": "src/programs/",

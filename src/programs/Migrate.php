@@ -1048,7 +1048,7 @@ HALT;
 
                 $removePrefixSetVar = static function (string $header, string $prefix, string &$setVarToHeaderValue): bool {
 
-                    if (0 === strpos($header, $prefix)) {
+                    if (str_starts_with($header, $prefix)) {
 
                         $test = substr($header, strlen($prefix));
 
@@ -1228,7 +1228,7 @@ HALT;
     {
         if (false === $ch instanceof CurlHandle) {
 
-            throw new PublicAlert('The first argument passed to curlReturnFileAppend must be a curl_init resource connection');
+            throw new PublicAlert('The first argument passed to curlReturnFileAppend must be a curl_init resource connection.' . print_r($ch, true));
 
         }
     }

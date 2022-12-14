@@ -6,11 +6,14 @@ namespace CarbonPHP\Error;
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
+use CarbonPHP\Enums\ThrowableReportDisplay;
 use CarbonPHP\Helpers\Background;
 use CarbonPHP\Helpers\ColorCode;
+use CarbonPHP\Helpers\Files;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Rest;
 use CarbonPHP\Tables\Reports;
+use Error;
 use PDOException;
 use ReflectionException;
 use ReflectionMethod;
@@ -34,6 +37,8 @@ class ThrowableHandler
 
     public const STORED_HTML_LOG_FILE_PATH = 'STORED_HTML_LOG_FILE_PATH';
 
+    public const STORAGE_LOCATION_KEY = 'THROWABLE STORED TO FILE';
+
     public const TRACE = 'TRACE';
     public const GLOBALS_JSON = '$GLOBALS[\'json\']';
     public const INNODB_STATUS = 'INNODB_STATUS';
@@ -49,10 +54,13 @@ class ThrowableHandler
 
     public static bool $bypass_standard_PHP_error_handler = true;
 
+
     /**
      * @var bool
      */
     public static bool $storeReport = false;
+
+    public static ThrowableReportDisplay $throwableReportDisplay = ThrowableReportDisplay::FULL_DEFAULT;
 
     public static string $fileName = '';
 
@@ -559,15 +567,17 @@ class ThrowableHandler
 
             static $errorsHandled = 0;
 
+            if (0 === $errorsHandled) {
+
+                ColorCode::colorCode("Note :: warnings will not be caught by a try catch block, they signal error and should corrected but typically may be 'recoverable'. Some warnings PHP, such as 'max file descriptors reached', are more critical and should be handled with care. For this reason it's important to keep logs of warnings and correct/suppress when necessary. For suppression see @link https://stackoverflow.com/questions/1241728/can-i-try-catch-a-warning", iColorCode::CYAN);
+
+            }
+
             static $fatalError = false;
 
             $errorsHandled++;
 
             $browserOutput = [];
-
-            ColorCode::colorCode("Note :: warnings will not be caught by a try catch block, they signal error and should corrected but typically may be 'recoverable'. Some warnings PHP, such as 'max file descriptors reached', are more critical and should be handled with care. For this reason it's important to keep logs of warnings and correct/suppress when nessicary. For suppression see @link https://stackoverflow.com/questions/1241728/can-i-try-catch-a-warning", iColorCode::CYAN);
-
-            ColorCode::colorCode('The Global Error (set_error_handler) Handler has been invoked.' . PHP_EOL . "int $errorLevel, string $errorString, string $errorFile, int $errorLine", iColorCode::CYAN);
 
             // refer to link on this one
             /*if (!(error_reporting() & $errorLevel)) {
@@ -630,7 +640,13 @@ class ThrowableHandler
 
             $warning = array_key_exists('RECOVERABLE WARNING', $browserOutput);
 
-            self::generateLog(null, false === $fatalError, (string)$errorLevel, $browserOutput, $warning ? iColorCode::YELLOW : iColorCode::RED);
+            $color = $warning ? iColorCode::YELLOW : iColorCode::RED;
+
+            ColorCode::colorCode('The Global Error (set_error_handler) Handler has been invoked.', $color);
+
+            ColorCode::colorCode("code: $errorLevel, message: $errorString, file://$errorFile, line: $errorLine", $color);
+
+            self::generateLog(null, false === $fatalError, (string)$errorLevel, $browserOutput, $color);
 
             return $warning;  // todo this will continue execution for set_error_handler
 
@@ -644,7 +660,7 @@ class ThrowableHandler
          */
         $exception_handler = static function (Throwable $exception) {
 
-            ColorCode::colorCode('The Global Exception (set_exception_handler) Handler has been invoked.', iColorCode::CYAN);
+            ColorCode::colorCode('The Global Exception (set_exception_handler) Handler has been invoked.', iColorCode::MAGENTA);
 
             $browserOutput = ['Exception Handler' => 'CarbonPHP Generated This Report.'];
 
@@ -747,10 +763,42 @@ class ThrowableHandler
     public static function generateLog(Throwable $e = null, bool $return = false, string $level = null, array &$log_array = [], string $color = iColorCode::RED): array
     {
 
+        $parseMessage = static function (mixed $log_array) {
+
+            $message = json_encode($log_array, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_PARTIAL_OUTPUT_ON_ERROR);
+
+            if (false === $message) {
+
+                $log_copy = $log_array;
+
+                ColorCode::colorCode('The designated \$cliOutputArray failed to json_encode. This may be due to a call stack which passes objects as parameters, a cicilic reffrence (recursion), an extremely large callstack for long running, or forever-running, programs. Should the output below be unhelpful you should you explore further using xDebug.',
+                    iColorCode::YELLOW);
+
+                $log_copy[self::DEBUG_BACKTRACE] = '*EXCLUDED FOR POSSIBLE RECURSION*';
+
+                $message = json_encode($log_copy, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_PARTIAL_OUTPUT_ON_ERROR);
+
+                if (false === $message) {
+
+                    $log_array['JSON_ENCODE FAILURE'] = json_last_error_msg();
+
+                    $message = print_r($log_array, true);
+
+                }
+
+            }
+
+            return $message;
+
+        };
+
         if (null !== $e) {
 
-            ColorCode::colorCode("Generating pretty error message using C6 tools. Message :: (" . $e->getMessage() . ")",
-                iColorCode::CYAN);
+            ColorCode::colorCode("Generating pretty error message using C6 tools. Message ::", iColorCode::CYAN);
+
+            ColorCode::colorCode("\t" . get_class($e), $color);
+
+            ColorCode::colorCode("\t\t" . $e->getMessage(), $color);
 
         }
 
@@ -838,7 +886,7 @@ class ThrowableHandler
 
             } else {
 
-                $log_array['INNODB_STATUS'] = 'Database::$carbonDatabaseInitialized was set to false! This was probably set in Database::newInstance. (SHOW ENGINE INNODB STATUS) will only log';
+                $log_array['INNODB_STATUS'] = 'Database::$carbonDatabaseInitialized was set to false! This was probably set in Database::newInstance. (SHOW ENGINE INNODB STATUS) will only log if already connected.';
             }
 
         }
@@ -848,6 +896,13 @@ class ThrowableHandler
         $log_array[self::TRACE] = $traceCLI;
 
         if (self::$storeReport === true) {
+
+            $log_file_general = 'logs/ThrowableHandlerReport/' . ($_SESSION['id'] ?? 'guest') . '_' . session_id() . '_' . microtime(true) . '_' . getmypid();
+            $log_file_html = $log_file_general . '.html';
+            $log_file_json = $log_file_general . '.json';
+
+            $log_array[self::STORAGE_LOCATION_KEY] = "Will store report to file <a href=\"/$log_file_html\">("
+                . CarbonPHP::$app_root . '/' . $log_file_html . ")</a> and <a href=\"/$log_file_json\">(" . CarbonPHP::$app_root . $log_file_json . ')';
 
             if (false === $e instanceof PDOException) {
 
@@ -892,6 +947,25 @@ class ThrowableHandler
 
             }
 
+
+            Files::createDirectoryIfNotExist(CarbonPHP::$app_root . $log_file_html);
+
+            Files::createDirectoryIfNotExist(CarbonPHP::$app_root . $log_file_json);
+
+            if (false === file_put_contents(CarbonPHP::$app_root . $log_file_html, $html_error_log)
+                || false === file_put_contents(CarbonPHP::$app_root . $log_file_json, $parseMessage($log_array))) {
+
+                ColorCode::colorCode("Failed to store html log using file_put_contents. File :: ($log_file_html) or ($log_file_json)", iColorCode::RED);
+
+                print CarbonPHP::$cli ? $html_error_log : print_r($log_array, true);
+
+                exit(22);
+
+            }
+
+            $log_array[self::STORAGE_LOCATION_KEY] = "HTML report stored to file <a href=\"/$log_file_html\">("
+                . CarbonPHP::$app_root . '/' . $log_file_html . ")</a> and <a href=\"/$log_file_json\">(" . CarbonPHP::$app_root . $log_file_json . ')';
+
         }
 
         $messageRepeat = $log_array["WARNING MESSAGE"] ?? $log_array['ERROR MESSAGE'] ?? false;
@@ -902,51 +976,38 @@ class ThrowableHandler
 
         }
 
-        $parseMessage = static fn($message) => json_encode($message, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
         /** @noinspection JsonEncodingApiUsageInspection */
         $message = $parseMessage($log_array);
 
-        if (false === $message) {
+        switch (self::$throwableReportDisplay) {
 
-            $log_copy = $log_array;
 
-            ColorCode::colorCode('The designated \$cliOutputArray failed to json_encode. This may be due to a call stack which passes objects as parameters, a cicilic reffrence (recursion), an extremely large callstack for long running, or forever-running, programs. Should the output below be unhelpful you should you explore further using xDebug.',
-                iColorCode::YELLOW);
+            /** @noinspection PhpMissingBreakStatementInspection */
+            case ThrowableReportDisplay::CLI_MINIMAL:
 
-            $log_copy[self::DEBUG_BACKTRACE] = '*EXCLUDED FOR POSSIBLE RECURSION*';
+                if (self::$storeReport && array_key_exists(self::STORAGE_LOCATION_KEY, $log_array)) {
 
-            $message = $parseMessage($log_copy);
+                    ColorCode::colorCode("Stored report to file \n\tfile://"
+                        . CarbonPHP::$app_root . $log_file_html . "\n\tfile://" . CarbonPHP::$app_root . $log_file_json, $color);
 
-            if (false === $message) {
+                    ColorCode::colorCode('file://' . $log_array['FILE'] . ':' . $log_array['LINE'], $color);
 
-                $message = print_r($log_array, true);
+                    break;
 
-            }
+                }
+
+                ColorCode::colorCode(self::class . "::\$storeReport needs to be on for ThrowableReportDisplay::CLI_MINIMAL to take effect!", iColorCode::RED);
+
+            case ThrowableReportDisplay::FULL_DEFAULT:
+
+                ColorCode::colorCode($message, $color);
+
+                break;
+
 
         }
 
-        ColorCode::colorCode($message, $color);
-
-        $log_file = 'logs/ThrowableHandlerReport_' . ($_SESSION['id'] ?? 'guest') . '_' . session_id() . '_' . microtime(true) . '_' . getmypid() . '.html';
-
-        if (self::$storeReport === true) {
-
-            // todo - store the file and print file path in re-generated html report to user
-            ColorCode::colorCode('Store report to file (' . $log_file . ')');
-
-            if (false === file_put_contents(CarbonPHP::$app_root . $log_file, $html_error_log)) {
-
-                ColorCode::colorCode("Failed to store html log using file_put_contents. File :: ($log_file);", iColorCode::RED);
-
-                print $html_error_log;
-
-                exit(22);
-
-
-            }
-
-        }
 
         if (false === $return) {
 

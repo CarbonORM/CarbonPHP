@@ -1,6 +1,6 @@
 
 export interface stringMap {
-    [key: string]: string;
+    [key: string]: string | number;
 }
 
 export interface RegExpMap {
@@ -8,7 +8,7 @@ export interface RegExpMap {
 }
 
 export interface complexMap {
-    [key: string]: string | string[] | stringMap | RegExpMap;
+    [key: string]: stringMap | stringMap[] | RegExpMap;
 }
 
 export interface iTypeValidation {
@@ -210,7 +210,7 @@ export interface  iDocumentation {
       'documentation_uri'?: string;
       'documentation_data'?: string;
       'documentation_version'?: string;
-      'documentation_active'?: string;
+      'documentation_active'?: number;
 }
 
 interface iDefineDocumentation {
@@ -603,7 +603,7 @@ export interface  iLocations {
       'city'?: string;
       'state'?: string;
       'elevation'?: string;
-      'zip'?: string;
+      'zip'?: number;
 }
 
 interface iDefineLocations {
@@ -836,7 +836,7 @@ export interface  iSessions {
       'session_id'?: string;
       'session_expires'?: string;
       'session_data'?: string;
-      'user_online_status'?: string;
+      'user_online_status'?: number;
 }
 
 interface iDefineSessions {
@@ -1010,7 +1010,7 @@ export interface  iUser_Messages {
       'from_user_id'?: string;
       'to_user_id'?: string;
       'message'?: string;
-      'message_read'?: string;
+      'message_read'?: number;
       'creation_date'?: string;
 }
 
@@ -1093,7 +1093,7 @@ export interface  iUser_Sessions {
       'session_id'?: string;
       'session_expires'?: string;
       'session_data'?: string;
-      'user_online_status'?: string;
+      'user_online_status'?: number;
 }
 
 interface iDefineUser_Sessions {
@@ -1175,7 +1175,7 @@ export interface  iUser_Tasks {
       'from_id'?: string;
       'task_name'?: string;
       'task_description'?: string;
-      'percent_complete'?: string;
+      'percent_complete'?: number;
       'start_date'?: string;
       'end_date'?: string;
 }
@@ -1287,13 +1287,13 @@ export interface  iUsers {
       'user_birthday'?: string;
       'user_gender'?: string;
       'user_about_me'?: string;
-      'user_rank'?: string;
+      'user_rank'?: number;
       'user_email'?: string;
       'user_email_code'?: string;
-      'user_email_confirmed'?: string;
+      'user_email_confirmed'?: number;
       'user_generated_string'?: string;
-      'user_membership'?: string;
-      'user_deactivated'?: string;
+      'user_membership'?: number;
+      'user_deactivated'?: number;
       'user_last_login'?: string;
       'user_ip'?: string;
       'user_education_history'?: string;
@@ -1564,8 +1564,8 @@ export const users : C6RestfulModel & iDefineUsers = {
   
 
 export interface  iWp_Commentmeta {
-      'meta_id'?: string;
-      'comment_id'?: string;
+      'meta_id'?: number;
+      'comment_id'?: number;
       'meta_key'?: string;
       'meta_value'?: string;
 }
@@ -1626,8 +1626,8 @@ export const wp_commentmeta : C6RestfulModel & iDefineWp_Commentmeta = {
   
 
 export interface  iWp_Comments {
-      'comment_ID'?: string;
-      'comment_post_ID'?: string;
+      'comment_ID'?: number;
+      'comment_post_ID'?: number;
       'comment_author'?: string;
       'comment_author_email'?: string;
       'comment_author_url'?: string;
@@ -1635,12 +1635,12 @@ export interface  iWp_Comments {
       'comment_date'?: string;
       'comment_date_gmt'?: string;
       'comment_content'?: string;
-      'comment_karma'?: string;
+      'comment_karma'?: number;
       'comment_approved'?: string;
       'comment_agent'?: string;
       'comment_type'?: string;
-      'comment_parent'?: string;
-      'user_id'?: string;
+      'comment_parent'?: number;
+      'user_id'?: number;
 }
 
 interface iDefineWp_Comments {
@@ -1798,15 +1798,15 @@ export const wp_comments : C6RestfulModel & iDefineWp_Comments = {
   
 
 export interface  iWp_Links {
-      'link_id'?: string;
+      'link_id'?: number;
       'link_url'?: string;
       'link_name'?: string;
       'link_image'?: string;
       'link_target'?: string;
       'link_description'?: string;
       'link_visible'?: string;
-      'link_owner'?: string;
-      'link_rating'?: string;
+      'link_owner'?: number;
+      'link_rating'?: number;
       'link_updated'?: string;
       'link_rel'?: string;
       'link_notes'?: string;
@@ -1950,7 +1950,7 @@ export const wp_links : C6RestfulModel & iDefineWp_Links = {
   
 
 export interface  iWp_Options {
-      'option_id'?: string;
+      'option_id'?: number;
       'option_name'?: string;
       'option_value'?: string;
       'autoload'?: string;
@@ -2012,8 +2012,8 @@ export const wp_options : C6RestfulModel & iDefineWp_Options = {
   
 
 export interface  iWp_Postmeta {
-      'meta_id'?: string;
-      'post_id'?: string;
+      'meta_id'?: number;
+      'post_id'?: number;
       'meta_key'?: string;
       'meta_value'?: string;
 }
@@ -2074,8 +2074,8 @@ export const wp_postmeta : C6RestfulModel & iDefineWp_Postmeta = {
   
 
 export interface  iWp_Posts {
-      'ID'?: string;
-      'post_author'?: string;
+      'ID'?: number;
+      'post_author'?: number;
       'post_date'?: string;
       'post_date_gmt'?: string;
       'post_content'?: string;
@@ -2091,12 +2091,12 @@ export interface  iWp_Posts {
       'post_modified'?: string;
       'post_modified_gmt'?: string;
       'post_content_filtered'?: string;
-      'post_parent'?: string;
+      'post_parent'?: number;
       'guid'?: string;
-      'menu_order'?: string;
+      'menu_order'?: number;
       'post_type'?: string;
       'post_mime_type'?: string;
-      'comment_count'?: string;
+      'comment_count'?: number;
 }
 
 interface iDefineWp_Posts {
@@ -2326,9 +2326,9 @@ export const wp_posts : C6RestfulModel & iDefineWp_Posts = {
   
 
 export interface  iWp_Term_Relationships {
-      'object_id'?: string;
-      'term_taxonomy_id'?: string;
-      'term_order'?: string;
+      'object_id'?: number;
+      'term_taxonomy_id'?: number;
+      'term_order'?: number;
 }
 
 interface iDefineWp_Term_Relationships {
@@ -2379,12 +2379,12 @@ export const wp_term_relationships : C6RestfulModel & iDefineWp_Term_Relationshi
   
 
 export interface  iWp_Term_Taxonomy {
-      'term_taxonomy_id'?: string;
-      'term_id'?: string;
+      'term_taxonomy_id'?: number;
+      'term_id'?: number;
       'taxonomy'?: string;
       'description'?: string;
-      'parent'?: string;
-      'count'?: string;
+      'parent'?: number;
+      'count'?: number;
 }
 
 interface iDefineWp_Term_Taxonomy {
@@ -2461,8 +2461,8 @@ export const wp_term_taxonomy : C6RestfulModel & iDefineWp_Term_Taxonomy = {
   
 
 export interface  iWp_Termmeta {
-      'meta_id'?: string;
-      'term_id'?: string;
+      'meta_id'?: number;
+      'term_id'?: number;
       'meta_key'?: string;
       'meta_value'?: string;
 }
@@ -2523,10 +2523,10 @@ export const wp_termmeta : C6RestfulModel & iDefineWp_Termmeta = {
   
 
 export interface  iWp_Terms {
-      'term_id'?: string;
+      'term_id'?: number;
       'name'?: string;
       'slug'?: string;
-      'term_group'?: string;
+      'term_group'?: number;
 }
 
 interface iDefineWp_Terms {
@@ -2585,8 +2585,8 @@ export const wp_terms : C6RestfulModel & iDefineWp_Terms = {
   
 
 export interface  iWp_Usermeta {
-      'umeta_id'?: string;
-      'user_id'?: string;
+      'umeta_id'?: number;
+      'user_id'?: number;
       'meta_key'?: string;
       'meta_value'?: string;
 }
@@ -2647,7 +2647,7 @@ export const wp_usermeta : C6RestfulModel & iDefineWp_Usermeta = {
   
 
 export interface  iWp_Users {
-      'ID'?: string;
+      'ID'?: number;
       'user_login'?: string;
       'user_pass'?: string;
       'user_nicename'?: string;
@@ -2655,7 +2655,7 @@ export interface  iWp_Users {
       'user_url'?: string;
       'user_registered'?: string;
       'user_activation_key'?: string;
-      'user_status'?: string;
+      'user_status'?: number;
       'display_name'?: string;
 }
 
