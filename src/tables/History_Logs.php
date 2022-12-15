@@ -52,6 +52,8 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
     public const DATABASE = 'CarbonPHP';
     
     public const JSON_COLUMNS = ['history_data',];
+
+    public const AUTO_ESCAPE_POST_HTML_SPECIAL_CHARS = true;
     
     // Tables we have a foreign key reference to
     public const INTERNAL_TABLE_CONSTRAINTS = [

@@ -20,7 +20,7 @@ use function ord;
 
 /**
  *
- *  Todo - the minimize we need to check the user id option
+ * Todo - the minimize we need to check the user id option
  *
  * Class WebSocket
  *
@@ -308,11 +308,17 @@ class WebSocket extends Request implements iCommand
 
     }
 
-    public static function sendToResource(string $data, &$connection, $opCode = self::TEXT): bool
+    public static function sendToResource(string $data, &$connection, int $opCode = self::TEXT): bool
     {
 
-        return 0 <= fwrite($connection, self::encode($data, $opCode));
-
+        try {
+            $socket = socket_import_stream($connection);
+            $data = self::encode($data, $opCode);
+            $length = strlen($data);
+            return $length !== socket_send($socket, $data, $length, 0);
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     public static function sendToAllExternalResources(string $data, $opCode = self::TEXT): void
@@ -321,7 +327,7 @@ class WebSocket extends Request implements iCommand
 
             if (is_resource($resourceConnection)) {
 
-                @fwrite($resourceConnection, self::encode($data, $opCode));
+                self::sendToResource($data, $resourceConnection, $opCode);
 
             } else {
 
@@ -1225,8 +1231,6 @@ class WebSocket extends Request implements iCommand
                 'error' => 'protocol error (1002)'
             ];
         }
-
-        print_r($out);
 
         if ((int)$length === 0) {
 

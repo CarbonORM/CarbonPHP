@@ -52,6 +52,8 @@ class Locations extends Rest implements iRestSinglePrimaryKey
     public const DATABASE = 'CarbonPHP';
     
     public const JSON_COLUMNS = [];
+
+    public const AUTO_ESCAPE_POST_HTML_SPECIAL_CHARS = true;
     
     // Tables we have a foreign key reference to
     public const INTERNAL_TABLE_CONSTRAINTS = [

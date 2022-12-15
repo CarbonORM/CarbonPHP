@@ -599,7 +599,7 @@ abstract class Rest extends RestLifeCycle
                 foreach ($postRequestBody as $iValue) {
 
                     // loop throw and validate each of the values // column names
-                    foreach ($iValue as $columnName => $postValue) {
+                    foreach ($iValue as $columnName => &$postValue) {
 
                         if (false === array_key_exists($columnName, static::COLUMNS)) {
 
@@ -607,7 +607,14 @@ abstract class Rest extends RestLifeCycle
 
                         }
 
+                        if (true === static::AUTO_ESCAPE_POST_HTML_SPECIAL_CHARS) {
+
+                                $postValue = is_string($postValue) ? htmlspecialchars($postValue, ENT_QUOTES | ENT_HTML5) : $postValue;
+
+                        }
+
                     }
+                    unset($postValue);
 
                 }
 

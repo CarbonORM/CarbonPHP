@@ -377,7 +377,7 @@ END;
             exit(1);
         }
 
-        MySQL::$mysqldump  = $dump ?? MySQL::mysqldump($mysqldump ?? null, $dumpData);
+        MySQL::$mysqldump = $dump ?? MySQL::mysqldump($mysqldump ?? null, $dumpData);
 
         if (!file_exists(MySQL::$mysqldump)) {
             print 'Could not load mysql dump file!' . PHP_EOL;
@@ -490,6 +490,18 @@ END;
                             if (isset($matches[0][0])) {
 
                                 $rest[$tableName]['regex_validation'] = trim($matches[0][0]);
+
+                            }
+
+                            preg_match_all('#\n\s+public const AUTO_ESCAPE_POST_HTML_SPECIAL_CHARS\s*=\s*(true|false);#', $validation, $matches);
+
+                            if (isset($matches[0][0])) {
+
+                                $rest[$tableName]['autoEscape'] = trim($matches[0][0]);
+
+                            } else {
+
+                                $rest[$tableName]['autoEscape'] = 'true';
 
                             }
 
@@ -1800,6 +1812,8 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
     public const DATABASE = '{{#QueryWithDatabaseName}}{{database}}{{/QueryWithDatabaseName}}';
     
     public const JSON_COLUMNS = [{{#explode}}{{#json}}'{{name}}',{{/json}}{{/explode}}];
+
+    public const AUTO_ESCAPE_POST_HTML_SPECIAL_CHARS = {{#autoEscape}}{{autoEscape}}{{/autoEscape}}{{^autoEscape}}false{{/autoEscape}};
     
     // Tables we have a foreign key reference to
     public const INTERNAL_TABLE_CONSTRAINTS = [{{#TABLE_CONSTRAINTS}}

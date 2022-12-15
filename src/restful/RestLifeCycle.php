@@ -92,7 +92,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
      * @param string $method
      * @param array $return
      * @param array|null $args
-     * @param string|array|null $primary
+     * @param string|int|array|null $primary
      * @param bool $subQuery
      * @throws PublicAlert
      */
@@ -100,7 +100,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
         string $method,
         array  $return,
         array  &$args = null,
-               &$primary = null,
+        string|int|array|null &$primary = null,
         bool   $subQuery = false): void
     {
 
