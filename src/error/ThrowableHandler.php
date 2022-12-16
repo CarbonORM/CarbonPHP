@@ -279,7 +279,7 @@ class ThrowableHandler
 
             try {
 
-                ob_start(null, null, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
+                ob_start(null, 0, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
 
                 $argv = \call_user_func_array($lambda, $argv);
 
@@ -644,7 +644,7 @@ class ThrowableHandler
 
             ColorCode::colorCode('The Global Error (set_error_handler) Handler has been invoked.', $color);
 
-            ColorCode::colorCode("code: $errorLevel, message: $errorString, file://$errorFile, line: $errorLine", $color);
+            ColorCode::colorCode("code: $errorLevel, message: $errorString, $errorFile:$errorLine", $color);
 
             self::generateLog(null, false === $fatalError, (string)$errorLevel, $browserOutput, $color);
 

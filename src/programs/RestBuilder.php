@@ -497,7 +497,7 @@ END;
 
                             if (isset($matches[0][0])) {
 
-                                $rest[$tableName]['autoEscape'] = trim($matches[0][0]);
+                                $rest[$tableName]['autoEscape'] = trim($matches[1][0]);
 
                             } else {
 
