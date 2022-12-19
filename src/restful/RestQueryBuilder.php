@@ -219,7 +219,7 @@ abstract class RestQueryBuilder extends RestQueryValidation
     /**
      * @throws PublicAlert
      */
-    public static function isAggregate(string $column, $name): string
+    public static function isAggregate(string $column, string $aggregate,  $name): string
     {
 
         if (true === is_string($name)) {
@@ -228,7 +228,7 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
             if (in_array($name, $allowedIsAggregations, true)) {
 
-                return "$column IS $name";
+                return "$column $aggregate $name";
 
             }
 
@@ -302,6 +302,7 @@ abstract class RestQueryBuilder extends RestQueryValidation
             [$column, $aggregate, $name] = $stmt;
 
             switch ($aggregate) {
+                case self::IS_NOT:
                 case self::IS:
                 case self::AS:
                 case self::INTERVAL:
@@ -380,9 +381,10 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
                 return self::inAggergaation($column, $aggregate, $name);
 
+            case self::IS_NOT:
             case self::IS:
 
-                return self::isAggregate($column, $name);
+                return self::isAggregate($column, $aggregate, $name);
 
         }
 
@@ -1714,7 +1716,7 @@ TRIGGER;
 
                 }
 
-                return self::isAggregate($valueOne, $valueTwo);
+                return self::isAggregate($valueOne, $operator, $valueTwo);
 
         }
 
