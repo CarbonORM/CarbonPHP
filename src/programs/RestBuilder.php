@@ -1271,6 +1271,7 @@ END;
     
     IN: '" . iRest::IN . "',
     IS: '" . iRest::IS . "',
+    IS_NOT: '" . iRest::IS_NOT . "',
     INNER: '" . iRest::INNER . "',
     INTERVAL: '" . iRest::INTERVAL . "',
     
