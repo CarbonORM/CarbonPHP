@@ -255,7 +255,8 @@ interface iRest
         self::NOT_IN,
         self::LIKE,
         self::NOT_LIKE,
-        self::IS
+        self::IS,
+        self::IS_NOT,
     ];
 
 
