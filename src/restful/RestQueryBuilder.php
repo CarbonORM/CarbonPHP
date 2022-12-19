@@ -1705,8 +1705,10 @@ TRIGGER;
                 return self::inAggergaation($valueOne, $operator, $valueTwo);
 
             case iRest::IS:
+            case str_replace('_', ' ', iRest::IS_NOT):
 
-                if ($key_is_custom) {
+
+            if ($key_is_custom) {
 
                     throw new PublicAlert("A non-internal column key was used in conjunction with the IS aggregate. addSingleConditionToWhereOrJoin was given (" . implode(',', func_get_args()) . ").");
 

@@ -68,6 +68,7 @@ interface iRest
 
     public const IN = 'IN';
     public const IS = 'IS';
+    public const IS_NOT = 'IS_NOT';
     public const INNER = 'INNER';
     public const INTERVAL = 'INTERVAL';
     public const INSERT = 'INSERT';
