@@ -32,6 +32,13 @@ CONSTRAINT `entity_comments_entity_parent_pk_fk` FOREIGN KEY (`parent_id`) REFER
 CONSTRAINT `entity_comments_entity_user_pk_fk` FOREIGN KEY (`user_id`) REFERENCES `carbon_carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS `carbon_documentation` (
+`documentation_uri` varchar(255) NOT NULL,
+`documentation_data` longblob,
+`documentation_version` varchar(40) NOT NULL,
+`documentation_active` tinyint NOT NULL
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS `carbon_feature_group_references` (
 `feature_entity_id` binary(16) DEFAULT NULL,
 `group_entity_id` binary(16) DEFAULT NULL,

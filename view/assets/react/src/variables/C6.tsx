@@ -2860,6 +2860,7 @@ export const C6 = {
     
     IN: 'IN',
     IS: 'IS',
+    IS_NOT: 'IS_NOT',
     INNER: 'INNER',
     INTERVAL: 'INTERVAL',
     

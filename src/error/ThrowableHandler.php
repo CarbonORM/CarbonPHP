@@ -897,8 +897,10 @@ class ThrowableHandler
 
         if (self::$storeReport === true) {
 
-            $log_file_general = 'logs/ThrowableHandlerReport/' . ($_SESSION['id'] ?? 'guest') . '_' . session_id() . '_' . microtime(true) . '_' . getmypid();
+            $log_file_general = 'logs/ThrowableHandlerReport/id_' . ($_SESSION['id'] ?? 'guest') . '_' . session_id() . '_' . microtime(true) . '_' . getmypid();
+
             $log_file_html = $log_file_general . '.html';
+
             $log_file_json = $log_file_general . '.json';
 
             $log_array[self::STORAGE_LOCATION_KEY] = "Will store report to file <a href=\"/$log_file_html\">("
@@ -947,16 +949,16 @@ class ThrowableHandler
 
             }
 
+            Files::createDirectoryIfNotExist(dirname(CarbonPHP::$app_root . $log_file_html));
 
-            Files::createDirectoryIfNotExist(CarbonPHP::$app_root . $log_file_html);
-
-            Files::createDirectoryIfNotExist(CarbonPHP::$app_root . $log_file_json);
+            Files::createDirectoryIfNotExist(dirname(CarbonPHP::$app_root . $log_file_json));
 
             if (false === file_put_contents(CarbonPHP::$app_root . $log_file_html, $html_error_log)
                 || false === file_put_contents(CarbonPHP::$app_root . $log_file_json, $parseMessage($log_array))) {
 
                 ColorCode::colorCode("Failed to store html log using file_put_contents. File :: ($log_file_html) or ($log_file_json)", iColorCode::RED);
 
+                /** @noinspection PhpExpressionResultUnusedInspection */
                 print CarbonPHP::$cli ? $html_error_log : print_r($log_array, true);
 
                 exit(22);
