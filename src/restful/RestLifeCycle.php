@@ -305,7 +305,11 @@ abstract class RestLifeCycle extends RestQueryBuilder
     {
         global $json;
 
-        $json = [];
+        if (false === is_array($json)) {
+
+            $json = [];
+
+        }
 
         self::$externalRestfulRequestsAPI = true;   // This is to help you determine the request type in
 

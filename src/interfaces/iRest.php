@@ -174,6 +174,8 @@ interface iRest
     public const AUTO_INCREMENT = 'AUTO_INCREMENT';
     public const SKIP_COLUMN_IN_POST = 'SKIP_COLUMN_IN_POST';
     public const DEFAULT_POST_VALUE = 'DEFAULT_POST_VALUE';
+    public const REST_REQUEST_PRECOMMIT_CALLBACKS = 'PRECOMMIT';
+    public const PRECOMMIT = self::REST_REQUEST_PRECOMMIT_CALLBACKS;
     public const REST_REQUEST_PREPROCESS_CALLBACKS = 'PREPROCESS';  // had to change from 0 so we could array merge recursively.
     public const PREPROCESS = self::REST_REQUEST_PREPROCESS_CALLBACKS;
     public const REST_REQUEST_FINNISH_CALLBACKS = 'FINISH';

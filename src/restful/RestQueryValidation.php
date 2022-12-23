@@ -150,10 +150,24 @@ abstract class RestQueryValidation extends RestAutoTargeting
      */
     public static function prepostprocessRestRequest(&$return = null): void
     {
+        if ((self::$compiled_PHP_validations[self::$REST_REQUEST_METHOD][self::PRECOMMIT] ?? false)
+            && is_array(self::$compiled_PHP_validations[self::$REST_REQUEST_METHOD][self::PRECOMMIT])) {
+
+            self::runValidations(self::$compiled_PHP_validations[self::$REST_REQUEST_METHOD][self::PRECOMMIT], $return);
+
+        }
+
         if ((self::$compiled_PHP_validations[self::FINISH][self::PREPROCESS] ?? false)
             && is_array(self::$compiled_PHP_validations[self::FINISH][self::PREPROCESS])) {
 
             self::runValidations(self::$compiled_PHP_validations[self::FINISH][self::PREPROCESS], $return);
+
+        }
+
+        if ((self::$compiled_PHP_validations[self::FINISH][self::PRECOMMIT] ?? false)
+            && is_array(self::$compiled_PHP_validations[self::FINISH][self::PRECOMMIT])) {
+
+            self::runValidations(self::$compiled_PHP_validations[self::FINISH][self::PRECOMMIT], $return);
 
         }
 

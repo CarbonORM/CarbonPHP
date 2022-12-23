@@ -200,8 +200,16 @@ abstract class Rest extends RestLifeCycle
 
                 self::startRest(self::GET, $return, $argv, $primary);
 
+                $isLock = array_key_exists(self::LOCK, $argv);
+
                 // If we need use table or row level locks we should use the main writer instance
-                $pdo = self::database(false === array_key_exists(self::LOCK, $argv));
+                $pdo = self::database(false === $isLock);
+
+                if ($isLock && false === $pdo->inTransaction() && false === $pdo->beginTransaction()) {
+
+                    throw new PublicAlert('Failed to start transaction for select lock.');
+
+                }
 
                 if (null !== $primary && false === is_array($primary)) {
 

@@ -40,6 +40,7 @@
       <w>phpsessid</w>
       <w>pjax</w>
       <w>postpreprocess</w>
+      <w>precommit</w>
       <w>prepostprocess</w>
       <w>restbuilder</w>
       <w>restfull</w>

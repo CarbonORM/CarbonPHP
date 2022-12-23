@@ -518,6 +518,13 @@ FOOT;
     public static function commit(): bool
     {
 
+        if (false === empty(Session::$session_id)
+            && session_status() === PHP_SESSION_ACTIVE) {
+
+            return session_write_close();
+
+        }
+
         $db = self::database(false);
 
         if (false === $db->inTransaction()) {

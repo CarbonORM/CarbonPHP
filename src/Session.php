@@ -382,7 +382,11 @@ class Session implements SessionHandlerInterface
     public static function writeCloseClean(): void
     {
 
-        session_write_close();
+        if (session_status() === PHP_SESSION_ACTIVE) {
+
+            session_write_close();
+
+        }
 
         self::$session_id = null;
 
@@ -390,17 +394,6 @@ class Session implements SessionHandlerInterface
 
     }
 
-    /** Make user our session data gets stored in the db.
-     * @return bool
-     */
-    public function close(): bool
-    {
-
-        register_shutdown_function('session_write_close');
-
-        return true;
-
-    }
 
     /** read
      * @param string $id
@@ -415,10 +408,11 @@ class Session implements SessionHandlerInterface
         $session_table = self::getSessionTable();
 
         /** @noinspection PhpPossiblePolymorphicInvocationInspection */
-        if (false === $session_table::Get($session_table_row, $id, [
+        if (false === $session_table::get($session_table_row, $id, [
                 iRest::SELECT => [
                     $session_table::SESSION_DATA
                 ],
+                iRest::LOCK => iRest::FOR_UPDATE
             ])) {
 
             return false;
@@ -467,6 +461,40 @@ class Session implements SessionHandlerInterface
         }
 
         return false;
+
+    }
+
+    public function close(): bool
+    {
+        try {
+
+            if (session_status() !== PHP_SESSION_ACTIVE) {
+
+                return true;
+
+            }
+
+            $db = Database::database(false);
+
+            if (false === $db->inTransaction()) {
+
+                throw new PublicAlert('Database not in transaction.');
+
+            }
+
+            if (false === $db->commit()) {
+
+                throw new PublicAlert('Database commit failed.');
+
+            }
+
+            return true;
+
+        } catch (Throwable $e) {
+
+            ThrowableHandler::generateLogAndExit($e);
+
+        }
 
     }
 
