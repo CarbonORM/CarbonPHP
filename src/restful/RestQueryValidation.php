@@ -531,6 +531,13 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
         self::gatherValidation($firstKey, self::PREPROCESS, $table, $table_php_validation);
 
+        if ($firstKey !== self::PREPROCESS) {
+
+            // TODO - is this run for GET requests?? if so remove?
+            self::gatherValidation($firstKey, self::PRECOMMIT, $table, $table_php_validation);
+
+        }
+
         self::gatherValidation($firstKey, self::FINISH, $table, $table_php_validation);
 
     }
