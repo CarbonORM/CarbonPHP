@@ -1416,18 +1416,29 @@ export const COLUMNS = {
 
 export type RestTableInterfaces = $all_interface_types;
 
-export const convertForRequestBody = function(restfulObject: RestTableInterfaces, tableName: string) {
-  let payload = {};
-  Object.keys(restfulObject).map(value => {
-    let exactReference = value.toUpperCase();
-    // @ts-ignore todo - figure out how to type this
-    if (exactReference in C6[tableName]) {
-      // @ts-ignore
-      payload[C6[tableName][exactReference]] = restfulObject[value]
-    }
-    return true;
-  });
-  return payload;
+export const convertForRequestBody = function (restfulObject: RestTableInterfaces, tableNames: string[]) {
+
+    let payload = {};
+
+    tableNames.forEach((table) => {
+
+        Object.keys(restfulObject).map(value => {
+
+            let exactReference = value.toUpperCase();
+
+            if (exactReference in C6[table]) {
+
+                payload[C6[table][exactReference]] = restfulObject[value]
+
+            }
+        })
+
+        return true;
+
+    });
+
+    return payload;
+
 };
 
 ";
@@ -1450,16 +1461,29 @@ const COLUMNS = {
       $global_column_tsx
 };
 
-const convertForRequestBody = function(restfulObject, tableName) {
-  let payload = {};
-  Object.keys(restfulObject).map(value => {
-    let exactReference = value.toUpperCase();
-    if (exactReference in C6[tableName]) {
-      payload[C6[tableName][exactReference]] = restfulObject[value]
-    }
-    return true;
-  });
-  return payload;
+const convertForRequestBody = function (restfulObject, tableNames) {
+
+    let payload = {};
+
+    tableNames.forEach((table) => {
+
+        Object.keys(restfulObject).map(value => {
+
+            let exactReference = value.toUpperCase();
+
+            if (exactReference in C6[table]) {
+
+                payload[C6[table][exactReference]] = restfulObject[value]
+
+            }
+        })
+
+        return true;
+
+    });
+
+    return payload;
+
 };
 
 ";
