@@ -132,7 +132,7 @@
     "socket": "php index.php websocket",
     "test": [
       "echo 'Use the following to enable XDEBUG :: export XDEBUG_MODE=debug XDEBUG_SESSION=1'",
-      "XDEBUG_MODE=debug XDEBUG_SESSION=1 ./vendor/bin/phpunit --log-junit junit.xml  --testdox || ./vendor/bin/phpunit --verbose --log-junit junit.xml"
+      "XDEBUG_MODE=debug XDEBUG_SESSION=1 ./vendor/bin/phpunit --log-junit junit.xml  --testdox || ./vendor/bin/phpunit --verbose --log-junit junit.xml >> logs/tests.txt"
     ],
     "wp": [
       "cp index.php index.og.php",

@@ -1416,10 +1416,12 @@ export const COLUMNS = {
 
 export type RestTableInterfaces = $all_interface_types;
 
-export const convertForRequestBody = function (restfulObject: RestTableInterfaces, tableNames: string[]) {
+export const convertForRequestBody = function (restfulObject: RestTableInterfaces, tableName: string | string[]) {
 
     let payload = {};
 
+    const tableNames = Array.isArray(tableName) ? tableName : [tableName];
+    
     tableNames.forEach((table) => {
 
         Object.keys(restfulObject).map(value => {
@@ -1461,9 +1463,11 @@ const COLUMNS = {
       $global_column_tsx
 };
 
-const convertForRequestBody = function (restfulObject, tableNames) {
+const convertForRequestBody = function (restfulObject, tableName) {
 
     let payload = {};
+    
+    const tableNames = Array.isArray(tableName) ? tableName : [tableName];
 
     tableNames.forEach((table) => {
 

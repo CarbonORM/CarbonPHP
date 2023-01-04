@@ -463,7 +463,7 @@ class CarbonPHP
 
                 self::$public_carbon_root = '';
 
-            } elseif (strpos(dirname(self::CARBON_ROOT), self::$app_root) === 0) {
+            } elseif (str_starts_with(dirname(self::CARBON_ROOT), self::$app_root)) {
 
                 self::$public_carbon_root = rtrim(substr_replace(dirname(self::CARBON_ROOT), '', 0, strlen(self::$app_root)), DS);
 

@@ -50,6 +50,8 @@ class FullRestTest extends CarbonRestTest
 
         ob_start(null, 0, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
 
+        $GLOBALS['json'] = [];
+
         self::assertTrue(Rest::ExternalRestfulRequestsAPI(Photos::TABLE_NAME, null, Users::CLASS_NAMESPACE));
 
         $out = trim(ob_get_clean());
@@ -111,6 +113,8 @@ class FullRestTest extends CarbonRestTest
 
         ob_start(null, 0, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
 
+        $GLOBALS['json'] = [];
+
         self::assertTrue(Rest::ExternalRestfulRequestsAPI(Users::TABLE_NAME, null, Users::CLASS_NAMESPACE));
 
         $out = trim(ob_get_clean());
@@ -162,6 +166,8 @@ class FullRestTest extends CarbonRestTest
         $_SERVER['REQUEST_METHOD'] = 'GET';
 
         ob_start(null, 0, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
+
+        $GLOBALS['json'] = [];
 
         self::assertTrue(Rest::ExternalRestfulRequestsAPI(Users::TABLE_NAME, null, Users::CLASS_NAMESPACE));
 
@@ -296,6 +302,8 @@ class FullRestTest extends CarbonRestTest
         $_SERVER['REQUEST_METHOD'] = 'GET';
 
         ob_start(null, 0, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
+
+        $GLOBALS['json'] = [];
 
         self::assertTrue(Rest::ExternalRestfulRequestsAPI(Users::TABLE_NAME, null, Users::CLASS_NAMESPACE));
 

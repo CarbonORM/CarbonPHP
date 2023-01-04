@@ -55,7 +55,6 @@ class CarbonRestTest extends Config
         return $uid;
     }
 
-
     private function KeyExistsAndRemove(string $key): void
     {
         $store = [];
