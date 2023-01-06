@@ -521,6 +521,8 @@ FOOT;
         if (false === empty(Session::$session_id)
             && session_status() === PHP_SESSION_ACTIVE) {
 
+            $GLOBALS['json']['session']['session_write_close'] = 'Committing session from (' . __FILE__ . ') from method (' .  __METHOD__ . ') at line (' . __LINE__ . ')';
+
             return session_write_close();
 
         }

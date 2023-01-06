@@ -32,6 +32,7 @@ abstract class Rest extends RestLifeCycle
                         : $primary;
 
                     return Carbons::Delete($remove, $primary, $argv);
+
                 }
 
                 if (false === self::$allowFullTableDeletes && true === $emptyPrimary && array() === $argv) {
@@ -157,15 +158,20 @@ abstract class Rest extends RestLifeCycle
 
                 self::prepostprocessRestRequest($remove);
 
-                if (self::$commit && !Database::commit()) {
+                if (self::$commit) {
 
-                    return self::signalError('Failed to store commit transaction on table {{TableName}}');
+                    if (false === Database::commit()) {
 
-                }
 
-                if (is_callable($moreReporting)) {
+                        return self::signalError('Failed to store commit transaction on table {{TableName}}');
 
-                    $moreReporting();
+                    }
+
+                    if (is_callable($moreReporting)) {
+
+                        $moreReporting();
+
+                    }
 
                 }
 
@@ -556,16 +562,20 @@ abstract class Rest extends RestLifeCycle
 
             self::prepostprocessRestRequest($returnUpdated);
 
-            if (true === self::$commit &&
-                false === Database::commit()) {
+            if (self::$commit) {
 
-                return self::signalError('Failed to store commit transaction on table (' . static::TABLE_NAME . ')');
+                if (false === Database::commit()) {
 
-            }
 
-            if (is_callable($moreReporting)) {
+                    return self::signalError('Failed to store commit transaction on table {{TableName}}');
 
-                $moreReporting($stmt);
+                }
+
+                if (is_callable($moreReporting)) {
+
+                    $moreReporting();
+
+                }
 
             }
 
@@ -878,15 +888,20 @@ abstract class Rest extends RestLifeCycle
 
                     self::prepostprocessRestRequest();
 
-                    if (self::$commit && false === Database::commit()) {
+                    if (self::$commit) {
 
-                        return self::signalError('Failed to commit transaction on table ' . static::class);
+                        if (false === Database::commit()) {
 
-                    }
 
-                    if (is_callable($moreReporting)) {
+                            return self::signalError('Failed to store commit transaction on table {{TableName}}');
 
-                        $moreReporting();
+                        }
+
+                        if (is_callable($moreReporting)) {
+
+                            $moreReporting();
+
+                        }
 
                     }
 
@@ -938,15 +953,20 @@ abstract class Rest extends RestLifeCycle
 
                 self::prepostprocessRestRequest($id);
 
-                if (self::$commit && !Database::commit()) {
+                if (self::$commit) {
 
-                    return self::signalError('Failed to store commit transaction on table ' . static::TABLE_NAME);
+                    if (false === Database::commit()) {
 
-                }
 
-                if (is_callable($moreReporting)) {
+                        return self::signalError('Failed to store commit transaction on table {{TableName}}');
 
-                    $moreReporting($stmt);
+                    }
+
+                    if (is_callable($moreReporting)) {
+
+                        $moreReporting();
+
+                    }
 
                 }
 

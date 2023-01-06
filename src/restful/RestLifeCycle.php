@@ -9,6 +9,7 @@ use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Route;
+use CarbonPHP\Session;
 use PDOException;
 use PDOStatement;
 use Throwable;
@@ -97,11 +98,11 @@ abstract class RestLifeCycle extends RestQueryBuilder
      * @throws PublicAlert
      */
     protected static function startRest(
-        string $method,
-        array  $return,
-        array  &$args = null,
+        string                $method,
+        array                 $return,
+        array                 &$args = null,
         string|int|array|null &$primary = null,
-        bool   $subQuery = false): void
+        bool                  $subQuery = false): void
     {
 
         static::checkPrefix(static::TABLE_PREFIX);
@@ -253,6 +254,8 @@ abstract class RestLifeCycle extends RestQueryBuilder
         if (self::$REST_REQUEST_METHOD === self::GET) {
 
             $json['sql'][] = [
+                'method' => self::$REST_REQUEST_METHOD,
+                'table' => static::class,
                 'argv' => $argv,
                 'stmt' => [
                     $sql,
@@ -270,6 +273,8 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
         /** @noinspection PhpConditionAlreadyCheckedInspection */
         $json['sql'][] = [
+            'method' => self::$REST_REQUEST_METHOD,
+            'table' => static::class,
             'argv' => $argv,
             'affected_rows' => &$affected_rows,
             'committed' => &$committed,
@@ -472,6 +477,22 @@ abstract class RestLifeCycle extends RestQueryBuilder
             $json['headers_sent:filename'] = $filename;
 
             $json['headers_sent:line'] = $line;
+
+        }
+
+        if (session_status() === PHP_SESSION_ACTIVE) {
+
+            $json['session']['write_close'] = session_write_close();
+
+            if (false === $json['session_write_close']) {
+
+                $json['session'][self::class] = 'Failed to close the session';
+
+            } else {
+
+                $json['session'][self::class] = 'Automatically closed the session @ (' . __METHOD__ . ')';
+
+            }
 
         }
 

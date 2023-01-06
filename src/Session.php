@@ -115,11 +115,13 @@ class Session implements SessionHandlerInterface
 
             static::$session_id = session_id();
 
+            $GLOBALS['session_id'] = static::$session_id;
+
             $_SESSION['id'] = array_key_exists('id', $_SESSION ??= []) ? $_SESSION['id'] : false;
 
         } catch (Throwable $e) {
 
-            ThrowableHandler::generateLog($e); // This terminates!
+            ThrowableHandler::generateLogAndExit($e); // This terminates!
 
         }
 
@@ -444,7 +446,11 @@ class Session implements SessionHandlerInterface
 
             $session_table = self::getSessionTable();
 
-            return $session_table::put($session_table_row, null, [
+            $preCommitValue = Rest::$commit;
+
+            Rest::$commit = false;
+
+            $successful = $session_table::put($session_table_row, null, [
                 iRest::REPLACE => [
                     $session_table::SESSION_ID => $id,
                     $session_table::USER_ID => static::$user_id,
@@ -454,21 +460,29 @@ class Session implements SessionHandlerInterface
                 ]
             ]);
 
+            Rest::$commit = $preCommitValue;
+
+            return false !== $successful;
+
         } catch (Throwable $e) {
 
-            ThrowableHandler::generateLog($e);
+            ThrowableHandler::generateLogAndExit($e);
 
         }
-
-        return false;
 
     }
 
     public function close(): bool
     {
+        $GLOBALS['json']['session']['@close'] = $_SESSION;
+
+        $GLOBALS['json']['session']['?close'] = 'closing session from (' . __FILE__ . ') from method (' .  __METHOD__ . ') at line (' . __LINE__ . ')';
+
         try {
 
             if (session_status() !== PHP_SESSION_ACTIVE) {
+
+                $GLOBALS['json']['session_error'] = 'no PHP_SESSION_ACTIVE';
 
                 return true;
 
@@ -478,15 +492,21 @@ class Session implements SessionHandlerInterface
 
             if (false === $db->inTransaction()) {
 
-                throw new PublicAlert('Database not in transaction.');
+                $GLOBALS['json']['session_warning'] = 'no remaining transaction';
+
+                    throw new PublicAlert('Database not in transaction.');
 
             }
 
             if (false === $db->commit()) {
 
+                $GLOBALS['json']['session_error'] =' Database commit failed.';
+
                 throw new PublicAlert('Database commit failed.');
 
             }
+
+            $GLOBALS['json']['session']['database_closed_committed'] = true;
 
             return true;
 
