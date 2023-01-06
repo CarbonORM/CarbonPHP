@@ -273,8 +273,10 @@ class CLI implements iCommand
                 break;
 
             case 'help':
-            default:
                 $this->usage();
+                break;
+            default:
+                ColorCode::colorCode("Command not found. Use `help` to list all CarbonPHP programs. Safely moving on.", iColorCode::YELLOW);
         }
     }
 

@@ -289,14 +289,15 @@ class Reports extends Rest implements iRestNoPrimaryKey
      *
      *      REST_REQUEST_FINNISH_CALLBACKS::
      *          PREPROCESS::
+     *          PRECOMMIT::
      *              These callbacks are called after a successful PDOStatement->execute() but before Database::commit().
-     *              Each method will be passed ( GET => &$return, DELETE => &$remove, PUT => &$returnUpdated ) by reference. 
+     *              Each method will be passed ( POST => void|&$returnID, DELETE => &$remove, PUT => &$returnUpdated ) by reference. 
      *              POST will BE PASSED NULL.          
      *
      *          FINAL::
      *              Run directly after method specific [FINAL] callbacks.
      *              The final, 'final' callback set. After these run rest will return. 
-     *              Each method will be passed ( GET => &$return, DELETE => &$remove, PUT => &$returnUpdated ) by reference. 
+     *              Each method will be passed ( GET => void|&$returnID, DELETE => &$remove, PUT => &$returnUpdated ) by reference. 
      *              POST will BE PASSED NULL. 
      *
      *          COLUMN::
@@ -316,6 +317,11 @@ class Reports extends Rest implements iRestNoPrimaryKey
      *              It is not possible to directly define a method->column specific post processes. This can be done by
      *               dynamically pairing multiple method processes starting with one here which signals a code routine 
      *               in a `finial`-ly defined method. The FINAL block specific to the method would suffice. 
+     *
+     *          PRECOMMIT::
+     *              These callbacks are called after a successful PDOStatement->execute() but before Database::commit().
+     *              Each method will be passed ( POST => void|&$returnID, DELETE => &$remove, PUT => &$returnUpdated ) by reference. 
+     *              POST will BE PASSED NULL.
      *
      *          FINAL::
      *              Passed the ( & $return )  

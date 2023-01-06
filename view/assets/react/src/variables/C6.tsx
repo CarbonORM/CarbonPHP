@@ -3222,17 +3222,30 @@ export type RestTableInterfaces = iCarbons
 	| iWp_Usermeta
 	| iWp_Users;
 
-export const convertForRequestBody = function(restfulObject: RestTableInterfaces, tableName: string) {
-  let payload = {};
-  Object.keys(restfulObject).map(value => {
-    let exactReference = value.toUpperCase();
-    // @ts-ignore todo - figure out how to type this
-    if (exactReference in C6[tableName]) {
-      // @ts-ignore
-      payload[C6[tableName][exactReference]] = restfulObject[value]
-    }
-    return true;
-  });
-  return payload;
+export const convertForRequestBody = function (restfulObject: RestTableInterfaces, tableName: string | string[]) {
+
+    let payload = {};
+
+    const tableNames = Array.isArray(tableName) ? tableName : [tableName];
+    
+    tableNames.forEach((table) => {
+
+        Object.keys(restfulObject).map(value => {
+
+            let exactReference = value.toUpperCase();
+
+            if (exactReference in C6[table]) {
+
+                payload[C6[table][exactReference]] = restfulObject[value]
+
+            }
+        })
+
+        return true;
+
+    });
+
+    return payload;
+
 };
 

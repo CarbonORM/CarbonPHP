@@ -54,6 +54,8 @@ class Session implements SessionHandlerInterface
      */
     public static ?string $user_id;
 
+    public static bool $endingSession = false;
+
     /**
      * @var callable $callback - if the session is reset using the startApplication function,
      * this callable function will be executed. You can set this variable in the configuration.
@@ -361,6 +363,8 @@ class Session implements SessionHandlerInterface
     {
 
         try {
+
+            $GLOBALS['json']['session']['database_closed_committed'] = false;
 
             Database::database(false);
 
