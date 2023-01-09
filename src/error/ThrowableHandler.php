@@ -812,7 +812,7 @@ class ThrowableHandler
             (CarbonPHP::$http || CarbonPHP::$https)) {
 
             // Attempt to remove any previous in-progress output buffers
-            while (1 !== ob_get_level()) {
+            while (1 < ob_get_level()) {
 
                 // this is ideal as ob_end_flush() would remove the back-to-browser buffer.
                 // it also doesn't bother returning the buffer
