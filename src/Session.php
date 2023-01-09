@@ -486,7 +486,7 @@ class Session implements SessionHandlerInterface
 
             if (session_status() !== PHP_SESSION_ACTIVE) {
 
-                $GLOBALS['json']['session_error'] = 'no PHP_SESSION_ACTIVE';
+                $GLOBALS['json']['session_error'] = 'attempted session close with no PHP_SESSION_ACTIVE';
 
                 return true;
 

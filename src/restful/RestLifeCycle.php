@@ -306,7 +306,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
      * @param string $namespace
      * @return bool
      */
-    public static function ExternalRestfulRequestsAPI(string $mainTable, string $primary = null, string $namespace = 'Tables\\'): bool
+    public static function ExternalRestfulRequestsAPI(string $mainTable, string $primary = null, string $namespace = 'Tables\\', callable $postProcess = null): bool
     {
         global $json;
 
@@ -480,7 +480,26 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
         }
 
-        if (session_status() === PHP_SESSION_ACTIVE) {
+        $database = Database::database(false);
+
+        $inTransaction = true === $database->inTransaction();
+
+        if ($inTransaction && self::$commit === false) {
+
+            $json ['WARNING_NO_COMMIT'] = $json['session'][self::class] = 'self::$commit was set to false at the end of (' . __METHOD__ . ') while a transaction was in progress. Adverse effects include rolling back anything currently uncommitted, as-well-as running session_abort() which will discard any changes in the session.';
+
+            if (false === $database->rollBack()) {
+
+                throw new PublicAlert('Failed to rollBack the transaction. Please, try again.');
+            }
+
+            if (session_abort()) {
+
+                throw new PublicAlert('Failed to abort the session; a side effect of `self::$commit === false` at the end of (' . __METHOD__ . '). Please contact support.');
+
+            }
+
+        } else if (session_status() === PHP_SESSION_ACTIVE) {
 
             $json['session']['write_close'] = session_write_close();
 
@@ -490,18 +509,33 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
             } else {
 
-                $json['session'][self::class] = 'Automatically closed the session @ (' . __METHOD__ . ')';
+                $json['session'][self::class] = 'Automatically closed the session @ (' . __METHOD__ . '). This commits any previous transactions!';
 
             }
+
+        } else if ($inTransaction) {
+
+            if (false === $database->commit()) {
+
+                throw new PublicAlert('Failed to auto commit ');
+
+            }
+
+            $json['AUTO_COMMITTED'][self::class] = 'Automatically committed the transaction @ (' . __METHOD__ . ')';
+
+        }
+
+        if (is_callable($postProcess)) {
+
+            $json = $postProcess($json);
 
         }
 
         print PHP_EOL . json_encode($json) . PHP_EOL;
 
-
         return true;
-    }
 
+    }
 
     /**
      * @param string $prefix
