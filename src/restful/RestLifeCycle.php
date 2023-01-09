@@ -509,7 +509,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
             } else {
 
-                $json['session'][self::class] = 'Automatically closed the session @ (' . __METHOD__ . '). This commits any previous transactions!';
+                $json['AUTO_COMMITTED']= $json['session'][self::class] = 'Automatically closed the session & transaction @ (' . __METHOD__ . ')!';
 
             }
 
