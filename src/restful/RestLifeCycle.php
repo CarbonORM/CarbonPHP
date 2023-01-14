@@ -256,6 +256,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
             $json['sql'][] = [
                 'method' => self::$REST_REQUEST_METHOD,
                 'table' => static::class,
+                self::class . '::$externalRestfulRequestsAPI' => self::$externalRestfulRequestsAPI,
                 'argv' => $argv,
                 'stmt' => [
                     $sql,
@@ -275,6 +276,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
         $json['sql'][] = [
             'method' => self::$REST_REQUEST_METHOD,
             'table' => static::class,
+            self::class . '::$externalRestfulRequestsAPI' => self::$externalRestfulRequestsAPI,
             'argv' => $argv,
             'affected_rows' => &$affected_rows,
             'committed' => &$committed,
@@ -509,7 +511,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
             } else {
 
-                $json['AUTO_COMMITTED']= $json['session'][self::class] = 'Automatically closed the session & transaction @ (' . __METHOD__ . ')!';
+                $json[self::class]= $json['session'][self::class] = 'Automatically closed the session & open transaction @ (' . __METHOD__ . ').';
 
             }
 
@@ -517,11 +519,11 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
             if (false === $database->commit()) {
 
-                throw new PublicAlert('Failed to auto commit ');
+                throw new PublicAlert('Failed to auto commit!');
 
             }
 
-            $json['AUTO_COMMITTED'][self::class] = 'Automatically committed the transaction @ (' . __METHOD__ . ')';
+            $json[self::class] = 'Automatically committed the transaction @ (' . __METHOD__ . ')';
 
         }
 

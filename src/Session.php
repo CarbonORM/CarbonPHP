@@ -42,6 +42,11 @@ class Session implements SessionHandlerInterface
 
     protected static ?iRestSinglePrimaryKey $session_table = null;
 
+    private static string $sessionData = '';
+
+    private static bool $sessionUpdated = false;
+
+    protected static bool $sessionContinued = false;
     /**
      * @var null|string - if we need to close or pause the session in the middle of execution,
      * this will persistently hold our session_id.
@@ -425,7 +430,19 @@ class Session implements SessionHandlerInterface
 
         }
 
-        return $session_table_row[$session_table::COLUMNS[$session_table::SESSION_DATA]] ?? '';
+        $sessionKey = $session_table::COLUMNS[$session_table::SESSION_DATA];
+
+        if (array_key_exists($sessionKey, $session_table_row)) {
+
+            self::$sessionContinued = true;
+
+            self::$sessionData = $session_table_row[$sessionKey];
+
+            return $session_table_row[$sessionKey];
+
+        }
+
+        return '';
 
     }
 
@@ -437,6 +454,14 @@ class Session implements SessionHandlerInterface
      */
     public function write($id, $data): bool
     {
+        self::$sessionData = $data;
+        self::$sessionUpdated = true;
+        return true;
+    }
+
+    private static function updateSession(): void
+    {
+
         if (empty(self::$user_id)) {
 
             self::$user_id = $_SESSION['id'] ??= false;
@@ -446,6 +471,7 @@ class Session implements SessionHandlerInterface
         $newDateTime = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . ' + 1 d,lay'));  // so from time of last write and whenever the gc_collector hits
 
         try {
+
             $session_table_row = [];
 
             $session_table = self::getSessionTable();
@@ -454,19 +480,38 @@ class Session implements SessionHandlerInterface
 
             Rest::$commit = false;
 
-            $successful = $session_table::put($session_table_row, null, [
-                iRest::REPLACE => [
-                    $session_table::SESSION_ID => $id,
+            if (self::$sessionContinued) {
+
+                $successful = $session_table::put($session_table_row, self::$session_id, [
+                    iRest::UPDATE => [
+                        $session_table::USER_ID => static::$user_id,
+                        $session_table::USER_IP => CarbonPHP::$server_ip,
+                        $session_table::SESSION_EXPIRES => $newDateTime,
+                        $session_table::SESSION_DATA => self::$sessionData
+                    ]
+                ]);
+
+            } else {
+
+                $postData = [
+                    $session_table::SESSION_ID => self::$session_id,
                     $session_table::USER_ID => static::$user_id,
                     $session_table::USER_IP => CarbonPHP::$server_ip,
                     $session_table::SESSION_EXPIRES => $newDateTime,
-                    $session_table::SESSION_DATA => $data
-                ]
-            ]);
+                    $session_table::SESSION_DATA => self::$sessionData
+                ];
+
+                $successful = $session_table::post($postData);
+
+            }
+
+            if (false === $successful) {
+
+                throw new PublicAlert('Failed to update session');
+
+            }
 
             Rest::$commit = $preCommitValue;
-
-            return false !== $successful;
 
         } catch (Throwable $e) {
 
@@ -478,6 +523,9 @@ class Session implements SessionHandlerInterface
 
     public function close(): bool
     {
+
+        self::updateSession();
+
         $GLOBALS['json']['session']['@close'] = $_SESSION;
 
         $GLOBALS['json']['session']['?close'] = 'closing session from (' . __FILE__ . ') from method (' .  __METHOD__ . ') at line (' . __LINE__ . ')';
