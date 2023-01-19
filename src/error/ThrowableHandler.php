@@ -816,7 +816,7 @@ class ThrowableHandler
 
                 // this is ideal as ob_end_flush() would remove the back-to-browser buffer.
                 // it also doesn't bother returning the buffer
-                ob_clean();
+                ob_end_clean();
 
             }
 

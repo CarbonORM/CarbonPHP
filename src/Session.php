@@ -24,6 +24,7 @@ use CarbonPHP\Helpers\Serialized;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Programs\WebSocket;
+use CarbonPHP\Restful\RestQueryValidation;
 use CarbonPHP\Tables\Sessions;
 use PDOException;
 use SessionHandlerInterface;
@@ -112,6 +113,12 @@ class Session implements SessionHandlerInterface
         }
 
         try {
+
+            if (false === register_shutdown_function(static fn() => session_write_close())) {
+
+                throw new PublicAlert('Failed to register shutdown function');
+
+            }
 
             // this should not throw an error.. but if it doesnt we will catch and die
             if (false === session_start()) {
@@ -430,9 +437,11 @@ class Session implements SessionHandlerInterface
             ]
         ];
 
+
         if (false === $session_table::post($insertIgnore)) {
 
             return false;
+
         }
 
         /** @noinspection PhpPossiblePolymorphicInvocationInspection */
