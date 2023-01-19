@@ -597,6 +597,19 @@ abstract class Rest extends RestLifeCycle
 
     protected static function insert(array &$postRequestBody = [])
     {
+        $ignore = '';
+
+        /** @noinspection NotOptimalIfConditionsInspection */
+        if (1 === count($postRequestBody) &&
+            array_key_exists(self::IGNORE, $postRequestBody)
+            && true === is_array($postRequestBody[self::IGNORE])) {
+
+            $postRequestBody = $postRequestBody[self::IGNORE];
+
+            $ignore = ' ' . self::IGNORE . ' ';
+
+        }
+
         do {
             try {
 
@@ -691,7 +704,7 @@ abstract class Rest extends RestLifeCycle
 
                 }
 
-                $sql = self::INSERT . ' INTO '
+                $sql = self::INSERT . $ignore . ' INTO '
                     . (static::QUERY_WITH_DATABASE ? static::DATABASE . '.' : '')
                     . static::TABLE_NAME . ' ('
                     . rtrim($keys, ', ')

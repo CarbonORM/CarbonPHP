@@ -66,6 +66,7 @@ interface iRest
     public const HOUR_SECOND = 'HOUR_SECOND';
     public const HOUR_MINUTE = 'HOUR_MINUTE';
 
+    public const IGNORE = 'IGNORE';
     public const IN = 'IN';
     public const IS = 'IS';
     public const IS_NOT = 'IS_NOT';

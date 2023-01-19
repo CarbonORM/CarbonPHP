@@ -57,7 +57,7 @@ class Session implements SessionHandlerInterface
      * @var null|string $user_id - After a session is closed the session data is serialized and removed
      * from the global (accessible) scope.
      */
-    public static ?string $user_id;
+    public static ?string $user_id = "0";
 
     public static bool $endingSession = false;
 
@@ -418,6 +418,23 @@ class Session implements SessionHandlerInterface
 
         $session_table = self::getSessionTable();
 
+        $newDateTime = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . ' + 1 d,lay'));  // so from time of last write and whenever the gc_collector hits
+
+        $insertIgnore = [
+            $session_table::IGNORE => [
+                $session_table::SESSION_ID => self::$session_id = $id,
+                $session_table::USER_ID => static::$user_id,
+                $session_table::USER_IP => CarbonPHP::$server_ip,
+                $session_table::SESSION_EXPIRES => $newDateTime,
+                $session_table::SESSION_DATA => self::$sessionData
+            ]
+        ];
+
+        if (false === $session_table::post($insertIgnore)) {
+
+            return false;
+        }
+
         /** @noinspection PhpPossiblePolymorphicInvocationInspection */
         if (false === $session_table::get($session_table_row, $id, [
                 iRest::SELECT => [
@@ -462,6 +479,12 @@ class Session implements SessionHandlerInterface
     private static function updateSession(): void
     {
 
+        if (false === self::$sessionUpdated) {
+
+            return;
+
+        }
+
         if (empty(self::$user_id)) {
 
             self::$user_id = $_SESSION['id'] ??= false;
@@ -480,30 +503,14 @@ class Session implements SessionHandlerInterface
 
             Rest::$commit = false;
 
-            if (self::$sessionContinued) {
-
-                $successful = $session_table::put($session_table_row, self::$session_id, [
-                    iRest::UPDATE => [
-                        $session_table::USER_ID => static::$user_id,
-                        $session_table::USER_IP => CarbonPHP::$server_ip,
-                        $session_table::SESSION_EXPIRES => $newDateTime,
-                        $session_table::SESSION_DATA => self::$sessionData
-                    ]
-                ]);
-
-            } else {
-
-                $postData = [
-                    $session_table::SESSION_ID => self::$session_id,
+            $successful = $session_table::put($session_table_row, self::$session_id, [
+                iRest::UPDATE => [
                     $session_table::USER_ID => static::$user_id,
                     $session_table::USER_IP => CarbonPHP::$server_ip,
                     $session_table::SESSION_EXPIRES => $newDateTime,
                     $session_table::SESSION_DATA => self::$sessionData
-                ];
-
-                $successful = $session_table::post($postData);
-
-            }
+                ]
+            ]);
 
             if (false === $successful) {
 
