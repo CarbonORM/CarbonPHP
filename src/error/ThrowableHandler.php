@@ -848,6 +848,12 @@ class ThrowableHandler
 
         $log_array['[C6] CARBONPHP'] = 'ThrowableHandler::generateLog';
 
+        if (false === CarbonPHP::$cli) {
+
+            $log_array['URI'] = $_SERVER['REQUEST_URI'];
+
+        }
+
         $log_array[self::TRACE] = $traceHTML;
 
         $json = $GLOBALS['json'] ??= [];
