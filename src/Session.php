@@ -425,7 +425,7 @@ class Session implements SessionHandlerInterface
 
         $session_table = self::getSessionTable();
 
-        $newDateTime = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . ' + 1 d,lay'));  // so from time of last write and whenever the gc_collector hits
+        $newDateTime = date('Y-m-d H:i:s', strtotime("+1 week"));  // so from time of last write and whenever the gc_collector hits
 
         $insertIgnore = [
             $session_table::IGNORE => [
@@ -512,12 +512,14 @@ class Session implements SessionHandlerInterface
 
             Rest::$commit = false;
 
-            $successful = $session_table::put($session_table_row, self::$session_id, [
-                iRest::UPDATE => [
+            $successful = $session_table::put($session_table_row, null, [
+                iRest::REPLACE => [
                     $session_table::USER_ID => static::$user_id,
                     $session_table::USER_IP => CarbonPHP::$server_ip,
                     $session_table::SESSION_EXPIRES => $newDateTime,
-                    $session_table::SESSION_DATA => self::$sessionData
+                    $session_table::SESSION_DATA => self::$sessionData,
+                    $session_table::SESSION_ID => self::$session_id,
+
                 ]
             ]);
 
