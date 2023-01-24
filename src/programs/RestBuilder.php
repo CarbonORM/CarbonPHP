@@ -1484,15 +1484,19 @@ export const convertForRequestBody = function (restfulObject: RestTableInterface
 
                     }
 
-                } else if (Array.isArray(regexValidations)) {
+                } else if (typeof regexValidations === 'object' && regexValidations !== null) {
 
-                    regexValidations.map((regex, errorMessage) => {
+                    Object.keys(regexValidations)?.map((errorMessage) => {
 
+                        const regex : RegExp = regexValidations[errorMessage];
+                        
                         if (false === regex.test(restfulObject[value])) {
 
-                            regexErrorHandler(errorMessage)
+                            const errorMessage = 'Failed to match regex (' + regex + ') for column (' + longName + ')';
                             
-                            throw Error('Failed to match regex (' + regexValidations + ') for column (' + longName + ')')
+                            regexErrorHandler(errorMessage ?? errorMessage)
+                            
+                            throw Error(errorMessage)
 
                         }
                         
