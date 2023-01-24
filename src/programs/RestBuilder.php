@@ -4,6 +4,7 @@ namespace CarbonPHP\Programs;
 
 
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Helpers\Background;
 use CarbonPHP\Helpers\ColorCode;
@@ -549,9 +550,9 @@ END;
 
                             // the second half of this regex is from google which matches
                             if (false === preg_match_all(
-                                pattern: '#\n(use (?:function)? ?(?:(?:[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff\\]*[a-zA-Z0-9_\x7f-\xff]+)|[a-zA-Z_\x80-\xff][\\\a-zA-Z0-9_\x80-\xff]+) ?(as (?:(?:[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff\\]*[a-zA-Z0-9_\x7f-\xff]+)|[a-zA-Z_\x80-\xff][\\\a-zA-Z0-9_\x80-\xff]+))?;)#i',
-                                subject: $validation,
-                                matches: $matches)) {
+                                    pattern: '#\n(use (?:function)? ?(?:(?:[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff\\]*[a-zA-Z0-9_\x7f-\xff]+)|[a-zA-Z_\x80-\xff][\\\a-zA-Z0-9_\x80-\xff]+) ?(as (?:(?:[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff\\]*[a-zA-Z0-9_\x7f-\xff]+)|[a-zA-Z_\x80-\xff][\\\a-zA-Z0-9_\x80-\xff]+))?;)#i',
+                                    subject: $validation,
+                                    matches: $matches)) {
 
                                 print 'An unexpected regex error occurred during the namespace matching/cache';
 
@@ -1180,14 +1181,45 @@ END;
 
                         foreach ($regex_validations as $columnName => $regex_validation) {
 
-                            $regex_validation = $str_lreplace($regex_validation[0], '/', $regex_validation);
+                            if (is_string($regex_validation)) {
 
-                            $regex_validation[0] = '/';
+                                $regex_validation = $str_lreplace($regex_validation[0], '/', $regex_validation);
 
-                            $parsed['regex_validation'][] = [
-                                'name' => $columnName,
-                                'validation' => $regex_validation
-                            ];
+                                $regex_validation[0] = '/';
+
+                                $parsed['regex_validation'][] = [
+                                    'name' => $columnName,
+                                    'validation' => $regex_validation
+                                ];
+
+                            } elseif (is_array($regex_validation)) {
+
+                                $validations = [];
+
+                                foreach ($regex_validation as $regex => $errorMessage) {
+
+                                    $regex = $str_lreplace($regex[0], '/', $regex);
+
+                                    $regex[0] = '/';
+
+                                    $validations[] = [
+                                        'regex' => $regex,
+                                        'errorMessage' => $errorMessage
+                                    ];
+
+                                }
+
+                                $parsed['regex_validation'][] = [
+                                    'name' => $columnName,
+                                    'validations' => $validations
+                                ];
+
+                            } else {
+
+                                throw new PublicAlert('An unexpected type has been given');
+
+                            }
+
                         }
                     } else {
                         $parsed['regex_validation'] = [];
@@ -1377,7 +1409,7 @@ export interface stringMap {
 }
 
 export interface RegExpMap {
-    [key: string]: RegExp;
+    [key: string]: RegExp | RegExpMap;
 }
 
 export interface complexMap {
@@ -1432,12 +1464,35 @@ export const convertForRequestBody = function (restfulObject: RestTableInterface
 
         Object.keys(restfulObject).map(value => {
 
-            let exactReference = value.toUpperCase();
+            let shortReference = value.toUpperCase();
 
-            if (exactReference in C6[table]) {
+            if (shortReference in C6[table]) {
 
-                payload[C6[table][exactReference]] = restfulObject[value]
+                const longName = C6[table][shortReference];
 
+                payload[longName] = restfulObject[value]
+
+                const regexValidations = C6[table].REGEX_VALIDATION[longName]
+
+                if (regexValidations instanceof RegExp) {
+
+                    if (false === regexValidations.test(restfulObject[value])) {
+
+                        regexErrorHandler('Failed to match regex (' + regexValidations + ') for column (' + longName + ')')
+
+                    }
+
+                } else {
+
+                    regexValidations.map((regex, errorMessage) => {
+
+                        if (false === regex.test(restfulObject[value])) {
+
+                            regexErrorHandler(errorMessage)
+
+                        }
+                    })
+                }
             }
         })
 
@@ -1479,12 +1534,35 @@ const convertForRequestBody = function (restfulObject, tableName) {
 
         Object.keys(restfulObject).map(value => {
 
-            let exactReference = value.toUpperCase();
+            let shortReference = value.toUpperCase();
 
-            if (exactReference in C6[table]) {
+            if (shortReference in C6[table]) {
 
-                payload[C6[table][exactReference]] = restfulObject[value]
+                const longName = C6[table][shortReference];
 
+                payload[longName] = restfulObject[value]
+
+                const regexValidations = C6[table].REGEX_VALIDATION[longName]
+
+                if (regexValidations instanceof RegExp) {
+
+                    if (false === regexValidations.test(restfulObject[value])) {
+
+                        regexErrorHandler('Failed to match regex (' + regexValidations + ') for column (' + longName + ')')
+
+                    }
+
+                } else {
+
+                    regexValidations.map((regex, errorMessage) => {
+
+                        if (false === regex.test(restfulObject[value])) {
+
+                            regexErrorHandler(errorMessage)
+
+                        }
+                    })
+                }
             }
         })
 
@@ -1709,7 +1787,9 @@ TRIGGER);
     },
     REGEX_VALIDATION: {
         {{#regex_validation}}
-        '{{name}}': {{validation}},
+        '{{name}}': {{validation}}{{#validations}}{
+            '{{errorMessage}}': {{regex}},
+        }{{/validations}},
         {{/regex_validation}}
     }
 
@@ -1753,7 +1833,9 @@ export const {{strtolowerNoPrefixTableName}} : C6RestfulModel & iDefine{{ucEachT
     },
     REGEX_VALIDATION: {
         {{#regex_validation}}
-        '{{name}}': {{validation}},
+        '{{name}}': {{validation}}{{#validations}}{
+            '{{errorMessage}}': {{regex}},
+        }{{/validations}},
         {{/regex_validation}}
     }
 

@@ -93,7 +93,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
             /** @noinspection JsonEncodingApiUsageInspection */
             throw new PublicAlert('Rest request denied by the PHP_VALIDATION\'s in the tables ORM. Remove DISALLOW_PUBLIC_ACCESS '
                 . (null !== $calledFrom ? "from ($calledFrom) " : '')
-                . 'to gain privileges. Method: ('.$_SERVER['REQUEST_METHOD'].') Uri: ('.$_SERVER['REQUEST_URI'].') Request: (' . json_encode($request, JSON_PRETTY_PRINT) . ')');
+                . 'to gain privileges. Method: (' . $_SERVER['REQUEST_METHOD'] . ') Uri: (' . $_SERVER['REQUEST_URI'] . ') Request: (' . json_encode($request, JSON_PRETTY_PRINT) . ')');
 
         }
 
@@ -223,17 +223,18 @@ abstract class RestQueryValidation extends RestAutoTargeting
             if (false === $equalsValidColumn
                 && array_key_exists($column, self::$compiled_regex_validations)) {
 
-                if (false === is_array(self::$compiled_regex_validations[$column])) {
+                if (true === is_string(self::$compiled_regex_validations[$column])) {
 
-                    self::$compiled_regex_validations[$column] = [self::$compiled_regex_validations[$column]];
+                    self::$compiled_regex_validations[$column] = [self::$compiled_regex_validations[$column] => null];
 
                 }
 
-                foreach (self::$compiled_regex_validations[$column] as $regex) {
+                foreach (self::$compiled_regex_validations[$column] as $pattern => $errorMessage) {
 
-                    if (1 > preg_match_all(self::$compiled_regex_validations[$column], $value, $matches, PREG_SET_ORDER)) {  // can return 0 or false
+                    if (1 > preg_match_all($pattern, $value, $matches, PREG_SET_ORDER)) {  // can return 0 or false
 
-                        throw new PublicAlert("The column ($column) was set to be compared with a value who did not pass the regex (" . self::$compiled_regex_validations[$column] . ") test. Please check this ($value) value and try again. preg_match_all Returned: " . var_export($matches, true) . ' Error(s): ' . preg_last_error_msg());
+                        throw new PublicAlert(($errorMessage ?? "The column ($column) was set to be compared with a value who did not pass the regex (" . $pattern . ") test. Please check this ($value) value and try again. preg_match_all: (" . var_export($matches, true) . ') preg_last_error_msg: (' . preg_last_error_msg() . ')')
+                            . " CODE: ($pattern) <> ($value) preg_last_error_msg: (" . preg_last_error_msg() . ')');
 
                     }
 
@@ -391,9 +392,21 @@ abstract class RestQueryValidation extends RestAutoTargeting
                 // todo - run table validation on cli command to save time??
                 foreach ($table_regular_expressions as $columnName => $regex) {
 
-                    if (false === is_string($regex)) {
+                    if (is_array($regex)) {
 
-                        throw new PublicAlert("A key => value pair ($columnName => " . print_r($regex, true) . ") encountered in $table::REGEX_VALIDATION is invalid. All values must equal a string.");
+                        foreach ($regex as $regexTest => $errorMessage) {
+
+                            if (false === is_string($errorMessage)) {
+
+                                throw new PublicAlert("The column ($columnName) regex ($regexTest) should have a string error message, but (" . print_r($errorMessage, true) . ') was given.');
+
+                            }
+
+                        }
+
+                    } else if (false === is_string($regex)) {
+
+                        throw new PublicAlert("A key => value pair ($columnName => " . print_r($regex, true) . ") encountered in $table::REGEX_VALIDATION is invalid.");
 
                     }
 
