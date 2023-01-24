@@ -1454,7 +1454,7 @@ export const COLUMNS = {
 
 export type RestTableInterfaces = $all_interface_types;
 
-export const convertForRequestBody = function (restfulObject: RestTableInterfaces, tableName: string | string[]) {
+export const convertForRequestBody = function (restfulObject: RestTableInterfaces, tableName: string | string[], regexErrorHandler: (message:string) => void = alert) {
 
     let payload = {};
 
@@ -1480,20 +1480,28 @@ export const convertForRequestBody = function (restfulObject: RestTableInterface
 
                         regexErrorHandler('Failed to match regex (' + regexValidations + ') for column (' + longName + ')')
 
+                        throw Error('Failed to match regex (' + regexValidations + ') for column (' + longName + ')')
+
                     }
 
-                } else {
+                } else if (Array.isArray(regexValidations)) {
 
                     regexValidations.map((regex, errorMessage) => {
 
                         if (false === regex.test(restfulObject[value])) {
 
                             regexErrorHandler(errorMessage)
+                            
+                            throw Error('Failed to match regex (' + regexValidations + ') for column (' + longName + ')')
 
                         }
+                        
                     })
+                    
                 }
+                
             }
+            
         })
 
         return true;
@@ -1787,9 +1795,9 @@ TRIGGER);
     },
     REGEX_VALIDATION: {
         {{#regex_validation}}
-        '{{name}}': {{validation}}{{#validations}}{
+        '{{name}}': {{^validations}}{{validation}},{{/validations}}{{#validations}}{
             '{{errorMessage}}': {{regex}},
-        }{{/validations}},
+        },{{/validations}}
         {{/regex_validation}}
     }
 
@@ -1833,9 +1841,10 @@ export const {{strtolowerNoPrefixTableName}} : C6RestfulModel & iDefine{{ucEachT
     },
     REGEX_VALIDATION: {
         {{#regex_validation}}
-        '{{name}}': {{validation}}{{#validations}}{
-            '{{errorMessage}}': {{regex}},
-        }{{/validations}},
+        '{{name}}': {{#validation}}{{validation}},{{/validation}}{{^validation}}{
+            {{#validations}}'{{errorMessage}}': {{regex}},
+            {{/validations}}
+        }{{/validation}}
         {{/regex_validation}}
     }
 
