@@ -396,9 +396,9 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
                         foreach ($regex as $regexTest => $errorMessage) {
 
-                            if (false === is_string($errorMessage)) {
+                            if (false === is_string($errorMessage) && false === is_null($errorMessage)) {
 
-                                throw new PublicAlert("The column ($columnName) regex ($regexTest) should have a string error message, but (" . print_r($errorMessage, true) . ') was given.');
+                                throw new PublicAlert("The column ($columnName) regex ($regexTest) should have a string error message or null for development, but (" . print_r($errorMessage, true) . ') was given.');
 
                             }
 

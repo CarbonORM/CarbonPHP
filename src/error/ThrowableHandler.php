@@ -400,7 +400,8 @@ class ThrowableHandler
 
         }
 
-        return highlight($comment . PHP_EOL . implode(PHP_EOL, array_slice($source, $start_line, $length)), true);
+        return highlight($comment . PHP_EOL . implode(PHP_EOL, array_slice($source, $start_line, $length)), true, $start_line);
+
     }
 
 
@@ -897,6 +898,43 @@ class ThrowableHandler
 
         }
 
+        $codePreview = self::grabCodeSnippet();
+
+        // todo - log invalid files?
+        if ($codePreview === ''
+            && ($log_array['FILE'] ?? false)
+            && file_exists($log_array['FILE'])
+            && ($log_array['LINE'] ?? false)
+            && is_numeric($log_array['LINE'])) {
+
+            $start_line = $log_array['LINE'] - 10;
+
+            $source = file_get_contents($log_array['FILE']);
+
+            $source = preg_split('/' . PHP_EOL . '/', $source);
+
+            if (false === function_exists('highlight')) {
+
+                include_once CarbonPHP::CARBON_ROOT . 'Functions.php';
+
+            }
+
+            $codePreview = highlight(implode(PHP_EOL, array_slice($source, $start_line, 20)), true);
+
+        }
+
+        $firstKey = array_key_first($log_array);
+
+        $firstValue = $log_array[$firstKey];
+
+        unset($log_array[$firstKey]);
+
+        $log_array = [
+            $firstKey => $firstValue,
+            'THROWN NEAR' => "<pre><code>$codePreview</code></pre>",
+            ...$log_array
+        ];
+
         $html_error_log = self::generateBrowserReport($log_array, true);
 
         $log_array[self::TRACE] = $traceCLI;
@@ -1026,8 +1064,8 @@ class ThrowableHandler
                     if (true === self::$storeReport) {
 
                         print <<<REDIRECT
-                            <meta http-equiv="refresh" content="0; URL=/$log_file" />
-                            <script>window.location.replace("/$log_file");</script>
+                            <meta http-equiv="refresh" content="0; URL=/$log_file_html" />
+                            <script>window.location.replace("/$log_file_html");</script>
                             REDIRECT;
 
                         exit(1);
@@ -1214,30 +1252,6 @@ class ThrowableHandler
         $actual_message = array_key_first($message);
 
         if (CarbonPHP::$app_local || self::$printToScreen) {
-            $codePreview = self::grabCodeSnippet();
-
-            // todo - log invalid files?
-            if ($codePreview === ''
-                && ($message['FILE'] ?? false)
-                && file_exists($message['FILE'])
-                && ($message['LINE'] ?? false)
-                && is_numeric($message['LINE'])) {
-
-                $start_line = $message['LINE'] - 10;
-
-                $source = file_get_contents($message['FILE']);
-
-                $source = preg_split('/' . PHP_EOL . '/', $source);
-
-                if (false === function_exists('highlight')) {
-
-                    include_once CarbonPHP::CARBON_ROOT . 'Functions.php';
-
-                }
-
-                $codePreview = highlight(implode(PHP_EOL, array_slice($source, $start_line, 20)), true);
-
-            }
 
             foreach ($message as $left => $right) {
 
@@ -1268,12 +1282,6 @@ DESCRIPTION
                     <<<DESCRIPTION
 <p>> <span>$left</span>: <b style="color: white">"</b><i>$right</i><b style="color: white">"</b></p>
 DESCRIPTION;
-
-            }
-
-            if ($codePreview !== '') {
-
-                $cleanErrorReport = "<p>> <span>THROWN NEAR</span>: <pre><code>$codePreview</code></pre></p>$cleanErrorReport";
 
             }
 

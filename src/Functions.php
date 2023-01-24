@@ -71,7 +71,7 @@ namespace {                                     // This runs the following code 
      * @return string -- the text highlighted and converted to html
      * @noinspection PhpExpressionResultUnusedInspection
      */
-    function highlight($argv, $fileExt = false): string
+    function highlight($argv, string|bool $fileExt = false, int $startLineNumber = 1): string
     {
         if ($fileExt === 'java') {
             ini_set('highlight.comment', '#008000');
@@ -87,10 +87,12 @@ namespace {                                     // This runs the following code 
             ini_set('highlight.string', '#0000FF');
         }
 
+        $startLineNumber -= 2;
+
         if (file_exists($argv)) {
             $text = file_get_contents($argv);
 
-            $lines = implode('<br />', range(1, count(file($argv))));
+            $lines = implode('<br />', range($startLineNumber, $startLineNumber + count(file($argv))));
 
             $fileExt = $fileExt ?: pathinfo($argv, PATHINFO_EXTENSION);
 
@@ -100,7 +102,7 @@ namespace {                                     // This runs the following code 
         } else {
             $text = ' <?php ' . $argv;
 
-            $lines = implode('<br />', range(1, count(explode(PHP_EOL, $text))));
+            $lines = implode('<br />', range($startLineNumber, $startLineNumber + count(explode(PHP_EOL, $text))));
 
         }
 
