@@ -689,6 +689,8 @@ FOOT;
 
         $reader = false === self::isWriteQuery($sql);
 
+        $execute = self::formatExecOptions($execute);
+
         return self::database($reader)->prepare($sql)->execute($execute);
     }
 
@@ -757,6 +759,8 @@ FOOT;
             $reader = false === self::isWriteQuery($sql);
 
             $stmt = self::database($reader)->prepare($sql);
+
+            $execute = self::formatExecOptions($execute);
 
             if (false === $stmt->execute($execute)) {
 
@@ -907,6 +911,20 @@ FOOT;
 
         }
 
+    }
+
+    /**
+     * If an array was used to send dynamic values, it gets treated as one item sent. This will split it out
+     * @param $execute - array of values passed as ...$execute
+     * @return array
+     */
+    protected static function formatExecOptions($execute): array
+    {
+        if (!empty($execute) && is_array($execute[0])) {
+            return $execute[0];
+        }
+
+        return $execute;
     }
 
     protected static function runRefreshSchema(array $REFRESH_SCHEMA): void
