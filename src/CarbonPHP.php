@@ -689,7 +689,7 @@ class CarbonPHP
             }
 
             ########################  Session Management ######################
-            if ($config[self::SESSION] ?? true) {
+            if ($config[self::SESSION] ?? false) {
 
                 $sessionSavePath = $config[self::SESSION][self::PATH] ??= self::$app_root . 'tmp' . DS . 'sessions' . DS;
 
