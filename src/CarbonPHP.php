@@ -788,7 +788,7 @@ class CarbonPHP
 
         foreach ($cacheControl as $extension => $headers) {
 
-            if (strpos($extension, $ext) !== false) {   // todo - this makes sense but will false positive for woff when only woff2 is allowed
+            if (str_contains($extension, $ext)) {   // todo - this makes sense but will false positive for woff when only woff2 is allowed
 
                 $allowedAccess = true;
 

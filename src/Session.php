@@ -83,7 +83,11 @@ class Session implements SessionHandlerInterface
 
             self::$singleton = $this;   // I want the destructor to happen at the end of the process life
 
-            session_write_close();      // cancel the session's auto start, important
+            if ((PHP_SESSION_ACTIVE === session_status()) && false === session_write_close()) {
+
+                throw new PublicAlert('Failed to close previously opened session');
+
+            }
 
             if (false === headers_sent()) {
 
