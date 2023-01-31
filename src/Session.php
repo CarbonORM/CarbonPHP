@@ -70,10 +70,9 @@ class Session implements SessionHandlerInterface
 
     /**
      * Session constructor. This
-     * @param string|null $ip
      * @param bool $dbStore
      */
-    public function __construct(string $ip = null, $dbStore = false)
+    public function __construct($dbStore = false)
     {
 
         static $count = false;

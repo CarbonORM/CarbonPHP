@@ -189,17 +189,31 @@ class Location_References extends Rest implements iRestNoPrimaryKey
      *    }
      *
      * @note columnExistsOrExecuteSQL and columnIsTypeOrChange are both automatically generated and process in the 
-     * background durnging a database refresh. You do not need to add them to your REFRESH_SCHEMA array. You can use them 
-     * in complex use cases shuch as data type manipulation as a refrence for your own custom directives.
+     * background during a database refresh. You do not need to add them to your REFRESH_SCHEMA array. You can use them 
+     * in complex use cases such as data type manipulation as a reference for your own custom directives.
      *
     **/
     public array $REFRESH_SCHEMA = [];
      
 
-    public const REFRESH_SCHEMA = [
-    ];
+    public const REFRESH_SCHEMA = [];
     
     /** Custom User Methods Are Placed Here **/
+     public function __construct(array &$return = [])
+     {
+         parent::__construct($return);
+         
+         # always create the column in your local database first, re-run the table builder, then add the needed functions
+         $this->REFRESH_SCHEMA = [];
+         
+         $this->PHP_VALIDATION = [ 
+             self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
+                 self::PREPROCESS => [
+                     static fn() => self::disallowPublicAccess(self::class)
+                 ]
+             ]
+         ];
+     }
     
 
    
@@ -216,8 +230,7 @@ class Location_References extends Rest implements iRestNoPrimaryKey
      * @link https://php.net/manual/en/function.preg-match-all.php
      */
     public const REGEX_VALIDATION = []; 
-     
-     
+      
     /**
      * PHP_VALIDATION
      * PHP validations works as follows:
@@ -328,7 +341,7 @@ class Location_References extends Rest implements iRestNoPrimaryKey
      *          [self::class => 'disallowPublicAccess', self::class]
      *  though would loose information as self::class is a dynamic variable which must be used in this class given 
      *  static and constant context. 
-     *  @default   
+     *  @example
      *      public const PHP_VALIDATION = [ 
      *          self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
      *              self::PREPROCESS => [ 
@@ -356,8 +369,7 @@ class Location_References extends Rest implements iRestNoPrimaryKey
      *      ];
      * @Note you can remove the constant entirely and re-run rest builder to reset the default.
      *
-     * @Note: the following may be uncommented and used to allow explicitly referencing methods with callbacks. No 
-     * parameters will be passed to the callbacks. The refrencing style above will also be respected in this array. The
+     * @default: The referencing style above will also be respected in this array. The
      * example callables maybe removed. The static array value will be merged using php `[] + []` with the the public ( static += public ).
      *
      *    public function __construct(array &$return = [])
@@ -421,7 +433,7 @@ CONSTRAINT `carbon_location_references_carbons_entity_pk_fk_2` FOREIGN KEY (`loc
 MYSQL;
        
    /**
-    * Please refrence these notes for the `get` method.
+    * Please reference these notes for the `get` method.
     * Nested aggregation is not currently supported. It is recommended to avoid using 'AS' where possible. Sub-selects are 
     * allowed and do support 'as' aggregation. Refer to the static subSelect method parameters in the parent `Rest` class.
     * All supported aggregation is listed in the example below. Note while the WHERE and JOIN members are syntactically 

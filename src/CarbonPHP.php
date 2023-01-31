@@ -691,14 +691,14 @@ class CarbonPHP
             ########################  Session Management ######################
             if ($config[self::SESSION] ?? true) {
 
-                $sessionSavePath = $config[self::SESSION][self::PATH] ??= self::$app_root . 'tmp' . DS;;
+                $sessionSavePath = $config[self::SESSION][self::PATH] ??= self::$app_root . 'tmp' . DS . 'sessions' . DS;
 
                 Files::createDirectoryIfNotExist($sessionSavePath);
 
                 session_save_path($sessionSavePath);   // Manually Set where the Users Session Data is stored
 
                 // this start a session in every possible runtime except WebSocket::$minimiseResources
-                new Session(self::$user_ip, $config[self::SESSION][self::REMOTE] ?? false);
+                new Session($config[self::SESSION][self::REMOTE] ?? false);
 
                 if (is_callable($config[self::SESSION][self::CALLBACK] ?? null)) {
 

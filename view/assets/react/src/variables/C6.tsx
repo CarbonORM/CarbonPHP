@@ -4,7 +4,7 @@ export interface stringMap {
 }
 
 export interface RegExpMap {
-    [key: string]: RegExp;
+    [key: string]: RegExp | RegExpMap;
 }
 
 export interface complexMap {
@@ -3222,7 +3222,7 @@ export type RestTableInterfaces = iCarbons
 	| iWp_Usermeta
 	| iWp_Users;
 
-export const convertForRequestBody = function (restfulObject: RestTableInterfaces, tableName: string | string[]) {
+export const convertForRequestBody = function (restfulObject: RestTableInterfaces, tableName: string | string[], regexErrorHandler: (message:string) => void = alert) {
 
     let payload = {};
 
@@ -3232,13 +3232,48 @@ export const convertForRequestBody = function (restfulObject: RestTableInterface
 
         Object.keys(restfulObject).map(value => {
 
-            let exactReference = value.toUpperCase();
+            let shortReference = value.toUpperCase();
 
-            if (exactReference in C6[table]) {
+            if (shortReference in C6[table]) {
 
-                payload[C6[table][exactReference]] = restfulObject[value]
+                const longName = C6[table][shortReference];
 
+                payload[longName] = restfulObject[value]
+
+                const regexValidations = C6[table].REGEX_VALIDATION[longName]
+
+                if (regexValidations instanceof RegExp) {
+
+                    if (false === regexValidations.test(restfulObject[value])) {
+
+                        regexErrorHandler('Failed to match regex (' + regexValidations + ') for column (' + longName + ')')
+
+                        throw Error('Failed to match regex (' + regexValidations + ') for column (' + longName + ')')
+
+                    }
+
+                } else if (typeof regexValidations === 'object' && regexValidations !== null) {
+
+                    Object.keys(regexValidations)?.map((errorMessage) => {
+
+                        const regex : RegExp = regexValidations[errorMessage];
+                        
+                        if (false === regex.test(restfulObject[value])) {
+
+                            const errorMessage = 'Failed to match regex (' + regex + ') for column (' + longName + ')';
+                            
+                            regexErrorHandler(errorMessage ?? errorMessage)
+                            
+                            throw Error(errorMessage)
+
+                        }
+                        
+                    })
+                    
+                }
+                
             }
+            
         })
 
         return true;

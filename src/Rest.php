@@ -800,7 +800,7 @@ abstract class Rest extends RestLifeCycle
                              * @link https://www.php.net/ChangeLog-8.php
                              * @notice PDO type validation has a bug until 8
                              **/
-                            $maxLength = $info[self::MAX_LENGTH] === '' ? null : (int)$info[self::MAX_LENGTH];
+                            $maxLength = $info[self::MAX_LENGTH] === '' ? 0 : (int)$info[self::MAX_LENGTH];
 
                             $stmt->bindParam(":$shortName",
                                 $iValue[$fullName],

@@ -588,11 +588,14 @@ END;
                                 get_class_methods(Carbons::class),
                                 'strcasecmp');         // or null.. smh
 
+                            $constructorDefined = false;
 
                             if (str_contains($validation, 'public function __construct(array &$return = [])')) {
 
                                 // todo - add any method we want to allow "overrides for"
                                 $methods[] = '__construct';
+
+                                $constructorDefined = true;
 
                             }
 
@@ -652,7 +655,11 @@ END;
                                 $body = $getMethod($func);
 
                                 $rest[$tableName]['custom_methods'] .= ($comment ? "    $comment\n" : '') . $body . PHP_EOL . PHP_EOL;
+
+                                $rest[$tableName]['constructorDefined'] = $constructorDefined;
+
                             }
+
                         }
 
                         if ($verbose) {
@@ -1536,12 +1543,12 @@ const COLUMNS = {
       $global_column_tsx
 };
 
-const convertForRequestBody = function (restfulObject, tableName) {
+const convertForRequestBody = function (restfulObject, tableName, regexErrorHandler = alert) {
 
     let payload = {};
-    
-    const tableNames = Array.isArray(tableName) ? tableName : [tableName];
 
+    const tableNames = Array.isArray(tableName) ? tableName : [tableName];
+    
     tableNames.forEach((table) => {
 
         Object.keys(restfulObject).map(value => {
@@ -1562,20 +1569,32 @@ const convertForRequestBody = function (restfulObject, tableName) {
 
                         regexErrorHandler('Failed to match regex (' + regexValidations + ') for column (' + longName + ')')
 
+                        throw Error('Failed to match regex (' + regexValidations + ') for column (' + longName + ')')
+
                     }
 
-                } else {
+                } else if (typeof regexValidations === 'object' && regexValidations !== null) {
 
-                    regexValidations.map((regex, errorMessage) => {
+                    Object.keys(regexValidations)?.map((errorMessage) => {
 
+                        const regex : RegExp = regexValidations[errorMessage];
+                        
                         if (false === regex.test(restfulObject[value])) {
 
-                            regexErrorHandler(errorMessage)
+                            const errorMessage = 'Failed to match regex (' + regex + ') for column (' + longName + ')';
+                            
+                            regexErrorHandler(errorMessage ?? errorMessage)
+                            
+                            throw Error(errorMessage)
 
                         }
+                        
                     })
+                    
                 }
+                
             }
+            
         })
 
         return true;
@@ -2073,8 +2092,8 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
      *    }
      *
      * @note columnExistsOrExecuteSQL and columnIsTypeOrChange are both automatically generated and process in the 
-     * background durnging a database refresh. You do not need to add them to your REFRESH_SCHEMA array. You can use them 
-     * in complex use cases shuch as data type manipulation as a refrence for your own custom directives.
+     * background during a database refresh. You do not need to add them to your REFRESH_SCHEMA array. You can use them 
+     * in complex use cases such as data type manipulation as a reference for your own custom directives.
      *
     **/{{^REFRESH_SCHEMA_PUBLIC}}
     public array \$REFRESH_SCHEMA = [];{{/REFRESH_SCHEMA_PUBLIC}}
@@ -2086,6 +2105,23 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
     {{{REFRESH_SCHEMA}}}{{/REFRESH_SCHEMA}}
     
     /** Custom User Methods Are Placed Here **/
+    {{^constructorDefined}}
+     public function __construct(array &\$return = [])
+     {
+         parent::__construct(\$return);
+         
+         # always create the column in your local database first, re-run the table builder, then add the needed functions
+         \$this->REFRESH_SCHEMA = [];
+         
+         \$this->PHP_VALIDATION = [ 
+             self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
+                 self::PREPROCESS => [
+                     static fn() => self::disallowPublicAccess(self::class)
+                 ]
+             ]
+         ];
+     }
+     {{/constructorDefined}}
     
 {{{custom_methods}}}
    
@@ -2104,8 +2140,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
     public const REGEX_VALIDATION = [];{{/regex_validation}}{{#regex_validation}}
     {{{regex_validation}}} 
     {{/regex_validation}}     
-     
-     
+      
     /**
      * PHP_VALIDATION
      * PHP validations works as follows:
@@ -2257,25 +2292,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
      *
      *  @version ^11.3
      */{{^php_validation}}
-    public const PHP_VALIDATION = [ 
-        self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
-            self::PREPROCESS => [ 
-                [self::class => 'disallowPublicAccess', self::class],
-            ]
-        ],
-        self::GET => [ 
-            self::PREPROCESS => [ 
-                [self::class => 'disallowPublicAccess', self::class],
-            ],{{#explode}}
-            self::{{caps}} => [
-                [self::class => 'disallowPublicAccess', self::{{caps}}]
-            ],{{/explode}}
-        ],    
-        self::POST => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
-        self::PUT => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
-        self::DELETE => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],
-        self::REST_REQUEST_FINNISH_CALLBACKS => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]]    
-    ];{{/php_validation}} 
+    public const PHP_VALIDATION = [];{{/php_validation}} 
     {{#php_validation}} 
     {{{php_validation}}} 
     {{/php_validation}}
@@ -2296,7 +2313,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
 MYSQL;
        
    /**
-    * Please refrence these notes for the `get` method.
+    * Please reference these notes for the `get` method.
     * Nested aggregation is not currently supported. It is recommended to avoid using 'AS' where possible. Sub-selects are 
     * allowed and do support 'as' aggregation. Refer to the static subSelect method parameters in the parent `Rest` class.
     * All supported aggregation is listed in the example below. Note while the WHERE and JOIN members are syntactically 

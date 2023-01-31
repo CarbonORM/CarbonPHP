@@ -193,8 +193,8 @@ class Reports extends Rest implements iRestNoPrimaryKey
      *    }
      *
      * @note columnExistsOrExecuteSQL and columnIsTypeOrChange are both automatically generated and process in the 
-     * background durnging a database refresh. You do not need to add them to your REFRESH_SCHEMA array. You can use them 
-     * in complex use cases shuch as data type manipulation as a refrence for your own custom directives.
+     * background during a database refresh. You do not need to add them to your REFRESH_SCHEMA array. You can use them 
+     * in complex use cases such as data type manipulation as a reference for your own custom directives.
      *
     **/
     public array $REFRESH_SCHEMA = [];
@@ -204,6 +204,21 @@ class Reports extends Rest implements iRestNoPrimaryKey
     ];
     
     /** Custom User Methods Are Placed Here **/
+     public function __construct(array &$return = [])
+     {
+         parent::__construct($return);
+         
+         # always create the column in your local database first, re-run the table builder, then add the needed functions
+         $this->REFRESH_SCHEMA = [];
+         
+         $this->PHP_VALIDATION = [ 
+             self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
+                 self::PREPROCESS => [
+                     static fn() => self::disallowPublicAccess(self::class)
+                 ]
+             ]
+         ];
+     }
     
 
    
@@ -220,8 +235,7 @@ class Reports extends Rest implements iRestNoPrimaryKey
      * @link https://php.net/manual/en/function.preg-match-all.php
      */
     public const REGEX_VALIDATION = []; 
-     
-     
+      
     /**
      * PHP_VALIDATION
      * PHP validations works as follows:
@@ -428,7 +442,7 @@ CREATE TABLE IF NOT EXISTS `carbon_reports` (
 MYSQL;
        
    /**
-    * Please refrence these notes for the `get` method.
+    * Please reference these notes for the `get` method.
     * Nested aggregation is not currently supported. It is recommended to avoid using 'AS' where possible. Sub-selects are 
     * allowed and do support 'as' aggregation. Refer to the static subSelect method parameters in the parent `Rest` class.
     * All supported aggregation is listed in the example below. Note while the WHERE and JOIN members are syntactically 
