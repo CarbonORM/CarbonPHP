@@ -777,6 +777,41 @@ FOOT;
     }
 
 
+    /**
+     * Same as fetchAll but allows for custom PDO fetch modes to apply to the result
+     * @param string $sql
+     * @param int $fetchMode
+     * @param ...$execute
+     * @return array|false
+     */
+    public static function fetchAllCustom(string $sql, int $fetchMode = PDO::FETCH_ASSOC, ...$execute): array|false
+    {
+
+        try {
+
+            $reader = false === self::isWriteQuery($sql);
+
+            $stmt = self::database($reader)->prepare($sql);
+
+            if (false === $stmt->execute($execute)) {
+
+                throw new PublicAlert("Failed to execute query ($sql).");
+
+            }
+
+            return $stmt->fetchAll($fetchMode);   // promise this is needed and will still return the desired array
+
+        } catch (Throwable $e) {
+
+            ThrowableHandler::generateLog($e);  // this terminates
+
+            exit(112);
+
+        }
+
+    }
+
+
     /** Quickly prepare and execute PDO $sql statements using
      * @NOTE PDO's version of fetchColumn() will fail on statements like SHOW TABLES;
      * @TODO can we optimise based on when we know it will fail?
