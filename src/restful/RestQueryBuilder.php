@@ -835,7 +835,7 @@ TRIGGER;
             }
 
             // todo - more validation on sub-select?
-            if ($wasCallable && strpos($column, '(SELECT ') === 0) {
+            if ($wasCallable && str_starts_with($column, '(SELECT ')) {
 
                 self::$columnSelectEncountered = true;
 
@@ -873,7 +873,7 @@ TRIGGER;
             }
 
             // todo - update this syntax allow for remote sub select using [ buildAggregate ]
-            if (self::$allowSubSelectQueries && strpos($column, '(SELECT ') === 0) {
+            if (self::$allowSubSelectQueries && str_starts_with($column, '(SELECT ')) {
 
                 self::$columnSelectEncountered = true;
 
@@ -946,11 +946,11 @@ TRIGGER;
 
                     }
 
-                    $limit = 'LIMIT ' . (($argv[self::PAGINATION][self::PAGE] - 1) * $limit) . ',' . $limit;
+                    $limit = ' LIMIT ' . (($argv[self::PAGINATION][self::PAGE] - 1) * $limit) . ',' . $limit;
 
                 } else {
 
-                    $limit = 'LIMIT ' . $limit;
+                    $limit = ' LIMIT ' . $limit;
 
                 }
 
@@ -1150,15 +1150,10 @@ TRIGGER;
         //      | LOCK IN SHARE MODE]
         //    [into_option]
 
-        switch ($lockAggregateValue) {
-            case self::NOWAIT:
-            case self::FOR_SHARE:
-            case self::FOR_UPDATE:
-            case self::SKIP_LOCKED:
-                return ' ' . str_replace('_', ' ', $lockAggregateValue);
-            default:
-                throw new PublicAlert('A SELECT LOCK which was not one of (NOWAIT, FOR_SHARE, FOR_UPDATE, or SKIP_LOCKED) was encounter. The value (' . $lockAggregateValue . ') is incorrect.');
-        }
+        return match ($lockAggregateValue) {
+            self::NOWAIT, self::FOR_SHARE, self::FOR_UPDATE, self::SKIP_LOCKED => ' ' . str_replace('_', ' ', $lockAggregateValue),
+            default => throw new PublicAlert('A SELECT LOCK which was not one of (NOWAIT, FOR_SHARE, FOR_UPDATE, or SKIP_LOCKED) was encounter. The value (' . $lockAggregateValue . ') is incorrect.'),
+        };
     }
 
     /**
@@ -1279,13 +1274,10 @@ TRIGGER;
                         throw new PublicAlert('A SELECT LOCK which was not one of (FOR_SHARE or FOR_UPDATE) was encounter. The value (' . $ShareOrUpdate . ') is incorrect.');
                 }
 
-                switch ($NoWaitOrSkip) {
-                    case self::NOWAIT:
-                    case self::SKIP_LOCKED:
-                        return $ShareOrUpdate . ' ' . $NoWaitOrSkip;
-                    default:
-                        throw new PublicAlert('A SELECT LOCK value which was not one of (NOWAIT or SKIP_LOCKED) was encounter. The value (' . $NoWaitOrSkip . ') is incorrect.');
-                }
+                return match ($NoWaitOrSkip) {
+                    self::NOWAIT, self::SKIP_LOCKED => $ShareOrUpdate . ' ' . $NoWaitOrSkip,
+                    default => throw new PublicAlert('A SELECT LOCK value which was not one of (NOWAIT or SKIP_LOCKED) was encounter. The value (' . $NoWaitOrSkip . ') is incorrect.'),
+                };
 
             case 3:
 
@@ -1309,13 +1301,10 @@ TRIGGER;
 
                 }
 
-                switch ($NoWaitOrSkip) {
-                    case self::NOWAIT:
-                    case self::SKIP_LOCKED:
-                        return $ShareOrUpdate . ' OF ' . $tableToLock . ' ' . $NoWaitOrSkip;
-                    default:
-                        throw new PublicAlert('A SELECT LOCK value which was not one of (NOWAIT or SKIP_LOCKED) was encounter. The value (' . $NoWaitOrSkip . ') is incorrect.');
-                }
+                return match ($NoWaitOrSkip) {
+                    self::NOWAIT, self::SKIP_LOCKED => $ShareOrUpdate . ' OF ' . $tableToLock . ' ' . $NoWaitOrSkip,
+                    default => throw new PublicAlert('A SELECT LOCK value which was not one of (NOWAIT or SKIP_LOCKED) was encounter. The value (' . $NoWaitOrSkip . ') is incorrect.'),
+                };
 
         }
 
@@ -1755,7 +1744,7 @@ TRIGGER;
 
         if ($value_is_custom) {
 
-            if (self::$allowSubSelectQueries && strpos($valueTwo, '(SELECT ') === 0) {
+            if (self::$allowSubSelectQueries && str_starts_with($valueTwo, '(SELECT ')) {
 
                 return "$valueOne $operator $valueTwo";
 

@@ -17,6 +17,7 @@ use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
 use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Rest;
+use CarbonPHP\Restful\RestLifeCycle;
 use CarbonPHP\Tables\Carbons;
 use CarbonPHP\Tables\History_Logs;
 use ReflectionException;
@@ -592,10 +593,16 @@ END;
 
                             if (str_contains($validation, 'public function __construct(array &$return = [])')) {
 
-                                // todo - add any method we want to allow "overrides for"
-                                $methods[] = '__construct';
+                                $constructor = '__construct';
 
-                                $constructorDefined = true;
+                                if (self::grabCodeSnippet(RestLifeCycle::class, $constructor ) !== self::grabCodeSnippet($fullTableClassName, $constructor)) {
+
+                                    // todo - add any method we want to allow "overrides for"
+                                    $methods[] = '__construct';
+
+                                    $constructorDefined = true;
+
+                                }
 
                             }
 
@@ -2452,5 +2459,46 @@ MYSQL;
 STRING;
 
     }
+
+    public static function grabCodeSnippet($className, $methodName): string
+    {
+        try {
+
+            $func = new ReflectionMethod($className, $methodName);
+
+            $comment = $func->getDocComment();
+
+        } catch (ReflectionException $e) {
+
+            return '<div>Failed to load code preview in ThrowableHandler class using ReflectionMethod.<div>';
+
+        }
+
+        $f = $func->getFileName(); // stub says string but may also produce false
+
+        if (empty($f)) {
+            return '';
+        }
+
+        $start_line = $func->getStartLine() - 1;
+
+        $end_line = $func->getEndLine();
+
+        $length = $end_line - $start_line;
+
+        $source = file_get_contents($f);
+
+        $source = preg_split('/' . PHP_EOL . '/', $source);
+
+        if (false === function_exists('highlight')) {
+
+            include_once CarbonPHP::CARBON_ROOT . 'Functions.php';
+
+        }
+
+        return $comment . PHP_EOL . implode(PHP_EOL, array_slice($source, $start_line, $length));
+
+    }
+
 }
 

@@ -1094,7 +1094,7 @@ class ThrowableHandler
         return [
             self::LOG_ARRAY => $log_array,
             self::HTML_ERROR_PAGE => $html_error_log,
-            self::STORED_HTML_LOG_FILE_PATH => $log_file ?? 'N/A'
+            self::STORED_HTML_LOG_FILE_PATH => $log_file ??= 'N/A'
         ];
 
     }

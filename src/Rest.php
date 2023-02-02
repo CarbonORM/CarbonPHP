@@ -542,11 +542,14 @@ abstract class Rest extends RestLifeCycle
 
             if (0 === $rowCount) {
 
-                return self::signalError("MySQL failed to find the target row during ($update_or_replace) on "
-                    . 'table (' . static::TABLE_NAME . ") while executing query ($sql). By default CarbonPHP passes "
+                return self::signalError("Zero rows were updated. MySQL failed update any target(s) during ($update_or_replace) on "
+                    . 'table (' . static::TABLE_NAME . ") while executing query ($sql). The arguments passed to rest are ("
+                    . print_r($argv, true) . ") and primary key(s) ("
+                    . print_r($primary, true) . "). By default CarbonPHP passes "
                     . 'PDO::MYSQL_ATTR_FOUND_ROWS => false, to the PDO driver; aka return the number of affected rows, '
-                    . 'not the number of changed rows. Thus; if you have not manually updated these options, your issue is '
-                    . 'the target row not existing.');
+                    . 'not the number of rows found. If you have not manually updated these options, your issue may only be '
+                    . 'the target not needing updates. Another possibility includes no rows matching your update query.<br/>'
+                    . print_r($stmt->errorInfo(), true));
 
             }
 
@@ -640,7 +643,7 @@ abstract class Rest extends RestLifeCycle
 
                         if (true === static::AUTO_ESCAPE_POST_HTML_SPECIAL_CHARS) {
 
-                                $postValue = is_string($postValue) ? htmlspecialchars($postValue, ENT_QUOTES | ENT_HTML5) : $postValue;
+                            $postValue = is_string($postValue) ? htmlspecialchars($postValue, ENT_QUOTES | ENT_HTML5) : $postValue;
 
                         }
 
