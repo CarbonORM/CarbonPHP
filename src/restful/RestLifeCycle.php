@@ -8,6 +8,7 @@ use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
+use CarbonPHP\Rest;
 use CarbonPHP\Route;
 use CarbonPHP\Session;
 use PDOException;
@@ -110,9 +111,9 @@ abstract class RestLifeCycle extends RestQueryBuilder
         if (self::$REST_REQUEST_METHOD !== null) {
             self::$activeQueryStates[] = [
                 self::$REST_REQUEST_METHOD,
-                self::$REST_REQUEST_PRIMARY_KEY,
-                self::$REST_REQUEST_PARAMETERS,
-                self::$REST_REQUEST_RETURN_DATA,
+                &self::$REST_REQUEST_PRIMARY_KEY,
+                &self::$REST_REQUEST_PARAMETERS,
+                &self::$REST_REQUEST_RETURN_DATA,
                 self::$VALIDATED_REST_COLUMNS,
                 self::$compiled_valid_columns,
                 self::$compiled_PDO_validations,
@@ -153,6 +154,12 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
     }
 
+    public static function resetReferences()
+    {
+
+
+    }
+
     /**
      * This must be done even on failure.
      * @param bool $subQuery
@@ -167,6 +174,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
         self::$REST_REQUEST_PARAMETERS = &$empty_request_parameters_array;
 
         if (empty(self::$activeQueryStates)) {
+
             self::$REST_REQUEST_METHOD = null;
             self::$REST_REQUEST_PRIMARY_KEY = null;
             self::$compiled_valid_columns = [];
@@ -179,40 +187,32 @@ abstract class RestLifeCycle extends RestQueryBuilder
             self::$aggregateSelectEncountered = false;
             self::$columnSelectEncountered = false;
 
-        } elseif ($subQuery) {
-            [
-                self::$REST_REQUEST_METHOD,
-                self::$REST_REQUEST_PRIMARY_KEY,
-                self::$REST_REQUEST_PARAMETERS,
-                self::$REST_REQUEST_RETURN_DATA,
-                self::$VALIDATED_REST_COLUMNS,
-                self::$compiled_valid_columns,
-                self::$compiled_PDO_validations,
-                self::$compiled_PHP_validations,
-                self::$compiled_regex_validations,
-                self::$externalRestfulRequestsAPI,
-                self::$join_tables,
-                self::$aggregateSelectEncountered,
-                self::$columnSelectEncountered,
-            ] = array_pop(self::$activeQueryStates);
         } else {
-            [
-                self::$REST_REQUEST_METHOD,
-                self::$REST_REQUEST_PRIMARY_KEY,
-                self::$REST_REQUEST_PARAMETERS,
-                self::$REST_REQUEST_RETURN_DATA,
-                self::$VALIDATED_REST_COLUMNS,
-                self::$compiled_valid_columns,
-                self::$compiled_PDO_validations,
-                self::$compiled_PHP_validations,
-                self::$compiled_regex_validations,
-                self::$externalRestfulRequestsAPI,
-                self::$join_tables,
-                self::$aggregateSelectEncountered,
-                self::$columnSelectEncountered,
-                self::$injection
-            ] = array_pop(self::$activeQueryStates);
+
+            $reff = array_pop(self::$activeQueryStates);
+
+            self::$REST_REQUEST_METHOD = &$reff[0];
+            self::$REST_REQUEST_PRIMARY_KEY = &$reff[1];
+            self::$REST_REQUEST_PARAMETERS = &$reff[2];
+            self::$REST_REQUEST_RETURN_DATA = &$reff[3];
+            self::$VALIDATED_REST_COLUMNS = &$reff[4];
+            self::$compiled_valid_columns = &$reff[5];
+            self::$compiled_PDO_validations = &$reff[6];
+            self::$compiled_PHP_validations = &$reff[7];
+            self::$compiled_regex_validations = &$reff[8];
+            self::$externalRestfulRequestsAPI = &$reff[9];
+            self::$join_tables = &$reff[10];
+            self::$aggregateSelectEncountered = &$reff[11];
+            self::$columnSelectEncountered = &$reff[12];
+
+            if (!$subQuery) {
+
+                self::$injection = &$reff[13];
+
+            }
+
         }
+
     }
 
 
@@ -511,7 +511,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
             } else {
 
-                $json[self::class]= $json['session'][self::class] = 'Automatically closed the session & open transaction @ (' . __METHOD__ . ').';
+                $json[self::class] = $json['session'][self::class] = 'Automatically closed the session & open transaction @ (' . __METHOD__ . ').';
 
             }
 

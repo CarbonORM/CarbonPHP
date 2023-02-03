@@ -64,7 +64,7 @@ class FullRestTest extends CarbonRestTest
         self::assertArrayHasKey('rest', $json_array);
 
         self::assertEquals(
-            "SELECT DISTINCT(carbon_photos.photo_path) AS :injection1, COUNT(carbon_photos.photo_id) AS :injection0 FROM CarbonPHP.carbon_photos INNER JOIN CarbonPHP.carbon_locations ON ((carbon_locations.entity_id = UNHEX(:injection2))) WHERE ((carbon_photos.photo_id <> UNHEX(:injection3)) AND (carbon_photos.photo_id = UNHEX(:injection4))) GROUP BY carbon_photos.photo_id LIMIT 1000",
+            "SELECT DISTINCT(carbon_photos.photo_path) AS :injection1, COUNT(carbon_photos.photo_id) AS :injection0 FROM CarbonPHP.carbon_photos INNER JOIN CarbonPHP.carbon_locations ON ((carbon_locations.entity_id = UNHEX(:injection2))) WHERE ((carbon_photos.photo_id <> UNHEX(:injection3)) AND (carbon_photos.photo_id = UNHEX(:injection4))) GROUP BY carbon_photos.photo_id  LIMIT 1000",
             $GLOBALS['json']['sql'][0]['stmt'][0]);
 
 
@@ -127,7 +127,7 @@ class FullRestTest extends CarbonRestTest
         self::assertArrayHasKey('rest', $json_array);
 
         self::assertEquals(
-            "SELECT carbon_users.user_username, carbon_locations.state FROM CarbonPHP.carbon_users INNER JOIN CarbonPHP.carbon_location_references ON (carbon_users.user_id = carbon_location_references.entity_reference AND carbon_users.user_email = :injection0 AND (carbon_users.user_id = carbon_location_references.entity_reference OR (carbon_users.user_email = :injection0)) AND carbon_users.user_about_me = carbon_location_references.entity_reference) INNER JOIN CarbonPHP.carbon_locations ON ((carbon_locations.entity_id = carbon_location_references.location_reference OR carbon_locations.longitude = carbon_users.user_about_me)) WHERE ((carbon_users.user_username LIKE :injection1)) ORDER BY carbon_users.user_username ASC LIMIT 10",
+            "SELECT carbon_users.user_username, carbon_locations.state FROM CarbonPHP.carbon_users INNER JOIN CarbonPHP.carbon_location_references ON (carbon_users.user_id = carbon_location_references.entity_reference AND carbon_users.user_email = :injection0 AND (carbon_users.user_id = carbon_location_references.entity_reference OR (carbon_users.user_email = :injection0)) AND carbon_users.user_about_me = carbon_location_references.entity_reference) INNER JOIN CarbonPHP.carbon_locations ON ((carbon_locations.entity_id = carbon_location_references.location_reference OR carbon_locations.longitude = carbon_users.user_about_me)) WHERE ((carbon_users.user_username LIKE :injection1)) ORDER BY carbon_users.user_username ASC  LIMIT 10",
             $GLOBALS['json']['sql'][0]['stmt'][0]);
 
 
