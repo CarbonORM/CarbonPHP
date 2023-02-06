@@ -1218,7 +1218,7 @@ END;
                             if (is_string($regex_validation)) {
 
                                 $regex_validation = $fixRegexForJavascript($regex_validation);
-                                
+
                                 $parsed['regex_validation'][] = [
                                     'name' => $columnName,
                                     'validation' => $regex_validation
@@ -1522,11 +1522,11 @@ export const convertForRequestBody = function (restfulObject: RestTableInterface
                         
                         if (false === regex.test(restfulObject[value])) {
 
-                            const errorMessage = 'Failed to match regex (' + regex + ') for column (' + longName + ')';
+                            const devErrorMessage = 'Failed to match regex (' + regex + ') for column (' + longName + ')';
                             
-                            regexErrorHandler(errorMessage ?? errorMessage)
+                            regexErrorHandler(errorMessage ?? devErrorMessage)
                             
-                            throw Error(errorMessage)
+                            throw Error(devErrorMessage)
 
                         }
                         
@@ -1604,11 +1604,11 @@ const convertForRequestBody = function (restfulObject, tableName, regexErrorHand
                         
                         if (false === regex.test(restfulObject[value])) {
 
-                            const errorMessage = 'Failed to match regex (' + regex + ') for column (' + longName + ')';
+                            const devErrorMessage = 'Failed to match regex (' + regex + ') for column (' + longName + ')';
                             
-                            regexErrorHandler(errorMessage ?? errorMessage)
+                            regexErrorHandler('string' === typeof errorMessage && '' !== errorMessage ? errorMessage : devErrorMessage)
                             
-                            throw Error(errorMessage)
+                            throw Error(devErrorMessage)
 
                         }
                         
