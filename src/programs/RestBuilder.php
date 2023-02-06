@@ -1218,9 +1218,7 @@ END;
                             if (is_string($regex_validation)) {
 
                                 $regex_validation = $fixRegexForJavascript($regex_validation);
-
-
-
+                                
                                 $parsed['regex_validation'][] = [
                                     'name' => $columnName,
                                     'validation' => $regex_validation
