@@ -1179,7 +1179,7 @@ END;
                     if (!empty($regex_validations)) {
 
                         // this allows modifiers to be added to the regex
-                        $str_lreplace = static function (string $search, string $replace, string $subject) {
+                        $str_lreplace = static function (string $search, string $replace, string $subject) : string {
 
                             $pos = strrpos($subject, $search);  // position for the next replace offset
 
@@ -1193,13 +1193,33 @@ END;
                             return $subject;
                         };
 
+                        $fixRegexForJavascript = static function (string $string) use (&$str_lreplace) : string{
+
+                            $delimiter = $string[0]; // typically a # in php but may vary.
+
+                            $string = $str_lreplace($delimiter, '/', $string);
+
+                            $string[0] = '/';
+
+                            $string = preg_replace("#\\\\" . preg_quote($delimiter, '#') . '#', $delimiter, $string);
+
+                            if (preg_last_error() !== PREG_NO_ERROR) {
+
+                                throw new PublicAlert('Failed to compile regex validations preg_last_error_message: ' . preg_last_error_msg());
+
+                            }
+
+                            return $string;
+
+                        };
+
                         foreach ($regex_validations as $columnName => $regex_validation) {
 
                             if (is_string($regex_validation)) {
 
-                                $regex_validation = $str_lreplace($regex_validation[0], '/', $regex_validation);
+                                $regex_validation = $fixRegexForJavascript($regex_validation);
 
-                                $regex_validation[0] = '/';
+
 
                                 $parsed['regex_validation'][] = [
                                     'name' => $columnName,
@@ -1212,9 +1232,7 @@ END;
 
                                 foreach ($regex_validation as $regex => $errorMessage) {
 
-                                    $regex = $str_lreplace($regex[0], '/', $regex);
-
-                                    $regex[0] = '/';
+                                    $regex = $fixRegexForJavascript($regex);
 
                                     $validations[] = [
                                         'regex' => $regex,
