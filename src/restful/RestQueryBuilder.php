@@ -477,7 +477,23 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
         foreach ($values as $item) {
 
-            $returnIsAggregate [] = self::validateInternalOrAddInjection($item, $aggregate, $column);
+            if (is_array($item)) {
+
+                if (self::isSubSelectAggregation($item)) {
+
+                    // todo - it is unclear if this is more an aggregate or column with respect to the group by
+                    $returnIsAggregate [] = self::handleSubSelectAggregate($item);
+
+                } else {
+
+                    throw new PublicAlert('Failed to parse IN aggregate. An array was passed with did not pass the isSubSelectAggregation test! (' . print_r($item, true) . ')');
+
+                }
+
+            } else {
+
+                $returnIsAggregate [] = self::validateInternalOrAddInjection($item, $aggregate, $column);
+            }
 
         }
 
