@@ -749,7 +749,7 @@ FOOT;
      * @param ...$execute
      * @return array|bool
      */
-    public static function fetchAll(string $sql, ...$execute)
+    public static function fetchAll(string $sql, ...$execute): false|array
     {
 
         try {
@@ -768,9 +768,7 @@ FOOT;
 
         } catch (Throwable $e) {
 
-            ThrowableHandler::generateLog($e);  // this terminates
-
-            exit(112);
+            ThrowableHandler::generateLogAndExit($e);  // this terminates
 
         }
 
@@ -1047,6 +1045,81 @@ FOOT;
 
             $callback($table);
         }
+    }
+
+    public static function constraintExistsThenDrop($externalTableName, $externalColumnName, $internalTableName, $internalColumnName) : void {
+
+        try {
+
+            $info = self::selectForeignKeyConstraintInfo($externalTableName, $externalColumnName, $internalTableName, $internalColumnName);
+
+            $constraintName = $info['CONSTRAINT_NAME'];
+
+            if (null === $constraintName)
+
+            if ((0 !== count($info))
+                && false === self::execute($sql = "alter table $internalTableName drop foreign key $constraintName;")) {
+
+                throw new PublicAlert("Failed to execute ($sql)");
+
+            }
+
+        } catch (Throwable $e) {
+
+            ThrowableHandler::generateLog($e);
+
+        }
+
+    }
+
+    public static function selectForeignKeyConstraintInfo($externalTableName, $externalColumnName, $internalTableName, $internalColumnName): array
+    {
+        // @link https://stackoverflow.com/questions/4004205/show-constraints-on-tables-command
+        $verifySqlConstraint = /** @lang MySQL */
+            'SELECT cols.TABLE_NAME, cols.COLUMN_NAME, cols.ORDINAL_POSITION,
+       cols.COLUMN_DEFAULT, cols.IS_NULLABLE, cols.DATA_TYPE, links.CONSTRAINT_NAME,
+       cols.CHARACTER_MAXIMUM_LENGTH, cols.CHARACTER_OCTET_LENGTH,
+       cols.NUMERIC_PRECISION, cols.NUMERIC_SCALE,
+       cols.COLUMN_TYPE, cols.COLUMN_KEY, cols.EXTRA,
+       cols.COLUMN_COMMENT, refs.REFERENCED_TABLE_NAME, refs.REFERENCED_COLUMN_NAME,
+       cRefs.UPDATE_RULE, cRefs.DELETE_RULE,
+       links.TABLE_NAME, links.COLUMN_NAME,
+       cLinks.UPDATE_RULE, cLinks.DELETE_RULE
+FROM INFORMATION_SCHEMA.`COLUMNS` as cols
+         LEFT JOIN INFORMATION_SCHEMA.`KEY_COLUMN_USAGE` AS refs
+                   ON refs.TABLE_SCHEMA=cols.TABLE_SCHEMA
+                       AND refs.REFERENCED_TABLE_SCHEMA=cols.TABLE_SCHEMA
+                       AND refs.TABLE_NAME=cols.TABLE_NAME
+                       AND refs.COLUMN_NAME=cols.COLUMN_NAME
+         LEFT JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS AS cRefs
+                   ON cRefs.CONSTRAINT_SCHEMA=cols.TABLE_SCHEMA
+                       AND cRefs.CONSTRAINT_NAME=refs.CONSTRAINT_NAME
+         LEFT JOIN INFORMATION_SCHEMA.`KEY_COLUMN_USAGE` AS links
+                   ON links.TABLE_SCHEMA=cols.TABLE_SCHEMA
+                       AND links.REFERENCED_TABLE_SCHEMA=cols.TABLE_SCHEMA
+                       AND links.REFERENCED_TABLE_NAME=cols.TABLE_NAME
+                       AND links.REFERENCED_COLUMN_NAME=cols.COLUMN_NAME
+         LEFT JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS AS cLinks
+                   ON cLinks.CONSTRAINT_SCHEMA=cols.TABLE_SCHEMA
+                       AND cLinks.CONSTRAINT_NAME=links.CONSTRAINT_NAME
+WHERE cols.TABLE_SCHEMA=?
+    AND links.REFERENCED_TABLE_NAME = ?
+    AND links.REFERENCED_COLUMN_NAME = ?
+    AND links.TABLE_NAME = ?
+    AND links.COLUMN_NAME = ?
+';
+
+        $return = self::fetch($verifySqlConstraint, self::$carbonDatabaseName, $externalTableName,
+            $externalColumnName, $internalTableName, $internalColumnName);
+
+        if (false === $return) {
+
+            throw new PublicAlert('Failed to capture constraint info.');
+
+        }
+
+        return $return;
+
     }
 
     public static function verifyAndCreateForeignKeyRelations(string $fullyQualifiedClassName, callable $cb): bool
