@@ -92,6 +92,7 @@
       "cp -rf view/releases/. vendor/richardtmiles/carbonphp/view/releases"
     ],
     "post-install-cmd": [
+      "@githooks",
       "@carbon:wordpress",
       "@carbon:react",
       "@apache:linkApplication",
@@ -101,6 +102,18 @@
       "@database:refresh:schema",
       "@rest",
       "@test"
+    ],
+    "gcloud:instance:delete": [
+      "chmod +x ./src/programs/gcpDeployment.sh",
+      "./src/programs/gcpDeployment.sh -delete"
+    ],
+    "gcloud:instance:new": [
+      "chmod +x ./src/programs/gcpDeployment.sh",
+      "./src/programs/gcpDeployment.sh -deploy"
+    ],
+    "gcloud": [
+      "gcloud projects list",
+      "gcloud compute instances list"
     ],
     "post-update-cmd": [
       "@carbon:wordpress",
@@ -127,6 +140,10 @@
     ],
     "start": [
       "php -S local.carbonphp.com:80 dev-routing.php -d display_errors=1"
+    ],
+    "githooks": [
+      "git config core.hooksPath .githooks",
+      "chmod +x .githooks/*"
     ],
     "open": "open http://local.carbonphp.com:80/",
     "socket": "php index.php websocket",

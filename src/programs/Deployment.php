@@ -108,7 +108,7 @@ class Deployment implements iCommand
         }
         $index = self::addComposer($index);
         if (!file_put_contents($filename, $index)) {
-            ColorCode::colorCode('Failed to add composer to wordpress.', 'red');
+            ColorCode::colorCode('Failed to add composer to wordpress.', iColorCode::RED);
             exit(1);
         }
         ColorCode::colorCode('Complete.');
@@ -171,9 +171,9 @@ class Deployment implements iCommand
                     ColorCode::colorCode('An error happened on Google\'s end; wait 5 minutes and try again.', 'red');
                     break;
                 default:
-                    if (strpos($output, 'nochg') === 0) {
+                    if (str_starts_with($output, 'nochg')) {
                         ColorCode::colorCode("No change to IP for $HOSTNAME (already set to $IP).");
-                    } else if (strpos($output, 'good') === 0) {
+                    } else if (str_starts_with($output, 'good')) {
                         ColorCode::colorCode("IP successfully updated for $HOSTNAME to $IP.");
                     } else {
                         ColorCode::colorCode('Could not parse results from Google Domains.', 'red');
@@ -227,19 +227,19 @@ CONF;
 
         Background::executeAndCheckStatus("sudo mv $filename /etc/apache2/apache2.conf");
 
-        Background::executeAndCheckStatus('sudo a2enmod rewrite');
+        Background::executeAndCheckStatus('');
 
-        Background::executeAndCheckStatus('sudo a2enmod headers');
+        Background::executeAndCheckStatus('');
 
         // https://tecadmin.net/enable-gzip-compression-apache-ubuntu/  TODO - see if were using gzip correctly, h2 works so moot? gzip ws?
-        Background::executeAndCheckStatus('sudo a2enmod deflate');
+        Background::executeAndCheckStatus('');
 
         // Socket atm - todo - allow php to handle ssl wss
-        Background::executeAndCheckStatus('sudo a2enmod proxy');
-        Background::executeAndCheckStatus('sudo a2enmod proxy_http');
-        Background::executeAndCheckStatus('sudo a2enmod proxy_wstunnel');
-        Background::executeAndCheckStatus('sudo a2enmod proxy_balancer');
-        Background::executeAndCheckStatus('sudo a2enmod lbmethod_byrequests');
+        Background::executeAndCheckStatus('');
+        Background::executeAndCheckStatus('');
+        Background::executeAndCheckStatus('');
+        Background::executeAndCheckStatus('');
+        Background::executeAndCheckStatus('');
 
         // Background::executeAndCheckStatus('sudo ln -s /etc/apache2/mods-available/headers.load /etc/apache2/mods-enabled/headers.load');
 

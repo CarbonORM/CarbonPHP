@@ -1,0 +1,157 @@
+#!/usr/local/bin/php
+<?php
+
+use CarbonPHP\Interfaces\iColorCode;
+use CarbonPHP\Helpers\Background;
+use CarbonPHP\Helpers\ColorCode;
+
+[$cmd, $remote, $url] = $argv;
+
+$statusCode = 0;
+
+passthru('git fetch --tags', $statusCode);
+
+if (0 !== $statusCode) {
+
+    ColorCode::colorCode("Failed to pull git hooks.\nHint: if you see `(would clobber existing tag)` above, run `git tag -d [TAG];` where tag is the version number. ie 0.0.0", iColorCode::RED);
+
+    exit(1);
+
+}
+
+// no changes added to commit
+// Your branch is up to date with
+
+$revisionCheck = static function () use ($cmd, &$revisionCheck) : string {
+
+    $status = shell_exec('git status');
+
+    $status = trim($status);
+
+    $validPush = !str_contains($status, 'Your branch is up to date with');
+
+    if (!$validPush) {
+
+        ColorCode::colorCode("After running git status it appears you have nothing to commit.", iColorCode::YELLOW);
+
+        exit(0);
+
+    }
+
+    $revision = trim(shell_exec('git describe --tags `git rev-list --tags --max-count=1`'));
+
+    $regexRevision = str_replace('.', '\.', $revision);
+
+    $remoteCheck = shell_exec("git ls-remote --tags origin | grep \"$regexRevision\"");
+
+    $out = null === $remoteCheck ? null : trim($remoteCheck);
+
+    $noRevisionOnRemote = empty($out);
+
+    if ($noRevisionOnRemote
+        || str_contains($cmd, $revision)
+        || str_contains($cmd, 'git tag')
+        || str_contains($cmd, 'git push --tags')) {
+
+        if ($noRevisionOnRemote) {
+
+            ColorCode::colorCode("Detected that revision ($revision) does not yet exist on the remote.", iColorCode::YELLOW);
+
+            ColorCode::colorCode("If the revision fails to post automatically, you should run (git push --tags).", iColorCode::YELLOW);
+
+            exit(0);
+
+        }
+
+        $deleteTag = 0;
+
+        passthru("git tag -d $revision", $deleteTag);
+
+        if (0 !== $deleteTag) {
+
+            ColorCode::colorCode("Oh no! Looks like the tag $revision is already on the remote. Attempt to automatically resolve failed.", iColorCode::RED);
+
+        }
+
+        ColorCode::colorCode("A revision tagged locally was already detected on the remote. We are attempting to this issue.");
+
+        // this is a recursive call
+        return $revisionCheck();
+
+    }
+
+    ColorCode::colorCode("The revision ($revision) was found on the remote ($out)", iColorCode::BACKGROUND_CYAN);
+
+    ColorCode::colorCode("The githook was called for command ($cmd)", iColorCode::BACKGROUND_CYAN);
+
+    return $revision;
+
+};
+
+$revision = $revisionCheck();
+
+$revision_exploded = explode('.', $revision);
+
+if (count($revision_exploded) !== 3) {
+
+    ColorCode::colorCode(
+        PHP_EOL . 'Could not determine a valid tag; you may need to manually increment to a valid version number.' . PHP_EOL . PHP_EOL, iColorCode::RED);
+
+}
+
+$addNewTag = static function ($tag) : void {
+
+    ColorCode::colorCode("Adding new tag :: '$tag'");
+
+    Background::executeAndCheckStatus("git tag $tag -m \"Tagging revision $tag\"");
+
+    ColorCode::colorCode('Going to commit a TAG mid GitHook. Output in the CLI will show two pushes to git. This is expected.', iColorCode::MAGENTA);
+
+    Background::executeAndCheckStatus("git push --tags");
+
+    ColorCode::colorCode('Pushing Git Tags Finished.');
+};
+
+$bumpCurrentRevision = static function () use (&$revision_exploded) : void {
+
+    $last = (int) $revision_exploded[2];
+
+    if ( $last < 9 ) {
+
+        $revision_exploded[2]++;
+
+        return;
+
+    }
+
+    $revision_exploded[2] = 0;
+
+    $middle = (int) $revision_exploded[1];
+
+    if ( $middle < 9 ) {
+
+        $revision_exploded[1]++;
+
+        return;
+
+    }
+
+    $revision_exploded[1] = 0;
+
+    $revision_exploded[0]++;
+
+};
+
+
+do {
+
+    $bumpCurrentRevision();
+
+    $tag = implode('.', $revision_exploded);
+
+    $revisionExists = shell_exec("git tag | grep $tag");
+
+} while(null !== $revisionExists && '' !== trim($revisionExists));
+
+$addNewTag($tag);
+

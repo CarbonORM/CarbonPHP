@@ -321,7 +321,7 @@ class Migrate implements iCommand
 
         foreach ($responseHeaders as $header) {
 
-            if (0 === strpos($header, $absolutePathHeader)) {
+            if (str_starts_with($header, $absolutePathHeader)) {
 
                 self::$remoteAbsolutePath = trim(substr($header, strlen($absolutePathHeader)));
 
@@ -412,7 +412,7 @@ class Migrate implements iCommand
 
                 $prefix = 'cache/';
 
-                if (strpos($importManifestFilePath, $prefix) === 0) {
+                if (str_starts_with($importManifestFilePath, $prefix)) {
 
                     $importManifestFilePath = substr($uri, strlen($prefix));
 
@@ -1137,8 +1137,8 @@ HALT;
 
                 fclose($downloadFilePointer);
 
-                if (0 === strpos($firstLine, '<html')
-                    || 0 === strpos($firstLine, '<!DOCTYPE html')) {
+                if (str_starts_with($firstLine, '<html')
+                    || str_starts_with($firstLine, '<!DOCTYPE html')) {
 
                     if (false === rename($toLocalFilePath, $toLocalFilePath . '.html')) {
 
@@ -1153,7 +1153,7 @@ HALT;
 
                 }
 
-                if (substr($toLocalFilePath, -4) === '.sql'
+                if (str_ends_with($toLocalFilePath, '.sql')
                     && 15 === Background::executeAndCheckStatus("[[ \"$( cat '$toLocalFilePath' | grep -o 'Dump completed' | wc -l )\" == *\"1\"* ]] && exit 0 || exit 15", false)) {
 
                     $failed = true;
@@ -1308,7 +1308,7 @@ HALT;
 
         }
 
-        if (false !== strpos($output, 'No such device or address')) {
+        if (str_contains($output, 'No such device or address')) {
 
             // I believe this to mean no output is being captured?
             $skipStatus = true;
@@ -1744,7 +1744,7 @@ HALT;
 
                         foreach ($allowedDirectories as $allowedDirectory) {
 
-                            if (0 === strpos($allowedDirectory, $directory)) {
+                            if (str_starts_with($allowedDirectory, $directory)) {
 
                                 ColorCode::colorCode("The requested directory ($directory) was found as a subset, or subdirectory, of allowed directory ($allowedDirectory).", iColorCode::CYAN);
 

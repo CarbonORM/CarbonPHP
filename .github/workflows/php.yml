@@ -11,7 +11,7 @@ jobs:
       max-parallel: 4
       matrix:
         operating-system: [ ubuntu-latest ]
-        php-versions: [ '8.1' ]
+        php-versions: [ '8.2' ]
 
     steps:
       - name: Checkout

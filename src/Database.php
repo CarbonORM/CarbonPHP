@@ -529,7 +529,7 @@ FOOT;
         if (false === empty(Session::$session_id)
             && session_status() === PHP_SESSION_ACTIVE) {
 
-            $GLOBALS['json']['session']['session_write_close'] = 'Committing session from (' . __FILE__ . ') from method (' .  __METHOD__ . ') at line (' . __LINE__ . ')';
+            $GLOBALS['json']['session']['session_write_close'] = 'Committing session from (' . __FILE__ . ') from method (' . __METHOD__ . ') at line (' . __LINE__ . ')';
 
             return session_write_close();
 
@@ -1047,20 +1047,28 @@ FOOT;
         }
     }
 
-    public static function constraintExistsThenDrop($externalTableName, $externalColumnName, $internalTableName, $internalColumnName) : void {
+    public static function constraintExistsThenDrop($externalTableName, $externalColumnName, $internalTableName, $internalColumnName): void
+    {
 
         try {
 
             $info = self::selectForeignKeyConstraintInfo($externalTableName, $externalColumnName, $internalTableName, $internalColumnName);
 
-            $constraintName = $info['CONSTRAINT_NAME'];
+            if (0 !== count($info)) {
 
-            if (null === $constraintName)
+                $constraintName = $info['CONSTRAINT_NAME'];
 
-            if ((0 !== count($info))
-                && false === self::execute($sql = "alter table $internalTableName drop foreign key $constraintName;")) {
+                if (null === $constraintName) {
 
-                throw new PublicAlert("Failed to execute ($sql)");
+                    throw new PublicAlert('Parsed fk constraint but not its name. (' . print_r($info, true) . ')');
+
+                }
+
+                if (false === self::execute($sql = "alter table $internalTableName drop foreign key $constraintName;")) {
+
+                    throw new PublicAlert("Failed to execute ($sql)");
+
+                }
 
             }
 
