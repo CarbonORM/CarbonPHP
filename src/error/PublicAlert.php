@@ -34,7 +34,7 @@ class PublicAlert extends CustomException {
             ($json['alert']['input'] ?? false);
     }
 
-    public static function JsonAlert($message, $title, $type = 'danger', $icon = null, $status = 500, $intercept = true, $stack = true) : void
+    public static function JsonAlert($message, $title, $type = 'danger', $icon = null, $status = 400, $intercept = true, $stack = true) : void
     {
         global $json;
 

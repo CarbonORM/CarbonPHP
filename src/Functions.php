@@ -19,7 +19,7 @@ namespace {                                     // This runs the following code 
      * @param bool $intercept
      * @param bool $stack
      */
-    function JsonAlert($message, $title = 'danger', $type = 'danger', $icon = null, $status = 500, $intercept = true, $stack = true)
+    function JsonAlert($message, $title = 'danger', $type = 'danger', $icon = null, $status = 400, $intercept = true, $stack = true)
     {
         PublicAlert::JsonAlert($message, $title, $type, $icon, $status, $intercept, $stack);
     }

@@ -256,7 +256,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
             $json['sql'][] = [
                 'method' => self::$REST_REQUEST_METHOD,
                 'table' => static::class,
-                self::class . '::$externalRestfulRequestsAPI' => self::$externalRestfulRequestsAPI,
+                RestSettings::class . '::$externalRestfulRequestsAPI' => self::$externalRestfulRequestsAPI,
                 'argv' => $argv,
                 'stmt' => [
                     $sql,

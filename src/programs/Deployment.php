@@ -227,19 +227,6 @@ CONF;
 
         Background::executeAndCheckStatus("sudo mv $filename /etc/apache2/apache2.conf");
 
-        Background::executeAndCheckStatus('');
-
-        Background::executeAndCheckStatus('');
-
-        // https://tecadmin.net/enable-gzip-compression-apache-ubuntu/  TODO - see if were using gzip correctly, h2 works so moot? gzip ws?
-        Background::executeAndCheckStatus('');
-
-        // Socket atm - todo - allow php to handle ssl wss
-        Background::executeAndCheckStatus('');
-        Background::executeAndCheckStatus('');
-        Background::executeAndCheckStatus('');
-        Background::executeAndCheckStatus('');
-        Background::executeAndCheckStatus('');
 
         // Background::executeAndCheckStatus('sudo ln -s /etc/apache2/mods-available/headers.load /etc/apache2/mods-enabled/headers.load');
 
