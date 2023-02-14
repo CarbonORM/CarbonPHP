@@ -122,11 +122,23 @@ $addNewTag = static function ($tag) : void {
 
         $releaseNotes = '';
 
+        $done = false;
+
         do {
 
-            $releaseNotes .= $line = `exec < /dev/tty && php -r 'echo (\$r = readline()) ? \$r : "done";'`;
+            $line = `exec < /dev/tty && php -r 'echo (\$r = readline()) ? \$r : "done";'`;
 
-        } while('done' !== $line);
+            if ('done' !== $line) {
+
+                $done = true;
+
+            } else {
+
+                $releaseNotes .= $line;
+
+            }
+
+        } while(!$done);
 
         Background::executeAndCheckStatus("gh release create $tag --notes '" . preg_quote($releaseNotes, "'") . "'");
 
