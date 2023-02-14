@@ -108,6 +108,8 @@ $addNewTag = static function ($tag) : void {
 
     $result = 0;
 
+    `exec < /dev/tty`;
+
     $r = readline("Tag Name, leave blank for minor (bolder,maverick,fire,etc):");
 
     if (false === passthru("git tag $tag -m \"". ( $r ? "Release Name ($r)" : "minor ") . "revision $tag\"", $result)
