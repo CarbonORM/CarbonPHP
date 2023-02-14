@@ -420,7 +420,7 @@ class ThrowableHandler
 
             if (false === $code || false === is_numeric($code)) {
 
-                $code = 500;
+                $code = 400;
 
             }
 
@@ -474,7 +474,7 @@ class ThrowableHandler
 
         $errorForTemplate['CODE'] ??= '0';
 
-        $code = ($errorForTemplate['CODE'] === '0') ? 500 : $errorForTemplate['CODE'];
+        $code = ($errorForTemplate['CODE'] === '0') ? 400 : $errorForTemplate['CODE'];
 
         if (is_string($code)) {
 
@@ -484,7 +484,7 @@ class ThrowableHandler
 
             } else {
 
-                $code = 500;
+                $code = 400;
 
             }
 
