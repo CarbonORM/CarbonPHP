@@ -11,6 +11,7 @@ require 'common.php';
 
 $statusCode = 0;
 
+
 passthru('git fetch --tags', $statusCode);
 
 if (0 !== $statusCode) {
@@ -105,7 +106,7 @@ $addNewTag = static function ($tag) : void {
 
     ColorCode::colorCode("Adding new tag :: '$tag'");
 
-    Background::executeAndCheckStatus("git tag $tag -m \"Tagging revision $tag\"");
+    Background::executeAndCheckStatus("git tag $tag -m \"". readline('Tag Name (bolder,maverick,fire,etc):')." (revision $tag)\"");
 
     ColorCode::colorCode('Going to commit a TAG mid GitHook. Output in the CLI will show two pushes to git. This is expected.', iColorCode::MAGENTA);
 
@@ -152,6 +153,8 @@ do {
     $tag = implode('.', $revision_exploded);
 
     $revisionExists = shell_exec("git tag | grep $tag");
+
+    ColorCode::colorCode("Revision bump failed, will try again ($tag)", iColorCode::BACKGROUND_YELLOW);
 
 } while(null !== $revisionExists && '' !== trim($revisionExists));
 
