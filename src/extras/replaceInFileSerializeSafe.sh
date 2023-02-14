@@ -12,6 +12,13 @@ replacementDelimited="$4"
 
 replacement="$5"
 
+if grep --quiet "$replace" "$SQL_FILE" ;
+then
+
+  exit 0;
+
+fi
+
 cp "$SQL_FILE" "$SQL_FILE.old.sql"
 
 # @link https://stackoverflow.com/questions/29902647/sed-match-replace-url-and-update-serialized-array-count
