@@ -108,7 +108,9 @@ $addNewTag = static function ($tag) : void {
 
     $result = 0;
 
-    if (false === passthru("git tag $tag -m \"". `exec < /dev/tty && php -r 'echo (\$r = readline("Tag Name, leave blank for minor (bolder,maverick,fire,etc):")) ? "Release Name (\$r)" : "minor ";'`."revision $tag\"", $result)
+    $r = readline("Tag Name, leave blank for minor (bolder,maverick,fire,etc):");
+
+    if (false === passthru("git tag $tag -m \"". ( $r ? "Release Name ($r)" : "minor ") . "revision $tag\"", $result)
         || 0 !== $result) {
 
         ColorCode::colorCode('Failed to tag revision', iColorCode::RED);
