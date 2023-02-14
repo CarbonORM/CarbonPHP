@@ -5,6 +5,8 @@ use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Helpers\Background;
 use CarbonPHP\Helpers\ColorCode;
 
+require 'common.php';
+
 [$cmd, $remote, $url] = $argv;
 
 $statusCode = 0;
