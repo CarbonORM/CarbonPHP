@@ -128,7 +128,7 @@ $addNewTag = static function ($tag) : void {
 
             $line = `exec < /dev/tty && php -r 'echo (\$r = readline()) ? \$r : "done";'`;
 
-            if ('done' !== $line) {
+            if ('done' === $line) {
 
                 $done = true;
 
