@@ -106,21 +106,34 @@ $addNewTag = static function ($tag) : void {
 
     ColorCode::colorCode("Adding new tag :: '$tag'");
 
-    $result = 0;
-
     ColorCode::colorCode('Please enter release name, leave blank for minor (bolder,maverick,fire,etc):', iColorCode::MAGENTA);
 
-    if (false === passthru("git tag $tag -m \"". `exec < /dev/tty && php -r 'echo (\$r = readline()) ? "Release Name (\$r)" : "minor ";'`."revision $tag\"", $result)) {
+    $releaseName = `exec < /dev/tty && php -r 'echo (\$r = readline()) ? "Release Name (\$r)" : "minor";'`;
 
-        ColorCode::colorCode('Failed to tag revision', iColorCode::RED);
-
-    }
+    Background::executeAndCheckStatus("git tag -a $tag -m \"". $releaseName ." revision $tag\"");
 
     ColorCode::colorCode('Going to commit a TAG mid GitHook. Output in the CLI will show two pushes to git. This is expected.', iColorCode::MAGENTA);
 
     Background::executeAndCheckStatus("git push --tags");
 
+    if ('minor' !== $releaseName) {
+
+        ColorCode::colorCode('Please add additional notes (type "done" alone on a new line to complete):', iColorCode::MAGENTA);
+
+        $releaseNotes = '';
+
+        do {
+
+            $releaseNotes .= $line = `exec < /dev/tty && php -r 'echo (\$r = readline()) ? \$r : "done";'`;
+
+        } while('done' !== $line);
+
+        Background::executeAndCheckStatus("gh release create $tag --notes '" . preg_quote($releaseNotes, "'") . "'");
+
+    }
+
     ColorCode::colorCode('Pushing Git Tags Finished.');
+
 };
 
 $bumpCurrentRevision = static function () use (&$revision_exploded) : void {
