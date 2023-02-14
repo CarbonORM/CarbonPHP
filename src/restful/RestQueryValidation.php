@@ -752,6 +752,9 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
                 if (is_callable($validation)) {
 
+                    // @link https://stackoverflow.com/questions/71241075/php-8-unknown-named-parameter-dannyvankooten-router
+                    // ^ removing [& ]
+
                     if (empty($rest)) {
 
                         if (false === call_user_func_array($validation, [&self::$REST_REQUEST_PARAMETERS])) {
