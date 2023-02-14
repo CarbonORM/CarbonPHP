@@ -19,6 +19,6 @@ cp "$SQL_FILE" "$SQL_FILE.old.sql"
 sed 's/;s:/;\ns:/g' "$SQL_FILE" | \
   awk -F'"' '/s:.+'$replaceDelimited'/ {sub("'$replace'", "'$replacement'"); n=length($2)-1; sub(/:[[:digit:]]+:/, ":" n ":")} 1' 2>/dev/null  | \
   sed -e ':a' -e 'N' -e '$!ba' -e 's/;\ns:/;s:/g' | \
-  sed "s/$replaceDelimited/$replacementDelimited/g" > "$SQL_FILE.txt"
+  sed "s/$replaceDelimited/$replacementDelimited/g" > "$SQL_FILE.replaced.sql"
 
-mv "$SQL_FILE.txt" "$SQL_FILE"
+cp "$SQL_FILE.replaced.sql" "$SQL_FILE"

@@ -753,7 +753,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
                 if (is_callable($validation)) {
 
                     // @link https://stackoverflow.com/questions/71241075/php-8-unknown-named-parameter-dannyvankooten-router
-                    // ^ removing [& ]
+                    // ^ dont try removing [& ], its not syntactic sugar, it allows us to add internal args without the end user deprecation
 
                     if (empty($rest)) {
 
