@@ -106,7 +106,7 @@ $addNewTag = static function ($tag) : void {
 
     ColorCode::colorCode("Adding new tag :: '$tag'");
 
-    Background::executeAndCheckStatus("git tag $tag -m \"". `exec < /dev/tty && php -r 'echo (\$r = readline(\'Tag Name, leave blank for minor (bolder,maverick,fire,etc):")) ? "Release Name (\$r)" : "minor ";'`."revision $tag\"");
+    Background::executeAndCheckStatus("git tag $tag -m \"". `exec < /dev/tty && php -r 'echo (\$r = readline("Tag Name, leave blank for minor (bolder,maverick,fire,etc):")) ? "Release Name (\$r)" : "minor ";'`."revision $tag\"");
 
     ColorCode::colorCode('Going to commit a TAG mid GitHook. Output in the CLI will show two pushes to git. This is expected.', iColorCode::MAGENTA);
 
