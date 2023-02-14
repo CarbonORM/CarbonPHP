@@ -118,6 +118,16 @@ $addNewTag = static function ($tag) : void {
 
     if ('minor' !== $releaseName) {
 
+        do {
+
+            ColorCode::colorCode("Enter a release title and use/reference ($releaseName) (@link: https://github.com/RichardTMiles/CarbonPHP/releases)", iColorCode::MAGENTA);
+
+            $releaseTitle = `exec < /dev/tty && php -r 'echo (\$r = readline()) ? \$r : "";'`;
+
+        } while ($releaseTitle === '');
+
+        Background::executeAndCheckStatus("git tag -a $tag -m \"". $releaseName ." revision $tag\"");
+
         ColorCode::colorCode('Please add additional notes (type "done" alone on a new line to complete):', iColorCode::MAGENTA);
 
         $releaseNotes = '';
@@ -140,7 +150,7 @@ $addNewTag = static function ($tag) : void {
 
         } while(!$done);
 
-        Background::executeAndCheckStatus("gh release create $tag --notes '" . preg_quote($releaseNotes, "'") . "'");
+        Background::executeAndCheckStatus("gh release create $tag --title '".preg_quote($releaseTitle, "'")."' --notes '" . preg_quote($releaseNotes, "'") . "'");
 
     }
 
