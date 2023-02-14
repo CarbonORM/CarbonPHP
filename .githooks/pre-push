@@ -9,8 +9,6 @@ require 'common.php';
 
 [$cmd, $remote, $url] = $argv;
 
-ColorCode::colorCode(print_r($argv, true));
-
 $statusCode = 0;
 
 passthru('git fetch --tags', $statusCode);
@@ -55,7 +53,7 @@ $revisionCheck = static function () use ($cmd, &$revisionCheck) : string {
     if ($noRevisionOnRemote
         || str_contains($cmd, $revision)
         || str_contains($cmd, 'git tag')
-        || str_contains($cmd, 'git push --tags')) {
+        || str_contains($cmd, 'git push --tags --no-verify')) {
 
         if ($noRevisionOnRemote) {
 
@@ -115,7 +113,7 @@ $addNewTag = static function ($tag) : void {
 
     ColorCode::colorCode('Going to commit a TAG mid GitHook. Output in the CLI will show two pushes to git. This is expected.', iColorCode::MAGENTA);
 
-    Background::executeAndCheckStatus("git push --tags");
+    Background::executeAndCheckStatus("git push --tags --no-verify");
 
     if ('minor' !== $releaseName) {
 
