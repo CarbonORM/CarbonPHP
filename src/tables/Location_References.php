@@ -341,7 +341,7 @@ class Location_References extends Rest implements iRestNoPrimaryKey
      *          [self::class => 'disallowPublicAccess', self::class]
      *  though would loose information as self::class is a dynamic variable which must be used in this class given 
      *  static and constant context. 
-     *  @example
+     *  @default   
      *      public const PHP_VALIDATION = [ 
      *          self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
      *              self::PREPROCESS => [ 
@@ -369,7 +369,8 @@ class Location_References extends Rest implements iRestNoPrimaryKey
      *      ];
      * @Note you can remove the constant entirely and re-run rest builder to reset the default.
      *
-     * @default: The referencing style above will also be respected in this array. The
+     * @Note: the following may be uncommented and used to allow explicitly referencing methods with callbacks. No 
+     * parameters will be passed to the callbacks. The refrencing style above will also be respected in this array. The
      * example callables maybe removed. The static array value will be merged using php `[] + []` with the the public ( static += public ).
      *
      *    public function __construct(array &$return = [])

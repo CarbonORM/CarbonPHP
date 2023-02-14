@@ -3260,11 +3260,11 @@ export const convertForRequestBody = function (restfulObject: RestTableInterface
                         
                         if (false === regex.test(restfulObject[value])) {
 
-                            const errorMessage = 'Failed to match regex (' + regex + ') for column (' + longName + ')';
+                            const devErrorMessage = 'Failed to match regex (' + regex + ') for column (' + longName + ')';
                             
-                            regexErrorHandler(errorMessage ?? errorMessage)
+                            regexErrorHandler(errorMessage ?? devErrorMessage)
                             
-                            throw Error(errorMessage)
+                            throw Error(devErrorMessage)
 
                         }
                         

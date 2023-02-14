@@ -217,6 +217,21 @@ class Sessions extends Rest implements iRestSinglePrimaryKey
     ];
     
     /** Custom User Methods Are Placed Here **/
+     public function __construct(array &$return = [])
+     {
+         parent::__construct($return);
+         
+         # always create the column in your local database first, re-run the table builder, then add the needed functions
+         $this->REFRESH_SCHEMA = [];
+         
+         $this->PHP_VALIDATION = [ 
+             self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
+                 self::PREPROCESS => [
+                     static fn() => self::disallowPublicAccess(self::class)
+                 ]
+             ]
+         ];
+     }
     
     /** Custom User Methods Are Placed Here **/
         public static function validateRestTestSuite()
