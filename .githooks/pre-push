@@ -9,8 +9,9 @@ require 'common.php';
 
 [$cmd, $remote, $url] = $argv;
 
-$statusCode = 0;
+ColorCode::colorCode(print_r($argv, true));
 
+$statusCode = 0;
 
 passthru('git fetch --tags', $statusCode);
 
