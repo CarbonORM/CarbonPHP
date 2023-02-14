@@ -297,7 +297,14 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
         }
 
-        if (3 === $stmtCount) {
+        if (5 === $stmtCount) {
+            // should be specific to GROUP_CONCAT (for now)
+            [$aggregate, $column, $name, $sortColumn, $sortType] = $stmt;
+
+            if ($aggregate !== self::GROUP_CONCAT) {
+                throw new PublicAlert('Expected the GROUP_CONCAT aggregate function with custom ordering as five arguments were encountered.');
+            }
+        } elseif (3 === $stmtCount) {
 
             [$column, $aggregate, $name] = $stmt;
 
@@ -427,13 +434,17 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
                 }
 
+                $orderByCol = $sortColumn ?? $column;
+
+                $orderByType = $sortType ?? self::ASC;
+
                 if (!$isSubSelect && self::$compiled_PDO_validations[$column][self::MYSQL_TYPE] === 'binary') {
 
-                    return "GROUP_CONCAT(DISTINCT HEX($column) ORDER BY $column ASC SEPARATOR ',') AS $name";
+                    return "GROUP_CONCAT(DISTINCT HEX($column) ORDER BY $orderByCol $orderByType SEPARATOR ',') AS $name";
 
                 }
 
-                return "GROUP_CONCAT(DISTINCT($column) ORDER BY $column ASC SEPARATOR ',') AS $name";
+                return "GROUP_CONCAT(DISTINCT($column) ORDER BY $orderByCol $orderByType SEPARATOR ',') AS $name";
 
             case self::DISTINCT:
 
