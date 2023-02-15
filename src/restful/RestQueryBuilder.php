@@ -430,7 +430,7 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
                 if (empty($name)) {
 
-                    throw new PublicAlert('An unexpected error has occurred in CarbonPHP. Please save this stack trace and submit it to CarbonPHP.com');
+                    throw new PublicAlert('The `name` argument provided to (' . self::GROUP_CONCAT . ') was empty!');
 
                 }
 
