@@ -2,6 +2,11 @@
 
 set -e
 
+# @link https://stackoverflow.com/questions/5412761/using-colors-with-printf
+blue=$(tput setaf 4)
+
+normal=$(tput sgr0)
+
 SQL_FILE="$1"
 
 replaceDelimited="$2"
@@ -12,8 +17,10 @@ replacementDelimited="$4"
 
 replacement="$5"
 
-if grep --quiet "$replace" "$SQL_FILE" ;
+if ! grep --quiet "$replace" "$SQL_FILE" ;
 then
+
+  echo "{$blue}The string ($replace) was not found in ($SQL_FILE){$normal}"
 
   exit 0;
 
