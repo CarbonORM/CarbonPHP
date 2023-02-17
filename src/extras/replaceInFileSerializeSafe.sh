@@ -3,22 +3,9 @@
 set -e
 
 # @link https://stackoverflow.com/questions/5412761/using-colors-with-printf
-BLACK=$(tput -T 'xterm-256color' setaf 0)
-RED=$(tput -T 'xterm-256color' setaf 1)
-GREEN=$(tput -T 'xterm-256color' setaf 2)
-YELLOW=$(tput -T 'xterm-256color' setaf 3)
-LIME_YELLOW=$(tput -T 'xterm-256color' setaf 190)
-POWDER_BLUE=$(tput -T 'xterm-256color' setaf 153)
-BLUE=$(tput -T 'xterm-256color' setaf 4)
 MAGENTA=$(tput -T 'xterm-256color' setaf 5)
 CYAN=$(tput -T 'xterm-256color' setaf 6)
-WHITE=$(tput -T 'xterm-256color' setaf 7)
-BRIGHT=$(tput -T 'xterm-256color' bold)
 NORMAL=$(tput -T 'xterm-256color' sgr0)
-BLINK=$(tput -T 'xterm-256color' blink)
-REVERSE=$(tput -T 'xterm-256color' smso)
-UNDERLINE=$(tput -T 'xterm-256color' smul)
-normal=$(tput -T 'xterm-256color' sgr0)
 
 SQL_FILE="$1"
 
