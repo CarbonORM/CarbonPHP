@@ -812,7 +812,7 @@ class Migrate implements iCommand
 
         Background::executeAndCheckStatus($replaceBashCmd, true, $output);
 
-        print $output;
+        print implode(PHP_EOL, $output);
 
     }
 
