@@ -19,13 +19,13 @@ replacement="$5"
 
 if ! grep --quiet "$replace" "$SQL_FILE"; then
 
-  echo "{$MAGENTA}The string ($replace) was not found in ($SQL_FILE){$NORMAL}"
+  echo "${MAGENTA}The string ($replace) was not found in ($SQL_FILE) $NORMAL"
 
   exit 0
 
 fi
 
-echo "{$CYAN}Will replace string ($replace) was found in ($SQL_FILE){$NORMAL}"
+echo "${CYAN}Will replace string ($replace) was found in ($SQL_FILE)${NORMAL}"
 
 cp "$SQL_FILE" "$SQL_FILE.original.sql"
 

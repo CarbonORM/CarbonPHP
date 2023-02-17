@@ -789,7 +789,7 @@ class Migrate implements iCommand
     {
         static $hasChangedPermissions = false;
 
-        ColorCode::colorCode("Attempting to replace ::\n($replace)\nwith replacement ::\n($replacement)\n in file ::\n(file://$absoluteFilePath)", iColorCode::BACKGROUND_MAGENTA);
+        ColorCode::colorCode("Checking to replace ($replace) with replacement ($replacement) in file (file://$absoluteFilePath)", iColorCode::BACKGROUND_MAGENTA);
 
         $replaceDelimited = preg_quote($replace, '/');
 
@@ -812,7 +812,7 @@ class Migrate implements iCommand
 
         Background::executeAndCheckStatus($replaceBashCmd, true, $output);
 
-        print implode(PHP_EOL, $output);
+        print  "Output: (" .implode(PHP_EOL, $output). ")\n";
 
     }
 
