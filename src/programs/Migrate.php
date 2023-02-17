@@ -9,6 +9,7 @@ use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Helpers\Background;
 use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Helpers\Files;
+use CarbonPHP\Helpers\Fork;
 use CarbonPHP\Helpers\MySQL;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
@@ -52,6 +53,8 @@ class Migrate implements iCommand
     public static int $timeout = 180;
 
     public static int $maxFolderSizeForCompressionInMb = 500;
+
+    public static array $childProcessIds = [];
 
 
     /**
@@ -402,6 +405,8 @@ class Migrate implements iCommand
 
         // Client
         // a list of instructional manifest files has been stored on the peer.. lets retrieve this info
+        // todo - if one was to make this parallel this loop would be the place to do so
+        // todo - note network io is a limiting factor in this loop
         while (false === feof($manifest)) {
 
             $uri = trim(fgets($manifest));
@@ -726,37 +731,8 @@ class Migrate implements iCommand
 
                 if (self::$MySQLDataDump) {
 
-                    Background::executeAndCheckStatus("[[ \"$( cat '$file' | grep -o 'Dump completed' | wc -l )\" == *\"1\"* ]] && exit 0 || exit 16");
-
                     ColorCode::colorCode("Doing an update to Mysql, do not exit!!!\nfile://$file",
                         iColorCode::BACKGROUND_YELLOW);
-
-
-                    $urlNoProtocol = static fn($url) => preg_replace('#http(?:s)?://(.*)/#', '$1', $url);
-
-                    if (CarbonPHP::$app_root !== self::$remoteAbsolutePath) {
-
-                        // todo - windows -> linux support
-                        self::replaceInFile(rtrim(self::$remoteAbsolutePath, DS), rtrim(CarbonPHP::$app_root, DS), $file);
-
-                    } else if (CarbonPHP::$verbose) {
-
-                        ColorCode::colorCode('App absolute path is the same on both servers.', iColorCode::YELLOW);
-
-                    }
-
-                    if (self::$localUrl !== self::$remoteUrl) {
-
-                        // todo - make these b2b replaceInFile() into one sed execution
-                        self::replaceInFile(rtrim(self::$remoteUrl, '/'), rtrim(self::$localUrl, '/'), $file);
-
-                        self::replaceInFile($urlNoProtocol(self::$remoteUrl), $urlNoProtocol(self::$localUrl), $file);
-
-                    } else if (CarbonPHP::$verbose) {
-
-                        ColorCode::colorCode("Both servers point the same url.", iColorCode::YELLOW);
-
-                    }
 
                     MySQL::MySQLSource($file);
 
@@ -812,7 +788,7 @@ class Migrate implements iCommand
 
         Background::executeAndCheckStatus($replaceBashCmd, true, $output);
 
-        print  "Output: (" .implode(PHP_EOL, $output). ")\n";
+        print  "Output: (" . implode(PHP_EOL, $output) . ")\n";
 
     }
 
@@ -1123,10 +1099,43 @@ HALT;
 
                 }
 
-                if (str_ends_with($toLocalFilePath, '.sql')
-                    && 15 === Background::executeAndCheckStatus("[[ \"$( cat '$toLocalFilePath' | grep -o 'Dump completed' | wc -l )\" == *\"1\"* ]] && exit 0 || exit 15", false)) {
+                if (str_ends_with($toLocalFilePath, '.sql')) {
 
-                    $failed = true;
+                    if (15 === Background::executeAndCheckStatus("[[ \"$( cat '$toLocalFilePath' | grep -o 'Dump completed' | wc -l )\" == *\"1\"* ]] && exit 0 || exit 15", false)) {
+
+                        $failed = true;
+
+                    } else {
+
+                        print PHP_EOL;
+
+                        $urlNoProtocol = static fn($url) => preg_replace('#http(?:s)?://(.*)/#', '$1', $url);
+
+                        if (CarbonPHP::$app_root !== self::$remoteAbsolutePath) {
+
+                            // todo - windows -> linux support
+                            self::replaceInFile(rtrim(self::$remoteAbsolutePath, DS), rtrim(CarbonPHP::$app_root, DS), $toLocalFilePath);
+
+                        } else if (CarbonPHP::$verbose) {
+
+                            ColorCode::colorCode('App absolute path is the same on both servers.', iColorCode::YELLOW);
+
+                        }
+
+                        if (self::$localUrl !== self::$remoteUrl) {
+
+                            // todo - make these b2b replaceInFile() into one sed execution
+                            self::replaceInFile(rtrim(self::$remoteUrl, '/'), rtrim(self::$localUrl, '/'), $toLocalFilePath);
+
+                            self::replaceInFile($urlNoProtocol(self::$remoteUrl), $urlNoProtocol(self::$localUrl), $toLocalFilePath);
+
+                        } else if (CarbonPHP::$verbose) {
+
+                            ColorCode::colorCode("Both servers point the same url.", iColorCode::YELLOW);
+
+                        }
+
+                    }
 
                 }
 
@@ -1558,7 +1567,7 @@ HALT;
 
         $tables = Database::fetchColumn('SHOW TABLES');
 
-        $migrationPath =  self::$migrationFolderPrefix . "$currentTime/";
+        $migrationPath = self::$migrationFolderPrefix . "$currentTime/";
 
         Files::createDirectoryIfNotExist(CarbonPHP::$app_root . $migrationPath);
 

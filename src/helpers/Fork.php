@@ -8,6 +8,8 @@
 
 namespace CarbonPHP\Helpers;
 
+use CarbonPHP\Error\PublicAlert;
+
 abstract class Fork
 {
 
@@ -25,12 +27,12 @@ abstract class Fork
     public static function become_daemon(callable $call = null) : int        // do not use this unless you know what you are doing
     {
         if (!\extension_loaded('pcntl')) {
-            print 'You must have the PCNTL extencion installed. See Carbon PHP for documentation.' and die;
+            throw new PublicAlert('You must have the PCNTL extension installed. See Carbon PHP for documentation.');
         }
 
         if ($pid = pcntl_fork()) {  // Parent
             if (\is_callable($call)) {
-                return 1;
+                return $pid;
             }
             exit;
         }

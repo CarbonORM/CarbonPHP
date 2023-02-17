@@ -34,5 +34,7 @@ cp "$SQL_FILE" "$SQL_FILE.original.sql"
 time ( sed 's/;s:/;\ns:/g' "$SQL_FILE" |
   awk -F'"' '/s:.+'$replaceDelimited'/ {sub("'$replace'", "'$replacement'"); n=length($2)-1; sub(/:[[:digit:]]+:/, ":" n ":")} 1' 2>/dev/null |
   sed -e ':a' -e 'N' -e '$!ba' -e 's/;\ns:/;s:/g' |
-  sed "s/$replaceDelimited/$replacementDelimited/g" > "$SQL_FILE" )
+  sed "s/$replaceDelimited/$replacementDelimited/g" > "$SQL_FILE.replaced.sql" )
 
+# the pipe above Absolutely MUST to feed into a new file and get moved here below; removing the new file step will cause an empty final file
+cp "$SQL_FILE.replaced.sql" "$SQL_FILE"
