@@ -407,6 +407,8 @@ class Migrate implements iCommand
         // a list of instructional manifest files has been stored on the peer.. lets retrieve this info
         // todo - if one was to make this parallel this loop would be the place to do so
         // todo - note network io is a limiting factor in this loop
+        // @link https://stackoverflow.com/questions/10198844/waiting-for-all-pids-to-exit-in-php
+
         while (false === feof($manifest)) {
 
             $uri = trim(fgets($manifest));

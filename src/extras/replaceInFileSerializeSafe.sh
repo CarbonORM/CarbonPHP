@@ -17,7 +17,7 @@ replacementDelimited="$4"
 
 replacement="$5"
 
-if ! grep --quiet "$replace" "$SQL_FILE"; then
+if ! cgrep --quiet "$replace" "$SQL_FILE"; then
 
   echo "${MAGENTA}The string ($replace) was not found in ($SQL_FILE) $NORMAL"
 
@@ -31,10 +31,10 @@ cp "$SQL_FILE" "$SQL_FILE.original.sql"
 
 # @link https://stackoverflow.com/questions/29902647/sed-match-replace-url-and-update-serialized-array-count
 # @link https://serverfault.com/questions/1114188/php-serialize-awk-command-speed-up/1114191#1114191
-time ( sed 's/;s:/;\ns:/g' "$SQL_FILE" |
-  awk -F'"' '/s:.+'$replaceDelimited'/ {sub("'$replace'", "'$replacement'"); n=length($2)-1; sub(/:[[:digit:]]+:/, ":" n ":")} 1' 2>/dev/null |
-  sed -e ':a' -e 'N' -e '$!ba' -e 's/;\ns:/;s:/g' |
-  sed "s/$replaceDelimited/$replacementDelimited/g" > "$SQL_FILE.replaced.sql" )
+time ( gsed 's/;s:/;\ns:/g' "$SQL_FILE" |
+  gawk -F'"' '/s:.+'$replaceDelimited'/ {sub("'$replace'", "'$replacement'"); n=length($2)-1; sub(/:[[:digit:]]+:/, ":" n ":")} 1' 2>/dev/null |
+  gsed -e ':a' -e 'N' -e '$!ba' -e 's/;\ns:/;s:/g' |
+  gsed "s/$replaceDelimited/$replacementDelimited/g" > "$SQL_FILE.replaced.sql" )
 
 # the pipe above Absolutely MUST to feed into a new file and get moved here below; removing the new file step will cause an empty final file
 cp "$SQL_FILE.replaced.sql" "$SQL_FILE"
