@@ -787,6 +787,7 @@ class Migrate implements iCommand
      */
     public static function replaceInFile(string $replace, string $replacement, string $absoluteFilePath): void
     {
+        static $hasChangedPermissions = false;
 
         ColorCode::colorCode("Attempting to replace ::\n($replace)\nwith replacement ::\n($replacement)\n in file ::\n(file://$absoluteFilePath)", iColorCode::BACKGROUND_MAGENTA);
 
@@ -796,10 +797,22 @@ class Migrate implements iCommand
 
         $replaceExecutable = CarbonPHP::CARBON_ROOT . 'extras/replaceInFileSerializeSafe.sh';
 
-        // @link https://stackoverflow.com/questions/29902647/sed-match-replace-url-and-update-serialized-array-count
-        $replaceBashCmd = "chmod +x $replaceExecutable && $replaceExecutable '$absoluteFilePath' '$replaceDelimited' '$replace' '$replacementDelimited' '$replacement'";
+        $replaceBashCmd = '';
 
-        Background::executeAndCheckStatus($replaceBashCmd);
+        if (false === $hasChangedPermissions) {
+
+            $replaceBashCmd .= "chmod +x $replaceExecutable && ";
+
+            $hasChangedPermissions = true;
+
+        }
+
+        // @link https://stackoverflow.com/questions/29902647/sed-match-replace-url-and-update-serialized-array-count
+        $replaceBashCmd = "$replaceBashCmd $replaceExecutable '$absoluteFilePath' '$replaceDelimited' '$replace' '$replacementDelimited' '$replacement'";
+
+        Background::executeAndCheckStatus($replaceBashCmd, true, $output);
+
+        print $output;
 
     }
 
@@ -1110,17 +1123,12 @@ HALT;
 
                 }
 
-                $output = '';
-
                 if (str_ends_with($toLocalFilePath, '.sql')
-                    && 15 === Background::executeAndCheckStatus("[[ \"$( cat '$toLocalFilePath' | grep -o 'Dump completed' | wc -l )\" == *\"1\"* ]] && exit 0 || exit 15", false, $output)) {
+                    && 15 === Background::executeAndCheckStatus("[[ \"$( cat '$toLocalFilePath' | grep -o 'Dump completed' | wc -l )\" == *\"1\"* ]] && exit 0 || exit 15", false)) {
 
                     $failed = true;
 
                 }
-
-                // it will already be color coded
-                print $output;
 
             } while (true === $failed && $attempt < 3);
 
