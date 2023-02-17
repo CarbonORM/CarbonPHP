@@ -1110,12 +1110,17 @@ HALT;
 
                 }
 
+                $output = '';
+
                 if (str_ends_with($toLocalFilePath, '.sql')
-                    && 15 === Background::executeAndCheckStatus("[[ \"$( cat '$toLocalFilePath' | grep -o 'Dump completed' | wc -l )\" == *\"1\"* ]] && exit 0 || exit 15", false)) {
+                    && 15 === Background::executeAndCheckStatus("[[ \"$( cat '$toLocalFilePath' | grep -o 'Dump completed' | wc -l )\" == *\"1\"* ]] && exit 0 || exit 15", false, $output)) {
 
                     $failed = true;
 
                 }
+
+                // it will already be color coded
+                print $output;
 
             } while (true === $failed && $attempt < 3);
 
