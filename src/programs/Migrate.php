@@ -746,17 +746,6 @@ class Migrate implements iCommand
 
         }
 
-        if (CarbonPHP::$verbose) {
-
-            ColorCode::colorCode("The verbose flag will cause the migration file to not be unlinked (deleted)",
-                iColorCode::BACKGROUND_RED);
-
-        } else {
-
-            unlink($file);
-
-        }
-
     }
 
 

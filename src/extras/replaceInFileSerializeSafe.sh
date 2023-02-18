@@ -17,6 +17,8 @@ replacementDelimited="$4"
 
 replacement="$5"
 
+cp "$SQL_FILE" "$SQL_FILE.original.sql"
+
 if ! cgrep --quiet "$replace" "$SQL_FILE"; then
 
   echo "${MAGENTA}The string ($replace) was not found in ($SQL_FILE) $NORMAL"
@@ -27,7 +29,6 @@ fi
 
 echo "${CYAN}Will replace string ($replace) was found in ($SQL_FILE)${NORMAL}"
 
-cp "$SQL_FILE" "$SQL_FILE.original.sql"
 
 # @link https://stackoverflow.com/questions/29902647/sed-match-replace-url-and-update-serialized-array-count
 # @link https://serverfault.com/questions/1114188/php-serialize-awk-command-speed-up/1114191#1114191
@@ -37,4 +38,4 @@ time ( gsed 's/;s:/;\ns:/g' "$SQL_FILE" |
   gsed "s/$replaceDelimited/$replacementDelimited/g" > "$SQL_FILE.replaced.sql" )
 
 # the pipe above Absolutely MUST to feed into a new file and get moved here below; removing the new file step will cause an empty final file
-cp "$SQL_FILE.replaced.sql" "$SQL_FILE"
+mv "$SQL_FILE.replaced.sql" "$SQL_FILE"
