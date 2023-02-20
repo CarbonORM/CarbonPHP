@@ -19,15 +19,8 @@ replacement="$5"
 
 cp "$SQL_FILE" "$SQL_FILE.original.sql"
 
-if [ -x /usr/local/bin/cgrep ]
-then
-    GREP=/usr/local/bin/cgrep
-else
-    GREP=/usr/bin/grep
-fi
 
-
-if ! $GREP --quiet "$replace" "$SQL_FILE"; then
+if ! grep --quiet "$replace" "$SQL_FILE"; then
 
   echo "${MAGENTA}The string ($replace) was not found in ($SQL_FILE) $NORMAL"
 
@@ -47,6 +40,9 @@ fi
 
 if [ -x /usr/local/bin/gsed ]
 then
+
+
+
     SED=/usr/local/bin/gsed
 else
     SED=/usr/bin/sed
@@ -60,4 +56,4 @@ time ( $SED 's/;s:/;\ns:/g' "$SQL_FILE" |
   $SED "s/$replaceDelimited/$replacementDelimited/g" > "$SQL_FILE.replaced.sql" )
 
 # the pipe above Absolutely MUST to feed into a new file and get moved here below; removing the new file step will cause an empty final file
-mv "$SQL_FILE.replaced.sql" "$SQL_FILE"
+cp "$SQL_FILE.replaced.sql" "$SQL_FILE"
