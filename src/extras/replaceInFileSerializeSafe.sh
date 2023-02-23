@@ -40,9 +40,6 @@ fi
 
 if [ -x /usr/local/bin/gsed ]
 then
-
-
-
     SED=/usr/local/bin/gsed
 else
     SED=/usr/bin/sed

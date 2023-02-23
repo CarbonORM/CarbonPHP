@@ -261,7 +261,10 @@ abstract class RestLifeCycle extends RestQueryBuilder
                 'stmt' => [
                     $sql,
                     self::$injection
-                ]
+                ],
+                ...(self::$externalRestfulRequestsAPI ? [
+                    'uri' => $_SERVER['REQUEST_URI']
+                ] : [])
             ];
 
             return null;
@@ -283,7 +286,10 @@ abstract class RestLifeCycle extends RestQueryBuilder
             'stmt' => [
                 $sql,
                 self::$injection
-            ]
+            ],
+            ...(self::$externalRestfulRequestsAPI ? [
+                'uri' => $_SERVER['REQUEST_URI']
+            ] : [])
         ];
 
         return static function (PDOStatement $stmt) use (&$affected_rows, &$committed) {
