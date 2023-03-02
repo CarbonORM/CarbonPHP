@@ -93,7 +93,7 @@ function setupUbuntu20() {
   # I update git in this script bc I regularly forget/find/changes before halfway through array deploymant
   # gcloud beta sql databases patch
 
-  printf "\n\n\t\e[1;34m Remeber to commit your changes! \e[0m\n"
+  printf "\n\n\t\e[1;34m Remember to commit your changes! \e[0m\n"
 
   sudo apt update
 
@@ -196,8 +196,6 @@ EOL
   sudo systemctl restart apache2
 
   printf "\n\n\t\e[1;34m Finished. \e[0m\n"
-
-
 
 }
 

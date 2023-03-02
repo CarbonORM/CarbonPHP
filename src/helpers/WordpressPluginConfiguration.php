@@ -21,7 +21,7 @@ if (false === defined('ABSPATH')) {
             composer. To lean more about how to use CarbonPHP please refer to 
             <a href="https://www.carbonphp.com/">https://CarbonPHP.com/</a></h1>';
 
-    if (class_exists('CarbonPHP\Helpers\ColorCode')) {
+    if (class_exists(ColorCode::class)) {
 
         ColorCode::colorCode('C6 Plugin Failed; ABSPATH not defined!', iColorCode::RED);
 
@@ -89,7 +89,7 @@ ColorCode::colorCode("Starting Full Wordpress CarbonPHP Configuration!",
 
         $str = dirname(CarbonPHP::CARBON_ROOT);
 
-        if (strpos($str, $prefix) === 0) {
+        if (str_starts_with($str, $prefix)) {
 
             $str = substr($str, strlen($prefix));
 

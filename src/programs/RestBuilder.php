@@ -1458,11 +1458,11 @@ export type RestTableNames = $all_table_names_types;
 export type RestShortTableNames = $all_table_names_no_prefix_types;
 
 export interface C6RestfulModel {
-    TABLE_NAME?: RestShortTableNames,
-    PRIMARY?: string[],
-    COLUMNS?: stringMap,
-    REGEX_VALIDATION?: RegExpMap,
-    TYPE_VALIDATION?: {[key: string]: iTypeValidation},
+    TABLE_NAME: RestShortTableNames,
+    PRIMARY: string[],
+    COLUMNS: stringMap,
+    REGEX_VALIDATION: RegExpMap,
+    TYPE_VALIDATION: {[key: string]: iTypeValidation},
 }
 
 $references_tsx
