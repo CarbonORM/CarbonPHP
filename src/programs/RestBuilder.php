@@ -1435,6 +1435,10 @@ END;
             $export = /** @lang TypeScript */
                 "
 export interface stringMap {
+    [key: string]: string;
+}
+
+export interface stringNumberMap {
     [key: string]: string | number;
 }
 
@@ -1443,7 +1447,7 @@ export interface RegExpMap {
 }
 
 export interface complexMap {
-    [key: string]: stringMap | stringMap[] | RegExpMap;
+    [key: string]: stringMap | stringNumberMap | stringMap[] | RegExpMap;
 }
 
 export interface iTypeValidation {
