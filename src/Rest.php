@@ -21,6 +21,18 @@ abstract class Rest extends RestLifeCycle
 
                 self::startRest(self::DELETE, $remove, $argv, $primary);
 
+                if (1 <= count($argv)
+                    && false === array_key_exists(self::WHERE, $argv)
+                    && false === array_key_exists(self::JOIN, $argv)) {
+
+                    $argv = [
+                        self::WHERE => $argv
+                    ];
+
+                }
+
+                $argv[self::WHERE] ??= [];
+
                 $pdo = self::database(false);
 
                 $emptyPrimary = null === $primary || [] === $primary;
@@ -35,7 +47,7 @@ abstract class Rest extends RestLifeCycle
 
                 }
 
-                if (false === self::$allowFullTableDeletes && true === $emptyPrimary && array() === $argv) {
+                if (false === self::$allowFullTableDeletes && true === $emptyPrimary && [] === $argv[self::WHERE]) {
 
                     return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
 
@@ -60,7 +72,7 @@ abstract class Rest extends RestLifeCycle
                     if (false === self::$allowFullTableDeletes
                         || !empty($argv)) {
 
-                        $sql .= ' WHERE ' . self::buildBooleanJoinedConditions($argv);
+                        $sql .= ' WHERE ' . self::buildBooleanJoinedConditions($argv[self::WHERE]);
                     }
 
                 } else {
@@ -69,7 +81,7 @@ abstract class Rest extends RestLifeCycle
 
                     if (false === self::$allowFullTableDeletes
                         && $emptyPrimary
-                        && empty($argv)) {
+                        && empty($argv[self::WHERE])) {
 
                         return self::signalError('When deleting from restful tables a primary key or where query must be provided. This can be disabled by setting `self::\$allowFullTableDeletes = true;` during the PREPROCESS events, or just directly before this request.');
 
@@ -93,7 +105,7 @@ abstract class Rest extends RestLifeCycle
                         // todo - complex join logic
                         if (false === self::$allowFullTableDeletes
                             && $actualPrimaryCount !== $primaryIntersect
-                            && $actualPrimaryCount !== count(array_intersect(array_keys($argv[self::WHERE] ?? $argv), static::PRIMARY))) {
+                            && $actualPrimaryCount !== count(array_intersect(array_keys($argv[self::WHERE]), static::PRIMARY))) {
 
                             return self::signalError('You must provide all primary keys ('
                                 . implode(', ', static::PRIMARY)
@@ -101,18 +113,16 @@ abstract class Rest extends RestLifeCycle
 
                         }
 
-                        /** @noinspection SlowArrayOperationsInLoopInspection */
-                        $argv = array_merge($argv, $primary ?? []);
+                        $argv[self::WHERE] = array_merge($argv[self::WHERE], $primary ?? []);
                         // todo - this is a good point. were looping and running and array merge..
 
                     } elseif (is_string(static::PRIMARY) && !$emptyPrimary) {
 
-                        /** @noinspection SlowArrayOperationsInLoopInspection */
-                        $argv = array_merge($argv, $primary);
+                        $argv[self::WHERE] = array_merge($argv[self::WHERE], $primary);
 
                     }
 
-                    $where = self::buildBooleanJoinedConditions($argv);
+                    $where = self::buildBooleanJoinedConditions($argv[self::WHERE]);
 
                     $emptyWhere = empty($where);
 

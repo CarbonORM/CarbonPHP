@@ -603,7 +603,7 @@ class Session implements SessionHandlerInterface
 
             $session_table = self::getSessionTable();
 
-            return $session_table::Delete($session_table_row, $session_id, [
+            return $session_table::Delete($session_table_row, null, [
                 iRest::WHERE => [
                     [
                         $session_table::USER_ID => self::$user_id,
