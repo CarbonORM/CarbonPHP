@@ -11,6 +11,7 @@ use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Rest;
 use CarbonPHP\Route;
 use CarbonPHP\Session;
+use PDO;
 use PDOException;
 use PDOStatement;
 use Throwable;
@@ -424,6 +425,14 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
             $methodCase = ucfirst(strtolower($_SERVER['REQUEST_METHOD']));  // this is to match actual method spelling
 
+
+            $fullyQualified = $namespace . $mainTable;
+
+
+            $tableHasNumericPdoPrimaryKey = $requestTableHasPrimary
+                && 1 === count($fullyQualified::PRIMARY_KEY)
+                && ($fullyQualified::PDO_VALIDATION[$fullyQualified::PRIMARY_KEY[0]][self::PDO_TYPE] ?? false) === PDO::PARAM_INT;
+
             switch ($method) {
                 case self::OPTIONS:
                 case self::PUT:
@@ -432,7 +441,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
                     $return = [];
 
-                    if (!call_user_func_array([$namespace . $mainTable, $methodCase], $requestTableHasPrimary ? [&$return, $primary, $args] : [&$return, $args])) {
+                    if (!call_user_func_array([$fullyQualified, $methodCase], $requestTableHasPrimary ? [&$return, $primary, $args] : [&$return, $args])) {
 
                         throw new PublicAlert('The request failed (returned false), please make sure arguments are correct.');
 
@@ -442,11 +451,27 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
                     if ($method === self::PUT) {
 
-                        $json['rest']['updated'] = $primary ?? $args;
+                        $updated = $primary ?? $args;
+
+                        if ($tableHasNumericPdoPrimaryKey) {
+
+                            $updated = (int)$updated;
+
+                        }
+
+                        $json['rest']['updated'] = $updated;
 
                     } elseif ($method === self::DELETE) {
 
-                        $json['rest']['deleted'] = $primary ?? $args;
+                        $deleted = $primary ?? $args;
+
+                        if ($tableHasNumericPdoPrimaryKey) {
+
+                            $deleted = (int)$deleted;
+
+                        }
+
+                        $json['rest']['deleted'] = $deleted;
 
                     }
 
@@ -466,7 +491,15 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
                     }
 
-                    $json['rest'] = ['created' => $id];
+                    $created = $id;
+
+                    if ($tableHasNumericPdoPrimaryKey) {
+
+                        $created = (int)$created;
+
+                    }
+
+                    $json['rest'] = ['created' => $created];
 
                     break;
             }
