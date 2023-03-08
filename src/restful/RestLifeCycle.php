@@ -430,8 +430,8 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
 
             $tableHasNumericPdoPrimaryKey = $requestTableHasPrimary
-                && 1 === count($fullyQualified::PRIMARY_KEY)
-                && ($fullyQualified::PDO_VALIDATION[$fullyQualified::PRIMARY_KEY[0]][self::PDO_TYPE] ?? false) === PDO::PARAM_INT;
+                && true === is_string($fullyQualified::PRIMARY)
+                && ($fullyQualified::PDO_VALIDATION[$fullyQualified::PRIMARY][self::PDO_TYPE] ?? false) === PDO::PARAM_INT;
 
             switch ($method) {
                 case self::OPTIONS:
