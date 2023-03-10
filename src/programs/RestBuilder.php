@@ -884,7 +884,7 @@ END;
 
                             if (count($argv = explode(' ', $type)) > 1) {
 
-                                $simpleType = $argv[0];
+                                $simpleType = rtrim($argv[0], ',');;
 
                             }
 
