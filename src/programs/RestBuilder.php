@@ -882,6 +882,12 @@ END;
 
                             }
 
+                            if (count($argv = explode(' ', $type)) > 1) {
+
+                                $type = $argv[0];
+
+                            }
+
                             $type = rtrim($type, ',');
 
                             $rest[$tableName]['explode'][$explodeArrayPosition]['mysql_type'] = $type;
