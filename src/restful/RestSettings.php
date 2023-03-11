@@ -24,19 +24,19 @@ abstract class RestSettings extends Database implements iRest {
     /**
      * @var mixed
      */
-    public static $REST_REQUEST_PRIMARY_KEY = null;       // this is set with the request payload
+    public static mixed $REST_REQUEST_PRIMARY_KEY = null;       // this is set with the request payload
 
     public const REST_REQUEST_PRIMARY_KEY = 'REST_REQUEST_PRIMARY_KEY';       // this is set with the request payload
 
     /**
      * @var mixed
      */
-    public static $REST_REQUEST_PARAMETERS = [];            // this is set with the request payload
+    public static mixed $REST_REQUEST_PARAMETERS = [];            // this is set with the request payload
 
     /**
      * @var mixed
      */
-    public static $REST_REQUEST_RETURN_DATA = [];           // this is set with the request payload
+    public static mixed $REST_REQUEST_RETURN_DATA = [];           // this is set with the request payload
     public static array $VALIDATED_REST_COLUMNS = [];
     public static array $compiled_valid_columns = [];
     public static array $compiled_PDO_validations = [];
