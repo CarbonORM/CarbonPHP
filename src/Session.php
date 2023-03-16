@@ -123,6 +123,12 @@ class Session implements SessionHandlerInterface
 
             }
 
+            if (true === headers_sent($file, $line)) {
+
+                throw new PublicAlert('Headers already sent; cannot start session in (' . $file . ') on line (' . $line . ')');
+
+            }
+
             // this should not throw an error.. but if it doesnt we will catch and die
             if (false === session_start()) {
 
