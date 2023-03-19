@@ -241,7 +241,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
                     if (0 === preg_match_all($pattern, $value, $matches, PREG_SET_ORDER)) {  // can return 0 or false
 
-                        throw new PublicAlert(($errorMessage ?? "The column ($column) was set to be compared with a value who did not pass the regex (" . $pattern . ") test. Please check this ($value) value and try again. preg_match_all: (" . var_export($matches, true) . ') preg_last_error_msg: (' . preg_last_error_msg() . ')')
+                        throw new PublicAlert(($errorMessage . ". The column ($column) was set to be compared with a value who did not pass the regex (" . $pattern . ") test. Please check this ($value) value and try again. preg_match_all: (" . var_export($matches, true) . ') preg_last_error_msg: (' . preg_last_error_msg() . ')')
                             . " CODE: ($pattern) <> ($value) preg_last_error_msg: (" . preg_last_error_msg() . ')');
 
                     }

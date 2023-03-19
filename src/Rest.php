@@ -500,7 +500,7 @@ abstract class Rest extends RestLifeCycle
 
                     $op = self::EQUAL;
 
-                    if (false === self::validateInternalColumn($fullName, $op, $value)) {
+                    if (false === self::validateInternalColumn($fullName, $op, $argv[$fullName])) {
 
                         return self::signalError("Your custom restful api validations caused the request to fail on column ($fullName).");
 
