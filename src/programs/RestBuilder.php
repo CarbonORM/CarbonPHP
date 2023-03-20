@@ -9,6 +9,7 @@ use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Helpers\Background;
 use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Helpers\Composer;
+use CarbonPHP\Helpers\Files;
 use CarbonPHP\Helpers\MySQL;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
@@ -595,7 +596,7 @@ END;
 
                                 $constructor = '__construct';
 
-                                if (self::grabCodeSnippet(RestLifeCycle::class, $constructor ) !== self::grabCodeSnippet($fullTableClassName, $constructor)) {
+                                if (self::grabCodeSnippet(RestLifeCycle::class, $constructor) !== self::grabCodeSnippet($fullTableClassName, $constructor)) {
 
                                     // todo - add any method we want to allow "overrides for"
                                     $methods[] = '__construct';
@@ -1184,7 +1185,7 @@ END;
                     if (!empty($regex_validations)) {
 
                         // this allows modifiers to be added to the regex
-                        $str_lreplace = static function (string $search, string $replace, string $subject) : string {
+                        $str_lreplace = static function (string $search, string $replace, string $subject): string {
 
                             $pos = strrpos($subject, $search);  // position for the next replace offset
 
@@ -1198,7 +1199,7 @@ END;
                             return $subject;
                         };
 
-                        $fixRegexForJavascript = static function (string $string) use (&$str_lreplace) : string{
+                        $fixRegexForJavascript = static function (string $string) use (&$str_lreplace): string {
 
                             $delimiter = $string[0]; // typically a # in php but may vary.
 
@@ -1556,8 +1557,15 @@ export const convertForRequestBody = function (restfulObject: RestTableInterface
 };
 
 ";
-            file_put_contents($react . 'C6.tsx', $export);
+            $storeReactTsLocation = $react . 'C6.tsx';
 
+            Files::mkdir($storeReactTsLocation);
+
+            if (false === file_put_contents($storeReactTsLocation, $export)) {
+
+                throw new PublicAlert('Failed to write to ' . $storeReactTsLocation);
+
+            }
 
             if ($javascriptBindings) {
                 $export = /** @lang TypeScript JSX */
@@ -1638,7 +1646,13 @@ const convertForRequestBody = function (restfulObject, tableName, regexErrorHand
 };
 
 ";
-                file_put_contents($javascriptBindings . 'C6.js', $export);
+                $javascriptBindingsPath = $javascriptBindings . 'C6.js';
+
+                if (false === file_put_contents($javascriptBindingsPath, $export)) {
+
+                    throw new PublicAlert('Failed to write react js bindings to (' . $javascriptBindingsPath . ')');
+
+                }
 
             }
 
