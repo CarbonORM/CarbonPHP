@@ -7,6 +7,7 @@ use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Restful\RestLifeCycle;
 use CarbonPHP\Tables\Carbons;
 use PDO;
+use PDOStatement;
 use Throwable;
 
 abstract class Rest extends RestLifeCycle
@@ -164,6 +165,13 @@ abstract class Rest extends RestLifeCycle
 
                 }
 
+                if (false === self::verifyRowsAffected($stmt, self::$REST_REQUEST_METHOD, $sql, $primary, $argv)) {
+
+                    return false;
+
+                }
+
+                // todo - should this pass as ref? and be emptied later?
                 $remove = [];
 
                 self::prepostprocessRestRequest($remove);
@@ -548,18 +556,9 @@ abstract class Rest extends RestLifeCycle
 
             }
 
-            $rowCount = $stmt->rowCount();
+            if (false === self::verifyRowsAffected($stmt, $update_or_replace, $sql, $primary, $argv)) {
 
-            if (0 === $rowCount) {
-
-                return self::signalError("Zero rows were updated. MySQL failed update any target(s) during ($update_or_replace) on "
-                    . 'table (' . static::TABLE_NAME . ") while executing query ($sql). The arguments passed to rest are ("
-                    . print_r($argv, true) . ") and primary key(s) ("
-                    . print_r($primary, true) . "). By default CarbonPHP passes "
-                    . 'PDO::MYSQL_ATTR_FOUND_ROWS => false, to the PDO driver; aka return the number of affected rows, '
-                    . 'not the number of rows found. If you have not manually updated these options, your issue may only be '
-                    . 'the target not needing updates. Another possibility includes no rows matching your update query.<br/>'
-                    . print_r($stmt->errorInfo(), true));
+                return false;
 
             }
 
@@ -1015,6 +1014,40 @@ abstract class Rest extends RestLifeCycle
 
         return false;
 
+    }
+
+    private static function verifyRowsAffected(PDOStatement $stmt, string $method,
+                                               string       $sql, array|string|null $primary, array|null $argv): bool
+    {
+
+        $allPrimaryKeysGiven = false === empty($primary)
+            && ((($receivedPks = count($primary)) === 1 && is_string(static::PRIMARY))
+                || ($receivedPks === count(static::PRIMARY)));
+
+        $rowCount = $stmt->rowCount();
+
+        if (self::$externalRestfulRequestsAPI) {
+
+            $GLOBALS['json'] ??= [];
+
+            $GLOBALS['json']['rowCount'] = $rowCount;
+
+        }
+
+        if (0 === $rowCount && true === $allPrimaryKeysGiven) {
+
+            return self::signalError("Zero rows were updated. MySQL failed update any target(s) during ($method) on "
+                . 'table (' . static::TABLE_NAME . ") while executing query ($sql). The arguments passed to rest are ("
+                . print_r($argv, true) . ") and primary key(s) ("
+                . print_r($primary, true) . "). By default CarbonPHP passes "
+                . 'PDO::MYSQL_ATTR_FOUND_ROWS => false, to the PDO driver; aka return the number of affected rows, '
+                . 'not the number of rows found. If you have not manually updated these options, your issue may only be '
+                . 'the target not needing updates. Another possibility includes no rows matching your update query.<br/>'
+                . print_r($stmt->errorInfo(), true));
+
+        }
+
+        return true;
     }
 
 }

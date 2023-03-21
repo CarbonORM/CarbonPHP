@@ -447,19 +447,22 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
                     }
 
+                    // we're in success operation; TODO - should we double check the commit status?
+
                     $json['rest'] = $return;
 
                     if ($method === self::PUT) {
 
                         $updated = $primary ?? $args;
 
+                        // this could fail?
                         if ($tableHasNumericPdoPrimaryKey) {
 
                             $updated = (int)$updated;
 
                         }
 
-                        $json['rest']['updated'] = $updated;
+                        $json['updated'] = $updated;
 
                     } elseif ($method === self::DELETE) {
 
@@ -471,7 +474,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
                         }
 
-                        $json['rest']['deleted'] = $deleted;
+                        $json['deleted'] = $deleted;
 
                     }
 
