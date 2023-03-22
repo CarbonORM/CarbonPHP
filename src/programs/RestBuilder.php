@@ -853,9 +853,7 @@ END;
 
                             $rest[$tableName]['explode'][$explodeArrayPosition]['caps'] = strtoupper($name);
 
-                            $simpleType = strtolower($wordsInLine[1]);
-
-                            $type = $simpleType;
+                            $type = strtolower($wordsInLine[1]);
 
                             if ('unsigned' === ($wordsInLine[2] ?? '')) {
 
@@ -883,6 +881,8 @@ END;
 
                             }
 
+                            $simpleType = $type;
+                            
                             if (count($argv = explode(' ', $type)) > 1) {
 
                                 $simpleType = rtrim($argv[0], ',');;
