@@ -10,6 +10,7 @@ namespace CarbonPHP\Programs;
 
 
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Helpers\Background;
 use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Interfaces\iColorCode;

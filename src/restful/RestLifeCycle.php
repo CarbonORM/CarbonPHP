@@ -502,7 +502,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
                     }
 
-                    $json['rest'] = ['created' => $created];
+                    $json['created'] =  $created;
 
                     break;
             }
