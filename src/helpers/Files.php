@@ -213,10 +213,6 @@ abstract class Files
     public static function largeHttpGetRequestsToFile(string $url, string $toLocalFilePath, array &$responseHeaders = [], int $timeout = 3): void
     {
 
-        $serverSentMd5 = '';
-
-        $serverSentSha1 = '';
-
         $bytesStored = false;
 
         try {

@@ -502,7 +502,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
                     }
 
-                    $json['created'] =  $created;
+                    $json['created'] = $created;
 
                     break;
             }
@@ -606,6 +606,17 @@ abstract class RestLifeCycle extends RestQueryBuilder
                 static::ExternalRestfulRequestsAPI($table, $primary, $namespace);
 
             });
+
+    }
+
+    public static function hijackRestfulRequest(array $return): never
+    {
+
+        header('Content-Type: application/json', true, 200); // Send as JSON
+
+        print json_encode($return, JSON_THROW_ON_ERROR);
+
+        exit(0);
 
     }
 }

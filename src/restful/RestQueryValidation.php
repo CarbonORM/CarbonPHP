@@ -205,6 +205,37 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
     }
 
+    public static function runRegexValidations($column, $value): string|null {
+
+        if (true === is_string(self::$compiled_regex_validations[$column])) {
+
+            self::$compiled_regex_validations[$column] = [self::$compiled_regex_validations[$column] => null];
+
+        }
+
+        foreach (self::$compiled_regex_validations[$column] as $pattern => $errorMessage) {
+
+            $matchStatus = preg_match_all($pattern, $value, $matches, PREG_SET_ORDER);
+
+            if (false === $matchStatus) {
+
+                throw new PublicAlert("Regex validation failed for pattern ($pattern) on value ($value) provided for column ($column)! The functions preg_match_all returned false. preg_last_error_msg: (" . preg_last_error_msg() . ')');
+
+            }
+
+            if (0 === preg_match_all($pattern, $value, $matches, PREG_SET_ORDER)) {  // can return 0 or false
+
+                return ($errorMessage . ". The column ($column) was set to be compared with a value who did not pass the regex (" . $pattern . ") test. Please check this ($value) value and try again. preg_match_all: (" . var_export($matches, true) . ') preg_last_error_msg: (' . preg_last_error_msg() . ')')
+                    . " CODE: ($pattern) <> ($value) preg_last_error_msg: (" . preg_last_error_msg() . ')';
+
+            }
+
+        }
+
+        return null;
+
+    }
+
     /**
      * @throws PublicAlert
      */
@@ -223,28 +254,11 @@ abstract class RestQueryValidation extends RestAutoTargeting
             if (false === $equalsValidColumn
                 && array_key_exists($column, self::$compiled_regex_validations)) {
 
-                if (true === is_string(self::$compiled_regex_validations[$column])) {
+                $errorMessage = self::runRegexValidations($column, $value);
 
-                    self::$compiled_regex_validations[$column] = [self::$compiled_regex_validations[$column] => null];
+                if (null !== $errorMessage) {
 
-                }
-
-                foreach (self::$compiled_regex_validations[$column] as $pattern => $errorMessage) {
-
-                    $matchStatus = preg_match_all($pattern, $value, $matches, PREG_SET_ORDER);
-
-                    if (false === $matchStatus) {
-
-                        throw new PublicAlert("Regex validation failed for pattern ($pattern) on value ($value) provided for column ($column)! The functions preg_match_all returned false. preg_last_error_msg: (" . preg_last_error_msg() . ')');
-
-                    }
-
-                    if (0 === preg_match_all($pattern, $value, $matches, PREG_SET_ORDER)) {  // can return 0 or false
-
-                        throw new PublicAlert(($errorMessage . ". The column ($column) was set to be compared with a value who did not pass the regex (" . $pattern . ") test. Please check this ($value) value and try again. preg_match_all: (" . var_export($matches, true) . ') preg_last_error_msg: (' . preg_last_error_msg() . ')')
-                            . " CODE: ($pattern) <> ($value) preg_last_error_msg: (" . preg_last_error_msg() . ')');
-
-                    }
+                    throw new PublicAlert($errorMessage);
 
                 }
 
@@ -730,10 +744,10 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
     }
 
-    public static function runValidations(array $php_validation, &...$rest): void
+    public static function runValidations(array &$php_validation, &...$rest): void
     {
 
-        foreach ($php_validation as $key => $validation) {
+        foreach ($php_validation as $key => &$validation) {
 
             if (!is_int($key)) {
 
@@ -765,7 +779,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
                     } else if (false === call_user_func_array($validation, [&$rest])) {
 
-                        throw new PublicAlert('A column request validation callable validation failed, please make sure arguments are correct.');
+                        throw new PublicAlert('A column request validation callable validation failed, please make sure arguments are correct. (' . print_r($rest, true) . ')');
 
                     }
 
