@@ -6,6 +6,7 @@ use CarbonPHP\CarbonPHP;
 use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iColorCode;
+use CarbonPHP\Programs\Migrate;
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -206,6 +207,115 @@ abstract class Files
         }
         fwrite($rs, $output);
         return fclose($rs);
+    }
+
+
+    public static function largeHttpGetRequestsToFile(string $url, string $toLocalFilePath, array &$responseHeaders = [], int $timeout = 3): void
+    {
+
+        $serverSentMd5 = '';
+
+        $serverSentSha1 = '';
+
+        $bytesStored = false;
+
+        try {
+
+            $url = trim($url);
+
+            ColorCode::colorCode("Attempting to get possibly large file\n$url\nfile://$toLocalFilePath", iColorCode::BACKGROUND_GREEN);
+
+            $fileName = basename($toLocalFilePath);
+
+            $tmpPath = CarbonPHP::$app_root . 'tmp' . DS . $fileName;
+
+            // create curl resource
+            $ch = curl_init();
+
+            // set url
+            curl_setopt($ch, CURLOPT_URL, $url);
+
+            Migrate::curlReturnFileAppend($ch, $tmpPath, $bytesStored);
+
+            curl_setopt($ch, CURLOPT_COOKIEJAR, '-');
+
+            ColorCode::colorCode("Setting the timeout to ($timeout) <" . Migrate::secondsToReadable($timeout) . '>', iColorCode::BACKGROUND_YELLOW);
+
+            curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+
+            curl_setopt($ch, CURLOPT_HEADER, 0);
+
+            $responseHeaders = [];
+
+            Migrate::curlProgress($ch);
+
+            Migrate::curlGetResponseHeaders($ch, $responseHeaders);
+
+            $dirname = dirname($toLocalFilePath);
+
+            self::createDirectoryIfNotExist($dirname);
+
+            if (false === touch($tmpPath)) {
+
+                throw new PublicAlert("Failed to create tmp file (file://$tmpPath)");
+
+            }
+
+            // $output contains the output string
+            curl_exec($ch);
+
+            // close curl resource to free up system resources
+            curl_close($ch);
+
+            if (false === file_exists($tmpPath)) {
+
+                throw new PublicAlert("Failed to locate temp file ($tmpPath)");
+
+            }
+
+            ColorCode::colorCode("Stored to local tmp file (file://$tmpPath)", iColorCode::BACKGROUND_RED);
+
+            if (false === $bytesStored) {
+
+                ColorCode::colorCode("The method (" . __METHOD__ . ") received 0 bytes while fetching url\n($url) and storing to file\n(file://$toLocalFilePath). Empty file created.");
+
+            }
+
+            if ($toLocalFilePath !== $tmpPath) {
+
+                if (file_exists($toLocalFilePath) && false === unlink($toLocalFilePath)) {
+
+                    throw new PublicAlert("Failed to unlink <remove> file ($toLocalFilePath)");
+
+                }
+
+                if (false === copy($tmpPath, $toLocalFilePath)) {
+
+                    throw new PublicAlert("Failed to copy ($tmpPath) to ($toLocalFilePath)");
+
+                }
+
+            }
+
+            ColorCode::colorCode("Stored to file \nfile://$toLocalFilePath", iColorCode::BACKGROUND_CYAN);
+
+            if (CarbonPHP::$verbose) {
+
+                ColorCode::colorCode("Detected in verbose mode, will not unlink file\nfile://$tmpPath",
+                    iColorCode::YELLOW);
+
+            } elseif ($toLocalFilePath !== $tmpPath) {
+
+                unlink($tmpPath);
+
+            }
+
+        } catch (Throwable $e) {
+
+            ThrowableHandler::generateLogAndExit($e);
+
+        }
+
     }
 
 }
