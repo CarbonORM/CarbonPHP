@@ -452,14 +452,9 @@ class CarbonRestTest extends Config
 
         self::assertEmpty($user, 'Could not delete user admin in cascade delete function.');
 
+        $id = self::createUser();
 
-        self::assertTrue(Users::Get($user, null, [
-            iRest::WHERE => [
-                Users::USER_USERNAME => Config::ADMIN_USERNAME
-            ]
-        ]));
-
-        self::assertTrue(Users::Delete($user, '8544e3d581ba11e8942cd89ef3fc55fb', []),
+        self::assertTrue(Users::Delete($user, $id, []),
             'Test can delete by primary key.php');
 
         self::assertEmpty($user, 'Cascade delete failed.');
