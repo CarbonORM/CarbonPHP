@@ -132,7 +132,7 @@ class Session implements SessionHandlerInterface
             // this should not throw an error.. but if it doesnt we will catch and die
             if (false === session_start()) {
 
-                throw new PublicAlert('CarbonPHP failed to start your session; session_start() failed.');
+                throw new PublicAlert('PHP failed to start your session; session_start() failed.');
 
             }
 
@@ -395,13 +395,13 @@ class Session implements SessionHandlerInterface
 
             Database::TryCatchPDOException($e); // this will terminate 99% of the time
 
+            return false;
+
         } catch (Throwable $e) {
 
-            ThrowableHandler::generateLog($e); // this will terminate
+            ThrowableHandler::generateLogAndExit($e); // this will terminate
 
         }
-
-        return true;
 
     }
 
@@ -447,11 +447,7 @@ class Session implements SessionHandlerInterface
         ];
 
 
-        if (false === $session_table::post($insertIgnore)) {
-
-            return false;
-
-        }
+        $session_table::post($insertIgnore);
 
         /** @noinspection PhpPossiblePolymorphicInvocationInspection */
         if (false === $session_table::get($session_table_row, $id, [
@@ -461,7 +457,7 @@ class Session implements SessionHandlerInterface
                 iRest::LOCK => iRest::FOR_UPDATE
             ])) {
 
-            return false;
+            throw new PublicAlert('Session not found. If problem persists please contact support.');
 
         }
 
