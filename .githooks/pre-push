@@ -11,6 +11,9 @@ require 'common.php';
 
 $statusCode = 0;
 
+
+Background::executeAndCheckStatus('composer run test');
+
 passthru('git fetch --tags', $statusCode);
 
 if (0 !== $statusCode) {

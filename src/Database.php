@@ -517,6 +517,14 @@ FOOT;
      */
     public static function commit(): bool
     {
+        static $committedTransactions = 0;
+
+        $comment = static function() use ($committedTransactions) {
+            $GLOBALS['json']['sql'][] = [
+                'Committed Transaction' => ++$committedTransactions,
+                'Committing transaction from' => 'file (' . __FILE__ . ') from method (' . __METHOD__ . ') at line (' . __LINE__ . ')'
+            ];
+        };
 
         $db = self::database(false);
 
@@ -531,12 +539,26 @@ FOOT;
 
             $GLOBALS['json']['session']['session_write_close'] = 'Committing session from (' . __FILE__ . ') from method (' . __METHOD__ . ') at line (' . __LINE__ . ')';
 
-            return session_write_close();
+            $success = session_write_close();
+
+            if (false === $success) {
+
+                throw new PublicAlert('Session failed to write close in (' . __METHOD__ . ') at line (' . __LINE__ . ')');
+
+            }
+
+            $comment();
+
+            return true;
 
         }
 
         if ($db->commit()) {
+
+            $comment();
+
             return true;
+
         }
 
         // rollback

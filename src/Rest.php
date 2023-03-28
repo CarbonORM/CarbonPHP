@@ -305,7 +305,9 @@ abstract class Rest extends RestLifeCycle
 
                     if (array_key_exists($key, $return)) {
 
-                        $return[$key] = json_decode($return[$key], true);
+                        $return[$key] = null !== $return[$key]
+                            ? json_decode($return[$key], true, 512, JSON_THROW_ON_ERROR)
+                            : null;
 
                     }
 
