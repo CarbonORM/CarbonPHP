@@ -931,7 +931,7 @@ class CarbonPHP
         $arrHttpHeaders = array();
 
         foreach ($_SERVER as $strKey => $mixValue) {
-            if (strpos($strKey, 'HTTP_') !== 0) {
+            if (!str_starts_with($strKey, 'HTTP_')) {
                 continue;
             }
 
