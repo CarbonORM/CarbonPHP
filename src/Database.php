@@ -510,6 +510,9 @@ FOOT;
 
     }
 
+
+    public static int $committedTransactions = 0;
+
     /** Commit the current transaction to the database.
      * @link http://php.net/manual/en/pdo.rollback.php
      * @return bool
@@ -517,13 +520,14 @@ FOOT;
      */
     public static function commit(): bool
     {
-        static $committedTransactions = 0;
 
-        $comment = static function() use ($committedTransactions) {
+        $thisMethod = __METHOD__;
+
+        $comment = static function (array $moreLogging = []) use ($thisMethod) {
             $GLOBALS['json']['sql'][] = [
-                'Committed Transaction' => ++$committedTransactions,
-                'Committing transaction from' => 'file (' . __FILE__ . ') from method (' . __METHOD__ . ') at line (' . __LINE__ . ')'
-            ];
+                    'Committed Transaction' => ++self::$committedTransactions,
+                    'Committing transaction from' => 'file (' . __FILE__ . ') method (' . $thisMethod . ') at line (' . __LINE__ . ')'
+                ] + $moreLogging;
         };
 
         $db = self::database(false);
@@ -537,12 +541,6 @@ FOOT;
         if (false === empty(Session::$session_id)
             && session_status() === PHP_SESSION_ACTIVE) {
 
-            $GLOBALS['json'] ??= [];
-
-            $GLOBALS['json']['session'] ??= [];
-
-            $GLOBALS['json']['session']['session_write_close'] = 'Committing session from (' . __FILE__ . ') from method (' . __METHOD__ . ') at line (' . __LINE__ . ')';
-
             $success = session_write_close();
 
             if (false === $success) {
@@ -551,7 +549,16 @@ FOOT;
 
             }
 
-            $comment();
+            $comment([
+                'Session ID' => Session::$session_id,
+                'Session Status' => [
+                    'session_status()' => session_status(),
+                    'PHP_SESSION_DISABLED' => PHP_SESSION_DISABLED,
+                    'PHP_SESSION_ACTIVE' => PHP_SESSION_ACTIVE,
+                    'PHP_SESSION_NONE' => PHP_SESSION_NONE,
+                ],
+                'Session Write Close' => '(this commit closed the session)'
+            ]);
 
             return true;
 
