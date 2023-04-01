@@ -526,7 +526,10 @@ FOOT;
         $comment = static function (array $moreLogging = []) use ($thisMethod) {
             $GLOBALS['json']['sql'][] = [
                     'Committed Transaction' => ++self::$committedTransactions,
-                    'Committing transaction from' => 'file (' . __FILE__ . ') method (' . $thisMethod . ') at line (' . __LINE__ . ')'
+                    'Committing transaction from' => [
+                        'file (' . __FILE__ . ') method (' . $thisMethod . ') at line (' . __LINE__ . ')',
+                        'debug_backtrace' => debug_backtrace()
+                    ]
                 ] + $moreLogging;
         };
 
