@@ -1048,7 +1048,7 @@ abstract class Rest extends RestLifeCycle
                         . print_r($primary, true) . "). By default CarbonPHP passes "
                         . 'PDO::MYSQL_ATTR_FOUND_ROWS => false, to the PDO driver; aka return the number of affected rows, '
                         . 'not the number of rows found. No changes have been made to this configuration. Your issue may only be '
-                        . 'the target not needing updates, or no rows exsisting based on query/table conditions. <br/> ([SQLSTATE, Driver specific error code, Driver specific error message] :: '
+                        . 'the target not needing updates, or no rows exsisting based on query/table conditions. <br/> ([SQLSTATE, Driver specific error code, Driver specific error message]) :: '
                         . print_r($stmt->errorInfo(), true)) . ')';
 
             }
@@ -1058,7 +1058,7 @@ abstract class Rest extends RestLifeCycle
                     . print_r($argv, true) . ") and primary key(s) ("
                     . print_r($primary, true) . "). CarbonPHP has been overridden and passes "
                     . 'PDO::MYSQL_ATTR_FOUND_ROWS => true, to the PDO driver; aka return the number of found rows, '
-                    . 'not the number of rows effected :: '
+                    . 'not the number of rows effected <br/> ([SQLSTATE, Driver specific error code, Driver specific error message]) :: '
                     . print_r($stmt->errorInfo(), true)) . ')';
 
 

@@ -588,7 +588,12 @@ FOOT;
      */
     public static function getPdoOptions(): array
     {
-        return self::$pdo_options ??= [
+        return self::$pdo_options ??= self::getDefaultPdoOptions();
+    }
+
+    public static function getDefaultPdoOptions(): array
+    {
+        return [
             PDO::ATTR_EMULATE_PREPARES => true,
             PDO::ATTR_PERSISTENT => CarbonPHP::$cli,                // only in cli (including websockets)
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
