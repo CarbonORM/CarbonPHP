@@ -1038,14 +1038,29 @@ abstract class Rest extends RestLifeCycle
 
         if (0 === $rowCount && true === $allPrimaryKeysGiven) {
 
-            return self::signalError("Zero rows were updated. MySQL failed update any target(s) during ($method) on "
-                . 'table (' . static::TABLE_NAME . ") while executing query ($sql). The arguments passed to rest are ("
-                . print_r($argv, true) . ") and primary key(s) ("
-                . print_r($primary, true) . "). By default CarbonPHP passes "
-                . 'PDO::MYSQL_ATTR_FOUND_ROWS => false, to the PDO driver; aka return the number of affected rows, '
-                . 'not the number of rows found. If you have not manually updated these options, your issue may only be '
-                . 'the target not needing updates. Another possibility includes no rows matching your update query.<br/> ([SQLSTATE, Driver specific error code, Driver specific error message] :: '
-                . print_r($stmt->errorInfo(), true)) . ')';
+            $pdoOptions = Database::getPDOOptions();
+
+            if ($pdoOptions[PDO::MYSQL_ATTR_FOUND_ROWS] === false) {
+
+                return self::signalError("Zero rows were updated. MySQL failed update any target(s) during ($method) on "
+                        . 'table (' . static::TABLE_NAME . ") while executing query ($sql). The arguments passed to rest are ("
+                        . print_r($argv, true) . ") and primary key(s) ("
+                        . print_r($primary, true) . "). By default CarbonPHP passes "
+                        . 'PDO::MYSQL_ATTR_FOUND_ROWS => false, to the PDO driver; aka return the number of affected rows, '
+                        . 'not the number of rows found. No changes have been made to this configuration. Your issue may only be '
+                        . 'the target not needing updates, or no rows exsisting based on query/table conditions. <br/> ([SQLSTATE, Driver specific error code, Driver specific error message] :: '
+                        . print_r($stmt->errorInfo(), true)) . ')';
+
+            }
+
+            return self::signalError("Zero rows were found for update! MySQL failed to find any target(s) to update during ($method) on "
+                    . 'table (' . static::TABLE_NAME . ") while executing query ($sql). The arguments passed to rest are ("
+                    . print_r($argv, true) . ") and primary key(s) ("
+                    . print_r($primary, true) . "). CarbonPHP has been overridden and passes "
+                    . 'PDO::MYSQL_ATTR_FOUND_ROWS => true, to the PDO driver; aka return the number of found rows, '
+                    . 'not the number of rows effected :: '
+                    . print_r($stmt->errorInfo(), true)) . ')';
+
 
         }
 

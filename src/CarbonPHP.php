@@ -2,6 +2,7 @@
 
 namespace CarbonPHP;
 
+use CarbonPHP\Enums\ThrowableReportDisplay;
 use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Helpers\ColorCode;
@@ -99,6 +100,7 @@ class CarbonPHP
 
     // Error Catcher
     public const ERROR = 'ERROR';
+    public const DISPLAY = 'DISPLAY';
     public const LOCATION = 'LOCATION';
     public const LEVEL = 'LEVEL';
     public const STORE = 'STORE';
@@ -573,6 +575,8 @@ class CarbonPHP
             if ($config[self::ERROR] ??= false) {
 
                 ThrowableHandler::$defaultLocation ??= self::$reports . 'default_log.txt';
+
+                ThrowableHandler::$throwableReportDisplay ??= $config[self::ERROR][self::DISPLAY] ?? (self::$cli ? ThrowableReportDisplay::CLI_MINIMAL : ThrowableReportDisplay::FULL_DEFAULT);
 
                 ThrowableHandler::$printToScreen = $config[self::ERROR][self::SHOW] ?? ThrowableHandler::$printToScreen;
 
