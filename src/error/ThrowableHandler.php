@@ -404,15 +404,20 @@ class ThrowableHandler
 
     }
 
+    public static function shouldSendJson(): bool
+    {
+        return $_SERVER["CONTENT_TYPE"] === 'application/json'
+            || 'XMLHttpRequest' === ($_SERVER["HTTP_X_REQUESTED_WITH"] ?? '')
+            || strpos($_SERVER["CONTENT_TYPE"], 'application/json');
+    }
+
 
     public static function exitAndSendBasedOnRequested(array $json, string $html)
     {
 
         $_SERVER["CONTENT_TYPE"] ??= '';
 
-        $sendJson = $_SERVER["CONTENT_TYPE"] === 'application/json'
-            || 'XMLHttpRequest' === ($_SERVER["HTTP_X_REQUESTED_WITH"] ?? '')
-            || strpos($_SERVER["CONTENT_TYPE"], 'application/json');
+        $sendJson = self::shouldSendJson();
 
         if (false === headers_sent()) {
 
@@ -1063,10 +1068,14 @@ class ThrowableHandler
 
                     if (true === self::$storeReport) {
 
-                        print <<<REDIRECT
+                        if (false === self::shouldSendJson()) {
+
+                            print <<<REDIRECT
                             <meta http-equiv="refresh" content="0; URL=/$log_file_html" />
                             <script>window.location.replace("/$log_file_html");</script>
                             REDIRECT;
+
+                        }
 
                         exit(1);
 
