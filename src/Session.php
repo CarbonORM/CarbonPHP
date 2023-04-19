@@ -505,7 +505,8 @@ class Session implements SessionHandlerInterface
 
         }
 
-        $newDateTime = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . ' + 1 d,lay'));  // so from time of last write and whenever the gc_collector hits
+        // d,lay mean
+        $newDateTime = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . ' + 1 day'));  // so from time of last write and whenever the gc_collector hits
 
         try {
 
