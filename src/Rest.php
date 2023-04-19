@@ -953,9 +953,14 @@ abstract class Rest extends RestLifeCycle
                                 'Auto increment keys used indiscriminately are a waste of the primary key access which is always the fastest way to get to a row in a table.',
                                 'Auto increment locks can and do impact concurrency and scalability of your database.',
                                 'In an Highly Available replication environment using standard Async Replication, auto increment risks orphan rows during a master failure event.',
-                                'If you are lucky enough to need to scale writes beyond a single server and end up having to shard auto increment no longer produces unique keys.',
                                 '@quote @author John Schulz',
                                 '@source @reference @link https://blog.pythian.com/case-auto-increment-mysql/',
+                                'Some of his points are fairly outdated, but the general idea is still valid. Auto increment is not a good idea for a primary key.',
+                                'Special consideration must be considered when using UUIDS as primary keys to maintain B-Tree innodb efficiently. MySQL 8 has new convience functions to help with this.',
+                                '@note swap_flag @link https://dev.mysql.com/doc/refman/8.0/en/miscellaneous-functions.html#function_uuid-to-bin',
+                                '@source @link https://dev.mysql.com/blog-archive/storing-uuid-values-in-mysql-tables/',
+                                '@source @link https://dev.mysql.com/blog-archive/mysql-8-0-uuid-support/',
+                                '@source @link https://stitcher.io/blog/optimised-uuids-in-mysql',
                             ],
                             'C6' => 'CarbonPHP offers a scalable primary key solution using UUIDs. Please refer to the documentation.'
                         ];

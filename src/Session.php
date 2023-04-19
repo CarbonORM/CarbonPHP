@@ -140,7 +140,7 @@ class Session implements SessionHandlerInterface
 
             $GLOBALS['session_id'] = static::$session_id;
 
-            $_SESSION['id'] = array_key_exists('id', $_SESSION ??= []) ? $_SESSION['id'] : false;
+            $_SESSION['id'] = array_key_exists('id', $_SESSION ??= []) ? $_SESSION['id'] : 0;
 
         } catch (Throwable $e) {
 
@@ -211,7 +211,7 @@ class Session implements SessionHandlerInterface
 
         $count++;
 
-        $_SESSION['id'] ??= false;
+        $_SESSION['id'] ??= 0;
 
         if ($clear || !$_SESSION['id']) {
 

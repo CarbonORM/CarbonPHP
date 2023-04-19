@@ -959,6 +959,8 @@ TRIGGER;
 
                 }
 
+                // $limit = self::addInjection($limit, [self::PDO_TYPE => null]);
+
                 if (0 > (int)$limit) {
 
                     throw new PublicAlert('A negative limit was encountered in the rest Builder while querying against (' . static::class . ').');

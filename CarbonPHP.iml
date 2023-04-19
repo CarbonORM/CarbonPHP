@@ -15,6 +15,7 @@
       <sourceFolder url="file://$MODULE_DIR$/config" isTestSource="false" packagePrefix="Config\" />
       <sourceFolder url="file://$MODULE_DIR$/src/restful" isTestSource="false" packagePrefix="CarbonPHP\Restful\" />
       <sourceFolder url="file://$MODULE_DIR$/src/enums" isTestSource="false" packagePrefix="CarbonPHP\Enums\" />
+      <sourceFolder url="file://$MODULE_DIR$/wp-includes/sodium_compat/tests" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/richardtmiles/carbonphp" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/embed-command" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/sebastian/code-unit-reverse-lookup" />

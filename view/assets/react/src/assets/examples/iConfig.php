@@ -62,7 +62,7 @@ class Config implements iConfig
 
                 'CALLBACK' => static function () {
                     // optional variable $reset which would be true if a url is passed to startApplication()
-                    if ($_SESSION['id'] ??= false) {
+                    if ($_SESSION['id'] ?? false) {
                         getUser($_SESSION['id']);
                     }
                 },
