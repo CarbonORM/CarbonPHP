@@ -931,9 +931,7 @@ END;
                                 case 'decimal':
                                 case 'precision':
                                 case 'float':
-                                    /** @noinspection PhpMissingBreakStatementInspection */
                                 case 'real':
-                                    $rest[$tableName]['explode'][$explodeArrayPosition]['phpType'] = 'float';
                                 default:
                                 case 'varchar':
                                     $type = 'PDO::PARAM_STR';
