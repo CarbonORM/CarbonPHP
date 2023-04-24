@@ -26,6 +26,8 @@ class Migrate implements iCommand
 {
     public static string $migrationUrl = 'c6migration';
 
+    public static string $migrationFolder = 'tmp';
+
     public static string $migrationFolderPrefix = 'migration_';
 
     public static float $currentTime;
@@ -308,7 +310,7 @@ class Migrate implements iCommand
 
         }
 
-        $localManifestPath = CarbonPHP::$app_root . 'tmp' . DS . 'local_migration_manifest.txt';
+        $localManifestPath = CarbonPHP::$app_root . self::$migrationFolder . DS . 'local_migration_manifest.txt';
 
         $responseHeaders = [];
 
@@ -358,7 +360,7 @@ class Migrate implements iCommand
 
         }
 
-        $importFolderLocation = CarbonPHP::$app_root . 'tmp' . DS . self::$migrationFolderPrefix . self::$remoteServerTime . DS;
+        $importFolderLocation = CarbonPHP::$app_root . self::$migrationFolder . DS . self::$migrationFolderPrefix . self::$remoteServerTime . DS;
 
         Files::createDirectoryIfNotExist($importFolderLocation);
 
@@ -1558,7 +1560,7 @@ HALT;
 
         $tables = Database::fetchColumn('SHOW TABLES');
 
-        $migrationPath = self::$migrationFolderPrefix . "$currentTime/";
+        $migrationPath = self::$migrationFolder . DS . self::$migrationFolderPrefix . $currentTime . DS;
 
         Files::createDirectoryIfNotExist(CarbonPHP::$app_root . $migrationPath);
 
@@ -1594,7 +1596,7 @@ HALT;
     public static function zipFolder(string $relativeFolderPath): string
     {
 
-        $zipFolderRelative = 'tmp' . DS . 'zip' . DS;
+        $zipFolderRelative = self::$migrationFolder . DS . 'zip' . DS;
 
         $zipFolder = CarbonPHP::$app_root . $zipFolderRelative;
 
@@ -1783,7 +1785,7 @@ HALT;
 
             ColorCode::colorCode("Preparing to create a manifest to media!!", iColorCode::BACKGROUND_CYAN);
 
-            $zipDirectory = CarbonPHP::$app_root . 'tmp' . DS . 'zip' . DS;
+            $zipDirectory = CarbonPHP::$app_root . self::$migrationFolder . DS . 'zip' . DS;
 
             if (true === is_dir($zipDirectory)) {
 
@@ -2009,7 +2011,7 @@ HALT;
 
             $hash = base64_encode($path);
 
-            $relativePath = 'tmp' . DS . self::$migrationFolderPrefix . self::$currentTime . DS . 'media_' . $hash . '_' . self::$currentTime . '.txt.php';
+            $relativePath = self::$migrationFolder . DS . self::$migrationFolderPrefix . self::$currentTime . DS . 'media_' . $hash . '_' . self::$currentTime . '.txt.php';
 
             $storeToFile = CarbonPHP::$app_root . $relativePath;
 
