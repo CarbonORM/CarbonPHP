@@ -1472,7 +1472,7 @@ export interface RegExpMap {
 export interface complexMap {
     [key: string]: stringMap | stringNumberMap | stringMap[] | RegExpMap;
 }
-
+ 
 export interface iTypeValidation {
     MYSQL_TYPE: string,
     MAX_LENGTH: string,
@@ -1522,6 +1522,19 @@ export const convertForRequestBody = function (restfulObject: RestTableInterface
         Object.keys(restfulObject).map(value => {
 
             let shortReference = value.toUpperCase();
+            
+            switch (value) {
+                case C6.GET:
+                case C6.POST:
+                case C6.PUT:
+                case C6.DELETE:
+                case C6.WHERE:
+                case C6.JOIN:
+                case C6.PAGINATION:
+                    payload[value] = restfulObject[value]
+                    return
+                default:
+            }
 
             if (shortReference in C6[table]) {
 
@@ -1611,6 +1624,19 @@ const convertForRequestBody = function (restfulObject, tableName, regexErrorHand
         Object.keys(restfulObject).map(value => {
 
             let shortReference = value.toUpperCase();
+            
+            switch (value) {
+                case C6.GET:
+                case C6.POST:
+                case C6.PUT:
+                case C6.DELETE:
+                case C6.WHERE:
+                case C6.JOIN:
+                case C6.PAGINATION:
+                    payload[value] = restfulObject[value]
+                    return
+                default:
+            }
 
             if (shortReference in C6[table]) {
 
