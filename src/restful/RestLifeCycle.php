@@ -441,6 +441,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
                     $return = [];
 
+                    // TODO - update argv to be passed by reference
                     if (!call_user_func_array([$fullyQualified, $methodCase], $requestTableHasPrimary ? [&$return, $primary, $args] : [&$return, $args])) {
 
                         throw new PublicAlert('The request failed (returned false), please make sure arguments are correct.');
@@ -609,15 +610,43 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
     }
 
+    /**
+     * This is used in external libraries to hijack the request and return a json response
+     * @TODO - test this in bootstrap to remove the noinspection
+     * @noinspection PhpUnused
+     */
     public static function hijackRestfulRequest(array $return): never
     {
 
-        header('Content-Type: application/json', true, 200); // Send as JSON
+        try {
 
-        print json_encode($return, JSON_THROW_ON_ERROR);
+            global $json;
 
-        exit(0);
+            if (false === headers_sent($filename, $line)) {
+
+                header('Content-Type: application/json', true, 200);
+
+            } else {
+
+                $json['headers_sent'] = [
+                    'filename' => $filename,
+                    'line' => $line
+                ];
+
+            }
+
+            print json_encode($return + $json, JSON_THROW_ON_ERROR);
+
+            exit(0);
+
+
+        } catch (Throwable $e) {
+
+            ThrowableHandler::generateLogAndExit($e);
+
+        }
 
     }
+
 }
 
