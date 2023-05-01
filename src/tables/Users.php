@@ -3,9 +3,9 @@
 namespace CarbonPHP\Tables;
 
 // Restful defaults
+use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Restful\RestfulValidations;
 use CarbonPHP\Rest;
-use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use PDO;
 
 // Custom User Imports
@@ -33,7 +33,6 @@ use PDO;
  */
 class Users extends Rest implements iRestSinglePrimaryKey
 {
-    
     
     public const CLASS_NAME = 'Users';
     
@@ -71,7 +70,100 @@ class Users extends Rest implements iRestSinglePrimaryKey
      * @note this constant can be modified and will persist after rebuild.
     **/
     public const VALIDATE_AFTER_REBUILD = true;
-  
+ 
+    /**
+     * COLUMNS
+     * Interfacing with the restful return can be done using objects which allow your editor to smartly type fields.
+     * The referenced return &$return from any Rest::Get method can be directly passed back into its calling classes 
+     *  constructor. One might use these fields below with the following ::
+     *
+     *    public Users $carbon_users;
+     *
+     * The definition above can be defined with the following ::
+     *
+     *    $carbon_users = new Users($return);
+     *
+     * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
+    **/
+    public string $user_username;
+
+    public string $user_password;
+
+    public string $user_id;
+
+    public string $user_type;
+
+    public string $user_sport;
+
+    public string $user_session_id;
+
+    public string $user_facebook_id;
+
+    public string $user_first_name;
+
+    public string $user_last_name;
+
+    public string $user_profile_pic;
+
+    public string $user_profile_uri;
+
+    public string $user_cover_photo;
+
+    public string $user_birthday;
+
+    public string $user_gender;
+
+    public string $user_about_me;
+
+    public int $user_rank;
+
+    public string $user_email;
+
+    public string $user_email_code;
+
+    public int $user_email_confirmed;
+
+    public string $user_generated_string;
+
+    public int $user_membership;
+
+    public int $user_deactivated;
+
+    public string $user_last_login;
+
+    public string $user_ip;
+
+    public string $user_education_history;
+
+    public string $user_location;
+
+    public string $user_creation_date;
+    
+    /**
+     * PRIMARY
+     * This could be null for tables without primary key(s), a string for tables with a single primary key, or an array 
+     * given composite primary keys. The existence and amount of primary keys of the will also determine the interface 
+     * aka method signatures used.
+    **/
+    public const PRIMARY = 'carbon_users.user_id';
+
+    /**
+     * AUTO_INCREMENT_PRIMARY_KEY
+     * Post requests will return the new primary key.
+     * Caution: auto incrementing columns are considered bad practice in MySQL Sharded system. This is an
+     * advanced configuration, so if you don't know what it means you can probably ignore this. CarbonPHP is designed to
+     * manage your primary keys through a mysql generated UUID entity system. Consider turning your primary keys into 
+     * foreign keys which reference $prefix . 'carbon_carbons.entity_pk'. More on why this is effective at 
+     * @link https://www.carbonPHP.com
+    **/
+    public const AUTO_INCREMENT_PRIMARY_KEY = false;
+        
+    /**
+     * CARBON_CARBONS_PRIMARY_KEY
+     * does your table reference $prefix . 'carbon_carbons.entity_pk'
+    **/
+    public const CARBON_CARBONS_PRIMARY_KEY = true;
+    
     /**
      * COLUMNS
      * The columns below are a 1=1 mapping to the columns found in carbon_users. 
@@ -132,99 +224,6 @@ class Users extends Rest implements iRestSinglePrimaryKey
     public const USER_LOCATION = 'carbon_users.user_location'; 
 
     public const USER_CREATION_DATE = 'carbon_users.user_creation_date'; 
-
-    /**
-     * COLUMNS
-     * Interfacing with the restful return can be done using objects which allow your editor to smartly type fields.
-     * The referenced return &$return from any Rest::Get method can be directly passed back into its calling classes 
-     *  constructor. One might use these fields below with the following ::
-     *
-     *    public Users $carbon_users;
-     *
-     * The definition above can be defined with the following ::
-     *
-     *    $carbon_users = new Users($return);
-     *
-     * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
-    **/
-    public string $user_username;
-
-    public string $user_password;
-
-    public string $user_id;
-
-    public string $user_type;
-
-    public string $user_sport;
-
-    public string $user_session_id;
-
-    public string $user_facebook_id;
-
-    public string $user_first_name;
-
-    public string $user_last_name;
-
-    public string $user_profile_pic;
-
-    public string $user_profile_uri;
-
-    public string $user_cover_photo;
-
-    public string $user_birthday;
-
-    public string $user_gender;
-
-    public string $user_about_me;
-
-    public string $user_rank;
-
-    public string $user_email;
-
-    public string $user_email_code;
-
-    public string $user_email_confirmed;
-
-    public string $user_generated_string;
-
-    public string $user_membership;
-
-    public string $user_deactivated;
-
-    public string $user_last_login;
-
-    public string $user_ip;
-
-    public string $user_education_history;
-
-    public string $user_location;
-
-    public string $user_creation_date;
-    
-    /**
-     * PRIMARY
-     * This could be null for tables without primary key(s), a string for tables with a single primary key, or an array 
-     * given composite primary keys. The existence and amount of primary keys of the will also determine the interface 
-     * aka method signatures used.
-    **/
-    public const PRIMARY = 'carbon_users.user_id';
-
-    /**
-     * AUTO_INCREMENT_PRIMARY_KEY
-     * Post requests will return the new primary key.
-     * Caution: auto incrementing columns are considered bad practice in MySQL Sharded system. This is an
-     * advanced configuration, so if you don't know what it means you can probably ignore this. CarbonPHP is designed to
-     * manage your primary keys through a mysql generated UUID entity system. Consider turning your primary keys into 
-     * foreign keys which reference $prefix . 'carbon_carbons.entity_pk'. More on why this is effective at 
-     * @link https://www.carbonPHP.com
-    **/
-    public const AUTO_INCREMENT_PRIMARY_KEY = false;
-        
-    /**
-     * CARBON_CARBONS_PRIMARY_KEY
-     * does your table reference $prefix . 'carbon_carbons.entity_pk'
-    **/
-    public const CARBON_CARBONS_PRIMARY_KEY = true;
     
     /**
      * COLUMNS
@@ -484,7 +483,7 @@ class Users extends Rest implements iRestSinglePrimaryKey
      *  Be aware the const: self::DISALLOW_PUBLIC_ACCESS = [self::class => 'disallowPublicAccess'];
      *  could be used to replace each occurrence of 
      *          [self::class => 'disallowPublicAccess', self::class]
-     *  though would loose information as self::class is a dynamic variable which must be used in this class given 
+     *  though would lose information as self::class is a dynamic variable which must be used in this class given 
      *  static and constant context. 
      *  @default   
      *      public const PHP_VALIDATION = [ 

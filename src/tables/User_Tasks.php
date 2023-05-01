@@ -3,9 +3,9 @@
 namespace CarbonPHP\Tables;
 
 // Restful defaults
+use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Restful\RestfulValidations;
 use CarbonPHP\Rest;
-use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use PDO;
 
 // Custom User Imports
@@ -35,7 +35,6 @@ use Tests\Feature\CarbonRestTest;
  */
 class User_Tasks extends Rest implements iRestSinglePrimaryKey
 {
-    
     
     public const CLASS_NAME = 'User_Tasks';
     
@@ -75,30 +74,7 @@ class User_Tasks extends Rest implements iRestSinglePrimaryKey
      * @note this constant can be modified and will persist after rebuild.
     **/
     public const VALIDATE_AFTER_REBUILD = true;
-  
-    /**
-     * COLUMNS
-     * The columns below are a 1=1 mapping to the columns found in carbon_user_tasks. 
-     * Changes, such as adding or removing a column, MAY be made first in the database. The ResitBuilder program will 
-     * capture any changes made in MySQL and update this file auto-magically. If you work in a team it is RECOMMENDED to
-     * programmatically make these changes using the REFRESH_SCHEMA constant below.
-    **/
-    public const TASK_ID = 'carbon_user_tasks.task_id'; 
-
-    public const USER_ID = 'carbon_user_tasks.user_id'; 
-
-    public const FROM_ID = 'carbon_user_tasks.from_id'; 
-
-    public const TASK_NAME = 'carbon_user_tasks.task_name'; 
-
-    public const TASK_DESCRIPTION = 'carbon_user_tasks.task_description'; 
-
-    public const PERCENT_COMPLETE = 'carbon_user_tasks.percent_complete'; 
-
-    public const START_DATE = 'carbon_user_tasks.start_date'; 
-
-    public const END_DATE = 'carbon_user_tasks.end_date'; 
-
+ 
     /**
      * COLUMNS
      * Interfacing with the restful return can be done using objects which allow your editor to smartly type fields.
@@ -123,7 +99,7 @@ class User_Tasks extends Rest implements iRestSinglePrimaryKey
 
     public string $task_description;
 
-    public string $percent_complete;
+    public int $percent_complete;
 
     public string $start_date;
 
@@ -153,6 +129,29 @@ class User_Tasks extends Rest implements iRestSinglePrimaryKey
      * does your table reference $prefix . 'carbon_carbons.entity_pk'
     **/
     public const CARBON_CARBONS_PRIMARY_KEY = true;
+    
+    /**
+     * COLUMNS
+     * The columns below are a 1=1 mapping to the columns found in carbon_user_tasks. 
+     * Changes, such as adding or removing a column, MAY be made first in the database. The ResitBuilder program will 
+     * capture any changes made in MySQL and update this file auto-magically. If you work in a team it is RECOMMENDED to
+     * programmatically make these changes using the REFRESH_SCHEMA constant below.
+    **/
+    public const TASK_ID = 'carbon_user_tasks.task_id'; 
+
+    public const USER_ID = 'carbon_user_tasks.user_id'; 
+
+    public const FROM_ID = 'carbon_user_tasks.from_id'; 
+
+    public const TASK_NAME = 'carbon_user_tasks.task_name'; 
+
+    public const TASK_DESCRIPTION = 'carbon_user_tasks.task_description'; 
+
+    public const PERCENT_COMPLETE = 'carbon_user_tasks.percent_complete'; 
+
+    public const START_DATE = 'carbon_user_tasks.start_date'; 
+
+    public const END_DATE = 'carbon_user_tasks.end_date'; 
     
     /**
      * COLUMNS
@@ -383,7 +382,7 @@ class User_Tasks extends Rest implements iRestSinglePrimaryKey
      *  Be aware the const: self::DISALLOW_PUBLIC_ACCESS = [self::class => 'disallowPublicAccess'];
      *  could be used to replace each occurrence of 
      *          [self::class => 'disallowPublicAccess', self::class]
-     *  though would loose information as self::class is a dynamic variable which must be used in this class given 
+     *  though would lose information as self::class is a dynamic variable which must be used in this class given 
      *  static and constant context. 
      *  @default   
      *      public const PHP_VALIDATION = [ 

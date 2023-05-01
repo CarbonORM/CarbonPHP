@@ -1,5 +1,9 @@
 
 export interface stringMap {
+    [key: string]: string;
+}
+
+export interface stringNumberMap {
     [key: string]: string | number;
 }
 
@@ -8,9 +12,9 @@ export interface RegExpMap {
 }
 
 export interface complexMap {
-    [key: string]: stringMap | stringMap[] | RegExpMap;
+    [key: string]: stringMap | stringNumberMap | stringMap[] | RegExpMap;
 }
-
+ 
 export interface iTypeValidation {
     MYSQL_TYPE: string,
     MAX_LENGTH: string,
@@ -83,11 +87,11 @@ export type RestShortTableNames = 'carbons'
 	| 'wp_users';
 
 export interface C6RestfulModel {
-    TABLE_NAME?: RestShortTableNames,
-    PRIMARY?: string[],
-    COLUMNS?: stringMap,
-    REGEX_VALIDATION?: RegExpMap,
-    TYPE_VALIDATION?: {[key: string]: iTypeValidation},
+    TABLE_NAME: RestShortTableNames,
+    PRIMARY: string[],
+    COLUMNS: stringMap,
+    REGEX_VALIDATION: RegExpMap,
+    TYPE_VALIDATION: {[key: string]: iTypeValidation},
 }
 
 
@@ -3233,6 +3237,27 @@ export const convertForRequestBody = function (restfulObject: RestTableInterface
         Object.keys(restfulObject).map(value => {
 
             let shortReference = value.toUpperCase();
+            
+            switch (value) {
+                case C6.GET:
+                case C6.POST:
+                case C6.PUT:
+                case C6.DELETE:
+                case C6.WHERE:
+                case C6.JOIN:
+                case C6.PAGINATION:
+					if (Array.isArray(restfulObject[value])) {
+						payload[value] = restfulObject[value].sort()
+					} else if (typeof restfulObject[value] === 'object' && restfulObject[value] !== null) {
+						payload[value] = Object.keys(restfulObject[value])
+							.sort()
+							.reduce((acc, key) => ({
+                                ...acc, [key]: not_sorted[key]
+                            }), {})
+					} 
+                    return
+                default:
+            }
 
             if (shortReference in C6[table]) {
 
@@ -3280,7 +3305,12 @@ export const convertForRequestBody = function (restfulObject: RestTableInterface
 
     });
 
-    return payload;
+	return Object.keys(payload)
+		.sort()
+		.reduce((acc, key) => ({
+            ...acc, [key]: not_sorted[key]
+        }), {})
 
 };
+
 

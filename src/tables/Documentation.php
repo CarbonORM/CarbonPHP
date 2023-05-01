@@ -3,9 +3,9 @@
 namespace CarbonPHP\Tables;
 
 // Restful defaults
+use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use CarbonPHP\Restful\RestfulValidations;
 use CarbonPHP\Rest;
-use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use PDO;
 
 // Custom User Imports
@@ -33,7 +33,6 @@ use PDO;
  */
 class Documentation extends Rest implements iRestNoPrimaryKey
 {
-    
     
     public const CLASS_NAME = 'Documentation';
     
@@ -70,22 +69,7 @@ class Documentation extends Rest implements iRestNoPrimaryKey
      * @note this constant can be modified and will persist after rebuild.
     **/
     public const VALIDATE_AFTER_REBUILD = true;
-  
-    /**
-     * COLUMNS
-     * The columns below are a 1=1 mapping to the columns found in carbon_documentation. 
-     * Changes, such as adding or removing a column, MAY be made first in the database. The ResitBuilder program will 
-     * capture any changes made in MySQL and update this file auto-magically. If you work in a team it is RECOMMENDED to
-     * programmatically make these changes using the REFRESH_SCHEMA constant below.
-    **/
-    public const DOCUMENTATION_URI = 'carbon_documentation.documentation_uri'; 
-
-    public const DOCUMENTATION_DATA = 'carbon_documentation.documentation_data'; 
-
-    public const DOCUMENTATION_VERSION = 'carbon_documentation.documentation_version'; 
-
-    public const DOCUMENTATION_ACTIVE = 'carbon_documentation.documentation_active'; 
-
+ 
     /**
      * COLUMNS
      * Interfacing with the restful return can be done using objects which allow your editor to smartly type fields.
@@ -106,7 +90,7 @@ class Documentation extends Rest implements iRestNoPrimaryKey
 
     public string $documentation_version;
 
-    public string $documentation_active;
+    public int $documentation_active;
     
     /**
      * PRIMARY
@@ -132,6 +116,21 @@ class Documentation extends Rest implements iRestNoPrimaryKey
      * does your table reference $prefix . 'carbon_carbons.entity_pk'
     **/
     public const CARBON_CARBONS_PRIMARY_KEY = false;
+    
+    /**
+     * COLUMNS
+     * The columns below are a 1=1 mapping to the columns found in carbon_documentation. 
+     * Changes, such as adding or removing a column, MAY be made first in the database. The ResitBuilder program will 
+     * capture any changes made in MySQL and update this file auto-magically. If you work in a team it is RECOMMENDED to
+     * programmatically make these changes using the REFRESH_SCHEMA constant below.
+    **/
+    public const DOCUMENTATION_URI = 'carbon_documentation.documentation_uri'; 
+
+    public const DOCUMENTATION_DATA = 'carbon_documentation.documentation_data'; 
+
+    public const DOCUMENTATION_VERSION = 'carbon_documentation.documentation_version'; 
+
+    public const DOCUMENTATION_ACTIVE = 'carbon_documentation.documentation_active'; 
     
     /**
      * COLUMNS
@@ -343,7 +342,7 @@ class Documentation extends Rest implements iRestNoPrimaryKey
      *  Be aware the const: self::DISALLOW_PUBLIC_ACCESS = [self::class => 'disallowPublicAccess'];
      *  could be used to replace each occurrence of 
      *          [self::class => 'disallowPublicAccess', self::class]
-     *  though would loose information as self::class is a dynamic variable which must be used in this class given 
+     *  though would lose information as self::class is a dynamic variable which must be used in this class given 
      *  static and constant context. 
      *  @default   
      *      public const PHP_VALIDATION = [ 

@@ -3,9 +3,9 @@
 namespace CarbonPHP\Tables;
 
 // Restful defaults
+use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Restful\RestfulValidations;
 use CarbonPHP\Rest;
-use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use PDO;
 
 // Custom User Imports
@@ -33,7 +33,6 @@ use PDO;
  */
 class User_Sessions extends Rest implements iRestSinglePrimaryKey
 {
-    
     
     public const CLASS_NAME = 'User_Sessions';
     
@@ -70,26 +69,7 @@ class User_Sessions extends Rest implements iRestSinglePrimaryKey
      * @note this constant can be modified and will persist after rebuild.
     **/
     public const VALIDATE_AFTER_REBUILD = true;
-  
-    /**
-     * COLUMNS
-     * The columns below are a 1=1 mapping to the columns found in carbon_user_sessions. 
-     * Changes, such as adding or removing a column, MAY be made first in the database. The ResitBuilder program will 
-     * capture any changes made in MySQL and update this file auto-magically. If you work in a team it is RECOMMENDED to
-     * programmatically make these changes using the REFRESH_SCHEMA constant below.
-    **/
-    public const USER_ID = 'carbon_user_sessions.user_id'; 
-
-    public const USER_IP = 'carbon_user_sessions.user_ip'; 
-
-    public const SESSION_ID = 'carbon_user_sessions.session_id'; 
-
-    public const SESSION_EXPIRES = 'carbon_user_sessions.session_expires'; 
-
-    public const SESSION_DATA = 'carbon_user_sessions.session_data'; 
-
-    public const USER_ONLINE_STATUS = 'carbon_user_sessions.user_online_status'; 
-
+ 
     /**
      * COLUMNS
      * Interfacing with the restful return can be done using objects which allow your editor to smartly type fields.
@@ -114,7 +94,7 @@ class User_Sessions extends Rest implements iRestSinglePrimaryKey
 
     public string $session_data;
 
-    public string $user_online_status;
+    public int $user_online_status;
     
     /**
      * PRIMARY
@@ -140,6 +120,25 @@ class User_Sessions extends Rest implements iRestSinglePrimaryKey
      * does your table reference $prefix . 'carbon_carbons.entity_pk'
     **/
     public const CARBON_CARBONS_PRIMARY_KEY = false;
+    
+    /**
+     * COLUMNS
+     * The columns below are a 1=1 mapping to the columns found in carbon_user_sessions. 
+     * Changes, such as adding or removing a column, MAY be made first in the database. The ResitBuilder program will 
+     * capture any changes made in MySQL and update this file auto-magically. If you work in a team it is RECOMMENDED to
+     * programmatically make these changes using the REFRESH_SCHEMA constant below.
+    **/
+    public const USER_ID = 'carbon_user_sessions.user_id'; 
+
+    public const USER_IP = 'carbon_user_sessions.user_ip'; 
+
+    public const SESSION_ID = 'carbon_user_sessions.session_id'; 
+
+    public const SESSION_EXPIRES = 'carbon_user_sessions.session_expires'; 
+
+    public const SESSION_DATA = 'carbon_user_sessions.session_data'; 
+
+    public const USER_ONLINE_STATUS = 'carbon_user_sessions.user_online_status'; 
     
     /**
      * COLUMNS
@@ -357,7 +356,7 @@ class User_Sessions extends Rest implements iRestSinglePrimaryKey
      *  Be aware the const: self::DISALLOW_PUBLIC_ACCESS = [self::class => 'disallowPublicAccess'];
      *  could be used to replace each occurrence of 
      *          [self::class => 'disallowPublicAccess', self::class]
-     *  though would loose information as self::class is a dynamic variable which must be used in this class given 
+     *  though would lose information as self::class is a dynamic variable which must be used in this class given 
      *  static and constant context. 
      *  @default   
      *      public const PHP_VALIDATION = [ 

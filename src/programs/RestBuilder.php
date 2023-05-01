@@ -1531,7 +1531,15 @@ export const convertForRequestBody = function (restfulObject: RestTableInterface
                 case C6.WHERE:
                 case C6.JOIN:
                 case C6.PAGINATION:
-                    payload[value] = restfulObject[value]
+					if (Array.isArray(restfulObject[value])) {
+						payload[value] = restfulObject[value].sort()
+					} else if (typeof restfulObject[value] === 'object' && restfulObject[value] !== null) {
+						payload[value] = Object.keys(restfulObject[value])
+							.sort()
+							.reduce((acc, key) => ({
+                                ...acc, [key]: restfulObject[key]
+                            }), {})
+					} 
                     return
                 default:
             }
@@ -1582,9 +1590,14 @@ export const convertForRequestBody = function (restfulObject: RestTableInterface
 
     });
 
-    return payload;
+	return Object.keys(payload)
+		.sort()
+		.reduce((acc, key) => ({
+            ...acc, [key]: payload[key]
+        }), {})
 
 };
+
 
 ";
             $storeReactTsLocation = $react . 'C6.tsx';
@@ -1613,7 +1626,7 @@ const COLUMNS = {
       $global_column_tsx
 };
 
-const convertForRequestBody = function (restfulObject, tableName, regexErrorHandler = alert) {
+export const convertForRequestBody = function (restfulObject: RestTableInterfaces, tableName: string | string[], regexErrorHandler: (message:string) => void = alert) {
 
     let payload = {};
 
@@ -1633,7 +1646,16 @@ const convertForRequestBody = function (restfulObject, tableName, regexErrorHand
                 case C6.WHERE:
                 case C6.JOIN:
                 case C6.PAGINATION:
-                    payload[value] = restfulObject[value]
+					if (Array.isArray(restfulObject[value])) {
+						payload[value] = restfulObject[value].sort()
+					} else if (typeof restfulObject[value] === 'object' && restfulObject[value] !== null) {
+						payload[value] = Object.keys(restfulObject[value])
+							.sort()
+							.reduce(function (acc, key) {
+								acc[key] = restfulObject[value][key];
+								return acc;
+							}, {})
+					} 
                     return
                 default:
             }
@@ -1666,7 +1688,7 @@ const convertForRequestBody = function (restfulObject, tableName, regexErrorHand
 
                             const devErrorMessage = 'Failed to match regex (' + regex + ') for column (' + longName + ')';
                             
-                            regexErrorHandler('string' === typeof errorMessage && '' !== errorMessage ? errorMessage : devErrorMessage)
+                            regexErrorHandler(errorMessage ?? devErrorMessage)
                             
                             throw Error(devErrorMessage)
 
@@ -1684,9 +1706,15 @@ const convertForRequestBody = function (restfulObject, tableName, regexErrorHand
 
     });
 
-    return payload;
+	return Object.keys(payload)
+		.sort()
+		.reduce(function (acc, key) {
+			acc[key] = payload[key];
+			return acc;
+		}, {})
 
 };
+
 
 ";
                 $javascriptBindingsPath = $javascriptBindings . 'C6.js';
