@@ -1537,7 +1537,7 @@ export const convertForRequestBody = function (restfulObject: RestTableInterface
 						payload[value] = Object.keys(restfulObject[value])
 							.sort()
 							.reduce((acc, key) => ({
-                                ...acc, [key]: restfulObject[key]
+                                ...acc, [key]: restfulObject[value][key]
                             }), {})
 					} 
                     return
