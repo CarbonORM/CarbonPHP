@@ -334,19 +334,7 @@ class CarbonRestTest extends Config
 
         self::assertNotEmpty($id);
 
-        self::assertCount(7, self::$restChallenge, 'Not all rest challenges have run');
-
-        self::assertArrayHasKey(0, self::$restChallenge);
-
-        self::assertArrayHasKey(1, self::$restChallenge);
-
-        self::assertArrayHasKey(2, self::$restChallenge);
-
-        self::assertArrayHasKey(3, self::$restChallenge);
-
-        self::assertArrayHasKey(4, self::$restChallenge);
-
-        self::assertArrayHasKey(5, self::$restChallenge);
+        self::assertCount(9, self::$restChallenge, 'Not all rest challenges have run (' . json_encode(self::$restChallenge) . ').');
 
         self::assertArrayHasKey(User_Tasks::USER_ID, self::$restChallenge[0][0]);
 
@@ -362,7 +350,7 @@ class CarbonRestTest extends Config
 
         self::assertEquals(iRest::PREPROCESS, self::$restChallenge[1][3]); // start at 0 ;)
 
-        self::assertEquals(User_Tasks::PERCENT_COMPLETE, self::$restChallenge[4][2] ?? 'NOT SET', 'Failed to see the correct value at [3][1] => ' . print_r(self::$restChallenge, true));
+        self::assertEquals(User_Tasks::PERCENT_COMPLETE, self::$restChallenge[6][2] ?? 'NOT SET', 'Failed to see the correct value (User_Tasks::PERCENT_COMPLETE) at [6][2] => ' . print_r(self::$restChallenge, true));
 
     }
 

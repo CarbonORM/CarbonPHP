@@ -5,6 +5,7 @@ namespace CarbonPHP\Restful;
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
 use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
