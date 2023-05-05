@@ -281,6 +281,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
         }
 
         // run validation on the whole request give column now exists
+        // todo - $compiled_PHP_validations refactor - base off value too
         /** @noinspection NotOptimalIfConditionsInspection */
         if (!in_array($column, self::$VALIDATED_REST_COLUMNS, true)
             && (self::$compiled_PHP_validations[self::REST_REQUEST_PREPROCESS_CALLBACKS][$column] ?? false)) {
@@ -291,7 +292,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
             }
 
-            self::runValidations(self::$compiled_PHP_validations[self::PREPROCESS][$column]);
+            self::runValidations(self::$compiled_PHP_validations[self::PREPROCESS][$column], $column);
 
         }
 
@@ -300,15 +301,15 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
             if ($operator === null) {
 
-                self::runValidations(self::$compiled_PHP_validations[$column]);
+                self::runValidations(self::$compiled_PHP_validations[$column], $column);
 
             } elseif ($operator === self::ASC || $operator === self::DESC) {
 
-                self::runValidations(self::$compiled_PHP_validations[$column], $operator);
+                self::runValidations(self::$compiled_PHP_validations[$column], $column, $operator);
 
             } else {
 
-                self::runValidations(self::$compiled_PHP_validations[$column], $operator, $value);
+                self::runValidations(self::$compiled_PHP_validations[$column], $column, $operator, $value);
 
             }
 
@@ -319,35 +320,34 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
             if ($operator === null) {
 
-                self::runValidations(self::$compiled_PHP_validations[$method][$column]);
+                self::runValidations(self::$compiled_PHP_validations[$method][$column], $column);
 
             } elseif ($operator === self::ASC || $operator === self::DESC) {
 
-                self::runValidations(self::$compiled_PHP_validations[$method][$column], $operator);
+                self::runValidations(self::$compiled_PHP_validations[$method][$column], $column, $operator);
 
             } else {
 
-                self::runValidations(self::$compiled_PHP_validations[$method][$column], $operator, $value);
+                self::runValidations(self::$compiled_PHP_validations[$method][$column], $column, $operator, $value);
 
             }
 
         }
 
-
-            // run validation on each condition
+        // run validation on each condition
         if ((self::$compiled_PHP_validations[self::COLUMN][$column] ?? false) && is_array(self::$compiled_PHP_validations[self::COLUMN][$column])) {
 
             if ($operator === null) {
 
-                self::runValidations(self::$compiled_PHP_validations[$method][$column]);
+                self::runValidations(self::$compiled_PHP_validations[self::COLUMN][$column], $column);
 
             } elseif ($operator === self::ASC || $operator === self::DESC) {
 
-                self::runValidations(self::$compiled_PHP_validations[$method][$column], $operator);
+                self::runValidations(self::$compiled_PHP_validations[self::COLUMN][$column], $column, $operator);
 
             } else {
 
-                self::runValidations(self::$compiled_PHP_validations[$method][$column], $operator, $value);
+                self::runValidations(self::$compiled_PHP_validations[self::COLUMN][$column], $column, $operator, $value);
 
             }
 

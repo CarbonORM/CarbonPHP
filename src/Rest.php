@@ -4,6 +4,7 @@
 namespace CarbonPHP;
 
 use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Restful\RestLifeCycle;
 use CarbonPHP\Tables\Carbons;
 use PDO;
@@ -506,6 +507,7 @@ abstract class Rest extends RestLifeCycle
 
             foreach (static::COLUMNS as $fullName => $shortName) {
 
+                // todo - loop argv and find the column short name, faster iterations
                 if (array_key_exists($fullName, $argv)) {
 
                     $op = self::EQUAL;
@@ -641,7 +643,7 @@ abstract class Rest extends RestLifeCycle
                 }
 
                 // loop through each row of new values
-                foreach ($postRequestBody as $iValue) {
+                foreach ($postRequestBody as &$iValue) {
 
                     // loop throw and validate each of the values // column names
                     foreach ($iValue as $columnName => &$postValue) {
@@ -662,6 +664,7 @@ abstract class Rest extends RestLifeCycle
                     unset($postValue);
 
                 }
+                unset($iValue);
 
                 $keys = '';
 
@@ -851,6 +854,10 @@ abstract class Rest extends RestLifeCycle
 
                             }
 
+                            $op = iRest::EQUAL;
+
+                            self::runCustomCallables($fullName, $op, $value);
+
                             $stmt->bindValue(":$shortName", $iValue[$fullName], $info[self::PDO_TYPE]);
 
                         } elseif (array_key_exists(self::DEFAULT_POST_VALUE, $info)) {
@@ -862,6 +869,8 @@ abstract class Rest extends RestLifeCycle
                                 return self::signalError("Your custom restful table ('" . static::class . "') api validations caused the request to fail on column ($fullName)");
 
                             }
+
+                            self::runCustomCallables($fullName, $op, $value);
 
                             $stmt->bindValue(":$shortName", $iValue[$fullName], $info[self::PDO_TYPE]);
 
@@ -878,6 +887,8 @@ abstract class Rest extends RestLifeCycle
                                 return self::signalError("Your custom restful api validations for ('" . static::class . "') caused the request to fail on required column ($fullName).");
 
                             }
+
+                            self::runCustomCallables($fullName, $op, $value);
 
                             $stmt->bindParam(":$shortName", $iValue[$fullName], $info[self::PDO_TYPE]);
 
