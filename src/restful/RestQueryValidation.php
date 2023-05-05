@@ -239,7 +239,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
     /**
      * @throws PublicAlert
      */
-    public static function runCustomCallables(&$column, string &$operator = null, &$value = null, bool $default = false): void
+    public static function runCustomCallables(mixed &$column, string &$operator = null, mixed &$value = null, bool $default = false): void
     {
 
         $method = self::$REST_REQUEST_METHOD;
