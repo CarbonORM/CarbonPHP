@@ -172,6 +172,10 @@ FOOT;
 
         $log_array = $error_array[ThrowableHandler::LOG_ARRAY];
 
+        $throwableHandler = static function() use (&$log_array): never {
+            ThrowableHandler::exitAndSendBasedOnRequested($log_array);
+        };
+
         // todo - handle all pdo exceptions
         switch ((string)$e->getCode()) {        // Database has not been created
             case '0':
@@ -196,9 +200,7 @@ FOOT;
 
                 }
 
-                ThrowableHandler::generateBrowserReport($log_array);  // this terminates
-
-                return;
+                $throwableHandler();
 
             case '1049':
 
@@ -225,9 +227,7 @@ FOOT;
 
                 static::refreshDatabase();
 
-                print ThrowableHandler::generateBrowserReport($log_array);  // this terminates
-
-                break;
+                $throwableHandler();
 
             case '42S02':
 
@@ -241,7 +241,7 @@ FOOT;
 
                 if (empty(static::$carbonDatabaseUsername)) {
 
-                    $log_array[] = '<h2>You must set a database user name. See CarbonPHP.com for documentation</h2>';
+                    $log_array[] = '<h2>You must set a database username. See CarbonPHP.com for documentation</h2>';
                 }
                 if (empty(static::$carbonDatabasePassword)) {
 
@@ -249,7 +249,7 @@ FOOT;
 
                 }
 
-                print ThrowableHandler::generateBrowserReport($log_array);
+                $throwableHandler();
 
         }
 

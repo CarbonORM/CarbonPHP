@@ -412,18 +412,18 @@ class ThrowableHandler
     }
 
 
-    public static function exitAndSendBasedOnRequested(array $json, string $html)
+    public static function exitAndSendBasedOnRequested(array $json, string $html = null) : never
     {
 
         $_SERVER["CONTENT_TYPE"] ??= '';
 
         $sendJson = self::shouldSendJson();
 
-        if (false === headers_sent()) {
+        if (false === headers_sent($file, $line)) {
 
             $code = $json['CODE'] ?? false;
 
-            if (false === $code || false === is_numeric($code)) {
+            if (false === $code || false === is_numeric($code) || $code < 100 || $code > 599) {
 
                 $code = 400;
 
@@ -436,6 +436,12 @@ class ThrowableHandler
             $contentType = 'Content-Type: ' . $_SERVER["CONTENT_TYPE"];
 
             header($contentType, true, $code);
+
+        } else {
+
+            $json['HEADER_WARNING'] = 'Headers already sent in ' . $file . ' on line ' . $line . '! This can effect the desired response code.';
+
+            $html = ThrowableHandler::generateBrowserReport($json, true);
 
         }
 
@@ -454,7 +460,7 @@ class ThrowableHandler
 
         } else {
 
-            print $html;
+            print $html ?? ThrowableHandler::generateBrowserReport($json, true);
 
         }
 
@@ -524,8 +530,6 @@ class ThrowableHandler
         }
 
         self::exitAndSendBasedOnRequested($errorForTemplate, $error_page);
-
-        exit(1);
 
     }
 
@@ -1007,10 +1011,7 @@ class ThrowableHandler
 
                 ColorCode::colorCode("Failed to store html log using file_put_contents. File :: ($log_file_html) or ($log_file_json)", iColorCode::RED);
 
-                /** @noinspection PhpExpressionResultUnusedInspection */
-                print CarbonPHP::$cli ? $html_error_log : print_r($log_array, true);
-
-                exit(22);
+                self::exitAndSendBasedOnRequested($log_array, $html_error_log);
 
             }
 
@@ -1375,7 +1376,7 @@ DESCRIPTION;
     /**
      * @param int|string|mixed $exitCode
      */
-    public static function closeStdoutStderrAndExit($exitCode = 0): void
+    public static function closeStdoutStderrAndExit($exitCode = 0): never
     {
         if (defined('STDOUT')) {
 
