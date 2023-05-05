@@ -183,6 +183,9 @@ interface iRest
     public const FINISH = self::REST_REQUEST_FINNISH_CALLBACKS;
     public const VALIDATE_C6_ENTITY_ID_REGEX = '#^' . Route::MATCH_C6_ENTITY_ID_REGEX . '$#';
 
+    public const COLUMN = 'COLUMN';
+    public const GLOBAL_COLUMN_VALIDATION = 'GLOBAL_COLUMN_VALIDATION';
+
 
     public const  SQL_VERSION_PREG_REPLACE = [
         /** @lang PhpRegExp */

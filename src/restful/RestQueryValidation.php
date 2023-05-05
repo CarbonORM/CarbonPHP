@@ -24,7 +24,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
      * @return bool
      * @throws PublicAlert
      */
-    public static function validateInternalColumn(&$column, string &$operator = null, &$value = null, bool $default = false): bool
+    public static function validateInternalColumn(mixed &$column, string &$operator = null, mixed &$value = null, bool $default = false): bool
     {
 
         if (!is_string($column) && !is_int($column)) {
@@ -268,6 +268,18 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
         }
 
+        if ((self::$compiled_PHP_validations[self::COLUMN][self::GLOBAL_COLUMN_VALIDATION] ?? false)) {
+
+            if (false === is_array(self::$compiled_PHP_validations[self::COLUMN][self::GLOBAL_COLUMN_VALIDATION])) {
+
+                throw new PublicAlert('Compiled data error; self::$compiled_PHP_validations[self::COLUMN][self::GLOBAL_COLUMN_VALIDATION] should be an array!');
+
+            }
+
+            self::runValidations(self::$compiled_PHP_validations[self::COLUMN][self::GLOBAL_COLUMN_VALIDATION], $column, $operator, $value, $default);
+
+        }
+
         // run validation on the whole request give column now exists
         /** @noinspection NotOptimalIfConditionsInspection */
         if (!in_array($column, self::$VALIDATED_REST_COLUMNS, true)
@@ -304,6 +316,26 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
         // run validation on each condition
         if ((self::$compiled_PHP_validations[$method][$column] ?? false) && is_array(self::$compiled_PHP_validations[$method][$column])) {
+
+            if ($operator === null) {
+
+                self::runValidations(self::$compiled_PHP_validations[$method][$column]);
+
+            } elseif ($operator === self::ASC || $operator === self::DESC) {
+
+                self::runValidations(self::$compiled_PHP_validations[$method][$column], $operator);
+
+            } else {
+
+                self::runValidations(self::$compiled_PHP_validations[$method][$column], $operator, $value);
+
+            }
+
+        }
+
+
+            // run validation on each condition
+        if ((self::$compiled_PHP_validations[self::COLUMN][$column] ?? false) && is_array(self::$compiled_PHP_validations[self::COLUMN][$column])) {
 
             if ($operator === null) {
 
@@ -670,6 +702,8 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
         }
 
+        self::gatherValidation(self::COLUMN, self::GLOBAL_COLUMN_VALIDATION, $table, $table_php_validation);
+
         $fullyQualifiedColumnNames = array_keys(self::$compiled_valid_columns);
 
         // doing the foreach like this allows us to avoid multiple loops later,.... wonder what the best case is though... this is more readable for sure
@@ -680,6 +714,8 @@ abstract class RestQueryValidation extends RestAutoTargeting
             self::gatherValidation(self::FINISH, $column, $table, $table_php_validation);
 
             self::gatherValidation(self::$REST_REQUEST_METHOD, $column, $table, $table_php_validation);
+
+            self::gatherValidation(self::COLUMN, $column, $table, $table_php_validation);
 
         }
 
