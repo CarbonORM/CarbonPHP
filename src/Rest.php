@@ -856,7 +856,7 @@ abstract class Rest extends RestLifeCycle
 
                             $op = iRest::EQUAL;
 
-                            self::runCustomCallables($fullName, $op, $value);
+                            self::runCustomCallables($fullName, $op, $iValue[$fullName]);
 
                             $stmt->bindValue(":$shortName", $iValue[$fullName], $info[self::PDO_TYPE]);
 
@@ -870,7 +870,9 @@ abstract class Rest extends RestLifeCycle
 
                             }
 
-                            self::runCustomCallables($fullName, $op, $value);
+                            $op = iRest::EQUAL;
+
+                            self::runCustomCallables($fullName, $op, $iValue[$fullName]);
 
                             $stmt->bindValue(":$shortName", $iValue[$fullName], $info[self::PDO_TYPE]);
 
@@ -888,7 +890,9 @@ abstract class Rest extends RestLifeCycle
 
                             }
 
-                            self::runCustomCallables($fullName, $op, $value);
+                            $op = iRest::EQUAL;
+
+                            self::runCustomCallables($fullName, $op, $iValue[$fullName]);
 
                             $stmt->bindParam(":$shortName", $iValue[$fullName], $info[self::PDO_TYPE]);
 
