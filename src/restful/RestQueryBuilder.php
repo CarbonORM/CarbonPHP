@@ -1715,10 +1715,9 @@ TRIGGER;
             case iRest::IN:
             case str_replace('_', ' ', iRest::NOT_IN):
 
-
                 if ($key_is_custom) {
 
-                    throw new PublicAlert("A non-internal column key was used in conjunction with the IN or NOT IN aggregate. addSingleConditionToWhereOrJoin was given (" . implode(',', func_get_args()) . ").");
+                    throw new PublicAlert("A non-internal column key was used in conjunction with the IN or NOT IN aggregate. addSingleConditionToWhereOrJoin was given (" . implode(',', func_get_args()) . "). Possible allowed columns are (" . implode(',', self::$compiled_valid_columns) . ").");
 
                 }
 
