@@ -198,20 +198,24 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
      {{#REFRESH_SCHEMA_PUBLIC}}{{{REFRESH_SCHEMA_PUBLIC}}}{{/REFRESH_SCHEMA_PUBLIC}}
      {{^REFRESH_SCHEMA}}
     public const REFRESH_SCHEMA = [
-        [self::class => 'buildMysqlHistoryTrigger', self::class]
+        // [self::class => 'buildMysqlHistoryTrigger', self::class] // experimental
     ];{{/REFRESH_SCHEMA}}{{#REFRESH_SCHEMA}}
     {{{REFRESH_SCHEMA}}}{{/REFRESH_SCHEMA}}
     
-    /** Custom User Methods Are Placed Here **/
     {{^constructorDefined}}
      public function __construct(array &\$return = [])
      {
          parent::__construct(\$return);
          
          # always create the column in your local database first, re-run the table builder, then add the needed functions
-         \$this->REFRESH_SCHEMA = [];
+         \$this->REFRESH_SCHEMA = [
+            
+         ];
          
          \$this->PHP_VALIDATION = [ 
+             self::COLUMN => [
+                self::
+             ],
              self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
                  self::PREPROCESS => [
                      static fn() => self::disallowPublicAccess(self::class)
@@ -220,6 +224,9 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
          ];
      }
      {{/constructorDefined}}
+    
+    /** Custom User Methods Are Placed Here **/
+    
     
 {{{custom_methods}}}
    
