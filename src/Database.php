@@ -2272,7 +2272,12 @@ AND links.CONSTRAINT_NAME = '$constraintName'");
 
         $exists = self::fetchConstraint($tableName, $constraintName);
 
-        if (!empty($exists) && $exists[0]['CONSTRAINT_TYPE'] === 'UNIQUE') {
+        ColorCode::colorCode('Checking if ('.$constraintName.') constraint exists in the database. ('. print_r($exists,true) . ')', iColorCode::BACKGROUND_MAGENTA);
+
+        if (!empty($exists)) {
+
+            // todo - extend this
+            // ($unique === false || 'UNIQUE' === ($exists[0]['CONSTRAINT_TYPE'] ?? '')
 
             ColorCode::colorCode('The ('.$constraintName.') constraint already exists in the database. Skipping...', iColorCode::BACKGROUND_MAGENTA);
 
