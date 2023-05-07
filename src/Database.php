@@ -1242,7 +1242,7 @@ WHERE cols.TABLE_SCHEMA=?
 
                 ColorCode::colorCode(" key values (" . self::$carbonDatabaseName . ", $externalTableName, $externalColumnName, $internalTableName, $internalColumnName, $constraintName, $onDelete, $onUpdate) respectively.", iColorCode::BACKGROUND_CYAN);
 
-                self::recreateColumnConstraint(
+                self::recreateColumnForeignKeyConstraint(
                     $constraintName, $internalTableName,
                     $internalColumnName, $externalTableName,
                     $externalColumnName, $onDelete, $onUpdate);
@@ -1786,7 +1786,7 @@ WHERE cols.TABLE_SCHEMA=?
 
     }
 
-    public static function recreateColumnConstraint(
+    public static function recreateColumnForeignKeyConstraint(
         string $constraintName,
         string $tableName,
         string $columnName,
@@ -1926,7 +1926,33 @@ AND links.CONSTRAINT_NAME = '$constraintName'");
 
         }
 
+        // reverse the above condition
+        $selectInvalidColumnCount = "SELECT COUNT($columnName) FROM $tableName WHERE $columnName NOT IN (SELECT $referenceColumn FROM $referenceTable)";
+
+        $invalidColumnCount = self::fetchColumn($selectInvalidColumnCount)[0] ?? 0;
+
+        if ($invalidColumnCount > 0) {
+
+            ColorCode::colorCode("There are $invalidColumnCount invalid references in the column ($columnName) on table ($tableName).", iColorCode::RED);
+
+            $deleteInvalidReferences = "DELETE FROM $tableName WHERE $columnName NOT IN (SELECT $referenceColumn FROM $referenceTable)";
+
+            $result = self::execute($deleteInvalidReferences);
+
+            if (false === $result) {
+
+                ColorCode::colorCode("Failed to delete invalid references from table ($referenceTable) using sql: ($deleteInvalidReferences)", iColorCode::BACKGROUND_RED);
+
+                exit(64);
+
+            }
+
+            ColorCode::colorCode("Deleted $invalidColumnCount invalid references from table ($referenceTable).", iColorCode::BACKGROUND_CYAN);
+
+        }
+
         // todo - check if the external constraint table exists. (could be non-rest in an timing issue)
+        /** @noinspection SqlResolve */
         $addConstraint = /** @lang MySQL */
             "ALTER TABLE `$tableName` ADD CONSTRAINT `$constraintName` FOREIGN KEY (`$columnName`) REFERENCES `$referenceTable` (`$referenceColumn`) ON DELETE $onDelete ON UPDATE $onUpdate";
 
@@ -2266,6 +2292,25 @@ AND links.CONSTRAINT_NAME = '$constraintName'");
                 ", $tableName, $constraintName)[0] ?? [];
     }
 
+    public static function indexExistsAndDropIndexCallable(string $tableName, string $constraintName): null|callable
+    {
+
+        $exists = self::fetchConstraint($tableName, $constraintName);
+
+        ColorCode::colorCode('Checking if ('.$constraintName.') constraint exists in the database. ('. print_r($exists,true) . ')', iColorCode::BACKGROUND_MAGENTA);
+
+        if (empty($exists)) {
+
+            ColorCode::colorCode('The ('.$constraintName.') constraint does not exist in the database. Skipping...', iColorCode::BACKGROUND_MAGENTA);
+
+            return null;
+
+        }
+
+        return static fn() => self::execute("alter table $tableName drop index $constraintName;");
+
+    }
+
     /** Custom User Methods Are Placed Here **/
     public static function indexExistsOrCreateCallback(string $tableName, string $constraintName, array $columns, bool $unique = true): null|callable
     {
@@ -2276,8 +2321,14 @@ AND links.CONSTRAINT_NAME = '$constraintName'");
 
         if (!empty($exists)) {
 
-            // todo - extend this
-            // ($unique === false || 'UNIQUE' === ($exists[0]['CONSTRAINT_TYPE'] ?? '')
+            if ($unique === false || 'UNIQUE' === ($exists[0]['CONSTRAINT_TYPE'] ?? '')) {
+
+                // this will drop the incorrect index
+                self::indexExistsAndDropIndexCallable($tableName, $constraintName)();
+
+                return self::indexExistsOrCreateCallback($tableName, $constraintName, $columns, $unique);
+
+            }
 
             ColorCode::colorCode('The ('.$constraintName.') constraint already exists in the database. Skipping...', iColorCode::BACKGROUND_MAGENTA);
 
