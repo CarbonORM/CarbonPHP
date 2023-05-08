@@ -350,7 +350,7 @@ class CarbonRestTest extends Config
 
         self::assertEquals(iRest::PREPROCESS, self::$restChallenge[1][3]); // start at 0 ;)
 
-        self::assertEquals(User_Tasks::PERCENT_COMPLETE, self::$restChallenge[6][2] ?? 'NOT SET', 'Failed to see the correct value (User_Tasks::PERCENT_COMPLETE) at [6][2] => ' . print_r(self::$restChallenge, true));
+        self::assertEquals(User_Tasks::PERCENT_COMPLETE, self::$restChallenge[7][2] ?? 'NOT SET', 'Failed to see the correct value (User_Tasks::PERCENT_COMPLETE) at [6][2] => ' . print_r(self::$restChallenge, true));
 
     }
 
