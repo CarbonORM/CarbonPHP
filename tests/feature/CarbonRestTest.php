@@ -334,7 +334,7 @@ class CarbonRestTest extends Config
 
         self::assertNotEmpty($id);
 
-        self::assertCount(9, self::$restChallenge, 'Not all rest challenges have run (' . json_encode(self::$restChallenge) . ').');
+        self::assertCount(11, self::$restChallenge, 'Not all rest challenges have run (' . json_encode(self::$restChallenge) . ').');
 
         self::assertArrayHasKey(User_Tasks::USER_ID, self::$restChallenge[0][0]);
 
