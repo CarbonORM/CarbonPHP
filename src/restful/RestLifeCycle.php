@@ -21,6 +21,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
 
     /**
+     * It's far better to cast your arrays to objects
      * @warning Rest constructor. Avoid this if possible.
      * If the value is modified in the original array or this `static` object it will be modified in the instantiated
      *  object by reference. The call time is slightly slower but your server will thank you when you start editing these
@@ -41,7 +42,11 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
         foreach ($return as $key => &$value) {
 
-            $this->$key = &$value;
+            if (property_exists($this, $key)) {
+
+                $this->$key = &$value;
+
+            }
 
         }
 

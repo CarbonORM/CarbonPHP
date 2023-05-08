@@ -856,7 +856,13 @@ class ThrowableHandler
 
         }
 
-        $log_array['[C6] CARBONPHP'] = 'ThrowableHandler::generateLog';
+        $log_array['[C6] CARBONPHP'] = __FILE__ . ' ' . __METHOD__;
+
+        $log_array['$_COOKIE'] = json_encode($_COOKIE);
+
+        $log_array['$_REQUEST'] = json_encode($_REQUEST);
+
+        $log_array['$_SERVER'] = json_encode($_SERVER);
 
         if (false === CarbonPHP::$cli) {
 
@@ -869,6 +875,14 @@ class ThrowableHandler
         $json = $GLOBALS['json'] ??= [];
 
         $log_array[self::GLOBALS_JSON] = $json;
+
+        $lastRestStatement = $json['sql'][-1] ?? '';
+
+        if ('' !== $lastRestStatement) {
+
+            $log_array['LAST_REST_STATEMENT'] = $lastRestStatement;
+
+        }
 
         if (false === CarbonPHP::$cli) {
 

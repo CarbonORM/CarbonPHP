@@ -1526,7 +1526,8 @@ export const convertForRequestBody = function (restfulObject: RestTableInterface
             switch (value) {
                 case C6.GET:
                 case C6.POST:
-                case C6.PUT:
+                case C6.UPDATE:
+                case C6.REPLACE:
                 case C6.DELETE:
                 case C6.WHERE:
                 case C6.JOIN:
@@ -1641,7 +1642,8 @@ export const convertForRequestBody = function (restfulObject: RestTableInterface
             switch (value) {
                 case C6.GET:
                 case C6.POST:
-                case C6.PUT:
+                case C6.UPDATE:
+                case C6.REPLACE:
                 case C6.DELETE:
                 case C6.WHERE:
                 case C6.JOIN:

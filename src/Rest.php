@@ -682,6 +682,8 @@ abstract class Rest extends RestLifeCycle
 
                     $pdo_values[$i] = '';
 
+                    $op = self::EQUAL;
+
                     foreach (static::COLUMNS as $fullName => $shortName) {
 
                         $canSkip = static::PDO_VALIDATION[$fullName][self::SKIP_COLUMN_IN_POST] ?? false;
@@ -707,7 +709,10 @@ abstract class Rest extends RestLifeCycle
 
                         $pdo_values[$i] .= 'binary' === static::PDO_VALIDATION[$fullName][self::MYSQL_TYPE] ? "UNHEX(:$shortName), " : ":$shortName, ";
 
+                        self::validateInternalColumn($fullName, $op, $postRequestBody[$i][$fullName]);
+
                     }
+
 
                     $pdo_values[$i] = rtrim($pdo_values[$i], ', ');
 
