@@ -294,6 +294,8 @@ FOOT;
                     static::$carbonDatabasePassword,
                     $user_options);
 
+                self::$carbonDatabaseInitialized = true;
+
                 restore_error_handler();
 
                 if ($reader) {
@@ -316,6 +318,8 @@ FOOT;
 
             } catch (PDOException $e) {
 
+                self::$carbonDatabaseInitialized = false;
+
                 ColorCode::colorCode('$e instanceof PDOException', iColorCode::BACKGROUND_RED);
 
                 self::TryCatchPDOException($e); // this might exit todo - make sure this is perfect
@@ -324,7 +328,7 @@ FOOT;
 
                 self::$carbonDatabaseInitialized = false;
 
-                ThrowableHandler::generateLog($e);  // this will exit
+                ThrowableHandler::generateLogAndExit($e);  // this will exit
 
             } finally {
 

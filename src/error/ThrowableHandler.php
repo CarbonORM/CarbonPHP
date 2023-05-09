@@ -876,7 +876,7 @@ class ThrowableHandler
 
         $log_array[self::GLOBALS_JSON] = $json;
 
-        $lastRestStatement = $json['sql'][-1] ?? '';
+        $lastRestStatement = $json['sql'][array_key_last($json['sql'])] ?? '';
 
         if ('' !== $lastRestStatement) {
 
@@ -886,7 +886,10 @@ class ThrowableHandler
 
         if (false === CarbonPHP::$cli) {
 
-            $log_array[self::DEBUG_BACKTRACE] = debug_backtrace();
+            // its so verbose with the TRACE above, we can afford to minimise the output here;
+            // we loose nothing but immediate readability, which is fine as the TRACE is more useful
+            // no data is lost by encoding early
+            $log_array[self::DEBUG_BACKTRACE] = json_encode(debug_backtrace());
 
         } else {
 
@@ -1292,6 +1295,12 @@ class ThrowableHandler
                     || $left === self::INNODB_STATUS;
 
                 if ($blocks) {
+
+                    $right = self::jsonEncodeAndWrapForHTML($right);
+
+                }
+
+                if (is_array($right)) {
 
                     $right = self::jsonEncodeAndWrapForHTML($right);
 
