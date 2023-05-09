@@ -876,13 +876,18 @@ class ThrowableHandler
 
         $log_array[self::GLOBALS_JSON] = $json;
 
-        $lastRestStatement = $json['sql'][array_key_last($json['sql'])] ?? '';
+        if (array_key_exists('sql', $json) && is_array($json['sql']) && !empty($json['sql'])) {
 
-        if ('' !== $lastRestStatement) {
+            $lastRestStatement = $json['sql'][array_key_last($json['sql'])] ?? '';
 
-            $log_array['LAST_REST_STATEMENT'] = $lastRestStatement;
+            if ('' !== $lastRestStatement) {
+
+                $log_array['LAST_REST_STATEMENT'] = $lastRestStatement;
+
+            }
 
         }
+
 
         if (false === CarbonPHP::$cli) {
 

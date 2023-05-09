@@ -1489,7 +1489,7 @@ TRIGGER;
 
                     if (false === in_array($set[1], $supportedOperators, true)) { // ie #^=|>=|<=$#
 
-                        throw new PublicAlert("Restful column joins may only use one of the following (" . implode('|', $supportedOperators) . ") the value ({$set[1]}) is not supported.");
+                        throw new PublicAlert("Restful column joins may only use one of the following (" . implode('|', $supportedOperators) . ") the value ({$set[1]}) is not supported. ({$set[0]}) ({$set[1]}) ({$set[2]})");
 
                     }
 
@@ -1551,6 +1551,17 @@ TRIGGER;
                 $count = count($value);
 
                 switch ($count) {
+                    case 2:
+
+                        if (false === in_array($value[0], $supportedOperators, true)) { // ie #^=|>=|<=$#
+
+                            throw new PublicAlert("Table (" . static::class . ") restful column joins may only use one of the following supported operators (".implode('|',$supportedOperators)."). Value ({$value[0]}) is not supported. (" . json_encode($value) . ")");
+
+                        }
+
+                        $sql .= self::addSingleConditionToWhereOrJoin($column, $value[0], $value[1]);
+
+                        break;
 
                     case 1:
 
@@ -1565,25 +1576,16 @@ TRIGGER;
 
                         }
 
-                    // let this fall to throw alert
-
+                        // fall through
                     default:
 
+
                         throw new PublicAlert("A rest key column ($column) value (" . json_encode($value) . ") was set to an array with ($count) "
-                            . "values but requires only one or two. Boolean comparisons can use one of the following operators "
+                            . "values. Boolean comparisons can use one of the following operators "
                             . "(" . implode('|', $supportedOperators) . "). The same comparison can be made with an empty (aka default numeric) key "
                             . "and three array entries :: [  Column,  Operator, (Operand|Column2) ]. Both ways are made equally "
                             . "for conditions which might require multiple of the same key in the same array; as this would be invalid syntax in php.");
 
-                    case 2:
-
-                        if (false === in_array($value[0], $supportedOperators)) { // ie #^=|>=|<=$#
-
-                            throw new PublicAlert("Table (" . static::class . ") restful column joins may only use one of the following supported operators ($supportedOperators).");
-
-                        }
-
-                        $sql .= self::addSingleConditionToWhereOrJoin($column, $value[0], $value[1]);
 
                 }
 
