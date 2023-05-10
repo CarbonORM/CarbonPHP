@@ -1092,28 +1092,28 @@ FOOT;
         }
     }
 
-    public static function constraintExistsThenDrop($externalTableName, $externalColumnName, $internalTableName, $internalColumnName): void
+    public static function foreignKeyConstraintExistsThenDrop($externalTableName, $externalColumnName, $internalTableName, $internalColumnName): void
     {
 
         try {
 
             $info = self::selectForeignKeyConstraintInfo($externalTableName, $externalColumnName, $internalTableName, $internalColumnName);
 
-            if (0 !== count($info)) {
+            if (0 === count($info)) {
+                return;
+            }
 
-                $constraintName = $info['CONSTRAINT_NAME'];
+            $constraintName = $info['CONSTRAINT_NAME'];
 
-                if (null === $constraintName) {
+            if (null === $constraintName) {
 
-                    throw new PublicAlert('Parsed fk constraint but not its name. (' . print_r($info, true) . ')');
+                throw new PublicAlert('Parsed fk constraint but not its name. (' . print_r($info, true) . ')');
 
-                }
+            }
 
-                if (false === self::execute($sql = "alter table $internalTableName drop foreign key $constraintName;")) {
+            if (false === self::execute($sql = "alter table $internalTableName drop foreign key $constraintName;")) {
 
-                    throw new PublicAlert("Failed to execute ($sql)");
-
-                }
+                throw new PublicAlert("Failed to execute ($sql)");
 
             }
 
@@ -1366,7 +1366,7 @@ WHERE cols.TABLE_SCHEMA=?
 
                 ColorCode::colorCode("The generated constant $table::TABLE_NAME does not exist. Rerun RestBuilder to repopulate.", iColorCode::YELLOW);
 
-                exit(24);
+                exit(25);
 
             }
 
@@ -1374,7 +1374,7 @@ WHERE cols.TABLE_SCHEMA=?
 
                 ColorCode::colorCode("The generated constant $table::PDO_VALIDATION does not exist. Rerun RestBuilder to repopulate.", iColorCode::YELLOW);
 
-                exit(24);
+                exit(26);
 
             }
 
@@ -1449,8 +1449,17 @@ WHERE cols.TABLE_SCHEMA=?
 
             }
 
+            if (0 < count($refreshFunctions)) {
 
-            self::runRefreshSchema($refreshFunctions);
+                ColorCode::colorCode("Running refresh schema for ($table) in database <" . self::$carbonDatabaseName . ">", iColorCode::BACKGROUND_CYAN);
+
+                self::runRefreshSchema($refreshFunctions);
+
+            } else {
+
+                ColorCode::colorCode("No refresh schema for ($table) in database <" . self::$carbonDatabaseName . ">", iColorCode::CYAN);
+
+            }
 
             self::$tablesToValidateAfterRefresh[$table] = $table::CREATE_TABLE_SQL;
 
@@ -1486,7 +1495,7 @@ WHERE cols.TABLE_SCHEMA=?
 
         }
 
-        ColorCode::colorCode("\n\n\nDone with REFRESH_SCHEMA!\n\n", iColorCode::BACKGROUND_CYAN);
+        ColorCode::colorCode("\n\n\nDone with REFRESH_SCHEMA! <" . self::$carbonDatabaseDSN . ">\n\n", iColorCode::BACKGROUND_CYAN);
 
         $mysqldump = '';
 
@@ -2385,7 +2394,6 @@ AND links.CONSTRAINT_NAME = '$constraintName'");
                 }
 
             }
-
 
 
             self::execute("create " . ($unique ? 'unique' : '') . " index $constraintName on $tableName ($columnsInline);");
