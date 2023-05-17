@@ -717,6 +717,9 @@ END;
 
                     case 'CONSTRAINT':
 
+                        // CONSTRAINT `example` FOREIGN KEY (`entity_fk`) REFERENCES `carbons` (`entity_pk`) ON DELETE CASCADE ON UPDATE CASCADE
+                        // CONSTRAINT `example` FOREIGN KEY (`created_by`) REFERENCES `users` (`ID`)         ON DELETE SET NULL ON UPDATE SET NULL
+
                         //  if (count($words_in_insert_stmt) !== 8) {
                         //      print  PHP_EOL . $tableName  . PHP_EOL and die;
                         //  }
@@ -735,11 +738,24 @@ END;
                             ? trim($wordsInLine[$deleteKey + 1], ',')
                             : 'NO';
 
+
+                        if ($onDelete === 'SET') {
+
+                            $onDelete   .= ' ' . $wordsInLine[$deleteKey + 2];
+
+                        }
+
                         $updateKey = array_search('UPDATE', $wordsInLine, true);
 
                         $onUpdate = false !== $updateKey
                             ? trim($wordsInLine[$updateKey + 1], ',')
                             : 'NO';
+
+                        if ($onUpdate === 'SET') {
+
+                            $onUpdate   .= ' ' . $wordsInLine[$updateKey + 2];
+
+                        }
 
                         if ('NO' === $onDelete) {
                             $onDelete .= ' ACTION';

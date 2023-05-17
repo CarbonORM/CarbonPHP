@@ -558,6 +558,8 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
                 [, $internalColumn] = explode('.', $internal);
 
+                // todo - wha even is this?
+                // cascaded delete but in a way that history triggers log; I want to remove this feature
                 $delete_children .= "# noinspection SqlResolve
 DELETE FROM $externalTableName WHERE $externalColumn = OLD.$internalColumn;" . PHP_EOL;
 

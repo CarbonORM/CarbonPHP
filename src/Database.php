@@ -1100,7 +1100,9 @@ FOOT;
             $info = self::selectForeignKeyConstraintInfo($externalTableName, $externalColumnName, $internalTableName, $internalColumnName);
 
             if (0 === count($info)) {
+
                 return;
+
             }
 
             $constraintName = $info['CONSTRAINT_NAME'];

@@ -933,7 +933,7 @@ abstract class Rest extends RestLifeCycle
                 # https://dev.mysql.com/doc/refman/5.6/en/information-functions.html#function_last-insert-id
                 if (!(static::AUTO_INCREMENT_PRIMARY_KEY || $primaryBinary)) {
 
-                    self::prepostprocessRestRequest();
+                    self::prepostprocessRestRequest($postRequestBody);
 
                     if (self::$commit) {
 
@@ -952,7 +952,7 @@ abstract class Rest extends RestLifeCycle
 
                     }
 
-                    self::postprocessRestRequest();
+                    self::postprocessRestRequest($postRequestBody);
 
                     self::completeRest();
 

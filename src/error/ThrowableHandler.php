@@ -540,6 +540,9 @@ class ThrowableHandler
     public static function start(): int
     {
 
+        // @link https://stackoverflow.com/questions/60000391/php-missing-function-arguments-in-exception-stack-trace
+        ini_set('zend.exception_ignore_args', 0);
+
         ini_set('display_errors', 1);
 
         self::$old_error_level = error_reporting(self::$level);
@@ -1202,17 +1205,17 @@ class ThrowableHandler
 
         $length = \count($trace);
 
+        $resultHTML = array();
+
+        $resultCLI = array();
+
         if ($length === 0) {
 
-            $trace = "Found in :: \n\n\t" . $e->getTraceAsString();
+            $resultHTML[] = "Found in :: \n\n\t" . $e->getTraceAsString();
 
-            $result[] = $trace;
+            $resultCLI[] = $trace;
 
         } else {
-
-            $resultHTML = array();
-
-            $resultCLI = array();
 
             for ($i = 0; $i < $length; $i++) {
 
