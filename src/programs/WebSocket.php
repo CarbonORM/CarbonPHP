@@ -1174,7 +1174,7 @@ class WebSocket extends Request implements iCommand
             ColorCode::colorCode('Empty WS Read', iColorCode::BACKGROUND_YELLOW);
 
             return [
-                'socketStatus' => socket_get_status($socketResource),
+                'stream_get_meta_data' => stream_get_meta_data($socketResource),
                 'error' => 'empty socket read, if your proxying this could be a timeout. @link https://stackoverflow.com/questions/64855794/proxy-timeout-with-rewriterule',
                 'socket_last_error' => $code = socket_last_error(self::$socket),
                 'socket_strerror' => socket_strerror($code),
@@ -1186,21 +1186,25 @@ class WebSocket extends Request implements iCommand
 
         $handle = ord($read);
 
-        $out['fin'] = ($handle >> 7) & 0x1;
+        $out['fin'] = ($handle >> 7) & 0x1; // get the 7th bit in the first byte
 
-        $out['rsv1'] = ($handle >> 6) & 0x1;
+        $out['rsv1'] = ($handle >> 6) & 0x1; // get the 6th bit in the first byte
 
         $out['rsv2'] = ($handle >> 5) & 0x1;
 
         $out['rsv3'] = ($handle >> 4) & 0x1;
 
-        $out['opcode'] = $handle & 0xf;
+        $out['opcode'] = $handle & 0xf; //
 
         if (self::CLOSE === $out['opcode']) {
 
             $out['dataframe'] = $handle & 0xff;
 
+            $out['CLOSE_DATA_FRAME'] = self::CLOSE_DATA_FRAME;
+
         }
+
+        ColorCode::colorCode(print_r($out, true), iColorCode::BACKGROUND_YELLOW);
 
         if (!in_array($out['opcode'], [
             self::TEXT,

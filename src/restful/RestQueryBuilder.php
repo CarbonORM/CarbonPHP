@@ -219,7 +219,7 @@ abstract class RestQueryBuilder extends RestQueryValidation
     /**
      * @throws PublicAlert
      */
-    public static function isAggregate(string $column, string $aggregate,  $name): string
+    public static function isAggregate(string $column, string $aggregate, $name): string
     {
 
         if (true === is_string($name)) {
@@ -1557,7 +1557,7 @@ TRIGGER;
 
                         if (false === in_array($value[0], $supportedOperators, true)) { // ie #^=|>=|<=$#
 
-                            throw new PublicAlert("Table (" . static::class . ") restful column joins may only use one of the following supported operators (".implode('|',$supportedOperators)."). Value ({$value[0]}) is not supported. (" . json_encode($value) . ")");
+                            throw new PublicAlert("Table (" . static::class . ") restful column joins may only use one of the following supported operators (" . implode('|', $supportedOperators) . "). Value ({$value[0]}) is not supported. (" . json_encode($value) . ")");
 
                         }
 
@@ -1578,7 +1578,7 @@ TRIGGER;
 
                         }
 
-                        // fall through
+                    // fall through
                     default:
 
 
@@ -1731,7 +1731,7 @@ TRIGGER;
             case str_replace('_', ' ', iRest::IS_NOT):
 
 
-            if ($key_is_custom) {
+                if ($key_is_custom) {
 
                     throw new PublicAlert("A non-internal column key was used in conjunction with the IS aggregate. addSingleConditionToWhereOrJoin was given (" . implode(',', func_get_args()) . ").");
 
@@ -1764,7 +1764,8 @@ TRIGGER;
 
         if ($key_is_custom && $value_is_custom) {
 
-            throw new PublicAlert("Rest failed in as you have custom columns ($valueOne) &| ($valueTwo). This may mean you need to regenerate your rest tables, have misspellings in your request, have incorrect aggregation, or join conditions. Please uses dedicated constants; modify your request and try again.");
+            throw new PublicAlert("Rest failed in as you have custom columns ($valueOne) &| ($valueTwo). This may mean you need to regenerate your rest tables, have misspellings in your request, have incorrect aggregation, or join conditions."
+                . " Possible allowed columns are (" . implode(',', self::$compiled_valid_columns) . ").");
 
         }
 

@@ -28,7 +28,8 @@
     "ext-posix": "*",
     "ext-readline": "*",
     "ext-zip": "*",
-    "ext-pcntl": "*"
+    "ext-pcntl": "*",
+    "ext-sockets": "*"
   },
   "require-dev": {
     "wp-cli/wp-cli-bundle": "2.6.0",
