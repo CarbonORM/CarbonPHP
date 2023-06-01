@@ -383,47 +383,56 @@ abstract class Rest extends RestLifeCycle
 
             } else {
 
-                $emptyPrimary = null === $primary || [] === $primary;
+                $primaryKeysNeeded = is_array(static::PRIMARY) ? static::PRIMARY : [static::PRIMARY];
 
-                if (false === $replace
-                    && false === self::$allowFullTableUpdates
-                    && $emptyPrimary) {
+                // lets check the root level of our where clause to see if we have all primary keys
+                $primary ??= [];
 
-                    return self::signalError('Restful tables which have a primary key must be updated by its primary key. To bypass this set you may set `self::\$allowFullTableUpdates = true;` during the PREPROCESS events.');
+                $where = array_merge($where, $primary);
 
-                }
+                $emptyWhere = empty($where);
 
-                if (is_array(static::PRIMARY)) {
+                foreach ($primaryKeysNeeded as $primaryKey) {
 
-                    if (false === self::$allowFullTableUpdates
-                        || false === $emptyPrimary) {
+                    if (false === array_key_exists($primaryKey, $emptyWhere ? $argv : $where)) {
 
-                        $primary ??= [];
-
-                        $primaryCount = count(static::PRIMARY);
-
-                        $explicitPrimaryCount = count(array_intersect(array_keys($primary), static::PRIMARY));
-
-                        if ($explicitPrimaryCount !== $primaryCount) {
-
-                            $implicitPrimaryCount = count(array_intersect(array_keys($primary), static::PRIMARY));
-
-                            if (($explicitPrimaryCount + $implicitPrimaryCount) !== $primaryCount) {
-
-                                return self::signalError('You must provide all primary keys (' . implode(', ', static::PRIMARY) . ').');
-
-                            }
+                        if (true === self::$allowFullTableUpdates) {
+                            continue;
                         }
 
-                        $where = array_merge($argv, $primary);
+                        return self::signalError('Restful tables which have a primary key must be updated by its primary key. To bypass this set you may set `self::\$allowFullTableUpdates = true;` during the PREPROCESS events. The primary key (' . $primaryKey . ') was not found.' . (count($primaryKeysNeeded) > 1 ? ' Please make sure all pks (' . print_r($primaryKeysNeeded, true) . ') are in the request.' : ''));
 
                     }
 
-                } elseif (!$emptyPrimary) {
+                    // we use $primary later to check the results
+                    $primary[$primaryKey] = $emptyWhere ? $argv[$primaryKey] : $where[$primaryKey];
 
-                    $where = $primary;
+                    if ($replace) {
+
+                        continue;
+
+                    }
+
+                    if ($emptyWhere) {
+
+                        $where[$primaryKey] = $primary[$primaryKey];
+
+                    }
+
+                    // either way remove it from the update payload if it is unneeded
+                    if ($where[$primaryKey] === $argv[$primaryKey]) {
+
+                        unset($argv[$primaryKey]);
+
+                    }
 
                 }
+
+                if (false === $replace && empty($where)) {
+                    throw new PublicAlert('The where is empty. Arguments were :: ' . json_encode(func_get_args(), JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
+                }
+
+
             }
 
             foreach ($argv as $key => &$value) {
@@ -486,7 +495,9 @@ abstract class Rest extends RestLifeCycle
             } else if (false === self::$allowFullTableUpdates || !empty($where)) {
 
                 if (empty($where)) {
-                    throw new PublicAlert('The where clause is required but has been detected as empty. Arguments were :: ' . json_encode(func_get_args(), JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
+
+                    throw new PublicAlert('The where clause is required but has been detected as empty. Arguments were :: ' . json_encode([$where, $primary], JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
+
                 }
 
                 $sql .= ' WHERE ' . self::buildBooleanJoinedConditions($where);

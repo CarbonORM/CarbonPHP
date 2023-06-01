@@ -861,7 +861,9 @@ class ThrowableHandler
 
         $log_array['[C6] CARBONPHP'] = __FILE__ . ' ' . __METHOD__;
 
-        $log_array['$_COOKIE'] = json_encode($_COOKIE);
+        $log_array['METHOD'] = $_SERVER['REQUEST_METHOD'] ?? (PHP_SAPI === 'cli' ? 'CLI' : 'UNKNOWN');
+
+        $log_array['$_COOKIE'] = json_encode($_COOKIE ?? []);
 
         $log_array['$_REQUEST'] = json_encode($_REQUEST);
 
