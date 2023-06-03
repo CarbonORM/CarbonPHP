@@ -419,8 +419,9 @@ abstract class Rest extends RestLifeCycle
 
                     }
 
+
                     // either way remove it from the update payload if it is unneeded
-                    if ($where[$primaryKey] === $argv[$primaryKey]) {
+                    if (($where[$primaryKey] ?? '') === ($argv[$primaryKey] ?? '')) {
 
                         unset($argv[$primaryKey]);
 
