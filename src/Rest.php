@@ -92,12 +92,15 @@ abstract class Rest extends RestLifeCycle
                     // todo - loosen logic
                     if (is_array(static::PRIMARY)) {
 
+                        $primary ??= [];
+
                         $primaryIntersect = count(array_intersect(array_keys($primary), static::PRIMARY));
 
                         $primaryCount = count($primary);
 
                         $actualPrimaryCount = count(static::PRIMARY);
 
+                        // todo - is this really needed?
                         if ($primaryCount !== $primaryIntersect) {
 
                             return self::signalError('The keys provided to table ' . $table_name . ' was not a subset of (' . implode(', ', static::PRIMARY) . '). Only primary keys associated with the root table requested, thus not joined tables, are allowed.');
