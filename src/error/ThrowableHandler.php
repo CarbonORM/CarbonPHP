@@ -996,12 +996,14 @@ class ThrowableHandler
 
                     $reports = Rest::getDynamicRestClass(Reports::class);
 
+                    $postData = [
+                        $reports::LOG_LEVEL => $level,
+                        $reports::REPORT => $traceHTML,
+                        $reports::CALL_TRACE => $html_error_log
+                    ];
+
                     /** @noinspection PhpUndefinedMethodInspection */
-                    if (false === $reports::post([
-                            $reports::LOG_LEVEL => $level,
-                            $reports::REPORT => $traceHTML,
-                            $reports::CALL_TRACE => $html_error_log
-                        ])) {
+                    if (false === $reports::post($postData)) {
 
                         error_log($message = 'Failed storing log in database. The restful Reports table returned false.');
 
