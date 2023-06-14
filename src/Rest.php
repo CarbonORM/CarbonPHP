@@ -1018,7 +1018,7 @@ abstract class Rest extends RestLifeCycle
 
                 }
 
-                self::prepostprocessRestRequest($id);
+                self::prepostprocessRestRequest($postRequestBody);
 
                 if (self::$commit) {
 
@@ -1037,7 +1037,7 @@ abstract class Rest extends RestLifeCycle
 
                 }
 
-                self::postprocessRestRequest($id);
+                self::postprocessRestRequest($postRequestBody);
 
                 self::completeRest();
 
