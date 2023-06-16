@@ -277,6 +277,8 @@ abstract class Rest extends RestLifeCycle
 
                 $fetchOptions = empty($fetchOptions) ? [PDO::FETCH_ASSOC] : $fetchOptions;
 
+                $fetchingIntoObjects = PDO::FETCH_CLASS === $fetchOptions[0];
+
                 $fetch = $stmt->fetchAll(...$fetchOptions);
 
                 if (false === $fetch) {
@@ -287,13 +289,20 @@ abstract class Rest extends RestLifeCycle
 
                 $return = $fetch;
 
+                $reduce = static fn($return) => isset($return[0])
+                    && ($fetchingIntoObjects ? is_object($return[0]) : is_array($return[0]))
+                        ? $return[0]
+                        : $return;
+
                 if (is_array(static::PRIMARY)) {
 
                     if ((null !== $primary && [] !== $primary)
                         || (isset($argv[self::PAGINATION][self::LIMIT])
                             && $argv[self::PAGINATION][self::LIMIT] === 1
                             && count($return) === 1)) {
-                        $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
+
+                        $return = $reduce($return);
+
                     }
 
                 } elseif (is_string(static::PRIMARY)) {
@@ -303,7 +312,7 @@ abstract class Rest extends RestLifeCycle
                             && $argv[self::PAGINATION][self::LIMIT] === 1
                             && count($return) === 1)) {
 
-                        $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
+                        $return = $reduce($return);
 
                     }
 
@@ -311,7 +320,7 @@ abstract class Rest extends RestLifeCycle
                     && $argv[self::PAGINATION][self::LIMIT] === 1
                     && count($return) === 1) {
 
-                    $return = isset($return[0]) && is_array($return[0]) ? $return[0] : $return;
+                    $return = $reduce($return);
 
                 }
 
