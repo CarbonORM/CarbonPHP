@@ -3241,7 +3241,8 @@ export const convertForRequestBody = function (restfulObject: RestTableInterface
             switch (value) {
                 case C6.GET:
                 case C6.POST:
-                case C6.PUT:
+                case C6.UPDATE:
+                case C6.REPLACE:
                 case C6.DELETE:
                 case C6.WHERE:
                 case C6.JOIN:
@@ -3252,7 +3253,7 @@ export const convertForRequestBody = function (restfulObject: RestTableInterface
 						payload[value] = Object.keys(restfulObject[value])
 							.sort()
 							.reduce((acc, key) => ({
-                                ...acc, [key]: not_sorted[key]
+                                ...acc, [key]: restfulObject[value][key]
                             }), {})
 					} 
                     return
@@ -3308,7 +3309,7 @@ export const convertForRequestBody = function (restfulObject: RestTableInterface
 	return Object.keys(payload)
 		.sort()
 		.reduce((acc, key) => ({
-            ...acc, [key]: not_sorted[key]
+            ...acc, [key]: payload[key]
         }), {})
 
 };

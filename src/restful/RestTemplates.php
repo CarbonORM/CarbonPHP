@@ -2,10 +2,45 @@
 
 namespace CarbonPHP\Restful;
 
-use CarbonPHP\Interfaces\iRest;
-
 class RestTemplates
 {
+    public static function restTrait(): string
+    {
+
+        return /** @lang Handlebars */ <<<STRING
+<?php
+
+namespace {{namespace}}\Traits;
+
+trait {{ucEachTableName}}_Columns
+{
+    
+    /**
+     * COLUMNS
+     * Interfacing with the restful return can be done using objects which allow your editor to smartly type fields.
+     * The referenced return &\$return from any Rest::Get method can be directly passed back into its calling classes 
+     *  constructor. One might use these fields below with the following ::
+     *
+     *    public {{ucEachTableName}} \${{TableName}};
+     *
+     * The definition above can be defined with the following ::
+     *
+     *    \${{TableName}} = new {{ucEachTableName}}(\$return);
+     *
+     * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
+    **/{{#explode}}
+    public ?{{#json}}array{{/json}}{{^json}}{{phpType}}{{/json}} \${{name}};
+    {{/explode}}
+
+}
+
+
+STRING;
+
+
+    }
+
+
     public static function restTemplate(): string
     {
 
@@ -16,6 +51,7 @@ namespace {{namespace}};
 
 // Restful defaults
 use CarbonPHP\Interfaces\{{#primaryExists}}{{#multiplePrimary}}iRestMultiplePrimaryKeys{{/multiplePrimary}}{{^multiplePrimary}}iRestSinglePrimaryKey{{/multiplePrimary}}{{/primaryExists}}{{^primaryExists}}iRestNoPrimaryKey{{/primaryExists}};
+use {{namespace}}\Traits\{{ucEachTableName}}_Columns;
 {{staticNamespaces}}
 
 // Custom User Imports
@@ -43,6 +79,7 @@ use CarbonPHP\Interfaces\{{#primaryExists}}{{#multiplePrimary}}iRestMultiplePrim
  */
 class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multiplePrimary}}iRestMultiplePrimaryKeys{{/multiplePrimary}}{{^multiplePrimary}}iRestSinglePrimaryKey{{/multiplePrimary}}{{/primaryExists}}{{^primaryExists}}iRestNoPrimaryKey{{/primaryExists}}
 {
+    use {{ucEachTableName}}_Columns;
     
     public const CLASS_NAME = '{{ucEachTableName}}';
     
@@ -85,22 +122,6 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
     public const VALIDATE_AFTER_REBUILD = true;
     {{/DONT_VALIDATE_AFTER_REBUILD}}
  
-    /**
-     * COLUMNS
-     * Interfacing with the restful return can be done using objects which allow your editor to smartly type fields.
-     * The referenced return &\$return from any Rest::Get method can be directly passed back into its calling classes 
-     *  constructor. One might use these fields below with the following ::
-     *
-     *    public {{ucEachTableName}} \${{TableName}};
-     *
-     * The definition above can be defined with the following ::
-     *
-     *    \${{TableName}} = new {{ucEachTableName}}(\$return);
-     *
-     * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
-    **/{{#explode}}
-    public {{#json}}array{{/json}}{{^json}}{{phpType}}{{/json}} \${{name}};
-    {{/explode}}
     
     /**
      * PRIMARY

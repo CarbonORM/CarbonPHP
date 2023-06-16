@@ -376,6 +376,16 @@ END;
             $targetDir .= DS;
         }
 
+        $targetDirTraits = $targetDir . 'traits' . DS;
+
+        if (!is_dir($targetDirTraits)) {
+            print 'Directory does not exist, attempting to create it.' . PHP_EOL;
+            if (!mkdir($targetDirTraits, 0755, true) && !is_dir($targetDirTraits)) {
+                print 'The target directory appears invalid "' . $targetDirTraits . '"' . PHP_EOL;
+                exit(1);
+            }
+        }
+
         if (empty($this->schema) || $this->schema === '') {
             print 'You must specify the table schema!' . PHP_EOL;
             exit(1);
@@ -546,7 +556,9 @@ END;
                             array_splice($restStaticNameSpaces, 2, 0, [
                                 'use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;',
                                 'use CarbonPHP\Interfaces\iRestNoPrimaryKey;',
-                                'use CarbonPHP\Interfaces\iRestSinglePrimaryKey;'
+                                'use CarbonPHP\Interfaces\iRestSinglePrimaryKey;',
+                                'use CarbonPHP\Tables\Traits\Carbons_Columns;',
+                                "use $target_namespace\Traits\\{$etn}_Columns;",
                             ]);
 
                             $matches = [];
@@ -566,7 +578,6 @@ END;
                             $userCustomImports = array_diff(
                                 $matches[1],
                                 $restStaticNameSpaces);
-
 
                             $rest[$tableName]['CustomImports'] = implode(PHP_EOL, $userCustomImports);
 
@@ -741,7 +752,7 @@ END;
 
                         if ($onDelete === 'SET') {
 
-                            $onDelete   .= ' ' . $wordsInLine[$deleteKey + 2];
+                            $onDelete .= ' ' . $wordsInLine[$deleteKey + 2];
 
                         }
 
@@ -753,7 +764,7 @@ END;
 
                         if ($onUpdate === 'SET') {
 
-                            $onUpdate   .= ' ' . $wordsInLine[$updateKey + 2];
+                            $onUpdate .= ' ' . $wordsInLine[$updateKey + 2];
 
                         }
 
@@ -899,7 +910,7 @@ END;
                             }
 
                             $simpleType = $type;
-                            
+
                             if (count($argv = explode(' ', $type)) > 1) {
 
                                 $simpleType = rtrim($argv[0], ',');;
@@ -1134,6 +1145,8 @@ END;
 
         $class = RestTemplates::restTemplate();
 
+        $trait = RestTemplates::restTrait();
+
         foreach ($rest as $tableName => $parsed) {
 
             if ($determineIfTableShouldBeSkipped($tableName)) {
@@ -1148,6 +1161,12 @@ END;
             if (false === file_put_contents($targetDir . $parsed['ucEachTableName'] . '.php', $mustache->render($class, $parsed))) {
 
                 ColorCode::colorCode('PHP internal file_put_contents failed while trying to store :: (' . $targetDir . $parsed['ucEachTableName'] . '.php)', iColorCode::RED);
+
+            }
+
+            if (false === file_put_contents($targetDir . 'traits' . DS . $parsed['ucEachTableName'] . '_Columns.php', $mustache->render($trait, $parsed))) {
+
+                ColorCode::colorCode('PHP internal file_put_contents failed while trying to store :: (' . $targetDir . 'traits' . DS . $parsed['ucEachTableName'] . '.php)', iColorCode::RED);
 
             }
 
@@ -2030,7 +2049,6 @@ export const {{strtolowerNoPrefixTableName}} : C6RestfulModel & iDefine{{ucEachT
             #'use function is_array;'
         ];
     }
-
 
 
     public static function grabCodeSnippet($className, $methodName): string

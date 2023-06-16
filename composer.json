@@ -55,6 +55,7 @@
       "CarbonPHP\\Programs\\": "src/programs/",
       "CarbonPHP\\Restful\\": "src/restful/",
       "CarbonPHP\\Tables\\": "src/tables/",
+      "CarbonPHP\\Tables\\Traits\\": "src/tables/traits/",
       "CarbonPHP\\": "src/",
       "Tests\\Browser\\": "tests/browser/",
       "Tests\\Feature\\": "tests/feature/",

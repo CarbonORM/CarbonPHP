@@ -217,7 +217,7 @@ abstract class Rest extends RestLifeCycle
 
     }
 
-    protected static function select(array &$return, array $argv, array $primary = null): bool
+    protected static function select(array &$return, array $argv, array $primary = null, ...$fetchOptions): bool
     {
 
         static $selectSQLs = [];
@@ -275,7 +275,17 @@ abstract class Rest extends RestLifeCycle
 
                 }
 
-                $return = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $fetchOptions = empty($fetchOptions) ? [PDO::FETCH_ASSOC] : $fetchOptions;
+
+                $fetch = $stmt->fetchAll(...$fetchOptions);
+
+                if (false === $fetch) {
+
+                    throw new PublicAlert('Failed to fetchAll() from PDOStatement.');
+
+                }
+
+                $return = $fetch;
 
                 if (is_array(static::PRIMARY)) {
 
