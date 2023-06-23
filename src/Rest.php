@@ -176,7 +176,7 @@ abstract class Rest extends RestLifeCycle
                 }
 
                 // todo - should this pass as ref? and be emptied later?
-                $remove = [];
+                $remove = $argv['WHERE'] ?? [];
 
                 self::prepostprocessRestRequest($remove);
 
