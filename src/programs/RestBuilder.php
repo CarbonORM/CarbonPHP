@@ -557,8 +557,7 @@ END;
                                 'use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;',
                                 'use CarbonPHP\Interfaces\iRestNoPrimaryKey;',
                                 'use CarbonPHP\Interfaces\iRestSinglePrimaryKey;',
-                                'use CarbonPHP\Tables\Traits\Carbons_Columns;',
-                                "use $target_namespace\Traits\\{$etn}_Columns;",
+                                "use {$target_namespace}Traits\\{$etn}_Columns;",
                             ]);
 
                             $matches = [];

@@ -13,6 +13,7 @@ use CarbonPHP\Interfaces\iCommand;
 use CarbonPHP\Request;
 use CarbonPHP\Route;
 use CarbonPHP\Session;
+use Throwable;
 use function chr;
 use function in_array;
 use function is_resource;
@@ -158,8 +159,6 @@ class WebSocket extends Request implements iCommand
 
         }
 
-        $C6 = CarbonPHP::CARBON_ROOT === CarbonPHP::$app_root . 'src' . DS;
-
         $argc = count($argv);
 
         for ($i = 0; $i < $argc; $i++) {
@@ -244,7 +243,7 @@ class WebSocket extends Request implements iCommand
 
         if (!$socket) {
 
-            ColorCode::colorCode("\n$errorString ($errorNumber)\n", 'red');
+            ColorCode::colorCode("\n$errorString ($errorNumber)\n", iColorCode::RED);
 
             die(1);
 
@@ -316,7 +315,7 @@ class WebSocket extends Request implements iCommand
             $data = self::encode($data, $opCode);
             $length = strlen($data);
             return $length !== socket_send($socket, $data, $length, 0);
-        } catch (\Throwable $e) {
+        } catch (Throwable) {
             return false;
         }
     }

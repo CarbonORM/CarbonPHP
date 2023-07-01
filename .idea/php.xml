@@ -50,7 +50,6 @@
       <path value="$PROJECT_DIR$/vendor/phar-io/manifest" />
       <path value="$PROJECT_DIR$/vendor/eftec/bladeone" />
       <path value="$PROJECT_DIR$/vendor/phpmetrics/phpmetrics" />
-      <path value="$PROJECT_DIR$/vendor/rmccue/requests" />
       <path value="$PROJECT_DIR$/vendor/seld/phar-utils" />
       <path value="$PROJECT_DIR$/vendor/seld/jsonlint" />
       <path value="$PROJECT_DIR$/vendor/richardtmiles/carbonphp" />
