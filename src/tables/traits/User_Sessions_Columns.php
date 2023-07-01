@@ -19,17 +19,17 @@ trait User_Sessions_Columns
      *
      * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
     **/
-    public string $user_id;
+    public ?string $user_id;
 
-    public string $user_ip;
+    public ?string $user_ip;
 
-    public string $session_id;
+    public ?string $session_id;
 
-    public string $session_expires;
+    public ?string $session_expires;
 
-    public string $session_data;
+    public ?string $session_data;
 
-    public int $user_online_status;
+    public ?int $user_online_status;
 
 }
 

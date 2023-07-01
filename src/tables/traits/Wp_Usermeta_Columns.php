@@ -19,13 +19,13 @@ trait Wp_Usermeta_Columns
      *
      * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
     **/
-    public int $umeta_id;
+    public ?int $umeta_id;
 
-    public int $user_id;
+    public ?int $user_id;
 
-    public string $meta_key;
+    public ?string $meta_key;
 
-    public string $meta_value;
+    public ?string $meta_value;
 
 }
 

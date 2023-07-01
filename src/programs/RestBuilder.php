@@ -553,11 +553,13 @@ END;
 
                             $restStaticNameSpaces = $this->restTemplateStaticNameSpace();
 
+                            $columnNamespace = "use " . (str_ends_with('/', $target_namespace) ? $target_namespace : $target_namespace . '\\')  . "Traits\\{$etn}_Columns;";
+
                             array_splice($restStaticNameSpaces, 2, 0, [
                                 'use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;',
                                 'use CarbonPHP\Interfaces\iRestNoPrimaryKey;',
                                 'use CarbonPHP\Interfaces\iRestSinglePrimaryKey;',
-                                "use {$target_namespace}Traits\\{$etn}_Columns;",
+                                $columnNamespace,
                             ]);
 
                             $matches = [];

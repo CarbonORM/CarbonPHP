@@ -19,11 +19,11 @@ trait Features_Columns
      *
      * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
     **/
-    public string $feature_entity_id;
+    public ?string $feature_entity_id;
 
-    public string $feature_code;
+    public ?string $feature_code;
 
-    public string $feature_creation_date;
+    public ?string $feature_creation_date;
 
 }
 

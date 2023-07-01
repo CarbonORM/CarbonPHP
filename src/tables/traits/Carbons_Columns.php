@@ -19,11 +19,11 @@ trait Carbons_Columns
      *
      * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
     **/
-    public string $entity_pk;
+    public ?string $entity_pk;
 
-    public string $entity_fk;
+    public ?string $entity_fk;
 
-    public string $entity_tag;
+    public ?string $entity_tag;
 
 }
 

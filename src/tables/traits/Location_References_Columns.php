@@ -19,11 +19,11 @@ trait Location_References_Columns
      *
      * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
     **/
-    public string $entity_reference;
+    public ?string $entity_reference;
 
-    public string $location_reference;
+    public ?string $location_reference;
 
-    public string $location_time;
+    public ?string $location_time;
 
 }
 

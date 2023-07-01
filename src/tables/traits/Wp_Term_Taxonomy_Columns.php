@@ -19,17 +19,17 @@ trait Wp_Term_Taxonomy_Columns
      *
      * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
     **/
-    public int $term_taxonomy_id;
+    public ?int $term_taxonomy_id;
 
-    public int $term_id;
+    public ?int $term_id;
 
-    public string $taxonomy;
+    public ?string $taxonomy;
 
-    public string $description;
+    public ?string $description;
 
-    public int $parent;
+    public ?int $parent;
 
-    public int $count;
+    public ?int $count;
 
 }
 

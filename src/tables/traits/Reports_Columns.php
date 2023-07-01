@@ -19,13 +19,13 @@ trait Reports_Columns
      *
      * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
     **/
-    public string $log_level;
+    public ?string $log_level;
 
-    public string $report;
+    public ?string $report;
 
-    public string $date;
+    public ?string $date;
 
-    public string $call_trace;
+    public ?string $call_trace;
 
 }
 

@@ -19,11 +19,11 @@ trait Wp_Term_Relationships_Columns
      *
      * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
     **/
-    public int $object_id;
+    public ?int $object_id;
 
-    public int $term_taxonomy_id;
+    public ?int $term_taxonomy_id;
 
-    public int $term_order;
+    public ?int $term_order;
 
 }
 

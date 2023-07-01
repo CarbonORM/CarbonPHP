@@ -19,21 +19,21 @@ trait Locations_Columns
      *
      * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
     **/
-    public string $entity_id;
+    public ?string $entity_id;
 
-    public string $latitude;
+    public ?string $latitude;
 
-    public string $longitude;
+    public ?string $longitude;
 
-    public string $street;
+    public ?string $street;
 
-    public string $city;
+    public ?string $city;
 
-    public string $state;
+    public ?string $state;
 
-    public string $elevation;
+    public ?string $elevation;
 
-    public int $zip;
+    public ?int $zip;
 
 }
 

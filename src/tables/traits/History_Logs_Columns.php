@@ -19,17 +19,17 @@ trait History_Logs_Columns
      *
      * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
     **/
-    public string $history_uuid;
+    public ?string $history_uuid;
 
-    public string $history_table;
+    public ?string $history_table;
 
-    public string $history_type;
+    public ?string $history_type;
 
-    public array $history_data;
+    public ?array $history_data;
 
-    public string $history_original_query;
+    public ?string $history_original_query;
 
-    public string $history_time;
+    public ?string $history_time;
 
 }
 

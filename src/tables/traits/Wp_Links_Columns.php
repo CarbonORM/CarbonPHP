@@ -19,31 +19,31 @@ trait Wp_Links_Columns
      *
      * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
     **/
-    public int $link_id;
+    public ?int $link_id;
 
-    public string $link_url;
+    public ?string $link_url;
 
-    public string $link_name;
+    public ?string $link_name;
 
-    public string $link_image;
+    public ?string $link_image;
 
-    public string $link_target;
+    public ?string $link_target;
 
-    public string $link_description;
+    public ?string $link_description;
 
-    public string $link_visible;
+    public ?string $link_visible;
 
-    public int $link_owner;
+    public ?int $link_owner;
 
-    public int $link_rating;
+    public ?int $link_rating;
 
-    public string $link_updated;
+    public ?string $link_updated;
 
-    public string $link_rel;
+    public ?string $link_rel;
 
-    public string $link_notes;
+    public ?string $link_notes;
 
-    public string $link_rss;
+    public ?string $link_rss;
 
 }
 

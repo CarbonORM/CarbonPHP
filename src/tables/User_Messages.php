@@ -5,7 +5,6 @@ namespace CarbonPHP\Tables;
 // Restful defaults
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Tables\Traits\User_Messages_Columns;
-
 use CarbonPHP\Restful\RestfulValidations;
 use CarbonPHP\Rest;
 use PDO;

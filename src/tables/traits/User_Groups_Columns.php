@@ -19,9 +19,9 @@ trait User_Groups_Columns
      *
      * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
     **/
-    public string $group_id;
+    public ?string $group_id;
 
-    public string $user_id;
+    public ?string $user_id;
 
 }
 

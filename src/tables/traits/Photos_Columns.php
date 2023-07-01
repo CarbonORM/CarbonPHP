@@ -19,15 +19,15 @@ trait Photos_Columns
      *
      * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
     **/
-    public string $parent_id;
+    public ?string $parent_id;
 
-    public string $photo_id;
+    public ?string $photo_id;
 
-    public string $user_id;
+    public ?string $user_id;
 
-    public string $photo_path;
+    public ?string $photo_path;
 
-    public string $photo_description;
+    public ?string $photo_description;
 
 }
 

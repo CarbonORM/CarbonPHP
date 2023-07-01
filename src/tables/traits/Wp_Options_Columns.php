@@ -19,13 +19,13 @@ trait Wp_Options_Columns
      *
      * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
     **/
-    public int $option_id;
+    public ?int $option_id;
 
-    public string $option_name;
+    public ?string $option_name;
 
-    public string $option_value;
+    public ?string $option_value;
 
-    public string $autoload;
+    public ?string $autoload;
 
 }
 

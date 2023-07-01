@@ -19,9 +19,9 @@ trait Feature_Group_References_Columns
      *
      * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
     **/
-    public string $feature_entity_id;
+    public ?string $feature_entity_id;
 
-    public string $group_entity_id;
+    public ?string $group_entity_id;
 
 }
 

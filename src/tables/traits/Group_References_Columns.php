@@ -19,9 +19,9 @@ trait Group_References_Columns
      *
      * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
     **/
-    public string $group_id;
+    public ?string $group_id;
 
-    public string $allowed_to_grant_group_id;
+    public ?string $allowed_to_grant_group_id;
 
 }
 

@@ -19,17 +19,17 @@ trait User_Messages_Columns
      *
      * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
     **/
-    public string $message_id;
+    public ?string $message_id;
 
-    public string $from_user_id;
+    public ?string $from_user_id;
 
-    public string $to_user_id;
+    public ?string $to_user_id;
 
-    public string $message;
+    public ?string $message;
 
-    public int $message_read;
+    public ?int $message_read;
 
-    public string $creation_date;
+    public ?string $creation_date;
 
 }
 

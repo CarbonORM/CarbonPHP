@@ -19,25 +19,25 @@ trait Wp_Users_Columns
      *
      * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
     **/
-    public int $ID;
+    public ?int $ID;
 
-    public string $user_login;
+    public ?string $user_login;
 
-    public string $user_pass;
+    public ?string $user_pass;
 
-    public string $user_nicename;
+    public ?string $user_nicename;
 
-    public string $user_email;
+    public ?string $user_email;
 
-    public string $user_url;
+    public ?string $user_url;
 
-    public string $user_registered;
+    public ?string $user_registered;
 
-    public string $user_activation_key;
+    public ?string $user_activation_key;
 
-    public int $user_status;
+    public ?int $user_status;
 
-    public string $display_name;
+    public ?string $display_name;
 
 }
 

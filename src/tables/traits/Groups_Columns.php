@@ -19,13 +19,13 @@ trait Groups_Columns
      *
      * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
     **/
-    public string $group_name;
+    public ?string $group_name;
 
-    public string $entity_id;
+    public ?string $entity_id;
 
-    public string $created_by;
+    public ?string $created_by;
 
-    public string $creation_date;
+    public ?string $creation_date;
 
 }
 

@@ -19,13 +19,13 @@ trait Wp_Termmeta_Columns
      *
      * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
     **/
-    public int $meta_id;
+    public ?int $meta_id;
 
-    public int $term_id;
+    public ?int $term_id;
 
-    public string $meta_key;
+    public ?string $meta_key;
 
-    public string $meta_value;
+    public ?string $meta_value;
 
 }
 

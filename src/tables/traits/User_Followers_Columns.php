@@ -19,11 +19,11 @@ trait User_Followers_Columns
      *
      * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
     **/
-    public string $follower_table_id;
+    public ?string $follower_table_id;
 
-    public string $follows_user_id;
+    public ?string $follows_user_id;
 
-    public string $user_id;
+    public ?string $user_id;
 
 }
 

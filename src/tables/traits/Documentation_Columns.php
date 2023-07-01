@@ -19,13 +19,13 @@ trait Documentation_Columns
      *
      * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
     **/
-    public string $documentation_uri;
+    public ?string $documentation_uri;
 
-    public string $documentation_data;
+    public ?string $documentation_data;
 
-    public string $documentation_version;
+    public ?string $documentation_version;
 
-    public int $documentation_active;
+    public ?int $documentation_active;
 
 }
 

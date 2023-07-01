@@ -19,13 +19,13 @@ trait Wp_Terms_Columns
      *
      * @note this method is unnecessary and should be avoided if not needed for clarity of clean code. 
     **/
-    public int $term_id;
+    public ?int $term_id;
 
-    public string $name;
+    public ?string $name;
 
-    public string $slug;
+    public ?string $slug;
 
-    public int $term_group;
+    public ?int $term_group;
 
 }
 
