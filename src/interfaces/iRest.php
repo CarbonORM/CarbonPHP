@@ -247,6 +247,7 @@ interface iRest
         self::COUNT,
         self::AS,                // just in case were using  $column => [ self::AS, '' ]  syntax
         self::INTERVAL,
+        self::CURRENT_DATE,
     ];
 
     public const OPERATORS = [
@@ -280,6 +281,7 @@ interface iRest
         'COUNT(*)',
         self::COUNT_ALL,
         self::NOW,
+        self::CURRENT_DATE,
     ];
 
 }
