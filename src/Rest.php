@@ -199,6 +199,8 @@ abstract class Rest extends RestLifeCycle
 
                 self::postprocessRestRequest($remove);
 
+                $remove = [];
+
                 self::completeRest();
 
                 return true;
