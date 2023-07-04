@@ -56,6 +56,8 @@ class WebSocket extends Request implements iCommand
 
     public static bool $verifyIP = true;
 
+    public const CONTINUE = 0x0;
+
     public const TEXT = 0x1;
 
     public const BINARY = 0x2;
@@ -562,7 +564,7 @@ class WebSocket extends Request implements iCommand
 
         $closeConnection = static function ($connection) use (&$allConnectedResources, &$WebsocketToPipeRelations) {
 
-            ColorCode::colorCode("\nClose Connection Requested.\n", 'red');
+            ColorCode::colorCode("\nClose Connection Requested.\n", iColorCode::MAGENTA);
 
             $resourceToDelete = array_search($connection, $allConnectedResources, false);
 
@@ -1153,6 +1155,7 @@ class WebSocket extends Request implements iCommand
 
         //$read = fread($socketResource, 1);
         // should things be unexpectedly sending with a length of 0 @link https://stackoverflow.com/questions/64855794/proxy-timeout-with-rewriterule
+        // @link https://stackoverflow.com/questions/41115870/is-binary-opcode-encoding-and-decoding-implementation-specific-in-websockets
         $read = stream_get_contents($socketResource, 1);
 
         if (false === $read) {
@@ -1185,6 +1188,7 @@ class WebSocket extends Request implements iCommand
 
         $handle = ord($read);
 
+        //Get the first byte and & it with 127, the result is your FIN bit
         $out['fin'] = ($handle >> 7) & 0x1; // get the 7th bit in the first byte
 
         $out['rsv1'] = ($handle >> 6) & 0x1; // get the 6th bit in the first byte
@@ -1193,7 +1197,8 @@ class WebSocket extends Request implements iCommand
 
         $out['rsv3'] = ($handle >> 4) & 0x1;
 
-        $out['opcode'] = $handle & 0xf; //
+        // Get the first byte and & it with 15, the result is your opcode
+        $out['opcode'] = $handle & 0xf; // get the last 4 bits in the first byte
 
         if (self::CLOSE === $out['opcode']) {
 
@@ -1203,28 +1208,30 @@ class WebSocket extends Request implements iCommand
 
         }
 
-        ColorCode::colorCode(print_r($out, true), iColorCode::BACKGROUND_YELLOW);
-
         if (!in_array($out['opcode'], [
+            self::CONTINUE,
             self::TEXT,
             self::BINARY,
             self::CLOSE,
             self::PING,
             self::PONG
         ], true)) {
-            return [
-                'opcode' => '',
-                'payload' => '',
-                'error' => 'unknown opcode (1003)'
-            ];
+            return $out + [
+                    'error' => 'unknown opcode (1003)'
+                ];
         }
 
         $handle = ord(fread($socketResource, 1));
 
+        // Most significant bit of the 2nd byte, tells you if the payload has been masked. A Server must not mask any frame!
+        // Get the second byte and & it with 127, if it is 127 you have a masking key
         $out['mask'] = ($handle >> 7) & 0x1;
 
+        // Payload Length (This is where things can get complicated)
+        // Take the 2nd byte and read every bit except the Most significant bit
         $out['length'] = $handle & 0x7f;
 
+        // Byte is 125 or fewer that's your length
         $length = &$out['length'];
 
         if ($out['rsv1'] !== 0x0 || $out['rsv2'] !== 0x0 || $out['rsv3'] !== 0x0) {
@@ -1235,16 +1242,8 @@ class WebSocket extends Request implements iCommand
             ];
         }
 
-        if ((int)$length === 0) {
-
-            $out['payload'] = '';
-
-            $out['error'] = 'length 0';
-
-            return $out;
-
-        }
-
+        // Byte is 126
+        // Your length is an uint16 of byte 3 and 4
         if ($length === 0x7e) {
 
             $handle = unpack('nl', fread($socketResource, 2));
@@ -1252,28 +1251,38 @@ class WebSocket extends Request implements iCommand
             $length = $handle['l'];
 
         } elseif ($length === 0x7f) {
+            // Byte is 127
+            // Your length is a uint64 of byte 3 to 8
 
             $handle = unpack('N*l', fread($socketResource, 8));
 
             $length = $handle['l2'] ?? $length;
 
             if ($length > 0x7fffffffffffffff) {
-                return [
-                    'opcode' => $out['opcode'],
-                    'payload' => '',
-                    'error' => 'content length mismatch'
-                ];
+
+                ColorCode::colorCode('WS Length > 0x7fffffffffffffff', iColorCode::BACKGROUND_RED);
+
+                return $out + [
+                        'payload' => '',
+                        'error' => 'content length mismatch'
+                    ];
 
             }
 
         }
 
-        if ($out['mask'] === 0x0) {
+        // Masking key
+        // Only exists if the MASK bit is set
+        if ($out['mask'] === 0x0) { // (no mask set)
+
+            // Payload can be decoded either as Text (UTF-8) or Binary (Can be any data)
+            // The payload needs to be masked if the MASK bit is set
 
             $msg = '';
 
             $readLength = 0;
 
+            // This is not the whole payload if the FIN bit is set
             while ($readLength < $length) {
 
                 $toRead = $length - $readLength;
@@ -1292,9 +1301,15 @@ class WebSocket extends Request implements iCommand
 
             $out['payload'] = $msg;
 
+            ColorCode::colorCode(print_r($out, true), iColorCode::BACKGROUND_CYAN);
+
             return $out;
 
         }
+
+
+        // Payload
+        // The next 4 bytes is the masking key, this key is used to decode the payload
 
         $maskN = array_map('ord', str_split(fread($socketResource, 4)));
 
@@ -1304,6 +1319,7 @@ class WebSocket extends Request implements iCommand
 
         $message = '';
 
+        // This is not the whole payload if the FIN bit is set
         for ($i = 0; $i < $length; $i += $bufferLength) {
 
             $buffer = min($bufferLength, $length - $i);
@@ -1325,6 +1341,8 @@ class WebSocket extends Request implements iCommand
         $isJson = json_decode($message, true);
 
         $out['payload'] = $isJson ?: $message;
+
+        ColorCode::colorCode(print_r($out, true), iColorCode::BACKGROUND_MAGENTA);
 
         return $out;
 
