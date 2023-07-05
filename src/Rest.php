@@ -7,6 +7,7 @@ use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Restful\RestLifeCycle;
 use CarbonPHP\Tables\Carbons;
+use DropInGaming\Bootstrap;
 use PDO;
 use PDOStatement;
 use Throwable;
@@ -219,7 +220,7 @@ abstract class Rest extends RestLifeCycle
 
     }
 
-    protected static function select(array &$return, array $argv, array $primary = null, ...$fetchOptions): bool
+    protected static function select(mixed &$return, array $argv, array $primary = null, ...$fetchOptions): bool
     {
 
         static $selectSQLs = [];
@@ -258,7 +259,7 @@ abstract class Rest extends RestLifeCycle
 
                 $sql = self::buildSelectQuery($primary, $argv);
 
-                self::jsonSQLReporting(func_get_args(), $sql);
+                $moreReporting = self::jsonSQLReporting(func_get_args(), $sql);
 
                 self::postpreprocessRestRequest($sql);
 
@@ -277,6 +278,12 @@ abstract class Rest extends RestLifeCycle
 
                 }
 
+                if (is_callable($moreReporting)) {
+
+                    $moreReporting($stmt);
+
+                }
+
                 $fetchOptions = empty($fetchOptions) ? [PDO::FETCH_ASSOC] : $fetchOptions;
 
                 $fetchingIntoObjects = PDO::FETCH_CLASS === $fetchOptions[0];
@@ -289,44 +296,63 @@ abstract class Rest extends RestLifeCycle
 
                 }
 
-                $return = $fetch;
+                $reduce = static fn($array) => isset($array[0])
+                && ($fetchingIntoObjects ? is_object($array[0]) : is_array($array[0]))
+                    ? $array[0]
+                    : $array;
 
-                $reduce = static fn($return) => isset($return[0])
-                    && ($fetchingIntoObjects ? is_object($return[0]) : is_array($return[0]))
-                        ? $return[0]
-                        : $return;
 
-                if (is_array(static::PRIMARY)) {
+                // the $return = $fetch; is to help return types match the expected
+                // since we modify by reference we need to make sure its correctly formatted before we assign it
+                if (empty($fetch)) {
 
-                    if ((null !== $primary && [] !== $primary)
-                        || (isset($argv[self::PAGINATION][self::LIMIT])
-                            && $argv[self::PAGINATION][self::LIMIT] === 1
-                            && count($return) === 1)) {
-
-                        $return = $reduce($return);
-
+                    if ($fetchingIntoObjects) {
+                        $return = null;
+                    } else {
+                        $return = [];
                     }
+
+                } elseif (is_array(static::PRIMARY)) {
+
+                    $return = (null !== $primary && [] !== $primary)
+                    || (isset($argv[self::PAGINATION][self::LIMIT])
+                        && $argv[self::PAGINATION][self::LIMIT] === 1
+                        && count($fetch) === 1)
+                        ? $reduce($fetch)
+                        : $fetch;
 
                 } elseif (is_string(static::PRIMARY)) {
 
-                    if ((null !== $primary && '' !== $primary)
-                        || (isset($argv[self::PAGINATION][self::LIMIT])
-                            && $argv[self::PAGINATION][self::LIMIT] === 1
-                            && count($return) === 1)) {
+                    $return = (null !== $primary && '' !== $primary)
+                    || (isset($argv[self::PAGINATION][self::LIMIT])
+                        && $argv[self::PAGINATION][self::LIMIT] === 1
+                        && count($fetch) === 1)
+                        ? $reduce($fetch)
+                        : $fetch;
 
-                        $return = $reduce($return);
 
-                    }
-
-                } else if (isset($argv[self::PAGINATION][self::LIMIT])
+                } elseif (isset($argv[self::PAGINATION][self::LIMIT])
                     && $argv[self::PAGINATION][self::LIMIT] === 1
-                    && count($return) === 1) {
+                    && count($fetch) === 1) {
 
-                    $return = $reduce($return);
+                    $return = $reduce($fetch);
+
+                } else {
+
+                    $return = $fetch;
 
                 }
 
+
                 foreach (static::JSON_COLUMNS as $key) {
+
+                    if (is_object($return)) {
+
+                        $return->{$key} = null !== $return->{$key}
+                            ? json_decode($return->{$key}, true, 512, JSON_THROW_ON_ERROR)
+                            : null;
+
+                    }
 
                     if (array_key_exists($key, $return)) {
 

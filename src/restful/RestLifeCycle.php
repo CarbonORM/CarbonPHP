@@ -106,7 +106,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
      */
     protected static function startRest(
         string                $method,
-        array                 $return,
+        array|null                 $return,
         array                 &$args = null,
         string|int|array|null &$primary = null,
         bool                  $subQuery = false): void
@@ -157,12 +157,6 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
         // this must use late static binding
         static::preprocessRestRequest();
-
-    }
-
-    public static function resetReferences()
-    {
-
 
     }
 
@@ -257,29 +251,11 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
         }
 
-        if (self::$REST_REQUEST_METHOD === self::GET) {
-
-            $json['sql'][] = [
-                'method' => self::$REST_REQUEST_METHOD,
-                'table' => static::class,
-                RestSettings::class . '::$externalRestfulRequestsAPI' => self::$externalRestfulRequestsAPI,
-                'argv' => $argv,
-                'stmt' => [
-                    $sql,
-                    self::$injection
-                ],
-                ...(self::$externalRestfulRequestsAPI ? [
-                    'uri' => $_SERVER['REQUEST_URI']
-                ] : [])
-            ];
-
-            return null;
-
-        }
-
         $committed = false;
 
         $affected_rows = -1;
+
+        $debugDumpParams = null;
 
         /** @noinspection PhpConditionAlreadyCheckedInspection */
         $json['sql'][] = [
@@ -290,17 +266,24 @@ abstract class RestLifeCycle extends RestQueryBuilder
             'affected_rows' => &$affected_rows,
             'committed' => &$committed,
             'stmt' => [
-                $sql,
-                self::$injection
+                'sql' => $sql,
+                'injections' => self::$injection,
+                'debugDumpParams' => &$debugDumpParams,
             ],
             ...(self::$externalRestfulRequestsAPI ? [
                 'uri' => $_SERVER['REQUEST_URI']
             ] : [])
         ];
 
-        return static function (PDOStatement $stmt) use (&$affected_rows, &$committed) {
+        return static function (PDOStatement $stmt) use (&$affected_rows, &$debugDumpParams, &$committed) {
 
             $affected_rows = $stmt->rowCount();
+
+            ob_start(null, 0, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
+
+            $stmt->debugDumpParams();
+
+            $debugDumpParams = explode("\n",ob_get_clean() ?? 'FAILED TO GET DEBUG DUMP');
 
             return static function () use (&$committed) {
 

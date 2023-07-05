@@ -177,7 +177,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
     /**
      * @throws PublicAlert
      */
-    public static function postprocessRestRequest(&$return = null): void
+    public static function postprocessRestRequest(mixed &$return = null): void
     {
         if ((self::$compiled_PHP_validations[self::$REST_REQUEST_METHOD][self::FINISH] ?? false)
             && is_array(self::$compiled_PHP_validations[self::$REST_REQUEST_METHOD][self::FINISH])) {

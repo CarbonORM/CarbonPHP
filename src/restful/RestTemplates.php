@@ -550,7 +550,7 @@ MYSQL;
     * @generated
     * @return bool
     */
-    public static function get(array &\$return, {{#primaryExists}}{{#multiplePrimary}}array{{/multiplePrimary}}{{^multiplePrimary}}string{{/multiplePrimary}} \$primary = null, {{/primaryExists}}array \$argv = []): bool
+    public static function get(array|null &\$return, {{#primaryExists}}{{#multiplePrimary}}array{{/multiplePrimary}}{{^multiplePrimary}}string{{/multiplePrimary}} \$primary = null, {{/primaryExists}}array \$argv = []): bool
     {
         return self::select(\$return, \$argv{{#primaryExists}}, {{#multiplePrimary}}\$primary{{/multiplePrimary}}{{^multiplePrimary}}\$primary === null ? null : [ self::PRIMARY => \$primary ]{{/multiplePrimary}}{{/primaryExists}});
     }
