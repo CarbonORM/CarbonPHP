@@ -65,7 +65,7 @@ class FullRestTest extends CarbonRestTest
 
         self::assertEquals(
             "SELECT DISTINCT(carbon_photos.photo_path) AS :injection1, COUNT(carbon_photos.photo_id) AS :injection0 FROM CarbonPHP.carbon_photos INNER JOIN CarbonPHP.carbon_locations ON ((carbon_locations.entity_id = UNHEX(:injection2))) WHERE ((carbon_photos.photo_id <> UNHEX(:injection3)) AND (carbon_photos.photo_id = UNHEX(:injection4))) GROUP BY carbon_photos.photo_id  LIMIT 1000",
-            $GLOBALS['json']['sql'][0]['stmt'][0]);
+            $GLOBALS['json']['sql'][0]['stmt']['sql']);
 
 
     }
@@ -128,7 +128,7 @@ class FullRestTest extends CarbonRestTest
 
         self::assertEquals(
             "SELECT carbon_users.user_username, carbon_locations.state FROM CarbonPHP.carbon_users INNER JOIN CarbonPHP.carbon_location_references ON (carbon_users.user_id = carbon_location_references.entity_reference AND carbon_users.user_email = :injection0 AND (carbon_users.user_id = carbon_location_references.entity_reference OR (carbon_users.user_email = :injection0)) AND carbon_users.user_about_me = carbon_location_references.entity_reference) INNER JOIN CarbonPHP.carbon_locations ON ((carbon_locations.entity_id = carbon_location_references.location_reference OR carbon_locations.longitude = carbon_users.user_about_me)) WHERE ((carbon_users.user_username LIKE :injection1)) ORDER BY carbon_users.user_username ASC  LIMIT 10",
-            $GLOBALS['json']['sql'][0]['stmt'][0]);
+            $GLOBALS['json']['sql'][0]['stmt']['sql']);
 
 
     }
@@ -181,7 +181,7 @@ class FullRestTest extends CarbonRestTest
 
         self::assertEquals(
             "SELECT carbon_users.user_username, carbon_locations.state FROM CarbonPHP.carbon_users INNER JOIN CarbonPHP.carbon_location_references ON ((carbon_users.user_id = carbon_location_references.entity_reference)) INNER JOIN CarbonPHP.carbon_locations ON ((carbon_locations.entity_id = carbon_location_references.location_reference)) WHERE ((carbon_users.user_username LIKE :injection0)) ORDER BY carbon_users.user_username ASC",
-            $GLOBALS['json']['sql'][0]['stmt'][0]);
+            $GLOBALS['json']['sql'][0]['stmt']['sql']);
 
     }
 
@@ -317,7 +317,7 @@ class FullRestTest extends CarbonRestTest
 
         self::assertEquals(
             "SELECT DISTINCT HEX(carbon_location_references.entity_reference) AS entity_reference, carbon_users.user_username, carbon_users.user_about_me, COUNT(carbon_location_references.entity_reference) FROM CarbonPHP.carbon_users INNER JOIN CarbonPHP.carbon_location_references ON ((carbon_users.user_id = carbon_location_references.entity_reference)) INNER JOIN CarbonPHP.carbon_locations ON ((carbon_locations.entity_id = carbon_location_references.location_reference)) WHERE ((carbon_users.user_username LIKE :injection0)) GROUP BY carbon_users.user_username  HAVING (carbon_users.user_about_me <> COUNT(carbon_location_references.entity_reference)) ORDER BY carbon_users.user_username ASC",
-            $GLOBALS['json']['sql'][0]['stmt'][0]);
+            $GLOBALS['json']['sql'][0]['stmt']['sql']);
 
     }
 
