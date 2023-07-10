@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Rest;
 use CarbonPHP\Tables\Users;
 
@@ -34,7 +35,7 @@ final class UserTest extends Config
         $this->user = [];
 
         Users::Get($this->user, null, [
-            Rest::WHERE => [
+            iRest::WHERE => [
                 Users::USER_USERNAME => Config::ADMIN_USERNAME
             ]
         ]);
@@ -78,11 +79,11 @@ final class UserTest extends Config
         $this->user = [];
         self::assertTrue(
             Users::Get($this->user, null, [
-                    Rest::WHERE => [
+                    iRest::WHERE => [
                         Users::USER_USERNAME => Config::ADMIN_USERNAME
                     ],
-                    Rest::PAGINATION => [
-                        Rest::LIMIT => 1
+                    iRest::PAGINATION => [
+                        iRest::LIMIT => 1
                     ]
                 ]
             ));
@@ -102,7 +103,7 @@ final class UserTest extends Config
     {
         self::assertTrue(
             Users::Get($this->user, null, [
-                    Rest::WHERE => [
+                    iRest::WHERE => [
                         Users::USER_USERNAME => Config::ADMIN_USERNAME
                     ]
                 ]
@@ -121,11 +122,11 @@ final class UserTest extends Config
 
         self::assertTrue(
             Users::Get($this->user, null, [
-                    Rest::WHERE => [
+                    iRest::WHERE => [
                         Users::USER_USERNAME => Config::ADMIN_USERNAME
                     ],
-                    Rest::PAGINATION => [
-                        Rest::LIMIT => 1
+                    iRest::PAGINATION => [
+                        iRest::LIMIT => 1
                     ]
                 ]
             ));
@@ -145,11 +146,11 @@ final class UserTest extends Config
         $this->user = [];
 
         Users::Get($this->user, null, [
-            Rest::WHERE => [
+            iRest::WHERE => [
                 Users::USER_USERNAME => Config::ADMIN_USERNAME
             ],
-            Rest::PAGINATION => [
-                Rest::LIMIT => 1
+            iRest::PAGINATION => [
+                iRest::LIMIT => 1
             ]
         ]);
 
@@ -166,11 +167,11 @@ final class UserTest extends Config
         $this->user = [];
 
         Users::Get($this->user, null, [
-            Rest::WHERE => [
+            iRest::WHERE => [
                 Users::USER_USERNAME => Config::ADMIN_USERNAME
             ],
-            Rest::PAGINATION => [
-                Rest::LIMIT => 1
+            iRest::PAGINATION => [
+                iRest::LIMIT => 1
             ]
         ]);
 

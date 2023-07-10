@@ -225,25 +225,6 @@ class Session implements SessionHandlerInterface
 
         }
 
-        if (static::$user_id = $_SESSION['id']) {
-
-            $_SESSION['X_PJAX_Version'] = 'v' . CarbonPHP::$site_version . 'u' . $_SESSION['id'];
-
-        } // force reload occurs when X_PJAX_Version changes between requests
-
-        if (!isset($_SESSION['X_PJAX_Version'])) {
-
-            $_SESSION['X_PJAX_Version'] = CarbonPHP::$site_version;     // static::$user_id, keep this static
-
-        }
-
-        Request::setHeader('X-PJAX-Version: ' . $_SESSION['X_PJAX_Version']);
-
-        /* If the session variable changes from the constant we will
-         * send the full html page and notify the pjax js to reload
-         * everything
-         * */
-
         if (is_callable(self::$callback)) {
             /** @noinspection OnlyWritesOnParameterInspection */
 

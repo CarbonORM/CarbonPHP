@@ -536,7 +536,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
             $json['session']['write_close'] = session_write_close();
 
-            if (false === $json['session_write_close']) {
+            if (false === $json['session']['write_close']) {
 
                 $json['session'][self::class] = 'Failed to close the session';
 
