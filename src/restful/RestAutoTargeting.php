@@ -9,7 +9,8 @@ use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
 use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 
-abstract class RestAutoTargeting extends RestSettings {
+abstract class RestAutoTargeting extends RestSettings
+{
 
     /**
      * @throws PublicAlert
@@ -139,6 +140,17 @@ abstract class RestAutoTargeting extends RestSettings {
         }
 
         return $classNamespace;
+
+    }
+
+    public static function reformatLoosenedSQL(array $sql) : string
+    {
+
+        $last = array_pop($sql);
+
+        $first = array_shift($sql);
+
+        return $first . PHP_EOL . implode(',' . PHP_EOL, $sql) . PHP_EOL . $last . ';';
 
     }
 

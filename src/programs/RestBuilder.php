@@ -450,7 +450,7 @@ END;
 
                         $rest[$tableName] += [
                             'prefix' => $prefix,
-                            'createTableSQL' => Rest::parseSchemaSQL($createTableSQL),
+                            'createTableSQL' => Rest::reformatLoosenedSQL(Rest::parseSchemaSQL($createTableSQL)),
                             'QueryWithDatabaseName' => $QueryWithDatabaseName,
                             'json' => $json,
                             'binary_primary' => false,
