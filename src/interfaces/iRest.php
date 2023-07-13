@@ -215,7 +215,7 @@ interface iRest
         /** @lang PhpRegExp */
         '#\s{2,}#' => ' ',
         /** @lang PhpRegExp */
-        '#([,;])#' => '',
+        '#([,;])$#' => '',
         /** @lang PhpRegExp */
         '#(\s*)$#' => '',
     ];
