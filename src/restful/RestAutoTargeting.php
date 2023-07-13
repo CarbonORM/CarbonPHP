@@ -142,7 +142,7 @@ abstract class RestAutoTargeting extends RestSettings {
 
     }
 
-    public static function parseSchemaSQL(string $sql = null, array $replace = null): ?string
+    public static function parseSchemaSQL(string $sql = null, array $replace = null): array
     {
 
         $sql = trim($sql);
@@ -159,13 +159,7 @@ abstract class RestAutoTargeting extends RestSettings {
 
         $SQLArray = array_map('trim', explode(PHP_EOL, $sql));
 
-        $looseSQL = preg_replace($pattern, $replacement, $SQLArray);
-
-        $last = array_pop($looseSQL);
-
-        $first = array_shift($looseSQL);
-
-        return $first . PHP_EOL . implode(',' . PHP_EOL, $looseSQL) . PHP_EOL . $last . ';';
+        return preg_replace($pattern, $replacement, $SQLArray);
 
     }
 

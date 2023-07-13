@@ -187,7 +187,7 @@ interface iRest
     public const GLOBAL_COLUMN_VALIDATION = 'GLOBAL_COLUMN_VALIDATION';
 
 
-    public const  SQL_VERSION_PREG_REPLACE = [
+    public const SQL_VERSION_PREG_REPLACE = [
         /** @lang PhpRegExp */
         '#bigint\(\d+\)#' => 'bigint',
         /** @lang PhpRegExp */
@@ -215,9 +215,9 @@ interface iRest
         /** @lang PhpRegExp */
         '#\s{2,}#' => ' ',
         /** @lang PhpRegExp */
-        '#\s?,$#' => '',
+        '#([,;])#' => '',
         /** @lang PhpRegExp */
-        '#\s?;$#' => '',
+        '#(\s*)$#' => '',
     ];
 
     public const SQL_IRRELEVANT_REPLACEMENTS = [ // todo - make these relevant and auto correct
