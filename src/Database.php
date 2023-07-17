@@ -393,7 +393,7 @@ FOOT;
 
             }
 
-        } catch (Throwable $e) {
+        } catch (Throwable) {
 
             // its common for pdo to throw an error here, we will silently ignore it
             // running KILL CONNECTION_ID() will disconnect the resource before return thus error
@@ -595,6 +595,21 @@ FOOT;
         return self::$pdo_options ??= self::getDefaultPdoOptions();
     }
 
+    public static function setPdoOptions(array $pdo_options, PDO|bool $reader): void
+    {
+
+        self::$pdo_options = $pdo_options;
+
+        $db = $reader instanceof PDO ? $reader : self::database($reader);
+
+        foreach ($pdo_options as $key => $value) {
+
+            $db->setAttribute($key, $value);
+
+        }
+
+    }
+
     public static function getDefaultPdoOptions(): array
     {
         return [
@@ -606,16 +621,6 @@ FOOT;
             PDO::ATTR_CASE => PDO::CASE_NATURAL,
             PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL
         ];
-    }
-
-    /**
-     * @param array $pdo_options
-     */
-    public static function setPdoOptions(array $pdo_options): void
-    {
-
-        self::$pdo_options = $pdo_options;
-
     }
 
     /** Based off the pdo.beginTransaction() method
