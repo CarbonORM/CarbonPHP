@@ -177,7 +177,7 @@ abstract class Rest extends RestLifeCycle
                 }
 
                 // todo - should this pass as ref? and be emptied later?
-                $remove = $argv['WHERE'] ?? [];
+                $remove = $_REQUEST ?? [];
 
                 self::prepostprocessRestRequest($remove);
 
@@ -657,7 +657,7 @@ abstract class Rest extends RestLifeCycle
 
             }
 
-            self::postprocessRestRequest($returnUpdated);
+            self::postprocessRestRequest($_REQUEST);
 
             self::completeRest();
 
@@ -1014,7 +1014,7 @@ abstract class Rest extends RestLifeCycle
 
                     }
 
-                    self::postprocessRestRequest($postRequestBody);
+                    self::postprocessRestRequest($_REQUEST);
 
                     self::completeRest();
 
@@ -1025,6 +1025,7 @@ abstract class Rest extends RestLifeCycle
                 if (static::AUTO_INCREMENT_PRIMARY_KEY) {
 
                     $postRequestBody[0][static::PRIMARY] = $id = $pdo->lastInsertId();
+                    $_REQUEST[static::PRIMARY] = $id;
 
                     if (1 < $rowsToInsert) {
 
@@ -1084,7 +1085,7 @@ abstract class Rest extends RestLifeCycle
 
                 }
 
-                self::postprocessRestRequest($postRequestBody);
+                self::postprocessRestRequest($_REQUEST);
 
                 self::completeRest();
 
