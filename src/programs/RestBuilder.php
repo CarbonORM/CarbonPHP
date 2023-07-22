@@ -167,39 +167,44 @@ END;
         $exclude_these_tables = [];
         $excludeTablesRegex = null;
 
-        $react = $carbon_namespace ? CarbonPHP::$app_root . 'view/assets/react/src/variables/' : false;
-
         /** @noinspection ForeachInvariantsInspection - as we need $i++ */
         for ($i = 0; $i < $argc; $i++) {
+
             switch ($argv[$i]) {
                 case '-dumpData':
+                case '--dumpData':
                     $dumpData = true;
                     break;
                 case '-javascript':
+                case '--javascript':
+
                     $javascriptBindings = $argv[++$i];
+
                     if ($react === false) {
+
                         $react = $javascriptBindings;
+
                     }
+
                     break;
                 case '-excludeTablesRegex':
+                case '--excludeTablesRegex':
                     $excludeTablesRegex = $argv[++$i];
                     break;
                 case '-dontQueryWithDatabaseName':
+                case '--dontQueryWithDatabaseName':
                     $QueryWithDatabaseName = false;
                     break;
                 case '-react':
-                    if ($carbon_namespace) {
-                        ColorCode::colorCode("\tReact directory hardcoded for C6, unnecessary flag.\n", 'blue');
-                        break;
-                    }
+                case '--react':
                     $react = $argv[++$i];
                     break;
-
                 case '-prefix':
+                case '--prefix':
                     $prefix = $argv[++$i];
                     break;
-
                 case '-namespace':
+                case '--namespace':
                     $target_namespace = $argv[++$i];
 
                     $target_namespace_array = explode('\\', $target_namespace);
@@ -225,9 +230,11 @@ END;
 
                     break;
                 case '-json':
+                case '--json':
                     $json = true;
                     break;
                 case '-autoTarget':
+                case '--autoTarget':
                     if ($carbon_namespace) {
                         break;
                     }
@@ -242,9 +249,11 @@ END;
                     unset($composer);
                     break;
                 case '-target':
+                case '--target':
                     $targetDir = $argv[++$i];
                     break;
                 case '-subPrefix':
+                case '--subPrefix':
                     $subQuery = $argv[++$i];
                     break;
                 case '-x':
@@ -553,7 +562,7 @@ END;
 
                             $restStaticNameSpaces = $this->restTemplateStaticNameSpace();
 
-                            $columnNamespace = "use " . (str_ends_with('/', $target_namespace) ? $target_namespace : $target_namespace . '\\')  . "Traits\\{$etn}_Columns;";
+                            $columnNamespace = "use " . (str_ends_with($target_namespace, '\\') ? $target_namespace : $target_namespace . '\\') . "Traits\\{$etn}_Columns;";
 
                             array_splice($restStaticNameSpaces, 2, 0, [
                                 'use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;',
@@ -1663,7 +1672,7 @@ const COLUMNS = {
       $global_column_tsx
 };
 
-export const convertForRequestBody = function (restfulObject: RestTableInterfaces, tableName: string | string[], regexErrorHandler: (message:string) => void = alert) {
+export const convertForRequestBody = function (restfulObject, tableName, regexErrorHandler) {
 
     let payload = {};
 

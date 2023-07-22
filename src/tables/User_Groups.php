@@ -511,7 +511,7 @@ MYSQL;
     * @generated
     * @return bool
     */
-    public static function get(array &$return, array $argv = []): bool
+    public static function get(array|null &$return, array $argv = []): bool
     {
         return self::select($return, $argv);
     }

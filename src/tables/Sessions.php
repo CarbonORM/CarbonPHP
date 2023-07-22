@@ -192,6 +192,59 @@ class Sessions extends Rest implements iRestSinglePrimaryKey
 
     ];
     
+    public function __construct(array &$return = [])
+    {
+        parent::__construct($return);
+         
+        # always create the column in your local database first, re-run the table builder, then add the needed functions
+        $this->REFRESH_SCHEMA = [
+            
+        ];
+         
+        $this->PHP_VALIDATION = [ 
+            self::COLUMN => [
+               self::GLOBAL_COLUMN_VALIDATION => []
+            ],
+            self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
+                self::PREPROCESS => [
+                    // before any other processing is done, this is the first callback to be executed
+                    // typically used to validate the full request, add additional data to the request, and even creating a history log
+                    static fn() => self::disallowPublicAccess(self::class)
+                ],
+                self::FINISH => [
+                    // the compiled sql is passed to the callback, the statement has not been executed yet
+                ]  
+            ],
+            self::GET => [
+                self::PREPROCESS => [
+                   static fn() => self::disallowPublicAccess(self::class)
+               ]
+            ],
+            self::POST => [
+                self::PREPROCESS => [
+                   static fn() => self::disallowPublicAccess(self::class)
+                ]
+            ],
+            self::PUT => [
+                self::PREPROCESS => [
+                    static fn() => self::disallowPublicAccess(self::class)
+                ]
+            ],
+            self::DELETE => [
+                self::PREPROCESS => [
+                    static fn() => self::disallowPublicAccess(self::class)
+                ]
+            ],
+            self::FINISH => [
+                self::PREPROCESS => [
+                    // Has executed but not committed to the database, id is passed
+                ],
+                self::FINISH => [
+                    // Has executed and committed to the database, results are passed by reference
+                ],
+            ]
+        ];
+    }
     
     /** Custom User Methods Are Placed Here **/
     
@@ -515,7 +568,7 @@ MYSQL;
     * @generated
     * @return bool
     */
-    public static function get(array &$return, string $primary = null, array $argv = []): bool
+    public static function get(array|null &$return, string $primary = null, array $argv = []): bool
     {
         return self::select($return, $argv, $primary === null ? null : [ self::PRIMARY => $primary ]);
     }

@@ -586,7 +586,7 @@ MYSQL;
     * @generated
     * @return bool
     */
-    public static function get(array &$return, string $primary = null, array $argv = []): bool
+    public static function get(array|null &$return, string $primary = null, array $argv = []): bool
     {
         return self::select($return, $argv, $primary === null ? null : [ self::PRIMARY => $primary ]);
     }

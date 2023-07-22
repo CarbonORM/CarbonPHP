@@ -226,15 +226,9 @@ class Session implements SessionHandlerInterface
         }
 
         if (is_callable(self::$callback)) {
+
             /** @noinspection OnlyWritesOnParameterInspection */
-
             ($lambda = self::$callback)($clear);    // you must have callable in a variable in fn scope
-
-        }
-
-        if (!defined('X_PJAX_VERSION')) {
-
-            define('X_PJAX_VERSION', $_SESSION['X_PJAX_Version']);
 
         }
 

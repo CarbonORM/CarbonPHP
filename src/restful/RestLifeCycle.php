@@ -106,7 +106,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
      */
     protected static function startRest(
         string                $method,
-        array|null                 $return,
+        array|null            $return,
         array                 &$args = null,
         string|int|array|null &$primary = null,
         bool                  $subQuery = false): void
@@ -283,7 +283,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
             $stmt->debugDumpParams();
 
-            $debugDumpParams = explode("\n",ob_get_clean() ?? 'FAILED TO GET DEBUG DUMP');
+            $debugDumpParams = explode("\n", ob_get_clean() ?? 'FAILED TO GET DEBUG DUMP');
 
             return static function () use (&$committed) {
 
@@ -564,7 +564,15 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
         }
 
-        print PHP_EOL . json_encode($json) . PHP_EOL;
+        try {
+
+            print PHP_EOL . json_encode($json, JSON_THROW_ON_ERROR) . PHP_EOL;
+
+        } catch (Throwable $e) {
+
+            ThrowableHandler::generateLogAndExit($e);
+
+        }
 
         return true;
 

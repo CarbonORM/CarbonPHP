@@ -124,7 +124,7 @@
     ],
     "rei": "rm -rf vendor && rm composer.lock && composer i",
     "rest": [
-      "php index.php restbuilder -json -dumpData"
+      "php index.php restbuilder -json -dumpData -react view/ -javascript view/"
     ],
     "setup": [
       "@database:refresh:schema",

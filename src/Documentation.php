@@ -199,7 +199,6 @@ class Documentation extends Application implements iConfig
             'SITE_TITLE' => CarbonPHP::$site_title,
             'CarbonPHP::$app_view' => CarbonPHP::$app_view,
             'COMPOSER' => CarbonPHP::CARBON_ROOT,
-            'X_PJAX_Version' => &$_SESSION['X_PJAX_Version'],
             'FACEBOOK_APP_ID' => ''
         ];
 
