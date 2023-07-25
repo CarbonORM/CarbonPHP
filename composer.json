@@ -48,15 +48,15 @@
   ],
   "autoload": {
     "psr-4": {
-      "CarbonPHP\\Error\\": "src/error/",
-      "CarbonPHP\\Enums\\": "src/enums/",
-      "CarbonPHP\\Helpers\\": "src/helpers/",
-      "CarbonPHP\\Interfaces\\": "src/interfaces/",
-      "CarbonPHP\\Programs\\": "src/programs/",
-      "CarbonPHP\\Restful\\": "src/restful/",
-      "CarbonPHP\\Tables\\": "src/tables/",
-      "CarbonPHP\\Tables\\Traits\\": "src/tables/traits/",
-      "CarbonPHP\\": "src/",
+      "CarbonPHP\\Error\\": "carbonphp/error/",
+      "CarbonPHP\\Enums\\": "carbonphp/enums/",
+      "CarbonPHP\\Helpers\\": "carbonphp/helpers/",
+      "CarbonPHP\\Interfaces\\": "carbonphp/interfaces/",
+      "CarbonPHP\\Programs\\": "carbonphp/programs/",
+      "CarbonPHP\\Restful\\": "carbonphp/restful/",
+      "CarbonPHP\\Tables\\": "carbonphp/tables/",
+      "CarbonPHP\\Tables\\Traits\\": "carbonphp/tables/traits/",
+      "CarbonPHP\\": "carbonphp/",
       "Tests\\Browser\\": "tests/browser/",
       "Tests\\Feature\\": "tests/feature/",
       "Tests\\": "tests/",
@@ -87,7 +87,7 @@
     "carbon:wordpress": [
       "@wp",
       "mkdir -p \"`pwd`/wp-content/plugins/carbonphp\"",
-      "cp \"`pwd`/src/helpers/WordpressPlugin.php\" \"`pwd`/wp-content/plugins/carbonphp/CarbonPHP.php\""
+      "cp \"`pwd`/carbonphp/helpers/WordpressPlugin.php\" \"`pwd`/wp-content/plugins/carbonphp/CarbonPHP.php\""
     ],
     "carbon:react": [
       "mkdir -p \"`pwd`/vendor/richardtmiles/carbonphp/view/releases\"",
@@ -106,12 +106,12 @@
       "@test"
     ],
     "gcloud:instance:delete": [
-      "chmod +x ./src/programs/gcpDeployment.sh",
-      "./src/programs/gcpDeployment.sh -delete"
+      "chmod +x ./carbonphp/programs/gcpDeployment.sh",
+      "./carbonphp/programs/gcpDeployment.sh -delete"
     ],
     "gcloud:instance:new": [
-      "chmod +x ./src/programs/gcpDeployment.sh",
-      "./src/programs/gcpDeployment.sh -deploy"
+      "chmod +x ./carbonphp/programs/gcpDeployment.sh",
+      "./carbonphp/programs/gcpDeployment.sh -deploy"
     ],
     "gcloud": [
       "gcloud projects list",

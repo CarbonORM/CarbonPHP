@@ -1,0 +1,55 @@
+runtime: php
+env: flex
+
+
+runtime_config:
+  document_root: .
+
+beta_settings:
+  cloud_sql_instances: "YOUR_GOOGLE_SQL_INSTANCE_HERE"
+
+env_variables:
+  # Replace USER, PASSWORD, DATABASE, and CONNECTION_NAME with the
+  # values obtained when configuring your Cloud SQL instance.
+  MYSQL_DSN: mysql:unix_socket=/cloudsql/YOUR_GOOGLE_SQL_INSTANCE_HERE;dbname=C6
+  MYSQL_USER: root
+  MYSQL_PASSWORD: smokey
+
+
+# network:
+ # forwarded_ports:
+  #  - 2222/tcp
+
+handlers:
+- url: /(.*)\.[\d]{10}(\.(css|js))          # TODO - stack overflow versioning app.yaml
+  static_files: \1\2
+  upload: /((.*\.)(css|js))$
+
+- url: /.*
+  script: index.php
+
+
+# Serve images as static resources.
+#- url: /(.+\.(gif|png|jpg))$
+#  static_files: \1
+#  upload: .+\.(gif|png|jpg)$
+#  application_readable: true
+
+#- url: /^(.*)\.[\d]{10}\.(css|js|html)$
+#  static_files: \1.\2
+#  upload: .+\.(css|js|html)$
+#  application_readable: true
+
+
+
+# This sample incurs costs to run on the App Engine flexible environment.
+# The settings below are to reduce costs during testing and are not appropriate
+# for production use. For more information, see:
+# https://cloud.google.com/appengine/docs/flexible/python/configuring-your-app-with-app-yaml
+
+manual_scaling:
+  instances: 1
+resources:
+  cpu: 1
+  memory_gb: 0.5
+  disk_size_gb: 10

@@ -1,0 +1,122 @@
+DirectoryIndex index.php
+
+SetEnv XDEBUG_SESSION 1
+SetEnv DBGP_IDEKEY XDEBUG_INTELLIJ
+
+# protect against DOS attacks by limiting file upload size [bytes]
+LimitRequestBody 10240000
+
+<IfModule mod_autoindex.c>
+    Options -Indexes
+</IfModule>
+<Files mysqldump.sql>
+    Order allow,deny
+    Deny from all
+</Files>
+<FilesMatch "(composer\.json)|(\.(htaccess|htpasswd|md|ini|log|sh|inc|bak|sql|yml|yaml|iml|cnf|gz|phar|webp))$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+<If "%{REQUEST_URI} =~ m#^/\..*#">
+    Order allow,deny
+    Deny from all
+</If>
+
+# https://stackoverflow.com/questions/14003332/access-control-allow-origin-wildcard-subdomains-ports-and-protocols/27990162#27990162
+SetEnvIf Origin ^(https?://.*(?::\d{1,5})?)$ CORS_ALLOW_ORIGIN=$1
+Header always set Access-Control-Allow-Origin %{CORS_ALLOW_ORIGIN}e env=CORS_ALLOW_ORIGIN
+Header merge Vary "Origin"
+# todo - Cached for a day - 86400
+Header always set Access-Control-Max-Age: 0
+Header always set Access-Control-Allow-Methods "GET, POST, PATCH, PUT, DELETE, OPTIONS"
+Header always set Access-Control-Allow-Headers: *
+
+
+<FilesMatch "\.(ico|pdf|flv)$"> # 1 YEAR - 29030400; 1 WEEK - 604800; 2 DAYS - 172800; 1 MIN  - 60
+    Header set Cache-Control "max-age=29030400, public"
+</FilesMatch>
+<FilesMatch "\.(jpg|jpeg|png|gif|swf|xml|txt|css|js|svg|webp)$">
+    Header set Cache-Control "max-age=604800, public"
+</FilesMatch>
+<FilesMatch "\.(html|htm|php|hbs|json|map)$">
+    Header set Cache-Control "max-age=0, private, public"
+</FilesMatch>
+
+
+# @link https://serverfault.com/questions/214512/redirect-change-urls-or-redirect-http-to-https-in-apache-everything-you-ever
+<IfModule mod_rewrite.c>
+
+    # Header set Connection keep-alive
+
+    RewriteEngine On
+
+    # Respond with 200OK for OPTIONS
+    RewriteCond %{REQUEST_METHOD} OPTIONS
+    RewriteRule ^(.*)$ $1 [R=200,L]
+
+    RewriteCond %{HTTP:Connection} Upgrade [NC]
+    RewriteCond %{HTTP:Upgrade} websocket [NC]
+    RewriteRule ^/?mailhog/(.*) ws://127.0.0.1:8025/mailhog/$1  [P,L]
+    RewriteRule ^/?mailhog/(.*) http://127.0.0.1:8025/mailhog/$1  [P,L]
+
+
+    # Begin check for our custom XMLHttpRequest (AJAX) header
+    RewriteCond %{HTTP:X-Requested-With} ^$
+    RewriteRule ^(.*) https://richardtmiles.github.io/carbonphp.com/  [P,L]
+    # end Cloudflare
+
+
+    # @link https://serverfault.com/questions/940923/apache2-with-http-2-serves-some-content-with-h2-some-with-http-1-1
+    # does it timeout in 60s? @link https://serverfault.com/questions/948312/apache-reverse-proxy-timeout-in-60-seconds
+    # @link https://stackoverflow.com/questions/9629566/how-to-increase-apache-timeout-directive-in-htaccess
+    RewriteCond %{HTTP:Connection} Upgrade [NC]
+    RewriteCond %{HTTP:Upgrade} websocket [NC]
+    RewriteRule ^/?(.*) ws://127.0.0.1:8004/$1  [P,L,E=noconntimeout:1,E=noabort:1]
+    # on production websocket port is set in the virtual host configuation file; see 000-default.handlebars
+
+
+    RewriteCond %{ENV:CDN} .
+    RewriteRule "^/?react/(.*)/index.html" "%{ENV:CDN}/react/$1/index.html" [P]
+
+    RewriteCond %{ENV:CDN} .
+    RewriteRule "^/?react/(.*)" "%{ENV:CDN}/react/$1" [R=302,L]
+
+    RewriteCond %{ENV:CDN} .
+    RewriteRule "^/?(dropingaming|wp-content)/(assets|uploads(?:COM?|GG|PRO|IO|VIDEO)?)/(.*)" "%{ENV:CDN}/$1/$2/$3" [R=302,L]
+
+
+    # https://www.danielmorell.com/guides/htaccess-seo/redirects/introduction-to-redirects
+    # deny access to evil robots site rippers offline browsers and other nasty scum
+    RewriteBase /
+    RewriteCond %{HTTP_USER_AGENT} ^Anarchie [OR]
+    RewriteCond %{HTTP_USER_AGENT} ^ASPSeek [OR]
+    RewriteCond %{HTTP_USER_AGENT} ^attach [OR]
+    RewriteCond %{HTTP_USER_AGENT} ^autoemailspider [OR]
+    RewriteCond %{HTTP_USER_AGENT} ^Xaldon\ WebSpider [OR]
+    RewriteCond %{HTTP_USER_AGENT} ^Xenu [OR]
+    RewriteCond %{HTTP_USER_AGENT} ^Zeus.*Webster [OR]
+    RewriteCond %{HTTP_USER_AGENT} ^Zeus
+    RewriteRule ^.*$ http://www.cnn.com [R,L]
+    # send em to a hellish website of your choice
+
+    <FilesMatch "\.(ico|pdf|flv|jpg|jpeg|png|gif|swf|xml|txt|css|js|svg|html|htm|hbs|json|map|woff|ttf|webp)$">
+        RewriteBase /
+        RewriteCond %{REQUEST_FILENAME} -f [OR]
+        RewriteCond %{REQUEST_FILENAME} -d
+        RewriteRule ^ - [L]
+    </FilesMatch>
+
+    RewriteBase /
+    RewriteRule ^index\.php$ - [L]
+    RewriteRule ^info\.php$ - [L]
+    RewriteRule ^xdebug_info\.php$ - [L]
+    RewriteRule ^wp-login\.php$ - [L]
+    RewriteRule ^(wp-(admin|includes).*) $1 [L]
+    RewriteRule ^tmp/migration_.*$ - [L]
+    RewriteRule ^.*$ /index.php [L,QSA]
+
+</IfModule>

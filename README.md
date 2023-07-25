@@ -79,7 +79,7 @@ ssed to MVC. Please ensure your namespace mappings are correct!";
 CarbonPHP's largest feature is the MySQL ORM. By running a customizable CLI command our program 
 will analyze your database schema and generate powerful classes used to manipulate your tables. The auto generated files 
 may be used in conjunction for an incredibly pleasing RESTFUL semantics structure. Below are examples for using the REST 
-ORM. You can [see the generated source here](https://github.com/RichardTMiles/CarbonPHP/blob/master/src/tables/Carbon_Users.php).
+ORM. You can [see the generated source here](https://github.com/RichardTMiles/CarbonPHP/blob/master/carbonphp/tables/Carbon_Users.php).
 
 ```php
     $id = Users::Post([

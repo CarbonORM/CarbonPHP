@@ -57,8 +57,7 @@ license.txt
 
 
 # wp rest tables
-src/tables/Wp_*
-src/tables/interfaces/iWp_*
+carbonphp/tables/Wp_*
+carbonphp/tables/interfaces/iWp_*
 
-/CarbonPHP
 cache/*
