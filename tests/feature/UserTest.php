@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use CarbonPHP\CarbonPHP;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Rest;
@@ -33,6 +34,8 @@ final class UserTest extends Config
         $_SERVER['REQUEST_TIME'] = time();
 
         $this->user = [];
+
+        sortDump(CarbonPHP::$configuration);
 
         Users::Get($this->user, null, [
             iRest::WHERE => [

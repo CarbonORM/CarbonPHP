@@ -158,7 +158,7 @@ END;
         $QueryWithDatabaseName = $clean = true;
         $json = $carbon_namespace = CarbonPHP::isCarbonPHPDocumentation();
 
-        $targetDir = CarbonPHP::$app_root . ($carbon_namespace ? 'src/tables/' : 'tables/');
+        $targetDir = CarbonPHP::$app_root . ($carbon_namespace ? 'carbonphp/tables/' : 'tables/');
         $only_these_tables = $history_table_query = $mysql = null;
         $verbose = $debug = $primary_required = $delete_dump = $skipTable = $logClasses =
         $javascriptBindings = $dumpData = false;

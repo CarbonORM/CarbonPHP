@@ -122,7 +122,7 @@ class CarbonPHP
     public static bool $is_running_production = false;
     public static bool $app_local = false;
     public static bool $socket = false;
-    public static bool $cli = false;
+    public static bool $cli = true;
     public static bool $test = false;
     public static bool $pjax = false;
     public static bool $ajax = false;
@@ -189,7 +189,7 @@ class CarbonPHP
 
         static $cache;
 
-        return $cache ??= self::$app_root . 'src' . DS === self::CARBON_ROOT;
+        return $cache ??= self::$app_root . 'carbonphp' . DS === self::CARBON_ROOT;
 
     }
 

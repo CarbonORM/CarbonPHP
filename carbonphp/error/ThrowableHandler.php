@@ -372,7 +372,7 @@ class ThrowableHandler
 
             $comment = $func->getDocComment();
 
-        } catch (ReflectionException $e) {
+        } catch (ReflectionException) {
 
             return '<div>Failed to load code preview in ThrowableHandler class using ReflectionMethod.<div>';
 
@@ -651,8 +651,6 @@ class ThrowableHandler
 
             $browserOutput['LINE'] = (string)$errorLine;
 
-            $browserOutput['JUMP'] = $errorFile . ':' . $errorLine;
-
             $warning = array_key_exists('RECOVERABLE WARNING', $browserOutput);
 
             $color = $warning ? iColorCode::YELLOW : iColorCode::RED;
@@ -853,6 +851,7 @@ class ThrowableHandler
 
             $log_array['LINE'] = (string)$e->getLine();
 
+            /** @noinspection SuspiciousAssignmentsInspection */
             $log_array['JUMP'] = $log_array['FILE'] . ':' . $log_array['LINE'];
 
             $log_array['CODE'] = (string)$e->getCode();
