@@ -2,7 +2,7 @@
 <project version="4">
   <component name="WebServers">
     <option name="servers">
-      <webServer id="e2a69378-7318-4216-b3c7-840aa3c7e058" name="Google" url="http://carbonphp.com">
+      <webServer id="e2a69378-7318-4216-b3c7-840aa3c7e058" name="Google (project level)" url="http://carbonphp.com">
         <fileTransfer rootFolder="/var/www/carbonphp.com" accessType="SFTP" host="35.222.121.221" port="22" sshConfigId="e8b98529-9c82-420f-988d-15850f1e50b9" sshConfig="Google" keyPair="true">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />

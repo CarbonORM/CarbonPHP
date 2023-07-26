@@ -36,7 +36,7 @@ function deploy() {
 
     # @link see all - gcloud compute images list --filter ubuntu-os-cloud
     gcloud compute instances create "$varname" \
-      --image="ubuntu-2204-jammy-v20230114" \
+      --image="ubuntu-2204-lts-arm64" \
       --boot-disk-size=50GB \
       --image-project="ubuntu-os-cloud" \
       --zone="us-central1-b" \
@@ -141,6 +141,8 @@ function setupUbuntu20() {
 
   git -C "$HOME/CarbonPHP" pull
 
+  # This downloads our
+  # github repositories and changes the Google DNS locations
   sudo php "${DIR}/index.php" Deployment
 
   sudo chown -R root:c6devteam /var/www

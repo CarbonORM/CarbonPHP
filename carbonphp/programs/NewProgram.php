@@ -14,9 +14,8 @@ use CarbonPHP\Interfaces\iCommand;
  *
  * @link https://gist.github.com/pbojinov/8965299
  */
-class NewProgram implements iCommand
+class NewProgram extends Composer implements iCommand
 {
-    use Composer;
 
     private array $CONFIG;
 

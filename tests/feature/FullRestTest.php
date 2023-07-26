@@ -52,7 +52,7 @@ class FullRestTest extends CarbonRestTest
 
         $GLOBALS['json'] = [];
 
-        self::assertTrue(Rest::ExternalRestfulRequestsAPI(Photos::TABLE_NAME, null, Users::CLASS_NAMESPACE));
+        self::assertTrue(Rest::ExternalRestfulRequestsAPI(Photos::CLASS_NAME, null, Users::CLASS_NAMESPACE));
 
         $out = trim(ob_get_clean());
 
@@ -115,7 +115,7 @@ class FullRestTest extends CarbonRestTest
 
         $GLOBALS['json'] = [];
 
-        self::assertTrue(Rest::ExternalRestfulRequestsAPI(Users::TABLE_NAME, null, Users::CLASS_NAMESPACE));
+        self::assertTrue(Rest::ExternalRestfulRequestsAPI(Users::CLASS_NAME, null, Users::CLASS_NAMESPACE));
 
         $out = trim(ob_get_clean());
 

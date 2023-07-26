@@ -10,31 +10,8 @@ use CarbonPHP\Programs\Deployment;
 use CarbonPHP\Programs\Migrate;
 use CarbonPHP\Tables\Carbons;
 
-
-if (false === defined('ABSPATH')) {
-
-    http_response_code(400);
-
-    print '<h1>CarbonPHP is an opensource library. It looks like you have accessed the wordpress bootstrap file, or in 
-            n00b terminology what allows us to be compatible with WordPress as a plugin. You should not try to access
-            any file directly as classes are PSR-4 compliant. This means all file include operations will be dynamic using
-            composer. To lean more about how to use CarbonPHP please refer to 
-            <a href="https://www.carbonphp.com/">https://CarbonPHP.com/</a></h1>';
-
-    if (class_exists(ColorCode::class)) {
-
-        ColorCode::colorCode('C6 Plugin Failed; ABSPATH not defined!', iColorCode::RED);
-
-    }
-
-    exit(59);
-
-}
-
-
 // Composer autoload
-/** @noinspection UsingInclusionOnceReturnValueInspection */
-if (false === (include_once ABSPATH . 'vendor' . DS . 'autoload.php')) {
+if (false === class_exists('CarbonPHP\Application') && false === (include_once ABSPATH . 'vendor' . DS . 'autoload.php')) {
 
     print '<h1>Composer Failed</h1>';
 

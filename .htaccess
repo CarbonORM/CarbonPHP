@@ -65,8 +65,8 @@ Header always set Access-Control-Allow-Headers: *
 
 
     # Begin check for our custom XMLHttpRequest (AJAX) header
-    RewriteCond %{HTTP:X-Requested-With} ^$
-    RewriteRule ^(.*) https://richardtmiles.github.io/carbonphp.com/  [P,L]
+    #RewriteCond %{HTTP:X-Requested-With} ^$
+    #RewriteRule ^(.*) https://richardtmiles.github.io/carbonphp.com/  [P,L]
     # end Cloudflare
 
 

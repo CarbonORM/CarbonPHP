@@ -345,13 +345,19 @@ class CarbonPHP
     }
 
 
-    private static function parseConfiguration($configuration): array
+    private static function parseConfiguration(iConfig|array|string $configuration): array
     {
 
         ####################  Now load config file so globals above & stacktrace security
         if ($configuration === null) {
 
             return self::$configuration = [];
+
+        }
+
+        if (is_array($configuration)) {
+
+            return self::$configuration = $configuration;
 
         }
 
@@ -408,7 +414,7 @@ class CarbonPHP
         }
 
         if (is_string($configuration)) {
-            print 'Invalid configuration path given! See CarbonPHP.com for instructions. ' . $configuration;
+            print 'Invalid configuration path given! See CarbonPHP.com for instructions. (' . $configuration . ')';
         } else {
             print 'Invalid configuration provided. See CarbonPHP.com for instructions.';
         }
@@ -462,7 +468,7 @@ class CarbonPHP
             }
 
             // todo - we're using this as a uri and it could have directory separator in the wrong direction
-            if (self::$app_root . 'src' . DS === self::CARBON_ROOT) {
+            if (self::$app_root . 'carbonphp' . DS === self::CARBON_ROOT) {
 
                 self::$carbon_is_root = true;
 

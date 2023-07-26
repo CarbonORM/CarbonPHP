@@ -324,7 +324,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
             if (!class_exists($namespace . $mainTable)
                 && !class_exists($namespace . $mainTable = preg_replace('/^' . preg_quote($prefix, '/') . '/i', '', $mainTable))) {
 
-                throw new PublicAlert("The table ($namespace$mainTable) was not found in our generated api. Please try rerunning the rest builder and contact us if problems persist.");
+                throw new PublicAlert("The table ($namespace$mainTable) was not found in our generated api. Please try rerunning the rest builder and contact us if problems persist. (E_PRE_$prefix)");
 
             }
 

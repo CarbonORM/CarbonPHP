@@ -871,7 +871,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
         if ($prefix !== $table_prefix) {
 
-            throw new PublicAlert("The tables prefix ($table_prefix) does not match the one ($prefix) found in your configuration. Please make sure you've initiated CarbonPHP before trying to run restful operations. Otherwise you make need to rebuild rest.");
+            throw new PublicAlert("The tables prefix ($table_prefix) does not match the one ($prefix) found in your configuration (" .print_r(CarbonPHP::$configuration, true)."). Please make sure you've initiated CarbonPHP before trying to run restful operations. Otherwise you make need to rebuild rest.");
 
         }
 

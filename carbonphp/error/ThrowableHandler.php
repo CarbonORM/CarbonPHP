@@ -1190,7 +1190,11 @@ class ThrowableHandler
 
         foreach ($trace as &$value) {
 
-            $value['jump'] = $value['file'] . ':' . $value['line'];
+            if (array_key_exists('file', $value) && array_key_exists('line', $value)) {
+
+                $value['jump'] = $value['file'] . ':' . $value['line'];
+
+            }
 
         }
 

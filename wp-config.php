@@ -24,6 +24,7 @@
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
 use CarbonPHP\Documentation;
+use CarbonPHP\Helpers\ColorCode;
 
 // Composer autoload
 if (false === (include __DIR__ . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php')) {
@@ -33,6 +34,8 @@ if (false === (include __DIR__ . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPA
     die(1);
 
 }
+
+ColorCode::colorCode("Loading wordpress configuration for CarbonPHP documentation.");
 
 const DS = DIRECTORY_SEPARATOR;
 
@@ -48,6 +51,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 CarbonPHP::$app_root = ABSPATH;
 
 $configuration = Documentation::configuration();
+
+CarbonPHP::make($configuration);
 
 $dbInfo = $configuration[CarbonPHP::DATABASE];
 
