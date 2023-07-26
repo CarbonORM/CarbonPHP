@@ -117,5 +117,7 @@ const WP_DEBUG = false;
 
 /* That's all, stop editing! Happy publishing. */
 
+
+
 /** Sets up WordPress vars and included files. */
 require_once ABSPATH . 'wp-settings.php';

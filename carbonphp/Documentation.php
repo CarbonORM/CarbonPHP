@@ -791,7 +791,7 @@ SOCKET;
                 CarbonPHP::VERSION => trim(`git tag | tail -n 1`),               // Add link to semantic versioning
                 CarbonPHP::SEND_EMAIL => 'richard@miles.systems',
                 CarbonPHP::REPLY_EMAIL => 'richard@miles.systems',
-                CarbonPHP::HTTP => CarbonPHP::$app_local
+                CarbonPHP::HTTP => true, //CarbonPHP::$app_local
             ],
             CarbonPHP::SESSION => [
                 CarbonPHP::REMOTE => true,             // Store the session in the SQL database

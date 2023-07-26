@@ -1,5 +1,7 @@
 <?php
-
+/*
+ * Plugin Name: YOUR PLUGIN NAME
+ */
 use CarbonPHP\Application;
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Documentation;
@@ -11,7 +13,9 @@ use CarbonPHP\Programs\Migrate;
 use CarbonPHP\Tables\Carbons;
 
 // Composer autoload
-if (false === class_exists('CarbonPHP\Application') && false === (include_once ABSPATH . 'vendor' . DS . 'autoload.php')) {
+/** @noinspection UsingInclusionOnceReturnValueInspection */
+if (false === class_exists('CarbonPHP\Application')
+    && false === (include_once ABSPATH . 'vendor' . DS . 'autoload.php')) {
 
     print '<h1>Composer Failed</h1>';
 

@@ -360,6 +360,39 @@ class ThrowableHandler
 
     }
 
+    public static function grabFileSnippet(string $file, int $line, bool $raw = false)
+    {
+        if (file_exists($file)) {
+
+            // todo - does this work when negative
+            $start_line = $line - 10;
+
+            $source = file_get_contents($file);
+
+            $source = preg_split('/' . PHP_EOL . '/', $source);
+
+            if (false === function_exists('highlight')) {
+
+                include_once CarbonPHP::CARBON_ROOT . 'Functions.php';
+
+            }
+
+            $snippet = array_slice($source, $start_line, 20);
+
+            if ($raw) {
+
+                return $snippet;
+
+            }
+
+            return highlight(implode(PHP_EOL, $snippet), true);
+
+        }
+
+        return '';
+
+    }
+
     public static function grabCodeSnippet(): string
     {
         if (self::$className === '' || self::$methodName === '') {
@@ -412,7 +445,7 @@ class ThrowableHandler
     }
 
 
-    public static function exitAndSendBasedOnRequested(array $json, string $html = null) : never
+    public static function exitAndSendBasedOnRequested(array $json, string $html = null): never
     {
 
         $_SERVER["CONTENT_TYPE"] ??= '';
@@ -942,23 +975,10 @@ class ThrowableHandler
         // todo - log invalid files?
         if ($codePreview === ''
             && ($log_array['FILE'] ?? false)
-            && file_exists($log_array['FILE'])
             && ($log_array['LINE'] ?? false)
             && is_numeric($log_array['LINE'])) {
 
-            $start_line = $log_array['LINE'] - 10;
-
-            $source = file_get_contents($log_array['FILE']);
-
-            $source = preg_split('/' . PHP_EOL . '/', $source);
-
-            if (false === function_exists('highlight')) {
-
-                include_once CarbonPHP::CARBON_ROOT . 'Functions.php';
-
-            }
-
-            $codePreview = highlight(implode(PHP_EOL, array_slice($source, $start_line, 20)), true);
+            $codePreview = self::grabFileSnippet($log_array['FILE'], $log_array['LINE']);
 
         }
 
@@ -1188,7 +1208,18 @@ class ThrowableHandler
 
         $trace = $e->getTrace();
 
-        foreach ($trace as &$value) {
+        $trace = array_reverse($trace);
+
+        $trace[] = [
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'code' => $e->getCode(),
+            'preview' => self::grabFileSnippet($e->getFile(), $e->getLine(), true),
+        ];
+
+        $traceWithKeys = [];
+
+        foreach ($trace as $key => &$value) {
 
             if (array_key_exists('file', $value) && array_key_exists('line', $value)) {
 
@@ -1196,11 +1227,11 @@ class ThrowableHandler
 
             }
 
+            $traceWithKeys['CALL TRACE ' . $key] = $value;
+
         }
 
-        $trace = array_reverse($trace);
-
-        return [$trace, PHP_EOL . json_encode($trace, JSON_THROW_ON_ERROR ) . PHP_EOL];
+        return [$traceWithKeys, PHP_EOL . json_encode($traceWithKeys, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT) . PHP_EOL];
     }
 
     /**

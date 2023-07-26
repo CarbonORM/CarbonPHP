@@ -32,11 +32,11 @@
     "ext-sockets": "*"
   },
   "require-dev": {
-    "wp-cli/wp-cli-bundle": "2.6.0",
-    "phpunit/phpunit-selenium": "^9.0.1",
-    "se/selenium-server-standalone": "^3.141.59",
-    "phpunit/phpunit": "^9.5",
-    "phpmetrics/phpmetrics": "^2.7"
+    "wp-cli/wp-cli-bundle": ">=2.6.0",
+    "phpunit/phpunit-selenium": ">=9.0.1",
+    "se/selenium-server-standalone": ">=3.141.59",
+    "phpunit/phpunit": ">=9.5",
+    "phpmetrics/phpmetrics": ">=2.7"
   },
   "authors": [
     {
@@ -85,9 +85,9 @@
       "php ./vendor/bin/phpmetrics --config=php-metrics.json ."
     ],
     "carbon:wordpress": [
-      "@wp",
       "mkdir -p \"`pwd`/wp-content/plugins/carbonphp\"",
-      "cp \"`pwd`/carbonphp/helpers/WordpressPlugin.php\" \"`pwd`/wp-content/plugins/carbonphp/CarbonPHP.php\""
+      "cp \"`pwd`/carbonphp/helpers/WordpressPlugin.php\" \"`pwd`/wp-content/plugins/carbonphp/CarbonPHP.php\"",
+      "./vendor/bin/wp --skip-plugins --skip-themes plugin activate carbonphp"
     ],
     "carbon:react": [
       "mkdir -p \"`pwd`/vendor/richardtmiles/carbonphp/view/releases\"",
@@ -159,7 +159,7 @@
       "mv index.php index.wp.php",
       "cp index.og.php index.php",
       "@wordpress:install",
-      "./vendor/bin/wp --skip-plugins --skip-themes plugin activate carbonphp"
+      "@carbon:wordpress"
     ],
     "wordpress:download:latest-stable": [
       "php -r \"copy('https://wordpress.org/latest.tar.gz', 'latest.tar.gz');\"",

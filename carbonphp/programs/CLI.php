@@ -288,7 +288,7 @@ class CLI implements iCommand
     {
         # $c6 = implode("\n                        ", $this->C6Programs);
 
-        if (CarbonPHP::$app_root . 'src/' !== CarbonPHP::CARBON_ROOT) {
+        if (CarbonPHP::$app_root . 'carbonphp/' !== CarbonPHP::CARBON_ROOT) {
             if (!empty($this->UserPrograms)) {
                 $UserPrograms = implode("\n                        ", $this->UserPrograms);
 

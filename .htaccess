@@ -30,6 +30,7 @@ LimitRequestBody 10240000
 SetEnvIf Origin ^(https?://.*(?::\d{1,5})?)$ CORS_ALLOW_ORIGIN=$1
 Header always set Access-Control-Allow-Origin %{CORS_ALLOW_ORIGIN}e env=CORS_ALLOW_ORIGIN
 Header merge Vary "Origin"
+
 # todo - Cached for a day - 86400
 Header always set Access-Control-Max-Age: 0
 Header always set Access-Control-Allow-Methods "GET, POST, PATCH, PUT, DELETE, OPTIONS"
