@@ -225,7 +225,7 @@ class Carbons extends Rest implements iRestSinglePrimaryKey
                 self::PREPROCESS => [
                     // before any other processing is done, this is the first callback to be executed
                     // typically used to validate the full request, add additional data to the request, and even creating a history log
-                    static fn() => self::disallowPublicAccess(self::class)
+                    // static fn() => self::disallowPublicAccess(self::class)
                 ],
                 self::FINISH => [
                     // the compiled sql is passed to the callback, the statement has not been executed yet
@@ -233,7 +233,7 @@ class Carbons extends Rest implements iRestSinglePrimaryKey
             ],
             self::GET => [
                 self::PREPROCESS => [
-                   static fn() => self::disallowPublicAccess(self::class)
+                   //static fn() => self::disallowPublicAccess(self::class)
                ]
             ],
             self::POST => [
@@ -439,29 +439,6 @@ class Carbons extends Rest implements iRestSinglePrimaryKey
      *  @version ^11.3
      */ 
     public const PHP_VALIDATION = [
-        self::REST_REQUEST_PREPROCESS_CALLBACKS => [
-            self::PREPROCESS => [
-                [self::class => 'disallowPublicAccess', self::class],
-            ]
-        ],
-        self::GET => [
-            self::PREPROCESS => [
-                [self::class => 'disallowPublicAccess', self::class],
-            ],
-            self::ENTITY_PK => [
-                [self::class => 'disallowPublicAccess', self::ENTITY_PK]
-            ],
-            self::ENTITY_FK => [
-                [self::class => 'disallowPublicAccess', self::ENTITY_FK]
-            ],
-            self::ENTITY_TAG => [
-                [self::class => 'disallowPublicAccess', self::ENTITY_TAG]
-            ],
-        ],
-        self::POST => [self::PREPROCESS => [[self::class => 'disallowPublicAccess', self::class]]],
-        self::PUT => [self::PREPROCESS => [[self::class => 'disallowPublicAccess', self::class]]],
-        self::DELETE => [self::PREPROCESS => [[self::class => 'disallowPublicAccess', self::class]]],
-        self::REST_REQUEST_FINNISH_CALLBACKS => [self::PREPROCESS => [[self::class => 'disallowPublicAccess', self::class]]]
     ]; 
     
     public array $PHP_VALIDATION = [];

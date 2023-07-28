@@ -20,9 +20,8 @@ use ReflectionMethod;
 use Throwable;
 
 /**
- * This is really an Error and Exception handler
- *
- * Class ErrorCatcher
+ * This is an Error and Exception handler
+ * Class ThrowableHandler
  * @package CarbonPHP\Error
  *
  * Provide a global error and exception handler.

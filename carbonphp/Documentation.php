@@ -17,39 +17,9 @@ use Throwable;
 class Documentation extends Application implements iConfig
 {
 
-    public const GIT_SUPPORT = 'https://github.com/RichardTMiles/CarbonPHP/issues';
+    public const GIT_SUPPORT = 'https://github.com/CarbonORM/CarbonPHP/issues';
 
     public static bool $pureWordpressPluginConfigured = false;
-
-    private array $version2Dot0 = [
-        'Home' => '2.0.0/Home.hbs',
-        'CarbonPHP' => '2.0.0/Introduction.hbs',
-        'Installation' => '2.0.0/Installation.hbs',
-        'Implementations' => '2.0.0/Implementations.hbs',
-        'Dependencies' => '2.0.0/Dependencies.hbs',
-        'FileStructure' => '2.0.0/QuickStart/FileStructure.hbs',
-        'Environment' => '2.0.0/QuickStart/Environment.hbs',
-        'Options' => '2.0.0/QuickStart/Options.hbs',
-        'Bootstrap' => '2.0.0/QuickStart/Bootstrap.hbs',
-        'Wrapper' => '2.0.0/QuickStart/Wrapper.hbs',
-        'Parallel' => '2.0.0/QuickStart/ParallelProcessing.hbs',
-        'Overview' => '2.0.0/PHP/Overview.hbs',
-        'Entities' => '2.0.0/PHP/Entities.hbs',
-        'Request' => '2.0.0/PHP/Request.hbs',
-        'Route' => '2.0.0/PHP/Route.hbs',
-        'Server' => '2.0.0/PHP/Server.hbs',
-        'Session' => '2.0.0/PHP/Session.hbs',
-        'Singleton' => '2.0.0/PHP/Singleton.hbs',
-        'View' => '2.0.0/PHP/View.hbs',
-        'OSSupport' => '2.0.0/PlatformSupport.hbs',
-        'UpgradeGuide' => '2.0.0/PlatformSupport.hbs',
-        'Support' => '2.0.0/Support.hbs',
-        'License' => '2.0.0/License.hbs',
-        'AdminLTE' => '2.0.0/AdminLTE.hbs',
-        'N00B' => '2.0.0/N00B.hbs'
-    ];
-
-    public const TEMPLATE = 'node_modules/admin-lte/';
 
     public static function getLatestReactIndexPath(): string
     {
@@ -74,20 +44,21 @@ class Documentation extends Application implements iConfig
 
         }
 
+
+
         self::getUser();
 
         View::$forceWrapper = true; // this will hard refresh the wrapper
 
         if (CarbonPHP::$app_local
-            && '' === ($_COOKIE['CARBON_PHP_DEV'] ?? '')
             && 'GET' === $_SERVER['REQUEST_METHOD']) {
 
             throw new PublicAlert('You should run the live version on <a id="staticSite" href="http://local.carbonphp.com:3000/" style="color:#ff0084">port 3000</a> with the command<br/><b>>> npm start </b> 
-                    <br/>To bypass this message <a onClick=\'document.cookie="CARBON_PHP_DEV=value";\' href="http://local.carbonphp.com:8080/" style="color:blue">click here (cookies required)</a>');
+                    <br/>or your may be looking to head to the  <a onClick=\'document.cookie="CARBON_PHP_DEV=value";\' href="http://local.carbonphp.com:8080/wp-admin/" style="color:blue">WordPress admin</a> to see ');
 
         }
 
-        self::getLatestReactBuild();
+        throw new PublicAlert('The default route was reached. This is unexpected. Please report this issue on <a href="' . self::GIT_SUPPORT . '">GitHub</a>');
 
     }
 
@@ -191,11 +162,11 @@ class Documentation extends Application implements iConfig
         $json += [
             'SITE' => CarbonPHP::$site,
             'POST' => $_POST,
-            'HTTP' => CarbonPHP::$http ? 'True' : 'False',
-            'HTTPS' => CarbonPHP::$https ? 'True' : 'False',
-            'SOCKET' => CarbonPHP::$socket ? 'True' : 'False',
-            'AJAX' => CarbonPHP::$ajax ? 'True' : 'False',
-            'PJAX' => CarbonPHP::$pjax ? 'True' : 'False',
+            'GET' => $_GET,
+            'HTTP' => CarbonPHP::$http,
+            'HTTPS' => CarbonPHP::$https,
+            'SOCKET' => CarbonPHP::$socket,
+            'AJAX' => CarbonPHP::$ajax,
             'SITE_TITLE' => CarbonPHP::$site_title,
             'CarbonPHP::$app_view' => CarbonPHP::$app_view,
             'COMPOSER' => CarbonPHP::CARBON_ROOT,
@@ -305,6 +276,10 @@ class Documentation extends Application implements iConfig
 
             return true;
 
+        }
+
+        if (Rest::MatchRestfulRequests('', Carbons::CLASS_NAMESPACE)) {
+            return true;
         }
 
         if (self::regexMatch('#inlineReact#',
