@@ -11,6 +11,7 @@ require 'common.php';
 
 $statusCode = 0;
 
+// @note we readline in php using a shell exec ``; doing it directly will fail with unexpected behavior
 
 Background::executeAndCheckStatus('composer run test');
 
@@ -106,13 +107,22 @@ if (count($revision_exploded) !== 3) {
 
 $addNewTag = static function ($tag, $versionBumpType): void {
 
-    $pushTags = static fn() => Background::executeAndCheckStatus("git push --tags --no-verify");
+    $pushTags = static function($tag, $releaseName = 'patch') {
+
+        // todo get the last major / minor release name and add it to patches automagically
+        Background::executeAndCheckStatus("git tag -a $tag -m \"release: (" . $releaseName . ") revision: ($tag)\"");
+
+        ColorCode::colorCode('Going to commit a TAG mid GitHook. Output in the CLI will show two pushes to git. This is expected.', iColorCode::MAGENTA);
+
+        Background::executeAndCheckStatus("git push --tags --no-verify");
+
+    };
 
     ColorCode::colorCode("Adding new tag :: '$tag'");
 
     if ($versionBumpType === 'patch') {
 
-        $pushTags();
+        $pushTags($tag);
 
         ColorCode::colorCode("Pushing Git Tag ($tag) Finished (patch).");
 
@@ -128,12 +138,7 @@ $addNewTag = static function ($tag, $versionBumpType): void {
 
     } while ($releaseName === '');
 
-    Background::executeAndCheckStatus("git tag -a $tag -m \"" . $releaseName . " revision $tag\"");
-
-    ColorCode::colorCode('Going to commit a TAG mid GitHook. Output in the CLI will show two pushes to git. This is expected.', iColorCode::MAGENTA);
-
-    $pushTags();
-
+    $pushTags($tag, $releaseName);
 
     do {
 
