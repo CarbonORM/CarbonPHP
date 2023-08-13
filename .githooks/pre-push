@@ -27,7 +27,7 @@ if (0 !== $statusCode) {
 // no changes added to commit
 // Your branch is up to date with
 
-$revisionCheck = static function () use ($cmd, &$revisionCheck) : string {
+$revisionCheck = static function () use ($cmd, &$revisionCheck): string {
 
     $status = shell_exec('git status');
 
@@ -104,63 +104,72 @@ if (count($revision_exploded) !== 3) {
 
 }
 
-$addNewTag = static function ($tag) : void {
+$addNewTag = static function ($tag, $versionBumpType): void {
 
     ColorCode::colorCode("Adding new tag :: '$tag'");
 
-    ColorCode::colorCode('Please enter release name, leave blank for minor (bolder,maverick,fire,etc):', iColorCode::MAGENTA);
+    if ($versionBumpType === 'patch') {
 
-    $releaseName = `exec < /dev/tty && php -r 'echo (\$r = readline()) ? "Release Name (\$r)" : "minor";'`;
+        ColorCode::colorCode('Pushing Git Tags Finished (patch).');
 
-    Background::executeAndCheckStatus("git tag -a $tag -m \"". $releaseName ." revision $tag\"");
+        return;
+
+    }
+
+    ColorCode::colorCode('Please enter release name (bolder,maverick,fire,etc):', iColorCode::MAGENTA);
+
+    do {
+
+        $releaseName = `exec < /dev/tty && php -r 'echo (\$r = readline()) ? "Release Name (\$r)" : "";'`;
+
+    } while ($releaseName === '');
+
+    Background::executeAndCheckStatus("git tag -a $tag -m \"" . $releaseName . " revision $tag\"");
 
     ColorCode::colorCode('Going to commit a TAG mid GitHook. Output in the CLI will show two pushes to git. This is expected.', iColorCode::MAGENTA);
 
     Background::executeAndCheckStatus("git push --tags --no-verify");
 
-    if ('minor' !== $releaseName) {
 
-        do {
+    do {
 
-            ColorCode::colorCode("Enter a release title and use/reference ($releaseName) (@link: https://github.com/RichardTMiles/CarbonPHP/releases)", iColorCode::MAGENTA);
+        ColorCode::colorCode("Enter a release title and use/reference ($releaseName) (@link: https://github.com/RichardTMiles/CarbonPHP/releases)", iColorCode::MAGENTA);
 
-            $releaseTitle = `exec < /dev/tty && php -r 'echo (\$r = readline()) ? \$r : "";'`;
+        $releaseTitle = `exec < /dev/tty && php -r 'echo (\$r = readline()) ? \$r : "";'`;
 
-        } while ($releaseTitle === '');
+    } while ($releaseTitle === '');
 
-        Background::executeAndCheckStatus("git tag -a $tag -m \"". $releaseName ." revision $tag\"");
+    Background::executeAndCheckStatus("git tag -a $tag -m \"" . $releaseName . " revision $tag\"");
 
-        ColorCode::colorCode('Please add additional notes (type "done" alone on a new line to complete):', iColorCode::MAGENTA);
+    ColorCode::colorCode('Please add additional notes (type "done" alone on a new line to complete):', iColorCode::MAGENTA);
 
-        $releaseNotes = '';
+    $releaseNotes = '';
 
-        $done = false;
+    $done = false;
 
-        do {
+    do {
 
-            $line = `exec < /dev/tty && php -r 'echo (\$r = readline()) ? \$r : "done";'`;
+        $line = `exec < /dev/tty && php -r 'echo (\$r = readline()) ? \$r : "done";'`;
 
-            if ('done' === $line) {
+        if ('done' === $line) {
 
-                $done = true;
+            $done = true;
 
-            } else {
+        } else {
 
-                $releaseNotes .= $line;
+            $releaseNotes .= $line;
 
-            }
+        }
 
-        } while(!$done);
+    } while (!$done);
 
-        Background::executeAndCheckStatus("gh release create $tag --title '".preg_quote($releaseTitle, "'")."' --notes '" . preg_quote($releaseNotes, "'") . "'");
+    Background::executeAndCheckStatus("gh release create $tag --title '" . preg_quote($releaseTitle, "'") . "' --notes '" . preg_quote($releaseNotes, "'") . "'");
 
-    }
-
-    ColorCode::colorCode('Pushing Git Tags Finished.');
+    ColorCode::colorCode("Pushing Git Tag ($tag) Finished ($releaseTitle).");
 
 };
 
-$bumpCurrentRevision = static function () use (&$revision_exploded) : void {
+$bumpCurrentRevision = static function () use (&$revision_exploded): string {
 
     ColorCode::colorCode(<<<SEMVAR
 Semantic Versioning Specification (SemVer) (Directly from https://semver.org/)
@@ -210,9 +219,14 @@ The key words “MUST”, “MUST NOT”, “REQUIRED”, “SHALL”, “SHALL 
 
     Example: 1.0.0-alpha < 1.0.0-alpha.1 < 1.0.0-alpha.beta < 1.0.0-beta < 1.0.0-beta.2 < 1.0.0-beta.11 < 1.0.0-rc.1 < 1.0.0.
 
-SEMVAR);
+SEMVAR
+    );
 
-    $versionBumpType = readline('Enter version bump type (major, minor, patch [default]): ');
+    sleep(1);
+
+    ColorCode::colorCode('Enter version bump type (major, minor, patch [default]): ');
+
+    $versionBumpType = `exec < /dev/tty && php -r 'echo (\$r = readline()) ? \$r : "patch";'`;
 
     if (false === $versionBumpType) {
 
@@ -222,9 +236,15 @@ SEMVAR);
 
     }
 
-    if (!in_array($versionBumpType, ['major', 'minor', 'patch', ''])) {
+    if (empty($versionBumpType)) {
 
-        ColorCode::colorCode('Invalid version bump type. Please try again.', iColorCode::RED);
+        $versionBumpType = 'patch';
+
+    }
+
+    if (!in_array($versionBumpType, ['major', 'minor', 'patch'])) {
+
+        ColorCode::colorCode("Invalid version bump type ($versionBumpType). Please try again.", iColorCode::RED);
 
         exit(1);
 
@@ -240,7 +260,7 @@ SEMVAR);
 
             $revision_exploded[2] = 0;
 
-            return;
+            return $versionBumpType;
 
         case 'minor':
 
@@ -248,24 +268,23 @@ SEMVAR);
 
             $revision_exploded[2] = 0;
 
-            return;
+            return $versionBumpType;
 
         default:
         case 'patch':
 
             $revision_exploded[2]++;
 
-            return;
+            return $versionBumpType;
 
     }
-
 
 };
 
 
 do {
 
-    $bumpCurrentRevision();
+    $versionBumpType = $bumpCurrentRevision();
 
     $tag = implode('.', $revision_exploded);
 
@@ -273,7 +292,7 @@ do {
 
     ColorCode::colorCode("Revision bump failed, will try again ($tag)", iColorCode::BACKGROUND_YELLOW);
 
-} while(null !== $revisionExists && '' !== trim($revisionExists));
+} while (null !== $revisionExists && '' !== trim($revisionExists));
 
-$addNewTag($tag);
+$addNewTag($tag, $versionBumpType);
 
