@@ -284,37 +284,7 @@ class ThrowableHandler
 
             } catch (Throwable $e) {
 
-                if (!$e instanceof PublicAlert) {
-
-                    $message = 'Developers make mistakes, and you found a big one! We\'ve logged this event and will be investigating soon.';
-
-                    if (CarbonPHP::$app_local) {
-
-                        PublicAlert::info($message);
-
-                        PublicAlert::danger(\get_class($e) . ' ' . $e->getMessage());
-
-                    } else {
-
-                        PublicAlert::danger($message);
-                    }
-
-                    try {
-
-                        ThrowableHandler::generateLog($e);
-
-                    } catch (Throwable $e) {
-
-                        PublicAlert::danger('Error handling failed.');
-
-                        print $e->getMessage();
-
-                        PublicAlert::info(json_encode($e));
-
-                    }
-                }
-
-                $argv = null;
+                ThrowableHandler::generateLogAndExit($e);
 
             } finally {
 
@@ -322,14 +292,23 @@ class ThrowableHandler
 
                     $out = ob_get_clean();
 
-                    print <<<END
+                    try {
+
+                        throw new PublicAlert(<<<END
                                 <div class="container">
                                 <div class="callout callout-info" style="margin-top: 40px">
                                 <h4>You have printed to the screen while within the catchErrors() function!</h4>
                                 Don't slip up in your production code!
                                 <a href="http://carbonphp.com/">Note: All MVC routes are wrapped in this function. Output to the browser should be done within the view! Use this as a reporting tool only.</a>
                                 </div><div class="box"><div class="box-body">$out</div></div></div>
-                                END;
+                                END
+                        );
+
+                    } catch (PublicAlert $e) {
+
+                        ThrowableHandler::generateLogAndExit($e);
+
+                    }
 
                 }
 
@@ -997,7 +976,11 @@ class ThrowableHandler
 
         $log_array[self::TRACE] = $traceCLI;
 
-        $log_array['THROWN NEAR'] = 'EXCLUDED IN CLI';
+        if (CarbonPHP::$cli) {
+
+            $log_array['THROWN NEAR'] = 'EXCLUDED IN CLI';
+
+        }
 
         if (self::$storeReport === true) {
 

@@ -205,9 +205,7 @@ abstract class ColorCode implements LoggerInterface, iColorCode
 
             self::$changingLocationsFailed = true;
 
-            ThrowableHandler::generateLog($e);
-
-            exit(1);
+            ThrowableHandler::generateLogAndExit($e);
 
         }
 

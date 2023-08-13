@@ -363,7 +363,7 @@ FOOT;
 
             ColorCode::colorCode('Running PDO resource reset <close/start>', iColorCode::BACKGROUND_CYAN);
 
-            self::close();
+            self::close($reader);
 
         } else {
 
@@ -375,21 +375,33 @@ FOOT;
 
     }
 
-    public static function close(): void
+    public static function close($reader = false): void
     {
 
         try {
 
-            if (self::$database instanceof PDO) {
+            if ($reader) {
+
+                $db =  &self::$databaseReader;
+
+            } else {
+
+                $db =  &self::$database;
+
+            }
+
+
+
+            if ($db instanceof PDO) {
 
                 // @link https://stackoverflow.com/questions/21595402/php-pdo-how-to-get-the-current-connection-status/21595939
-                $server_status = self::$database->getAttribute(PDO::ATTR_SERVER_INFO);
+                $server_status = $db->getAttribute(PDO::ATTR_SERVER_INFO);
 
-                $connection_status = self::$database->getAttribute(PDO::ATTR_CONNECTION_STATUS);
+                $connection_status = $db->getAttribute(PDO::ATTR_CONNECTION_STATUS);
 
                 ColorCode::colorCode("Closing MySQL, Connection Status ::\n$connection_status\nCurrent Server Status ::\n$server_status", iColorCode::BLACK);
 
-                self::$database->exec('KILL CONNECTION_ID();');
+                $db->exec('KILL CONNECTION_ID();');
 
             }
 
@@ -400,7 +412,7 @@ FOOT;
 
         } finally {
 
-            self::$database = null;
+            $db = null;
 
         }
 
@@ -425,11 +437,6 @@ FOOT;
     }
 
     /**
-     * This will attempt to create the required tables for CarbonPHP.
-     * If a file aptly named `buildDatabase.php` exists in your configuration
-     * file it will also be run. Be sure to model your build tool after ours
-     * so it does not block.. setUp is synonymous = resetDatabase (which doesn't exist)
-     *
      * @param bool $refresh if set to true will send Javascript
      * to refresh the browser using SITE constant
      * @param bool $cli
@@ -1044,7 +1051,7 @@ FOOT;
 
         } catch (Throwable $e) {
 
-            ThrowableHandler::generateLog($e);
+            ThrowableHandler::generateLogAndExit($e);
 
         }
     }
@@ -1295,12 +1302,23 @@ WHERE cols.TABLE_SCHEMA=?
 
         }
 
-        // https://www.php.net/manual/en/pdo.setattribute.php
-        static::$database = new PDO(
-            $query[0],
-            static::$carbonDatabaseUsername,
-            static::$carbonDatabasePassword,
-            self::getPdoOptions());
+        try {
+
+            // https://www.php.net/manual/en/pdo.setattribute.php
+            static::$database = new PDO(
+                $query[0],
+                static::$carbonDatabaseUsername,
+                static::$carbonDatabasePassword,
+                self::getPdoOptions());
+
+        } catch (PDOException $e) {
+
+            ColorCode::colorCode("\n\nFailed to connect to the database using the following DSN (" . static::$carbonDatabaseDSN . ") => ($query[0])" . (CarbonPHP::$app_root ? "\nUsing username: (" . static::$carbonDatabaseUsername .
+               ")\npassword: (" . static::$carbonDatabasePassword . ")\n\n" : '') . "\n\n", iColorCode::BACKGROUND_RED);
+
+            throw $e;
+
+        }
 
 
         $stmt = "CREATE DATABASE IF NOT EXISTS $db_name;";
@@ -2342,7 +2360,6 @@ AND links.CONSTRAINT_NAME = '$constraintName'");
 
     }
 
-    /** Custom User Methods Are Placed Here **/
     public static function indexExistsOrCreateCallback(string $tableName, string $constraintName, array $columns, bool $unique = true): null|callable
     {
 
@@ -2439,6 +2456,8 @@ AND links.CONSTRAINT_NAME = '$constraintName'");
         // Not possible non-writes (phew!)
         return !preg_match('/^(?:SELECT|SHOW|DESCRIBE|DESC|EXPLAIN)(?:\s|$)/i', $q);
     }
+
+
 
 }
 

@@ -4,7 +4,9 @@
 namespace CarbonPHP\Programs;
 
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Helpers\Composer;
+use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
 
 
@@ -19,18 +21,26 @@ class NewProgram extends Composer implements iCommand
 
     private array $CONFIG;
 
-    private function getProgramsDirectory(): string
+    public static function getProgramsNamespacesAndDirectories(): array
     {
         $json = self::getComposerConfig();
 
-        $programDirectory = $json['autoload']['psr-4']["Programs\\"] ??= false;
+        // loop through psr-4 and find namespaces and directories which have names ending with Programs\\
+        $programs = [];
 
-        if (is_string(CarbonPHP::$app_root . $programDirectory)) {
-            return CarbonPHP::$app_root . $programDirectory;
+        foreach ($json['autoload']['psr-4'] as $namespace => $directory) {
+            if ($namespace === 'Programs\\' || str_ends_with($namespace, '\\Programs\\')) {
+                $programs[$namespace] = $directory;
+            }
         }
 
-        print "\n\n\tFailed to find your program directory. Please open a ticket on the CarbonPHP github for support.\n\n";
-        exit(1);
+        if (empty($programs)) {
+            ColorCode::colorCode('No Programs namespace found. Please add a namespace ending in Programs to your composer.json file.', iColorCode::RED);
+            exit(1);
+        }
+
+        return $programs;
+
     }
 
     public function __construct($CONFIG)
@@ -40,8 +50,11 @@ class NewProgram extends Composer implements iCommand
 
     public function usage(): void
     {
-        print "\n\n\tThis creates a new file in the appropriate directory.\n\n";
+
+        print "\n\n\tThis creates a new file in the appropriate directory.  >> index.php newprogram [program_name]\n\n";
+
         exit(1);
+
     }
 
     public function cleanUp(): void
@@ -52,40 +65,70 @@ class NewProgram extends Composer implements iCommand
     public function run($argv): void
     {
         if (empty($argv)) {
+            ColorCode::colorCode('Please provide a program name.', iColorCode::RED);
             $this->usage();
         }
 
         $programName = $argv[0];
 
-        $c6 = CarbonPHP::CARBON_ROOT === CarbonPHP::$app_root . 'src' . DS;
-
-        $programDir = $c6 ? CarbonPHP::CARBON_ROOT . 'programs' . DS : $this->getProgramsDirectory();
-
-
-        if (!file_put_contents($file = $programDir . $programName . '.php', $this->programFile($c6, $programName))) {
-            print 'Failed to create program file. Check directory permissions.';
+        if (empty($programName)) {
+            ColorCode::colorCode("Failed to parse program name.  >> index.php newprogram [program_name]\n\n", iColorCode::RED);
             exit(1);
         }
+
+        $c6 = CarbonPHP::$carbon_is_root;
+
+        $programPsr4 = self::getProgramsNamespacesAndDirectories();
+
+        $file = self::programFile($programPsr4, $programName);
+
         print "\n\tThe new program file ($file) was created successfully!\n\n";
+
     }
 
-
-    private function programFile(bool $c6namespace, string $programName): string
+    private static function programFile(array $programDirectories, string $programName): string
     {
 
-        $namespace = $c6namespace ? 'namespace CarbonPHP\Programs;' : 'namespace Programs;';
+        if (1 === count($programDirectories)) {
+            $namespace = array_key_first($programDirectories);
+            $programDirectory = $programDirectories[$namespace];
+        } else {
 
-        return <<<PROGRAM
+            ColorCode::colorCode("Please enter the number of the namespace you would like to use for your program.\n\n", iColorCode::YELLOW);
+
+            $namespaceKeys = array_keys($programDirectories);
+
+            foreach ($programDirectories as $key => $value) {
+                ColorCode::colorCode(array_search($key, $namespaceKeys, true) . ")\t$key => $value\n", iColorCode::BACKGROUND_GREEN);
+            }
+
+            $selection = readline('Enter the number of the namespace you would like to use for your program: ');
+
+            $namespace = $namespaceKeys[$selection] ?? '';
+
+            if (empty($namespace)) {
+                ColorCode::colorCode("Failed to parse namespace. >> index.php newprogram [program_name]\n\n", iColorCode::RED);
+                exit(1);
+            }
+
+            $programDirectory = $programDirectories[$namespace];
+
+        }
+
+        $namespace = "namespace " . rtrim($namespace, '\\') . ";";
+
+        $template = <<<PROGRAM
 <?php
 
 $namespace
 
+use CarbonPHP\CarbonPHP;
+use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Interfaces\iCommand;
+use CarbonPHP\Interfaces\iColorCode;
 
 class $programName implements iCommand
 {
-    use ColorCode;
-
     private array \$CONFIG;
 
     public function __construct(\$CONFIG)
@@ -102,7 +145,7 @@ class $programName implements iCommand
 \t           Order does not matter.
 \t           Flags do not stack ie. not -edf, this -e -f -d
 \t Usage::
-\t  php index.php ______________  
+\t  php index.php $programName [options]  
 
 \t       -help                        - this dialogue                
 \n
@@ -110,21 +153,21 @@ END;
         exit(1);
     }
 
-    public function cleanUp(\$argv): void
+    public function cleanUp(): void
     {
-        // do nothing
+        // do something or nothing.. up to you
     }
 
     public function run(\$argv): void
     {
-        \$C6 = CarbonPHP::\CARBON_ROOT === CarbonPHP::\$app_root . 'src' . DS;
+        \$C6 = CarbonPHP::CARBON_ROOT === CarbonPHP::\$app_root . 'src' . DS;
         \$argc = count(\$argv);
         for (\$i = 0; \$i < \$argc; \$i++) {
             switch (\$argv[\$i]) {
                 default:
                 case '-help':
                     if (\$C6) {
-                        ColorCode::colorCode("\tYou da bomb :)\n",'blue');
+                        ColorCode::colorCode("\\tYou da bomb :)\\n", iColorCode::CYAN);
                         break;
                     }
                     \$this->usage();
@@ -138,6 +181,13 @@ END;
 }
 
 PROGRAM;
+
+        if (!file_put_contents($file = $programDirectory . $programName . '.php', $template)) {
+            print 'Failed to create program file. Check directory permissions.';
+            exit(1);
+        }
+
+        return $file;
 
     }
 

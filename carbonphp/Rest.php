@@ -7,7 +7,6 @@ use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Restful\RestLifeCycle;
 use CarbonPHP\Tables\Carbons;
-use DropInGaming\Bootstrap;
 use PDO;
 use PDOStatement;
 use Throwable;

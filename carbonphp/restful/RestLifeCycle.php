@@ -108,7 +108,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
         string                $method,
         array|null            $return,
         array                 &$args = null,
-        string|int|array|null &$primary = null,
+        string|int|float|array|null &$primary = null,
         bool                  $subQuery = false): void
     {
 

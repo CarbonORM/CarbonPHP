@@ -10,6 +10,7 @@ use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
 use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 
+
 abstract class RestQueryValidation extends RestAutoTargeting
 {
 
