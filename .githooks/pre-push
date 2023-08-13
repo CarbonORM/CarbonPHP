@@ -106,9 +106,13 @@ if (count($revision_exploded) !== 3) {
 
 $addNewTag = static function ($tag, $versionBumpType): void {
 
+    $pushTags = static fn() => Background::executeAndCheckStatus("git push --tags --no-verify");
+
     ColorCode::colorCode("Adding new tag :: '$tag'");
 
     if ($versionBumpType === 'patch') {
+
+        $pushTags();
 
         ColorCode::colorCode("Pushing Git Tag ($tag) Finished (patch).");
 
@@ -128,7 +132,7 @@ $addNewTag = static function ($tag, $versionBumpType): void {
 
     ColorCode::colorCode('Going to commit a TAG mid GitHook. Output in the CLI will show two pushes to git. This is expected.', iColorCode::MAGENTA);
 
-    Background::executeAndCheckStatus("git push --tags --no-verify");
+    $pushTags();
 
 
     do {
