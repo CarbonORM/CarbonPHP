@@ -110,7 +110,7 @@ $addNewTag = static function ($tag, $versionBumpType): void {
 
     if ($versionBumpType === 'patch') {
 
-        ColorCode::colorCode('Pushing Git Tags Finished (patch).');
+        ColorCode::colorCode("Pushing Git Tag ($tag) Finished (patch).");
 
         return;
 
