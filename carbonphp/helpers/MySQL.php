@@ -84,7 +84,7 @@ IDENTIFIED;
 
         }
 
-        if (empty($c['SITE']['CONFIG'])) {
+        if (empty($c[CarbonPHP::SITE][CarbonPHP::CONFIG])) {
 
             print 'The [\'SITE\'][\'CONFIG\'] option is missing. It should have the value __FILE__. This helps with debugging.' . PHP_EOL;
 
@@ -92,7 +92,7 @@ IDENTIFIED;
 
         }
 
-        if (empty($c['DATABASE']['DB_USER'])) {
+        if (empty($c[CarbonPHP::DATABASE][CarbonPHP::DB_USER])) {
 
             print 'You must set [\'DATABASE\'][\'DB_USER\'] in the "' . $c['SITE']['CONFIG'] . '" file.' . PHP_EOL;
 
@@ -100,29 +100,33 @@ IDENTIFIED;
 
         }
 
-        if (empty($c['DATABASE']['DB_HOST'])) {
+        if (empty($c[CarbonPHP::DATABASE][CarbonPHP::DB_HOST])) {
             print 'You must set [\'DATABASE\'][\'DB_HOST\'] in the "' . $c['SITE']['CONFIG'] . '" file.' . PHP_EOL;
             exit(1);
         }
 
         $cnf = [
             '[client]',
-            "user = {$c['DATABASE']['DB_USER']}",
-            "password = {$c['DATABASE']['DB_PASS']}",
-            "host = {$c['DATABASE']['DB_HOST']}",
+            "user = {$c[CarbonPHP::DATABASE][CarbonPHP::DB_USER]}",
+            "password = {$c[CarbonPHP::DATABASE][CarbonPHP::DB_PASS]}",
+            "host = {$c[CarbonPHP::DATABASE][CarbonPHP::DB_HOST]}",
             PHP_EOL
         ];
 
-        if (($c['DATABASE']['DB_PORT'] ?? false) && $c['DATABASE']['DB_PORT'] !== '') {
+        if (($c[CarbonPHP::DATABASE][CarbonPHP::DB_PORT] ?? false) && $c[CarbonPHP::DATABASE][CarbonPHP::DB_PORT] !== '') {
+
             ColorCode::colorCode('No [\'DATABASE\'][\'DB_PORT\'] configuration active. Using default port 3306. ' . PHP_EOL . 'Set to an empty string "" for mysql to auto-resolve.', 'yellow');
-            $c['DATABASE']['DB_PORT'] = 3306;
-            $cnf[] = "port = {$c['DATABASE']['DB_PORT']}";
+
+            $c[CarbonPHP::DATABASE][CarbonPHP::DB_PORT] ??= 3306;
+
         }
+
+        $cnf[] = "port = {$c[CarbonPHP::DATABASE][CarbonPHP::DB_PORT]}";
 
         // We're going to use this function to execute mysql from the command line
         // Mysql needs this to access the server
         if (false === file_put_contents(CarbonPHP::$app_root . 'mysql.cnf', implode(PHP_EOL, $cnf))) {
-            ColorCode::colorCode( 'Failed to store file contents of mysql.cnf in ' . CarbonPHP::$app_root, iColorCode::RED);
+            ColorCode::colorCode('Failed to store file contents of mysql.cnf in ' . CarbonPHP::$app_root, iColorCode::RED);
             exit(1);
         }
 
@@ -144,7 +148,7 @@ IDENTIFIED;
      * @param string|null $outputFile
      * @param string $otherOption -   --insert-ignore     Insert rows with INSERT IGNORE.
      *                                --replace           Use REPLACE INTO instead of INSERT INTO.
-     * @param string|null $specificTable  - will limit the dump to a single table! Can be left empty string or null for the full sh
+     * @param string|null $specificTable - will limit the dump to a single table! Can be left empty string or null for the full sh
      * @return string
      * @throws PublicAlert
      */
@@ -155,7 +159,7 @@ IDENTIFIED;
 
         if (null === $outputFile) {
 
-            $outputFile =  CarbonPHP::$app_root . 'mysqldump.sql';
+            $outputFile = CarbonPHP::$app_root . 'mysqldump.sql';
 
         }
 
@@ -202,3 +206,5 @@ IDENTIFIED;
         }
     }
 }
+
+

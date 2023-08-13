@@ -249,7 +249,6 @@ class CarbonPHP
 
             if (self::$safelyExit) {
 
-
                 if (self::$cli && !self::$test && self::$commandLineInterface !== null) {
 
                     ColorCode::colorCode('CarbonPHP is finished initializing and is running the command line interface.');
@@ -260,9 +259,13 @@ class CarbonPHP
 
                     $cli->cleanUp();
 
+                    ColorCode::colorCode('CarbonPHP is returning (true) from (' . __METHOD__ . '). The cli command has finished.');
+
+                    return true;
+
                 }
 
-                ColorCode::colorCode('CarbonPHP is returning.');
+                ColorCode::colorCode('CarbonPHP is returning (true) from (' . __METHOD__ . ').');
 
                 return true;
 
