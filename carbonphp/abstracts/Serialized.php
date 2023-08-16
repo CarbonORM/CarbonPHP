@@ -11,10 +11,10 @@
  * http://sam.zoy.org/wtfpl/COPYING for more details.
  */
 
-namespace CarbonPHP\Helpers;
+namespace CarbonPHP\Abstracts;
 
-use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Error\ThrowableHandler;
 
 abstract class Serialized
 {

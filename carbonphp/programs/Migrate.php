@@ -2,15 +2,14 @@
 
 namespace CarbonPHP\Programs;
 
+use CarbonPHP\Abstracts\Background;
+use CarbonPHP\Abstracts\ColorCode;
+use CarbonPHP\Abstracts\Files;
+use CarbonPHP\Abstracts\MySQL;
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
-use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Error\PublicAlert;
-use CarbonPHP\Helpers\Background;
-use CarbonPHP\Helpers\ColorCode;
-use CarbonPHP\Helpers\Files;
-use CarbonPHP\Helpers\Fork;
-use CarbonPHP\Helpers\MySQL;
+use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
 use CarbonPHP\Route;
@@ -58,6 +57,11 @@ class Migrate implements iCommand
 
     public static array $childProcessIds = [];
 
+
+    public static function description(): string
+    {
+        return 'Migrate your project database and files from one server, or location, to another.';
+    }
 
     /**
      * @throws PublicAlert
@@ -280,9 +284,7 @@ class Migrate implements iCommand
 
         if (false === $noMedia) {
 
-            $postData += [
-                'directories' => self::$directories
-            ];
+            $postData['directories'] = self::$directories;
 
         }
 
@@ -295,6 +297,7 @@ class Migrate implements iCommand
 
             foreach ($requestedDirectories as $media) {
 
+                // todo - did this deprecate on accident?
                 // create a list of all files the requesting server will need to transfer
                 $requestedDirectoriesLocalCopyInfo += self::compileFolderFiles($media);
 

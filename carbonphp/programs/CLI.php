@@ -9,10 +9,10 @@
 namespace CarbonPHP\Programs;
 
 
+use CarbonPHP\Abstracts\ColorCode;
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Error\ThrowableHandler;
-use CarbonPHP\Helpers\Background;
-use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
 
@@ -21,6 +21,8 @@ class CLI implements iCommand
 
     private array $CONFIG;
     private array $ARGV;
+
+    public static array $customProgramDirectories = [];
 
     private array $C6Programs = [];
     private array $UserPrograms = [];
@@ -72,42 +74,29 @@ class CLI implements iCommand
 
         }
 
-        $searchAndConstruct = static function ($array, bool $C6Internal = true) use ($program, $PHP, $argv) {
+        $searchAndConstruct = static function (array $array, bool $C6Internal = true) use ($program, $PHP, $argv) {
+
+            if (empty($array)) {
+
+                return false;
+
+            }
 
             // Validation with this loop
-            foreach ($array as $name) {
+            foreach ($array as $fullyQualifiedProgramName) {
 
                 // I prefer this loop so I catch
-                if (strtolower($program) !== strtolower($name)) {
+                if (false === str_ends_with(strtolower($fullyQualifiedProgramName), strtolower($program))) {
 
                     continue;
 
                 }
 
-                // todo - custom namespaces?
-                $namespace = ($C6Internal ? "CarbonPHP\\" : '') . "Programs\\$name";
+                ColorCode::colorCode("Constructing Program >> $fullyQualifiedProgramName", iColorCode::CYAN);
 
-                if (!class_exists($namespace)) {
+                $cmd = new $fullyQualifiedProgramName([$PHP, $argv]);
 
-                    ColorCode::colorCode("Failed to load the class ($namespace). Your namespace is probably incorrect.\n");
-
-                    die("Failed to load the class ($namespace). Your namespace is probably incorrect.\n");
-
-                }
-
-                $imp = class_implements($namespace);
-
-                if (!array_key_exists(iCommand::class, $imp)) {
-
-                    die('The program class "' . $namespace . '" should also implement iCommand ("'.iCommand::class.'"). ' . print_r($imp, true));
-
-                }
-
-                ColorCode::colorCode("\nConstructing Program >> $namespace", 'blue');
-
-                $cmd = new $namespace([$PHP, $argv]);
-
-                ColorCode::colorCode("\nProgram Constructed >> $namespace", 'blue');
+                ColorCode::colorCode("Program Constructed >> $fullyQualifiedProgramName", iColorCode::CYAN);
 
                 if ($cmd instanceof iCommand) { // only because my editor is dumb
 
@@ -143,86 +132,150 @@ class CLI implements iCommand
 
     }
 
+    public static function description(): string
+    {
+        return 'CLI main entry point. This is the default program, this description should not be seen :O';
+    }
+
     public function programList(): void
     {
 
-        $clean = static function (&$program) {
+        try {
 
-            $program = basename($program, '.php');
 
-        };
+            $clean = static function (&$program) {
 
-        if (!file_exists(CarbonPHP::$app_root . 'composer.json')) {
+                $program = basename($program, '.php');
 
-            ColorCode::colorCode("\tCouldn't find composer.json under the CarbonPHP::\$app_root ( " . CarbonPHP::$app_root . " ).\n\tLearn how to add cli programs at CarbonPHP.com", 'red');
+            };
 
-        } else {
+            if (!file_exists(CarbonPHP::$app_root . 'composer.json')) {
 
-            $json = file_get_contents(CarbonPHP::$app_root . 'composer.json');
+                ColorCode::colorCode("\tCouldn't find composer.json under the CarbonPHP::\$app_root ( " . CarbonPHP::$app_root . " ).\n\tLearn how to add cli programs at CarbonPHP.com", 'red');
 
-            /** @noinspection JsonEncodingApiUsageInspection */
-            $json = json_decode($json, true);
+            } else if (false === CarbonPHP::$carbon_is_root) {
 
-            if ($json === null) {
+                $json = file_get_contents(CarbonPHP::$app_root . 'composer.json');
 
-                print "\n\tThe decoding of composer.json failed. Please make sure the file contains a valid json.\n\n";
+                /** @noinspection JsonEncodingApiUsageInspection */
+                $json = json_decode($json, true);
 
-                return;
+                if ($json === null) {
 
-            }
+                    print "\n\tThe decoding of composer.json failed. Please make sure the file contains a valid json.\n\n";
 
-            $programDirectory = $json['autoload']['psr-4']["Programs\\"] ??= false;
-
-            if (is_string(CarbonPHP::$app_root . $programDirectory)) {
-
-                $programDirectory = CarbonPHP::$app_root . $programDirectory;
-
-                if (!is_dir($programDirectory)) {
-
-                    $message = "The directory defined for the Programs Namespace ($programDirectory) in composer.json does not exist.";
-
-                    ColorCode::colorCode( $message, iColorCode::RED);
-
-                    exit($message);
+                    return;
 
                 }
 
-                $userDefinedPrograms = scandir($programDirectory, SCANDIR_SORT_ASCENDING);
+                $customProgramDirectories = NewProgram::getProgramsNamespacesAndDirectories();
 
-                $userDefinedPrograms = array_diff(
-                    $userDefinedPrograms,
-                    ['.', '..']);
+                foreach ($customProgramDirectories as $namespace => $relativeDirectory) {
 
-                if (!array_walk($userDefinedPrograms, $clean)) {
-                    exit('array_walk failed in Cli::run()');
+                    self::$customProgramDirectories[$namespace] = CarbonPHP::$app_root . $relativeDirectory;
+
                 }
 
-                $this->UserPrograms = $userDefinedPrograms;
+                foreach (self::$customProgramDirectories as $namespace => $programDirectory) {
+
+                    if (is_numeric($namespace)) {
+
+                        if (false === class_exists($programDirectory)) {
+
+                            throw new PublicAlert('The program directories provided (CarbonPHP::SITE => [ CarbonPHP::PROGRAM_DIRECTORIES => [...]]) must be comma seperated fully qualified namespaces. Please check your composer.json file and configuration passe to CarbonPHP.');
+
+                        }
+
+                        continue;
+
+                    }
+
+                    if (!is_string($programDirectory)) {
+
+
+                        throw new PublicAlert('The program directories provided must be a string. Please check your composer.json file and configuration passe to CarbonPHP.');
+
+                    }
+
+                    if (!is_dir($programDirectory)) {
+
+                        $message = "The directory defined for the Programs Namespace ($programDirectory) in composer.json does not exist.";
+
+                        ColorCode::colorCode($message, iColorCode::RED);
+
+                        exit(77);
+
+                    }
+
+                    $userDefinedPrograms = scandir($programDirectory, SCANDIR_SORT_ASCENDING);
+
+                    $userDefinedPrograms = array_diff(
+                        $userDefinedPrograms,
+                        ['.', '..']);
+
+                    // todo - check if class exists (autoload now) and if it implements iCommand in $clean()
+                    if (!array_walk($userDefinedPrograms, $clean)) {
+
+                        throw new PublicAlert('array_walk failed in Cli::run()');
+
+                    }
+
+                    foreach ($userDefinedPrograms as $name) {
+
+                        if (false === class_exists($namespace . $name)) {
+
+                            ColorCode::colorCode("The file ($name) found under directory ($programDirectory) namespace ($namespace) was could not be auto-loaded.\n Please check your composer.json file and configuration passe to CarbonPHP.", iColorCode::RED);
+
+                            continue;
+
+                        }
+
+                        $this->UserPrograms[] = $namespace . $name;
+
+                    }
+
+                    unset(self::$customProgramDirectories[$namespace]);
+
+                }
+
             }
+
+            // the following removes helper classes invalid responses and unfinished tools
+            $program = array_diff(
+                scandir($programDirectory = CarbonPHP::CARBON_ROOT . 'programs'),
+                array(
+                    '.',
+                    '..',
+                    'CLI.php',
+                ));
+
+
+            if (!array_walk($program, $clean)) {
+                exit('array_walk failed in Cli::run()');
+            }
+
+            $namespace = 'CarbonPHP\\Programs\\';
+
+            foreach ($program as $name) {
+
+                if (false === class_exists($namespace . $name)) {
+
+                    ColorCode::colorCode("The file ($name) found under directory ($programDirectory) namespace ($namespace) was could not be auto-loaded. Please check your composer.json file and configuration passe to CarbonPHP.", iColorCode::RED);
+
+                    continue;
+
+                }
+
+                $this->C6Programs[] = $namespace . $name;
+
+            }
+
+        } catch (PublicAlert $e) {
+
+            ThrowableHandler::generateLogAndExit($e);
+
         }
-
-        // the following removes helper classes invalid responses and unfinished tools
-        $program = array_diff(
-            scandir(CarbonPHP::CARBON_ROOT . 'programs'),
-            array(
-                '.',
-                '..',
-                'CLI.php',
-                'Background.php',
-                'ColorCode.php',
-                'MySQL.php',
-                'TestAutomationServer.php',
-                'testBuilder.php',
-            ));
-
-
-        if (!array_walk($program, $clean)) {
-            exit('array_walk failed in Cli::run()');
-        }
-
-        $this->C6Programs = $program;
     }
-
 
 
     /** Command Line Interface. Use
@@ -236,7 +289,7 @@ class CLI implements iCommand
     {
         $PHP = $this->CONFIG;
         // I do this so the I can pass the argvs correctly to the php executables
-        ColorCode::colorCode("\nRunning Command", iColorCode::BLUE);
+        ColorCode::colorCode("Running Command", iColorCode::BLUE);
 
         ColorCode::colorCode(implode(' ', $argv), iColorCode::BACKGROUND_MAGENTA);
 
@@ -258,22 +311,18 @@ class CLI implements iCommand
 
         }
 
-        // executables switch TODO - make these programs
+        // executables switch
         switch (strtolower($program)) {
-            case 'minify':
-                print "\n\nminify\n\n";
-                break;
             case 'check':
                 $cmd = 'netstat -a -n -o | find "' . ($PHP['SOCKET']['PORT'] ?? 8888) . '\"';
                 print PHP_EOL . $cmd . PHP_EOL;
                 print shell_exec($cmd);
                 break;
+
             case 'test':
-                print PHP_EOL;
                 // I used to use `phpunit --testdox  tests --bootstrap vendor/autoload.php`
                 // but better defined in test constructor this may not be the case for browser test / tbd
                 print shell_exec('composer test');
-                print PHP_EOL;
                 break;
 
             case 'help':
@@ -286,20 +335,42 @@ class CLI implements iCommand
 
     public function usage(): void
     {
+
+        $compileProgramDescriptions = static function(array $fullyQualifiedPrograms): string {
+            $c6Programs = '';
+
+            foreach ($fullyQualifiedPrograms as $fullyQualified) {
+
+                $namespaceExploded = explode("\\", $fullyQualified);
+
+                $arrayKeyLast = array_key_last($namespaceExploded);
+
+                $c6Programs .= "\t\t" . $namespaceExploded[$arrayKeyLast] . "  -  " . $fullyQualified::description() . "\n";
+
+            }
+
+            return $c6Programs;
+
+        };
+
+
         # $c6 = implode("\n                        ", $this->C6Programs);
 
         if (CarbonPHP::$app_root . 'carbonphp/' !== CarbonPHP::CARBON_ROOT) {
-            if (!empty($this->UserPrograms)) {
-                $UserPrograms = implode("\n                        ", $this->UserPrograms);
 
-                ColorCode::colorCode( <<<END
+            if (!empty($this->UserPrograms)) {
+
+                $UserPrograms = $compileProgramDescriptions($this->UserPrograms);
+
+                ColorCode::colorCode(<<<END
           Available CarbonPHP CLI Commands  
             
           User Defined Commands :: 
 
                         $UserPrograms
 
-END);
+END
+                );
 
             } else {
 
@@ -340,27 +411,23 @@ END, iColorCode::YELLOW);
             }
         }
 
+        $c6InternalPrograms = $compileProgramDescriptions($this->C6Programs);
+
         ColorCode::colorCode("
           
-          CarbonPHP Built-in commands (case insensitive)::
+        CarbonPHP Built-in commands (case insensitive)::
         
-                        help                          - This list of options
-                        [command] -help               - display a list of options for each sub command
-                        Test                          - Run PHPUnit tests
-                        Rest                          - auto generate rest api from mysqldump
-                        WebSocket                     - start a HTTP 5 web socket server written in PHP or Google Go
-                        Database                      - cache current database schema or rebuild cached schema
-                        Minify                        - minify css and js files defined in configuration 
-                        Setup                         - wip
-                        TestBuilder                   - creates program boilerplate code and stores to file
-                        Deployment                    - Designed around deploying to a GCP server
-                        SendToUserPipe                - send text over named pipe with session id
+                help                          - This list of options
+                [command] -help               - display a list of options for each sub command
 
+        Commands::  
+
+$c6InternalPrograms
 
           While CarbonPHP displays this in the cli, it does not exit here. Custom functions may 
           be written after the CarbonPHP invocation. The CLI execution will however, stop the 
           routing of HTTP(S) request normally invoked through the (index.php). <-- Which could really 
-          be any file run in CLI with CarbonPHP invoked.\n\n", iColorCode::BLUE);
+          be any file run in CLI with CarbonPHP invoked.\n\n", iColorCode::CYAN);
     }
 
     public function cleanUp(): void

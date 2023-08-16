@@ -10,11 +10,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use CarbonPHP\CarbonPHP;
 use CarbonPHP\Error\PublicAlert;
-use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Interfaces\iRest;
-use CarbonPHP\Rest;
 use CarbonPHP\Tables\Users;
 
 

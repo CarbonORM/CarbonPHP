@@ -3,14 +3,13 @@
 namespace CarbonPHP\Programs;
 
 
+use CarbonPHP\Abstracts\ColorCode;
+use CarbonPHP\Abstracts\Composer;
+use CarbonPHP\Abstracts\Files;
+use CarbonPHP\Abstracts\MySQL;
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Error\ThrowableHandler;
-use CarbonPHP\Helpers\Background;
-use CarbonPHP\Helpers\ColorCode;
-use CarbonPHP\Helpers\Composer;
-use CarbonPHP\Helpers\Files;
-use CarbonPHP\Helpers\MySQL;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
 use CarbonPHP\Interfaces\iRest;
@@ -48,6 +47,13 @@ class RestBuilder implements iCommand
     {
         $this->cleanUp and MySQL::cleanUp();
     }
+
+
+    public static function description(): string
+    {
+        return 'Generate REST ORM PHP bindings using the mysql dump output file. This is the core of CarbonORM.';
+    }
+
 
     public function usage(): void
     {
@@ -155,12 +161,12 @@ END;
 
         // set default values
         $rest = [];
-        $QueryWithDatabaseName = $clean = true;
+        $QueryWithDatabaseName = true;
         $json = $carbon_namespace = CarbonPHP::isCarbonPHPDocumentation();
 
         $targetDir = CarbonPHP::$app_root . ($carbon_namespace ? 'carbonphp/tables/' : 'tables/');
         $only_these_tables = $history_table_query = $mysql = null;
-        $verbose = $debug = $primary_required = $delete_dump = $skipTable = $logClasses =
+        $verbose = $debug = $primary_required = $skipTable = $logClasses =
         $javascriptBindings = $dumpData = false;
         $target_namespace = $this->target_namespace ??= 'Tables\\';
         $prefix = $this->table_prefix ??= '';

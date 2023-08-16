@@ -2,19 +2,26 @@
 
 namespace CarbonPHP\Programs;
 
+use CarbonPHP\Abstracts\ColorCode;
+use CarbonPHP\Abstracts\MySQL;
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\Helpers\ColorCode;
-use CarbonPHP\Helpers\MySQL;
-use CarbonPHP\Interfaces\iCommand;
 use CarbonPHP\Interfaces\iColorCode;
+use CarbonPHP\Interfaces\iCommand;
 
 class CNF implements iCommand
 {
+
+
     private array $CONFIG;
 
     public function __construct($CONFIG)
     {
         $this->CONFIG = $CONFIG;
+    }
+
+    public static function description(): string
+    {
+        return 'generate a mysql credentials file (cnf) for your project in the root of your project.';
     }
 
     public function usage(): void

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use CarbonPHP\Abstracts\Bcrypt;
 use CarbonPHP\Database;
-use CarbonPHP\Helpers\Bcrypt;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Rest;
 use CarbonPHP\Tables\Carbons;

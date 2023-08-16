@@ -3,9 +3,9 @@
 
 namespace CarbonPHP\Programs;
 
+use CarbonPHP\Abstracts\ColorCode;
+use CarbonPHP\Abstracts\Composer;
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\Helpers\ColorCode;
-use CarbonPHP\Helpers\Composer;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
 
@@ -20,6 +20,8 @@ class NewProgram extends Composer implements iCommand
 {
 
     private array $CONFIG;
+
+
 
     public static function getProgramsNamespacesAndDirectories(): array
     {
@@ -76,8 +78,6 @@ class NewProgram extends Composer implements iCommand
             exit(1);
         }
 
-        $c6 = CarbonPHP::$carbon_is_root;
-
         $programPsr4 = self::getProgramsNamespacesAndDirectories();
 
         $file = self::programFile($programPsr4, $programName);
@@ -123,12 +123,14 @@ class NewProgram extends Composer implements iCommand
 $namespace
 
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\Helpers\ColorCode;
+use CarbonPHP\Abstracts\ColorCode;
 use CarbonPHP\Interfaces\iCommand;
 use CarbonPHP\Interfaces\iColorCode;
 
 class $programName implements iCommand
 {
+    public const NAMESPACE = __NAMESPACE__;
+    public const CLASS = __CLASS__;
     private array \$CONFIG;
 
     public function __construct(\$CONFIG)
@@ -191,4 +193,8 @@ PROGRAM;
 
     }
 
+    public static function description(): string
+    {
+        return 'Creates a new program file in the appropriate directory.';
+    }
 }

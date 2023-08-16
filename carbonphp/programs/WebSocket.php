@@ -2,12 +2,12 @@
 
 namespace CarbonPHP\Programs;
 
+use CarbonPHP\Abstracts\Background;
+use CarbonPHP\Abstracts\ColorCode;
+use CarbonPHP\Abstracts\Pipe;
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
 use CarbonPHP\Error\ThrowableHandler;
-use CarbonPHP\Helpers\Background;
-use CarbonPHP\Helpers\ColorCode;
-use CarbonPHP\Helpers\Pipe;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
 use CarbonPHP\Request;
@@ -110,7 +110,13 @@ class WebSocket extends Request implements iCommand
 
     protected static array $applicationConfiguration = [];
 
-    /** @noinspection PhpComposerExtensionStubsInspection */
+
+
+    public static function description(): string
+    {
+        return 'Start a WebSocket Server. This is a single or multi threaded server capable.';
+    }
+
     public function __construct($config)
     {
 
@@ -364,7 +370,7 @@ class WebSocket extends Request implements iCommand
     public function WebSocketD()
     {
         // its linus bc pnctl but i always feel better using DS
-        $fifoFile = \CarbonPHP\helpers\Pipe::named(CarbonPHP::$app_root . 'data' . DS . 'sessions' . DS . $_SESSION['id'] . '.fifo');     // other users can notify us to update our application through this file
+        $fifoFile = Pipe::named(CarbonPHP::$app_root . 'data' . DS . 'sessions' . DS . $_SESSION['id'] . '.fifo');     // other users can notify us to update our application through this file
 
         $stdin = fopen('php://stdin', 'b');
 
@@ -381,11 +387,11 @@ class WebSocket extends Request implements iCommand
             $readers = array($fifoFile, $stdin);
 
             /** @noinspection OnlyWritesOnParameterInspection */
-            if (($stream = stream_select($readers, $writers, $except, 0, 15)) === false):
+            if (($stream = stream_select($readers, $writers, $except, 0, 15)) === false) {
 
                 print "A stream select error occurred\n" and die;
 
-            else :
+            } else {
 
                 foreach ($readers as $input => $fd) {
 
@@ -465,7 +471,7 @@ class WebSocket extends Request implements iCommand
 
                 sleep(1);
 
-            endif;
+            }
 
         }
 

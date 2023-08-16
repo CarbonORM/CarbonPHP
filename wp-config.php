@@ -21,10 +21,9 @@
 // ** MySQL settings - You can get this info from your web host ** //
 /** The name of the database for WordPress */
 
+use CarbonPHP\Abstracts\ColorCode;
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\Database;
 use CarbonPHP\Documentation;
-use CarbonPHP\Helpers\ColorCode;
 
 // Composer autoload
 if (false === (include __DIR__ . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php')) {

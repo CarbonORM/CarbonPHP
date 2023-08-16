@@ -13,9 +13,12 @@ interface iConfig
      *           'URL' => string '',                                  // Server Url name you do not need to chane in remote development
      *           'ROOT' => string '__FILE__',                         // This was defined in our ../index.php
      *           'CACHE_CONTROL' => [                                 // Key value map of $extension => $headers
-     * 'png|jpg|gif|jpeg|bmp|icon|js|css' => 'Cache-Control: max-age=<seconds>',
-     * 'woff|woff2|map|hbs|eotv' => 'Cache-Control: no-cache ',              // if the extension is found the headers provided will be sent
-     * ],
+     *              'png|jpg|gif|jpeg|bmp|icon|js|css' => 'Cache-Control: max-age=<seconds>',
+     *               'woff|woff2|map|hbs|eotv' => 'Cache-Control: no-cache ',              // if the extension is found the headers provided will be sent
+     *           ],
+     *           'PROGRAM_DIRECTORIES' => [
+     *                  'carbonphp/programs/', ...                                      // These directories will be scanned for files to autoload; classes must implement iCommand, no leading slash required
+     *           ],
      *           'CONFIG' => string __FILE__,                         // Send to sockets
      *           'TIMEZONE' => string 'America/Chicago',              // Current timezone TODO - look up php
      *           'TITLE' => string 'Carbon 6',                        // Website title

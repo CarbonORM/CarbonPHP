@@ -9,8 +9,8 @@
 namespace CarbonPHP;
 
 
+use CarbonPHP\Abstracts\ColorCode;
 use CarbonPHP\Error\ThrowableHandler;
-use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Interfaces\iColorCode;
 use Throwable;
 use function count;

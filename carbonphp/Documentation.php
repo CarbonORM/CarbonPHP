@@ -3,16 +3,15 @@
 namespace CarbonPHP;
 
 
-use CarbonPHP\Error\ThrowableHandler;
+use CarbonPHP\Abstracts\ColorCode;
 use CarbonPHP\Error\PublicAlert;
-use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Interfaces\iConfig;
+use CarbonPHP\Programs\CLI;
 use CarbonPHP\Programs\Deployment;
 use CarbonPHP\Programs\Migrate;
 use CarbonPHP\Programs\WebSocket;
 use CarbonPHP\Tables\Carbons;
 use CarbonPHP\Tables\Users;
-use Throwable;
 
 class Documentation extends Application implements iConfig
 {
@@ -752,6 +751,9 @@ SOCKET;
                 CarbonPHP::REBUILD => false
             ],
             CarbonPHP::SITE => [
+                CarbonPHP::PROGRAM_DIRECTORIES => [
+                    CLI::class
+                ],
                 CarbonPHP::URL => CarbonPHP::$app_local ? 'local.carbonphp.com' : 'carbonphp.com',    /* Evaluated and if not the accurate Redirect. Local php server okay. Remove for any domain */
                 CarbonPHP::ROOT => CarbonPHP::$app_root,          /* This was defined in our ../index.php */
                 CarbonPHP::CACHE_CONTROL => [

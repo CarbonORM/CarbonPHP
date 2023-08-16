@@ -1,9 +1,9 @@
 <?php
 
 namespace {                                     // This runs the following code in the global scope
+    use CarbonPHP\Abstracts\ColorCode;
     use CarbonPHP\CarbonPHP;
     use CarbonPHP\Error\PublicAlert;
-    use CarbonPHP\Helpers\ColorCode;
     use CarbonPHP\Interfaces\iColorCode;
     use CarbonPHP\View;
 

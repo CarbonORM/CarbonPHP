@@ -16,21 +16,17 @@
 
 namespace CarbonPHP;
 
-use CarbonPHP\Error\ThrowableHandler;
+use CarbonPHP\Abstracts\ColorCode;
+use CarbonPHP\Abstracts\Serialized;
 use CarbonPHP\Error\PublicAlert;
-use CarbonPHP\Helpers\Background;
-use CarbonPHP\Helpers\ColorCode;
-use CarbonPHP\Helpers\Serialized;
+use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Programs\WebSocket;
-use CarbonPHP\Restful\RestQueryValidation;
 use CarbonPHP\Tables\Sessions;
 use PDOException;
 use SessionHandlerInterface;
 use Throwable;
-use function define;
-use function defined;
 use function is_array;
 use function is_callable;
 

@@ -17,6 +17,7 @@
       <sourceFolder url="file://$MODULE_DIR$/carbonphp/restful" isTestSource="false" packagePrefix="CarbonPHP\Restful\" />
       <sourceFolder url="file://$MODULE_DIR$/carbonphp/tables" isTestSource="false" packagePrefix="CarbonPHP\Tables\" />
       <sourceFolder url="file://$MODULE_DIR$/carbonphp/tables/traits" isTestSource="false" packagePrefix="CarbonPHP\Tables\Traits\" />
+      <sourceFolder url="file://$MODULE_DIR$/carbonphp/abstracts" isTestSource="false" packagePrefix="CarbonPHP\Abstracts\" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

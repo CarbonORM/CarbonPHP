@@ -4,16 +4,14 @@
 
 namespace CarbonPHP\Error;
 
+use CarbonPHP\Abstracts\ColorCode;
+use CarbonPHP\Abstracts\Files;
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
 use CarbonPHP\Enums\ThrowableReportDisplay;
-use CarbonPHP\Helpers\Background;
-use CarbonPHP\Helpers\ColorCode;
-use CarbonPHP\Helpers\Files;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Rest;
 use CarbonPHP\Tables\Reports;
-use Error;
 use PDOException;
 use ReflectionException;
 use ReflectionMethod;
@@ -94,7 +92,7 @@ class ThrowableHandler
             }
             
             html { 
-              background: url("{{carbon_public_root}}/view/assets/img/Carbon-teal.png") no-repeat center center fixed; 
+              /*noinspection CssUnknownTarget*/background: url("{{carbon_public_root}}/view/assets/img/Carbon-teal.png") no-repeat center center fixed; 
               -webkit-background-size: cover;
               -moz-background-size: cover;
               -o-background-size: cover;
@@ -246,7 +244,7 @@ class ThrowableHandler
                     }
                 }
             })();
-            </script>
+            </script><title></title>
             </head>
             <body>
             <h1>{{{code}}}</h1>
@@ -471,7 +469,7 @@ class ThrowableHandler
 
         } else {
 
-            print $html ?? ThrowableHandler::generateBrowserReport($json, true);
+            print $html ?? self::generateBrowserReport($json, true);
 
         }
 
@@ -483,10 +481,12 @@ class ThrowableHandler
     /**
      * This terminates!
      * @param array $errorForTemplate
+     * @param bool $return
+     * @return string
      */
     public static function generateBrowserReport(array $errorForTemplate, bool $return = false): string
     {
-        static $count = 0, $error_page = '';
+        static $count = 0;
 
         if (1 < $count++) {
 
@@ -1213,7 +1213,8 @@ class ThrowableHandler
 
         }
 
-        return [$traceWithKeys, PHP_EOL . json_encode($traceWithKeys, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT) . PHP_EOL];
+        /** @noinspection JsonEncodingApiUsageInspection */
+        return [$traceWithKeys, PHP_EOL . json_encode($traceWithKeys,  JSON_PRETTY_PRINT) . PHP_EOL];
     }
 
     /**

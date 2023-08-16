@@ -2,12 +2,12 @@
 
 namespace CarbonPHP;
 
+use CarbonPHP\Abstracts\ColorCode;
+use CarbonPHP\Abstracts\Files;
+use CarbonPHP\Abstracts\Serialized;
 use CarbonPHP\Enums\ThrowableReportDisplay;
-use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Error\PublicAlert;
-use CarbonPHP\Helpers\ColorCode;
-use CarbonPHP\Helpers\Files;
-use CarbonPHP\Helpers\Serialized;
+use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iConfig;
 use CarbonPHP\Programs\CLI;
@@ -81,6 +81,7 @@ class CarbonPHP
     public const REPLY_EMAIL = 'REPLY_EMAIL';
     public const HTTP = 'HTTP';
     public const IP_TEST = 'IP_TEST';
+    public const PROGRAM_DIRECTORIES = 'PROGRAM_DIRECTORIES';
 
     // Session Mgmt
     public const SESSION = 'SESSION';
@@ -348,19 +349,23 @@ class CarbonPHP
     }
 
 
-    private static function parseConfiguration(iConfig|array|string $configuration): array
+    private static function &parseConfiguration(iConfig|array|string $configuration): array
     {
 
         ####################  Now load config file so globals above & stacktrace security
         if ($configuration === null) {
 
-            return self::$configuration = [];
+            self::$configuration = [];
+
+            return self::$configuration;
 
         }
 
         if (is_array($configuration)) {
 
-            return self::$configuration = $configuration;
+            self::$configuration = $configuration;
+
+            return self::$configuration;
 
         }
 
@@ -397,8 +402,9 @@ class CarbonPHP
 
             }
 
-            /** @noinspection PhpPossiblePolymorphicInvocationInspection */
-            return self::$configuration = $configuration::configuration();
+            self::$configuration = $configuration::configuration();
+
+            return self::$configuration;
 
         }
 
@@ -412,7 +418,9 @@ class CarbonPHP
                 exit(1);
             }
 
-            return self::$configuration = $config;
+            self::$configuration = $config;
+
+            return self::$configuration;
 
         }
 
@@ -528,22 +536,22 @@ class CarbonPHP
 
             }
 
-            $config = self::parseConfiguration($configuration);
+            $config = &self::parseConfiguration($configuration);
 
             #################  DATABASE  ########################
             if ($config['DATABASE'] ?? false) {
 
-                Database::$carbonDatabaseUsername = $config[self::DATABASE][self::DB_USER] ?? '';
+                Database::$carbonDatabaseUsername = $config[self::DATABASE][self::DB_USER] ??= '';
 
-                Database::$carbonDatabasePassword = $config[self::DATABASE][self::DB_PASS] ?? '';
+                Database::$carbonDatabasePassword = $config[self::DATABASE][self::DB_PASS] ??= '';
 
-                Database::$carbonDatabaseName = $config[self::DATABASE][self::DB_NAME] ?? '';
+                Database::$carbonDatabaseName = $config[self::DATABASE][self::DB_NAME] ??= '';
 
-                Database::$carbonDatabasePort = $config[self::DATABASE][self::DB_PORT] ?? '';
+                Database::$carbonDatabasePort = $config[self::DATABASE][self::DB_PORT] ??= '';
 
-                Database::$carbonDatabaseHost = $config[self::DATABASE][self::DB_HOST] ?? '';
+                Database::$carbonDatabaseHost = $config[self::DATABASE][self::DB_HOST] ??= '';
 
-                Database::$carbonDatabaseReader = $config[self::DATABASE][self::DB_READER] ?? '';
+                Database::$carbonDatabaseReader = $config[self::DATABASE][self::DB_READER] ??= '';
 
                 Database::$carbonDatabaseDSN = 'mysql:host='
                     . Database::$carbonDatabaseHost
@@ -565,36 +573,35 @@ class CarbonPHP
 
                 }
 
-
             }
 
             #######################   VIEW      ######################
-            self::$app_view = $config[self::VIEW][self::VIEW] ?? DS;         // Public Folder
+            self::$app_view = $config[self::VIEW][self::VIEW] ??= '';         // Public Folder
 
-            View::$wrapper = self::$app_root . self::$app_view . ($config[self::VIEW][self::WRAPPER] ?? '');
+            View::$wrapper = self::$app_root . self::$app_view . ($config[self::VIEW][self::WRAPPER] ??= '');
 
             ####################  GENERAL CONF  ######################
-            error_reporting($config[self::ERROR][self::LEVEL] ?? E_ALL | E_STRICT);
+            error_reporting($config[self::ERROR][self::LEVEL] ??= E_ALL | E_STRICT);
 
             /** @noinspection PhpExpressionResultUnusedInspection */
-            ini_set('display_errors', $config[self::ERROR][self::SHOW] ?? true);
+            ini_set('display_errors', $config[self::ERROR][self::SHOW] ??= true);
 
-            date_default_timezone_set($config[self::SITE][self::TIMEZONE] ?? 'America/Chicago');
+            date_default_timezone_set($config[self::SITE][self::TIMEZONE] ??= 'America/Chicago');
 
-            self::$reports = $config[self::ERROR][self::LOCATION] ?? '';
+            self::$reports = $config[self::ERROR][self::LOCATION] ??= '';
 
             #####################   ERRORS + Warnings + Alerts    #######################
             if ($config[self::ERROR] ??= false) {
 
                 ThrowableHandler::$defaultLocation ??= self::$reports . 'default_log.txt';
 
-                ThrowableHandler::$throwableReportDisplay ??= $config[self::ERROR][self::DISPLAY] ?? (self::$cli ? ThrowableReportDisplay::CLI_MINIMAL : ThrowableReportDisplay::FULL_DEFAULT);
+                ThrowableHandler::$throwableReportDisplay ??= $config[self::ERROR][self::DISPLAY] ??= (self::$cli ? ThrowableReportDisplay::CLI_MINIMAL : ThrowableReportDisplay::FULL_DEFAULT);
 
-                ThrowableHandler::$printToScreen = $config[self::ERROR][self::SHOW] ?? ThrowableHandler::$printToScreen;
+                ThrowableHandler::$printToScreen = $config[self::ERROR][self::SHOW] ??= ThrowableHandler::$printToScreen;
 
-                ThrowableHandler::$storeReport = $config[self::ERROR][self::STORE] ?? ThrowableHandler::$storeReport;
+                ThrowableHandler::$storeReport = $config[self::ERROR][self::STORE] ??= ThrowableHandler::$storeReport;
 
-                ThrowableHandler::$level = $config[self::ERROR][self::LEVEL] ?? ThrowableHandler::$level;
+                ThrowableHandler::$level = $config[self::ERROR][self::LEVEL] ??= ThrowableHandler::$level;
 
                 ThrowableHandler::start();
 
@@ -603,13 +610,13 @@ class CarbonPHP
             #################  SITE  ########################
             if ($config['SITE'] ?? false) {
 
-                self::$site_title ??= $config[self::SITE][self::TITLE] ?? 'CarbonPHP [C6]';
+                self::$site_title ??= $config[self::SITE][self::TITLE] ??= 'CarbonPHP [C6]';
 
-                self::$site_version ??= $config[self::SITE][self::VERSION] ?? PHP_VERSION;                // printed in the footer
+                self::$site_version ??= $config[self::SITE][self::VERSION] ??= PHP_VERSION;                // printed in the footer
 
-                self::$system_email ??= $config[self::SEND_EMAIL] ?? '';                               // server email system
+                self::$system_email ??= $config[self::SEND_EMAIL] ??= '';                               // server email system
 
-                self::$reply_email ??= $config[self::REPLY_EMAIL] ?? '';                               // I give you options :P
+                self::$reply_email ??= $config[self::REPLY_EMAIL] ??= '';                               // I give you options :P
 
             }
 
@@ -617,8 +624,9 @@ class CarbonPHP
 
                 self::$safelyExit = true;
 
-                self::$commandLineInterface =
-                    new CLI([self::$configuration, $_SERVER['argv'] ?? ['index.php', null]]);
+                CLI::$customProgramDirectories = $config[self::SITE][self::PROGRAM_DIRECTORIES] ??= [];
+
+                self::$commandLineInterface = new CLI([self::$configuration, $_SERVER['argv'] ?? ['index.php', null]]);
 
                 if (null !== self::$commandLineInterface::$program) {
 

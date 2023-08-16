@@ -9,9 +9,9 @@
 namespace CarbonPHP\Programs;
 
 
+use CarbonPHP\Abstracts\ColorCode;
+use CarbonPHP\Abstracts\MySQL;
 use CarbonPHP\Database as DB;
-use CarbonPHP\Helpers\ColorCode;
-use CarbonPHP\Helpers\MySQL;
 use CarbonPHP\Interfaces\iCommand;
 
 class BuildDatabase implements iCommand
@@ -20,6 +20,11 @@ class BuildDatabase implements iCommand
     public function cleanUp(): void
     {
         MySQL::cleanUp();
+    }
+
+    public static function description(): string
+    {
+        return 'Use existing generations to (re)build the database.';
     }
 
     public function usage(): void

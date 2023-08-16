@@ -1,14 +1,29 @@
 <?php
 
-namespace CarbonPHP\Helpers;
+namespace CarbonPHP\Abstracts;
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Error\ThrowableHandler;
+use Composer\Autoload\ClassLoader;
 use Throwable;
 
 abstract class Composer
 {
+
+    public static ClassLoader $loader;
+
+    public static function getFileLocationFromFullyQuallifiedClassName(string $className) {
+
+        $loader = self::$loader ??= require CarbonPHP::$app_root . 'vendor/autoload.php';
+
+        $realOrSymlinkPath = $loader->findFile($className);
+
+        return realpath($realOrSymlinkPath);
+
+    }
+
+
     public static function getComposerConfig(): array
     {
         try {

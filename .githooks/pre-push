@@ -1,9 +1,9 @@
 #!/usr/local/bin/php
 <?php
 
+use CarbonPHP\Abstracts\Background;
+use CarbonPHP\Abstracts\ColorCode;
 use CarbonPHP\Interfaces\iColorCode;
-use CarbonPHP\Helpers\Background;
-use CarbonPHP\Helpers\ColorCode;
 
 require 'common.php';
 

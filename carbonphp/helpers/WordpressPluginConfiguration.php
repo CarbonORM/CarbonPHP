@@ -2,10 +2,11 @@
 /*
  * Plugin Name: YOUR PLUGIN NAME
  */
+
+use CarbonPHP\Abstracts\ColorCode;
 use CarbonPHP\Application;
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Documentation;
-use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iConfig;
 use CarbonPHP\Programs\Deployment;

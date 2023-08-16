@@ -2,14 +2,13 @@
 
 namespace CarbonPHP\Programs;
 
+use CarbonPHP\Abstracts\ColorCode;
+use CarbonPHP\Abstracts\Pipe;
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\Helpers\ColorCode;
-use CarbonPHP\Helpers\Pipe;
 use CarbonPHP\Interfaces\iCommand;
 
 class SendToUserPipe implements iCommand
 {
-    use ColorCode;
 
     public function __construct($CONFIG)
     {
@@ -37,6 +36,12 @@ class SendToUserPipe implements iCommand
 END;
         exit(1);
     }
+
+    public static function description(): string
+    {
+        return 'Send a value to a user pipe. (CarbonPHP::$app_root . \'temp/\' . \$session_id . \'.fifo\')';
+    }
+
 
     public function cleanUp(): void
     {

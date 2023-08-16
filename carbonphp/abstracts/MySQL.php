@@ -8,12 +8,12 @@
  * Time: 11:27 PM
  */
 
-namespace CarbonPHP\Helpers;
+namespace CarbonPHP\Abstracts;
 
 
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Interfaces\iColorCode;
 use Throwable;
 
@@ -68,21 +68,14 @@ IDENTIFIED;
 
     public static function buildCNF($cnfFile = null): string
     {
-        $c = CarbonPHP::$configuration;
 
-        if ($cnfFile !== null) {
-
-            self::$mysql = $cnfFile;
-
-            return $cnfFile;
-
-        }
-
-        if (!empty(self::$mysql)) {
+        if ('' !== self::$mysql) {
 
             return self::$mysql;
 
         }
+
+        $c = CarbonPHP::$configuration;
 
         if (empty($c[CarbonPHP::SITE][CarbonPHP::CONFIG])) {
 
@@ -117,15 +110,15 @@ IDENTIFIED;
 
             ColorCode::colorCode('No [\'DATABASE\'][\'DB_PORT\'] configuration active. Using default port 3306. ' . PHP_EOL . 'Set to an empty string "" for mysql to auto-resolve.', 'yellow');
 
-            $c[CarbonPHP::DATABASE][CarbonPHP::DB_PORT] ??= 3306;
-
         }
+
+        $c[CarbonPHP::DATABASE][CarbonPHP::DB_PORT] ??= 3306;
 
         $cnf[] = "port = {$c[CarbonPHP::DATABASE][CarbonPHP::DB_PORT]}";
 
         // We're going to use this function to execute mysql from the command line
         // Mysql needs this to access the server
-        if (false === file_put_contents(CarbonPHP::$app_root . 'mysql.cnf', implode(PHP_EOL, $cnf))) {
+        if (false === file_put_contents($cnfFile ??= CarbonPHP::$app_root . 'mysql.cnf', implode(PHP_EOL, $cnf))) {
             ColorCode::colorCode('Failed to store file contents of mysql.cnf in ' . CarbonPHP::$app_root, iColorCode::RED);
             exit(1);
         }
@@ -135,7 +128,9 @@ IDENTIFIED;
             ColorCode::colorCode('The chmod(\'' . CarbonPHP::$app_root . 'mysql.cnf\', 0750); has failed. This isn\'t always an issue. Moving on. Cross your fingers.', iColorCode::YELLOW);
         }
 
-        return self::$mysql = CarbonPHP::$app_root . 'mysql.cnf';
+        ColorCode::colorCode('Successfully created mysql.cnf file in (' . $cnfFile . ')');
+
+        return self::$mysql = $cnfFile;
     }
 
     /**

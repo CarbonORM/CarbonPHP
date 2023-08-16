@@ -8,11 +8,10 @@
 
 namespace CarbonPHP;
 
+use CarbonPHP\Abstracts\Files;
 use CarbonPHP\Error\PublicAlert;
-use CarbonPHP\Helpers\Files;
 use InvalidArgumentException;
 use function count;
-use function defined;
 use function function_exists;
 use function is_array;
 

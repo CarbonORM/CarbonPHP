@@ -2,9 +2,9 @@
 
 namespace CarbonPHP\Restful;
 
+use CarbonPHP\Abstracts\Composer;
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Error\PublicAlert;
-use CarbonPHP\Helpers\Composer;
 use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
 use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;

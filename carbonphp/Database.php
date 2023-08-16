@@ -2,11 +2,10 @@
 
 namespace CarbonPHP;
 
-use CarbonPHP\Error\ThrowableHandler;
+use CarbonPHP\Abstracts\ColorCode;
+use CarbonPHP\Abstracts\MySQL;
 use CarbonPHP\Error\PublicAlert;
-use CarbonPHP\Helpers\ColorCode;
-use CarbonPHP\Helpers\Composer;
-use CarbonPHP\Helpers\MySQL;
+use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
@@ -2178,7 +2177,6 @@ AND links.CONSTRAINT_NAME = '$constraintName'");
 
     }
 
-
     public static function addTablePrefix(string &$table_name, string $table_prefix, string &$sql): void
     {
 
@@ -2233,12 +2231,17 @@ AND links.CONSTRAINT_NAME = '$constraintName'");
             $sql = self::REMOVE_MYSQL_FOREIGN_KEY_CHECKS . PHP_EOL
                 . $stmts . PHP_EOL . self::REVERT_MYSQL_FOREIGN_KEY_CHECKS;
 
-            $success = self::execute($sql);
+            ColorCode::colorCode("Will execute the sql now.");
 
+            ColorCode::colorCode($sql);
+
+            $success = self::execute($sql);
 
             ColorCode::colorCode($success ? 'success' : 'failed', $success ? iColorCode::GREEN : iColorCode::RED);
 
             if (false === $success) {
+
+                ColorCode::colorCode('Failed to execute sql', iColorCode::RED);
 
                 exit(1);
 
@@ -2249,8 +2252,6 @@ AND links.CONSTRAINT_NAME = '$constraintName'");
                 ColorCode::colorCode('Failed to store sql to ' . CarbonPHP::$app_root . 'createTables.sql', iColorCode::RED);
 
             }
-
-            ColorCode::colorCode($sql);
 
         }
 
@@ -2422,8 +2423,8 @@ AND links.CONSTRAINT_NAME = '$constraintName'");
 
             }
 
-
             self::execute("create " . ($unique ? 'unique' : '') . " index $constraintName on $tableName ($columnsInline);");
+
         };
 
     }

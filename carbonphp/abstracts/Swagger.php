@@ -1,9 +1,8 @@
 <?php
 
 
-namespace CarbonPHP\Helpers;
+namespace CarbonPHP\Abstracts;
 
-use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Rest;
 use CarbonPHP\Route;
 

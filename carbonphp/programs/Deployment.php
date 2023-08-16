@@ -3,9 +3,9 @@
 
 namespace CarbonPHP\Programs;
 
+use CarbonPHP\Abstracts\Background;
+use CarbonPHP\Abstracts\ColorCode;
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\Helpers\Background;
-use CarbonPHP\Helpers\ColorCode;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
 use CarbonPHP\Route;
@@ -37,6 +37,12 @@ class Deployment implements iCommand
             ],
         ],
     ];
+
+
+    public static function description(): string
+    {
+        return 'Deploy a CarbonPHP application to a server.';
+    }
 
 
     public static function github(string $prefix = 'github') : bool {

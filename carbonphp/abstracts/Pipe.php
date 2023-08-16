@@ -6,7 +6,7 @@
  * Time: 11:00 AM
  */
 
-namespace CarbonPHP\Helpers;
+namespace CarbonPHP\Abstracts;
 
 use CarbonPHP\Error\ThrowableHandler;
 

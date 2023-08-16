@@ -1,6 +1,6 @@
 <?php
 
-namespace CarbonPHP\Helpers;
+namespace CarbonPHP\Abstracts;
 
 use CarbonPHP\Interfaces\iColorCode;
 use Throwable;
