@@ -19,10 +19,6 @@ use CarbonPHP\Interfaces\iCommand;
 class NewProgram extends Composer implements iCommand
 {
 
-    private array $CONFIG;
-
-
-
     public static function getProgramsNamespacesAndDirectories(): array
     {
         $json = self::getComposerConfig();
@@ -37,17 +33,15 @@ class NewProgram extends Composer implements iCommand
         }
 
         if (empty($programs)) {
-            ColorCode::colorCode('No Programs namespace found. Please add a namespace ending in Programs to your composer.json file.', iColorCode::RED);
-            exit(1);
+
+            ColorCode::colorCode('No Programs namespace found. Please add a namespace ending in Programs to your composer.json file to define custom C6 programs.', iColorCode::BACKGROUND_YELLOW);
+
+            return [];
+
         }
 
         return $programs;
 
-    }
-
-    public function __construct($CONFIG)
-    {
-        $this->CONFIG = $CONFIG;
     }
 
     public function usage(): void

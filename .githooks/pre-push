@@ -13,6 +13,8 @@ $statusCode = 0;
 
 // @note we readline in php using a shell exec ``; doing it directly will fail with unexpected behavior
 
+// todo - make a changelog and verify tag exists before publishing
+
 Background::executeAndCheckStatus('composer run test');
 
 passthru('git fetch --tags', $statusCode);
