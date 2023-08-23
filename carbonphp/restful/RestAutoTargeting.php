@@ -49,19 +49,28 @@ abstract class RestAutoTargeting extends RestSettings
 
         $prefix = CarbonPHP::$configuration[CarbonPHP::REST][CarbonPHP::TABLE_PREFIX] ?? '';
 
-        if ($fullyQualifiedRestClassName::TABLE_PREFIX === $prefix) {
+        $namespace = CarbonPHP::$configuration[CarbonPHP::REST][CarbonPHP::NAMESPACE] ?? '';
+
+        $className = $fullyQualifiedRestClassName::TABLE_NAME;
+
+        if (str_starts_with($className, $prefix)) {
+
+            $className = substr($className, strlen($prefix));
+
+        }
+
+        $custom_prefix_carbon_table = $namespace . ucwords($className, '_');        //  we're using table name and not class name as any different prefix, even a subset of the original, will be appended
+
+        // if this is our custom namespace we skip
+        if ($fullyQualifiedRestClassName === $custom_prefix_carbon_table) {
 
             return $fullyQualifiedRestClassName;
 
         }
 
-        $namespace = CarbonPHP::$configuration[CarbonPHP::REST][CarbonPHP::NAMESPACE] ?? '';
-
-        $custom_prefix_carbon_table = $namespace . ucwords($fullyQualifiedRestClassName::TABLE_NAME, '_');        //  we're using table name and not class name as any different prefix, even a subset of the original, will be appended
-
         if (!class_exists($custom_prefix_carbon_table)) {
 
-            throw new PublicAlert("Could not find the required class ($custom_prefix_carbon_table) in the user defined namespace ($namespace). This is required because a custom table prefix ($prefix) has been detected.");
+            throw new PublicAlert("Could not find the required class ($custom_prefix_carbon_table) in the user defined namespace ($namespace). This is required.");
 
         }
 
