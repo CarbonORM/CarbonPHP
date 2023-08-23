@@ -459,7 +459,9 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
     {{/php_validation}}
     
     {{^PHP_VALIDATION_PUBLIC}}
-    public array \$PHP_VALIDATION = [];
+    public array \$PHP_VALIDATION = [
+        
+    ];
     {{/PHP_VALIDATION_PUBLIC}}
     {{#PHP_VALIDATION_PUBLIC}}
     {{PHP_VALIDATION_PUBLIC}}

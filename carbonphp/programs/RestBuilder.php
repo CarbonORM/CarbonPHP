@@ -803,7 +803,6 @@ END;
                                 && in_array($foreign_key, $primary, true)
                                 && 'entity_pk' === $references_column);
 
-
                         if (($references_table === 'carbon_carbons'
                                 || $references_table === $prefix . 'carbon_carbons')
                             && in_array($foreign_key, $primary, true)) {
@@ -1551,7 +1550,8 @@ export const TABLES = {
     $quick_references_tsx
 };
 
-export const C6 = {
+export const C6 : { TABLES: { [key: string]: (C6RestfulModel & { [key: string]: any }) } }
+                & { [key: string]: any } = {
     $constants
     TABLES: TABLES,
     ...TABLES
@@ -1563,94 +1563,6 @@ export const COLUMNS = {
 };
 
 export type RestTableInterfaces = $all_interface_types;
-
-export const convertForRequestBody = function (restfulObject: RestTableInterfaces, tableName: string | string[], regexErrorHandler: (message:string) => void = alert) {
-
-    let payload = {};
-
-    const tableNames = Array.isArray(tableName) ? tableName : [tableName];
-    
-    tableNames.forEach((table) => {
-
-        Object.keys(restfulObject).map(value => {
-
-            let shortReference = value.toUpperCase();
-            
-            switch (value) {
-                case C6.GET:
-                case C6.POST:
-                case C6.UPDATE:
-                case C6.REPLACE:
-                case C6.DELETE:
-                case C6.WHERE:
-                case C6.JOIN:
-                case C6.PAGINATION:
-					if (Array.isArray(restfulObject[value])) {
-						payload[value] = restfulObject[value].sort()
-					} else if (typeof restfulObject[value] === 'object' && restfulObject[value] !== null) {
-						payload[value] = Object.keys(restfulObject[value])
-							.sort()
-							.reduce((acc, key) => ({
-                                ...acc, [key]: restfulObject[value][key]
-                            }), {})
-					} 
-                    return
-                default:
-            }
-
-            if (shortReference in C6[table]) {
-
-                const longName = C6[table][shortReference];
-
-                payload[longName] = restfulObject[value]
-
-                const regexValidations = C6[table].REGEX_VALIDATION[longName]
-
-                if (regexValidations instanceof RegExp) {
-
-                    if (false === regexValidations.test(restfulObject[value])) {
-
-                        regexErrorHandler('Failed to match regex (' + regexValidations + ') for column (' + longName + ')')
-
-                        throw Error('Failed to match regex (' + regexValidations + ') for column (' + longName + ')')
-
-                    }
-
-                } else if (typeof regexValidations === 'object' && regexValidations !== null) {
-
-                    Object.keys(regexValidations)?.map((errorMessage) => {
-
-                        const regex : RegExp = regexValidations[errorMessage];
-                        
-                        if (false === regex.test(restfulObject[value])) {
-
-                            const devErrorMessage = 'Failed to match regex (' + regex + ') for column (' + longName + ')';
-                            
-                            regexErrorHandler(errorMessage ?? devErrorMessage)
-                            
-                            throw Error(devErrorMessage)
-
-                        }
-                        
-                    })
-                    
-                }
-                
-            }
-            
-        })
-
-        return true;
-
-    });
-
-	return Object.keys(payload)
-		.sort()
-		.reduce((acc, key) => ({
-            ...acc, [key]: payload[key]
-        }), {})
-
-};
 
 
 ";
@@ -1688,7 +1600,7 @@ export const convertForRequestBody = function (restfulObject, tableName, regexEr
     
     tableNames.forEach((table) => {
 
-        Object.keys(restfulObject).map(value => {
+        Object.keys(restfulObject).forEach(value => {
 
             let shortReference = value.toUpperCase();
             
