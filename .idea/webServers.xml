@@ -21,7 +21,7 @@
         <fileTransfer mountedRoot="$PROJECT_DIR$/../dropingaming.com/vendor/richardtmiles/carbonphp" accessType="MOUNT" port="0" />
       </webServer>
       <webServer id="2533def3-8a9f-4da4-ada1-7e94f4939629" name="miles.systems" url="http://localhost">
-        <fileTransfer mountedRoot="$PROJECT_DIR$/../miles.systems/vendor/carbonorm/carbonphp" accessType="MOUNT" port="0" />
+        <fileTransfer mountedRoot="$PROJECT_DIR$/../CarbonReactBootstrap/vendor/carbonorm/carbonphp" accessType="MOUNT" port="0" />
       </webServer>
       <webServer id="69606b45-271f-4711-9096-553346d53a92" name="reactboot" url="http://localhost">
         <fileTransfer mountedRoot="$PROJECT_DIR$/../reactboot/vendor/carbonorm/carbonphp" accessType="MOUNT" port="0" />

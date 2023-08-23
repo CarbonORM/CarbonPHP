@@ -70,6 +70,7 @@ class CarbonPHP
 
     // Site Config
     public const SITE = 'SITE';
+    public const QUERY_WITH_DATABASE_NAME = 'QUERY_WITH_DATABASE_NAME';
     public const URL = 'URL';
     public const ROOT = 'ROOT';
     public const CACHE_CONTROL = 'CACHE_CONTROL';
