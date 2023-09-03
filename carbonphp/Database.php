@@ -537,7 +537,7 @@ FOOT;
                         'Committed Transaction' => ++self::$committedTransactions,
                         'Committing transaction from' => [
                             'file (' . __FILE__ . ') method (' . $thisMethod . ') at line (' . __LINE__ . ')',
-                            'debug_backtrace' => debug_backtrace()
+                            'debug_backtrace' => CarbonPHP::$verbose ? debug_backtrace() : 'CarbonPHP::$verbose = false;'
                         ]
                     ] + $moreLogging;
             };
@@ -656,7 +656,7 @@ FOOT;
 
         $db = self::database(false);
 
-        $key = self::new_entity($tag_id, static::class . ( null === $dependant ? '' : ' ' . $dependant));
+        $key = self::new_entity($tag_id , $dependant );
 
         if (!$db->inTransaction()) {
 
@@ -693,11 +693,11 @@ FOOT;
      *  I define constants named after the tables in the configuration file
      *  which I use for this field. ( USERS, MESSAGES, ect...)
      *
-     * @param $dependant
+     * @param $dependant_carbon_id
      * @return string
      * @throws PublicAlert
      */
-    public static function new_entity(string $tag_id, string $dependant = null): string
+    public static function new_entity(string $tag_id, string $dependant_carbon_id = null): string
     {
         $count = 0;
 
@@ -709,7 +709,7 @@ FOOT;
 
             $post = [
                 $carbons::ENTITY_TAG => $tag_id,
-                $carbons::ENTITY_FK => $dependant
+                $carbons::ENTITY_FK => $dependant_carbon_id
             ];
 
             /** @noinspection PhpUndefinedMethodInspection - intellij is not good at php static refs */

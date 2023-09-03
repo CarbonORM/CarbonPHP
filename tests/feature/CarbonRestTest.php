@@ -12,7 +12,7 @@ use CarbonPHP\Tables\Carbons;
 use CarbonPHP\Tables\History_Logs;
 use CarbonPHP\Tables\Location_References;
 use CarbonPHP\Tables\Locations;
-use CarbonPHP\Tables\Sessions;
+use CarbonPHP\Tables\User_Sessions;
 use CarbonPHP\Tables\User_Tasks;
 use CarbonPHP\Tables\Users;
 use CarbonPHP\Tables\Wp_Users;
@@ -457,24 +457,24 @@ class CarbonRestTest extends Config
         $postTwo = [];
 
         $post = [
-            Sessions::USER_ID => $USER_ID = Carbons::post($postOne),
-            Sessions::USER_IP => '127.0.0.1',
-            Sessions::SESSION_ID => $SESSION_ID = Carbons::post($postTwo),
-            Sessions::SESSION_EXPIRES => date('Y-m-d H:i:s'), // @link https://stackoverflow.com/questions/2215354/php-date-format-when-inserting-into-datetime-in-mysql/17295570
-            Sessions::SESSION_DATA => '',
-            Sessions::USER_ONLINE_STATUS => 1
+            User_Sessions::USER_ID => $USER_ID = Carbons::post($postOne),
+            User_Sessions::USER_IP => '127.0.0.1',
+            User_Sessions::SESSION_ID => $SESSION_ID = Carbons::post($postTwo),
+            User_Sessions::SESSION_EXPIRES => date('Y-m-d H:i:s'), // @link https://stackoverflow.com/questions/2215354/php-date-format-when-inserting-into-datetime-in-mysql/17295570
+            User_Sessions::SESSION_DATA => '',
+            User_Sessions::USER_ONLINE_STATUS => 1
         ];
 
-        self::assertNotFalse(Sessions::Post($post));
+        self::assertNotFalse(User_Sessions::Post($post));
 
-        self::assertTrue(Sessions::Put($return, $SESSION_ID, [
-            Sessions::USER_IP => '127.0.0.2',
-            Sessions::USER_ONLINE_STATUS => 0
+        self::assertTrue(User_Sessions::Put($return, $SESSION_ID, [
+            User_Sessions::USER_IP => '127.0.0.2',
+            User_Sessions::USER_ONLINE_STATUS => 0
         ]));
 
         // todo - check array merge
-        self::assertTrue(Sessions::Get($return, $SESSION_ID, []));
-        self::assertTrue(Sessions::Delete($return, $SESSION_ID));
+        self::assertTrue(User_Sessions::Get($return, $SESSION_ID, []));
+        self::assertTrue(User_Sessions::Delete($return, $SESSION_ID));
         self::assertTrue(Carbons::Delete($return, $SESSION_ID));
         self::assertTrue(Carbons::Delete($return, $USER_ID));
     }
@@ -492,13 +492,13 @@ class CarbonRestTest extends Config
 
         $post = [Carbons::ENTITY_FK => $USER_ID_TWO];
 
-        self::assertNotFalse($USER_ID_THREE = Carbons::Post($post));
+        self::assertNotFalse( Carbons::Post($post));
 
         $returnUpdated = [];
 
         $post = [];
 
-        self::assertNotFalse(Carbons::Put($returnUpdated, $USER_ID_TWO, [Carbons::ENTITY_FK => $USER_ID_FOUR = Carbons::Post($post)]));
+        self::assertNotFalse(Carbons::Put($returnUpdated, $USER_ID_TWO, [Carbons::ENTITY_FK => Carbons::Post($post)]));
 
         $return = [];
 
@@ -517,17 +517,17 @@ class CarbonRestTest extends Config
         $postTwo = [];
 
         $post = [
-            Sessions::USER_ID => $USER_ID_ONE = Carbons::Post($postOne),
-            Sessions::USER_IP => '127.0.0.1',
-            Sessions::SESSION_ID => $SESSION_ID_ONE = Carbons::Post($postTwo),
-            Sessions::SESSION_EXPIRES => date('Y-m-d H:i:s'), // @link https://stackoverflow.com/questions/2215354/php-date-format-when-inserting-into-datetime-in-mysql/17295570
-            Sessions::SESSION_DATA => '',
-            Sessions::USER_ONLINE_STATUS => 1
+            User_Sessions::USER_ID => $USER_ID_ONE = Carbons::Post($postOne),
+            User_Sessions::USER_IP => '127.0.0.1',
+            User_Sessions::SESSION_ID => $SESSION_ID_ONE = Carbons::Post($postTwo),
+            User_Sessions::SESSION_EXPIRES => date('Y-m-d H:i:s'), // @link https://stackoverflow.com/questions/2215354/php-date-format-when-inserting-into-datetime-in-mysql/17295570
+            User_Sessions::SESSION_DATA => '',
+            User_Sessions::USER_ONLINE_STATUS => 1
         ];
 
-        self::assertNotFalse(Sessions::Post($post));
+        self::assertNotFalse(User_Sessions::Post($post));
 
-        self::assertTrue(Sessions::Get($return, $SESSION_ID_ONE, []));
+        self::assertTrue(User_Sessions::Get($return, $SESSION_ID_ONE, []));
 
         self::assertNotEmpty($return, 'Could not query rest sessions table with id :: ' . $SESSION_ID_ONE);
 
@@ -536,38 +536,38 @@ class CarbonRestTest extends Config
         $postTwo = [];
 
         $post = [
-            Sessions::USER_ID => $USER_ID_TWO = Carbons::Post($postOne),
-            Sessions::USER_IP => '127.0.0.1',
-            Sessions::SESSION_ID => $SESSION_ID_TWO = Carbons::Post($postTwo),
-            Sessions::SESSION_EXPIRES => date('Y-m-d H:i:s'), // @link https://stackoverflow.com/questions/2215354/php-date-format-when-inserting-into-datetime-in-mysql/17295570
-            Sessions::SESSION_DATA => '',
-            Sessions::USER_ONLINE_STATUS => 1
+            User_Sessions::USER_ID => $USER_ID_TWO = Carbons::Post($postOne),
+            User_Sessions::USER_IP => '127.0.0.1',
+            User_Sessions::SESSION_ID => $SESSION_ID_TWO = Carbons::Post($postTwo),
+            User_Sessions::SESSION_EXPIRES => date('Y-m-d H:i:s'), // @link https://stackoverflow.com/questions/2215354/php-date-format-when-inserting-into-datetime-in-mysql/17295570
+            User_Sessions::SESSION_DATA => '',
+            User_Sessions::USER_ONLINE_STATUS => 1
         ];
 
-        self::assertNotFalse(Sessions::Post($post));
+        self::assertNotFalse(User_Sessions::Post($post));
 
-        self::assertTrue(Sessions::Put($return, $SESSION_ID_TWO, [
-            Sessions::USER_IP => '127.0.0.2',
-            Sessions::USER_ONLINE_STATUS => 0
+        self::assertTrue(User_Sessions::Put($return, $SESSION_ID_TWO, [
+            User_Sessions::USER_IP => '127.0.0.2',
+            User_Sessions::USER_ONLINE_STATUS => 0
         ]));
 
         $return = [];
 
-        self::assertTrue(Sessions::Get($return, $SESSION_ID_ONE, []));
+        self::assertTrue(User_Sessions::Get($return, $SESSION_ID_ONE, []));
 
         self::assertNotEmpty($return);
 
-        self::assertNotEquals('127.0.0.2', $return[Sessions::COLUMNS[Sessions::USER_IP]]);
-        self::assertNotEquals('0', $return[Sessions::COLUMNS[Sessions::USER_ONLINE_STATUS]]);
+        self::assertNotEquals('127.0.0.2', $return[User_Sessions::COLUMNS[User_Sessions::USER_IP]]);
+        self::assertNotEquals('0', $return[User_Sessions::COLUMNS[User_Sessions::USER_ONLINE_STATUS]]);
 
-        self::assertTrue(Sessions::Get($return, $SESSION_ID_TWO, []));
+        self::assertTrue(User_Sessions::Get($return, $SESSION_ID_TWO, []));
         self::assertNotEmpty($return);
 
-        self::assertEquals('127.0.0.2', $return[Sessions::COLUMNS[Sessions::USER_IP]]);
+        self::assertEquals('127.0.0.2', $return[User_Sessions::COLUMNS[User_Sessions::USER_IP]]);
 
-        self::assertEquals('0', $return[Sessions::COLUMNS[Sessions::USER_ONLINE_STATUS]]);
-        self::assertTrue(Sessions::Delete($return, $SESSION_ID_ONE));
-        self::assertTrue(Sessions::Delete($return, $SESSION_ID_TWO));
+        self::assertEquals('0', $return[User_Sessions::COLUMNS[User_Sessions::USER_ONLINE_STATUS]]);
+        self::assertTrue(User_Sessions::Delete($return, $SESSION_ID_ONE));
+        self::assertTrue(User_Sessions::Delete($return, $SESSION_ID_TWO));
         self::assertTrue(Carbons::Delete($return, $USER_ID_ONE));
         self::assertTrue(Carbons::Delete($return, $USER_ID_TWO));
     }
@@ -578,7 +578,7 @@ class CarbonRestTest extends Config
         $condition = 'ME';
 
         $post = [
-            History_Logs::HISTORY_UUID => $UUID = Carbons::Post($ignore),
+            History_Logs::HISTORY_UUID => Carbons::Post($ignore),
             History_Logs::HISTORY_TABLE => $condition,
             History_Logs::HISTORY_DATA => '{}',
         ];
@@ -590,7 +590,7 @@ class CarbonRestTest extends Config
         // Should return a unique hex id
         self::assertTrue(History_Logs::Put($ignore, [
             iRest::UPDATE => [
-                History_Logs::HISTORY_UUID => $UUID = Carbons::Post($post),
+                History_Logs::HISTORY_UUID => Carbons::Post($post),
                 History_Logs::HISTORY_DATA => '{}',
             ],
             iRest::WHERE => [
@@ -626,7 +626,7 @@ class CarbonRestTest extends Config
         $post = [
             History_Logs::HISTORY_DATA => ['Json' => 'is cool'],
             History_Logs::HISTORY_TABLE => $condition,
-            History_Logs::HISTORY_UUID => $UUID = Carbons::Post($ignore)
+            History_Logs::HISTORY_UUID => Carbons::Post($ignore)
         ];
 
         self::assertTrue(History_Logs::post($post));

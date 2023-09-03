@@ -139,7 +139,7 @@ class User_Sessions extends Rest implements iRestSinglePrimaryKey
     **/
     public const PDO_VALIDATION = [
         self::USER_ID => [ self::MYSQL_TYPE => 'binary', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '16', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],
-        self::USER_IP => [ self::MYSQL_TYPE => 'binary', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '16', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => null ],
+        self::USER_IP => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '80', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => null ],
         self::SESSION_ID => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '255', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],
         self::SESSION_EXPIRES => [ self::MYSQL_TYPE => 'datetime', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],
         self::SESSION_DATA => [ self::MYSQL_TYPE => 'text', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],
@@ -478,7 +478,7 @@ class User_Sessions extends Rest implements iRestSinglePrimaryKey
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
 CREATE TABLE IF NOT EXISTS `carbon_user_sessions` (
 `user_id` binary(16) NOT NULL,
-`user_ip` binary(16) DEFAULT NULL,
+`user_ip` varchar(80) DEFAULT NULL,
 `session_id` varchar(255) NOT NULL,
 `session_expires` datetime NOT NULL,
 `session_data` text,
