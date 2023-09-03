@@ -482,7 +482,6 @@ FOOT;
      * @link https://www.w3schools.com/sql/sql_primarykey.asp
      *
      * @return bool
-     * @throws PublicAlert
      */
     public static function verify(): bool
     {
@@ -501,7 +500,6 @@ FOOT;
 
             if (!empty(self::$carbonDatabaseEntityTransactionKeys)) {
 
-
                 foreach (self::$carbonDatabaseEntityTransactionKeys as $key) {
 
                     static::remove_entity($key);
@@ -510,9 +508,9 @@ FOOT;
 
             }
 
-        } catch (PDOException $e) {
+        } catch (Throwable $e) {
 
-            ThrowableHandler::generateLog($e);
+            ThrowableHandler::generateLogAndExit($e);
 
         }
 
@@ -526,67 +524,74 @@ FOOT;
     /** Commit the current transaction to the database.
      * @link http://php.net/manual/en/pdo.rollback.php
      * @return bool
-     * @throws PublicAlert
      */
     public static function commit(): bool
     {
 
-        $thisMethod = __METHOD__;
+        try {
 
-        $comment = static function (array $moreLogging = []) use ($thisMethod) {
-            $GLOBALS['json']['sql'][] = [
-                    'Committed Transaction' => ++self::$committedTransactions,
-                    'Committing transaction from' => [
-                        'file (' . __FILE__ . ') method (' . $thisMethod . ') at line (' . __LINE__ . ')',
-                        'debug_backtrace' => debug_backtrace()
-                    ]
-                ] + $moreLogging;
-        };
+            $thisMethod = __METHOD__;
 
-        $db = self::database(false);
+            $comment = static function (array $moreLogging = []) use ($thisMethod) {
+                $GLOBALS['json']['sql'][] = $GLOBALS[Session::class]['sql'][] =  [
+                        'Committed Transaction' => ++self::$committedTransactions,
+                        'Committing transaction from' => [
+                            'file (' . __FILE__ . ') method (' . $thisMethod . ') at line (' . __LINE__ . ')',
+                            'debug_backtrace' => debug_backtrace()
+                        ]
+                    ] + $moreLogging;
+            };
 
-        if (false === $db->inTransaction()) {
+            $db = self::database(false);
 
-            return true;
+            if (false === $db->inTransaction()) {
 
-        }
-
-        if (false === empty(Session::$session_id)
-            && session_status() === PHP_SESSION_ACTIVE) {
-
-            $success = session_write_close();
-
-            if (false === $success) {
-
-                throw new PublicAlert('Session failed to write close in (' . __METHOD__ . ') at line (' . __LINE__ . ')');
+                return true;
 
             }
 
-            $comment([
-                'Session ID' => Session::$session_id,
-                'Session Status' => [
-                    'session_status()' => session_status(),
-                    'PHP_SESSION_DISABLED' => PHP_SESSION_DISABLED,
-                    'PHP_SESSION_ACTIVE' => PHP_SESSION_ACTIVE,
-                    'PHP_SESSION_NONE' => PHP_SESSION_NONE,
-                ],
-                'Session Write Close' => '(this commit closed the session)'
-            ]);
+            if (false === empty(Session::$session_id)
+                && session_status() === PHP_SESSION_ACTIVE) {
 
-            return true;
+                $success = session_write_close();
+
+                if (false === $success) {
+
+                    throw new PublicAlert('Session failed to write close in (' . __METHOD__ . ') at line (' . __LINE__ . ')');
+
+                }
+
+                $comment([
+                    'Session ID' => Session::$session_id,
+                    'Session Status' => [
+                        'session_status()' => session_status(),
+                        'PHP_SESSION_DISABLED' => PHP_SESSION_DISABLED,
+                        'PHP_SESSION_ACTIVE' => PHP_SESSION_ACTIVE,
+                        'PHP_SESSION_NONE' => PHP_SESSION_NONE,
+                    ],
+                    'Session Write Close' => '(this commit closed the session)'
+                ]);
+
+                return true;
+
+            }
+
+            if ($db->commit()) {
+
+                $comment();
+
+                return true;
+
+            }
+
+            // rollback
+            return static::verify();
+
+        } catch (Throwable $e) {
+
+            ThrowableHandler::generateLogAndExit($e);
 
         }
-
-        if ($db->commit()) {
-
-            $comment();
-
-            return true;
-
-        }
-
-        // rollback
-        return static::verify();
 
     }
 
@@ -651,7 +656,7 @@ FOOT;
 
         $db = self::database(false);
 
-        $key = self::new_entity($tag_id, $dependant);
+        $key = self::new_entity($tag_id, static::class . ( null === $dependant ? '' : ' ' . $dependant));
 
         if (!$db->inTransaction()) {
 
@@ -725,7 +730,6 @@ FOOT;
      * @link https://dev.mysql.com/doc/refman/5.7/en/innodb-index-types.html
      * @param $id - Remove entity_pk form carbon
      * @return bool
-     * @throws PublicAlert
      */
     public static function remove_entity($id): bool
     {

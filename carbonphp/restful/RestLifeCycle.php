@@ -519,7 +519,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
         if ($inTransaction && self::$commit === false) {
 
-            $json ['WARNING_NO_COMMIT'] = $json['session'][self::class] = 'self::$commit was set to false at the end of (' . __METHOD__ . ') while a transaction was in progress. Adverse effects include rolling back anything currently uncommitted, as-well-as running session_abort() which will discard any changes in the session.';
+            $json ['WARNING_NO_COMMIT'] = $json[Session::class][self::class] = 'self::$commit was set to false at the end of (' . __METHOD__ . ') while a transaction was in progress. Adverse effects include rolling back anything currently uncommitted, as-well-as running session_abort() which will discard any changes in the session.';
 
             if (false === $database->rollBack()) {
 
@@ -534,15 +534,15 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
         } else if (session_status() === PHP_SESSION_ACTIVE) {
 
-            $json['session']['write_close'] = session_write_close();
+            $json[Session::class]['write_close'] = session_write_close();
 
-            if (false === $json['session']['write_close']) {
+            if (false === $json[Session::class]['write_close']) {
 
-                $json['session'][self::class] = 'Failed to close the session';
+                $json[Session::class][self::class] = 'Failed to close the session';
 
             } else {
 
-                $json[self::class] = $json['session'][self::class] = 'Automatically closed the session & open transaction @ (' . __METHOD__ . ').';
+                $json[self::class] = $json[Session::class][self::class] = 'Automatically closed the session & open transaction @ (' . __METHOD__ . ').';
 
             }
 
@@ -611,12 +611,25 @@ abstract class RestLifeCycle extends RestQueryBuilder
      * @TODO - test this in bootstrap to remove the noinspection
      * @noinspection PhpUnused
      */
-    public static function hijackRestfulRequest(array $return): never
+    public static function hijackRestfulRequest(array $return, bool $commitPendingTransactions = false): never
     {
 
         try {
 
             global $json;
+
+            if ($commitPendingTransactions) {
+
+                self::commit();
+
+            }
+
+            if (Session::$storeSessionToDatabase === true
+                && false === $json[Session::class][Session::DATABASE_CLOSED_AND_COMMITTED]) {
+
+                $json[Session::class][Session::DATABASE_CLOSED_AND_COMMITTED] = '[Session::class][Session::DATABASE_CLOSED_AND_COMMITTED] was set to false at the end of (' . __METHOD__ . ') while a transaction was in progress. Adverse effects include rolling back anything currently uncommitted, as-well-as running session_abort() which will discard any changes in the session.';
+
+            }
 
             if (false === headers_sent($filename, $line)) {
 
@@ -631,10 +644,9 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
             }
 
-            print json_encode($return + $json, JSON_THROW_ON_ERROR);
+            print json_encode(    $return + $json, JSON_THROW_ON_ERROR);
 
             exit(0);
-
 
         } catch (Throwable $e) {
 

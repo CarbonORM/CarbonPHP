@@ -123,13 +123,17 @@ use CarbonPHP\Interfaces\iColorCode;
 
 class $programName implements iCommand
 {
-    public const NAMESPACE = __NAMESPACE__;
-    public const CLASS = __CLASS__;
+
     private array \$CONFIG;
 
     public function __construct(\$CONFIG)
     {
         \$this->CONFIG = \$CONFIG;
+    }
+
+    public static function description(): string
+    {
+        return 'Sample program for CarbonPHP; todo - add description for $programName';
     }
 
     public function usage(): void

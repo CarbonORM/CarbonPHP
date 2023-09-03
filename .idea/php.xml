@@ -93,6 +93,7 @@
       <path value="$PROJECT_DIR$/vendor/psr/container" />
       <path value="$PROJECT_DIR$/vendor/seld/jsonlint" />
       <path value="$PROJECT_DIR$/vendor/seld/phar-utils" />
+      <path value="$PROJECT_DIR$/vendor/richardtmiles/carbonphp" />
     </include_path>
   </component>
   <component name="PhpProjectServersManager">

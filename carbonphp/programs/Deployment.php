@@ -10,13 +10,6 @@ use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
 use CarbonPHP\Route;
 
-
-/* @author Richard Tyler Miles
- *
- *      Special thanks to the following people//resources
- *
- * @link https://gist.github.com/pbojinov/8965299
- */
 class Deployment implements iCommand
 {
 
@@ -126,6 +119,7 @@ class Deployment implements iCommand
         Background::executeAndCheckStatus('sudo chmod g+rwX /var/www/ -R');
     }
 
+    // https://support.google.com/domains/answer/6147083?hl=en
     public static function updateGoogleDynamicDNS($ip): void
     {
         Background::executeAndCheckStatus('sudo systemctl restart apache2');
@@ -154,6 +148,8 @@ class Deployment implements iCommand
 
             $output = trim(trim($output, $IP)); // could be way better, but eh.. then it got worse and oh well
 
+            // https://github.com/StevenWeathers/google-domains-ddns-updater/issues/7
+            // https://www.powershellgallery.com/packages/GoogleDynamicDNSTools/3.0/Content/Functions%5CUpdate-GoogleDynamicDNS.ps1
             // $output contains the output string
             ColorCode::colorCode("DNS Update for $HOSTNAME returned code ({$info['http_code']}) with response ::\n\t $output \n\n");
 

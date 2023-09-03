@@ -682,11 +682,11 @@ class WebSocket extends Request implements iCommand
 
                     }
 
-                    $session = new Session($ip, $config['SESSION']['REMOTE'] ?? false); // session start
+                    $session = new Session($config[CarbonPHP::SESSION][CarbonPHP::REMOTE] ?? false); // session start
 
                     $session_id = $session::$session_id;
 
-                    ColorCode::colorCode("\nSession Verified $session_id\n", 'blue');
+                    ColorCode::colorCode("\nSession Verified $session_id\n", iColorCode::CYAN);
 
                     $session::writeCloseClean();  // we have to kill the static user id so were thread safe
 

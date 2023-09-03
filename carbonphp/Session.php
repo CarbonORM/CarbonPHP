@@ -23,7 +23,7 @@ use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Programs\WebSocket;
-use CarbonPHP\Tables\Sessions;
+use CarbonPHP\Tables\User_Sessions;
 use PDOException;
 use SessionHandlerInterface;
 use Throwable;
@@ -35,13 +35,20 @@ use function is_callable;
 class Session implements SessionHandlerInterface
 {
 
+    public const DATABASE_CLOSED_AND_COMMITTED = 'DATABASE_CLOSED_AND_COMMITTED';
+
     protected static ?Session $singleton = null;
+
+    public static bool $storeSessionToDatabase = false;
 
     protected static ?iRestSinglePrimaryKey $session_table = null;
 
-    private static string $sessionData = '';
+    protected static string $sessionData = '';
 
-    private static bool $sessionUpdated = false;
+    // TODO - why doesnt $sessionUpdated work? It seems even static variables are not shared between outside classes
+    // I think this is only is session store context as the constructor assigns values correctly
+    // the global scope is not shared between the two contexts either
+    protected static bool $sessionUpdated = false;
 
     protected static bool $sessionContinued = false;
     /**
@@ -56,8 +63,6 @@ class Session implements SessionHandlerInterface
      */
     public static ?string $user_id = "0";
 
-    public static bool $endingSession = false;
-
     /**
      * @var callable $callback - if the session is reset using the startApplication function,
      * this callable function will be executed. You can set this variable in the configuration.
@@ -68,10 +73,12 @@ class Session implements SessionHandlerInterface
      * Session constructor. This
      * @param bool $dbStore
      */
-    public function __construct($dbStore = false)
+    public function __construct(bool $dbStore = false)
     {
 
         static $count = false;
+
+        self::$storeSessionToDatabase = $GLOBALS['json'][self::class]['storeSessionToDatabase'] = $dbStore;
 
         if (!$count) {
 
@@ -90,6 +97,17 @@ class Session implements SessionHandlerInterface
                 ini_set('session.use_strict_mode', 1);
 
             }
+
+            $currentCookieParams = session_get_cookie_params();
+
+            session_set_cookie_params([
+                'lifetime' =>  $currentCookieParams["lifetime"],
+                'path' => '/',
+                'domain' => '', //$_SERVER["HTTP_HOST"]
+                'secure' => "0",
+                'httponly' => "false",
+                'samesite' => 'Lax',
+            ]);
 
             if ($dbStore && !headers_sent()) {
 
@@ -241,7 +259,7 @@ class Session implements SessionHandlerInterface
 
         try {
 
-            $session_class_name = Rest::getDynamicRestClass(Sessions::class);
+            $session_class_name = Rest::getDynamicRestClass(User_Sessions::class);
 
             self::$session_table ??= new $session_class_name;
 
@@ -299,7 +317,7 @@ class Session implements SessionHandlerInterface
             return false;
         }
 
-        $session = Rest::getDynamicRestClass(Sessions::class);
+        $session = Rest::getDynamicRestClass(User_Sessions::class);
 
         $db = Database::database(true);
 
@@ -334,7 +352,7 @@ class Session implements SessionHandlerInterface
 
         if (null === self::$session_table) {
 
-            $table_name = Rest::getDynamicRestClass(Sessions::class);    // all because custom prefixes and callbacks exist
+            $table_name = Rest::getDynamicRestClass(User_Sessions::class);    // all because custom prefixes and callbacks exist
 
             self::$session_table = new $table_name(); // This is only for referencing and is not actually needed as an instance.
 
@@ -356,7 +374,7 @@ class Session implements SessionHandlerInterface
 
         try {
 
-            $GLOBALS['json']['session']['database_closed_committed'] = false;
+            $GLOBALS['json'][self::class][self::DATABASE_CLOSED_AND_COMMITTED] = false;
 
             Database::database(false);
 
@@ -456,8 +474,9 @@ class Session implements SessionHandlerInterface
      */
     public function write($id, $data): bool
     {
-        self::$sessionData = $data;
+        // this only runs at the end of the session?
         self::$sessionUpdated = true;
+        self::$sessionData = $data;
         return true;
     }
 
@@ -469,6 +488,8 @@ class Session implements SessionHandlerInterface
             return;
 
         }
+
+        self::$sessionUpdated = false; // reset
 
         if (empty(self::$user_id)) {
 
@@ -521,9 +542,9 @@ class Session implements SessionHandlerInterface
 
         self::updateSession();
 
-        $GLOBALS['json']['session']['@close'] = $_SESSION;
+        $GLOBALS['json'][self::class]['@close'] = $_SESSION;
 
-        $GLOBALS['json']['session']['?close'] = 'closing session from (' . __FILE__ . ') from method (' .  __METHOD__ . ') at line (' . __LINE__ . ')';
+        $GLOBALS['json'][self::class]['?close'] = 'closing session from (' . __FILE__ . ') from method (' .  __METHOD__ . ') at line (' . __LINE__ . ')';
 
         try {
 
@@ -553,7 +574,7 @@ class Session implements SessionHandlerInterface
 
             }
 
-            $GLOBALS['json']['session']['database_closed_committed'] = true;
+            $GLOBALS['json'][self::class][self::DATABASE_CLOSED_AND_COMMITTED] = true;
 
             return true;
 
@@ -605,7 +626,7 @@ class Session implements SessionHandlerInterface
     public function gc(int $max_lifetime): int|false
     {
 
-        $session = Rest::getDynamicRestClass(Sessions::class);
+        $session = Rest::getDynamicRestClass(User_Sessions::class);
 
         $db = Database::database(false);
 

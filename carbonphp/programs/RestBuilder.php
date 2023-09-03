@@ -1198,9 +1198,9 @@ END;
 
         if ($react) {
 
-            [$vanillaNode, $typescript, $typescriptPolyfill] = $this->reactTemplate();
+            [$vanillaNode, $typescript, $typescriptPolyfill, $typescriptState, $restInitialState] = $this->reactTemplate();
 
-            $references_jsx = $references_tsx = $global_column_tsx = $quick_references_tsx = '';
+            $references_jsx = $references_tsx = $typescriptStateInterface_tsx = $restInitialState_tsx = $global_column_tsx = $quick_references_tsx = '';
 
             $all_interface_types = [];
 
@@ -1336,6 +1336,10 @@ END;
                 $references_tsx .= PHP_EOL . $mustache->render($typescript, $parsed);
 
                 $quick_references_tsx .= PHP_EOL . $mustache->render($typescriptPolyfill, $parsed);
+
+                $typescriptStateInterface_tsx .= PHP_EOL . $mustache->render($typescriptState, $parsed);
+
+                $restInitialState_tsx .= PHP_EOL . $mustache->render($restInitialState, $parsed);
 
                 $global_column_tsx .= PHP_EOL . $mustache->render(/** @lang Handlebars */ "{{#explode}}'{{TableName}}.{{name}}':'{{name}}',\n    {{/explode}}", $parsed);
 
@@ -1563,6 +1567,26 @@ export const COLUMNS = {
 };
 
 export type RestTableInterfaces = $all_interface_types;
+
+
+export type tStatefulApiData<T> = T[] | undefined | null;
+
+
+// this refers to the value types of the keys above, aka values in the state
+export interface iRestfulObjectArrayTypes {
+    $typescriptStateInterface_tsx
+}
+
+export const initialRestfulObjectsState: iRestfulObjectArrayTypes = {
+    $restInitialState_tsx
+};
+
+export type tRestfulObjectArrayKeys = keyof iRestfulObjectArrayTypes
+
+export type tRestfulObjectArrayValues = iRestfulObjectArrayTypes[tRestfulObjectArrayKeys];
+
+// @ts-ignore
+export type tRestfulObjectValues = tRestfulObjectArrayValues[number];
 
 
 ";
@@ -1957,7 +1981,9 @@ export const {{strtolowerNoPrefixTableName}} : C6RestfulModel & iDefine{{ucEachT
 
 }
 
-  ", /** @lang Handlebars */ "  {{strtolowerNoPrefixTableName}}: {{strtolowerNoPrefixTableName}},"
+  ", /** @lang Handlebars */ "  {{strtolowerNoPrefixTableName}}: {{strtolowerNoPrefixTableName}},",
+            /** @lang Handlebars */ "  {{strtolowerNoPrefixTableName}}: tStatefulApiData<i{{ucEachTableName}}>,",
+            /** @lang Handlebars */ "  {{strtolowerNoPrefixTableName}}: undefined,",
         ];
 
     }

@@ -24,7 +24,7 @@
         <fileTransfer mountedRoot="$PROJECT_DIR$/../CarbonReactBootstrap/vendor/carbonorm/carbonphp" accessType="MOUNT" port="0" />
       </webServer>
       <webServer id="69606b45-271f-4711-9096-553346d53a92" name="reactboot" url="http://localhost">
-        <fileTransfer mountedRoot="$PROJECT_DIR$/../reactboot/vendor/carbonorm/carbonphp" accessType="MOUNT" port="0" />
+        <fileTransfer mountedRoot="$PROJECT_DIR$/../affinity.voltex.app/vendor/carbonorm/carbonphp" accessType="MOUNT" port="0" />
       </webServer>
     </option>
   </component>
