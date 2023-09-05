@@ -18,6 +18,7 @@
       <sourceFolder url="file://$MODULE_DIR$/carbonphp/tables" isTestSource="false" packagePrefix="CarbonPHP\Tables\" />
       <sourceFolder url="file://$MODULE_DIR$/carbonphp/tables/traits" isTestSource="false" packagePrefix="CarbonPHP\Tables\Traits\" />
       <sourceFolder url="file://$MODULE_DIR$/carbonphp/abstracts" isTestSource="false" packagePrefix="CarbonPHP\Abstracts\" />
+      <sourceFolder url="file://$MODULE_DIR$/carbonphp/websocket" isTestSource="false" packagePrefix="CarbonPHP\WebSocket\" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/richardtmiles/carbonphp" />
     </content>
     <orderEntry type="inheritedJdk" />

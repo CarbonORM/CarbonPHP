@@ -71,7 +71,7 @@ abstract class ColorCode implements LoggerInterface, iColorCode
 
             } else {
 
-                $message = "<pid::$pid> $message";
+                $message = "<pid($pid);time(".time().")> $message";
 
             }
 

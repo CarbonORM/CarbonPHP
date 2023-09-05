@@ -76,7 +76,7 @@ Header always set Access-Control-Allow-Headers: *
     # @link https://stackoverflow.com/questions/9629566/how-to-increase-apache-timeout-directive-in-htaccess
     RewriteCond %{HTTP:Connection} Upgrade [NC]
     RewriteCond %{HTTP:Upgrade} websocket [NC]
-    RewriteRule ^/?(.*) ws://127.0.0.1:8004/$1  [P,L,E=noconntimeout:1,E=noabort:1]
+    RewriteRule ^/?(.*) ws://127.0.0.1:8888/$1  [P,L,E=noconntimeout:1,E=noabort:1]
     # on production websocket port is set in the virtual host configuation file; see 000-default.handlebars
 
 

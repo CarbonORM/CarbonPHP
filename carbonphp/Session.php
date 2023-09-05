@@ -101,7 +101,7 @@ class Session implements SessionHandlerInterface
             $currentCookieParams = session_get_cookie_params();
 
             session_set_cookie_params([
-                'lifetime' =>  $currentCookieParams["lifetime"],
+                'lifetime' => $currentCookieParams["lifetime"],
                 'path' => '/',
                 'domain' => '', //$_SERVER["HTTP_HOST"]
                 'secure' => "0",
@@ -121,7 +121,7 @@ class Session implements SessionHandlerInterface
 
             }
 
-            if (CarbonPHP::$cli && (!CarbonPHP::$socket || WebSocket::$minimiseResources)) {
+            if (CarbonPHP::$cli && !CarbonPHP::$socket) {
 
                 return;
 
@@ -374,8 +374,6 @@ class Session implements SessionHandlerInterface
 
         try {
 
-            $GLOBALS['json'][self::class][self::DATABASE_CLOSED_AND_COMMITTED] = false;
-
             Database::database(false);
 
             return true;
@@ -537,22 +535,17 @@ class Session implements SessionHandlerInterface
 
     }
 
+    // @note you cannot effect the application state (even $GLOBAL) in this function
     public function close(): bool
     {
 
         self::updateSession();
 
-        $GLOBALS['json'][self::class]['@close'] = $_SESSION;
-
-        $GLOBALS['json'][self::class]['?close'] = 'closing session from (' . __FILE__ . ') from method (' .  __METHOD__ . ') at line (' . __LINE__ . ')';
-
         try {
 
             if (session_status() !== PHP_SESSION_ACTIVE) {
 
-                $GLOBALS['json']['session_error'] = 'attempted session close with no PHP_SESSION_ACTIVE';
-
-                return true;
+                throw new PublicAlert('attempted session close with no PHP_SESSION_ACTIVE');
 
             }
 
@@ -560,21 +553,15 @@ class Session implements SessionHandlerInterface
 
             if (false === $db->inTransaction()) {
 
-                $GLOBALS['json']['session_warning'] = 'no remaining transaction';
-
-                    throw new PublicAlert('Database not in transaction.');
+                throw new PublicAlert('Database not in transaction.');
 
             }
 
             if (false === $db->commit()) {
 
-                $GLOBALS['json']['session_error'] =' Database commit failed.';
-
                 throw new PublicAlert('Database commit failed.');
 
             }
-
-            $GLOBALS['json'][self::class][self::DATABASE_CLOSED_AND_COMMITTED] = true;
 
             return true;
 

@@ -515,7 +515,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
         $database = Database::database(false);
 
-        $inTransaction = true === $database->inTransaction();
+        $inTransaction = $database->inTransaction();
 
         if ($inTransaction && self::$commit === false) {
 
@@ -526,6 +526,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
                 throw new PublicAlert('Failed to rollBack the transaction. Please, try again.');
             }
 
+            // session abort will rollback the transaction
             if (session_abort()) {
 
                 throw new PublicAlert('Failed to abort the session; a side effect of `self::$commit === false` at the end of (' . __METHOD__ . '). Please contact support.');
@@ -623,11 +624,34 @@ abstract class RestLifeCycle extends RestQueryBuilder
                 self::commit();
 
             }
-
+            
             if (Session::$storeSessionToDatabase === true
-                && false === $json[Session::class][Session::DATABASE_CLOSED_AND_COMMITTED]) {
+                && ($db = Database::database(false))->inTransaction() === true) {
 
-                $json[Session::class][Session::DATABASE_CLOSED_AND_COMMITTED] = '[Session::class][Session::DATABASE_CLOSED_AND_COMMITTED] was set to false at the end of (' . __METHOD__ . ') while a transaction was in progress. Adverse effects include rolling back anything currently uncommitted, as-well-as running session_abort() which will discard any changes in the session.';
+                $json[Session::class][Session::DATABASE_CLOSED_AND_COMMITTED] = 'Database::database(false)->inTransaction() was set to true at the end of (' . __METHOD__ . '). Adverse effects include rolling back anything currently uncommitted, as-well-as running session_abort() which will discard any changes in the session.';
+
+                if (false === empty(Session::$session_id)
+                    && session_status() === PHP_SESSION_ACTIVE) {
+
+                    session_abort();
+
+                    $json[Session::class]['session_abort()'] ??= [];
+
+                    $json[Session::class]['session_abort()'][] =[
+                        'session_id' => Session::$session_id,
+                        'debug_backtrace()' => debug_backtrace()
+                    ];
+
+                } else {
+
+                    $db->rollBack();
+
+                    $json[Session::class]['rollBack()'][] =[
+                        'session_id' => Session::$session_id,
+                        'debug_backtrace()' => debug_backtrace()
+                    ];
+
+                }
 
             }
 

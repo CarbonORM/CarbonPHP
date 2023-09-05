@@ -57,6 +57,8 @@ class Database
 
     private static ?PDO $databaseReader = null;
 
+    public static bool $rebuildWithCarbonTables = true;
+
     public static ?string $carbonDatabaseUsername = null;
 
     public static ?string $carbonDatabasePassword = null;
@@ -390,7 +392,6 @@ FOOT;
             }
 
 
-
             if ($db instanceof PDO) {
 
                 // @link https://stackoverflow.com/questions/21595402/php-pdo-how-to-get-the-current-connection-status/21595939
@@ -525,26 +526,39 @@ FOOT;
      * @link http://php.net/manual/en/pdo.rollback.php
      * @return bool
      */
-    public static function commit(): bool
+    public static function commit(bool $strict = false): bool
     {
 
         try {
 
-            $thisMethod = __METHOD__;
-
-            $comment = static function (array $moreLogging = []) use ($thisMethod) {
-                $GLOBALS['json']['sql'][] = $GLOBALS[Session::class]['sql'][] =  [
-                        'Committed Transaction' => ++self::$committedTransactions,
-                        'Committing transaction from' => [
-                            'file (' . __FILE__ . ') method (' . $thisMethod . ') at line (' . __LINE__ . ')',
-                            'debug_backtrace' => CarbonPHP::$verbose ? debug_backtrace() : 'CarbonPHP::$verbose = false;'
-                        ]
-                    ] + $moreLogging;
-            };
-
             $db = self::database(false);
 
+            $transactionActive = $db->inTransaction();
+
+            if (false === $transactionActive
+                && false === $strict) {
+
+                return true;
+
+            }
+
+            $transactionNumber = $transactionActive ? self::$committedTransactions++ : self::$committedTransactions;
+
+            $moreLogging = [
+                ($transactionActive ? 'Committing' : 'WARNING no ') . ' Transaction commit($strict = ' . ($strict ? 'true' : 'false') . ')' => $transactionNumber,
+                'debug_backtrace()' => CarbonPHP::$verbose || false === CarbonPHP::$cli ? $backtrace = debug_backtrace() : '(CarbonPHP::$verbose || false === CarbonPHP::$cli) = false;'
+            ];
+
+            $GLOBALS['json'][Session::class]['sql'] ??= [];
+
             if (false === $db->inTransaction()) {
+
+                $GLOBALS['json']['sql'][] = $GLOBALS['json'][Session::class]['TRANSACTIONS'][] = &$moreLogging;
+
+                $moreLogging['WARNING $db->inTransaction()'] = [
+                    'WARNING' => 'Transaction not started',
+                    'debug_backtrace()' => $backtrace ?? debug_backtrace()
+                ];
 
                 return true;
 
@@ -555,13 +569,16 @@ FOOT;
 
                 $success = session_write_close();
 
+                // this should be added to the logs directly after session_write_close()
+                $GLOBALS['json']['sql'][] = $GLOBALS['json'][Session::class]['TRANSACTIONS'][] = &$moreLogging;
+
                 if (false === $success) {
 
                     throw new PublicAlert('Session failed to write close in (' . __METHOD__ . ') at line (' . __LINE__ . ')');
 
                 }
 
-                $comment([
+                $moreLogging += [
                     'Session ID' => Session::$session_id,
                     'Session Status' => [
                         'session_status()' => session_status(),
@@ -570,15 +587,13 @@ FOOT;
                         'PHP_SESSION_NONE' => PHP_SESSION_NONE,
                     ],
                     'Session Write Close' => '(this commit closed the session)'
-                ]);
+                ];
 
                 return true;
 
             }
 
             if ($db->commit()) {
-
-                $comment();
 
                 return true;
 
@@ -648,23 +663,58 @@ FOOT;
      * @param string $tag_id - passed to new_entity
      * @param ?string $dependant - passed to new_entity
      *
-     * @return bool|PDOStatement|string
+     * @return string
      * @throws PublicAlert
      */
-    protected static function beginTransaction(string $tag_id, string $dependant = null)
+    public static function beginTransaction(bool $strict = false): void
     {
 
-        $db = self::database(false);
+        $moreInfo = 'Beginning Transaction (' . self::$committedTransactions . ')';
 
-        $key = self::new_entity($tag_id , $dependant );
+        $baseInfo = [
+            ('Starting Transaction($strict = ' . ($strict ? 'true' : 'false') . ')') => &$moreInfo,
+            'debug_backtrace()' => CarbonPHP::$verbose || false === CarbonPHP::$cli ? debug_backtrace() : '(CarbonPHP::$verbose || false === CarbonPHP::$cli) = false;'
+        ];
 
-        if (!$db->inTransaction()) {
 
-            $db->beginTransaction();
+        try {
+
+            $db = self::database(false);
+
+            $inTransaction = $db->inTransaction();
+
+            if ($inTransaction) {
+
+                if (false === $strict) {
+
+                    if (CarbonPHP::$verbose) {
+
+                        $moreInfo = 'Transaction (' . self::$committedTransactions . ') already started.';
+
+                        $GLOBALS['json']['sql'][] = $GLOBALS['json'][Session::class]['TRANSACTIONS'][] = &$baseInfo;
+                    }
+
+                    return;
+
+                }
+
+                throw new PublicAlert('Transaction already started.');
+
+            }
+
+            $GLOBALS['json']['sql'][] = $GLOBALS['json'][Session::class]['TRANSACTIONS'][] = &$baseInfo;
+
+            if (false === $db->beginTransaction()) {
+
+                throw new PublicAlert('Failed to start transaction.');
+
+            }
+
+        } catch (Throwable $e) {
+
+            ThrowableHandler::generateLogAndExit($e);
 
         }
-
-        return $key;
 
     }
 
@@ -697,11 +747,13 @@ FOOT;
      * @return string
      * @throws PublicAlert
      */
-    public static function new_entity(string $tag_id, string $dependant_carbon_id = null): string
+    public static function newEntity(string $tag_id, string $dependant_carbon_id = null): string
     {
         $count = 0;
 
         $carbons = Rest::getDynamicRestClass(Carbons::class, iRestSinglePrimaryKey::class);
+
+        self::beginTransaction();
 
         do {
 
@@ -1317,7 +1369,7 @@ WHERE cols.TABLE_SCHEMA=?
         } catch (PDOException $e) {
 
             ColorCode::colorCode("\n\nFailed to connect to the database using the following DSN (" . static::$carbonDatabaseDSN . ") => ($query[0])" . (CarbonPHP::$app_root ? "\nUsing username: (" . static::$carbonDatabaseUsername .
-               ")\npassword: (" . static::$carbonDatabasePassword . ")\n\n" : '') . "\n\n", iColorCode::BACKGROUND_RED);
+                    ")\npassword: (" . static::$carbonDatabasePassword . ")\n\n" : '') . "\n\n", iColorCode::BACKGROUND_RED);
 
             throw $e;
 
@@ -1689,7 +1741,7 @@ WHERE cols.TABLE_SCHEMA=?
             $postUpdateSQLArray = Rest::parseSchemaSQL($postUpdateSQL, $awsLoose);
 
             // the table definition maybe reordered and we just want to know whats dif
-            $preUpdateSQLArray = array_map('trim',  $preUpdateSQLArray);
+            $preUpdateSQLArray = array_map('trim', $preUpdateSQLArray);
 
             $postUpdateSQLArray = array_map('trim', $postUpdateSQLArray);
 
@@ -1786,7 +1838,7 @@ WHERE cols.TABLE_SCHEMA=?
             self::createDatabaseIfNotExist();
 
 
-            if (false === $isC6) {
+            if (false === $isC6 && true === self::$rebuildWithCarbonTables) {
 
                 $status = self::scanAndRunRefreshDatabase(Carbons::DIRECTORY);
 
@@ -2461,7 +2513,6 @@ AND links.CONSTRAINT_NAME = '$constraintName'");
         // Not possible non-writes (phew!)
         return !preg_match('/^(?:SELECT|SHOW|DESCRIBE|DESC|EXPLAIN)(?:\s|$)/i', $q);
     }
-
 
 
 }

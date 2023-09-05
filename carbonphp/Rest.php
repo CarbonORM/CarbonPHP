@@ -5,6 +5,7 @@ namespace CarbonPHP;
 
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iRest;
+use CarbonPHP\Restful\RestfulValidations;
 use CarbonPHP\Restful\RestLifeCycle;
 use CarbonPHP\Tables\Carbons;
 use PDO;
@@ -140,13 +141,11 @@ abstract class Rest extends RestLifeCycle
                     }
                 }
 
-                if (!$pdo->inTransaction()) {
-
-                    $pdo->beginTransaction();
-
-                }
+                self::beginTransaction();
 
                 $moreReporting = self::jsonSQLReporting(func_get_args(), $sql);
+
+                RestfulValidations::validateGeneratedExternalSqlRequest($sql);
 
                 self::postpreprocessRestRequest($sql);
 
@@ -174,9 +173,6 @@ abstract class Rest extends RestLifeCycle
                     return false;
 
                 }
-
-                // todo - should this pass as ref? and be emptied later?
-                $remove = $argv['WHERE'] ?? [];
 
                 self::prepostprocessRestRequest($remove);
 
@@ -235,9 +231,9 @@ abstract class Rest extends RestLifeCycle
                 // If we need use table or row level locks we should use the main writer instance
                 $pdo = self::database(false === $isLock);
 
-                if ($isLock && false === $pdo->inTransaction() && false === $pdo->beginTransaction()) {
+                if ($isLock) {
 
-                    throw new PublicAlert('Failed to start transaction for select lock.');
+                    self::beginTransaction();
 
                 }
 
@@ -259,6 +255,8 @@ abstract class Rest extends RestLifeCycle
                 $sql = self::buildSelectQuery($primary, $argv);
 
                 $moreReporting = self::jsonSQLReporting(func_get_args(), $sql);
+
+                RestfulValidations::validateGeneratedExternalSqlRequest($sql);
 
                 self::postpreprocessRestRequest($sql);
 
@@ -527,12 +525,7 @@ abstract class Rest extends RestLifeCycle
 
             $pdo = self::database(false);
 
-            if (false === $pdo->inTransaction() &&
-                false === $pdo->beginTransaction()) {
-
-                throw new PublicAlert('Failed to start a PDO transaction for the restful Put request!');
-
-            }
+            self::beginTransaction();
 
             if (true === $replace) {
 
@@ -555,6 +548,8 @@ abstract class Rest extends RestLifeCycle
             }
 
             $moreReporting = self::jsonSQLReporting(func_get_args(), $sql);
+
+            RestfulValidations::validateGeneratedExternalSqlRequest($sql);
 
             self::postpreprocessRestRequest($sql);
 
@@ -798,17 +793,13 @@ abstract class Rest extends RestLifeCycle
 
                 if ($primaryBinary) {
 
-                    $pdo = self::database(false);
-
-                    if (false === $pdo->inTransaction()) {
-
-                        $pdo->beginTransaction();
-
-                    }
+                    self::beginTransaction();
 
                 }
 
                 $moreReporting = self::jsonSQLReporting(func_get_args(), $sql);
+
+                RestfulValidations::validateGeneratedExternalSqlRequest($sql);
 
                 self::postpreprocessRestRequest($sql);
 
@@ -866,9 +857,12 @@ abstract class Rest extends RestLifeCycle
 
                             if ($iValue[$fullName] === false) {
 
+                                # UUID_TO_BIN - @link https://dev.mysql.com/doc/refman/8.0/en/miscellaneous-functions.html#function_uuid-to-bin
+                                # the old way - REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""); this is mysql >=8
+                                # If swap_flag is 1, the format of the return value differs: The time-low and time-high parts (the first and third groups of hexadecimal digits, respectively) are swapped. This moves the more rapidly varying part to the right and can improve indexing efficiency if the result is stored in an indexed column.
                                 $iValue[$fullName] = static::CARBON_CARBONS_PRIMARY_KEY
-                                    ? self::beginTransaction(self::class, $iValue[self::DEPENDANT_ON_ENTITY] ?? null)     // clusters should really use this
-                                    : self::fetchColumn('SELECT (REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""))')[0];
+                                    ? self::newEntity(self::class, $iValue[self::DEPENDANT_ON_ENTITY] ?? null)     // clusters should really use this
+                                    : self::fetchColumn('SELECT HEX(UUID_TO_BIN(UUID(), 1))')[0];
 
                             } else if (false === self::validateInternalColumn($fullName, $op, $iValue[$fullName])) {
 

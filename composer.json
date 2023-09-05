@@ -55,6 +55,7 @@
       "CarbonPHP\\Restful\\": "carbonphp/restful/",
       "CarbonPHP\\Tables\\": "carbonphp/tables/",
       "CarbonPHP\\Tables\\Traits\\": "carbonphp/tables/traits/",
+      "CarbonPHP\\WebSocket\\": "carbonphp/websocket/",
       "CarbonPHP\\": "carbonphp/",
       "Tests\\Browser\\": "tests/browser/",
       "Tests\\Feature\\": "tests/feature/",
@@ -73,8 +74,13 @@
     "apache:start:mac": "sudo brew services start httpd",
     "apache:stop:mac": "sudo brew services stop httpd",
     "db": [
-      "php index.php setup --cnf",
+      "@mysql:cnf",
       "php index.php buildDatabase -r"
+    ],
+    "mysql:cnf": "php index.php cnf",
+    "mysql": [
+      "@mysql:cnf",
+      "mysql --defaults-extra-file=\"`pwd`/mysql.cnf\""
     ],
     "database:refresh:schema": [
       "@db"

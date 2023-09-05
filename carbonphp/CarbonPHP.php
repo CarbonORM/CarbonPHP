@@ -62,6 +62,7 @@ class CarbonPHP
     public const DB_USER = 'DB_USER';
     public const DB_PASS = 'DB_PASS';
     public const REBUILD = 'REBUILD';
+    public const REBUILD_WITH_CARBON_TABLES = 'REBUILD_WITH_CARBON_TABLES';
 
     // todo - transfer all cli options to the config
     public const REST = 'REST';
@@ -540,7 +541,9 @@ class CarbonPHP
             $config = &self::parseConfiguration($configuration);
 
             #################  DATABASE  ########################
-            if ($config['DATABASE'] ?? false) {
+            if ($config[self::DATABASE] ?? false) {
+
+                Database::$rebuildWithCarbonTables = $config[self::DATABASE][self::REBUILD_WITH_CARBON_TABLES] ??= false;
 
                 Database::$carbonDatabaseUsername = $config[self::DATABASE][self::DB_USER] ??= '';
 
@@ -736,7 +739,6 @@ class CarbonPHP
 
                 session_save_path($sessionSavePath);   // Manually Set where the Users Session Data is stored
 
-                // this start a session in every possible runtime except WebSocket::$minimiseResources
                 new Session($config[self::SESSION][self::REMOTE] ?? false);
 
                 if (is_callable($config[self::SESSION][self::CALLBACK] ?? null)) {

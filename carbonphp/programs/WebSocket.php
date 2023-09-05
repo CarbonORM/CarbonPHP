@@ -2,22 +2,19 @@
 
 namespace CarbonPHP\Programs;
 
-use CarbonPHP\Abstracts\Background;
 use CarbonPHP\Abstracts\ColorCode;
 use CarbonPHP\Abstracts\Pipe;
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\Database;
+use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
-use CarbonPHP\Request;
-use CarbonPHP\Route;
 use CarbonPHP\Session;
+use CarbonPHP\WebSocket\WsFileStreams;
+use CarbonPHP\WebSocket\WsSignals;
+use JetBrains\PhpStorm\NoReturn;
 use Throwable;
-use function chr;
-use function in_array;
 use function is_resource;
-use function ord;
 
 /**
  *
@@ -40,76 +37,14 @@ use function ord;
  * @link https://hpbn.co/websocket/
  * @link https://tools.ietf.org/id/draft-abarth-thewebsocketprotocol-00.html
  */
-class WebSocket extends Request implements iCommand
+class WebSocket extends WsFileStreams implements iCommand
 {
 
-    /**
-     * @var \Socket $socket rhttps://www.php.net/manual/en/function.stream-set-timeout.php#100676
-     */
-    public static \Socket $socket;
-
-    public static $serverResource;
-
-    public static bool $isWebsocketD = false;
-
-    public static bool $minimiseResources = false;
 
     public static bool $verifyIP = true;
 
-    public const CONTINUE = 0x0;
-
-    public const TEXT = 0x1;
-
-    public const BINARY = 0x2;
-
-    public const CLOSE = 0x8;
-
-    public const PING = 0x9;
-
-    public const PONG = 0xa;
-
-    # https://stackoverflow.com/questions/4812686/closing-websocket-correctly-html5-javascript
-    public const CLOSE_DATA_FRAME = 0x88; // todo - maybe, it ends up being equivalent to close.?
-
-    public static int $port = 8888;
-
-    public static bool $ssl = false;
-
-    public static string $host = 'localhost';
-
-    public static string $cert = '/cert.pem';
-
-    public static string $pass = 'Smokey';
-
-    public static array $userResourceConnections = [];
-
-    /**
-     * @var $user resource
-     */
-    public $user;
-
-    /**
-     * @var string $user_ip has to be set runtime
-     */
-    public string $user_ip;
-
-    /**
-     * @var string $user_port has to be set runtime
-     */
-    public string $user_port;
-
-    /**
-     * @var bool $singleProcess - this reduces opened files on the system, but at the cost of individual user not
-     */
-    public static bool $singleProcess = false;
-
-    /**
-     * @var string $user_id is a uuid so '' is impossible, this knowledge speeds up comparison
-     */
-    public static string $user_id = '';
 
     protected static array $applicationConfiguration = [];
-
 
 
     public static function description(): string
@@ -138,34 +73,7 @@ class WebSocket extends Request implements iCommand
 
         $_SERVER['SERVER_PORT'] = self::$port;
 
-        $signal = static function ($signal) {
-
-            ColorCode::colorCode("\nSignal Caught, :: $signal\n", 'blue');
-
-            exit(1);
-
-        };
-
-        if (extension_loaded('pcntl')) {
-
-            ColorCode::colorCode("\nExtension pcntl loaded, Catching Signals\n", 'blue');
-
-            # https://www.leaseweb.com/labs/2013/08/catching-signals-in-php-scripts/
-            pcntl_signal(SIGTERM, $signal); // Termination ('kill' was called')
-
-            pcntl_signal(SIGHUP, $signal);  // Terminal log-out
-
-            pcntl_signal(SIGINT, $signal);  // Interrupted ( Ctrl-C is pressed)
-
-            pcntl_signal(SIGCHLD, SIG_IGN);  // Interrupted ( Ctrl-C is pressed)
-
-        } else {
-
-            ColorCode::colorCode("\nCarbonPHP Websockets require the PCNTL library. See CarbonPHP.com for more Documentation\n", 'red');
-
-            exit(1);
-
-        }
+        WsSignals::signalHandler(static fn() => ColorCode::colorCode('Implement garbage collection', iColorCode::YELLOW));
 
         $argc = count($argv);
 
@@ -181,35 +89,12 @@ class WebSocket extends Request implements iCommand
 
                     exit(1);
 
-                case '-minimiseResources':
-
-                    self::$minimiseResources = true;
-
-                    break;
 
                 case '-dontVerifyIP':
 
                     self::$verifyIP = false;
 
                     break;
-
-                case '-go':
-
-                    self::$isWebsocketD = true;
-
-                    return;
-
-                case '-goCommand':
-
-                    $this->WebSocketDStartCommand();
-
-                    exit(0);
-
-                case '-phpCommand':
-
-                    $this->recommendedProductionStartCommand();
-
-                    exit(0);
 
             }
 
@@ -265,310 +150,32 @@ class WebSocket extends Request implements iCommand
 
         }
 
-        $this->socket = $socket;
+        self::$socket = $socket;
 
         ColorCode::colorCode("\nStream Socket Server Created on " . self::$host . '::' . self::$port . "\n\nws" . (self::$ssl ? 's' : '') . '://' . self::$host . ':' . self::$port . '/ ');
-
-        if (!self::$minimiseResources) {
-
-            $this->ServerAcceptNewConnections();      // parent thread will always be in this loop
-
-        }
 
     }
 
     public function run(array $argv): void
     {
 
-        if (self::$isWebsocketD) {
 
-            ColorCode::colorCode('Starting WebSocketD Method. The GO routine.');
+        ColorCode::colorCode('Handle All Resource Stream Selects On Single Thread');
 
-            $this->WebSocketD();
+        self::handleAllResourceStreamSelectOnSingleThread();
 
-            return;
-
-        }
-
-        if (self::$minimiseResources) {
-
-            ColorCode::colorCode('Handle All Resource Stream Selects On Single Thread');
-
-            $this->handleAllResourceStreamSelectOnSingleThread();
-
-            return;
-
-        }
-
-        ColorCode::colorCode('Single Thread Per User');
-
-        self::$user_id = session_id();  // set who's logged in so when we fork we can reset
-
-        Session::pause();           // Close the current session
-
-        Database::setDatabase();    // This will clear the connection
-
-        // php doesnt do tail call optimization, recursion doesn't work
-        ColorCode::colorCode("\nChild Thread Healthy\n");
-
-        $this->serveSingleUserOnSingleThread();   // child thread will fall here and not stop until socket users disconnects
 
     }
 
-    public static function sendToResource(string $data, &$connection, int $opCode = self::TEXT): bool
+
+    public static function handleAllResourceStreamSelectOnSingleThread(): never
     {
 
-        try {
-            $socket = socket_import_stream($connection);
-            $data = self::encode($data, $opCode);
-            $length = strlen($data);
-            return $length !== socket_send($socket, $data, $length, 0);
-        } catch (Throwable) {
-            return false;
-        }
-    }
-
-    public static function sendToAllExternalResources(string $data, $opCode = self::TEXT): void
-    {
-        foreach (self::$userResourceConnections as $resourceConnection) {
-
-            if (is_resource($resourceConnection)) {
-
-                self::sendToResource($data, $resourceConnection, $opCode);
-
-            } else {
-
-                unset(self::$userResourceConnections[$resourceConnection]);
-
-            }
-
-        }
-
-    }
-
-    public function recommendedProductionStartCommand()
-    {
-
-        print 'Run this command in your shell ::' . PHP_EOL . '    nohup php index.php websocket &' . PHP_EOL;
-
-    }
-
-    public function WebSocketDStartCommand($argv): void
-    {
-        $CMD = 'websocketd --port=' . ($PHP['SOCKET']['PORT'] ?? 8888) . ' '
-            . (($this->CONFIG['SOCKET']['DEV'] ?? false) ? '--devconsole ' : '')
-            . (($this->CONFIG['SOCKET']['SSL'] ?? false) ? "--ssl --sslkey='{$argv['SOCKET']['SSL']['KEY']}' --sslcert='{$argv['SOCKET']['SSL']['CERT']}' " : ' ')
-            . 'php index.php WebSocket -go';
-
-        print 'pid == ' . Background::background($CMD, CarbonPHP::$app_root . 'websocketd_log.txt');
-
-        print "\n\n\tWebsocket started in the background, done!\n\n";
-        //`$CMD`;
-
-    }
-
-    public function WebSocketD()
-    {
-        // its linus bc pnctl but i always feel better using DS
-        $fifoFile = Pipe::named(CarbonPHP::$app_root . 'data' . DS . 'sessions' . DS . $_SESSION['id'] . '.fifo');     // other users can notify us to update our application through this file
-
-        $stdin = fopen('php://stdin', 'b');
-
-        Session::pause();           // Close the current session
-
-        Database::setDatabase();    // This will clear the connection
-
-        while (true) {
-
-            $miss = 0;
-
-            $handshake = 0;
-
-            $readers = array($fifoFile, $stdin);
-
-            /** @noinspection OnlyWritesOnParameterInspection */
-            if (($stream = stream_select($readers, $writers, $except, 0, 15)) === false) {
-
-                print "A stream select error occurred\n" and die;
-
-            } else {
-
-                foreach ($readers as $input => $fd) {
-
-                    if ($fd === $stdin) {
-
-                        $string = $this->set(fgets($stdin))->noHTML(true);      // I think were going to make this a search function
-
-                        if ($string === 'exit') {
-                            print "Application closed socket \n";
-                            die;
-                        }
-
-                        /** @noinspection PhpUndefinedFunctionInspection */
-                        if (!empty($string) && pcntl_fork() === 0) {     // Fork
-
-                            Session::resume();      // resume session
-
-                            $_SERVER['REQUEST_URI'] = $string = trim(preg_replace('/\s+/', ' ', $string));
-
-                            print "startApplication('$string')\n";
-
-                            startApplication($string);
-
-                            exit(1);
-                        }
-
-                        $handshake++;
-
-                    } elseif ($fd === $fifoFile) {
-
-                        $data = fread($fifoFile, $bytes = 1024);
-
-                        $data = explode(PHP_EOL, $data);
-
-                        foreach ($data as $id => $uri) {
-
-                            /** @noinspection PhpUndefinedFunctionInspection */
-                            if (!empty($uri) && pcntl_fork() === 0) {
-
-                                Session::resume();
-
-                                $_SERVER['REQUEST_URI'] = $string = trim(preg_replace('/\s+/', ' ', $uri));
-
-                                print "Update startApplication('$uri')\n";
-
-                                startApplication($uri);
-
-                                exit(1);  // but if we decide to change that...  (we decided to change that!)
-                            }
-                        }
-
-                        $handshake++;
-
-                    } else {
-
-                        print "Hits => $handshake";
-
-                        if ($handshake !== 0):
-
-                            $handshake = 0;
-
-                            $miss = 1;
-
-                        elseif ($miss === 10):
-
-                            exit(1);
-
-                        else: $miss++;
-
-                            print "Misses => $miss\n";
-
-                        endif;
-
-                    }
-
-                }
-
-                sleep(1);
-
-            }
-
-        }
-
-    }
-
-    /**
-     * @param string $uri
-     * @param array $information
-     * @param resource $connection
-     */
-    public function forkStartApplication(string $uri, array $information, &$connection)
-    {
-
-        /** @noinspection PhpComposerExtensionStubsInspection */
-        if (pcntl_fork() === 0) {
-
-            ob_start();
-
-            if (!isset(CarbonPHP::$user_ip)) {
-
-                CarbonPHP::$user_ip = $information['ip'];
-
-            }
-
-            if (session_status() === PHP_SESSION_NONE) {
-
-                Session::resume($information['session_id']);
-
-            }
-
-            $_SERVER['REQUEST_URI'] = $uri;
-
-            startApplication($uri);
-
-            $buff = trim(ob_get_clean());
-
-            if (empty($buff)) {
-
-                if (Route::$matched) {
-
-                    $buff = 'A route was matched but did not signal any output to stdout.';
-
-                } else {
-
-                    $buff = "No route was matched in the Application for startApplication(\$uri = $uri). Please remember 
-                    your sockets application is in cached state and must be restart the socket server to see changes.";
-
-                }
-
-            }
-
-            self::sendToResource($buff, $connection);
-
-            exit(0); // 0 = success
-
-        }
-
-    }
-
-    public function readFromFifo(&$fifoFile, array $information)
-    {
-
-        $data = fread($fifoFile, $bytes = 1024);
-
-        if (false === $data) {
-
-            ColorCode::colorCode("\nFailed to preform read for fifo file\n", 'red');
-
-            return;
-
-        }
-
-        $data = explode(PHP_EOL, $data);
-
-        foreach ($data as $id => $uri) {
-
-            if (empty($uri)) {
-
-                continue;
-
-            }
-
-            $this->forkStartApplication(trim($uri), $information, $fifoFile);
-
-        }
-
-    }
-
-    public function handleAllResourceStreamSelectOnSingleThread()
-    {
-        static $manual_garbage_collection = 0;
-
-        $allConnectedResources = [$this->socket];
+        $allConnectedResources = [self::$socket];
 
         $WebsocketToPipeRelations = [];
 
-        $closeConnection = static function ($connection) use (&$allConnectedResources, &$WebsocketToPipeRelations) {
+        $closeConnection = static function (&$connection) use (&$allConnectedResources, &$WebsocketToPipeRelations) {
 
             ColorCode::colorCode("\nClose Connection Requested.\n", iColorCode::MAGENTA);
 
@@ -607,447 +214,259 @@ class WebSocket extends Request implements iCommand
                 }
 
             }
+            unset($information);
 
             $key = array_search($connection, self::$userResourceConnections, true);
 
             @fclose($connection);
+
             unset(self::$userResourceConnections[$key],                                     // unset 2, 3 (2 values 3 pointers)
                 $allConnectedResources[$resourceToDelete]);
+
             $connection = null;
+
         };
+
+        // help manage and kill zombie children
+        $serverPID = getmypid();
+
+        $convert_memory_get_usage = static fn($size) => round($size / (1024 ** ($i = floor(log($size, 1024)))), 2) . ' ' . array('b', 'kb', 'mb', 'gb', 'tb', 'pb')[$i];
 
         while (true) {
 
-            $read = $allConnectedResources;
+            try {
 
-            $number = stream_select($read, $write, $error, 5);
+                if ($serverPID !== getmypid()) {
 
-            if ($number === 0) {
-                $manual_garbage_collection++;
-                $count = count(self::$userResourceConnections);
-                ColorCode::colorCode($count . ' user(s) connected. ' . ($count > 0 ? " (gc:$manual_garbage_collection)" : ''), 'cyan');
-                if ($manual_garbage_collection > 11) {
+                    throw new PublicAlert('Failed stop child process from returning to the main loop. This is a critical mistake.');
 
                 }
-                continue;
-            }
-            $manual_garbage_collection = 0;
 
-            ColorCode::colorCode("\n$number, stream(s) are requesting to be processed.\n");
+                $read = $allConnectedResources;
 
-            foreach ($read as $connection) {
+                $number = stream_select($read, $write, $error, 10);
 
-                if ($connection === $this->socket) { // accepting a new connection?
+                if ($number === 0) {
 
-                    $timeout = ini_get('default_socket_timeout');
+                    $int_cycles = gc_collect_cycles();
 
-                    print_r('default timeout: ' . $timeout);
+                    ColorCode::colorCode(print_r(gc_status(), true));
 
-                    $connection = stream_socket_accept($connection,
-                        $timeout,
-                        $peerName);
+                    $used_memory = $convert_memory_get_usage(memory_get_usage());
 
-                    // this is where we get the ip and port of the user
-                    if ($connection === false) {
+                    $allocated_memory = $convert_memory_get_usage(memory_get_usage(true));
 
-                        ColorCode::colorCode("\nStream Socket Accept Failed\n", 'red');
-
-                        continue;
-
-                    }
-
-                    $headers = [];
-
-                    if ($this->handshake($connection, $headers) === false) {  // attempt to send ws(s) validation
-
-                        @fclose($connection);
-
-                        ColorCode::colorCode("\nStream Handshake Failed\n", 'red');
-
-                        continue;
-
-                    }
-
-                    ColorCode::colorCode("\nHandshake Successful\n", 'blue');
-
-                    [$ip, $port] = explode(':', $peerName);
-
-                    ColorCode::colorCode("\nConnected $ip:$port\n", 'blue');
-
-                    if (self::$verifyIP && !Session::verifySocket($ip)) {
-
-                        ColorCode::colorCode("\nFailed to verify socket ip for session.\n", 'red');
-
-                        continue;
-
-                    }
-
-                    $session = new Session($config[CarbonPHP::SESSION][CarbonPHP::REMOTE] ?? false); // session start
-
-                    $session_id = $session::$session_id;
-
-                    ColorCode::colorCode("\nSession Verified $session_id\n", iColorCode::CYAN);
-
-                    $session::writeCloseClean();  // we have to kill the static user id so were thread safe
-
-                    unset($session);
-
-                    $_SESSION = [];
-
-                    ColorCode::colorCode("\nSession Closed Until Next Request $session_id\n", 'blue');
-
-                    $sessionContinued = 0;
-
-                    // this is a really expensive foreach
-                    $WebsocketToPipeRelations[$session_id] ??= null;
-
-                    $pipeRelation = &$WebsocketToPipeRelations[$session_id];
-
-                    if ($pipeRelation !== null) {
-
-                        ColorCode::colorCode("\nFound Multiple Session Connections For :: $session_id\n", 'blue');
-
-                        if ($pipeRelation['user_socket'] === $connection) {
-
-                            ColorCode::colorCode('User Socket Connecting Through Same Resource :)');
-
-                        } else {
-
-                            ColorCode::colorCode('User Socket Connecting Through Different Resource. Closing Old Connection.', 'blue');
-
-                            $userToUpdateKey = array_search($pipeRelation['user_socket'], self::$userResourceConnections, true);
-
-                            $userToUpdateKey2 = array_search($pipeRelation['user_socket'], $allConnectedResources, true);
-
-                            @fclose($pipeRelation['user_socket']);  // todo - allow multiple browsers
-
-                            unset(self::$userResourceConnections[$userToUpdateKey], $allConnectedResources[$userToUpdateKey2]);
-
-                            $pipeRelation['user_socket'] = &$connection; // todo - this would 'potentially' overwrite a connection
-
-                        }
-
-                        if (!is_resource($pipeRelation['user_pipe'])) {
-
-                            ColorCode::colorCode("\nThe pipe went barron, this should never happen. Attempting to refresh.\n", 'red');
-
-                            @fclose($pipeRelation['user_pipe']);
-
-                            $pipe = Pipe::named(CarbonPHP::$app_root . 'temp/' . $session_id . '.fifo');     // other users can notify us to update our application through this file
-
-                            if ($pipe === false) {
-
-                                ColorCode::colorCode("\nPipe failed to be created.\n", 'red');
-
-                                continue;
-
-                            }
-
-                            ColorCode::colorCode("\nPipe refreshed.\n", 'blue');
-
-                            $pipeRelation['user_pipe'] = &$pipe;
-
-                        }
-
-                        continue;
-
-                    }
-
-                    $pipe = Pipe::named(CarbonPHP::$app_root . 'temp/' . $session_id . '.fifo');     // other users can notify us to update our application through this file
-
-                    if ($pipe === false) {
-
-                        ColorCode::colorCode("\nPipe failed to be created.\n", 'red');
-
-                        continue;
-
-                    }
-
-                    ColorCode::colorCode("\nPipe created.\n", 'blue');
-
-                    // add our new connection to the master list after we've checked for duplicates
-                    $allConnectedResources[] = &$connection;
-
-                    $allConnectedResources[] = &$pipe;
-
-                    self::$userResourceConnections[] = &$connection;
-
-                    $WebsocketToPipeRelations[$session_id] = [
-                        'user_pipe' => &$pipe,
-                        'user_socket' => &$connection,
-                        'session_id' => $session_id,
-                        'port' => $port,
-                        'ip' => $ip
-                    ];
+                    ColorCode::colorCode("WebSocket has allocated ($allocated_memory) and used ($used_memory). PHP GC Collected ($int_cycles) CYCLES; MANUAL GC Cleaned (x) Resources.", iColorCode::YELLOW);
 
                     continue;
 
                 }
 
-                $data = self::decode($connection);
+                ColorCode::colorCode("\n$number, stream(s) are requesting to be processed.\n");
 
-                switch ($data['opcode']) {
+                foreach ($read as $connection) {
 
-                    case self::CLOSE:
+                    if ($connection === self::$socket) { // accepting a new connection?
 
-                        $closeConnection($connection);
+                        $timeout = ini_get('default_socket_timeout');
 
-                        break;
+                        $connection = stream_socket_accept($connection,
+                            $timeout,
+                            $peerName);
 
-                    case self::PING :
+                        // this is where we get the ip and port of the user
+                        if ($connection === false) {
 
-                        self::sendToResource('', $connection, self::PONG);
+                            ColorCode::colorCode("\nStream Socket Accept Failed\n", 'red');
 
-                        break;
+                            continue;
 
-                    case self::TEXT:
+                        }
 
-                        // we have to find the relation regardless,
-                        foreach ($WebsocketToPipeRelations as $key => $information) {
+                        $headers = [];
 
-                            if ($information['user_pipe'] === $connection) {
+                        if (self::handshake($connection, $headers) === false) {  // attempt to send ws(s) validation
 
-                                $this->readFromFifo($connection, $information);
+                            @fclose($connection);
 
-                                break;
+                            ColorCode::colorCode("\nStream Handshake Failed\n", 'red');
+
+                            continue;
+
+                        }
+
+                        ColorCode::colorCode("\nHandshake Successful\n", 'blue');
+
+                        [$ip, $port] = explode(':', $peerName);
+
+                        ColorCode::colorCode("\nConnected $ip:$port\n", 'blue');
+
+                        if (self::$verifyIP && !Session::verifySocket($ip)) {
+
+                            ColorCode::colorCode("\nFailed to verify socket ip for session.\n", 'red');
+
+                            continue;
+
+                        }
+
+                        $session = new Session($config[CarbonPHP::SESSION][CarbonPHP::REMOTE] ?? false); // session start
+
+                        $session_id = $session::$session_id;
+
+                        ColorCode::colorCode("\nSession Verified $session_id\n", iColorCode::CYAN);
+
+                        $session::writeCloseClean();  // we have to kill the static user id so were thread safe
+
+                        unset($session);
+
+                        $_SESSION = [];
+
+                        ColorCode::colorCode("\nSession Closed Until Next Request $session_id\n", 'blue');
+
+                        // this is a really expensive foreach
+                        $WebsocketToPipeRelations[$session_id] ??= null;
+
+                        $pipeRelation = &$WebsocketToPipeRelations[$session_id];
+
+                        if ($pipeRelation !== null) {
+
+                            ColorCode::colorCode("\nFound Multiple Session Connections For :: $session_id\n", 'blue');
+
+                            if ($pipeRelation['user_socket'] === $connection) {
+
+                                ColorCode::colorCode('User Socket Connecting Through Same Resource :)');
+
+                            } else {
+
+                                ColorCode::colorCode('User Socket Connecting Through Different Resource. Closing Old Connection.', 'blue');
+
+                                $userToUpdateKey = array_search($pipeRelation['user_socket'], self::$userResourceConnections, true);
+
+                                $userToUpdateKey2 = array_search($pipeRelation['user_socket'], $allConnectedResources, true);
+
+                                @fclose($pipeRelation['user_socket']);  // todo - allow multiple browsers
+
+                                unset(self::$userResourceConnections[$userToUpdateKey], $allConnectedResources[$userToUpdateKey2]);
+
+                                $pipeRelation['user_socket'] = &$connection; // todo - this would 'potentially' overwrite a connection
 
                             }
 
-                            if ($information['user_socket'] === $connection) {
+                            if (!is_resource($pipeRelation['user_pipe'])) {
 
-                                if (is_string($data['payload'])) {
+                                ColorCode::colorCode("\nThe pipe went barron, this should never happen. Attempting to refresh.\n", 'red');
 
-                                    $this->forkStartApplication($data['payload'], $information, $connection);
+                                @fclose($pipeRelation['user_pipe']);
+
+                                $pipe = Pipe::named(CarbonPHP::$app_root . 'temp/' . $session_id . '.fifo');     // other users can notify us to update our application through this file
+
+                                if ($pipe === false) {
+
+                                    ColorCode::colorCode("\nPipe failed to be created.\n", 'red');
+
+                                    continue;
 
                                 }
 
-                                break;
+                                ColorCode::colorCode("\nPipe refreshed.\n", 'blue');
+
+                                $pipeRelation['user_pipe'] = &$pipe;
 
                             }
 
-                        }
-
-                        break;
-
-                    default:
-
-                        ColorCode::colorCode("\nUnknown opcode given to websocket. Ignoring.\n", 'yellow');
-
-                        break;
-
-                }
-
-            }
-
-        }
-
-    }
-
-    public function ServerAcceptNewConnections()
-    {
-        static $gc = 0;
-
-        $sock_fd = [$this->socket];
-
-        while (true) {                         // should
-            $clientList = $sock_fd;
-
-            $number = stream_select($clientList, $write, $error, 5);
-
-            if ($number === 0) {
-
-                ColorCode::colorCode('.', 'green');
-
-                continue;
-
-            }
-
-            // Forking can return the pid for parent, 0 for child, and -1 for error
-            // we need to pop
-            $connection = array_pop($clientList); // This is the users file descriptor linked to a unique process
-
-            if (($connection = stream_socket_accept($connection, ini_get('default_socket_timeout'), $peerName)) === false) {
-
-                if (++$gc === 10) {
-
-                    $gc = 0;
-
-                    foreach (self::$userResourceConnections as $resource) {
-
-                        if (!is_resource($resource)) {
-
-                            unset(self::$userResourceConnections[$resource]);
+                            continue;
 
                         }
+
+                        $pipe = Pipe::named(CarbonPHP::$app_root . 'temp/' . $session_id . '.fifo');     // other users can notify us to update our application through this file
+
+                        if ($pipe === false) {
+
+                            ColorCode::colorCode("\nPipe failed to be created.\n", 'red');
+
+                            continue;
+
+                        }
+
+                        ColorCode::colorCode("\nPipe created.\n", 'blue');
+
+                        // add our new connection to the master list after we've checked for duplicates
+                        $allConnectedResources[] = &$connection;
+
+                        $allConnectedResources[] = &$pipe;
+
+                        self::$userResourceConnections[] = &$connection;
+
+                        $WebsocketToPipeRelations[$session_id] = [
+                            'user_pipe' => &$pipe,
+                            'user_socket' => &$connection,
+                            'session_id' => $session_id,
+                            'port' => $port,
+                            'ip' => $ip
+                        ];
+
+                        continue;
+
+                    }
+
+                    $data = self::decode($connection);
+
+                    switch ($data['opcode']) {
+
+                        case self::CLOSE:
+
+                            $closeConnection($connection);
+
+                            break;
+
+                        case self::PING :
+
+                            self::sendToResource('', $connection, self::PONG);
+
+                            break;
+
+                        case self::TEXT:
+
+                            // we have to find the relation regardless,
+                            foreach ($WebsocketToPipeRelations as $information) {
+
+                                if ($information['user_pipe'] === $connection) {
+
+                                    self::readFromFifo($connection, $information);
+
+                                    break;
+
+                                }
+
+                                if ($information['user_socket'] === $connection) {
+
+                                    if (is_string($data['payload'])) {
+
+                                        self::forkStartApplication($data['payload'], $information, $connection);
+
+                                    }
+
+                                    break;
+
+                                }
+
+                            }
+
+                            break;
+
+                        default:
+
+                            ColorCode::colorCode("\nUnknown opcode given to websocket. Ignoring.\n", 'yellow');
+
+                            break;
 
                     }
 
                 }
 
-                continue;
+            } catch (Throwable $e) {
 
-            }
-
-            if (!$this->handshake($connection)) {              // attempt to send wss validation
-
-                @fclose($connection);                          // close any accepted connection if failurephp /Users/richardmiles/Documents/WebServer/BiologyAnswers.org/Data/Vendors/richardtmiles/carbonphp/Structure/Server.php /Users/richardmiles/Documents/WebServer/BiologyAnswers.org/ /Users/richardmiles/Documents/WebServer/BiologyAnswers.org/Application/Config/Config.php
-
-                continue;
-
-            }
-
-            if (false === stream_set_timeout($connection, 60)) {
-
-                ColorCode::colorCode("Failed to update user connection timeout", iColorCode::RED);
-
-                fclose($connection);
-
-                continue;
-
-            }
-
-            self::$userResourceConnections[] = &$connection;
-
-            if (($pid = pcntl_fork()) > 0) {                     // if parent restart looking for incoming connections
-
-                continue;
-
-            }
-
-            if ($pid < 0) {
-
-                ThrowableHandler::generateLog();             // log errors
-
-            }
-
-            [$this->user_ip, $this->user_port] = explode(':', $peerName);
-
-            CarbonPHP::$user_ip = $this->user_ip;
-
-            $this->user = &$connection;
-
-            return;
-
-        }
-
-    }
-
-    public function serveSingleUserOnSingleThread(): void
-    {
-
-        if (false === is_resource($this->user)) {
-
-            ColorCode::colorCode("\nFailed to handle user connection\n", 'red');
-
-            die(1);
-
-        }
-
-        if (Session::verifySocket($this->user_ip) === false) {
-
-            exit(1);
-
-        }
-
-        ColorCode::colorCode("\nIP address verified\n", 'blue');
-
-        ColorCode::colorCode("\nSession Started\n", 'blue');
-
-        $session_id = session_id();
-
-        ColorCode::colorCode("\nSession ID Captured $session_id\n", 'blue');
-
-        $fifoFile = Pipe::named(CarbonPHP::$app_root . 'temp' . DS . session_id() . '.fifo');     // other users can notify us to update our application through this file
-
-        if (false === $fifoFile) {
-
-            ColorCode::colorCode("\nFailed to create named pipe\n", 'red');
-
-            die(1);
-
-        }
-
-        ColorCode::colorCode("\nNamed Pipe Created\n", 'blue');
-
-        Session::pause();           // Close the current session
-
-        Database::setDatabase();    // This will clear the connection
-
-        $read = [$this->user, $fifoFile]; // todo I remember this not working when removed.
-
-        while (true) {
-
-            $read = [$this->user, $fifoFile];
-
-            $mod_fd = stream_select($read, $_w, $_e, 5);  // returns number of file descriptors modified
-
-            if ($mod_fd === 0) {
-
-                ColorCode::colorCode('..', 'blue');
-
-                continue;
-
-            }
-
-            ColorCode::colorCode($mod_fd . ', Stream is waiting to be processed', 'blue');
-
-            foreach ($read as $connection) {
-
-                if ($connection === $fifoFile) { // send a uri from another user to us in the browser
-
-                    $this->readFromFifo($fifoFile, $session_id);
-
-                    continue;
-
-                }
-
-                $data = self::decode($connection);  // request information via wss... stupid slow lol, dont do this
-
-                switch ($data['opcode']) {
-
-                    case self::CLOSE:
-
-                        ColorCode::colorCode('CLOSE', 'blue');
-
-                        @fclose($fifoFile);
-
-                        @fclose($this->user);
-
-                        exit(1);                // kill this child process
-
-                    case self::PING:
-
-                        ColorCode::colorCode('PING', 'blue');
-
-                        self::sendToResource('', $connection, self::PONG);
-
-                        break;
-
-                    case self::TEXT:
-
-                        ColorCode::colorCode('TEXT', 'blue');
-
-                        if (!is_string($data['payload'])) {
-
-                            ColorCode::colorCode('Stream did not send a string', 'blue');
-
-                        } else if ($data['payload'] = $this->set($data['payload'])->noHTML(true)) {
-
-                            ColorCode::colorCode('Payload :: ' . $data['payload'], 'blue');
-
-                            $this->forkStartApplication($data['payload'], [
-                                'session_id' => Session::$session_id,
-                                'ip' => $this->user_ip
-                            ], $connection);
-                        }
-
-                        break;
-
-                    default:
-
-                        break;
-
-                }
+                ThrowableHandler::generateLogAndExit($e);
 
             }
 
@@ -1055,311 +474,13 @@ class WebSocket extends Request implements iCommand
 
     }
 
-    public function handshake($socket, array &$headers = []): bool
-    {
-        $lines = preg_split("/\r\n/", @fread($socket, 4096));
-
-        foreach ($lines as $line) {
-
-            $line = rtrim($line);
-
-            if (preg_match('/\A(\S+): (.*)\z/', $line, $matches)) {
-
-                $headers[$matches[1]] = $matches[2];
-
-            }
-
-        }
-
-        if (!isset($headers['Sec-WebSocket-Key'])) {
-
-            return false;
-
-        }
-
-        // in the spirit of using actual header values
-        // @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers
-        // well use warning to store general information
-        $headers['Warning'] = $lines[0] ?? '';
-
-        $_SERVER['HTTP_COOKIE'] = $headers['Cookie'] ?? [];
-
-        $_SERVER['User_Agent'] = $headers['User-Agent'] ?? '';
-
-        $_SERVER['Host'] = $headers['Host'] ?? '';
-
-        $secKey = $headers['Sec-WebSocket-Key'];
-
-        $secAccept = base64_encode(pack('H*', sha1($secKey . '258EAFA5-E914-47DA-95CA-C5AB0DC85B11')));
-
-        $response = "HTTP/1.1 101 Web Socket Protocol Handshake\r\n" .
-            "Upgrade: websocket\r\n" .
-            "Connection: Upgrade\r\n" .
-            'WebSocket-Origin: ' . self::$host . "\r\n" .
-            'WebSocket-Location: ws://' . self::$host . ':' . self::$port . "/\r\n" .
-            "Sec-WebSocket-Accept:$secAccept\r\n\r\n";
-
-        try {
-
-            return fwrite($socket, $response);
-
-        } catch (\Exception $e) {
-
-            return false;
-
-        }
-
-    }
-
-    public static function encode($message, $opCode = self::TEXT): string
-    {
-
-        $rsv1 = 0x0;
-
-        $rsv2 = 0x0;
-
-        $rsv3 = 0x0;
-
-        $message = is_string($message) ? $message : json_encode($message);
-
-        $length = strlen($message);
-
-        $out = chr((0x1 << 7) | ($rsv1 << 6) | ($rsv2 << 5) | ($rsv3 << 4) | $opCode);
-
-        if (0xffff < $length) {
-
-            $out .= chr(0x7f) . pack('NN', 0, $length);
-
-        } elseif (0x7d < $length) {
-
-            $out .= chr(0x7e) . pack('n', $length);
-
-        } else {
-
-            $out .= chr($length);
-
-        }
-
-        return $out . $message;
-
-    }
-
-    public static function decode($socketResource): array
-    {
-
-        if (!$socketResource || !is_resource($socketResource)) {
-
-            return [
-                'error' => 'Resource gone away',
-                'opcode' => self::CLOSE,
-                'payload' => ''
-            ];
-
-        }
-
-        $out = [];
-
-        //$read = fread($socketResource, 1);
-        // should things be unexpectedly sending with a length of 0 @link https://stackoverflow.com/questions/64855794/proxy-timeout-with-rewriterule
-        // @link https://stackoverflow.com/questions/41115870/is-binary-opcode-encoding-and-decoding-implementation-specific-in-websockets
-        $read = stream_get_contents($socketResource, 1);
-
-        if (false === $read) {
-
-            return [
-                'socketStatus' => socket_get_status($socketResource),
-                'error' => 'socket read failure',
-                'socket_last_error' => $code = socket_last_error(self::$socket),
-                'socket_strerror' => socket_strerror($code),
-                'opcode' => self::CLOSE,
-                'payload' => ''
-            ];
-
-        }
-
-        if (empty($read)) {
-
-            ColorCode::colorCode('Empty WS Read', iColorCode::BACKGROUND_YELLOW);
-
-            return [
-                'stream_get_meta_data' => stream_get_meta_data($socketResource),
-                'error' => 'empty socket read, if your proxying this could be a timeout. @link https://stackoverflow.com/questions/64855794/proxy-timeout-with-rewriterule',
-                'socket_last_error' => $code = socket_last_error(self::$socket),
-                'socket_strerror' => socket_strerror($code),
-                'opcode' => self::PING,
-                'payload' => ''
-            ];
-
-        }
-
-        $handle = ord($read);
-
-        //Get the first byte and & it with 127, the result is your FIN bit
-        $out['fin'] = ($handle >> 7) & 0x1; // get the 7th bit in the first byte
-
-        $out['rsv1'] = ($handle >> 6) & 0x1; // get the 6th bit in the first byte
-
-        $out['rsv2'] = ($handle >> 5) & 0x1;
-
-        $out['rsv3'] = ($handle >> 4) & 0x1;
-
-        // Get the first byte and & it with 15, the result is your opcode
-        $out['opcode'] = $handle & 0xf; // get the last 4 bits in the first byte
-
-        if (self::CLOSE === $out['opcode']) {
-
-            $out['dataframe'] = $handle & 0xff;
-
-            $out['CLOSE_DATA_FRAME'] = self::CLOSE_DATA_FRAME;
-
-        }
-
-        if (!in_array($out['opcode'], [
-            self::CONTINUE,
-            self::TEXT,
-            self::BINARY,
-            self::CLOSE,
-            self::PING,
-            self::PONG
-        ], true)) {
-            return $out + [
-                    'error' => 'unknown opcode (1003)'
-                ];
-        }
-
-        $handle = ord(fread($socketResource, 1));
-
-        // Most significant bit of the 2nd byte, tells you if the payload has been masked. A Server must not mask any frame!
-        // Get the second byte and & it with 127, if it is 127 you have a masking key
-        $out['mask'] = ($handle >> 7) & 0x1;
-
-        // Payload Length (This is where things can get complicated)
-        // Take the 2nd byte and read every bit except the Most significant bit
-        $out['length'] = $handle & 0x7f;
-
-        // Byte is 125 or fewer that's your length
-        $length = &$out['length'];
-
-        if ($out['rsv1'] !== 0x0 || $out['rsv2'] !== 0x0 || $out['rsv3'] !== 0x0) {
-            return [
-                'opcode' => $out['opcode'],
-                'payload' => '',
-                'error' => 'protocol error (1002)'
-            ];
-        }
-
-        // Byte is 126
-        // Your length is an uint16 of byte 3 and 4
-        if ($length === 0x7e) {
-
-            $handle = unpack('nl', fread($socketResource, 2));
-
-            $length = $handle['l'];
-
-        } elseif ($length === 0x7f) {
-            // Byte is 127
-            // Your length is a uint64 of byte 3 to 8
-
-            $handle = unpack('N*l', fread($socketResource, 8));
-
-            $length = $handle['l2'] ?? $length;
-
-            if ($length > 0x7fffffffffffffff) {
-
-                ColorCode::colorCode('WS Length > 0x7fffffffffffffff', iColorCode::BACKGROUND_RED);
-
-                return $out + [
-                        'payload' => '',
-                        'error' => 'content length mismatch'
-                    ];
-
-            }
-
-        }
-
-        // Masking key
-        // Only exists if the MASK bit is set
-        if ($out['mask'] === 0x0) { // (no mask set)
-
-            // Payload can be decoded either as Text (UTF-8) or Binary (Can be any data)
-            // The payload needs to be masked if the MASK bit is set
-
-            $msg = '';
-
-            $readLength = 0;
-
-            // This is not the whole payload if the FIN bit is set
-            while ($readLength < $length) {
-
-                $toRead = $length - $readLength;
-
-                $msg .= fread($socketResource, $toRead);
-
-                if ($readLength === strlen($msg)) {
-
-                    break;
-
-                }
-
-                $readLength = strlen($msg);
-
-            }
-
-            $out['payload'] = $msg;
-
-            ColorCode::colorCode(print_r($out, true), iColorCode::BACKGROUND_CYAN);
-
-            return $out;
-
-        }
-
-
-        // Payload
-        // The next 4 bytes is the masking key, this key is used to decode the payload
-
-        $maskN = array_map('ord', str_split(fread($socketResource, 4)));
-
-        $maskC = 0;
-
-        $bufferLength = 1024;
-
-        $message = '';
-
-        // This is not the whole payload if the FIN bit is set
-        for ($i = 0; $i < $length; $i += $bufferLength) {
-
-            $buffer = min($bufferLength, $length - $i);
-
-            $handle = fread($socketResource, $buffer);
-
-            for ($j = 0, $_length = strlen($handle); $j < $_length; ++$j) {
-
-                $handle[$j] = chr(ord($handle[$j]) ^ $maskN[$maskC]);
-
-                $maskC = ($maskC + 1) % 4;
-
-            }
-
-            $message .= $handle;
-
-        }
-
-        $isJson = json_decode($message, true);
-
-        $out['payload'] = $isJson ?: $message;
-
-        ColorCode::colorCode(print_r($out, true), iColorCode::BACKGROUND_MAGENTA);
-
-        return $out;
-
-    }
 
     public function cleanUp(): void
     {
 
     }
 
-    public function usage(): void // todo - update
+    #[NoReturn] public function usage(): void // todo - update
     {
         print <<<END
 \n
@@ -1370,11 +491,6 @@ class WebSocket extends Request implements iCommand
 \t  php index.php WebSocketPHP 
 
 \t       -help                        - this dialogue      
-
-\t       -singleProcess               - use a single process for all websocket connections
-
-\t       -echoInternalContent         - WIP : if this is set, content sent in the pipe will be redirected to the browser 
-\t                                         instead of directly executed with startApplication. This is typically faster.
 \n
 END;
         exit(1);
