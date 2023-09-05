@@ -545,7 +545,7 @@ FOOT;
             $transactionNumber = $transactionActive ? self::$committedTransactions++ : self::$committedTransactions;
 
             $moreLogging = [
-                ($transactionActive ? 'Committing' : 'WARNING no ') . ' Transaction commit($strict = ' . ($strict ? 'true' : 'false') . ')' => $transactionNumber,
+                ($transactionActive ? '' : 'WARNING no transaction started. ') . __METHOD__ . '($strict = ' . ($strict ? 'true' : 'false') . ')' => $transactionNumber,
                 'debug_backtrace()' => CarbonPHP::$verbose || false === CarbonPHP::$cli ? $backtrace = debug_backtrace() : '(CarbonPHP::$verbose || false === CarbonPHP::$cli) = false;'
             ];
 
@@ -669,10 +669,10 @@ FOOT;
     public static function beginTransaction(bool $strict = false): void
     {
 
-        $moreInfo = 'Beginning Transaction (' . self::$committedTransactions . ')';
+        $moreInfo = self::$committedTransactions;
 
         $baseInfo = [
-            ('Starting Transaction($strict = ' . ($strict ? 'true' : 'false') . ')') => &$moreInfo,
+            (__METHOD__ . '($strict = ' . ($strict ? 'true' : 'false') . ')') => &$moreInfo,
             'debug_backtrace()' => CarbonPHP::$verbose || false === CarbonPHP::$cli ? debug_backtrace() : '(CarbonPHP::$verbose || false === CarbonPHP::$cli) = false;'
         ];
 
