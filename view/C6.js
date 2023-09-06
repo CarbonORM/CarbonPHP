@@ -159,6 +159,9 @@ const C6 = {
     PRIMARY: [
         'carbon_carbons.entity_pk',
     ],
+    PRIMARY_SHORT: [
+        'entity_pk',
+    ],
     COLUMNS: {
         'carbon_carbons.entity_pk':'entity_pk',
         'carbon_carbons.entity_fk':'entity_fk',
@@ -197,6 +200,9 @@ const C6 = {
     COMMENT: 'carbon_comments.comment',
     PRIMARY: [
         'carbon_comments.comment_id',
+    ],
+    PRIMARY_SHORT: [
+        'comment_id',
     ],
     COLUMNS: {
         'carbon_comments.parent_id':'parent_id',
@@ -243,6 +249,9 @@ const C6 = {
     DOCUMENTATION_ACTIVE: 'carbon_documentation.documentation_active',
     PRIMARY: [
     ],
+    PRIMARY_SHORT: [
+        
+    ],
     COLUMNS: {
         'carbon_documentation.documentation_uri':'documentation_uri',
         'carbon_documentation.documentation_data':'documentation_data',
@@ -286,6 +295,9 @@ const C6 = {
     GROUP_ENTITY_ID: 'carbon_feature_group_references.group_entity_id',
     PRIMARY: [
     ],
+    PRIMARY_SHORT: [
+        
+    ],
     COLUMNS: {
         'carbon_feature_group_references.feature_entity_id':'feature_entity_id',
         'carbon_feature_group_references.group_entity_id':'group_entity_id',
@@ -316,6 +328,9 @@ const C6 = {
     FEATURE_CREATION_DATE: 'carbon_features.feature_creation_date',
     PRIMARY: [
         'carbon_features.feature_entity_id',
+    ],
+    PRIMARY_SHORT: [
+        'feature_entity_id',
     ],
     COLUMNS: {
         'carbon_features.feature_entity_id':'feature_entity_id',
@@ -353,6 +368,9 @@ const C6 = {
     ALLOWED_TO_GRANT_GROUP_ID: 'carbon_group_references.allowed_to_grant_group_id',
     PRIMARY: [
     ],
+    PRIMARY_SHORT: [
+        
+    ],
     COLUMNS: {
         'carbon_group_references.group_id':'group_id',
         'carbon_group_references.allowed_to_grant_group_id':'allowed_to_grant_group_id',
@@ -384,6 +402,9 @@ const C6 = {
     CREATION_DATE: 'carbon_groups.creation_date',
     PRIMARY: [
         'carbon_groups.entity_id',
+    ],
+    PRIMARY_SHORT: [
+        'entity_id',
     ],
     COLUMNS: {
         'carbon_groups.group_name':'group_name',
@@ -431,6 +452,9 @@ const C6 = {
     HISTORY_ORIGINAL_QUERY: 'carbon_history_logs.history_original_query',
     HISTORY_TIME: 'carbon_history_logs.history_time',
     PRIMARY: [
+    ],
+    PRIMARY_SHORT: [
+        
     ],
     COLUMNS: {
         'carbon_history_logs.history_uuid':'history_uuid',
@@ -490,6 +514,9 @@ const C6 = {
     LOCATION_TIME: 'carbon_location_references.location_time',
     PRIMARY: [
     ],
+    PRIMARY_SHORT: [
+        
+    ],
     COLUMNS: {
         'carbon_location_references.entity_reference':'entity_reference',
         'carbon_location_references.location_reference':'location_reference',
@@ -532,6 +559,9 @@ const C6 = {
     ZIP: 'carbon_locations.zip',
     PRIMARY: [
         'carbon_locations.entity_id',
+    ],
+    PRIMARY_SHORT: [
+        'entity_id',
     ],
     COLUMNS: {
         'carbon_locations.entity_id':'entity_id',
@@ -608,6 +638,9 @@ const C6 = {
     PRIMARY: [
         'carbon_photos.parent_id',
     ],
+    PRIMARY_SHORT: [
+        'parent_id',
+    ],
     COLUMNS: {
         'carbon_photos.parent_id':'parent_id',
         'carbon_photos.photo_id':'photo_id',
@@ -660,6 +693,9 @@ const C6 = {
     CALL_TRACE: 'carbon_reports.call_trace',
     PRIMARY: [
     ],
+    PRIMARY_SHORT: [
+        
+    ],
     COLUMNS: {
         'carbon_reports.log_level':'log_level',
         'carbon_reports.report':'report',
@@ -705,6 +741,9 @@ const C6 = {
     PRIMARY: [
         'carbon_user_followers.follower_table_id',
     ],
+    PRIMARY_SHORT: [
+        'follower_table_id',
+    ],
     COLUMNS: {
         'carbon_user_followers.follower_table_id':'follower_table_id',
         'carbon_user_followers.follows_user_id':'follows_user_id',
@@ -741,6 +780,9 @@ const C6 = {
     USER_ID: 'carbon_user_groups.user_id',
     PRIMARY: [
     ],
+    PRIMARY_SHORT: [
+        
+    ],
     COLUMNS: {
         'carbon_user_groups.group_id':'group_id',
         'carbon_user_groups.user_id':'user_id',
@@ -774,6 +816,9 @@ const C6 = {
     CREATION_DATE: 'carbon_user_messages.creation_date',
     PRIMARY: [
         'carbon_user_messages.message_id',
+    ],
+    PRIMARY_SHORT: [
+        'message_id',
     ],
     COLUMNS: {
         'carbon_user_messages.message_id':'message_id',
@@ -836,6 +881,9 @@ const C6 = {
     USER_ONLINE_STATUS: 'carbon_user_sessions.user_online_status',
     PRIMARY: [
         'carbon_user_sessions.session_id',
+    ],
+    PRIMARY_SHORT: [
+        'session_id',
     ],
     COLUMNS: {
         'carbon_user_sessions.user_id':'user_id',
@@ -900,6 +948,9 @@ const C6 = {
     END_DATE: 'carbon_user_tasks.end_date',
     PRIMARY: [
         'carbon_user_tasks.task_id',
+    ],
+    PRIMARY_SHORT: [
+        'task_id',
     ],
     COLUMNS: {
         'carbon_user_tasks.task_id':'task_id',
@@ -997,6 +1048,9 @@ const C6 = {
     USER_CREATION_DATE: 'carbon_users.user_creation_date',
     PRIMARY: [
         'carbon_users.user_id',
+    ],
+    PRIMARY_SHORT: [
+        'user_id',
     ],
     COLUMNS: {
         'carbon_users.user_username':'user_username',
@@ -1205,6 +1259,9 @@ const C6 = {
     PRIMARY: [
         'carbon_wp_commentmeta.meta_id',
     ],
+    PRIMARY_SHORT: [
+        'meta_id',
+    ],
     COLUMNS: {
         'carbon_wp_commentmeta.meta_id':'meta_id',
         'carbon_wp_commentmeta.comment_id':'comment_id',
@@ -1261,6 +1318,9 @@ const C6 = {
     USER_ID: 'carbon_wp_comments.user_id',
     PRIMARY: [
         'carbon_wp_comments.comment_ID',
+    ],
+    PRIMARY_SHORT: [
+        'comment_ID',
     ],
     COLUMNS: {
         'carbon_wp_comments.comment_ID':'comment_ID',
@@ -1394,6 +1454,9 @@ const C6 = {
     PRIMARY: [
         'carbon_wp_links.link_id',
     ],
+    PRIMARY_SHORT: [
+        'link_id',
+    ],
     COLUMNS: {
         'carbon_wp_links.link_id':'link_id',
         'carbon_wp_links.link_url':'link_url',
@@ -1503,6 +1566,9 @@ const C6 = {
     PRIMARY: [
         'carbon_wp_options.option_id',
     ],
+    PRIMARY_SHORT: [
+        'option_id',
+    ],
     COLUMNS: {
         'carbon_wp_options.option_id':'option_id',
         'carbon_wp_options.option_name':'option_name',
@@ -1548,6 +1614,9 @@ const C6 = {
     META_VALUE: 'carbon_wp_postmeta.meta_value',
     PRIMARY: [
         'carbon_wp_postmeta.meta_id',
+    ],
+    PRIMARY_SHORT: [
+        'meta_id',
     ],
     COLUMNS: {
         'carbon_wp_postmeta.meta_id':'meta_id',
@@ -1613,6 +1682,9 @@ const C6 = {
     COMMENT_COUNT: 'carbon_wp_posts.comment_count',
     PRIMARY: [
         'carbon_wp_posts.ID',
+    ],
+    PRIMARY_SHORT: [
+        'ID',
     ],
     COLUMNS: {
         'carbon_wp_posts.ID':'ID',
@@ -1793,6 +1865,9 @@ const C6 = {
         'carbon_wp_term_relationships.object_id',
         'carbon_wp_term_relationships.term_taxonomy_id',
     ],
+    PRIMARY_SHORT: [
+        'object_id','term_taxonomy_id',
+    ],
     COLUMNS: {
         'carbon_wp_term_relationships.object_id':'object_id',
         'carbon_wp_term_relationships.term_taxonomy_id':'term_taxonomy_id',
@@ -1833,6 +1908,9 @@ const C6 = {
     COUNT: 'carbon_wp_term_taxonomy.count',
     PRIMARY: [
         'carbon_wp_term_taxonomy.term_taxonomy_id',
+    ],
+    PRIMARY_SHORT: [
+        'term_taxonomy_id',
     ],
     COLUMNS: {
         'carbon_wp_term_taxonomy.term_taxonomy_id':'term_taxonomy_id',
@@ -1894,6 +1972,9 @@ const C6 = {
     PRIMARY: [
         'carbon_wp_termmeta.meta_id',
     ],
+    PRIMARY_SHORT: [
+        'meta_id',
+    ],
     COLUMNS: {
         'carbon_wp_termmeta.meta_id':'meta_id',
         'carbon_wp_termmeta.term_id':'term_id',
@@ -1940,6 +2021,9 @@ const C6 = {
     PRIMARY: [
         'carbon_wp_terms.term_id',
     ],
+    PRIMARY_SHORT: [
+        'term_id',
+    ],
     COLUMNS: {
         'carbon_wp_terms.term_id':'term_id',
         'carbon_wp_terms.name':'name',
@@ -1985,6 +2069,9 @@ const C6 = {
     META_VALUE: 'carbon_wp_usermeta.meta_value',
     PRIMARY: [
         'carbon_wp_usermeta.umeta_id',
+    ],
+    PRIMARY_SHORT: [
+        'umeta_id',
     ],
     COLUMNS: {
         'carbon_wp_usermeta.umeta_id':'umeta_id',
@@ -2037,6 +2124,9 @@ const C6 = {
     DISPLAY_NAME: 'carbon_wp_users.display_name',
     PRIMARY: [
         'carbon_wp_users.ID',
+    ],
+    PRIMARY_SHORT: [
+        'ID',
     ],
     COLUMNS: {
         'carbon_wp_users.ID':'ID',
@@ -2404,7 +2494,7 @@ export const convertForRequestBody = function (restfulObject, tableName, regexEr
 
                     Object.keys(regexValidations)?.map((errorMessage) => {
 
-                        const regex : RegExp = regexValidations[errorMessage];
+                        const regex = regexValidations[errorMessage];
                         
                         if (false === regex.test(restfulObject[value])) {
 

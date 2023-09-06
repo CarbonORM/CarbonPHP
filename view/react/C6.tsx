@@ -87,6 +87,7 @@ export type RestShortTableNames = 'carbons'
 export interface C6RestfulModel {
     TABLE_NAME: RestShortTableNames,
     PRIMARY: string[],
+    PRIMARY_SHORT: string[],
     COLUMNS: stringMap,
     REGEX_VALIDATION: RegExpMap,
     TYPE_VALIDATION: {[key: string]: iTypeValidation},
@@ -113,6 +114,9 @@ export const carbons : C6RestfulModel & iDefineCarbons = {
     ENTITY_TAG: 'carbon_carbons.entity_tag',
     PRIMARY: [
         'carbon_carbons.entity_pk',
+    ],
+    PRIMARY_SHORT: [
+        'entity_pk',
     ],
     COLUMNS: {
       'carbon_carbons.entity_pk':'entity_pk',
@@ -168,6 +172,9 @@ export const comments : C6RestfulModel & iDefineComments = {
     COMMENT: 'carbon_comments.comment',
     PRIMARY: [
         'carbon_comments.comment_id',
+    ],
+    PRIMARY_SHORT: [
+        'comment_id',
     ],
     COLUMNS: {
       'carbon_comments.parent_id':'parent_id',
@@ -230,6 +237,9 @@ export const documentation : C6RestfulModel & iDefineDocumentation = {
     DOCUMENTATION_ACTIVE: 'carbon_documentation.documentation_active',
     PRIMARY: [
     ],
+    PRIMARY_SHORT: [
+        
+    ],
     COLUMNS: {
       'carbon_documentation.documentation_uri':'documentation_uri',
       'carbon_documentation.documentation_data':'documentation_data',
@@ -285,6 +295,9 @@ export const feature_group_references : C6RestfulModel & iDefineFeature_Group_Re
     GROUP_ENTITY_ID: 'carbon_feature_group_references.group_entity_id',
     PRIMARY: [
     ],
+    PRIMARY_SHORT: [
+        
+    ],
     COLUMNS: {
       'carbon_feature_group_references.feature_entity_id':'feature_entity_id',
       'carbon_feature_group_references.group_entity_id':'group_entity_id',
@@ -329,6 +342,9 @@ export const features : C6RestfulModel & iDefineFeatures = {
     FEATURE_CREATION_DATE: 'carbon_features.feature_creation_date',
     PRIMARY: [
         'carbon_features.feature_entity_id',
+    ],
+    PRIMARY_SHORT: [
+        'feature_entity_id',
     ],
     COLUMNS: {
       'carbon_features.feature_entity_id':'feature_entity_id',
@@ -378,6 +394,9 @@ export const group_references : C6RestfulModel & iDefineGroup_References = {
     ALLOWED_TO_GRANT_GROUP_ID: 'carbon_group_references.allowed_to_grant_group_id',
     PRIMARY: [
     ],
+    PRIMARY_SHORT: [
+        
+    ],
     COLUMNS: {
       'carbon_group_references.group_id':'group_id',
       'carbon_group_references.allowed_to_grant_group_id':'allowed_to_grant_group_id',
@@ -425,6 +444,9 @@ export const groups : C6RestfulModel & iDefineGroups = {
     CREATION_DATE: 'carbon_groups.creation_date',
     PRIMARY: [
         'carbon_groups.entity_id',
+    ],
+    PRIMARY_SHORT: [
+        'entity_id',
     ],
     COLUMNS: {
       'carbon_groups.group_name':'group_name',
@@ -492,6 +514,9 @@ export const history_logs : C6RestfulModel & iDefineHistory_Logs = {
     HISTORY_ORIGINAL_QUERY: 'carbon_history_logs.history_original_query',
     HISTORY_TIME: 'carbon_history_logs.history_time',
     PRIMARY: [
+    ],
+    PRIMARY_SHORT: [
+        
     ],
     COLUMNS: {
       'carbon_history_logs.history_uuid':'history_uuid',
@@ -565,6 +590,9 @@ export const location_references : C6RestfulModel & iDefineLocation_References =
     LOCATION_TIME: 'carbon_location_references.location_time',
     PRIMARY: [
     ],
+    PRIMARY_SHORT: [
+        
+    ],
     COLUMNS: {
       'carbon_location_references.entity_reference':'entity_reference',
       'carbon_location_references.location_reference':'location_reference',
@@ -631,6 +659,9 @@ export const locations : C6RestfulModel & iDefineLocations = {
     ZIP: 'carbon_locations.zip',
     PRIMARY: [
         'carbon_locations.entity_id',
+    ],
+    PRIMARY_SHORT: [
+        'entity_id',
     ],
     COLUMNS: {
       'carbon_locations.entity_id':'entity_id',
@@ -725,6 +756,9 @@ export const photos : C6RestfulModel & iDefinePhotos = {
     PRIMARY: [
         'carbon_photos.parent_id',
     ],
+    PRIMARY_SHORT: [
+        'parent_id',
+    ],
     COLUMNS: {
       'carbon_photos.parent_id':'parent_id',
       'carbon_photos.photo_id':'photo_id',
@@ -793,6 +827,9 @@ export const reports : C6RestfulModel & iDefineReports = {
     CALL_TRACE: 'carbon_reports.call_trace',
     PRIMARY: [
     ],
+    PRIMARY_SHORT: [
+        
+    ],
     COLUMNS: {
       'carbon_reports.log_level':'log_level',
       'carbon_reports.report':'report',
@@ -852,6 +889,9 @@ export const user_followers : C6RestfulModel & iDefineUser_Followers = {
     PRIMARY: [
         'carbon_user_followers.follower_table_id',
     ],
+    PRIMARY_SHORT: [
+        'follower_table_id',
+    ],
     COLUMNS: {
       'carbon_user_followers.follower_table_id':'follower_table_id',
       'carbon_user_followers.follows_user_id':'follows_user_id',
@@ -899,6 +939,9 @@ export const user_groups : C6RestfulModel & iDefineUser_Groups = {
     GROUP_ID: 'carbon_user_groups.group_id',
     USER_ID: 'carbon_user_groups.user_id',
     PRIMARY: [
+    ],
+    PRIMARY_SHORT: [
+        
     ],
     COLUMNS: {
       'carbon_user_groups.group_id':'group_id',
@@ -953,6 +996,9 @@ export const user_messages : C6RestfulModel & iDefineUser_Messages = {
     CREATION_DATE: 'carbon_user_messages.creation_date',
     PRIMARY: [
         'carbon_user_messages.message_id',
+    ],
+    PRIMARY_SHORT: [
+        'message_id',
     ],
     COLUMNS: {
       'carbon_user_messages.message_id':'message_id',
@@ -1035,6 +1081,9 @@ export const user_sessions : C6RestfulModel & iDefineUser_Sessions = {
     USER_ONLINE_STATUS: 'carbon_user_sessions.user_online_status',
     PRIMARY: [
         'carbon_user_sessions.session_id',
+    ],
+    PRIMARY_SHORT: [
+        'session_id',
     ],
     COLUMNS: {
       'carbon_user_sessions.user_id':'user_id',
@@ -1123,6 +1172,9 @@ export const user_tasks : C6RestfulModel & iDefineUser_Tasks = {
     END_DATE: 'carbon_user_tasks.end_date',
     PRIMARY: [
         'carbon_user_tasks.task_id',
+    ],
+    PRIMARY_SHORT: [
+        'task_id',
     ],
     COLUMNS: {
       'carbon_user_tasks.task_id':'task_id',
@@ -1282,6 +1334,9 @@ export const users : C6RestfulModel & iDefineUsers = {
     USER_CREATION_DATE: 'carbon_users.user_creation_date',
     PRIMARY: [
         'carbon_users.user_id',
+    ],
+    PRIMARY_SHORT: [
+        'user_id',
     ],
     COLUMNS: {
       'carbon_users.user_username':'user_username',
@@ -1506,6 +1561,9 @@ export const wp_commentmeta : C6RestfulModel & iDefineWp_Commentmeta = {
     PRIMARY: [
         'carbon_wp_commentmeta.meta_id',
     ],
+    PRIMARY_SHORT: [
+        'meta_id',
+    ],
     COLUMNS: {
       'carbon_wp_commentmeta.meta_id':'meta_id',
       'carbon_wp_commentmeta.comment_id':'comment_id',
@@ -1600,6 +1658,9 @@ export const wp_comments : C6RestfulModel & iDefineWp_Comments = {
     USER_ID: 'carbon_wp_comments.user_id',
     PRIMARY: [
         'carbon_wp_comments.comment_ID',
+    ],
+    PRIMARY_SHORT: [
+        'comment_ID',
     ],
     COLUMNS: {
       'carbon_wp_comments.comment_ID':'comment_ID',
@@ -1767,6 +1828,9 @@ export const wp_links : C6RestfulModel & iDefineWp_Links = {
     PRIMARY: [
         'carbon_wp_links.link_id',
     ],
+    PRIMARY_SHORT: [
+        'link_id',
+    ],
     COLUMNS: {
       'carbon_wp_links.link_id':'link_id',
       'carbon_wp_links.link_url':'link_url',
@@ -1892,6 +1956,9 @@ export const wp_options : C6RestfulModel & iDefineWp_Options = {
     PRIMARY: [
         'carbon_wp_options.option_id',
     ],
+    PRIMARY_SHORT: [
+        'option_id',
+    ],
     COLUMNS: {
       'carbon_wp_options.option_id':'option_id',
       'carbon_wp_options.option_name':'option_name',
@@ -1953,6 +2020,9 @@ export const wp_postmeta : C6RestfulModel & iDefineWp_Postmeta = {
     META_VALUE: 'carbon_wp_postmeta.meta_value',
     PRIMARY: [
         'carbon_wp_postmeta.meta_id',
+    ],
+    PRIMARY_SHORT: [
+        'meta_id',
     ],
     COLUMNS: {
       'carbon_wp_postmeta.meta_id':'meta_id',
@@ -2072,6 +2142,9 @@ export const wp_posts : C6RestfulModel & iDefineWp_Posts = {
     COMMENT_COUNT: 'carbon_wp_posts.comment_count',
     PRIMARY: [
         'carbon_wp_posts.ID',
+    ],
+    PRIMARY_SHORT: [
+        'ID',
     ],
     COLUMNS: {
       'carbon_wp_posts.ID':'ID',
@@ -2266,6 +2339,9 @@ export const wp_term_relationships : C6RestfulModel & iDefineWp_Term_Relationshi
         'carbon_wp_term_relationships.object_id',
         'carbon_wp_term_relationships.term_taxonomy_id',
     ],
+    PRIMARY_SHORT: [
+        'object_id','term_taxonomy_id',
+    ],
     COLUMNS: {
       'carbon_wp_term_relationships.object_id':'object_id',
       'carbon_wp_term_relationships.term_taxonomy_id':'term_taxonomy_id',
@@ -2326,6 +2402,9 @@ export const wp_term_taxonomy : C6RestfulModel & iDefineWp_Term_Taxonomy = {
     COUNT: 'carbon_wp_term_taxonomy.count',
     PRIMARY: [
         'carbon_wp_term_taxonomy.term_taxonomy_id',
+    ],
+    PRIMARY_SHORT: [
+        'term_taxonomy_id',
     ],
     COLUMNS: {
       'carbon_wp_term_taxonomy.term_taxonomy_id':'term_taxonomy_id',
@@ -2403,6 +2482,9 @@ export const wp_termmeta : C6RestfulModel & iDefineWp_Termmeta = {
     PRIMARY: [
         'carbon_wp_termmeta.meta_id',
     ],
+    PRIMARY_SHORT: [
+        'meta_id',
+    ],
     COLUMNS: {
       'carbon_wp_termmeta.meta_id':'meta_id',
       'carbon_wp_termmeta.term_id':'term_id',
@@ -2465,6 +2547,9 @@ export const wp_terms : C6RestfulModel & iDefineWp_Terms = {
     PRIMARY: [
         'carbon_wp_terms.term_id',
     ],
+    PRIMARY_SHORT: [
+        'term_id',
+    ],
     COLUMNS: {
       'carbon_wp_terms.term_id':'term_id',
       'carbon_wp_terms.name':'name',
@@ -2526,6 +2611,9 @@ export const wp_usermeta : C6RestfulModel & iDefineWp_Usermeta = {
     META_VALUE: 'carbon_wp_usermeta.meta_value',
     PRIMARY: [
         'carbon_wp_usermeta.umeta_id',
+    ],
+    PRIMARY_SHORT: [
+        'umeta_id',
     ],
     COLUMNS: {
       'carbon_wp_usermeta.umeta_id':'umeta_id',
@@ -2606,6 +2694,9 @@ export const wp_users : C6RestfulModel & iDefineWp_Users = {
     DISPLAY_NAME: 'carbon_wp_users.display_name',
     PRIMARY: [
         'carbon_wp_users.ID',
+    ],
+    PRIMARY_SHORT: [
+        'ID',
     ],
     COLUMNS: {
       'carbon_wp_users.ID':'ID',
@@ -3207,11 +3298,6 @@ export const initialRestfulObjectsState: iRestfulObjectArrayTypes = {
   wp_users: undefined,
 };
 
-export type tRestfulObjectArrayKeys = keyof iRestfulObjectArrayTypes
-
-export type tRestfulObjectArrayValues = iRestfulObjectArrayTypes[tRestfulObjectArrayKeys];
-
-// @ts-ignore
-export type tRestfulObjectValues = tRestfulObjectArrayValues[number];
+export type tRestfulObjectArrayValues = iRestfulObjectArrayTypes[keyof iRestfulObjectArrayTypes];
 
 

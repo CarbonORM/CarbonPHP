@@ -130,7 +130,7 @@
     ],
     "rei": "rm -rf vendor && rm composer.lock && composer i",
     "rest": [
-      "php index.php restbuilder -json -dumpData -react view/ -javascript view/"
+      "php index.php restbuilder -json -dumpData -react view/react/ -javascript view/"
     ],
     "rest:production": [
       "php index.php restbuilder -excludeTablesRegex '#wp_.*#' -json -dumpData -react view/ -javascript view/"
@@ -143,11 +143,6 @@
     ],
     "console": [
       "echo https://cloud.google.com/sdk/docs/downloads-interactive"
-    ],
-    "setup:generated": [
-      "php index.php minify",
-      "cd view/assets/react && npm install && npm run build",
-      "@carbon:react"
     ],
     "start": [
       "php -S local.carbonphp.com:80 dev-routing.php -d display_errors=1"

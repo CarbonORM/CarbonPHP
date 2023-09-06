@@ -615,4 +615,101 @@ MYSQL;
 STRING;
 
     }
+
+
+    public static function typescriptRestBindings(): string
+    {
+        return /** @lang Handlebars */ <<<STRING
+import {
+    iPostC6RestResponse,
+    restRequest,
+    GET,
+    POST,
+    PUT,
+    DELETE,
+    iDeleteC6RestResponse,
+    iGetC6RestResponse,
+    iPutC6RestResponse,
+    removeInvalidKeys
+} from "@carbonorm/carbonnode";
+import {deleteRestfulObjectArrays, updateRestfulObjectArrays} from "@carbonorm/carbonreact";
+import {C6, i{{ucEachTableName}}, {{noPrefix}}, RestShortTableNames} from "./C6";
+
+
+export const Get = restRequest<{}, i{{ucEachTableName}}, {}, iGetC6RestResponse<i{{ucEachTableName}}>, RestShortTableNames>({
+    C6: C6,
+    tableName: {{noPrefix}}.TABLE_NAME,
+    requestMethod: GET,
+    queryCallback: (request) => {
+        request.success ??= 'Successfully received {{noPrefixReplaced}}!'
+        request.error ??= 'An unknown issue occurred creating the {{noPrefixReplaced}}!'
+        return request
+    },
+    responseCallback: (response, _request) => {
+        updateRestfulObjectArrays<i{{ucEachTableName}}>(response?.data?.rest, "{{noPrefix}}", C6.{{noPrefix}}.PRIMARY_SHORT as (keyof i{{ucEachTableName}})[])
+    }
+})
+
+export const Put = restRequest<{}, i{{ucEachTableName}}, {}, iPutC6RestResponse<i{{ucEachTableName}}>, RestShortTableNames>({
+    C6: C6,
+    tableName: {{noPrefix}}.TABLE_NAME,
+    requestMethod: PUT,
+    queryCallback: (request) => {
+        request.success ??= 'Successfully updated {{noPrefixReplaced}}!'
+        request.error ??= 'An unknown issue occurred updating the {{noPrefixReplaced}}!'
+        return request
+    },
+    responseCallback: (response, _request) => {
+        updateRestfulObjectArrays<i{{ucEachTableName}}>([
+            removeInvalidKeys<i{{ucEachTableName}}>(response?.data?.rest, C6.TABLES)
+        ], "{{noPrefix}}", {{noPrefix}}.PRIMARY_SHORT as (keyof i{{ucEachTableName}})[])
+    }
+})
+
+
+export const Post = restRequest<{}, i{{ucEachTableName}}, {}, iPostC6RestResponse<i{{ucEachTableName}}>, RestShortTableNames>({
+    C6: C6,
+    tableName: {{noPrefix}}.TABLE_NAME,
+    requestMethod: POST,
+    queryCallback: (request) => {
+        request.success ??= 'Successfully created the {{noPrefixReplaced}}!'
+        request.error ??= 'An unknown issue occurred creating the {{noPrefixReplaced}}!'
+        return request
+    },
+    responseCallback: (response, _request) => {
+        updateRestfulObjectArrays<i{{ucEachTableName}}>([
+            removeInvalidKeys<i{{ucEachTableName}}>(response?.data?.rest, C6.TABLES)
+        ], "{{noPrefix}}", {{noPrefix}}.PRIMARY_SHORT as (keyof i{{ucEachTableName}})[])
+    }
+})
+
+export const Delete = restRequest<{}, i{{ucEachTableName}}, {}, iDeleteC6RestResponse<i{{ucEachTableName}}>, RestShortTableNames>(
+    {
+        C6: C6,
+        tableName: {{noPrefix}}.TABLE_NAME,
+        requestMethod: DELETE,
+        queryCallback: (request) => {
+            request.success ??= 'Successfully removed the {{noPrefixReplaced}}!'
+            request.error ??= 'An unknown issue occurred removing the {{noPrefixReplaced}}!'
+            return request
+        },
+        responseCallback: (_response, request) => {
+            // todo - request . where
+            deleteRestfulObjectArrays<i{{ucEachTableName}}>([
+                request
+            ], "{{noPrefix}}", {{noPrefix}}.PRIMARY_SHORT as (keyof i{{ucEachTableName}})[])
+        }
+    });
+
+
+export default {
+    Get, Post, Put, Delete
+}
+
+STRING;
+    }
+
+
+
+
 }

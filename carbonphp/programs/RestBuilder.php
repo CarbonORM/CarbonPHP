@@ -164,6 +164,7 @@ END;
         $QueryWithDatabaseName = true;
         $json = $carbon_namespace = CarbonPHP::isCarbonPHPDocumentation();
 
+        $react = false;
         $targetDir = CarbonPHP::$app_root . ($carbon_namespace ? 'carbonphp/tables/' : 'tables/');
         $only_these_tables = $history_table_query = $mysql = null;
         $verbose = $debug = $primary_required = $skipTable = $logClasses =
@@ -192,6 +193,8 @@ END;
 
                     }
 
+                    Files::mkdir($react);
+
                     break;
                 case '-excludeTablesRegex':
                 case '--excludeTablesRegex':
@@ -204,6 +207,9 @@ END;
                 case '-react':
                 case '--react':
                     $react = $argv[++$i];
+
+                    Files::mkdir($react);
+
                     break;
                 case '-prefix':
                 case '--prefix':
@@ -479,6 +485,8 @@ END;
                             'dependencies' => $rest[$tableName]['dependencies'] ?? [],
                             'TableName' => $tableName,
                             'prefixReplaced' => $noPrefix = preg_replace("/^$prefix/", '', $tableName),
+                            'noPrefix' => $noPrefix,
+                            'noPrefixReplaced' => str_replace('_', ' ', $noPrefix),
                             'ucEachTableName' => $etn = implode('_', array_map('ucfirst', explode('_', $noPrefix))),
                             'strtolowerNoPrefixTableName' => strtolower($etn),  // its best to leave this like this as opposed to = $noPrefix
                             'primarySort' => '',
@@ -1162,6 +1170,8 @@ END;
 
         $class = RestTemplates::restTemplate();
 
+        $typescriptRestBindings = RestTemplates::typescriptRestBindings();
+
         $trait = RestTemplates::restTrait();
 
         foreach ($rest as $tableName => $parsed) {
@@ -1178,6 +1188,12 @@ END;
             if (false === file_put_contents($targetDir . $parsed['ucEachTableName'] . '.php', $mustache->render($class, $parsed))) {
 
                 ColorCode::colorCode('PHP internal file_put_contents failed while trying to store :: (' . $targetDir . $parsed['ucEachTableName'] . '.php)', iColorCode::RED);
+
+            }
+
+            if ($react && false === file_put_contents($react . $parsed['ucEachTableName'] . '.tsx', $mustache->render($typescriptRestBindings, $parsed))) {
+
+                ColorCode::colorCode('PHP internal file_put_contents failed while trying to store :: (' . $targetDir . $parsed['ucEachTableName'] . '.tsx)', iColorCode::RED);
 
             }
 
@@ -1543,6 +1559,7 @@ export type RestShortTableNames = $all_table_names_no_prefix_types;
 export interface C6RestfulModel {
     TABLE_NAME: RestShortTableNames,
     PRIMARY: string[],
+    PRIMARY_SHORT: string[],
     COLUMNS: stringMap,
     REGEX_VALIDATION: RegExpMap,
     TYPE_VALIDATION: {[key: string]: iTypeValidation},
@@ -1581,12 +1598,7 @@ export const initialRestfulObjectsState: iRestfulObjectArrayTypes = {
     $restInitialState_tsx
 };
 
-export type tRestfulObjectArrayKeys = keyof iRestfulObjectArrayTypes
-
-export type tRestfulObjectArrayValues = iRestfulObjectArrayTypes[tRestfulObjectArrayKeys];
-
-// @ts-ignore
-export type tRestfulObjectValues = tRestfulObjectArrayValues[number];
+export type tRestfulObjectArrayValues = iRestfulObjectArrayTypes[keyof iRestfulObjectArrayTypes];
 
 
 ";
@@ -1673,7 +1685,7 @@ export const convertForRequestBody = function (restfulObject, tableName, regexEr
 
                     Object.keys(regexValidations)?.map((errorMessage) => {
 
-                        const regex : RegExp = regexValidations[errorMessage];
+                        const regex = regexValidations[errorMessage];
                         
                         if (false === regex.test(restfulObject[value])) {
 
@@ -1909,6 +1921,9 @@ TRIGGER);
         {{#name}}'{{TableName}}.{{name}}',{{/name}}
         {{/primary}}
     ],
+    PRIMARY_SHORT: [
+        {{#primary}}{{#name}}'{{name}}',{{/name}}{{/primary}}
+    ],
     COLUMNS: {
         {{#explode}}
         '{{TableName}}.{{name}}':'{{name}}',
@@ -1954,6 +1969,9 @@ export const {{strtolowerNoPrefixTableName}} : C6RestfulModel & iDefine{{ucEachT
         {{#primary}}
         {{#name}}'{{TableName}}.{{name}}',{{/name}}
         {{/primary}}
+    ],
+    PRIMARY_SHORT: [
+        {{#primary}}{{#name}}'{{name}}',{{/name}}{{/primary}}
     ],
     COLUMNS: {
       {{#explode}}
