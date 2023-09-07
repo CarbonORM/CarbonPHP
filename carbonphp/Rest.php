@@ -38,19 +38,9 @@ abstract class Rest extends RestLifeCycle
 
                 $pdo = self::database(false);
 
-                $emptyPrimary = null === $primary || [] === $primary;
+                $noPrimaryKeyProvided = null === $primary || [] === $primary;
 
-                if (static::CARBON_CARBONS_PRIMARY_KEY && false === $emptyPrimary) {
-
-                    $primary = is_string(static::PRIMARY)
-                        ? $primary[static::PRIMARY]
-                        : $primary;
-
-                    return Carbons::Delete($remove, $primary, $argv);
-
-                }
-
-                if (false === self::$allowFullTableDeletes && true === $emptyPrimary && [] === $argv[self::WHERE]) {
+                if (false === self::$allowFullTableDeletes && true === $noPrimaryKeyProvided && [] === $argv[self::WHERE]) {
 
                     return self::signalError('When deleting from restful tables a primary key or where query must be provided.');
 
@@ -60,6 +50,9 @@ abstract class Rest extends RestLifeCycle
 
                 $table_name = $query_database_name . static::TABLE_NAME;
 
+                // We must not directly delete from the carbon table.
+                // We must delete from the restful table to ensure the pk actually exists on the correct table.
+                // A small but critical validation.
                 if (static::CARBON_CARBONS_PRIMARY_KEY) {
 
                     if (is_array(static::PRIMARY)) {
@@ -72,10 +65,16 @@ abstract class Rest extends RestLifeCycle
 
                     $sql = self::DELETE . ' c FROM ' . $query_database_name . $table_prefix . 'carbon_carbons c JOIN ' . $table_name . ' on c.entity_pk = ' . static::PRIMARY;
 
-                    if (false === self::$allowFullTableDeletes
-                        || !empty($argv)) {
+                    if (false === self::$allowFullTableDeletes) {
+
+                        if (empty($argv[self::WHERE])) {
+
+                            throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided. This can be disabled by setting `self::\$allowFullTableDeletes = true;` during the PREPROCESS events, or just directly before this request.');
+
+                        }
 
                         $sql .= ' WHERE ' . self::buildBooleanJoinedConditions($argv[self::WHERE]);
+
                     }
 
                 } else {
@@ -83,7 +82,7 @@ abstract class Rest extends RestLifeCycle
                     $sql = self::DELETE . ' FROM ' . $table_name . ' ';
 
                     if (false === self::$allowFullTableDeletes
-                        && $emptyPrimary
+                        && $noPrimaryKeyProvided
                         && empty($argv[self::WHERE])) {
 
                         return self::signalError('When deleting from restful tables a primary key or where query must be provided. This can be disabled by setting `self::\$allowFullTableDeletes = true;` during the PREPROCESS events, or just directly before this request.');
@@ -122,7 +121,7 @@ abstract class Rest extends RestLifeCycle
                         $argv[self::WHERE] = array_merge($argv[self::WHERE], $primary ?? []);
                         // todo - this is a good point. were looping and running and array merge..
 
-                    } elseif (is_string(static::PRIMARY) && !$emptyPrimary) {
+                    } elseif (is_string(static::PRIMARY) && !$noPrimaryKeyProvided) {
 
                         $argv[self::WHERE] = array_merge($argv[self::WHERE], $primary);
 

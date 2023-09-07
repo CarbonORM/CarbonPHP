@@ -659,9 +659,12 @@ export const Put = restRequest<{}, i{{ucEachTableName}}, {}, iPutC6RestResponse<
         request.error ??= 'An unknown issue occurred updating the {{noPrefixReplaced}}!'
         return request
     },
-    responseCallback: (response, _request) => {
+    responseCallback: (response, request) => {
         updateRestfulObjectArrays<i{{ucEachTableName}}>([
-            removeInvalidKeys<i{{ucEachTableName}}>(response?.data?.rest, C6.TABLES)
+            removeInvalidKeys<i{{ucEachTableName}}>({
+                ...request,
+                ...response?.data?.rest,
+            }, C6.TABLES)
         ], "{{noPrefix}}", {{noPrefix}}.PRIMARY_SHORT as (keyof i{{ucEachTableName}})[])
     }
 })
@@ -676,10 +679,29 @@ export const Post = restRequest<{}, i{{ucEachTableName}}, {}, iPostC6RestRespons
         request.error ??= 'An unknown issue occurred creating the {{noPrefixReplaced}}!'
         return request
     },
-    responseCallback: (response, _request) => {
-        updateRestfulObjectArrays<i{{ucEachTableName}}>([
-            removeInvalidKeys<i{{ucEachTableName}}>(response?.data?.rest, C6.TABLES)
-        ], "{{noPrefix}}", {{noPrefix}}.PRIMARY_SHORT as (keyof i{{ucEachTableName}})[])
+    responseCallback: (response, request, id) => {
+        if ('number' === typeof id || 'string' === typeof id) {
+            if (1 !== {{noPrefix}}.PRIMARY_SHORT.length) {
+                console.error("C6 received unexpected result's given the primary key length");
+            } else {
+                request[{{noPrefix}}.PRIMARY_SHORT[0]] = id
+            }
+        }
+        updateRestfulObjectArrays<i{{ucEachTableName}}>(
+            undefined !== request.dataInsertMultipleRows
+                ? request.dataInsertMultipleRows.map((request, index) => {
+                    return removeInvalidKeys<i{{ucEachTableName}}>({
+                        ...request,
+                        ...(index === 0 ? response?.data?.rest : {}),
+                    }, C6.TABLES)
+                })
+                : [
+                    removeInvalidKeys<i{{ucEachTableName}}>({
+                        ...request,
+                        ...response?.data?.rest,
+                    }, C6.TABLES)
+                ]
+            , "{{noPrefix}}", {{noPrefix}}.PRIMARY_SHORT as (keyof i{{ucEachTableName}})[])
     }
 })
 

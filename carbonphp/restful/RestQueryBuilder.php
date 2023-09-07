@@ -222,15 +222,17 @@ abstract class RestQueryBuilder extends RestQueryValidation
     public static function isAggregate(string $column, string $aggregate, $name): string
     {
 
-        if (true === is_string($name)) {
+        $allowedIsAggregations = [self::NULL, self::FALSE, self::TRUE, self::UNKNOWN];
 
-            $allowedIsAggregations = [self::NULL, self::FALSE, self::TRUE, self::UNKNOWN];
+        if (null === $name) {
 
-            if (in_array($name, $allowedIsAggregations, true)) {
+            $name = self::NULL;
 
-                return "$column $aggregate $name";
+        }
 
-            }
+        if ((true === is_string($name)) && in_array($name, $allowedIsAggregations, true)) {
+
+            return "$column $aggregate $name";
 
         }
 
@@ -1711,6 +1713,12 @@ TRIGGER;
         } else {
 
             $key_is_custom = false === self::validateInternalColumn($valueOne, $operator, $valueTwo);
+
+        }
+
+        if (self::EQUAL === $operator && null === $valueTwo) {
+
+            $operator = self::IS;
 
         }
 

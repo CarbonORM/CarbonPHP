@@ -913,7 +913,7 @@ class ThrowableHandler
             // its so verbose with the TRACE above, we can afford to minimise the output here;
             // we loose nothing but immediate readability, which is fine as the TRACE is more useful
             // no data is lost by encoding early
-            $log_array[self::DEBUG_BACKTRACE] = json_encode(debug_backtrace());
+            $log_array[self::DEBUG_BACKTRACE] = debug_backtrace();
 
         } else {
 
