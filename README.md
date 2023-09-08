@@ -7,10 +7,10 @@
 ![CarbonPHP Feature Test Suit](https://github.com/carbonorm/CarbonPHP/workflows/CarbonPHP%20Feature%20Test%20Suit/badge.svg) 
 ![Monthly Downloads](https://img.shields.io/packagist/dm/richardtmiles/carbonphp)
 ![Monthly Downloads](https://img.shields.io/packagist/dm/carbonorm/carbonphp)
-<!-- ![Daily Downloads](https://img.shields.io/packagist/dd/carbonorm/carbonphp) -->
 ![All Downloads](https://img.shields.io/packagist/dt/richardtmiles/carbonphp)
 ![All Downloads](https://img.shields.io/packagist/dt/carbonorm/carbonphp)
 ![Star](https://img.shields.io/github/stars/carbonorm/carbonphp?style=social)
+<!-- ![Daily Downloads](https://img.shields.io/packagist/dd/carbonorm/carbonphp) -->
 
 # UPDATE - Repository location change
 
