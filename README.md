@@ -1,15 +1,15 @@
-![PHP Version](https://img.shields.io/packagist/php-v/richardtmiles/carbonphp)
-![GitHub Release](https://img.shields.io/github/v/release/richardtmiles/carbonphp)
-![Packagist Version](https://img.shields.io/packagist/v/richardtmiles/carbonphp)
-![License](https://img.shields.io/packagist/l/richardtmiles/carbonphp)
-![Size](https://img.shields.io/github/languages/code-size/richardtmiles/carbonphp)
-![Lines](https://img.shields.io/tokei/lines/github/richardtmiles/carbonphp)
+![PHP Version](https://img.shields.io/packagist/php-v/carbonorm/carbonphp)
+![GitHub Release](https://img.shields.io/github/v/release/carbonorm/carbonphp)
+![Packagist Version](https://img.shields.io/packagist/v/carbonorm/carbonphp)
+![License](https://img.shields.io/packagist/l/carbonorm/carbonphp)
+![Size](https://img.shields.io/github/languages/code-size/carbonorm/carbonphp)
+![Lines](https://img.shields.io/tokei/lines/github/carbonorm/carbonphp)
 ![Documentation](https://img.shields.io/website?down_color=lightgrey&down_message=Offline&up_color=green&up_message=Online&url=https%3A%2F%2Fcarbonphp.com)
-![CarbonPHP Feature Test Suit](https://github.com/RichardTMiles/CarbonPHP/workflows/CarbonPHP%20Feature%20Test%20Suit/badge.svg) 
-![Monthly Downloads](https://img.shields.io/packagist/dm/richardtmiles/carbonphp)
-![Daily Downloads](https://img.shields.io/packagist/dd/richardtmiles/carbonphp)
-![All Downloads](https://img.shields.io/packagist/dt/richardtmiles/carbonphp)
-![Star](https://img.shields.io/github/stars/richardtmiles/carbonphp?style=social)
+![CarbonPHP Feature Test Suit](https://github.com/carbonorm/CarbonPHP/workflows/CarbonPHP%20Feature%20Test%20Suit/badge.svg) 
+![Monthly Downloads](https://img.shields.io/packagist/dm/carbonorm/carbonphp)
+![Daily Downloads](https://img.shields.io/packagist/dd/carbonorm/carbonphp)
+![All Downloads](https://img.shields.io/packagist/dt/carbonorm/carbonphp)
+![Star](https://img.shields.io/github/stars/carbonorm/carbonphp?style=social)
 
 
 
@@ -62,7 +62,8 @@ C6 should follow the [PHP Standards Recommendations](https://www.php-fig.org/psr
 
 ## Requirements
 
-CarbonPHP requires PHP 7.4 or later. It makes use of return type object notation, and should not be ported back to earlier PHP versions.
+CarbonPHP currently requires PHP 8.2 or later. We try to stay up-to-date with [PHP's Supported Versions](https://www.php.net/supported-versions.php). 
+It makes use of return type object notation, and should not be ported back to earlier PHP versions.
 CarbonPHP will always try to stay upto date with the latest version of PHP. 
 Use of an opcode cache such as XCache is highly recommended, as Carbon is able to run entirely without stat() 
 calls when paired with an opcode cache. Also recommended (but optional) is a RAM-caching engine such as memcached.
