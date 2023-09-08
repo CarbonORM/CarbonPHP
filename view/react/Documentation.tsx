@@ -37,9 +37,12 @@ export const Put = restRequest<{}, iDocumentation, {}, iPutC6RestResponse<iDocum
         request.error ??= 'An unknown issue occurred updating the documentation!'
         return request
     },
-    responseCallback: (response, _request) => {
+    responseCallback: (response, request) => {
         updateRestfulObjectArrays<iDocumentation>([
-            removeInvalidKeys<iDocumentation>(response?.data?.rest, C6.TABLES)
+            removeInvalidKeys<iDocumentation>({
+                ...request,
+                ...response?.data?.rest,
+            }, C6.TABLES)
         ], "documentation", documentation.PRIMARY_SHORT as (keyof iDocumentation)[])
     }
 })
@@ -54,10 +57,29 @@ export const Post = restRequest<{}, iDocumentation, {}, iPostC6RestResponse<iDoc
         request.error ??= 'An unknown issue occurred creating the documentation!'
         return request
     },
-    responseCallback: (response, _request) => {
-        updateRestfulObjectArrays<iDocumentation>([
-            removeInvalidKeys<iDocumentation>(response?.data?.rest, C6.TABLES)
-        ], "documentation", documentation.PRIMARY_SHORT as (keyof iDocumentation[])
+    responseCallback: (response, request, id) => {
+        if ('number' === typeof id || 'string' === typeof id) {
+            if (1 !== documentation.PRIMARY_SHORT.length) {
+                console.error("C6 received unexpected result's given the primary key length");
+            } else {
+                request[documentation.PRIMARY_SHORT[0]] = id
+            }
+        }
+        updateRestfulObjectArrays<iDocumentation>(
+            undefined !== request.dataInsertMultipleRows
+                ? request.dataInsertMultipleRows.map((request, index) => {
+                    return removeInvalidKeys<iDocumentation>({
+                        ...request,
+                        ...(index === 0 ? response?.data?.rest : {}),
+                    }, C6.TABLES)
+                })
+                : [
+                    removeInvalidKeys<iDocumentation>({
+                        ...request,
+                        ...response?.data?.rest,
+                    }, C6.TABLES)
+                ]
+            , "documentation", documentation.PRIMARY_SHORT as (keyof iDocumentation)[])
     }
 })
 

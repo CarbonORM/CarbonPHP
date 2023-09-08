@@ -37,9 +37,12 @@ export const Put = restRequest<{}, iWp_Comments, {}, iPutC6RestResponse<iWp_Comm
         request.error ??= 'An unknown issue occurred updating the wp comments!'
         return request
     },
-    responseCallback: (response, _request) => {
+    responseCallback: (response, request) => {
         updateRestfulObjectArrays<iWp_Comments>([
-            removeInvalidKeys<iWp_Comments>(response?.data?.rest, C6.TABLES)
+            removeInvalidKeys<iWp_Comments>({
+                ...request,
+                ...response?.data?.rest,
+            }, C6.TABLES)
         ], "wp_comments", wp_comments.PRIMARY_SHORT as (keyof iWp_Comments)[])
     }
 })
@@ -54,10 +57,29 @@ export const Post = restRequest<{}, iWp_Comments, {}, iPostC6RestResponse<iWp_Co
         request.error ??= 'An unknown issue occurred creating the wp comments!'
         return request
     },
-    responseCallback: (response, _request) => {
-        updateRestfulObjectArrays<iWp_Comments>([
-            removeInvalidKeys<iWp_Comments>(response?.data?.rest, C6.TABLES)
-        ], "wp_comments", wp_comments.PRIMARY_SHORT as (keyof iWp_Comments[])
+    responseCallback: (response, request, id) => {
+        if ('number' === typeof id || 'string' === typeof id) {
+            if (1 !== wp_comments.PRIMARY_SHORT.length) {
+                console.error("C6 received unexpected result's given the primary key length");
+            } else {
+                request[wp_comments.PRIMARY_SHORT[0]] = id
+            }
+        }
+        updateRestfulObjectArrays<iWp_Comments>(
+            undefined !== request.dataInsertMultipleRows
+                ? request.dataInsertMultipleRows.map((request, index) => {
+                    return removeInvalidKeys<iWp_Comments>({
+                        ...request,
+                        ...(index === 0 ? response?.data?.rest : {}),
+                    }, C6.TABLES)
+                })
+                : [
+                    removeInvalidKeys<iWp_Comments>({
+                        ...request,
+                        ...response?.data?.rest,
+                    }, C6.TABLES)
+                ]
+            , "wp_comments", wp_comments.PRIMARY_SHORT as (keyof iWp_Comments)[])
     }
 })
 

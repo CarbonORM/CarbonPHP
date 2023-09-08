@@ -37,9 +37,12 @@ export const Put = restRequest<{}, iUser_Groups, {}, iPutC6RestResponse<iUser_Gr
         request.error ??= 'An unknown issue occurred updating the user groups!'
         return request
     },
-    responseCallback: (response, _request) => {
+    responseCallback: (response, request) => {
         updateRestfulObjectArrays<iUser_Groups>([
-            removeInvalidKeys<iUser_Groups>(response?.data?.rest, C6.TABLES)
+            removeInvalidKeys<iUser_Groups>({
+                ...request,
+                ...response?.data?.rest,
+            }, C6.TABLES)
         ], "user_groups", user_groups.PRIMARY_SHORT as (keyof iUser_Groups)[])
     }
 })
@@ -54,10 +57,29 @@ export const Post = restRequest<{}, iUser_Groups, {}, iPostC6RestResponse<iUser_
         request.error ??= 'An unknown issue occurred creating the user groups!'
         return request
     },
-    responseCallback: (response, _request) => {
-        updateRestfulObjectArrays<iUser_Groups>([
-            removeInvalidKeys<iUser_Groups>(response?.data?.rest, C6.TABLES)
-        ], "user_groups", user_groups.PRIMARY_SHORT as (keyof iUser_Groups[])
+    responseCallback: (response, request, id) => {
+        if ('number' === typeof id || 'string' === typeof id) {
+            if (1 !== user_groups.PRIMARY_SHORT.length) {
+                console.error("C6 received unexpected result's given the primary key length");
+            } else {
+                request[user_groups.PRIMARY_SHORT[0]] = id
+            }
+        }
+        updateRestfulObjectArrays<iUser_Groups>(
+            undefined !== request.dataInsertMultipleRows
+                ? request.dataInsertMultipleRows.map((request, index) => {
+                    return removeInvalidKeys<iUser_Groups>({
+                        ...request,
+                        ...(index === 0 ? response?.data?.rest : {}),
+                    }, C6.TABLES)
+                })
+                : [
+                    removeInvalidKeys<iUser_Groups>({
+                        ...request,
+                        ...response?.data?.rest,
+                    }, C6.TABLES)
+                ]
+            , "user_groups", user_groups.PRIMARY_SHORT as (keyof iUser_Groups)[])
     }
 })
 

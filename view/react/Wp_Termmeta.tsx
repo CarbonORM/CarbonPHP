@@ -37,9 +37,12 @@ export const Put = restRequest<{}, iWp_Termmeta, {}, iPutC6RestResponse<iWp_Term
         request.error ??= 'An unknown issue occurred updating the wp termmeta!'
         return request
     },
-    responseCallback: (response, _request) => {
+    responseCallback: (response, request) => {
         updateRestfulObjectArrays<iWp_Termmeta>([
-            removeInvalidKeys<iWp_Termmeta>(response?.data?.rest, C6.TABLES)
+            removeInvalidKeys<iWp_Termmeta>({
+                ...request,
+                ...response?.data?.rest,
+            }, C6.TABLES)
         ], "wp_termmeta", wp_termmeta.PRIMARY_SHORT as (keyof iWp_Termmeta)[])
     }
 })
@@ -54,10 +57,29 @@ export const Post = restRequest<{}, iWp_Termmeta, {}, iPostC6RestResponse<iWp_Te
         request.error ??= 'An unknown issue occurred creating the wp termmeta!'
         return request
     },
-    responseCallback: (response, _request) => {
-        updateRestfulObjectArrays<iWp_Termmeta>([
-            removeInvalidKeys<iWp_Termmeta>(response?.data?.rest, C6.TABLES)
-        ], "wp_termmeta", wp_termmeta.PRIMARY_SHORT as (keyof iWp_Termmeta[])
+    responseCallback: (response, request, id) => {
+        if ('number' === typeof id || 'string' === typeof id) {
+            if (1 !== wp_termmeta.PRIMARY_SHORT.length) {
+                console.error("C6 received unexpected result's given the primary key length");
+            } else {
+                request[wp_termmeta.PRIMARY_SHORT[0]] = id
+            }
+        }
+        updateRestfulObjectArrays<iWp_Termmeta>(
+            undefined !== request.dataInsertMultipleRows
+                ? request.dataInsertMultipleRows.map((request, index) => {
+                    return removeInvalidKeys<iWp_Termmeta>({
+                        ...request,
+                        ...(index === 0 ? response?.data?.rest : {}),
+                    }, C6.TABLES)
+                })
+                : [
+                    removeInvalidKeys<iWp_Termmeta>({
+                        ...request,
+                        ...response?.data?.rest,
+                    }, C6.TABLES)
+                ]
+            , "wp_termmeta", wp_termmeta.PRIMARY_SHORT as (keyof iWp_Termmeta)[])
     }
 })
 

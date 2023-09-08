@@ -37,9 +37,12 @@ export const Put = restRequest<{}, iGroup_References, {}, iPutC6RestResponse<iGr
         request.error ??= 'An unknown issue occurred updating the group references!'
         return request
     },
-    responseCallback: (response, _request) => {
+    responseCallback: (response, request) => {
         updateRestfulObjectArrays<iGroup_References>([
-            removeInvalidKeys<iGroup_References>(response?.data?.rest, C6.TABLES)
+            removeInvalidKeys<iGroup_References>({
+                ...request,
+                ...response?.data?.rest,
+            }, C6.TABLES)
         ], "group_references", group_references.PRIMARY_SHORT as (keyof iGroup_References)[])
     }
 })
@@ -54,10 +57,29 @@ export const Post = restRequest<{}, iGroup_References, {}, iPostC6RestResponse<i
         request.error ??= 'An unknown issue occurred creating the group references!'
         return request
     },
-    responseCallback: (response, _request) => {
-        updateRestfulObjectArrays<iGroup_References>([
-            removeInvalidKeys<iGroup_References>(response?.data?.rest, C6.TABLES)
-        ], "group_references", group_references.PRIMARY_SHORT as (keyof iGroup_References[])
+    responseCallback: (response, request, id) => {
+        if ('number' === typeof id || 'string' === typeof id) {
+            if (1 !== group_references.PRIMARY_SHORT.length) {
+                console.error("C6 received unexpected result's given the primary key length");
+            } else {
+                request[group_references.PRIMARY_SHORT[0]] = id
+            }
+        }
+        updateRestfulObjectArrays<iGroup_References>(
+            undefined !== request.dataInsertMultipleRows
+                ? request.dataInsertMultipleRows.map((request, index) => {
+                    return removeInvalidKeys<iGroup_References>({
+                        ...request,
+                        ...(index === 0 ? response?.data?.rest : {}),
+                    }, C6.TABLES)
+                })
+                : [
+                    removeInvalidKeys<iGroup_References>({
+                        ...request,
+                        ...response?.data?.rest,
+                    }, C6.TABLES)
+                ]
+            , "group_references", group_references.PRIMARY_SHORT as (keyof iGroup_References)[])
     }
 })
 

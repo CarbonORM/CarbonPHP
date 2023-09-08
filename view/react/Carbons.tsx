@@ -37,9 +37,12 @@ export const Put = restRequest<{}, iCarbons, {}, iPutC6RestResponse<iCarbons>, R
         request.error ??= 'An unknown issue occurred updating the carbons!'
         return request
     },
-    responseCallback: (response, _request) => {
+    responseCallback: (response, request) => {
         updateRestfulObjectArrays<iCarbons>([
-            removeInvalidKeys<iCarbons>(response?.data?.rest, C6.TABLES)
+            removeInvalidKeys<iCarbons>({
+                ...request,
+                ...response?.data?.rest,
+            }, C6.TABLES)
         ], "carbons", carbons.PRIMARY_SHORT as (keyof iCarbons)[])
     }
 })
@@ -54,10 +57,29 @@ export const Post = restRequest<{}, iCarbons, {}, iPostC6RestResponse<iCarbons>,
         request.error ??= 'An unknown issue occurred creating the carbons!'
         return request
     },
-    responseCallback: (response, _request) => {
-        updateRestfulObjectArrays<iCarbons>([
-            removeInvalidKeys<iCarbons>(response?.data?.rest, C6.TABLES)
-        ], "carbons", carbons.PRIMARY_SHORT as (keyof iCarbons[])
+    responseCallback: (response, request, id) => {
+        if ('number' === typeof id || 'string' === typeof id) {
+            if (1 !== carbons.PRIMARY_SHORT.length) {
+                console.error("C6 received unexpected result's given the primary key length");
+            } else {
+                request[carbons.PRIMARY_SHORT[0]] = id
+            }
+        }
+        updateRestfulObjectArrays<iCarbons>(
+            undefined !== request.dataInsertMultipleRows
+                ? request.dataInsertMultipleRows.map((request, index) => {
+                    return removeInvalidKeys<iCarbons>({
+                        ...request,
+                        ...(index === 0 ? response?.data?.rest : {}),
+                    }, C6.TABLES)
+                })
+                : [
+                    removeInvalidKeys<iCarbons>({
+                        ...request,
+                        ...response?.data?.rest,
+                    }, C6.TABLES)
+                ]
+            , "carbons", carbons.PRIMARY_SHORT as (keyof iCarbons)[])
     }
 })
 

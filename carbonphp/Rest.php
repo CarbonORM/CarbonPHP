@@ -57,7 +57,7 @@ abstract class Rest extends RestLifeCycle
 
                     if (is_array(static::PRIMARY)) {
 
-                        throw new PublicAlert('Tables which use carbon for indexes should not have composite primary keys.');
+                        return self::signalError('Tables which use carbon for indexes should not have composite primary keys.');
 
                     }
 
@@ -65,11 +65,14 @@ abstract class Rest extends RestLifeCycle
 
                     $sql = self::DELETE . ' c FROM ' . $query_database_name . $table_prefix . 'carbon_carbons c JOIN ' . $table_name . ' on c.entity_pk = ' . static::PRIMARY;
 
+                    // todo - this is done three times in this function depending on if stmt, can we abstract further up?
+                    $argv[self::WHERE] = array_merge($argv[self::WHERE], $primary ?? []);
+
                     if (false === self::$allowFullTableDeletes) {
 
                         if (empty($argv[self::WHERE])) {
 
-                            throw new PublicAlert('When deleting from restful tables a primary key or where query must be provided. This can be disabled by setting `self::\$allowFullTableDeletes = true;` during the PREPROCESS events, or just directly before this request.');
+                            return self::signalError('When deleting from restful tables a primary key or where query must be provided. This can be disabled by setting `self::\$allowFullTableDeletes = true;` during the PREPROCESS events, or just directly before this request.');
 
                         }
 

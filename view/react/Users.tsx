@@ -37,9 +37,12 @@ export const Put = restRequest<{}, iUsers, {}, iPutC6RestResponse<iUsers>, RestS
         request.error ??= 'An unknown issue occurred updating the users!'
         return request
     },
-    responseCallback: (response, _request) => {
+    responseCallback: (response, request) => {
         updateRestfulObjectArrays<iUsers>([
-            removeInvalidKeys<iUsers>(response?.data?.rest, C6.TABLES)
+            removeInvalidKeys<iUsers>({
+                ...request,
+                ...response?.data?.rest,
+            }, C6.TABLES)
         ], "users", users.PRIMARY_SHORT as (keyof iUsers)[])
     }
 })
@@ -54,10 +57,29 @@ export const Post = restRequest<{}, iUsers, {}, iPostC6RestResponse<iUsers>, Res
         request.error ??= 'An unknown issue occurred creating the users!'
         return request
     },
-    responseCallback: (response, _request) => {
-        updateRestfulObjectArrays<iUsers>([
-            removeInvalidKeys<iUsers>(response?.data?.rest, C6.TABLES)
-        ], "users", users.PRIMARY_SHORT as (keyof iUsers[])
+    responseCallback: (response, request, id) => {
+        if ('number' === typeof id || 'string' === typeof id) {
+            if (1 !== users.PRIMARY_SHORT.length) {
+                console.error("C6 received unexpected result's given the primary key length");
+            } else {
+                request[users.PRIMARY_SHORT[0]] = id
+            }
+        }
+        updateRestfulObjectArrays<iUsers>(
+            undefined !== request.dataInsertMultipleRows
+                ? request.dataInsertMultipleRows.map((request, index) => {
+                    return removeInvalidKeys<iUsers>({
+                        ...request,
+                        ...(index === 0 ? response?.data?.rest : {}),
+                    }, C6.TABLES)
+                })
+                : [
+                    removeInvalidKeys<iUsers>({
+                        ...request,
+                        ...response?.data?.rest,
+                    }, C6.TABLES)
+                ]
+            , "users", users.PRIMARY_SHORT as (keyof iUsers)[])
     }
 })
 

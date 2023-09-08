@@ -37,9 +37,12 @@ export const Put = restRequest<{}, iHistory_Logs, {}, iPutC6RestResponse<iHistor
         request.error ??= 'An unknown issue occurred updating the history logs!'
         return request
     },
-    responseCallback: (response, _request) => {
+    responseCallback: (response, request) => {
         updateRestfulObjectArrays<iHistory_Logs>([
-            removeInvalidKeys<iHistory_Logs>(response?.data?.rest, C6.TABLES)
+            removeInvalidKeys<iHistory_Logs>({
+                ...request,
+                ...response?.data?.rest,
+            }, C6.TABLES)
         ], "history_logs", history_logs.PRIMARY_SHORT as (keyof iHistory_Logs)[])
     }
 })
@@ -54,10 +57,29 @@ export const Post = restRequest<{}, iHistory_Logs, {}, iPostC6RestResponse<iHist
         request.error ??= 'An unknown issue occurred creating the history logs!'
         return request
     },
-    responseCallback: (response, _request) => {
-        updateRestfulObjectArrays<iHistory_Logs>([
-            removeInvalidKeys<iHistory_Logs>(response?.data?.rest, C6.TABLES)
-        ], "history_logs", history_logs.PRIMARY_SHORT as (keyof iHistory_Logs[])
+    responseCallback: (response, request, id) => {
+        if ('number' === typeof id || 'string' === typeof id) {
+            if (1 !== history_logs.PRIMARY_SHORT.length) {
+                console.error("C6 received unexpected result's given the primary key length");
+            } else {
+                request[history_logs.PRIMARY_SHORT[0]] = id
+            }
+        }
+        updateRestfulObjectArrays<iHistory_Logs>(
+            undefined !== request.dataInsertMultipleRows
+                ? request.dataInsertMultipleRows.map((request, index) => {
+                    return removeInvalidKeys<iHistory_Logs>({
+                        ...request,
+                        ...(index === 0 ? response?.data?.rest : {}),
+                    }, C6.TABLES)
+                })
+                : [
+                    removeInvalidKeys<iHistory_Logs>({
+                        ...request,
+                        ...response?.data?.rest,
+                    }, C6.TABLES)
+                ]
+            , "history_logs", history_logs.PRIMARY_SHORT as (keyof iHistory_Logs)[])
     }
 })
 

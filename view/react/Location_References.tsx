@@ -37,9 +37,12 @@ export const Put = restRequest<{}, iLocation_References, {}, iPutC6RestResponse<
         request.error ??= 'An unknown issue occurred updating the location references!'
         return request
     },
-    responseCallback: (response, _request) => {
+    responseCallback: (response, request) => {
         updateRestfulObjectArrays<iLocation_References>([
-            removeInvalidKeys<iLocation_References>(response?.data?.rest, C6.TABLES)
+            removeInvalidKeys<iLocation_References>({
+                ...request,
+                ...response?.data?.rest,
+            }, C6.TABLES)
         ], "location_references", location_references.PRIMARY_SHORT as (keyof iLocation_References)[])
     }
 })
@@ -54,10 +57,29 @@ export const Post = restRequest<{}, iLocation_References, {}, iPostC6RestRespons
         request.error ??= 'An unknown issue occurred creating the location references!'
         return request
     },
-    responseCallback: (response, _request) => {
-        updateRestfulObjectArrays<iLocation_References>([
-            removeInvalidKeys<iLocation_References>(response?.data?.rest, C6.TABLES)
-        ], "location_references", location_references.PRIMARY_SHORT as (keyof iLocation_References[])
+    responseCallback: (response, request, id) => {
+        if ('number' === typeof id || 'string' === typeof id) {
+            if (1 !== location_references.PRIMARY_SHORT.length) {
+                console.error("C6 received unexpected result's given the primary key length");
+            } else {
+                request[location_references.PRIMARY_SHORT[0]] = id
+            }
+        }
+        updateRestfulObjectArrays<iLocation_References>(
+            undefined !== request.dataInsertMultipleRows
+                ? request.dataInsertMultipleRows.map((request, index) => {
+                    return removeInvalidKeys<iLocation_References>({
+                        ...request,
+                        ...(index === 0 ? response?.data?.rest : {}),
+                    }, C6.TABLES)
+                })
+                : [
+                    removeInvalidKeys<iLocation_References>({
+                        ...request,
+                        ...response?.data?.rest,
+                    }, C6.TABLES)
+                ]
+            , "location_references", location_references.PRIMARY_SHORT as (keyof iLocation_References)[])
     }
 })
 

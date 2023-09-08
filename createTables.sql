@@ -132,16 +132,6 @@ CREATE TABLE IF NOT EXISTS `carbon_reports` (
 `call_trace` text NOT NULL
 ) ENGINE=InnoDB;
 
-CREATE TABLE IF NOT EXISTS `carbon_sessions` (
-`user_id` binary(16) NOT NULL,
-`user_ip` varchar(20) DEFAULT NULL,
-`session_id` varchar(255) NOT NULL,
-`session_expires` datetime NOT NULL,
-`session_data` text,
-`user_online_status` tinyint DEFAULT '1',
-PRIMARY KEY (`session_id`)
-) ENGINE=InnoDB;
-
 CREATE TABLE IF NOT EXISTS `carbon_user_followers` (
 `follower_table_id` binary(16) NOT NULL,
 `follows_user_id` binary(16) NOT NULL,
@@ -181,7 +171,7 @@ CONSTRAINT `messages_entity_user_from_pk_fk` FOREIGN KEY (`to_user_id`) REFERENC
 
 CREATE TABLE IF NOT EXISTS `carbon_user_sessions` (
 `user_id` binary(16) NOT NULL,
-`user_ip` binary(16) DEFAULT NULL,
+`user_ip` varchar(80) DEFAULT NULL,
 `session_id` varchar(255) NOT NULL,
 `session_expires` datetime NOT NULL,
 `session_data` text,

@@ -37,9 +37,12 @@ export const Put = restRequest<{}, iUser_Sessions, {}, iPutC6RestResponse<iUser_
         request.error ??= 'An unknown issue occurred updating the user sessions!'
         return request
     },
-    responseCallback: (response, _request) => {
+    responseCallback: (response, request) => {
         updateRestfulObjectArrays<iUser_Sessions>([
-            removeInvalidKeys<iUser_Sessions>(response?.data?.rest, C6.TABLES)
+            removeInvalidKeys<iUser_Sessions>({
+                ...request,
+                ...response?.data?.rest,
+            }, C6.TABLES)
         ], "user_sessions", user_sessions.PRIMARY_SHORT as (keyof iUser_Sessions)[])
     }
 })
@@ -54,10 +57,29 @@ export const Post = restRequest<{}, iUser_Sessions, {}, iPostC6RestResponse<iUse
         request.error ??= 'An unknown issue occurred creating the user sessions!'
         return request
     },
-    responseCallback: (response, _request) => {
-        updateRestfulObjectArrays<iUser_Sessions>([
-            removeInvalidKeys<iUser_Sessions>(response?.data?.rest, C6.TABLES)
-        ], "user_sessions", user_sessions.PRIMARY_SHORT as (keyof iUser_Sessions[])
+    responseCallback: (response, request, id) => {
+        if ('number' === typeof id || 'string' === typeof id) {
+            if (1 !== user_sessions.PRIMARY_SHORT.length) {
+                console.error("C6 received unexpected result's given the primary key length");
+            } else {
+                request[user_sessions.PRIMARY_SHORT[0]] = id
+            }
+        }
+        updateRestfulObjectArrays<iUser_Sessions>(
+            undefined !== request.dataInsertMultipleRows
+                ? request.dataInsertMultipleRows.map((request, index) => {
+                    return removeInvalidKeys<iUser_Sessions>({
+                        ...request,
+                        ...(index === 0 ? response?.data?.rest : {}),
+                    }, C6.TABLES)
+                })
+                : [
+                    removeInvalidKeys<iUser_Sessions>({
+                        ...request,
+                        ...response?.data?.rest,
+                    }, C6.TABLES)
+                ]
+            , "user_sessions", user_sessions.PRIMARY_SHORT as (keyof iUser_Sessions)[])
     }
 })
 

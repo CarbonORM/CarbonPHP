@@ -37,9 +37,12 @@ export const Put = restRequest<{}, iUser_Tasks, {}, iPutC6RestResponse<iUser_Tas
         request.error ??= 'An unknown issue occurred updating the user tasks!'
         return request
     },
-    responseCallback: (response, _request) => {
+    responseCallback: (response, request) => {
         updateRestfulObjectArrays<iUser_Tasks>([
-            removeInvalidKeys<iUser_Tasks>(response?.data?.rest, C6.TABLES)
+            removeInvalidKeys<iUser_Tasks>({
+                ...request,
+                ...response?.data?.rest,
+            }, C6.TABLES)
         ], "user_tasks", user_tasks.PRIMARY_SHORT as (keyof iUser_Tasks)[])
     }
 })
@@ -54,10 +57,29 @@ export const Post = restRequest<{}, iUser_Tasks, {}, iPostC6RestResponse<iUser_T
         request.error ??= 'An unknown issue occurred creating the user tasks!'
         return request
     },
-    responseCallback: (response, _request) => {
-        updateRestfulObjectArrays<iUser_Tasks>([
-            removeInvalidKeys<iUser_Tasks>(response?.data?.rest, C6.TABLES)
-        ], "user_tasks", user_tasks.PRIMARY_SHORT as (keyof iUser_Tasks[])
+    responseCallback: (response, request, id) => {
+        if ('number' === typeof id || 'string' === typeof id) {
+            if (1 !== user_tasks.PRIMARY_SHORT.length) {
+                console.error("C6 received unexpected result's given the primary key length");
+            } else {
+                request[user_tasks.PRIMARY_SHORT[0]] = id
+            }
+        }
+        updateRestfulObjectArrays<iUser_Tasks>(
+            undefined !== request.dataInsertMultipleRows
+                ? request.dataInsertMultipleRows.map((request, index) => {
+                    return removeInvalidKeys<iUser_Tasks>({
+                        ...request,
+                        ...(index === 0 ? response?.data?.rest : {}),
+                    }, C6.TABLES)
+                })
+                : [
+                    removeInvalidKeys<iUser_Tasks>({
+                        ...request,
+                        ...response?.data?.rest,
+                    }, C6.TABLES)
+                ]
+            , "user_tasks", user_tasks.PRIMARY_SHORT as (keyof iUser_Tasks)[])
     }
 })
 

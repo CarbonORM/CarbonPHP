@@ -37,9 +37,12 @@ export const Put = restRequest<{}, iWp_Term_Taxonomy, {}, iPutC6RestResponse<iWp
         request.error ??= 'An unknown issue occurred updating the wp term taxonomy!'
         return request
     },
-    responseCallback: (response, _request) => {
+    responseCallback: (response, request) => {
         updateRestfulObjectArrays<iWp_Term_Taxonomy>([
-            removeInvalidKeys<iWp_Term_Taxonomy>(response?.data?.rest, C6.TABLES)
+            removeInvalidKeys<iWp_Term_Taxonomy>({
+                ...request,
+                ...response?.data?.rest,
+            }, C6.TABLES)
         ], "wp_term_taxonomy", wp_term_taxonomy.PRIMARY_SHORT as (keyof iWp_Term_Taxonomy)[])
     }
 })
@@ -54,10 +57,29 @@ export const Post = restRequest<{}, iWp_Term_Taxonomy, {}, iPostC6RestResponse<i
         request.error ??= 'An unknown issue occurred creating the wp term taxonomy!'
         return request
     },
-    responseCallback: (response, _request) => {
-        updateRestfulObjectArrays<iWp_Term_Taxonomy>([
-            removeInvalidKeys<iWp_Term_Taxonomy>(response?.data?.rest, C6.TABLES)
-        ], "wp_term_taxonomy", wp_term_taxonomy.PRIMARY_SHORT as (keyof iWp_Term_Taxonomy[])
+    responseCallback: (response, request, id) => {
+        if ('number' === typeof id || 'string' === typeof id) {
+            if (1 !== wp_term_taxonomy.PRIMARY_SHORT.length) {
+                console.error("C6 received unexpected result's given the primary key length");
+            } else {
+                request[wp_term_taxonomy.PRIMARY_SHORT[0]] = id
+            }
+        }
+        updateRestfulObjectArrays<iWp_Term_Taxonomy>(
+            undefined !== request.dataInsertMultipleRows
+                ? request.dataInsertMultipleRows.map((request, index) => {
+                    return removeInvalidKeys<iWp_Term_Taxonomy>({
+                        ...request,
+                        ...(index === 0 ? response?.data?.rest : {}),
+                    }, C6.TABLES)
+                })
+                : [
+                    removeInvalidKeys<iWp_Term_Taxonomy>({
+                        ...request,
+                        ...response?.data?.rest,
+                    }, C6.TABLES)
+                ]
+            , "wp_term_taxonomy", wp_term_taxonomy.PRIMARY_SHORT as (keyof iWp_Term_Taxonomy)[])
     }
 })
 

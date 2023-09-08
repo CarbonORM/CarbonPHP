@@ -37,9 +37,12 @@ export const Put = restRequest<{}, iWp_Terms, {}, iPutC6RestResponse<iWp_Terms>,
         request.error ??= 'An unknown issue occurred updating the wp terms!'
         return request
     },
-    responseCallback: (response, _request) => {
+    responseCallback: (response, request) => {
         updateRestfulObjectArrays<iWp_Terms>([
-            removeInvalidKeys<iWp_Terms>(response?.data?.rest, C6.TABLES)
+            removeInvalidKeys<iWp_Terms>({
+                ...request,
+                ...response?.data?.rest,
+            }, C6.TABLES)
         ], "wp_terms", wp_terms.PRIMARY_SHORT as (keyof iWp_Terms)[])
     }
 })
@@ -54,10 +57,29 @@ export const Post = restRequest<{}, iWp_Terms, {}, iPostC6RestResponse<iWp_Terms
         request.error ??= 'An unknown issue occurred creating the wp terms!'
         return request
     },
-    responseCallback: (response, _request) => {
-        updateRestfulObjectArrays<iWp_Terms>([
-            removeInvalidKeys<iWp_Terms>(response?.data?.rest, C6.TABLES)
-        ], "wp_terms", wp_terms.PRIMARY_SHORT as (keyof iWp_Terms[])
+    responseCallback: (response, request, id) => {
+        if ('number' === typeof id || 'string' === typeof id) {
+            if (1 !== wp_terms.PRIMARY_SHORT.length) {
+                console.error("C6 received unexpected result's given the primary key length");
+            } else {
+                request[wp_terms.PRIMARY_SHORT[0]] = id
+            }
+        }
+        updateRestfulObjectArrays<iWp_Terms>(
+            undefined !== request.dataInsertMultipleRows
+                ? request.dataInsertMultipleRows.map((request, index) => {
+                    return removeInvalidKeys<iWp_Terms>({
+                        ...request,
+                        ...(index === 0 ? response?.data?.rest : {}),
+                    }, C6.TABLES)
+                })
+                : [
+                    removeInvalidKeys<iWp_Terms>({
+                        ...request,
+                        ...response?.data?.rest,
+                    }, C6.TABLES)
+                ]
+            , "wp_terms", wp_terms.PRIMARY_SHORT as (keyof iWp_Terms)[])
     }
 })
 

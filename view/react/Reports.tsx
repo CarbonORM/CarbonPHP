@@ -37,9 +37,12 @@ export const Put = restRequest<{}, iReports, {}, iPutC6RestResponse<iReports>, R
         request.error ??= 'An unknown issue occurred updating the reports!'
         return request
     },
-    responseCallback: (response, _request) => {
+    responseCallback: (response, request) => {
         updateRestfulObjectArrays<iReports>([
-            removeInvalidKeys<iReports>(response?.data?.rest, C6.TABLES)
+            removeInvalidKeys<iReports>({
+                ...request,
+                ...response?.data?.rest,
+            }, C6.TABLES)
         ], "reports", reports.PRIMARY_SHORT as (keyof iReports)[])
     }
 })
@@ -54,10 +57,29 @@ export const Post = restRequest<{}, iReports, {}, iPostC6RestResponse<iReports>,
         request.error ??= 'An unknown issue occurred creating the reports!'
         return request
     },
-    responseCallback: (response, _request) => {
-        updateRestfulObjectArrays<iReports>([
-            removeInvalidKeys<iReports>(response?.data?.rest, C6.TABLES)
-        ], "reports", reports.PRIMARY_SHORT as (keyof iReports[])
+    responseCallback: (response, request, id) => {
+        if ('number' === typeof id || 'string' === typeof id) {
+            if (1 !== reports.PRIMARY_SHORT.length) {
+                console.error("C6 received unexpected result's given the primary key length");
+            } else {
+                request[reports.PRIMARY_SHORT[0]] = id
+            }
+        }
+        updateRestfulObjectArrays<iReports>(
+            undefined !== request.dataInsertMultipleRows
+                ? request.dataInsertMultipleRows.map((request, index) => {
+                    return removeInvalidKeys<iReports>({
+                        ...request,
+                        ...(index === 0 ? response?.data?.rest : {}),
+                    }, C6.TABLES)
+                })
+                : [
+                    removeInvalidKeys<iReports>({
+                        ...request,
+                        ...response?.data?.rest,
+                    }, C6.TABLES)
+                ]
+            , "reports", reports.PRIMARY_SHORT as (keyof iReports)[])
     }
 })
 

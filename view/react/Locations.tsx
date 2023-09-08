@@ -37,9 +37,12 @@ export const Put = restRequest<{}, iLocations, {}, iPutC6RestResponse<iLocations
         request.error ??= 'An unknown issue occurred updating the locations!'
         return request
     },
-    responseCallback: (response, _request) => {
+    responseCallback: (response, request) => {
         updateRestfulObjectArrays<iLocations>([
-            removeInvalidKeys<iLocations>(response?.data?.rest, C6.TABLES)
+            removeInvalidKeys<iLocations>({
+                ...request,
+                ...response?.data?.rest,
+            }, C6.TABLES)
         ], "locations", locations.PRIMARY_SHORT as (keyof iLocations)[])
     }
 })
@@ -54,10 +57,29 @@ export const Post = restRequest<{}, iLocations, {}, iPostC6RestResponse<iLocatio
         request.error ??= 'An unknown issue occurred creating the locations!'
         return request
     },
-    responseCallback: (response, _request) => {
-        updateRestfulObjectArrays<iLocations>([
-            removeInvalidKeys<iLocations>(response?.data?.rest, C6.TABLES)
-        ], "locations", locations.PRIMARY_SHORT as (keyof iLocations[])
+    responseCallback: (response, request, id) => {
+        if ('number' === typeof id || 'string' === typeof id) {
+            if (1 !== locations.PRIMARY_SHORT.length) {
+                console.error("C6 received unexpected result's given the primary key length");
+            } else {
+                request[locations.PRIMARY_SHORT[0]] = id
+            }
+        }
+        updateRestfulObjectArrays<iLocations>(
+            undefined !== request.dataInsertMultipleRows
+                ? request.dataInsertMultipleRows.map((request, index) => {
+                    return removeInvalidKeys<iLocations>({
+                        ...request,
+                        ...(index === 0 ? response?.data?.rest : {}),
+                    }, C6.TABLES)
+                })
+                : [
+                    removeInvalidKeys<iLocations>({
+                        ...request,
+                        ...response?.data?.rest,
+                    }, C6.TABLES)
+                ]
+            , "locations", locations.PRIMARY_SHORT as (keyof iLocations)[])
     }
 })
 

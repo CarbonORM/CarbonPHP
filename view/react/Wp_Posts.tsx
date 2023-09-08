@@ -37,9 +37,12 @@ export const Put = restRequest<{}, iWp_Posts, {}, iPutC6RestResponse<iWp_Posts>,
         request.error ??= 'An unknown issue occurred updating the wp posts!'
         return request
     },
-    responseCallback: (response, _request) => {
+    responseCallback: (response, request) => {
         updateRestfulObjectArrays<iWp_Posts>([
-            removeInvalidKeys<iWp_Posts>(response?.data?.rest, C6.TABLES)
+            removeInvalidKeys<iWp_Posts>({
+                ...request,
+                ...response?.data?.rest,
+            }, C6.TABLES)
         ], "wp_posts", wp_posts.PRIMARY_SHORT as (keyof iWp_Posts)[])
     }
 })
@@ -54,10 +57,29 @@ export const Post = restRequest<{}, iWp_Posts, {}, iPostC6RestResponse<iWp_Posts
         request.error ??= 'An unknown issue occurred creating the wp posts!'
         return request
     },
-    responseCallback: (response, _request) => {
-        updateRestfulObjectArrays<iWp_Posts>([
-            removeInvalidKeys<iWp_Posts>(response?.data?.rest, C6.TABLES)
-        ], "wp_posts", wp_posts.PRIMARY_SHORT as (keyof iWp_Posts[])
+    responseCallback: (response, request, id) => {
+        if ('number' === typeof id || 'string' === typeof id) {
+            if (1 !== wp_posts.PRIMARY_SHORT.length) {
+                console.error("C6 received unexpected result's given the primary key length");
+            } else {
+                request[wp_posts.PRIMARY_SHORT[0]] = id
+            }
+        }
+        updateRestfulObjectArrays<iWp_Posts>(
+            undefined !== request.dataInsertMultipleRows
+                ? request.dataInsertMultipleRows.map((request, index) => {
+                    return removeInvalidKeys<iWp_Posts>({
+                        ...request,
+                        ...(index === 0 ? response?.data?.rest : {}),
+                    }, C6.TABLES)
+                })
+                : [
+                    removeInvalidKeys<iWp_Posts>({
+                        ...request,
+                        ...response?.data?.rest,
+                    }, C6.TABLES)
+                ]
+            , "wp_posts", wp_posts.PRIMARY_SHORT as (keyof iWp_Posts)[])
     }
 })
 

@@ -37,9 +37,12 @@ export const Put = restRequest<{}, iFeatures, {}, iPutC6RestResponse<iFeatures>,
         request.error ??= 'An unknown issue occurred updating the features!'
         return request
     },
-    responseCallback: (response, _request) => {
+    responseCallback: (response, request) => {
         updateRestfulObjectArrays<iFeatures>([
-            removeInvalidKeys<iFeatures>(response?.data?.rest, C6.TABLES)
+            removeInvalidKeys<iFeatures>({
+                ...request,
+                ...response?.data?.rest,
+            }, C6.TABLES)
         ], "features", features.PRIMARY_SHORT as (keyof iFeatures)[])
     }
 })
@@ -54,10 +57,29 @@ export const Post = restRequest<{}, iFeatures, {}, iPostC6RestResponse<iFeatures
         request.error ??= 'An unknown issue occurred creating the features!'
         return request
     },
-    responseCallback: (response, _request) => {
-        updateRestfulObjectArrays<iFeatures>([
-            removeInvalidKeys<iFeatures>(response?.data?.rest, C6.TABLES)
-        ], "features", features.PRIMARY_SHORT as (keyof iFeatures[])
+    responseCallback: (response, request, id) => {
+        if ('number' === typeof id || 'string' === typeof id) {
+            if (1 !== features.PRIMARY_SHORT.length) {
+                console.error("C6 received unexpected result's given the primary key length");
+            } else {
+                request[features.PRIMARY_SHORT[0]] = id
+            }
+        }
+        updateRestfulObjectArrays<iFeatures>(
+            undefined !== request.dataInsertMultipleRows
+                ? request.dataInsertMultipleRows.map((request, index) => {
+                    return removeInvalidKeys<iFeatures>({
+                        ...request,
+                        ...(index === 0 ? response?.data?.rest : {}),
+                    }, C6.TABLES)
+                })
+                : [
+                    removeInvalidKeys<iFeatures>({
+                        ...request,
+                        ...response?.data?.rest,
+                    }, C6.TABLES)
+                ]
+            , "features", features.PRIMARY_SHORT as (keyof iFeatures)[])
     }
 })
 

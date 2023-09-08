@@ -37,9 +37,12 @@ export const Put = restRequest<{}, iPhotos, {}, iPutC6RestResponse<iPhotos>, Res
         request.error ??= 'An unknown issue occurred updating the photos!'
         return request
     },
-    responseCallback: (response, _request) => {
+    responseCallback: (response, request) => {
         updateRestfulObjectArrays<iPhotos>([
-            removeInvalidKeys<iPhotos>(response?.data?.rest, C6.TABLES)
+            removeInvalidKeys<iPhotos>({
+                ...request,
+                ...response?.data?.rest,
+            }, C6.TABLES)
         ], "photos", photos.PRIMARY_SHORT as (keyof iPhotos)[])
     }
 })
@@ -54,10 +57,29 @@ export const Post = restRequest<{}, iPhotos, {}, iPostC6RestResponse<iPhotos>, R
         request.error ??= 'An unknown issue occurred creating the photos!'
         return request
     },
-    responseCallback: (response, _request) => {
-        updateRestfulObjectArrays<iPhotos>([
-            removeInvalidKeys<iPhotos>(response?.data?.rest, C6.TABLES)
-        ], "photos", photos.PRIMARY_SHORT as (keyof iPhotos[])
+    responseCallback: (response, request, id) => {
+        if ('number' === typeof id || 'string' === typeof id) {
+            if (1 !== photos.PRIMARY_SHORT.length) {
+                console.error("C6 received unexpected result's given the primary key length");
+            } else {
+                request[photos.PRIMARY_SHORT[0]] = id
+            }
+        }
+        updateRestfulObjectArrays<iPhotos>(
+            undefined !== request.dataInsertMultipleRows
+                ? request.dataInsertMultipleRows.map((request, index) => {
+                    return removeInvalidKeys<iPhotos>({
+                        ...request,
+                        ...(index === 0 ? response?.data?.rest : {}),
+                    }, C6.TABLES)
+                })
+                : [
+                    removeInvalidKeys<iPhotos>({
+                        ...request,
+                        ...response?.data?.rest,
+                    }, C6.TABLES)
+                ]
+            , "photos", photos.PRIMARY_SHORT as (keyof iPhotos)[])
     }
 })
 

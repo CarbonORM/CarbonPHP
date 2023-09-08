@@ -37,9 +37,12 @@ export const Put = restRequest<{}, iWp_Commentmeta, {}, iPutC6RestResponse<iWp_C
         request.error ??= 'An unknown issue occurred updating the wp commentmeta!'
         return request
     },
-    responseCallback: (response, _request) => {
+    responseCallback: (response, request) => {
         updateRestfulObjectArrays<iWp_Commentmeta>([
-            removeInvalidKeys<iWp_Commentmeta>(response?.data?.rest, C6.TABLES)
+            removeInvalidKeys<iWp_Commentmeta>({
+                ...request,
+                ...response?.data?.rest,
+            }, C6.TABLES)
         ], "wp_commentmeta", wp_commentmeta.PRIMARY_SHORT as (keyof iWp_Commentmeta)[])
     }
 })
@@ -54,10 +57,29 @@ export const Post = restRequest<{}, iWp_Commentmeta, {}, iPostC6RestResponse<iWp
         request.error ??= 'An unknown issue occurred creating the wp commentmeta!'
         return request
     },
-    responseCallback: (response, _request) => {
-        updateRestfulObjectArrays<iWp_Commentmeta>([
-            removeInvalidKeys<iWp_Commentmeta>(response?.data?.rest, C6.TABLES)
-        ], "wp_commentmeta", wp_commentmeta.PRIMARY_SHORT as (keyof iWp_Commentmeta[])
+    responseCallback: (response, request, id) => {
+        if ('number' === typeof id || 'string' === typeof id) {
+            if (1 !== wp_commentmeta.PRIMARY_SHORT.length) {
+                console.error("C6 received unexpected result's given the primary key length");
+            } else {
+                request[wp_commentmeta.PRIMARY_SHORT[0]] = id
+            }
+        }
+        updateRestfulObjectArrays<iWp_Commentmeta>(
+            undefined !== request.dataInsertMultipleRows
+                ? request.dataInsertMultipleRows.map((request, index) => {
+                    return removeInvalidKeys<iWp_Commentmeta>({
+                        ...request,
+                        ...(index === 0 ? response?.data?.rest : {}),
+                    }, C6.TABLES)
+                })
+                : [
+                    removeInvalidKeys<iWp_Commentmeta>({
+                        ...request,
+                        ...response?.data?.rest,
+                    }, C6.TABLES)
+                ]
+            , "wp_commentmeta", wp_commentmeta.PRIMARY_SHORT as (keyof iWp_Commentmeta)[])
     }
 })
 

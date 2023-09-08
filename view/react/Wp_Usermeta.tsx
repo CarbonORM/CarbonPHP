@@ -37,9 +37,12 @@ export const Put = restRequest<{}, iWp_Usermeta, {}, iPutC6RestResponse<iWp_User
         request.error ??= 'An unknown issue occurred updating the wp usermeta!'
         return request
     },
-    responseCallback: (response, _request) => {
+    responseCallback: (response, request) => {
         updateRestfulObjectArrays<iWp_Usermeta>([
-            removeInvalidKeys<iWp_Usermeta>(response?.data?.rest, C6.TABLES)
+            removeInvalidKeys<iWp_Usermeta>({
+                ...request,
+                ...response?.data?.rest,
+            }, C6.TABLES)
         ], "wp_usermeta", wp_usermeta.PRIMARY_SHORT as (keyof iWp_Usermeta)[])
     }
 })
@@ -54,10 +57,29 @@ export const Post = restRequest<{}, iWp_Usermeta, {}, iPostC6RestResponse<iWp_Us
         request.error ??= 'An unknown issue occurred creating the wp usermeta!'
         return request
     },
-    responseCallback: (response, _request) => {
-        updateRestfulObjectArrays<iWp_Usermeta>([
-            removeInvalidKeys<iWp_Usermeta>(response?.data?.rest, C6.TABLES)
-        ], "wp_usermeta", wp_usermeta.PRIMARY_SHORT as (keyof iWp_Usermeta[])
+    responseCallback: (response, request, id) => {
+        if ('number' === typeof id || 'string' === typeof id) {
+            if (1 !== wp_usermeta.PRIMARY_SHORT.length) {
+                console.error("C6 received unexpected result's given the primary key length");
+            } else {
+                request[wp_usermeta.PRIMARY_SHORT[0]] = id
+            }
+        }
+        updateRestfulObjectArrays<iWp_Usermeta>(
+            undefined !== request.dataInsertMultipleRows
+                ? request.dataInsertMultipleRows.map((request, index) => {
+                    return removeInvalidKeys<iWp_Usermeta>({
+                        ...request,
+                        ...(index === 0 ? response?.data?.rest : {}),
+                    }, C6.TABLES)
+                })
+                : [
+                    removeInvalidKeys<iWp_Usermeta>({
+                        ...request,
+                        ...response?.data?.rest,
+                    }, C6.TABLES)
+                ]
+            , "wp_usermeta", wp_usermeta.PRIMARY_SHORT as (keyof iWp_Usermeta)[])
     }
 })
 

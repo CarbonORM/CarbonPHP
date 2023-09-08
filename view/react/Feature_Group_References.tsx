@@ -37,9 +37,12 @@ export const Put = restRequest<{}, iFeature_Group_References, {}, iPutC6RestResp
         request.error ??= 'An unknown issue occurred updating the feature group references!'
         return request
     },
-    responseCallback: (response, _request) => {
+    responseCallback: (response, request) => {
         updateRestfulObjectArrays<iFeature_Group_References>([
-            removeInvalidKeys<iFeature_Group_References>(response?.data?.rest, C6.TABLES)
+            removeInvalidKeys<iFeature_Group_References>({
+                ...request,
+                ...response?.data?.rest,
+            }, C6.TABLES)
         ], "feature_group_references", feature_group_references.PRIMARY_SHORT as (keyof iFeature_Group_References)[])
     }
 })
@@ -54,10 +57,29 @@ export const Post = restRequest<{}, iFeature_Group_References, {}, iPostC6RestRe
         request.error ??= 'An unknown issue occurred creating the feature group references!'
         return request
     },
-    responseCallback: (response, _request) => {
-        updateRestfulObjectArrays<iFeature_Group_References>([
-            removeInvalidKeys<iFeature_Group_References>(response?.data?.rest, C6.TABLES)
-        ], "feature_group_references", feature_group_references.PRIMARY_SHORT as (keyof iFeature_Group_References[])
+    responseCallback: (response, request, id) => {
+        if ('number' === typeof id || 'string' === typeof id) {
+            if (1 !== feature_group_references.PRIMARY_SHORT.length) {
+                console.error("C6 received unexpected result's given the primary key length");
+            } else {
+                request[feature_group_references.PRIMARY_SHORT[0]] = id
+            }
+        }
+        updateRestfulObjectArrays<iFeature_Group_References>(
+            undefined !== request.dataInsertMultipleRows
+                ? request.dataInsertMultipleRows.map((request, index) => {
+                    return removeInvalidKeys<iFeature_Group_References>({
+                        ...request,
+                        ...(index === 0 ? response?.data?.rest : {}),
+                    }, C6.TABLES)
+                })
+                : [
+                    removeInvalidKeys<iFeature_Group_References>({
+                        ...request,
+                        ...response?.data?.rest,
+                    }, C6.TABLES)
+                ]
+            , "feature_group_references", feature_group_references.PRIMARY_SHORT as (keyof iFeature_Group_References)[])
     }
 })
 

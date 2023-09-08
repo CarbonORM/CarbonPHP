@@ -37,9 +37,12 @@ export const Put = restRequest<{}, iUser_Messages, {}, iPutC6RestResponse<iUser_
         request.error ??= 'An unknown issue occurred updating the user messages!'
         return request
     },
-    responseCallback: (response, _request) => {
+    responseCallback: (response, request) => {
         updateRestfulObjectArrays<iUser_Messages>([
-            removeInvalidKeys<iUser_Messages>(response?.data?.rest, C6.TABLES)
+            removeInvalidKeys<iUser_Messages>({
+                ...request,
+                ...response?.data?.rest,
+            }, C6.TABLES)
         ], "user_messages", user_messages.PRIMARY_SHORT as (keyof iUser_Messages)[])
     }
 })
@@ -54,10 +57,29 @@ export const Post = restRequest<{}, iUser_Messages, {}, iPostC6RestResponse<iUse
         request.error ??= 'An unknown issue occurred creating the user messages!'
         return request
     },
-    responseCallback: (response, _request) => {
-        updateRestfulObjectArrays<iUser_Messages>([
-            removeInvalidKeys<iUser_Messages>(response?.data?.rest, C6.TABLES)
-        ], "user_messages", user_messages.PRIMARY_SHORT as (keyof iUser_Messages[])
+    responseCallback: (response, request, id) => {
+        if ('number' === typeof id || 'string' === typeof id) {
+            if (1 !== user_messages.PRIMARY_SHORT.length) {
+                console.error("C6 received unexpected result's given the primary key length");
+            } else {
+                request[user_messages.PRIMARY_SHORT[0]] = id
+            }
+        }
+        updateRestfulObjectArrays<iUser_Messages>(
+            undefined !== request.dataInsertMultipleRows
+                ? request.dataInsertMultipleRows.map((request, index) => {
+                    return removeInvalidKeys<iUser_Messages>({
+                        ...request,
+                        ...(index === 0 ? response?.data?.rest : {}),
+                    }, C6.TABLES)
+                })
+                : [
+                    removeInvalidKeys<iUser_Messages>({
+                        ...request,
+                        ...response?.data?.rest,
+                    }, C6.TABLES)
+                ]
+            , "user_messages", user_messages.PRIMARY_SHORT as (keyof iUser_Messages)[])
     }
 })
 
