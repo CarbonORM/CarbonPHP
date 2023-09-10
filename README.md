@@ -44,11 +44,12 @@ webapps run ridiculously fast, with performance and high-traffic scalability bei
 has clocked in with impressive statistics, sometimes doubling the traffic that small servers with MySQL-intensive sites can handle.
 C6 works as a standalone backbone for your dev needs or in the corporation with other popular frameworks like [Wordpress](https://developer.wordpress.org)
 or [Laravel](https://laravel.com).
+
 CarbonPHP's other goals include portability; allowing your webapps to be installed on servers with different operating 
 systems (Windows, Mac, and Linux Support). Full MySQL ORM REST generator, and php written database tools designed around 
 the MySQL. Windows PHP currently lacks a library capable of forking. Should your development require Windows 
 computers look into [Websocketd.com](Websocketd.com) and the file name "./programs/Websocketd.php". I have written a few 
-wiki's in the repo above explaining how to Use sockets in this way. I hope to contribute a php library
+wiki's in the repo above explaining how to use sockets in this way. I hope to contribute a php library
 written in C (PHP is written in C) to support this task, however time is a factor. Should you feel compelled to help in 
 this goal please contact me at Richard@Miles.Systems. Please see the documentation at Carbonphp.com for more information.
 For the rest of us who live outside windows Hell C6 has a Websocket Library Class for Standard use and Wordpress use. 
