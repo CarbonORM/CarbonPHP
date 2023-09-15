@@ -26,6 +26,9 @@
       <webServer id="69606b45-271f-4711-9096-553346d53a92" name="reactboot" url="http://localhost">
         <fileTransfer mountedRoot="$PROJECT_DIR$/../affinity.voltex.app/vendor/carbonorm/carbonphp" accessType="MOUNT" port="0" />
       </webServer>
+      <webServer id="5493b001-ee66-4ef6-84a8-463088c1fd0b" name="interview" url="http://localhost">
+        <fileTransfer mountedRoot="$PROJECT_DIR$/../snackInterview/vendor/carbonorm/carbonphp" accessType="MOUNT" port="0" />
+      </webServer>
     </option>
   </component>
 </project>

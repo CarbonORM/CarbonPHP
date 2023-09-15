@@ -24,11 +24,14 @@ Note - the old location `composer require richardtmiles/carbonphp` should contin
 
 # CarbonPHP Tool Kit and Performance Library
 
+CarbonPHP has grown into the [CarbonORM Public Organization](https://github.com/CarbonORM/). There you can find 
+documentation over the front end process of using the ORM. C6 now refers to any of Carbon* prefixed CarbonORM packages.
+
 [CarbonPHP.com](http://carbonphp.com/)
 
 CarbonPHP has reached a stable level of trust in its own features through PHPUnit Tests + 
-Github Actions but is still in active development. CarbonPHP is being used in production environments. Anyone, or team, who attempts using this code
-will find support on Github through issues and forums. We generally expect any issue you many encountered to be minor.
+GitHub Actions but is still in active development. CarbonPHP is being used in production environments. Anyone, or team, who attempts using this code
+will find support on GitHub through issues and forums. We generally expect any issue you many encountered to be minor.
 If you edit the codebase, please consider submitting those changes on GitHub! C6 uses [Semantic Versioning 2.0.0](https://semver.org). 
 Generally: MAJOR version when you make incompatible API changes, MINOR version when you add functionality in a backwards 
 compatible manner, and PATCH version when you make backwards compatible bug fixes. Changes to function/class/etc will be 
@@ -56,7 +59,7 @@ For the rest of us who live outside windows Hell C6 has a Websocket Library Clas
 ## Quick Start
 ### Existing projects
 
-    composer install richardtmiles/carbonphp
+    composer install carbonorm/carbonphp
 
 ## Standards 
 
