@@ -22,7 +22,7 @@ abstract class RestAutoTargeting extends RestSettings
 
         $composerJson = Composer::getComposerConfig();
 
-        $tableNamespace = CarbonPHP::$configuration[CarbonPHP::REST][CarbonPHP::NAMESPACE] ??= "Tables\\";
+        $tableNamespace = CarbonPHP::$configuration[CarbonPHP::REST][CarbonPHP::NAMESPACE] ??= "Tables\\\\";
 
         $tableDirectory = $composerJson['autoload']['psr-4'][$tableNamespace] ?? false;
 

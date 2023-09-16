@@ -82,58 +82,6 @@ class ThrowableHandler
      */
     public static int $level = E_ALL | E_STRICT;
 
-    /** Attempt to safely catch errors, output, and public alerts in a closure.
-     *
-     * @param callable $lambda
-     * @return callable
-     */
-    public static function catchErrors(callable $lambda): callable
-    {
-        return static function (...$argv) use ($lambda) {
-
-            try {
-
-                ob_start(null, 0, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
-
-                $argv = \call_user_func_array($lambda, $argv);
-
-            } catch (Throwable $e) {
-
-                ThrowableHandler::generateLogAndExit($e);
-
-            } finally {
-
-                if (ob_get_status() && ob_get_length()) {
-
-                    $out = ob_get_clean();
-
-                    try {
-
-                        throw new PublicAlert(<<<END
-                                <div class="container">
-                                <div class="callout callout-info" style="margin-top: 40px">
-                                <h4>You have printed to the screen while within the catchErrors() function!</h4>
-                                Don't slip up in your production code!
-                                <a href="http://carbonphp.com/">Note: All MVC routes are wrapped in this function. Output to the browser should be done within the view! Use this as a reporting tool only.</a>
-                                </div><div class="box"><div class="box-body">$out</div></div></div>
-                                END
-                        );
-
-                    } catch (PublicAlert $e) {
-
-                        ThrowableHandler::generateLogAndExit($e);
-
-                    }
-
-                }
-
-                Database::verify();     // Check that all database commit chains have finished successfully, otherwise attempt to remove
-
-                return $argv;
-            }
-        };
-    }
-
     public static function checkCreateLogFile(string &$message): void
     {
 
@@ -1116,7 +1064,7 @@ DESCRIPTION;
 
         }
 
-        return (new \Mustache_Engine())->render(self::$errorTemplate, [
+        $mustacheInfo = [
             'carbon_teal' => self::CARBON_TEAL,
             'carbon_white' => self::CARBON_WHITE,
             'carbon_public_root' => $public_root,
@@ -1128,7 +1076,11 @@ DESCRIPTION;
             'cleanErrorReport' => $cleanErrorReport,
             'json' => $GLOBALS['json'] ?? 'null',
             'json_string' => json_encode($GLOBALS['json'] ?? null, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
-        ]);
+        ];
+
+        $mustacheInfo['fullErrorReport'] = json_encode($message, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+
+        return (new \Mustache_Engine())->render(self::$errorTemplate, $mustacheInfo);
     }
 
     public static function statusText(int $code = 0): ?string

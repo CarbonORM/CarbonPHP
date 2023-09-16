@@ -87,7 +87,7 @@ class Database
     /**
      * @var array - new key inserted but not verified currently
      */
-    private static array $carbonDatabaseEntityTransactionKeys;
+    private static array $carbonDatabaseEntityTransactionKeys = [];
 
     /** the database method will return a connection to the database.
      * Before returning a connection it must pass an active check.
@@ -484,22 +484,38 @@ FOOT;
      *
      * @return bool
      */
-    public static function verify(): bool
+    public static function rollBack(): void
     {
 
         $pdo = self::database(false);
 
         if (!$pdo->inTransaction()) {        // We're verifying that we do not have an un finished transaction
 
-            return true;
+            return;
 
         }
 
+        $logging = [
+
+        ];
+
+        $GLOBALS['json']['sql'][] = $GLOBALS['json'][Session::class]['TRANSACTIONS'][] = &$logging;
+
         try {
 
-            $pdo->rollBack();  // this transaction was started after our keys were inserted..
+            $status = $pdo->rollBack();
+
+            $logging['ROLLBACK'] = $status;
+
+            if (false === $status) {
+
+                throw new PublicAlert('Failed to rollback transaction');
+
+            }  // this transaction was started after our keys were inserted..
 
             if (!empty(self::$carbonDatabaseEntityTransactionKeys)) {
+
+                $logging['self::$carbonDatabaseEntityTransactionKeys'] = self::$carbonDatabaseEntityTransactionKeys;
 
                 foreach (self::$carbonDatabaseEntityTransactionKeys as $key) {
 
@@ -514,8 +530,6 @@ FOOT;
             ThrowableHandler::generateLogAndExit($e);
 
         }
-
-        return false;
 
     }
 
@@ -545,6 +559,7 @@ FOOT;
             $transactionNumber = $transactionActive ? self::$committedTransactions++ : self::$committedTransactions;
 
             $moreLogging = [
+                'Database::$carbonDatabaseEntityTransactionKeys' => self::$carbonDatabaseEntityTransactionKeys,
                 ($transactionActive ? '' : 'WARNING no transaction started. ') . __METHOD__ . '($strict = ' . ($strict ? 'true' : 'false') . ')' => $transactionNumber,
                 'debug_backtrace()' => CarbonPHP::$verbose || false === CarbonPHP::$cli ? $backtrace = debug_backtrace() : '(CarbonPHP::$verbose || false === CarbonPHP::$cli) = false;'
             ];
@@ -589,20 +604,26 @@ FOOT;
                     'Session Write Close' => '(this commit closed the session)'
                 ];
 
+                self::$carbonDatabaseEntityTransactionKeys = [];
+
                 return true;
 
             }
 
             if ($db->commit()) {
 
+                self::$carbonDatabaseEntityTransactionKeys = [];
+
                 return true;
 
             }
 
             // rollback
-            return static::verify();
+            return static::rollBack();
 
         } catch (Throwable $e) {
+
+            static::rollBack();
 
             ThrowableHandler::generateLogAndExit($e);
 
@@ -744,38 +765,38 @@ FOOT;
      *  which I use for this field. ( USERS, MESSAGES, ect...)
      *
      * @param $dependant_carbon_id
-     * @return string
+     * @return array
      * @throws PublicAlert
      */
     public static function newEntity(string $tag_id, string $dependant_carbon_id = null): string
     {
-        $count = 0;
 
         $carbons = Rest::getDynamicRestClass(Carbons::class, iRestSinglePrimaryKey::class);
 
         self::beginTransaction();
 
-        do {
+        $post = [
+            $carbons::ENTITY_TAG => $tag_id,
+            $carbons::ENTITY_FK => $dependant_carbon_id
+        ];
 
-            $count++;
+        /** @noinspection PhpUndefinedMethodInspection - intellij is not good at php static refs */
+        $id = $carbons::post($post);
 
-            $post = [
-                $carbons::ENTITY_TAG => $tag_id,
-                $carbons::ENTITY_FK => $dependant_carbon_id
-            ];
+        if (false === $id) {
 
-            /** @noinspection PhpUndefinedMethodInspection - intellij is not good at php static refs */
-            $id = $carbons::post($post);
-
-        } while ($id === false && $count < 4);  // todo - why four?
-
-        if ($id === false) {
             throw new PublicAlert('C6 failed to create a new entity.');
+
         }
+
+        self::commit(true);
+
+        self::beginTransaction();
 
         self::$carbonDatabaseEntityTransactionKeys[] = $id;
 
         return $id;
+
     }
 
     /**

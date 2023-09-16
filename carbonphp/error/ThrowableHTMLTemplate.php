@@ -173,6 +173,11 @@ trait ThrowableHTMLTemplate
                     }
                 }
             })();
+            
+            // full json error report
+            
+            console.log({{{fullErrorReport}}});   
+            
             </script><title>HTTP {{{code}}} {{{statusText}}}</title>
             </head>
             <body>

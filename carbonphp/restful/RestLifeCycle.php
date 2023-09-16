@@ -267,7 +267,6 @@ abstract class RestLifeCycle extends RestQueryBuilder
             'committed' => &$committed,
             'stmt' => [
                 'sql' => $sql,
-                'injections' => self::$injection,
                 'debugDumpParams' => &$debugDumpParams,
             ],
             ...(self::$externalRestfulRequestsAPI ? [

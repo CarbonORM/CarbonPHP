@@ -634,7 +634,7 @@ class CarbonPHP
 
                 if (null !== self::$commandLineInterface::$program) {
 
-                    ColorCode::colorCode('CarbonPHP CLI has loaded a program into memory, CarbonPHP::make(...) will need to be executed to  .');
+                    ColorCode::colorCode('CarbonPHP CLI has loaded a program into memory, CarbonPHP::make(...) will need to be executed to be invoked.');
 
                 }
 

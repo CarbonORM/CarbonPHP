@@ -765,12 +765,36 @@ abstract class Rest extends RestLifeCycle
 
                         $bound_values[] = $shortName;
 
-                        $pdo_values[$i] .= 'binary' === static::PDO_VALIDATION[$fullName][self::MYSQL_TYPE] ? "UNHEX(:$shortName), " : ":$shortName, ";
+                        $isBinary = 'binary' === static::PDO_VALIDATION[$fullName][self::MYSQL_TYPE];
+
+                        $pdo_values[$i] .= $isBinary ? "UNHEX(:$shortName), " : ":$shortName, ";
 
                         self::validateInternalColumn($fullName, $op, $postRequestBody[$i][$fullName]);
 
-                    }
+                        $postRequestBody[$i] ??= [];
 
+                        $iValue = &$postRequestBody[$i];   // this allows you to get your binary keys if they were C6 enabled.
+
+                        if ($fullName === static::PRIMARY
+                            || (is_array(static::PRIMARY)
+                                && array_key_exists($fullName, static::PRIMARY))) {
+
+                            $iValue[$fullName] ??= false;
+
+                            if ($iValue[$fullName] === false) {
+
+                                # UUID_TO_BIN - @link https://dev.mysql.com/doc/refman/8.0/en/miscellaneous-functions.html#function_uuid-to-bin
+                                # the old way - REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""); this is mysql >=8
+                                # If swap_flag is 1, the format of the return value differs: The time-low and time-high parts (the first and third groups of hexadecimal digits, respectively) are swapped. This moves the more rapidly varying part to the right and can improve indexing efficiency if the result is stored in an indexed column.
+                                $iValue[$fullName] = static::CARBON_CARBONS_PRIMARY_KEY
+                                    ? self::newEntity(static::class, $iValue[self::DEPENDANT_ON_ENTITY] ?? null)     // clusters should really use this
+                                    : self::fetchColumn('SELECT HEX(UUID_TO_BIN(UUID(), 1))')[0];
+
+                            }
+
+                        }
+
+                    }
 
                     $pdo_values[$i] = rtrim($pdo_values[$i], ', ');
 
@@ -859,12 +883,14 @@ abstract class Rest extends RestLifeCycle
 
                             if ($iValue[$fullName] === false) {
 
-                                # UUID_TO_BIN - @link https://dev.mysql.com/doc/refman/8.0/en/miscellaneous-functions.html#function_uuid-to-bin
-                                # the old way - REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""); this is mysql >=8
-                                # If swap_flag is 1, the format of the return value differs: The time-low and time-high parts (the first and third groups of hexadecimal digits, respectively) are swapped. This moves the more rapidly varying part to the right and can improve indexing efficiency if the result is stored in an indexed column.
-                                $iValue[$fullName] = static::CARBON_CARBONS_PRIMARY_KEY
-                                    ? self::newEntity(self::class, $iValue[self::DEPENDANT_ON_ENTITY] ?? null)     // clusters should really use this
-                                    : self::fetchColumn('SELECT HEX(UUID_TO_BIN(UUID(), 1))')[0];
+                                if (false === static::AUTO_INCREMENT_PRIMARY_KEY) {
+
+                                    # UUID_TO_BIN - @link https://dev.mysql.com/doc/refman/8.0/en/miscellaneous-functions.html#function_uuid-to-bin
+                                    # the old way - REPLACE(UUID() COLLATE utf8_unicode_ci,"-",""); this is mysql >=8
+                                    # If swap_flag is 1, the format of the return value differs: The time-low and time-high parts (the first and third groups of hexadecimal digits, respectively) are swapped. This moves the more rapidly varying part to the right and can improve indexing efficiency if the result is stored in an indexed column.
+                                    $iValue[$fullName] = self::fetchColumn('SELECT HEX(UUID_TO_BIN(UUID(), 1))')[0];
+
+                                }
 
                             } else if (false === self::validateInternalColumn($fullName, $op, $iValue[$fullName])) {
 
