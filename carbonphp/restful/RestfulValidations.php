@@ -15,6 +15,36 @@ use CarbonPHP\Session;
 abstract class RestfulValidations
 {
 
+    public mixed $validateGeneratedExternalSqlRequestCallback = null;
+
+
+    /**
+     * Simplify a SQL query for better comparisons and security.
+     *
+     * @param string|null $sql The SQL query to simplify.
+     * @return string|null The simplified SQL query or null on failure.
+     */
+    private static function generalizeSqlForComparison(?string $sql): ?string
+    {
+        if ($sql === null) {
+            return null;
+        }
+
+        return preg_replace(
+            [
+                // :injection0 -> ?
+                '/(:injection\d*)/mi',
+                // WHERE user_id IN (0,1,2,3) -> WHERE id IN (?)
+                '/(?<= ' . iRest::IN . ' \()([^)]*)(?=\))/mi',
+                // LIMIT 100,200 -> LIMIT ?
+                '/(?<= ' . iRest::LIMIT . ' )(\d*,\d*|\d*)/mi',
+
+            ],
+            '?',    // replacing with ? will actually keep it valid sql (generally)
+            $sql
+        );
+    }
+
     public static function validateGeneratedExternalSqlRequest(string $sql): void
     {
         global $json;
@@ -64,9 +94,11 @@ abstract class RestfulValidations
 
         }
 
+        $generalizedSql = self::generalizeSqlForComparison($sql);
+
         foreach ($validSql as $valid) {
 
-            if ($valid === $sql) {
+            if (self::generalizeSqlForComparison($valid) === $generalizedSql) {
 
                 return;
 
@@ -110,7 +142,10 @@ abstract class RestfulValidations
         ];
 
         $imp = array_map('strtolower', array_keys(class_implements($className)));
-        $opt = array_map('strtolower', array_keys(class_implements($options)));
+
+        $opt = array_map('strtolower', $options);
+
+        // todo - I think this is incorrect
         $intersect = array_intersect($imp, $opt);
 
         if (empty($intersect)) {
@@ -130,8 +165,8 @@ abstract class RestfulValidations
         ];
 
         if (false === ($noPrimary ?
-            $className::Get($return, $query) :
-            $className::Get($return, null, $query))) {       // this will work for single or multiple keys
+                $className::Get($return, $query) :
+                $className::Get($return, null, $query))) {       // this will work for single or multiple keys
             throw new PublicAlert('Rest validation error. Get request failed in validation.');
         }
 

@@ -8,8 +8,6 @@ use Throwable;
 abstract class Background
 {
 
-    public static array $backgroundProcessesStatusCodes = [];
-
     /**
      * Attempt to run shell command in the background on any os.
      * This is convent as appending an ampersand will not work universally, and may not work where expected
@@ -67,11 +65,13 @@ abstract class Background
 
         if ($return_var !== 0 && $return_var !== '0') {
 
-            ColorCode::colorCode("The command >>  $command \n\t returned with a status code (" . $return_var . '). Expecting 0 for success.', iColorCode::RED);
+            $color = $exitOnFailure ? iColorCode::RED : iColorCode::YELLOW;
+
+            ColorCode::colorCode("The command >>  $command \n\t returned with a status code (" . $return_var . '). Expecting 0 for success.', $color);
 
             $output = implode(PHP_EOL, $output);
 
-            ColorCode::colorCode("Command output::\t $output ", iColorCode::RED);
+            ColorCode::colorCode("Command output::\t $output ", $color);
 
             if ($exitOnFailure) {
 

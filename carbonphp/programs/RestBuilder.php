@@ -3,6 +3,7 @@
 namespace CarbonPHP\Programs;
 
 
+use CarbonPHP\Abstracts\Background;
 use CarbonPHP\Abstracts\ColorCode;
 use CarbonPHP\Abstracts\Composer;
 use CarbonPHP\Abstracts\Files;
@@ -726,15 +727,27 @@ END;
 
 
                         foreach ($primary as $key) {
+
                             foreach ($rest[$tableName]['explode'] as &$value) {
+
                                 if ($value['name'] !== $key) {
+
                                     continue;
+
                                 }
+
+                                $value['isPrimary'] = true;
+
                                 if (true === ($value['auto_increment'] ?? false)) {
+
                                     $rest[$tableName]['auto_increment_return_key'] = true;
+
                                 }
+
                             }
+
                             unset($value);
+
                         }
 
                         $rest[$tableName]['primarySort'] = implode(',', $primary);
@@ -959,10 +972,12 @@ END;
                                     $type = 'PDO::PARAM_INT'; // $PDO[2];
                                     $rest[$tableName]['explode'][$explodeArrayPosition]['tsxType'] = 'number';
                                     $rest[$tableName]['explode'][$explodeArrayPosition]['phpType'] ??= 'int';
+                                    $rest[$tableName]['explode'][$explodeArrayPosition]['number'] = true;
                                     break;
                                 case 'boolean':
                                     $type = 'PDO::PARAM_BOOL';
                                     $rest[$tableName]['explode'][$explodeArrayPosition]['phpType'] = 'bool';
+                                    $rest[$tableName]['explode'][$explodeArrayPosition]['bool'] = true;
                                     break;
                                 /** @noinspection PhpMissingBreakStatementInspection */
                                 case 'binary':
@@ -983,10 +998,12 @@ END;
                                 case 'precision':
                                 case 'float':
                                 case 'real':
+                                    $rest[$tableName]['explode'][$explodeArrayPosition]['number'] = true;
                                 default:
                                 case 'varchar':
                                     $type = 'PDO::PARAM_STR';
                                     $rest[$tableName]['explode'][$explodeArrayPosition]['phpType'] ??= 'string';
+                                    $rest[$tableName]['explode'][$explodeArrayPosition]['string'] ??= true;
                             }
                             // Explode hold all information about column
                             $rest[$tableName]['explode'][$explodeArrayPosition]['type'] = $type;
@@ -1171,6 +1188,7 @@ END;
         $class = RestTemplates::restTemplate();
 
         $typescriptRestBindings = RestTemplates::typescriptRestBindings();
+        $typescriptRestTests = RestTemplates::typescriptRestTests();
 
         $trait = RestTemplates::restTrait();
 
@@ -1197,6 +1215,32 @@ END;
 
             }
 
+            $jestReactTestLocation = $react . $parsed['ucEachTableName'] . '.test.tsx';
+
+            $skipTest = false;
+
+            if (file_exists($jestReactTestLocation)) {
+
+                if (0 !== Background::executeAndCheckStatus("cat \"$jestReactTestLocation\" | grep -e '^xdescribe'", false)){
+
+                    $skipTest = true;
+
+                    ColorCode::colorCode("The file $jestReactTestLocation already exists and DOES NOT CONTAIN xdescribe on the beginning of any line, will assume in use. Will NOT update...\n", iColorCode::YELLOW);
+
+                } else {
+
+                    ColorCode::colorCode("The file $jestReactTestLocation already exists but contains xdescribe at the beginning of a line. Will regenerate ...\n", iColorCode::CYAN);
+
+                }
+
+            }
+
+            if ($react && false === $skipTest && false === file_put_contents($jestReactTestLocation, $mustache->render($typescriptRestTests, $parsed))) {
+
+                ColorCode::colorCode('PHP internal file_put_contents failed while trying to store :: (' . $targetDir . $parsed['ucEachTableName'] . '.test.tsx)', iColorCode::RED);
+
+            }
+
             if (false === file_put_contents($targetDir . 'traits' . DS . $parsed['ucEachTableName'] . '_Columns.php', $mustache->render($trait, $parsed))) {
 
                 ColorCode::colorCode('PHP internal file_put_contents failed while trying to store :: (' . $targetDir . 'traits' . DS . $parsed['ucEachTableName'] . '.php)', iColorCode::RED);
@@ -1214,7 +1258,7 @@ END;
 
         if ($react) {
 
-            [$vanillaNode, $typescript, $typescriptPolyfill, $typescriptState, $restInitialState] = $this->reactTemplate();
+            [$vanillaNode, $typescript, $typescriptPolyfill, $typescriptState, $restInitialState] = RestTemplates::reactTemplate();
 
             $references_jsx = $references_tsx = $typescriptStateInterface_tsx = $restInitialState_tsx = $global_column_tsx = $quick_references_tsx = '';
 
@@ -1905,106 +1949,7 @@ TRIGGER);
 
     }
 
-    /**
-     * @return array
-     */
-    private function reactTemplate(): array
-    {
-        return [/** @lang Handlebars */ "
-    {{strtolowerNoPrefixTableName}}: {
-    TABLE_NAME:'{{strtolowerNoPrefixTableName}}',
-    {{#explode}}
-    {{caps}}: '{{TableName}}.{{name}}',
-    {{/explode}}
-    PRIMARY: [
-        {{#primary}}
-        {{#name}}'{{TableName}}.{{name}}',{{/name}}
-        {{/primary}}
-    ],
-    PRIMARY_SHORT: [
-        {{#primary}}{{#name}}'{{name}}',{{/name}}{{/primary}}
-    ],
-    COLUMNS: {
-        {{#explode}}
-        '{{TableName}}.{{name}}':'{{name}}',
-        {{/explode}}
-    },
-    TYPE_VALIDATION: {
-        {{#explode}}
-        '{{TableName}}.{{name}}': { 
-            MYSQL_TYPE: '{{mysql_type}}', 
-            MAX_LENGTH: '{{length}}', 
-            AUTO_INCREMENT: {{#auto_increment}}true{{/auto_increment}}{{^auto_increment}}false{{/auto_increment}}, 
-            SKIP_COLUMN_IN_POST: {{#skip}}true{{/skip}}{{^skip}}false{{/skip}} 
-        },
-        {{/explode}}
-    },
-    REGEX_VALIDATION: {
-        {{#regex_validation}}
-        '{{name}}': {{^validations}}{{validation}},{{/validations}}{{#validations}}{
-            '{{errorMessage}}': {{regex}},
-        },{{/validations}}
-        {{/regex_validation}}
-    }
 
-  },", /** @lang Handlebars */ "
-export interface  i{{ucEachTableName}} {
-       {{#explode}}
-      '{{name}}'?: {{#tsxType}}{{tsxType}}{{/tsxType}}{{^tsxType}}string{{/tsxType}};
-      {{/explode}}
-}
-
-interface iDefine{{ucEachTableName}} {
-       {{#explode}}
-      '{{caps}}': string;
-      {{/explode}}
-}
-
-export const {{strtolowerNoPrefixTableName}} : C6RestfulModel & iDefine{{ucEachTableName}} = {
-    TABLE_NAME:'{{strtolowerNoPrefixTableName}}',
-    {{#explode}}
-    {{caps}}: '{{TableName}}.{{name}}',
-    {{/explode}}
-    PRIMARY: [
-        {{#primary}}
-        {{#name}}'{{TableName}}.{{name}}',{{/name}}
-        {{/primary}}
-    ],
-    PRIMARY_SHORT: [
-        {{#primary}}{{#name}}'{{name}}',{{/name}}{{/primary}}
-    ],
-    COLUMNS: {
-      {{#explode}}
-      '{{TableName}}.{{name}}':'{{name}}',
-      {{/explode}}
-    },
-    TYPE_VALIDATION: {
-        {{#explode}}
-        '{{TableName}}.{{name}}': { 
-            MYSQL_TYPE: '{{mysql_type}}', 
-            MAX_LENGTH: '{{length}}', 
-            AUTO_INCREMENT: {{#auto_increment}}true{{/auto_increment}}{{^auto_increment}}false{{/auto_increment}}, 
-            SKIP_COLUMN_IN_POST: {{#skip}}true{{/skip}}{{^skip}}false{{/skip}} 
-        },
-        {{/explode}}
-    },
-    REGEX_VALIDATION: {
-        {{#regex_validation}}
-        '{{name}}': {{#validation}}{{validation}},{{/validation}}{{^validation}}{
-            {{#validations}}'{{errorMessage}}': {{regex}},
-            {{/validations}}
-        }{{/validation}}
-        {{/regex_validation}}
-    }
-
-}
-
-  ", /** @lang Handlebars */ "  {{strtolowerNoPrefixTableName}}: {{strtolowerNoPrefixTableName}},",
-            /** @lang Handlebars */ "  {{strtolowerNoPrefixTableName}}: tStatefulApiData<i{{ucEachTableName}}>,",
-            /** @lang Handlebars */ "  {{strtolowerNoPrefixTableName}}: undefined,",
-        ];
-
-    }
 
 
     private function restTemplateStaticNameSpace(): array

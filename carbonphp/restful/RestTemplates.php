@@ -616,10 +616,10 @@ STRING;
 
     }
 
-
     public static function typescriptRestBindings(): string
     {
         return /** @lang Handlebars */ <<<STRING
+
 import {
     iPostC6RestResponse,
     restRequest,
@@ -732,6 +732,248 @@ STRING;
     }
 
 
+    /**
+     * @return array
+     */
+    public static function reactTemplate(): array
+    {
+        return [/** @lang Handlebars */ "
+    {{strtolowerNoPrefixTableName}}: {
+    TABLE_NAME:'{{strtolowerNoPrefixTableName}}',
+    {{#explode}}
+    {{caps}}: '{{TableName}}.{{name}}',
+    {{/explode}}
+    PRIMARY: [
+        {{#primary}}
+        {{#name}}'{{TableName}}.{{name}}',{{/name}}
+        {{/primary}}
+    ],
+    PRIMARY_SHORT: [
+        {{#primary}}{{#name}}'{{name}}',{{/name}}{{/primary}}
+    ],
+    COLUMNS: {
+        {{#explode}}
+        '{{TableName}}.{{name}}':'{{name}}',
+        {{/explode}}
+    },
+    TYPE_VALIDATION: {
+        {{#explode}}
+        '{{TableName}}.{{name}}': { 
+            MYSQL_TYPE: '{{mysql_type}}', 
+            MAX_LENGTH: '{{length}}', 
+            AUTO_INCREMENT: {{#auto_increment}}true{{/auto_increment}}{{^auto_increment}}false{{/auto_increment}}, 
+            SKIP_COLUMN_IN_POST: {{#skip}}true{{/skip}}{{^skip}}false{{/skip}} 
+        },
+        {{/explode}}
+    },
+    REGEX_VALIDATION: {
+        {{#regex_validation}}
+        '{{name}}': {{^validations}}{{validation}},{{/validations}}{{#validations}}{
+            '{{errorMessage}}': {{regex}},
+        },{{/validations}}
+        {{/regex_validation}}
+    }
+
+  },", /** @lang Handlebars */ "
+export interface  i{{ucEachTableName}} {
+       {{#explode}}
+      '{{name}}'?: {{#tsxType}}{{tsxType}}{{/tsxType}}{{^tsxType}}string{{/tsxType}};
+      {{/explode}}
+}
+
+interface iDefine{{ucEachTableName}} {
+       {{#explode}}
+      '{{caps}}': string;
+      {{/explode}}
+}
+
+export const {{strtolowerNoPrefixTableName}} : C6RestfulModel & iDefine{{ucEachTableName}} = {
+    TABLE_NAME:'{{strtolowerNoPrefixTableName}}',
+    {{#explode}}
+    {{caps}}: '{{TableName}}.{{name}}',
+    {{/explode}}
+    PRIMARY: [
+        {{#primary}}
+        {{#name}}'{{TableName}}.{{name}}',{{/name}}
+        {{/primary}}
+    ],
+    PRIMARY_SHORT: [
+        {{#primary}}{{#name}}'{{name}}',{{/name}}{{/primary}}
+    ],
+    COLUMNS: {
+      {{#explode}}
+      '{{TableName}}.{{name}}':'{{name}}',
+      {{/explode}}
+    },
+    TYPE_VALIDATION: {
+        {{#explode}}
+        '{{TableName}}.{{name}}': { 
+            MYSQL_TYPE: '{{mysql_type}}', 
+            MAX_LENGTH: '{{length}}', 
+            AUTO_INCREMENT: {{#auto_increment}}true{{/auto_increment}}{{^auto_increment}}false{{/auto_increment}}, 
+            SKIP_COLUMN_IN_POST: {{#skip}}true{{/skip}}{{^skip}}false{{/skip}} 
+        },
+        {{/explode}}
+    },
+    REGEX_VALIDATION: {
+        {{#regex_validation}}
+        '{{name}}': {{#validation}}{{validation}},{{/validation}}{{^validation}}{
+            {{#validations}}'{{errorMessage}}': {{regex}},
+            {{/validations}}
+        }{{/validation}}
+        {{/regex_validation}}
+    }
+
+}
+
+  ", /** @lang Handlebars */ "  {{strtolowerNoPrefixTableName}}: {{strtolowerNoPrefixTableName}},",
+            /** @lang Handlebars */ "  {{strtolowerNoPrefixTableName}}: tStatefulApiData<i{{ucEachTableName}}>,",
+            /** @lang Handlebars */ "  {{strtolowerNoPrefixTableName}}: undefined,",
+        ];
+
+    }
+
+    public static function typescriptRestTests(): string
+    {
+        return /** @lang Handlebars */ <<<STRING
+import {xdescribe, expect, test} from '@jest/globals';
+import {CarbonReact} from "@carbonorm/carbonreact";
+import {checkAllRequestsComplete} from "@carbonorm/carbonnode";
+import {act, waitFor} from '@testing-library/react';
+import {C6, i{{ucEachTableName}}, {{noPrefix}}, iRestfulObjectArrayTypes} from "api/rest/C6";
+import {{ucEachTableName}} from "api/rest/{{ucEachTableName}}";
+
+const randomString = Math.random().toString(36).substring(7);
+
+const randomInt = Math.floor(Math.random() * 1000000);
+
+// noinspection JSUnusedLocalSymbols
+// @ts-ignore
+const fillString = 'string' + randomString + randomInt;
+
+// {{#explode}} 
+//        self::{{caps}} => [ self::MYSQL_TYPE => '{{mysql_type}}', self::NOT_NULL => {{#NOT_NULL}}true{{/NOT_NULL}}{{^NOT_NULL}}false{{/NOT_NULL}}, self::COLUMN_CONSTRAINTS => [{{#COLUMN_CONSTRAINTS}}{{key}} => [ self::CONSTRAINT_NAME => '{{CONSTRAINT_NAME}}', self::UPDATE_RULE => {{UPDATE_RULE}}, self::DELETE_RULE => {{DELETE_RULE}}],{{/COLUMN_CONSTRAINTS}}], self::PDO_TYPE => {{type}}, self::MAX_LENGTH => '{{length}}', self::AUTO_INCREMENT => {{#auto_increment}}true{{/auto_increment}}{{^auto_increment}}false{{/auto_increment}}, self::SKIP_COLUMN_IN_POST => {{#skip}}true{{/skip}}{{^skip}}false{{/skip}}{{#default}}, self::DEFAULT_POST_VALUE => {{#CURRENT_TIMESTAMP}}self::CURRENT_TIMESTAMP{{/CURRENT_TIMESTAMP}}{{^CURRENT_TIMESTAMP}}{{{default}}}{{/CURRENT_TIMESTAMP}}{{/default}}{{#COMMENT}}, self::COMMENT => {{COMMENT}}{{/COMMENT}} ],{{/explode}}
+//    
+let testData{{ucEachTableName}}: i{{ucEachTableName}} = { {{#explode}}
+    {{#skip}}{{#NOT_NULL}}{{^CURRENT_TIMESTAMP}}{{name}}: {{^default}}fillString.substring(0, {{length}}){{/default}}{{#default}}{{{default}}}{{/default}},{{/CURRENT_TIMESTAMP}}{{/NOT_NULL}}{{/skip}}{{/explode}}
+}
+
+
+
+/** This is a generalized test to help users get started working with CarbonReact 
+ * the test will continue to be updated though each release UNLESS you replace xdescribe with describe
+ * Should describe be at the begging of any line in the document the test will be regenerated.
+ * xdescribe causes the test to be skipped. Enabling the test will allow queries run during the test to 
+ * be available for execution in production environments. We've done our best to make sure the test will pass
+ * when you enable it, but we can't guarantee it. Foreign key constraints are not accounted for  in this generation.
+**/
+xdescribe('REST {{ucEachTableName}} api', () => {
+
+    test('GET POST PUT DELETE', async () => {
+
+        await act(async () => {
+
+            let selectAllResponse = await {{ucEachTableName}}.Get({})
+
+            if ('function' === typeof selectAllResponse) {
+
+                throw Error('selectAllResponse is a promise, this typically means this specific get request has already run during test setup.');
+
+            }
+
+            // We don't care if it is filled or not, just that the request can be made.
+            expect(selectAllResponse?.data?.rest).not.toBeUndefined();
+
+            const postResponse = await {{ucEachTableName}}.Post(testData{{ucEachTableName}});
+
+            console.log('postResponse', postResponse?.data)
+
+            expect(postResponse?.data?.created).not.toBeUndefined();
+            
+            const primaryKey = {{noPrefix}}.PRIMARY_SHORT[0];
+
+            const postID = postResponse?.data?.created
+
+            const singleRowSelect = await {{ucEachTableName}}.Get({
+                [C6.WHERE]: {
+                    [{{noPrefix}}[primaryKey.toUpperCase()]]: postID,
+                }6
+            })
+
+            if ('function' === typeof singleRowSelect) {
+
+                throw Error('singleRowSelect is a promise, this is unexpected.');
+
+            }
+
+            console.log('singleRowSelect', singleRowSelect?.data)
+
+            // Ensure the expected response datastructure is returned
+            expect(singleRowSelect?.data?.rest).not.toBeUndefined();
+
+            // Make sure the previously created post is now returned
+            expect(typeof singleRowSelect?.data?.rest).toEqual('object');
+
+            // todo - make this work correctly with multiple primary keys
+            const selectedPostId = singleRowSelect?.data?.rest[0][primaryKey]
+
+            expect(selectedPostId).toEqual(postID);
+
+            const multipleRowSelect = await {{ucEachTableName}}.Get({
+                [C6.WHERE]: {
+                    [{{noPrefix}}[primaryKey.toUpperCase()]]: [C6.IN, [0, postID]],
+                }
+            })
+
+            if ('function' === typeof multipleRowSelect) {
+
+                throw Error('singleRowSelect is a promise, this is unexpected.');
+
+            }
+
+            console.log('singleRowSelect', multipleRowSelect?.data)
+
+            // Ensure the expected response datastructure is returned
+            expect(multipleRowSelect?.data?.rest).not.toBeUndefined();
+
+            // Make sure the previously created post is now returned
+            expect(typeof multipleRowSelect?.data?.rest).toEqual('object');
+
+            testData{{ucEachTableName}}[primaryKey] = postID
+            
+            {{#explode}}{{^isPrimary}}{{^binary}}{{^CURRENT_TIMESTAMP}}
+            testData{{ucEachTableName}}.{{name}} = {{#string}}{{^length}}fillString{{/length}}{{#length}}fillString.substring(0, {{length}}){{/length}}{{/string}}{{#bool}}true{{/bool}}{{^string}}{{#number}}1{{/number}}{{/string}};
+            {{/CURRENT_TIMESTAMP}}{{/binary}}{{/isPrimary}}{{/explode}}
+
+            // wait for the global state to be updated
+            expect(CarbonReact.getState<iRestfulObjectArrayTypes>().{{noPrefix}}).not.toBeUndefined();
+
+            const updateResponse = await {{ucEachTableName}}.Put(testData{{ucEachTableName}})
+
+            expect(updateResponse?.data?.updated).not.toBeUndefined();
+
+            const deleteResponse = await {{ucEachTableName}}.Delete(testData{{ucEachTableName}})
+
+            console.log('deleteResponse', deleteResponse?.data)
+
+            expect(deleteResponse?.data?.deleted).not.toBeUndefined();
+
+            await waitFor(async () => {
+
+                expect(checkAllRequestsComplete()).toEqual(true);
+
+            }, {timeout: 10000, interval: 1000});
+
+        })
+
+    }, 100000);
+    
+})
+
+
+STRING;
+
+    }
 
 
 }
