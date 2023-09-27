@@ -59,7 +59,7 @@ For the rest of us who live outside windows Hell C6 has a Websocket Library Clas
 ## Quick Start
 ### Existing projects
 
-    composer install carbonorm/carbonphp
+    composer require carbonorm/carbonphp
 
 ## Standards 
 
