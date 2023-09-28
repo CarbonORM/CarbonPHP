@@ -952,7 +952,9 @@ xdescribe('REST {{ucEachTableName}} api', () => {
 
             expect(updateResponse?.data?.updated).not.toBeUndefined();
 
-            const deleteResponse = await {{ucEachTableName}}.Delete(testData{{ucEachTableName}})
+            const deleteResponse = await {{ucEachTableName}}.Delete({
+                [primaryKey]: postID
+            })
 
             console.log('deleteResponse', deleteResponse?.data)
 

@@ -12,6 +12,7 @@ use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iConfig;
 use CarbonPHP\Programs\CLI;
 use CarbonPHP\Programs\WebSocket;
+use CarbonPHP\Restful\RestfulValidations;
 use Tests\Feature\CarbonRestTest;
 use Throwable;
 use function define;
@@ -68,6 +69,7 @@ class CarbonPHP
     public const REST = 'REST';
     public const NAMESPACE = 'NAMESPACE';
     public const TABLE_PREFIX = 'TABLE_PREFIX';
+    public const VALIDATE_EXTERNAL_REQUESTS_GENERATED_SQL = 'VALIDATE_EXTERNAL_REQUESTS_GENERATED_SQL';
 
     // Site Config
     public const SITE = 'SITE';
@@ -722,6 +724,10 @@ class CarbonPHP
                 die(1);
 
             }
+
+            ########################  Session Management ######################
+            RestfulValidations::$validateExternalRequestsGeneratedSql = $config[self::REST][self::VALIDATE_EXTERNAL_REQUESTS_GENERATED_SQL] ??= !self::$app_local;
+
 
             ########################  Session Management ######################
             if ($config[self::SESSION] ?? false) {
