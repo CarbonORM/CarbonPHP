@@ -4,6 +4,7 @@ namespace CarbonPHP;
 
 use CarbonPHP\Abstracts\ColorCode;
 use CarbonPHP\Abstracts\MySQL;
+use CarbonPHP\Error\PrivateAlert;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Interfaces\iColorCode;
@@ -509,7 +510,7 @@ FOOT;
 
             if (false === $status) {
 
-                throw new PublicAlert('Failed to rollback transaction');
+                throw new PrivateAlert('Failed to rollback transaction!');
 
             }  // this transaction was started after our keys were inserted..
 
@@ -589,7 +590,7 @@ FOOT;
 
                 if (false === $success) {
 
-                    throw new PublicAlert('Session failed to write close in (' . __METHOD__ . ') at line (' . __LINE__ . ')');
+                    throw new PrivateAlert('Session failed to write close in (' . __METHOD__ . ') at line (' . __LINE__ . ').');
 
                 }
 
@@ -719,7 +720,7 @@ FOOT;
 
                 }
 
-                throw new PublicAlert('Transaction already started.');
+                throw new PrivateAlert('Transaction already started.');
 
             }
 
@@ -727,7 +728,7 @@ FOOT;
 
             if (false === $db->beginTransaction()) {
 
-                throw new PublicAlert('Failed to start transaction.');
+                throw new PrivateAlert('Failed to start transaction.');
 
             }
 
@@ -785,7 +786,7 @@ FOOT;
 
         if (false === $id) {
 
-            throw new PublicAlert('C6 failed to create a new entity.');
+            throw new PrivateAlert('C6 failed to create a new entity.');
 
         }
 
@@ -893,7 +894,7 @@ FOOT;
 
             if (false === $stmt->execute($execute)) {
 
-                throw new PublicAlert("Failed to execute query ($sql).");
+                throw new PrivateAlert("Failed to execute query ($sql).");
 
             }
 
@@ -926,7 +927,7 @@ FOOT;
 
             if (false === $stmt->execute($execute)) {
 
-                throw new PublicAlert("Failed to execute query ($sql).");
+                throw new PrivateAlert("Failed to execute query ($sql).");
 
             }
 
@@ -1083,7 +1084,7 @@ FOOT;
 
                 if (!is_int($key)) {
 
-                    throw new PublicAlert('All members of REFRESH_SCHEMA must be callables or arrays with integer keys. Note: callables are not allowed in constants.');
+                    throw new PrivateAlert('All members of REFRESH_SCHEMA must be callables or arrays with integer keys. Note: callables are not allowed in constants.');
 
                 }
 
@@ -1091,13 +1092,13 @@ FOOT;
 
                     if (!is_callable($validation)) {
 
-                        throw new PublicAlert('Each REFRESH_SCHEMA should equal an array of arrays with [ call => method , structure followed by any additional arguments ]. Optionally a public member array $REFRESH_SCHEMA maybe used to explicitly reference using callables. Refer to Carbonphp.com for more information.');
+                        throw new PrivateAlert('Each REFRESH_SCHEMA should equal an array of arrays with [ call => method , structure followed by any additional arguments ]. Optionally a public member array $REFRESH_SCHEMA maybe used to explicitly reference using callables. Refer to Carbonphp.com for more information.');
 
                     }
 
                     if (false === $validation()) {
 
-                        throw new PublicAlert("Any method used in REFRESH_SCHEMA must not return false. A failure was caught in a callable. This typically can be tough debugging. ");
+                        throw new PrivateAlert("Any method used in REFRESH_SCHEMA must not return false. A failure was caught in a callable. This typically can be tough debugging. ");
 
                     }
 
@@ -1113,13 +1114,13 @@ FOOT;
 
                 if (!class_exists($class)) {
 
-                    throw new PublicAlert("A class reference in REFRESH_SCHEMA failed. Class ($class) not found.");
+                    throw new PrivateAlert("A class reference in REFRESH_SCHEMA failed. Class ($class) not found.");
 
                 }
 
                 if (false === call_user_func([$class, $validationMethod], ...$validation)) {
 
-                    throw new PublicAlert("Any method used in REFRESH_SCHEMA must not return false. $class => $validationMethod returned with error.");
+                    throw new PrivateAlert("Any method used in REFRESH_SCHEMA must not return false. $class => $validationMethod returned with error.");
 
                 }
 
@@ -1197,13 +1198,13 @@ FOOT;
 
             if (null === $constraintName) {
 
-                throw new PublicAlert('Parsed fk constraint but not its name. (' . print_r($info, true) . ')');
+                throw new PrivateAlert('Parsed fk constraint but not its name. (' . print_r($info, true) . ')');
 
             }
 
             if (false === self::execute($sql = "alter table $internalTableName drop foreign key $constraintName;")) {
 
-                throw new PublicAlert("Failed to execute ($sql)");
+                throw new PrivateAlert("Failed to execute ($sql)");
 
             }
 
@@ -1257,7 +1258,7 @@ WHERE cols.TABLE_SCHEMA=?
 
         if (false === $return) {
 
-            throw new PublicAlert('Failed to capture constraint info.');
+            throw new PrivateAlert('Failed to capture constraint info.');
 
         }
 
@@ -1374,7 +1375,7 @@ WHERE cols.TABLE_SCHEMA=?
 
         if (empty($db_name)) {
 
-            throw new PublicAlert('Failed to parse the database name. Please look at the mysql connection information.');
+            throw new PrivateAlert('Failed to parse the database name. Please look at the mysql connection information.');
 
         }
 
@@ -1403,7 +1404,7 @@ WHERE cols.TABLE_SCHEMA=?
 
         if (!$db->prepare($stmt)->execute()) {
 
-            throw new PublicAlert("The following mysql command failed 'CREATE DATABASE IF NOT EXISTS ($db_name)'");
+            throw new PrivateAlert("The following mysql command failed 'CREATE DATABASE IF NOT EXISTS ($db_name)'");
 
         }
 
@@ -1519,7 +1520,7 @@ WHERE cols.TABLE_SCHEMA=?
 
                 self::columnExistsOrExecuteSQL($shortName, $table, $sql);
 
-                ColorCode::colorCode("Verified column ($fullyQualified) exists.", iColorCode::BACKGROUND_MAGENTA);
+                ColorCode::colorCode("Verified column ($fullyQualified) exists <$table>.", iColorCode::BACKGROUND_MAGENTA);
 
                 $maxLength = $pdoValidations[$fullyQualified][iRest::MAX_LENGTH] ?? '';
 
@@ -1678,7 +1679,7 @@ WHERE cols.TABLE_SCHEMA=?
 
             if (null === $autoGeneratedSQL) {
 
-                throw new PublicAlert("The \$preUpdateSQL variable is null; this is very unexpected. \n\n" . print_r(self::$tablesToValidateAfterRefresh, true));
+                throw new PrivateAlert("The \$preUpdateSQL variable is null; this is very unexpected. \n\n" . print_r(self::$tablesToValidateAfterRefresh, true));
 
             }
 
@@ -2281,7 +2282,7 @@ AND links.CONSTRAINT_NAME = '$constraintName'");
 
         if (false === is_string($sqlReplaced)) {
 
-            throw new PublicAlert('Failed to replace schema.');
+            throw new PrivateAlert('Failed to replace schema.');
 
         }
 
@@ -2301,7 +2302,7 @@ AND links.CONSTRAINT_NAME = '$constraintName'");
 
             if ('' === $stmts) {
 
-                throw new PublicAlert('Nothing was passed to ' . __FUNCTION__ . ' and no query was compiled yet!');
+                throw new PrivateAlert('Nothing was passed to ' . __FUNCTION__ . ' and no query was compiled yet!');
 
             }
 
@@ -2471,8 +2472,8 @@ AND links.CONSTRAINT_NAME = '$constraintName'");
             if ($unique) {
 
                 // @link https://stackoverflow.com/questions/12188027/mysql-select-distinct-multiple-columns
-                //DELETE FROM wp_zesv6j_um_friends
-                //WHERE (user_id1, user_id2) in (SELECT user_id1, user_id2
+                // DELETE FROM wp_zesv6j_um_friends
+                // WHERE (user_id1, user_id2) in (SELECT user_id1, user_id2
                 //                               FROM wp_zesv6j_um_friends
                 //                               GROUP BY user_id1, user_id2
                 //                               HAVING COUNT(*) > 1)
@@ -2492,7 +2493,7 @@ AND links.CONSTRAINT_NAME = '$constraintName'");
                     // @link https://www.codeproject.com/Tips/831164/MySQL-can-t-specify-target-table-for-update-in-FRO
                     if (false === self::execute($sql = "DELETE FROM $tableName WHERE ($columnsInline) in (SELECT * FROM (SELECT $columnsInline FROM $tableName GROUP BY $columnsInline HAVING COUNT(*) > 1) tblTmp)")) {
 
-                        throw new PublicAlert('Failed to delete records that violate the unique constraint. (' . $constraintName . ') using sql (' . $sql . ')');
+                        throw new PrivateAlert('Failed to delete records that violate the unique constraint. (' . $constraintName . ') using sql (' . $sql . ')');
 
                     }
 

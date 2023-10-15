@@ -28,10 +28,7 @@ createTables.sql
 /wp-includes
 /logs
 /temp
-
-# recursive documentation (keep both)
-/view/assets/react/src/assets/src/*
-view/assets/react/src/assets/src
+/view
 
 # wordpress
 /wp-content/index.php

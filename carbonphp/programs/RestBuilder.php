@@ -9,6 +9,7 @@ use CarbonPHP\Abstracts\Composer;
 use CarbonPHP\Abstracts\Files;
 use CarbonPHP\Abstracts\MySQL;
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Error\PrivateAlert;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Interfaces\iColorCode;
@@ -1340,7 +1341,7 @@ END;
 
                             if (preg_last_error() !== PREG_NO_ERROR) {
 
-                                throw new PublicAlert('Failed to compile regex validations preg_last_error_message: ' . preg_last_error_msg());
+                                throw new PrivateAlert('Failed to compile regex validations preg_last_error_message: ' . preg_last_error_msg());
 
                             }
 
@@ -1381,7 +1382,7 @@ END;
 
                             } else {
 
-                                throw new PublicAlert('An unexpected type has been given');
+                                throw new PrivateAlert('An unexpected type has been given');
 
                             }
 
@@ -1652,7 +1653,7 @@ export type tRestfulObjectArrayValues = iRestfulObjectArrayTypes[keyof iRestfulO
 
             if (false === file_put_contents($storeReactTsLocation, $export)) {
 
-                throw new PublicAlert('Failed to write to ' . $storeReactTsLocation);
+                throw new PrivateAlert('Failed to write to ' . $storeReactTsLocation);
 
             }
 
@@ -1768,7 +1769,7 @@ export const convertForRequestBody = function (restfulObject, tableName, regexEr
 
                 if (false === file_put_contents($javascriptBindingsPath, $export)) {
 
-                    throw new PublicAlert('Failed to write react js bindings to (' . $javascriptBindingsPath . ')');
+                    throw new PrivateAlert('Failed to write react js bindings to (' . $javascriptBindingsPath . ')');
 
                 }
 

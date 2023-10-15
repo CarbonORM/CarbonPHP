@@ -18,6 +18,7 @@ namespace CarbonPHP;
 
 use CarbonPHP\Abstracts\ColorCode;
 use CarbonPHP\Abstracts\Serialized;
+use CarbonPHP\Error\PrivateAlert;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Interfaces\iRest;
@@ -88,7 +89,7 @@ class Session implements SessionHandlerInterface
 
             if ((PHP_SESSION_ACTIVE === session_status()) && false === session_write_close()) {
 
-                throw new PublicAlert('Failed to close previously opened session');
+                throw new PrivateAlert('Failed to close previously opened session');
 
             }
 

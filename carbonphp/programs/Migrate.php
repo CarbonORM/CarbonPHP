@@ -8,6 +8,7 @@ use CarbonPHP\Abstracts\Files;
 use CarbonPHP\Abstracts\MySQL;
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
+use CarbonPHP\Error\PrivateAlert;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Interfaces\iColorCode;
@@ -77,7 +78,7 @@ class Migrate implements iCommand
 
         if ($path === false || false === is_dir($path)) {
 
-            throw new PublicAlert("Failed to verify that dir (file://$path) exists!");
+            throw new PrivateAlert("Failed to verify that dir (file://$path) exists!");
 
         }
 
@@ -211,7 +212,7 @@ class Migrate implements iCommand
 
                     if (1 !== preg_match($pattern, self::$localUrl)) {
 
-                        throw new PublicAlert("The url failed to match the regx ($pattern) with given --local-url argument. (" . self::$localUrl . ") given.");
+                        throw new PrivateAlert("The url failed to match the regx ($pattern) with given --local-url argument. (" . self::$localUrl . ") given.");
 
                     }
 
@@ -227,7 +228,7 @@ class Migrate implements iCommand
 
                     if (1 !== preg_match($pattern, self::$remoteUrl)) {
 
-                        throw new PublicAlert("The url failed to match the regx ($pattern) with given --remote-url argument; (" . self::$remoteUrl . ") given.");
+                        throw new PrivateAlert("The url failed to match the regx ($pattern) with given --remote-url argument; (" . self::$remoteUrl . ") given.");
 
                     }
 
@@ -262,7 +263,7 @@ class Migrate implements iCommand
 
         if (null === self::$localUrl || null === self::$remoteUrl) {
 
-            throw new PublicAlert('The local and remote url must be passed to the migration command!');
+            throw new PrivateAlert('The local and remote url must be passed to the migration command!');
 
         }
 
@@ -371,7 +372,7 @@ class Migrate implements iCommand
 
         if (false === rename($localManifestPath, $newLocalManifestPath)) {
 
-            throw new PublicAlert("Failed to rename local manifest file ($localManifestPath) to ($newLocalManifestPath)");
+            throw new PrivateAlert("Failed to rename local manifest file ($localManifestPath) to ($newLocalManifestPath)");
 
         }
 
@@ -384,7 +385,7 @@ class Migrate implements iCommand
 
         if (false === $manifest) {
 
-            throw new PublicAlert("Failed to open file pointer to ($localManifestPath)");
+            throw new PrivateAlert("Failed to open file pointer to ($localManifestPath)");
 
         }
 
@@ -392,13 +393,13 @@ class Migrate implements iCommand
 
         if (null === self::$remoteAbsolutePath) {
 
-            throw new PublicAlert('Failed to parse the absolute path header from the remote server! (' . print_r($responseHeaders, true) . ')');
+            throw new PrivateAlert('Failed to parse the absolute path header from the remote server! (' . print_r($responseHeaders, true) . ')');
 
         }
 
         if (empty($manifest)) {
 
-            throw new PublicAlert('Failed to get the file manifest from the remote server!');
+            throw new PrivateAlert('Failed to get the file manifest from the remote server!');
 
         }
 
@@ -497,7 +498,7 @@ class Migrate implements iCommand
 
             if (false === file_exists($file)) {
 
-                throw new PublicAlert("Failed to locate migration import ($file)");
+                throw new PrivateAlert("Failed to locate migration import ($file)");
 
             }
 
@@ -507,7 +508,7 @@ class Migrate implements iCommand
 
             if (false === $fp) {
 
-                throw new PublicAlert("Failed to open file pointer to ($file)");
+                throw new PrivateAlert("Failed to open file pointer to ($file)");
 
             }
 
@@ -671,7 +672,7 @@ class Migrate implements iCommand
 
                 if (true === $failed) {
 
-                    throw new PublicAlert("Failed to download file ($file) after three attempts!");
+                    throw new PrivateAlert("Failed to download file ($file) after three attempts!");
 
                 }
 
@@ -712,7 +713,7 @@ class Migrate implements iCommand
     }
 
     /**
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function importManifestFile(string $file, string $uri): void
     {
@@ -747,7 +748,7 @@ class Migrate implements iCommand
 
                 }
 
-                throw new PublicAlert("A MySQL dump file ($file) was found though the " . self::SKIP_MYSQL_DATA_DUMP_FLAG . " was set.");
+                throw new PrivateAlert("A MySQL dump file ($file) was found though the " . self::SKIP_MYSQL_DATA_DUMP_FLAG . " was set.");
 
         }
 
@@ -799,7 +800,7 @@ class Migrate implements iCommand
 
         }
 
-        throw new PublicAlert("Failed to capture balanced parenthesis group from string ($subject) using pattern ($pattern)");
+        throw new PrivateAlert("Failed to capture balanced parenthesis group from string ($subject) using pattern ($pattern)");
 
     }
 
@@ -810,7 +811,7 @@ class Migrate implements iCommand
 
         if (empty($license)) {
 
-            throw new PublicAlert('License is empty!');
+            throw new PrivateAlert('License is empty!');
 
         }
 
@@ -923,7 +924,7 @@ HALT;
     }
 
     /**
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function largeHttpPostRequestsToFile(string $url, string $toLocalFilePath, array $post = [], array &$responseHeaders = []): void
     {
@@ -972,13 +973,13 @@ HALT;
 
                 if (false === touch($toLocalFilePath)) {
 
-                    throw new PublicAlert("Failed to run touch($toLocalFilePath). Please very correct permission are set on the directory!");
+                    throw new PrivateAlert("Failed to run touch($toLocalFilePath). Please very correct permission are set on the directory!");
 
                 }
 
                 if (false === file_put_contents($toLocalFilePath, '')) {
 
-                    throw new PublicAlert("Failed to empty the file using file_put_contents ($toLocalFilePath)");
+                    throw new PrivateAlert("Failed to empty the file using file_put_contents ($toLocalFilePath)");
 
                 }
 
@@ -1044,7 +1045,7 @@ HALT;
 
                     $currentLocalMD5 = md5_file($toLocalFilePath);
 
-                    throw new PublicAlert("Failed to verify the md5 hash received <$md5> === expected <$serverSentMd5>, file received hashed to ($md5) on tmp file ($toLocalFilePath)! The local copy at ($toLocalFilePath) has ($currentLocalMD5)");
+                    throw new PrivateAlert("Failed to verify the md5 hash received <$md5> === expected <$serverSentMd5>, file received hashed to ($md5) on tmp file ($toLocalFilePath)! The local copy at ($toLocalFilePath) has ($currentLocalMD5)");
 
                 }
 
@@ -1052,7 +1053,7 @@ HALT;
 
                 if ('' !== $serverSentSha1 && $serverSentSha1 !== $sha1) {
 
-                    throw new PublicAlert("Failed to verify the sha1 ($sha1) equals server sent ($serverSentSha1) for file ($toLocalFilePath)");
+                    throw new PrivateAlert("Failed to verify the sha1 ($sha1) equals server sent ($serverSentSha1) for file ($toLocalFilePath)");
 
                 }
 
@@ -1071,7 +1072,7 @@ HALT;
 
                 if (false === $downloadFilePointer) {
 
-                    throw new PublicAlert("Failed to open file pointer to ($toLocalFilePath)");
+                    throw new PrivateAlert("Failed to open file pointer to ($toLocalFilePath)");
 
                 }
 
@@ -1091,7 +1092,7 @@ HALT;
 
                     passthru("cat $toLocalFilePath.html");
 
-                    throw new PublicAlert("The curl download detected an html document (file://$toLocalFilePath.html) using `strpos(\$firstLine, '<html')`, this is an unexpected error possibly thrown on the remote host. View downloaded file content above for (potentially) more details.");
+                    throw new PrivateAlert("The curl download detected an html document (file://$toLocalFilePath.html) using `strpos(\$firstLine, '<html')`, this is an unexpected error possibly thrown on the remote host. View downloaded file content above for (potentially) more details.");
 
                 }
 
@@ -1147,7 +1148,7 @@ HALT;
 
         if (true === $failed) {
 
-            throw new PublicAlert("Failed to download file ($url) to ($toLocalFilePath) after ($attempt) attempts");
+            throw new PrivateAlert("Failed to download file ($url) to ($toLocalFilePath) after ($attempt) attempts");
 
         }
 
@@ -1155,7 +1156,7 @@ HALT;
 
 
     /**
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function curlProgress($ch): void
     {
@@ -1174,7 +1175,7 @@ HALT;
      * @param $ch
      * @param string $tmpPath
      * @return void
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function curlReturnFileAppend($ch, string $tmpPath, bool &$bytesSent): void
     {
@@ -1187,7 +1188,7 @@ HALT;
 
                 if (false === file_put_contents($tmpPath, $text, FILE_APPEND)) {
 
-                    throw new PublicAlert("file_put_contents failed to append to ($tmpPath), ($text)", iColorCode::RED);
+                    throw new PrivateAlert("file_put_contents failed to append to ($tmpPath), ($text)", iColorCode::RED);
 
                 }
 
@@ -1197,20 +1198,20 @@ HALT;
     }
 
     /**
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function testCurlResource($ch): void
     {
         if (false === $ch instanceof CurlHandle) {
 
-            throw new PublicAlert('The first argument passed to curlReturnFileAppend must be a curl_init resource connection.' . print_r($ch, true));
+            throw new PrivateAlert('The first argument passed to curlReturnFileAppend must be a curl_init resource connection.' . print_r($ch, true));
 
         }
     }
 
 
     /**
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function curlGetResponseHeaders($ch, array &$headers): void
     {
@@ -1234,7 +1235,7 @@ HALT;
      * @param int|null $total total items
      * @param int|null $size optional size of the status bar
      * @return  void
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function showStatus(int $done = null, int $total = null, int $size = null): void
     {
@@ -1248,7 +1249,7 @@ HALT;
 
         if (0 === $done) {
 
-            throw new PublicAlert("showStatus can have 0 passed for done!");
+            throw new PrivateAlert("showStatus can have 0 passed for done!");
 
         }
 
@@ -1438,7 +1439,7 @@ HALT;
 
             if (false === $ch) {
 
-                throw new PublicAlert('Failed to init curl.');
+                throw new PrivateAlert('Failed to init curl.');
 
             }
 
@@ -1446,7 +1447,7 @@ HALT;
 
             if (false === $fp) {
 
-                throw new PublicAlert("Could not open fopen($path, 'rb');");
+                throw new PrivateAlert("Could not open fopen($path, 'rb');");
 
             }
 
@@ -1554,7 +1555,7 @@ HALT;
     }
 
     /**
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function dumpAll(string $pathHaltPHP): void
     {
@@ -1594,7 +1595,7 @@ HALT;
     }
 
     /**
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function zipFolder(string $relativeFolderPath): string
     {
@@ -1632,7 +1633,7 @@ HALT;
 
         if (false === rename($zipFile, $zipFileWithMd5)) {
 
-            throw new PublicAlert("Failed to rename($zipFile, $zipFileWithMd5)");
+            throw new PrivateAlert("Failed to rename($zipFile, $zipFileWithMd5)");
 
         }
 
@@ -1651,7 +1652,7 @@ HALT;
      * @param Route $route
      * @param array $allowedDirectories
      * @return Route
-     * @throws PublicAlert
+     * @throws PrivateAlert
      * @link https://stackoverflow.com/questions/27309773/is-there-a-limit-of-the-size-of-response-i-can-read-over-http
      */
     public static function enablePull(array $allowedDirectories): bool
@@ -1671,7 +1672,7 @@ HALT;
 
             if ('' === self::$license) {
 
-                throw new PublicAlert('License is empty!');
+                throw new PrivateAlert('License is empty!');
 
             }
 
@@ -1733,7 +1734,7 @@ HALT;
 
                         if (false === $allowed) {
 
-                            throw new PublicAlert("Failed to verify requested ($directory) is allowed to transfer.");
+                            throw new PrivateAlert("Failed to verify requested ($directory) is allowed to transfer.");
 
                         }
 
@@ -1743,7 +1744,7 @@ HALT;
                     ColorCode::colorCode("The requested ($requestedDirectoriesString) had directories not allowed by this server. Allowed values :: " . print_r($allowedDirectories, true));
 
                     // omit publicly logging what is allowed
-                    throw new PublicAlert("One or more directories you have requested are not listed as available! ($requestedDirectoriesString)");
+                    throw new PrivateAlert("One or more directories you have requested are not listed as available! ($requestedDirectoriesString)");
 
                 }
 
@@ -1751,7 +1752,7 @@ HALT;
 
             } else if (false === self::$MySQLDataDump) {
 
-                throw new PublicAlert('Request failed as no migration directories were provided and no mysql data was explicitly requests. Nothing to do.');
+                throw new PrivateAlert('Request failed as no migration directories were provided and no mysql data was explicitly requests. Nothing to do.');
 
             }
 
@@ -1761,7 +1762,7 @@ HALT;
 
             if (false === file_put_contents($pathHaltPHP, $haltPHP)) {
 
-                throw new PublicAlert('Failed to store halt file');
+                throw new PrivateAlert('Failed to store halt file');
 
             }
 
@@ -1805,7 +1806,7 @@ HALT;
 
                 if (false === is_string($media)) {
 
-                    throw new PublicAlert('An argument passed in the array $directories was not of type string ' . print_r($allowedDirectories, true));
+                    throw new PrivateAlert('An argument passed in the array $directories was not of type string ' . print_r($allowedDirectories, true));
 
                 }
 
@@ -1826,7 +1827,7 @@ HALT;
 
 
     /**
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function clearDirectory(string $directory): void
     {
@@ -1874,7 +1875,7 @@ HALT;
 
         if (false === file_exists($licenseFile)) {
 
-            throw new PublicAlert("No license passed as argument or exists in (file://$licenseFile).");
+            throw new PrivateAlert("No license passed as argument or exists in (file://$licenseFile).");
 
         }
 
@@ -1884,7 +1885,7 @@ HALT;
 
         if ('' === $importedLicense) {
 
-            throw new PublicAlert("The license file (file://$licenseFile) provided returned an empty string. Please correct this.");
+            throw new PrivateAlert("The license file (file://$licenseFile) provided returned an empty string. Please correct this.");
 
         }
 
@@ -1923,11 +1924,11 @@ HALT;
                         CODE
                     )) {
 
-                    throw new PublicAlert("Failed to store license file to ($licensePHPFilePath)");
+                    throw new PrivateAlert("Failed to store license file to ($licensePHPFilePath)");
 
                 }
 
-                throw new PublicAlert("No license was detected. We have created a new one and stored it to ($licensePHPFilePath).");
+                throw new PrivateAlert("No license was detected. We have created a new one and stored it to ($licensePHPFilePath).");
 
             }
 
@@ -1936,7 +1937,7 @@ HALT;
 
             if ($realLicense !== $checkLicense) {
 
-                throw new PublicAlert("The license ($checkLicense) provided did not match the expected.");
+                throw new PrivateAlert("The license ($checkLicense) provided did not match the expected.");
 
             }
 
@@ -1951,7 +1952,7 @@ HALT;
     }
 
     /**
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function compileFolderFiles(string $path): array
     {
@@ -2026,7 +2027,7 @@ HALT;
 
             if (false === file_put_contents($storeToFile, $allFilesCSV)) {
 
-                throw new PublicAlert("Failed to store the RecursiveDirectoryIterator contents to file ($storeToFile)");
+                throw new PrivateAlert("Failed to store the RecursiveDirectoryIterator contents to file ($storeToFile)");
 
             }
 

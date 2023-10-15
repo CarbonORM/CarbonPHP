@@ -11,6 +11,7 @@ namespace CarbonPHP\Programs;
 
 use CarbonPHP\Abstracts\ColorCode;
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Error\PrivateAlert;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Interfaces\iColorCode;
@@ -182,7 +183,7 @@ class CLI implements iCommand
 
                         if (false === class_exists($programDirectory)) {
 
-                            throw new PublicAlert('The program directories provided (CarbonPHP::SITE => [ CarbonPHP::PROGRAM_DIRECTORIES => [...]]) must be comma seperated fully qualified namespaces. Please check your composer.json file and configuration passe to CarbonPHP.');
+                            throw new PrivateAlert('The program directories provided (CarbonPHP::SITE => [ CarbonPHP::PROGRAM_DIRECTORIES => [...]]) must be comma seperated fully qualified namespaces. Please check your composer.json file and configuration passe to CarbonPHP.');
 
                         }
 
@@ -193,7 +194,7 @@ class CLI implements iCommand
                     if (!is_string($programDirectory)) {
 
 
-                        throw new PublicAlert('The program directories provided must be a string. Please check your composer.json file and configuration passe to CarbonPHP.');
+                        throw new PrivateAlert('The program directories provided must be a string. Please check your composer.json file and configuration passe to CarbonPHP.');
 
                     }
 
@@ -216,7 +217,7 @@ class CLI implements iCommand
                     // todo - check if class exists (autoload now) and if it implements iCommand in $clean()
                     if (!array_walk($userDefinedPrograms, $clean)) {
 
-                        throw new PublicAlert('array_walk failed in Cli::run()');
+                        throw new PrivateAlert('array_walk failed in Cli::run()');
 
                     }
 

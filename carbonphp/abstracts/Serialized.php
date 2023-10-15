@@ -13,6 +13,7 @@
 
 namespace CarbonPHP\Abstracts;
 
+use CarbonPHP\Error\PrivateAlert;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Error\ThrowableHandler;
 
@@ -39,7 +40,7 @@ abstract class Serialized
         self::$sessionVar = $argv;
         foreach (self::$sessionVar as $value) {
             if (!is_string($value)) {
-                throw new PublicAlert(self::NOT_STRING_ERROR);
+                throw new PrivateAlert(self::NOT_STRING_ERROR);
             }
             if (self::$base64) {
                 if (empty($_SESSION[__CLASS__][$value])) {
@@ -53,23 +54,41 @@ abstract class Serialized
 
         // You CAN register multiple shutdown functions
         register_shutdown_function(static function () use ($argv) {
+
             $last_error = error_get_last();
+
             if (($last_error['type'] ?? false) && $last_error['type'] === E_ERROR) {
-                throw new PublicAlert(['register_shutdown_function captured an error', $last_error]);
+
+                throw new PrivateAlert(['register_shutdown_function captured an error', $last_error]);
+
             }
+
             foreach ($argv as $value) {
+
                 if (!is_string($value)) {
-                    throw new PublicAlert(self::NOT_STRING_ERROR);
+
+                    throw new PrivateAlert(self::NOT_STRING_ERROR);
+
                 }
+
                 if (isset($GLOBALS[$value])) {
+
                     if (self::$base64) {
+
                         $_SESSION[__CLASS__][$value] = base64_encode(serialize($GLOBALS[$value]));
+
                     } else {
+
                         $_SESSION[__CLASS__][$value] = $GLOBALS[$value] ??= null;
+
                     }
+
                 }
+
             }
+
         });
+
     }
 
     /**

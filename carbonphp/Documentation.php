@@ -4,6 +4,7 @@ namespace CarbonPHP;
 
 
 use CarbonPHP\Abstracts\ColorCode;
+use CarbonPHP\Error\PrivateAlert;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iConfig;
 use CarbonPHP\Programs\CLI;
@@ -52,12 +53,12 @@ class Documentation extends Application implements iConfig
         if (CarbonPHP::$app_local
             && 'GET' === $_SERVER['REQUEST_METHOD']) {
 
-            throw new PublicAlert('You should run the live version on <a id="staticSite" href="http://local.carbonphp.com:3000/" style="color:#ff0084">port 3000</a> with the command<br/><b>>> npm start </b> 
+            throw new PrivateAlert('You should run the live version on <a id="staticSite" href="http://local.carbonphp.com:3000/" style="color:#ff0084">port 3000</a> with the command<br/><b>>> npm start </b> 
                     <br/>or your may be looking to head to the  <a onClick=\'document.cookie="CARBON_PHP_DEV=value";\' href="http://local.carbonphp.com:8080/wp-admin/" style="color:blue">WordPress admin</a> to see ');
 
         }
 
-        throw new PublicAlert('The default route was reached. This is unexpected. Please report this issue on <a href="' . self::GIT_SUPPORT . '">GitHub</a>');
+        throw new PrivateAlert('The default route was reached. This is unexpected. Please report this issue on <a href="' . self::GIT_SUPPORT . '">GitHub</a>');
 
     }
 
@@ -65,13 +66,7 @@ class Documentation extends Application implements iConfig
     public static function getLatestReactBuild(): void
     {
 
-        $carbon_package = dirname(CarbonPHP::CARBON_ROOT);
-
-        $index = $carbon_package . DS . self::getLatestReactIndexPath();
-
-        ColorCode::colorCode("Attempting to serve (file://$index)");
-
-        self::fullPage($index);
+        header('Location: https://carbonorm.dev/');
 
     }
 
@@ -508,7 +503,7 @@ SOCKET;
 
                     if (!is_string($_POST['code'])) {
 
-                        throw new PublicAlert('You must submit a string. This could be code or a file path.');
+                        throw new PrivateAlert('You must submit a string. This could be code or a file path.');
 
                     }
 

@@ -6,6 +6,7 @@ use CarbonPHP\Abstracts\ColorCode;
 use CarbonPHP\Abstracts\Files;
 use CarbonPHP\Abstracts\Serialized;
 use CarbonPHP\Enums\ThrowableReportDisplay;
+use CarbonPHP\Error\PrivateAlert;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Interfaces\iColorCode;
@@ -214,7 +215,7 @@ class CarbonPHP
 
             if (false === self::$setupComplete) {
 
-                throw new PublicAlert('Failed to verify CarbonPHP was created successfully.');
+                throw new PrivateAlert('Failed to verify CarbonPHP was created successfully.');
 
             }
 
@@ -739,7 +740,7 @@ class CarbonPHP
 
                 if (headers_sent($file, $line)) {
 
-                    throw new PublicAlert("Failed to start session, headers already sent from file ($file) on line ($line) ! Please contact the server administrator.");
+                    throw new PrivateAlert("Failed to start session, headers already sent from file ($file) on line ($line) ! Please contact the server administrator.");
 
                 }
 

@@ -6,7 +6,7 @@ use CarbonPHP\Abstracts\ColorCode;
 use CarbonPHP\Abstracts\MySQL;
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
-use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Error\PrivateAlert;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
@@ -37,7 +37,7 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
 
     /**
-     * @throws PublicAlert
+     * @throws PrivateAlert
      * @noinspection PhpUndefinedMethodInspection
      */
     public static function handleSubSelectAggregate(array $stmt): string
@@ -53,7 +53,7 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
         if (false === self::$allowSubSelectQueries) {
 
-            throw new PublicAlert("Whoa, looks like a sub-select was encountered without `$tableName::\$allowSubSelectQueries` explicitly set to true. "
+            throw new PrivateAlert("Whoa, looks like a sub-select was encountered without `$tableName::\$allowSubSelectQueries` explicitly set to true. "
                 . ' This is a security precaution and is required to only be set to true when explicitly needed. You should'
                 . " consider doing this in the ($tableName::PHP_VALIDATION['PREPROCESS']) event cycle.");
 
@@ -65,7 +65,7 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
             if (false === defined("$tableNameFullTry::CLASS_NAME")) {
 
-                throw new PublicAlert("The restful sub-select failed as the table ($tableName) did not have member const ($tableName::CLASS_NAME) under the (" . static::CLASS_NAMESPACE . ') namespace.');
+                throw new PrivateAlert("The restful sub-select failed as the table ($tableName) did not have member const ($tableName::CLASS_NAME) under the (" . static::CLASS_NAMESPACE . ') namespace.');
 
             }
 
@@ -85,7 +85,7 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
         if (true === self::is_assoc($stmt)) {   // todo - php 8.1 check when we gain support
 
-            throw new PublicAlert('The restful sub-select query has been detected to be an associative array.'
+            throw new PrivateAlert('The restful sub-select query has been detected to be an associative array.'
                 . ' Associative array arrays can not (yet) be unpacked in PHP. Please remove the keys an allow php '
                 . 'to manually assign them. The infringing set on table (' . static::class . ') :: (' . json_encode($stmt) . ')');
 
@@ -106,13 +106,13 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
                     if (false === is_array($argv)) {
 
-                        throw new PublicAlert("The third argument passed to the restful sub-select was a not an array. The signature for tables without primary keys is as follows:: [ Rest::SELECT, '$tableName' , (array) \$argv, (string|optional) \$as].  The infringing set on table (" . static::class . ") :: (" . json_encode($stmt) . ")'");
+                        throw new PrivateAlert("The third argument passed to the restful sub-select was a not an array. The signature for tables without primary keys is as follows:: [ Rest::SELECT, '$tableName' , (array) \$argv, (string|optional) \$as].  The infringing set on table (" . static::class . ") :: (" . json_encode($stmt) . ")'");
 
                     }
 
                     if (false === is_string($as)) {
 
-                        throw new PublicAlert("The fourth argument passed  to the restful sub-select was a not a string. The signature for tables without primary keys is as follows:: [ Rest::SELECT, '$tableName' , (array) \$argv, (string|optional) \$as]. The infringing set on table (" . static::class . ") :: (" . json_encode($stmt) . ")'");
+                        throw new PrivateAlert("The fourth argument passed  to the restful sub-select was a not a string. The signature for tables without primary keys is as follows:: [ Rest::SELECT, '$tableName' , (array) \$argv, (string|optional) \$as]. The infringing set on table (" . static::class . ") :: (" . json_encode($stmt) . ")'");
 
                     }
 
@@ -120,7 +120,7 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
                 default:
 
-                    throw new PublicAlert('The restful sub-select set passed was not the correct length. The '
+                    throw new PrivateAlert('The restful sub-select set passed was not the correct length. The '
                         . "table ($tableName) has no primary keys so only three or four values are expected."
                         . " Arguments must match the signature [ SELECT, $tableName, \$argv = [], \$as = '' ] for sub-select"
                         . ' queries on tables which have no sql queries. The infringing set on table (' . static::class . ') :: (' . json_encode($stmt) . ')');
@@ -165,19 +165,19 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
                     if (null !== $primary && false === is_array($primary)) {
 
-                        throw new PublicAlert("The third argument passed to the restful sub-select was a not a { null, string, int, or array }. " . $error_context($tableName));
+                        throw new PrivateAlert("The third argument passed to the restful sub-select was a not a { null, string, int, or array }. " . $error_context($tableName));
 
                     }
 
                     if (false === is_array($argv)) {
 
-                        throw new PublicAlert("The fourth argument passed to the restful sub-select was a not an array. " . $error_context($tableName));
+                        throw new PrivateAlert("The fourth argument passed to the restful sub-select was a not an array. " . $error_context($tableName));
 
                     }
 
                     if (false === is_string($as)) {
 
-                        throw new PublicAlert("The fourth argument passed to the restful sub-select was a not a string. " . $error_context($tableName));
+                        throw new PrivateAlert("The fourth argument passed to the restful sub-select was a not a string. " . $error_context($tableName));
 
                     }
 
@@ -185,7 +185,7 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
                 default:
 
-                    throw new PublicAlert('The restful sub-select set passed was not the correct length. (' . count($stmt) . ') '
+                    throw new PrivateAlert('The restful sub-select set passed was not the correct length. (' . count($stmt) . ') '
                         . $error_context($tableName));
 
             }
@@ -217,7 +217,7 @@ abstract class RestQueryBuilder extends RestQueryValidation
     }
 
     /**
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function isAggregate(string $column, string $aggregate, $name): string
     {
@@ -236,13 +236,13 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
         }
 
-        throw new PublicAlert("The aggregate IS used on column ($column) must be one of (" . implode(', ', $allowedIsAggregations) . ") exclusively; the value ($name) in incorrect.");
+        throw new PrivateAlert("The aggregate IS used on column ($column) must be one of (" . implode(', ', $allowedIsAggregations) . ") exclusively; the value ($name) in incorrect.");
 
     }
 
 
     /**
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     private static function validateInternalOrAddInjection(string &$columnOrInjection, string $aggregate, &...$rest): string
     {
@@ -264,7 +264,7 @@ abstract class RestQueryBuilder extends RestQueryValidation
      * @param array $stmt
      * @param bool $isSubSelect
      * @return string
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     private static function buildAggregate(array $stmt, bool $isSubSelect = false): string
     {
@@ -288,7 +288,7 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
             if ($aggregate !== self::CONVERT_TZ) {
 
-                throw new PublicAlert('Expected the CONVERT_TZ aggregate function as four arguments were encountered.');
+                throw new PrivateAlert('Expected the CONVERT_TZ aggregate function as four arguments were encountered.');
 
             }
 
@@ -304,7 +304,7 @@ abstract class RestQueryBuilder extends RestQueryValidation
             [$aggregate, $column, $name, $sortColumn, $sortType] = $stmt;
 
             if ($aggregate !== self::GROUP_CONCAT) {
-                throw new PublicAlert('Expected the GROUP_CONCAT aggregate function with custom ordering as five arguments were encountered.');
+                throw new PrivateAlert('Expected the GROUP_CONCAT aggregate function with custom ordering as five arguments were encountered.');
             }
         } elseif (3 === $stmtCount) {
 
@@ -331,7 +331,7 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
             if (count($stmt) !== 1) {
 
-                throw new PublicAlert('A Restful array value in the aggregation must be at least two values: array( $aggregate, $column [, optional: $as] ) ');
+                throw new PrivateAlert('A Restful array value in the aggregation must be at least two values: array( $aggregate, $column [, optional: $as] ) ');
 
             }
 
@@ -339,7 +339,7 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
             if (self::NOW !== $aggregate) {
 
-                throw new PublicAlert("Restful request encountered an ($aggregate) aggregate function as the only member of the array.");
+                throw new PrivateAlert("Restful request encountered an ($aggregate) aggregate function as the only member of the array.");
 
             }
 
@@ -351,7 +351,7 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
         if (false === in_array($aggregate, $allowedValues, true)) {
 
-            throw new PublicAlert('The attempted aggregate (' . $aggregate . ') in query ( ' . json_encode($stmt) . ') in the GET request must be one of the following: '
+            throw new PrivateAlert('The attempted aggregate (' . $aggregate . ') in query ( ' . json_encode($stmt) . ') in the GET request must be one of the following: '
                 . implode(', ', $allowedValues));
 
         }
@@ -360,7 +360,7 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
             if (false === is_array($column) || empty($column)) {
 
-                throw new PublicAlert("Aggregation failed for $aggregate. Arguments must be a sub-array. ($column)");
+                throw new PrivateAlert("Aggregation failed for $aggregate. Arguments must be a sub-array. ($column)");
 
             }
 
@@ -380,7 +380,7 @@ abstract class RestQueryBuilder extends RestQueryValidation
         if (false === self::validateInternalColumn($column, $aggregate)) {
 
             /** @noinspection JsonEncodingApiUsageInspection */
-            throw new PublicAlert("The column value of stmt (" . json_encode($stmt) . ") caused validateInternalColumn to fail. Possible values include (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
+            throw new PrivateAlert("The column value of stmt (" . json_encode($stmt) . ") caused validateInternalColumn to fail. Possible values include (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
 
         }
 
@@ -410,7 +410,7 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
                 if (empty($name)) {
 
-                    throw new PublicAlert("The third argument provided to the ($aggregate) select aggregate must not be empty and be a string.");
+                    throw new PrivateAlert("The third argument provided to the ($aggregate) select aggregate must not be empty and be a string.");
 
                 }
 
@@ -432,7 +432,7 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
                 if (empty($name)) {
 
-                    throw new PublicAlert('The `name` argument provided to (' . self::GROUP_CONCAT . ') was empty!');
+                    throw new PrivateAlert('The `name` argument provided to (' . self::GROUP_CONCAT . ') was empty!');
 
                 }
 
@@ -482,7 +482,7 @@ abstract class RestQueryBuilder extends RestQueryValidation
     {
         if (false === is_array($values)) {
 
-            throw new PublicAlert('Rest IN aggregate error (' . $column . ') required an array!');
+            throw new PrivateAlert('Rest IN aggregate error (' . $column . ') required an array!');
 
         }
 
@@ -499,7 +499,7 @@ abstract class RestQueryBuilder extends RestQueryValidation
 
                 } else {
 
-                    throw new PublicAlert('Failed to parse IN aggregate. An array was passed with did not pass the isSubSelectAggregation test! (' . print_r($item, true) . ')');
+                    throw new PrivateAlert('Failed to parse IN aggregate. An array was passed with did not pass the isSubSelectAggregation test! (' . print_r($item, true) . ')');
 
                 }
 
@@ -697,7 +697,7 @@ TRIGGER;
      * @param array $where
      * @param array|null $primary
      * @return string
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     private static function buildQueryWhereValues(array $where, array $primary = null): string
     {
@@ -710,7 +710,7 @@ TRIGGER;
 
                     default:
 
-                        throw new PublicAlert('An unexpected request (' . self::$REST_REQUEST_METHOD . ') method was given to (' . static::class . ').');
+                        throw new PrivateAlert('An unexpected request (' . self::$REST_REQUEST_METHOD . ') method was given to (' . static::class . ').');
 
                     case self::GET:
 
@@ -724,7 +724,7 @@ TRIGGER;
 
                         }
 
-                        throw new PublicAlert('Rest expected a primary key or valid where statement but none was provided during a (PUT) request on (' . static::class . ')');
+                        throw new PrivateAlert('Rest expected a primary key or valid where statement but none was provided during a (PUT) request on (' . static::class . ')');
 
                     case self::DELETE:
 
@@ -734,12 +734,12 @@ TRIGGER;
 
                         }
 
-                        throw new PublicAlert('Rest expected a primary key or valid where statement but none was provided during a (DELETE) request on (' . static::class . ')');
+                        throw new PrivateAlert('Rest expected a primary key or valid where statement but none was provided during a (DELETE) request on (' . static::class . ')');
 
 
                     case self::POST:
 
-                        throw new PublicAlert('The post method was detected while running buildQueryWhereValues against table (' . static::class . ')');
+                        throw new PrivateAlert('The post method was detected while running buildQueryWhereValues against table (' . static::class . ')');
 
 
                 }
@@ -752,7 +752,7 @@ TRIGGER;
 
         if (empty(static::PRIMARY)) {
 
-            throw new PublicAlert('Primary keys given during a request to (' . static::class . ') which does not have a primary key. Please regenerate this class using RestBuilder.');
+            throw new PrivateAlert('Primary keys given during a request to (' . static::class . ') which does not have a primary key. Please regenerate this class using RestBuilder.');
 
         }
 
@@ -760,7 +760,7 @@ TRIGGER;
 
             if ([] !== $where && '' !== ($primary[static::PRIMARY] ?? '')) {
 
-                throw new PublicAlert('Restful tables with a single primary key must not have WHERE values passed when the primary key is given. Table (' . static::class . ') was passed a non empty key `WHERE` (' . json_encode($where, JSON_PRETTY_PRINT) . ') to the arguments of GET.');
+                throw new PrivateAlert('Restful tables with a single primary key must not have WHERE values passed when the primary key is given. Table (' . static::class . ') was passed a non empty key `WHERE` (' . json_encode($where, JSON_PRETTY_PRINT) . ') to the arguments of GET.');
 
             }
 
@@ -778,7 +778,7 @@ TRIGGER;
 
             if (count($primary) !== count(static::PRIMARY)) {
 
-                throw new PublicAlert('The table ' . static::class . ' was passed a subset of the required primary keys. When passing primary keys all must be present.');
+                throw new PrivateAlert('The table ' . static::class . ' was passed a subset of the required primary keys. When passing primary keys all must be present.');
 
             }
 
@@ -786,13 +786,13 @@ TRIGGER;
 
             if (!empty(array_intersect_key($primaryKeys, static::PRIMARY))) {
 
-                throw new PublicAlert('The rest table ' . static::class . ' was passed the correct number of primary keys; however, the associated keys did not match the static::PRIMARY attribute.');
+                throw new PrivateAlert('The rest table ' . static::class . ' was passed the correct number of primary keys; however, the associated keys did not match the static::PRIMARY attribute.');
 
             }
 
             if (!empty($where)) {
 
-                throw new PublicAlert('Restful tables selecting with primary keys must not have WHERE values passed when the primary keys are given. Table ' . static::class . ' was passed a non empty key `WHERE` to the arguments of GET.');
+                throw new PrivateAlert('Restful tables selecting with primary keys must not have WHERE values passed when the primary keys are given. Table ' . static::class . ' was passed a non empty key `WHERE` to the arguments of GET.');
 
             }
 
@@ -800,7 +800,7 @@ TRIGGER;
 
         }
 
-        throw new PublicAlert('An unexpected error occurred while paring your primary key in ' . static::class . '. static::PRIMARY may only be a string, array, or null. You may need to regenerate with RestBuilder.');
+        throw new PrivateAlert('An unexpected error occurred while paring your primary key in ' . static::class . '. static::PRIMARY may only be a string, array, or null. You may need to regenerate with RestBuilder.');
 
     }
 
@@ -810,7 +810,7 @@ TRIGGER;
         // concatenation and aggregation
         if (true === self::$columnSelectEncountered && true === self::$aggregateSelectEncountered && [] === $group) {
 
-            throw new PublicAlert("Restful Error! A simple column select and aggregate function were used in the same query without the ['GROUP_BY'] clause explicitly set. This has been deprecated. Failed after compiling only :: ($sql)");
+            throw new PrivateAlert("Restful Error! A simple column select and aggregate function were used in the same query without the ['GROUP_BY'] clause explicitly set. This has been deprecated. Failed after compiling only :: ($sql)");
 
         }
 
@@ -844,7 +844,7 @@ TRIGGER;
 
             if (false === is_numeric($key)) {
 
-                throw new PublicAlert('Select values must only use numeric keys. The key (' . $key . ') was encountered.');
+                throw new PrivateAlert('Select values must only use numeric keys. The key (' . $key . ') was encountered.');
 
             }
 
@@ -899,7 +899,7 @@ TRIGGER;
             if (!is_string($column)) {
 
                 // is this even possible at this point?
-                throw new PublicAlert('C6 Rest client could not validate a column in the GET:[] request.');
+                throw new PrivateAlert('C6 Rest client could not validate a column in the GET:[] request.');
 
             }
 
@@ -933,7 +933,7 @@ TRIGGER;
 
             }
 
-            throw new PublicAlert("CarbonPHP could not validate a column ($column) passed in the (SELECT) request which caused "
+            throw new PrivateAlert("CarbonPHP could not validate a column ($column) passed in the (SELECT) request which caused "
                 . "the request to fail. It does not appear to be allowed based on the tables joined. Possible values include ("
                 . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
 
@@ -959,7 +959,7 @@ TRIGGER;
 
                 if (false === is_numeric($limit)) {
 
-                    throw new PublicAlert("A non numeric LIMIT ($limit) was provided to REST while querying against (" . static::class . ').');
+                    throw new PrivateAlert("A non numeric LIMIT ($limit) was provided to REST while querying against (" . static::class . ').');
 
                 }
 
@@ -967,7 +967,7 @@ TRIGGER;
 
                 if (0 > (int)$limit) {
 
-                    throw new PublicAlert('A negative limit was encountered in the rest Builder while querying against (' . static::class . ').');
+                    throw new PrivateAlert('A negative limit was encountered in the rest Builder while querying against (' . static::class . ').');
 
                 }
 
@@ -1007,7 +1007,7 @@ TRIGGER;
                             && is_string($argv[self::PAGINATION][self::ORDER][1])
                         ) {
 
-                            throw new PublicAlert('The syntax used in the order by must be array( $key => $value ) pairs; not a comma `,` separated list. The (' . json_encode($argv[self::PAGINATION][self::ORDER]) . ') argument passed is not correct.');
+                            throw new PrivateAlert('The syntax used in the order by must be array( $key => $value ) pairs; not a comma `,` separated list. The (' . json_encode($argv[self::PAGINATION][self::ORDER]) . ') argument passed is not correct.');
 
                         }
 
@@ -1017,13 +1017,13 @@ TRIGGER;
 
                             if (false === in_array($sort, [self::ASC, self::DESC], true)) {
 
-                                throw new PublicAlert('Restful order by failed to validate sorting method. The value should be one of (' . json_encode([self::ASC, self::DESC]) . ')');
+                                throw new PrivateAlert('Restful order by failed to validate sorting method. The value should be one of (' . json_encode([self::ASC, self::DESC]) . ')');
 
                             }
 
                             if (false === self::validateInternalColumn($item, $sort)) {
 
-                                throw new PublicAlert("The column value ($item) caused your custom validations to fail. Possible values include (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
+                                throw new PrivateAlert("The column value ($item) caused your custom validations to fail. Possible values include (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
 
                             }
 
@@ -1037,7 +1037,7 @@ TRIGGER;
 
                     } else {
 
-                        throw new PublicAlert('Rest query builder failed during the order pagination.');
+                        throw new PrivateAlert('Rest query builder failed during the order pagination.');
 
                     }
 
@@ -1058,11 +1058,11 @@ TRIGGER;
 
                 } elseif (!empty($limit)) {
 
-                    throw new PublicAlert('An error was detected in your REST syntax regarding the limit. No order by clause was provided and no primary keys were detected in the main joining table to automagically set.');
+                    throw new PrivateAlert('An error was detected in your REST syntax regarding the limit. No order by clause was provided and no primary keys were detected in the main joining table to automagically set.');
 
                 } else {
 
-                    throw new PublicAlert('A unknown Restful error was encountered while compiling the order by statement.');
+                    throw new PrivateAlert('A unknown Restful error was encountered while compiling the order by statement.');
 
                 }
 
@@ -1092,7 +1092,7 @@ TRIGGER;
      * @param array $argv
      * @param bool $isSubSelect
      * @return string
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     protected static function buildSelectQuery(array $primary = null, array $argv = [], bool $isSubSelect = false): string
     {
@@ -1110,7 +1110,7 @@ TRIGGER;
                 if (false === is_array($argv[$key])) {
 
                     /** @noinspection JsonEncodingApiUsageInspection */
-                    throw new PublicAlert("The restful join field (" . json_encode($argv) . ") passed to (" . static::class . ") must be an array.");
+                    throw new PrivateAlert("The restful join field (" . json_encode($argv) . ") passed to (" . static::class . ") must be an array.");
                 }
 
                 return true;
@@ -1170,7 +1170,7 @@ TRIGGER;
 
 
     /**
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function addSimpleLock(string $lockAggregateValue): string
     {
@@ -1185,12 +1185,12 @@ TRIGGER;
 
         return match ($lockAggregateValue) {
             self::NOWAIT, self::FOR_SHARE, self::FOR_UPDATE, self::SKIP_LOCKED => ' ' . str_replace('_', ' ', $lockAggregateValue),
-            default => throw new PublicAlert('A SELECT LOCK which was not one of (NOWAIT, FOR_SHARE, FOR_UPDATE, or SKIP_LOCKED) was encounter. The value (' . $lockAggregateValue . ') is incorrect.'),
+            default => throw new PrivateAlert('A SELECT LOCK which was not one of (NOWAIT, FOR_SHARE, FOR_UPDATE, or SKIP_LOCKED) was encounter. The value (' . $lockAggregateValue . ') is incorrect.'),
         };
     }
 
     /**
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function buildSelectLockStatement(array $argv): string
     {
@@ -1203,7 +1203,7 @@ TRIGGER;
 
         if (self::$externalRestfulRequestsAPI) {
 
-            throw new PublicAlert('A SELECT LOCK was supplied for an external request!');
+            throw new PrivateAlert('A SELECT LOCK was supplied for an external request!');
 
         }
 
@@ -1211,7 +1211,7 @@ TRIGGER;
 
             if (false === is_string($argv[self::LOCK])) {
 
-                throw new PublicAlert('Failed to parse LOCK argument passed to REST. An array or string is required! The value (' . json_encode($argv) . ') was given.');
+                throw new PrivateAlert('Failed to parse LOCK argument passed to REST. An array or string is required! The value (' . json_encode($argv) . ') was given.');
 
             }
 
@@ -1224,7 +1224,7 @@ TRIGGER;
 
         if (0 === $lockArgc) {
 
-            throw new PublicAlert('An empty array was passed to rest in the LOCK parameter!');
+            throw new PrivateAlert('An empty array was passed to rest in the LOCK parameter!');
 
         }
 
@@ -1245,7 +1245,7 @@ TRIGGER;
 
             if (false === is_array($specificTableLockOnJoin)) {
 
-                throw new PublicAlert('Either a single string or array of arrays must be passed to the LOCK.');
+                throw new PrivateAlert('Either a single string or array of arrays must be passed to the LOCK.');
 
             }
 
@@ -1268,7 +1268,7 @@ TRIGGER;
     }
 
     /**
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function addSingleConditionToLock(array $specificTableLockOnJoin): string
     {
@@ -1276,7 +1276,7 @@ TRIGGER;
         if (false === self::isArrayOfStrings($specificTableLockOnJoin)) {
 
             /** @noinspection JsonEncodingApiUsageInspection */
-            throw new PublicAlert('The LOCK array (' . json_encode($specificTableLockOnJoin) . ') must be comprised of only strings at this point!');
+            throw new PrivateAlert('The LOCK array (' . json_encode($specificTableLockOnJoin) . ') must be comprised of only strings at this point!');
 
         }
 
@@ -1284,10 +1284,10 @@ TRIGGER;
 
         switch ($lockArgc) {
             default:
-                throw new PublicAlert('The LOCK parameter passed contained (' . $lockArgc . ') elements, between 1 and 3 must be provided.');
+                throw new PrivateAlert('The LOCK parameter passed contained (' . $lockArgc . ') elements, between 1 and 3 must be provided.');
 
             case 0:
-                throw new PublicAlert('The LOCK parameter passed was an empty array!');
+                throw new PrivateAlert('The LOCK parameter passed was an empty array!');
 
             case 1:
 
@@ -1304,12 +1304,12 @@ TRIGGER;
                     case self::FOR_UPDATE:
                         break;
                     default:
-                        throw new PublicAlert('A SELECT LOCK which was not one of (FOR_SHARE or FOR_UPDATE) was encounter. The value (' . $ShareOrUpdate . ') is incorrect.');
+                        throw new PrivateAlert('A SELECT LOCK which was not one of (FOR_SHARE or FOR_UPDATE) was encounter. The value (' . $ShareOrUpdate . ') is incorrect.');
                 }
 
                 return match ($NoWaitOrSkip) {
                     self::NOWAIT, self::SKIP_LOCKED => $ShareOrUpdate . ' ' . $NoWaitOrSkip,
-                    default => throw new PublicAlert('A SELECT LOCK value which was not one of (NOWAIT or SKIP_LOCKED) was encounter. The value (' . $NoWaitOrSkip . ') is incorrect.'),
+                    default => throw new PrivateAlert('A SELECT LOCK value which was not one of (NOWAIT or SKIP_LOCKED) was encounter. The value (' . $NoWaitOrSkip . ') is incorrect.'),
                 };
 
             case 3:
@@ -1322,7 +1322,7 @@ TRIGGER;
                     case self::FOR_UPDATE:
                         break;
                     default:
-                        throw new PublicAlert('A SELECT LOCK which was not one of (FOR_SHARE or FOR_UPDATE) was encounter. The value (' . $ShareOrUpdate . ') is incorrect.');
+                        throw new PrivateAlert('A SELECT LOCK which was not one of (FOR_SHARE or FOR_UPDATE) was encounter. The value (' . $ShareOrUpdate . ') is incorrect.');
                 }
 
                 $allTables = [...self::$join_tables, static::TABLE_NAME];
@@ -1330,13 +1330,13 @@ TRIGGER;
                 if (false === in_array($tableToLock, $allTables, true)) {
 
                     /** @noinspection JsonEncodingApiUsageInspection */
-                    throw new PublicAlert("A LOCK argument was incorrect, the value ($tableToLock) was expected to be one of (" . json_encode($allTables) . ")");
+                    throw new PrivateAlert("A LOCK argument was incorrect, the value ($tableToLock) was expected to be one of (" . json_encode($allTables) . ")");
 
                 }
 
                 return match ($NoWaitOrSkip) {
                     self::NOWAIT, self::SKIP_LOCKED => $ShareOrUpdate . ' OF ' . $tableToLock . ' ' . $NoWaitOrSkip,
-                    default => throw new PublicAlert('A SELECT LOCK value which was not one of (NOWAIT or SKIP_LOCKED) was encounter. The value (' . $NoWaitOrSkip . ') is incorrect.'),
+                    default => throw new PrivateAlert('A SELECT LOCK value which was not one of (NOWAIT or SKIP_LOCKED) was encounter. The value (' . $NoWaitOrSkip . ') is incorrect.'),
                 };
 
         }
@@ -1345,7 +1345,7 @@ TRIGGER;
 
 
     /**
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     private static function buildQueryJoinValues(array $join): string
     {
@@ -1365,7 +1365,7 @@ TRIGGER;
 
             if (false === in_array($by, $validJoins, true)) {
 
-                throw new PublicAlert('The restful inner join had an unknown error.'); // todo - message
+                throw new PrivateAlert('The restful inner join had an unknown error.'); // todo - message
 
             }
 
@@ -1379,7 +1379,7 @@ TRIGGER;
                     && false === class_exists($JoiningClass = static::CLASS_NAMESPACE . preg_replace('/^' . preg_quote(static::TABLE_PREFIX, '/') . '/i', '', $class))
                 ) {
 
-                    throw new PublicAlert('A table ' . $JoiningClass . ' provided in the Restful join request was not found in the system. This may mean you need to auto generate your restful tables in the CLI.');
+                    throw new PrivateAlert('A table ' . $JoiningClass . ' provided in the Restful join request was not found in the system. This may mean you need to auto generate your restful tables in the CLI.');
 
                 }
 
@@ -1390,13 +1390,13 @@ TRIGGER;
                     && false === in_array(strtolower(iRestNoPrimaryKey::class), $imp, true)
                 ) {
 
-                    throw new PublicAlert('Rest error, class/table exists in the restful generation folder which does not implement the correct interfaces. Please re-run rest generation.');
+                    throw new PrivateAlert('Rest error, class/table exists in the restful generation folder which does not implement the correct interfaces. Please re-run rest generation.');
 
                 }
 
                 if (false === is_array($stmt)) {
 
-                    throw new PublicAlert("Rest error in the join stmt, the value of $JoiningClass is not an array.");
+                    throw new PrivateAlert("Rest error in the join stmt, the value of $JoiningClass is not an array.");
 
                 }
 
@@ -1411,7 +1411,7 @@ TRIGGER;
                         . preg_replace('/^' . preg_quote(static::TABLE_PREFIX, '/') . '/i', '', $class))
                 ) {
 
-                    throw new PublicAlert('A table (' . $JoiningClass . ') provided in the Restful join request was not found in the system. This may mean you need to auto generate your restful tables in the CLI.');
+                    throw new PrivateAlert('A table (' . $JoiningClass . ') provided in the Restful join request was not found in the system. This may mean you need to auto generate your restful tables in the CLI.');
                 }
 
 
@@ -1449,7 +1449,7 @@ TRIGGER;
      * In reality we should limit our use of recursion php <= 8.^
      * @param array $set
      * @return string
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     protected static function buildBooleanJoinedConditions(array $set): string
     {
@@ -1469,7 +1469,7 @@ TRIGGER;
 
                 case 0:
 
-                    throw new PublicAlert('An empty array was passed as a leaf member of a condition. Nested arrays recursively flip the AND vs OR joining conditional. Multiple conditions are not required as only one condition is needed. Two may be asserted equal implicitly by placing them in positions one and two of the array. An explicit definition may see the second $position[1] equal one of  (' . implode('|', $supportedOperators) . ')');
+                    throw new PrivateAlert('An empty array was passed as a leaf member of a condition. Nested arrays recursively flip the AND vs OR joining conditional. Multiple conditions are not required as only one condition is needed. Two may be asserted equal implicitly by placing them in positions one and two of the array. An explicit definition may see the second $position[1] equal one of  (' . implode('|', $supportedOperators) . ')');
 
                 case 1:
 
@@ -1481,7 +1481,7 @@ TRIGGER;
 
                     }
 
-                    throw new PublicAlert("The single value ({$set[$key]}) has the numeric array key [$key] which could imply a conditional equality; however, numeric keys (implicit or explicit) to imply equality are not allowed in C6. Please reorder the condition to have a string key and numeric value.");
+                    throw new PrivateAlert("The single value ({$set[$key]}) has the numeric array key [$key] which could imply a conditional equality; however, numeric keys (implicit or explicit) to imply equality are not allowed in C6. Please reorder the condition to have a string key and numeric value.");
 
                 case 2:
 
@@ -1493,7 +1493,7 @@ TRIGGER;
 
                     if (false === in_array($set[1], $supportedOperators, true)) { // ie #^=|>=|<=$#
 
-                        throw new PublicAlert("Restful column joins may only use one of the following (" . implode('|', $supportedOperators) . ") the value ({$set[1]}) is not supported. ({$set[0]}) ({$set[1]}) ({$set[2]})");
+                        throw new PrivateAlert("Restful column joins may only use one of the following (" . implode('|', $supportedOperators) . ") the value ({$set[1]}) is not supported. ({$set[0]}) ({$set[1]}) ({$set[2]})");
 
                     }
 
@@ -1503,7 +1503,7 @@ TRIGGER;
 
                 default:
 
-                    throw new PublicAlert('An array containing all numeric keys was found with (' . count($set) . ') values. Only exactly two or three values maybe given.');
+                    throw new PrivateAlert('An array containing all numeric keys was found with (' . count($set) . ') values. Only exactly two or three values maybe given.');
 
             } // end switch
 
@@ -1528,7 +1528,7 @@ TRIGGER;
 
                     if (false === is_array($value)) {
 
-                        throw new PublicAlert("Rest boolean condition builder expected ($value) to be an array as it has a numeric key in the set :: " . json_encode($set));
+                        throw new PrivateAlert("Rest boolean condition builder expected ($value) to be an array as it has a numeric key in the set :: " . json_encode($set));
 
                     }
 
@@ -1559,7 +1559,7 @@ TRIGGER;
 
                         if (false === in_array($value[0], $supportedOperators, true)) { // ie #^=|>=|<=$#
 
-                            throw new PublicAlert("Table (" . static::class . ") restful column joins may only use one of the following supported operators (" . implode('|', $supportedOperators) . "). Value ({$value[0]}) is not supported. (" . json_encode($value) . ")");
+                            throw new PrivateAlert("Table (" . static::class . ") restful column joins may only use one of the following supported operators (" . implode('|', $supportedOperators) . "). Value ({$value[0]}) is not supported. (" . json_encode($value) . ")");
 
                         }
 
@@ -1584,7 +1584,7 @@ TRIGGER;
                     default:
 
 
-                        throw new PublicAlert("A rest key column ($column) value (" . json_encode($value) . ") was set to an array with ($count) "
+                        throw new PrivateAlert("A rest key column ($column) value (" . json_encode($value) . ") was set to an array with ($count) "
                             . "values. Boolean comparisons can use one of the following operators "
                             . "(" . implode('|', $supportedOperators) . "). The same comparison can be made with an empty (aka default numeric) key "
                             . "and three array entries :: [  Column,  Operator, (Operand|Column2) ]. Both ways are made equally "
@@ -1689,7 +1689,7 @@ TRIGGER;
      * @param string $operator
      * @param string|array $valueTwo
      * @return string
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     protected static function addSingleConditionToWhereOrJoin($valueOne, string $operator, $valueTwo): string
     {
@@ -1704,7 +1704,7 @@ TRIGGER;
 
             } else {
 
-                throw new PublicAlert("Restful error! While trying to add a single condition an array was encountered which was not a valid Aggregate ($operator). (" . implode(',', $valueOne) . ")");
+                throw new PrivateAlert("Restful error! While trying to add a single condition an array was encountered which was not a valid Aggregate ($operator). (" . implode(',', $valueOne) . ")");
 
             }
 
@@ -1729,7 +1729,7 @@ TRIGGER;
 
                 if ($key_is_custom) {
 
-                    throw new PublicAlert("A non-internal column key was used in conjunction with the IN or NOT IN aggregate. addSingleConditionToWhereOrJoin was given (" . implode(',', func_get_args()) . "). Possible allowed columns are (" . implode(',', self::$compiled_valid_columns) . ").");
+                    throw new PrivateAlert("A non-internal column key was used in conjunction with the IN or NOT IN aggregate. addSingleConditionToWhereOrJoin was given (" . implode(',', func_get_args()) . "). Possible allowed columns are (" . implode(',', self::$compiled_valid_columns) . ").");
 
                 }
 
@@ -1741,7 +1741,7 @@ TRIGGER;
 
                 if ($key_is_custom) {
 
-                    throw new PublicAlert("A non-internal column key was used in conjunction with the IS aggregate. addSingleConditionToWhereOrJoin was given (" . implode(',', func_get_args()) . ").");
+                    throw new PrivateAlert("A non-internal column key was used in conjunction with the IS aggregate. addSingleConditionToWhereOrJoin was given (" . implode(',', func_get_args()) . ").");
 
                 }
 
@@ -1758,7 +1758,7 @@ TRIGGER;
 
             } else {
 
-                throw new PublicAlert("Restful error! While trying to add a single condition an array was encountered which was not a valid Aggregate (" . implode(',', func_get_args()) . ")");
+                throw new PrivateAlert("Restful error! While trying to add a single condition an array was encountered which was not a valid Aggregate (" . implode(',', func_get_args()) . ")");
 
             }
 
@@ -1772,7 +1772,7 @@ TRIGGER;
 
         if ($key_is_custom && $value_is_custom) {
 
-            throw new PublicAlert("Rest failed in as you have custom columns ($valueOne) &| ($valueTwo). This may mean you need to regenerate your rest tables, have misspellings in your request, have incorrect aggregation, or join conditions."
+            throw new PrivateAlert("Rest failed in as you have custom columns ($valueOne) &| ($valueTwo). This may mean you need to regenerate your rest tables, have misspellings in your request, have incorrect aggregation, or join conditions."
                 . " Possible allowed columns are (" . implode(',', self::$compiled_valid_columns) . ").");
 
         }

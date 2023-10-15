@@ -8,6 +8,7 @@
 
 namespace CarbonPHP\Abstracts;
 
+use CarbonPHP\Error\PrivateAlert;
 use CarbonPHP\Error\PublicAlert;
 
 abstract class Fork
@@ -27,7 +28,7 @@ abstract class Fork
     public static function become_daemon(callable $call = null) : int        // do not use this unless you know what you are doing
     {
         if (!\extension_loaded('pcntl')) {
-            throw new PublicAlert('You must have the PCNTL extension installed. See Carbon PHP for documentation.');
+            throw new PrivateAlert('You must have the PCNTL extension installed. See Carbon PHP for documentation.');
         }
 
         if ($pid = pcntl_fork()) {  // Parent
@@ -37,7 +38,7 @@ abstract class Fork
             exit;
         }
         if ($pid < 0) {
-            throw new \RuntimeException('Failed to fork');
+            throw new PrivateAlert('Failed to fork');
         }
 
         \define('FORK', TRUE);

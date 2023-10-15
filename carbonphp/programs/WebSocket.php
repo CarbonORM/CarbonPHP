@@ -5,6 +5,7 @@ namespace CarbonPHP\Programs;
 use CarbonPHP\Abstracts\ColorCode;
 use CarbonPHP\Abstracts\Pipe;
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Error\PrivateAlert;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Interfaces\iColorCode;
@@ -238,7 +239,7 @@ class WebSocket extends WsFileStreams implements iCommand
 
                 if ($serverPID !== getmypid()) {
 
-                    throw new PublicAlert('Failed stop child process from returning to the main loop. This is a critical mistake.');
+                    throw new PrivateAlert('Failed stop child process from returning to the main loop. This is a critical mistake.');
 
                 }
 

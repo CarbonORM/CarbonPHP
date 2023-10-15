@@ -9,6 +9,7 @@
 namespace CarbonPHP;
 
 use CarbonPHP\Abstracts\Files;
+use CarbonPHP\Error\PrivateAlert;
 use CarbonPHP\Error\PublicAlert;
 use InvalidArgumentException;
 use function count;
@@ -217,7 +218,7 @@ class Request   // requires carbon::application;
 
             if (false === array_walk($this->storage, $closure)) {
 
-                throw new PublicAlert('Failed to run closure_array_walk in CarbonPHP Request. This is probably due to a custom request validation function failing.');
+                throw new PrivateAlert('Failed to run closure_array_walk in CarbonPHP Request. This is probably due to a custom request validation function failing.');
 
             }
 

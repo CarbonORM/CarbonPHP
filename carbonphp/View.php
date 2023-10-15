@@ -2,6 +2,7 @@
 
 namespace CarbonPHP;
 
+use CarbonPHP\Error\PrivateAlert;
 use CarbonPHP\Error\PublicAlert;
 
 /**
@@ -100,7 +101,7 @@ class View
             $buffer = $buffer();
         }
         if (!file_exists(self::$wrapper)) {
-            throw new PublicAlert('The content wrapper (' . self::$wrapper . ') was not found. Wrapper does not exist.');
+            throw new PrivateAlert('The content wrapper (' . self::$wrapper . ') was not found. Wrapper does not exist.');
         }
         if (!\is_string($buffer)) {
             $buffer = "<script>Carbon(() => carbon.alert('Content Buffer Failed ($file)', 'danger'))</script>";

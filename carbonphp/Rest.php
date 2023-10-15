@@ -3,6 +3,7 @@
 
 namespace CarbonPHP;
 
+use CarbonPHP\Error\PrivateAlert;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Restful\RestfulValidations;
@@ -241,7 +242,7 @@ abstract class Rest extends RestLifeCycle
 
                 if (null !== $primary && false === is_array($primary)) {
 
-                    throw new PublicAlert('Looks like your restful validations changed the primary value to an invalid state.'
+                    throw new PrivateAlert('Looks like your restful validations changed the primary value to an invalid state.'
                         . ' The $primary field should be null or an array with the following syntax :: [ Table::EXAMPLE_COLUMN => "primary_key_string" ] '
                         . ' The value (' . json_encode($primary) . ') was instead received. ');
 
@@ -249,7 +250,7 @@ abstract class Rest extends RestLifeCycle
 
                 if (false === is_array($argv)) {
 
-                    throw new PublicAlert('Looks like your restful validations changed the $argv value to an invalid state.'
+                    throw new PrivateAlert('Looks like your restful validations changed the $argv value to an invalid state.'
                         . ' The $argv was not an array. Received :: (' . json_encode($argv) . ')');
 
                 }
@@ -291,7 +292,7 @@ abstract class Rest extends RestLifeCycle
 
                 if (false === $fetch) {
 
-                    throw new PublicAlert('Failed to fetchAll() from PDOStatement.');
+                    throw new PrivateAlert('Failed to fetchAll() from PDOStatement.');
 
                 }
 
@@ -479,7 +480,9 @@ abstract class Rest extends RestLifeCycle
                 }
 
                 if (false === $replace && empty($where)) {
-                    throw new PublicAlert('The where is empty. Arguments were :: ' . json_encode(func_get_args(), JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
+
+                    throw new PrivateAlert('The WHERE argument is empty. Arguments were :: ' . json_encode(func_get_args(), JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
+
                 }
 
 
@@ -541,7 +544,7 @@ abstract class Rest extends RestLifeCycle
 
                 if (empty($where)) {
 
-                    throw new PublicAlert('The where clause is required but has been detected as empty. Arguments were :: ' . json_encode([$where, $primary], JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
+                    throw new PrivateAlert('The where clause is required but has been detected as empty. Arguments were :: ' . json_encode([$where, $primary], JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
 
                 }
 
@@ -685,6 +688,7 @@ abstract class Rest extends RestLifeCycle
         }
 
         do {
+
             try {
 
                 self::startRest(self::POST, [], $postRequestBody);
@@ -894,7 +898,7 @@ abstract class Rest extends RestLifeCycle
 
                             } else if (false === self::validateInternalColumn($fullName, $op, $iValue[$fullName])) {
 
-                                throw new PublicAlert("The column value of ($fullName) caused custom restful api validations for (" . static::class . ") primary key to fail (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
+                                throw new PrivateAlert("The column value of ($fullName) caused custom restful api validations for (" . static::class . ") primary key to fail (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
 
                             }
 
@@ -922,7 +926,7 @@ abstract class Rest extends RestLifeCycle
 
                             if (false === self::validateInternalColumn($fullName, $op, $iValue[$fullName])) {
 
-                                throw new PublicAlert("Your tables ('" . static::class . "'), or joining tables, custom restful api validations caused the request to fail on json column ($fullName). Possible values include (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
+                                throw new PrivateAlert("Your tables ('" . static::class . "'), or joining tables, custom restful api validations caused the request to fail on json column ($fullName). Possible values include (" . json_encode(self::$compiled_valid_columns, JSON_PRETTY_PRINT) . ').');
 
                             }
 

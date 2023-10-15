@@ -3,6 +3,7 @@
 namespace CarbonPHP\Abstracts;
 
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Error\PrivateAlert;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Interfaces\iColorCode;
@@ -24,7 +25,7 @@ abstract class Files
                 && false === mkdir($directory, 0777, true)
                 && false === is_dir($directory)) {
 
-                throw new PublicAlert("Failed to create directory ($directory)");
+                throw new PrivateAlert("Failed to create directory ($directory)");
 
             }
 
@@ -45,7 +46,7 @@ abstract class Files
 
         if (false === is_dir($dir)) {
 
-            throw new PublicAlert("Failed to verify directory exists ($dir)");
+            throw new PrivateAlert("Failed to verify directory exists ($dir)");
 
         }
 
@@ -63,13 +64,13 @@ abstract class Files
 
                 if (false === rmdir($realName)) {
 
-                    throw new PublicAlert("Failed to remove directory ($realName)");
+                    throw new PrivateAlert("Failed to remove directory ($realName)");
 
                 }
 
             } else if (false === unlink($realName)) {
 
-                throw new PublicAlert("Failed to unlink file ($realName)");
+                throw new PrivateAlert("Failed to unlink file ($realName)");
 
             } else {
 
@@ -81,7 +82,7 @@ abstract class Files
 
         if (false === rmdir($dir)) {
 
-            throw new PublicAlert("Failed to remove directory ($dir)");
+            throw new PrivateAlert("Failed to remove directory ($dir)");
 
         }
 
@@ -152,8 +153,8 @@ abstract class Files
 
             return $targetPath;
 
-        } catch (\Error | \Exception | \ErrorException $e) {    // Seriously, I do not want anything but
-            throw new PublicAlert($e->getMessage());
+        } catch (Throwable $e) {    // Seriously, I do not want anything but
+            throw new PrivateAlert($e->getMessage());
         }
     }
 
@@ -178,7 +179,7 @@ abstract class Files
             && false === mkdir($directory, 0775, true)
             && false === is_dir($directory)) {
 
-            throw new PublicAlert('The directory (' . $directory . ') does not exists and failed to be created (' . $location . ') failed.');
+            throw new PrivateAlert('The directory (' . $directory . ') does not exists and failed to be created (' . $location . ') failed.');
 
         }
 
@@ -253,7 +254,7 @@ abstract class Files
 
             if (false === touch($tmpPath)) {
 
-                throw new PublicAlert("Failed to create tmp file (file://$tmpPath)");
+                throw new PrivateAlert("Failed to create tmp file (file://$tmpPath)");
 
             }
 
@@ -265,7 +266,7 @@ abstract class Files
 
             if (false === file_exists($tmpPath)) {
 
-                throw new PublicAlert("Failed to locate temp file ($tmpPath)");
+                throw new PrivateAlert("Failed to locate temp file ($tmpPath)");
 
             }
 
@@ -281,13 +282,13 @@ abstract class Files
 
                 if (file_exists($toLocalFilePath) && false === unlink($toLocalFilePath)) {
 
-                    throw new PublicAlert("Failed to unlink <remove> file ($toLocalFilePath)");
+                    throw new PrivateAlert("Failed to unlink <remove> file ($toLocalFilePath)");
 
                 }
 
                 if (false === copy($tmpPath, $toLocalFilePath)) {
 
-                    throw new PublicAlert("Failed to copy ($tmpPath) to ($toLocalFilePath)");
+                    throw new PrivateAlert("Failed to copy ($tmpPath) to ($toLocalFilePath)");
 
                 }
 

@@ -3,6 +3,7 @@
 namespace CarbonPHP\Abstracts;
 
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Error\PrivateAlert;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Error\ThrowableHandler;
 use Composer\Autoload\ClassLoader;
@@ -30,7 +31,7 @@ abstract class Composer
 
             if (!file_exists(CarbonPHP::$app_root . 'composer.json')) {
 
-                throw new PublicAlert("\tCouldn't find composer.json under the CarbonPHP::\$app_root ( " . CarbonPHP::$app_root . " ).\n\tLearn how to add cli programs at CarbonPHP.com\n\n");
+                throw new PrivateAlert("\tCouldn't find composer.json under the CarbonPHP::\$app_root ( " . CarbonPHP::$app_root . " ).\n\tLearn how to add cli programs at CarbonPHP.com\n\n");
 
             }
 
@@ -40,7 +41,7 @@ abstract class Composer
 
             if ($json === null) {
 
-                throw new PublicAlert("\n\tThe decoding of (" . CarbonPHP::$app_root . "composer.json) failed. Please make sure the file contains a valid json.\n\n");
+                throw new PrivateAlert("\n\tThe decoding of (" . CarbonPHP::$app_root . "composer.json) failed. Please make sure the file contains a valid json.\n\n");
 
             }
 

@@ -4,7 +4,7 @@ namespace CarbonPHP\Restful;
 
 
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Error\PrivateAlert;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
 use CarbonPHP\Interfaces\iRestNoPrimaryKey;
@@ -24,7 +24,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
      * @param string|null|mixed $value
      * @param bool $default
      * @return bool
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function validateInternalColumn(mixed &$column, string &$operator = null, mixed &$value = null, bool $default = false): bool
     {
@@ -51,7 +51,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
             if ('*' !== $aggregateCharCheck
                 && '(' !== $aggregateCharCheck) {
 
-                throw new PublicAlert("An unexpected aggregate ($column) was encountered.");
+                throw new PrivateAlert("An unexpected aggregate ($column) was encountered.");
 
             }
 
@@ -85,7 +85,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
      * static::class ends up not working either because of how it is called.
      * @param $request
      * @param string|null $calledFrom
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function disallowPublicAccess($request, string $calledFrom = null): void
     {
@@ -93,7 +93,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
         if (self::$externalRestfulRequestsAPI && !CarbonPHP::$test) {
 
             /** @noinspection JsonEncodingApiUsageInspection */
-            throw new PublicAlert('Rest request denied by the PHP_VALIDATION\'s in the tables ORM. Remove DISALLOW_PUBLIC_ACCESS '
+            throw new PrivateAlert('Rest request denied by the PHP_VALIDATION\'s in the tables ORM. Remove DISALLOW_PUBLIC_ACCESS '
                 . (null !== $calledFrom ? "from ($calledFrom) " : '')
                 . 'to gain privileges. Method: (' . $_SERVER['REQUEST_METHOD'] . ') Uri: (' . $_SERVER['REQUEST_URI'] . ') Request: (' . json_encode($request, JSON_PRETTY_PRINT) . ')');
 
@@ -102,7 +102,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
     }
 
     /**
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function preprocessRestRequest(): void
     {
@@ -123,7 +123,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
     }
 
     /**
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function postpreprocessRestRequest(string &$sql): void
     {
@@ -148,7 +148,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
     }
 
     /**
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function prepostprocessRestRequest(&$return = null): void
     {
@@ -176,7 +176,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
     }
 
     /**
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function postprocessRestRequest(mixed &$return = null): void
     {
@@ -221,7 +221,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
             if (false === $matchStatus) {
 
-                throw new PublicAlert("Regex validation failed for pattern ($pattern) on value ($value) provided for column ($column)! The functions preg_match_all returned false. preg_last_error_msg: (" . preg_last_error_msg() . ')');
+                throw new PrivateAlert("Regex validation failed for pattern ($pattern) on value ($value) provided for column ($column)! The functions preg_match_all returned false. preg_last_error_msg: (" . preg_last_error_msg() . ')');
 
             }
 
@@ -239,7 +239,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
     }
 
     /**
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function runCustomCallables(mixed &$column, string &$operator = null, mixed &$value = null, bool $default = false): void
     {
@@ -260,7 +260,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
                 if (null !== $errorMessage) {
 
-                    throw new PublicAlert($errorMessage);
+                    throw new PrivateAlert($errorMessage);
 
                 }
 
@@ -274,7 +274,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
             if (false === is_array(self::$compiled_PHP_validations[self::COLUMN][self::GLOBAL_COLUMN_VALIDATION])) {
 
-                throw new PublicAlert('Compiled data error; self::$compiled_PHP_validations[self::COLUMN][self::GLOBAL_COLUMN_VALIDATION] should be an array!');
+                throw new PrivateAlert('Compiled data error; self::$compiled_PHP_validations[self::COLUMN][self::GLOBAL_COLUMN_VALIDATION] should be an array!');
 
             }
 
@@ -290,7 +290,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
             if (!is_array(self::$compiled_PHP_validations[self::PREPROCESS][$column])) {
 
-                throw new PublicAlert('The value of [' . self::PREPROCESS . '][' . $column . '] should equal an array. See Carbonphp.com for more info.');
+                throw new PrivateAlert('The value of [' . self::PREPROCESS . '][' . $column . '] should equal an array. See Carbonphp.com for more info.');
 
             }
 
@@ -359,7 +359,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
     /**
      * @return void
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function gatherValidationsForRequest(): void
     {
@@ -372,7 +372,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
                 if (!in_array($key, [self::INNER, self::LEFT_OUTER, self::RIGHT_OUTER, self::RIGHT, self::LEFT], true)) {
 
-                    throw new PublicAlert('Invalid join condition ' . $key . ' passed. Supported options are (inner, left outter, right outter, right, and left).');
+                    throw new PrivateAlert('Invalid join condition ' . $key . ' passed. Supported options are (inner, left outter, right outter, right, and left).');
 
                 }
 
@@ -397,7 +397,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
             $table = implode('_', $table);
 
             if (!defined(static::class . '::CLASS_NAMESPACE')) {
-                throw new PublicAlert('The rest table did not appear to have constant CLASS_NAMESPACE. Please try regenerating rest tables.');
+                throw new PrivateAlert('The rest table did not appear to have constant CLASS_NAMESPACE. Please try regenerating rest tables.');
             }
 
             $class_name = preg_replace('/^' . preg_quote(constant(static::class . '::TABLE_PREFIX'), '/') . '/i', '', $table);
@@ -405,13 +405,13 @@ abstract class RestQueryValidation extends RestAutoTargeting
             if (!class_exists($table = static::CLASS_NAMESPACE . $table)
                 && !class_exists($table = static::CLASS_NAMESPACE . $class_name)) {
 
-                throw new PublicAlert("Failed to find the table ($table) requested.");
+                throw new PrivateAlert("Failed to find the table ($table) requested.");
 
             }
 
             if (!is_subclass_of($table, self::class)) {
 
-                throw new PublicAlert('The table must extent :: ' . self::class);
+                throw new PrivateAlert('The table must extent :: ' . self::class);
 
             }
 
@@ -425,21 +425,21 @@ abstract class RestQueryValidation extends RestAutoTargeting
                 $possibleImpl = implode('|', [
                     iRestMultiplePrimaryKeys::class, iRestSinglePrimaryKey::class, iRestNoPrimaryKey::class]);
 
-                throw new PublicAlert("The table does not implement the correct interface. Requires ($possibleImpl). Try re-running the RestBuilder.");
+                throw new PrivateAlert("The table does not implement the correct interface. Requires ($possibleImpl). Try re-running the RestBuilder.");
 
             }
 
             // It is possible to have a column validation assigned to another table,
             // which would cause rest to only run it when joined
             if (false === defined("$table::REGEX_VALIDATION")) {
-                throw new PublicAlert('The table does not implement REGEX_VALIDATION. This should be an empty static array. Try re-running the RestBuilder.');
+                throw new PrivateAlert('The table does not implement REGEX_VALIDATION. This should be an empty static array. Try re-running the RestBuilder.');
             }
 
             $table_regular_expressions = constant("$table::REGEX_VALIDATION");
 
             if (false === is_array($table_regular_expressions)) {
 
-                throw new PublicAlert("The class constant $table::REGEX_VALIDATION must equal an array.");
+                throw new PrivateAlert("The class constant $table::REGEX_VALIDATION must equal an array.");
 
             }
 
@@ -454,7 +454,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
                             if (false === is_string($errorMessage) && false === is_null($errorMessage)) {
 
-                                throw new PublicAlert("The column ($columnName) regex ($regexTest) should have a string error message or null for development, but (" . print_r($errorMessage, true) . ') was given.');
+                                throw new PrivateAlert("The column ($columnName) regex ($regexTest) should have a string error message or null for development, but (" . print_r($errorMessage, true) . ') was given.');
 
                             }
 
@@ -462,7 +462,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
                     } else if (false === is_string($regex)) {
 
-                        throw new PublicAlert("A key => value pair ($columnName => " . print_r($regex, true) . ") encountered in $table::REGEX_VALIDATION is invalid.");
+                        throw new PrivateAlert("A key => value pair ($columnName => " . print_r($regex, true) . ") encountered in $table::REGEX_VALIDATION is invalid.");
 
                     }
 
@@ -480,7 +480,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
                     if (!is_string($value)) {
 
-                        throw new PublicAlert("A value in the constant $table::COLUMNS was found not to be a string. Please try regenerating the restbuilder.");
+                        throw new PrivateAlert("A value in the constant $table::COLUMNS was found not to be a string. Please try regenerating the restbuilder.");
 
                     }
 
@@ -490,7 +490,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
             } else {
 
-                throw new PublicAlert('The table does not implement PHP_VALIDATION. This should be an empty static array. Try re-running the RestBuilder.');
+                throw new PrivateAlert('The table does not implement PHP_VALIDATION. This should be an empty static array. Try re-running the RestBuilder.');
 
             }
 
@@ -498,13 +498,13 @@ abstract class RestQueryValidation extends RestAutoTargeting
             // this makes this validation segment valuable
             if (false === defined("$table::PDO_VALIDATION")) {
 
-                throw new PublicAlert("The ($table) does not implement PHP_VALIDATION. This should be an empty static array. Try re-running the RestBuilder.");
+                throw new PrivateAlert("The ($table) does not implement PHP_VALIDATION. This should be an empty static array. Try re-running the RestBuilder.");
 
             }
 
             if (false === property_exists($table, 'PHP_VALIDATION')) {
 
-                throw new PublicAlert("The ($table) does not implement \${$table}->PHP_VALIDATION. This could be an empty public array. Try re-running the RestBuilder.");
+                throw new PrivateAlert("The ($table) does not implement \${$table}->PHP_VALIDATION. This could be an empty public array. Try re-running the RestBuilder.");
 
             }
 
@@ -524,7 +524,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
             if (!is_array($table_php_validations_static)) {
 
-                throw new PublicAlert("The class constant $table::PDO_VALIDATION must equal an array.");
+                throw new PrivateAlert("The class constant $table::PDO_VALIDATION must equal an array.");
 
             }
 
@@ -534,7 +534,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
             if (!is_array($table_php_validations_public)) {
 
-                throw new PublicAlert("The class constant {$table}->PDO_VALIDATION must equal an array.");
+                throw new PrivateAlert("The class constant {$table}->PDO_VALIDATION must equal an array.");
 
             }
 
@@ -553,7 +553,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
     }
 
     /**
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function gatherValidation(string $firstKey, string $secondKey, string $table, array $table_php_validations): void
     {
@@ -572,7 +572,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
         if (false === is_array($table_php_validation)) {
 
-            throw new PublicAlert("The class constant $table::PDO_VALIDATION[$firstKey][$secondKey] must be an array. This is unexpected, please send a stack trace to CarbonPHP.com");
+            throw new PrivateAlert("The class constant $table::PDO_VALIDATION[$firstKey][$secondKey] must be an array. This is unexpected, please send a stack trace to CarbonPHP.com");
 
         }
 
@@ -581,7 +581,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
     }
 
     /**
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function gatherValidations(string $firstKey, string $table, array $table_php_validation): void
     {
@@ -594,7 +594,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
         if (!is_array($table_php_validation[$firstKey])) {
 
-            throw new PublicAlert("The class constant ( $table::PDO_VALIDATION[$firstKey] || {$table}->PDO_VALIDATION[$firstKey] )   must be an array.");
+            throw new PrivateAlert("The class constant ( $table::PDO_VALIDATION[$firstKey] || {$table}->PDO_VALIDATION[$firstKey] )   must be an array.");
 
         }
 
@@ -617,14 +617,14 @@ abstract class RestQueryValidation extends RestAutoTargeting
      * @param array $b
      * @param string $errorMessageContext
      * @return void
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function pushCallables(array &$a, array $b, string $errorMessageContext): void
     {
 
         if (empty($b)) {
 
-            throw new PublicAlert('An unexpected error has occurred in which an empty array was passed, but not expected. Please report this to CarbonPHP.');
+            throw new PrivateAlert('An unexpected error has occurred in which an empty array was passed, but not expected. Please report this to CarbonPHP.');
 
         }
 
@@ -637,7 +637,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
                 false === $isCallable) {
 
                 /** @noinspection JsonEncodingApiUsageInspection */
-                throw new PublicAlert("The Restful validations ($errorMessageContext) failed to compile. Value (" . json_encode($b) . ') must be a callable, or an array with structure [ self::class => \'method\', ...$extraArguments ].');
+                throw new PrivateAlert("The Restful validations ($errorMessageContext) failed to compile. Value (" . json_encode($b) . ') must be a callable, or an array with structure [ self::class => \'method\', ...$extraArguments ].');
 
             }
 
@@ -648,7 +648,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
                 if (is_numeric($class)) {
 
                     /** @noinspection JsonEncodingApiUsageInspection */
-                    throw new PublicAlert("The restful validation ($errorMessageContext) failed as an 'callable' array argument failed validation. The first key must be a fully qualified class name. Numeric value ($class) provided is incorrect.");
+                    throw new PrivateAlert("The restful validation ($errorMessageContext) failed as an 'callable' array argument failed validation. The first key must be a fully qualified class name. Numeric value ($class) provided is incorrect.");
 
                 }
 
@@ -656,14 +656,14 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
                 if (false === class_exists($class)) {
 
-                    throw new PublicAlert("The class name provided in ($errorMessageContext) could not be resolved: ($class).");
+                    throw new PrivateAlert("The class name provided in ($errorMessageContext) could not be resolved: ($class).");
 
                 }
 
                 if (false === method_exists($class, $method)) {
 
 
-                    throw new PublicAlert("Failed to verify that method ($method) exists in the class ($class), found in ($errorMessageContext).");
+                    throw new PrivateAlert("Failed to verify that method ($method) exists in the class ($class), found in ($errorMessageContext).");
 
                 }
 
@@ -681,7 +681,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
      * @param array $table_php_validation - the public and static member
      * @param array $table_columns_full - all columns from any joining table
      * @return void
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function validateAndConcatenate(string $table, array $table_php_validation): void
     {
@@ -776,7 +776,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
         if (false === preg_match($validNameRegex, $value)) {
 
-            throw new PublicAlert("When using a RESTFUL (AS) aggregation the name ($value) value must match the regex ($validNameRegex)");
+            throw new PrivateAlert("When using a RESTFUL (AS) aggregation the name ($value) value must match the regex ($validNameRegex)");
 
         }
 
@@ -811,13 +811,13 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
                         if (false === call_user_func_array($validation, [&self::$REST_REQUEST_PARAMETERS])) {
 
-                            throw new PublicAlert('A global request callable validation failed, please make sure the arguments are correct.');
+                            throw new PrivateAlert('A global request callable validation failed, please make sure the arguments are correct.');
 
                         }
 
                     } else if (false === call_user_func_array($validation, [&$rest])) {
 
-                        throw new PublicAlert('A column request validation callable validation failed, please make sure arguments are correct. (' . print_r($rest, true) . ')');
+                        throw new PrivateAlert('A column request validation callable validation failed, please make sure arguments are correct. (' . print_r($rest, true) . ')');
 
                     }
 
@@ -825,7 +825,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
                 }
 
-                throw new PublicAlert('Each PHP_VALIDATION should equal an array of arrays or callables with [ call => method , structure followed by any additional arguments ]. Refer to Carbonphp.com for more information.');
+                throw new PrivateAlert('Each PHP_VALIDATION should equal an array of arrays or callables with [ call => method , structure followed by any additional arguments ]. Refer to Carbonphp.com for more information.');
 
             }
 
@@ -837,7 +837,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
             if (!class_exists($class)) {
 
-                throw new PublicAlert("A class reference in PHP_VALIDATION failed. Class ($class) not found.");
+                throw new PrivateAlert("A class reference in PHP_VALIDATION failed. Class ($class) not found.");
 
             }
 
@@ -847,13 +847,13 @@ abstract class RestQueryValidation extends RestAutoTargeting
                         [&self::$REST_REQUEST_PARAMETERS, ...$validation]
                     )) {
 
-                    throw new PublicAlert('The global request validation failed, please make sure the arguments are correct.');
+                    throw new PrivateAlert('The global request validation failed, please make sure the arguments are correct.');
 
                 }
 
             } else if (false === call_user_func_array([$class, $validationMethod], [&$rest, ...$validation])) {
 
-                throw new PublicAlert('A column request validation failed, please make sure arguments are correct.');
+                throw new PrivateAlert('A column request validation failed, please make sure arguments are correct.');
 
             }
 
@@ -863,7 +863,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
 
     /**
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     protected static function checkPrefix($table_prefix): void
     {
@@ -872,7 +872,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
 
         if ($prefix !== $table_prefix) {
 
-            throw new PublicAlert("The tables prefix ($table_prefix) does not match the one ($prefix) found in your configuration (" .print_r(CarbonPHP::$configuration, true)."). Please make sure you've initiated CarbonPHP before trying to run restful operations. Otherwise you make need to rebuild rest.");
+            throw new PrivateAlert("The tables prefix ($table_prefix) does not match the one ($prefix) found in your configuration (" .print_r(CarbonPHP::$configuration, true)."). Please make sure you've initiated CarbonPHP before trying to run restful operations. Otherwise you make need to rebuild rest.");
 
         }
 

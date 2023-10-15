@@ -4,6 +4,7 @@ namespace CarbonPHP\Restful;
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
+use CarbonPHP\Error\PrivateAlert;
 use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
@@ -70,7 +71,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
         }
 
-        throw new PublicAlert($message);
+        throw new PrivateAlert($message);
 
     }
 
@@ -323,7 +324,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
             if (!class_exists($namespace . $mainTable)
                 && !class_exists($namespace . $mainTable = preg_replace('/^' . preg_quote($prefix, '/') . '/i', '', $mainTable))) {
 
-                throw new PublicAlert("The table ($namespace$mainTable) was not found in our generated api. Please try rerunning the rest builder and contact us if problems persist. (E_PRE_$prefix)");
+                throw new PrivateAlert("The table ($namespace$mainTable) was not found in our generated api. Please try rerunning the rest builder and contact us if problems persist. (E_PRE_$prefix)");
 
             }
 
@@ -344,7 +345,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
                         if (null === $_GET) {
 
-                            throw new PublicAlert('Json decoding of $_GET[0] returned null. Please attempt serializing another way.');
+                            throw new PrivateAlert('Json decoding of $_GET[0] returned null. Please attempt serializing another way.');
 
                         }
 
@@ -406,7 +407,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
                 default:
 
-                    throw new PublicAlert('The REQUEST_METHOD is not RESTFUL. Method must be either \'POST\', \'PUT\', \'GET\', or \'DELETE\'. The \'OPTIONS\' method may be used in substation for the \'GET\' request which better enables and speeds up advanced queries.');
+                    throw new PrivateAlert('The REQUEST_METHOD is not RESTFUL. Method must be either \'POST\', \'PUT\', \'GET\', or \'DELETE\'. The \'OPTIONS\' method may be used in substation for the \'GET\' request which better enables and speeds up advanced queries.');
 
             }
 
@@ -431,7 +432,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
                     // TODO - update argv to be passed by reference
                     if (!call_user_func_array([$fullyQualified, $methodCase], $requestTableHasPrimary ? [&$return, $primary, $args] : [&$return, $args])) {
 
-                        throw new PublicAlert('The request failed (returned false), please make sure arguments are correct.');
+                        throw new PrivateAlert('The request failed (returned false), please make sure arguments are correct.');
 
                     }
 
@@ -472,13 +473,13 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
                     if (!$id = call_user_func_array([$namespace . $mainTable, $methodCase], [&$_POST, $primary])) {
 
-                        throw new PublicAlert('The request failed, please make sure arguments are correct.');
+                        throw new PrivateAlert('The request failed, please make sure arguments are correct.');
 
                     }
 
                     if (!self::commit()) {
 
-                        throw new PublicAlert('Failed to commit the transaction. Please, try again.');
+                        throw new PrivateAlert('Failed to commit the transaction. Please, try again.');
 
                     }
 
@@ -522,13 +523,13 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
             if (false === $database->rollBack()) {
 
-                throw new PublicAlert('Failed to rollBack the transaction. Please, try again.');
+                throw new PrivateAlert('Failed to rollBack the transaction. Please, try again.');
             }
 
             // session abort will rollback the transaction
             if (session_abort()) {
 
-                throw new PublicAlert('Failed to abort the session; a side effect of `self::$commit === false` at the end of (' . __METHOD__ . '). Please contact support.');
+                throw new PrivateAlert('Failed to abort the session; a side effect of `self::$commit === false` at the end of (' . __METHOD__ . '). Please contact support.');
 
             }
 
@@ -550,7 +551,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
 
             if (false === $database->commit()) {
 
-                throw new PublicAlert('Failed to auto commit!');
+                throw new PrivateAlert('Failed to auto commit!');
 
             }
 

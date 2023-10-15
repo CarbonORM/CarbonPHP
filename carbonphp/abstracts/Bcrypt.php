@@ -6,6 +6,7 @@
 
 namespace CarbonPHP\Abstracts;
 
+use CarbonPHP\Error\PrivateAlert;
 use CarbonPHP\Error\PublicAlert;
 
 abstract class Bcrypt
@@ -45,7 +46,7 @@ abstract class Bcrypt
     public static function genHash($password): ?string
     {
         if (CRYPT_BLOWFISH !== 1) {
-            throw new PublicAlert('Bcrypt is not supported on this server, please see the following to learn more: http://php.net/crypt');
+            throw new PrivateAlert('Bcrypt is not supported on this server, please see the following to learn more: http://php.net/crypt');
         }
 
         /* Explain '$2y$' . $this->rounds . '$' */

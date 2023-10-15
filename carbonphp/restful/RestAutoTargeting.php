@@ -4,6 +4,7 @@ namespace CarbonPHP\Restful;
 
 use CarbonPHP\Abstracts\Composer;
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Error\PrivateAlert;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
@@ -15,7 +16,7 @@ abstract class RestAutoTargeting extends RestSettings
 {
 
     /**
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function autoTargetTableDirectory(): string
     {
@@ -28,7 +29,7 @@ abstract class RestAutoTargeting extends RestSettings
 
         if (false === $tableDirectory) {
 
-            throw new PublicAlert('Failed to parse composer json for ["autoload"]["psr-4"]["' . $tableNamespace . '"].');
+            throw new PrivateAlert('Failed to parse composer json for ["autoload"]["psr-4"]["' . $tableNamespace . '"].');
 
         }
 
@@ -70,7 +71,7 @@ abstract class RestAutoTargeting extends RestSettings
 
             if (!class_exists($custom_prefix_carbon_table)) {
 
-                throw new PublicAlert("Could not find the required class ($custom_prefix_carbon_table) in the user defined namespace ($namespace). This is required.");
+                throw new PrivateAlert("Could not find the required class ($custom_prefix_carbon_table) in the user defined namespace ($namespace). This is required.");
 
             }
 
@@ -79,7 +80,7 @@ abstract class RestAutoTargeting extends RestSettings
 
                 if (!in_array(iRestSinglePrimaryKey::class, class_implements($custom_prefix_carbon_table), true)) {
 
-                    throw new PublicAlert("Your implementation ($custom_prefix_carbon_table) of ($fullyQualifiedRestClassName) should implement " . iRestSinglePrimaryKey::class . '. You should rerun RestBuilder.');
+                    throw new PrivateAlert("Your implementation ($custom_prefix_carbon_table) of ($fullyQualifiedRestClassName) should implement " . iRestSinglePrimaryKey::class . '. You should rerun RestBuilder.');
 
                 }
 
@@ -87,24 +88,24 @@ abstract class RestAutoTargeting extends RestSettings
 
                 if (!in_array(iRestNoPrimaryKey::class, class_implements($custom_prefix_carbon_table), true)) {
 
-                    throw new PublicAlert("Your implementation ($custom_prefix_carbon_table) of ($fullyQualifiedRestClassName) should implement " . iRestNoPrimaryKey::class . '. You should rerun RestBuilder.');
+                    throw new PrivateAlert("Your implementation ($custom_prefix_carbon_table) of ($fullyQualifiedRestClassName) should implement " . iRestNoPrimaryKey::class . '. You should rerun RestBuilder.');
 
                 }
 
             } else if (($mustInterface === iRestMultiplePrimaryKeys::class || $mustInterface === null) && in_array(iRestMultiplePrimaryKeys::class, class_implements($fullyQualifiedRestClassName), true)
                 && !in_array(iRestMultiplePrimaryKeys::class, class_implements($custom_prefix_carbon_table), true)) {
 
-                throw new PublicAlert("Your implementation ($custom_prefix_carbon_table) of ($fullyQualifiedRestClassName) should implement " . iRestMultiplePrimaryKeys::class . '. You should rerun RestBuilder.');
+                throw new PrivateAlert("Your implementation ($custom_prefix_carbon_table) of ($fullyQualifiedRestClassName) should implement " . iRestMultiplePrimaryKeys::class . '. You should rerun RestBuilder.');
 
             } else {
 
                 if ($mustInterface === null) {
 
-                    throw new PublicAlert("The table '$custom_prefix_carbon_table' we determined to be your implementation of '$fullyQualifiedRestClassName' failed to implement any of the correct interfaces.");
+                    throw new PrivateAlert("The table '$custom_prefix_carbon_table' we determined to be your implementation of '$fullyQualifiedRestClassName' failed to implement any of the correct interfaces.");
 
                 }
 
-                throw new PublicAlert("The table '$custom_prefix_carbon_table' we determined to be your implementation of '$fullyQualifiedRestClassName' failed to implement the required '$mustInterface'.");
+                throw new PrivateAlert("The table '$custom_prefix_carbon_table' we determined to be your implementation of '$fullyQualifiedRestClassName' failed to implement the required '$mustInterface'.");
 
             }
 
@@ -119,7 +120,7 @@ abstract class RestAutoTargeting extends RestSettings
     }
 
     /**
-     * @throws PublicAlert
+     * @throws PrivateAlert
      */
     public static function getRestNamespaceFromFileList(array $filePaths): string
     {
@@ -150,7 +151,7 @@ abstract class RestAutoTargeting extends RestSettings
 
             $tableDirectory = dirname($filePaths[0]);
 
-            throw new PublicAlert("Failed to parse class namespace from files in ($tableDirectory). ");
+            throw new PrivateAlert("Failed to parse class namespace from files in ($tableDirectory). ");
 
         }
 

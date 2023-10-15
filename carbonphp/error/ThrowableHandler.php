@@ -89,7 +89,7 @@ class ThrowableHandler
 
         if (false === is_dir($directory) && (false === mkdir($directory, 0755, true) || false === is_dir($directory))) {
 
-            throw new PublicAlert('The directory (' . $directory . ') for ThrowableHandler::$defaultLocation (' . self::$defaultLocation . ') does not exist and could not be created');
+            throw new PrivateAlert('The directory (' . $directory . ') for ThrowableHandler::$defaultLocation (' . self::$defaultLocation . ') does not exist and could not be created');
 
         }
 

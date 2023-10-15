@@ -3,6 +3,7 @@
 namespace CarbonPHP\Abstracts;
 
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Error\PrivateAlert;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Interfaces\iColorCode;
@@ -107,13 +108,13 @@ abstract class ColorCode implements LoggerInterface, iColorCode
 
             if (false === $location) {
 
-                throw new PublicAlert("Failed to get current log location!");
+                throw new PrivateAlert("Failed to get current log location!");
 
             }
 
             if (false === $status) {
 
-                throw new PublicAlert("Failed to write to error log ($location)");
+                throw new ("Failed to write to error log ($location)");
 
             }    // do not double quote args passed here
 
@@ -130,7 +131,7 @@ abstract class ColorCode implements LoggerInterface, iColorCode
                 case '':
                     if (false === ini_set('error_log', ThrowableHandler::$defaultLocation)) {
 
-                        throw new PublicAlert('Failed to set the log location to (' . ThrowableHandler::$defaultLocation . '). ' . self::$generalWarning);
+                        throw new PrivateAlert('Failed to set the log location to (' . ThrowableHandler::$defaultLocation . '). ' . self::$generalWarning);
 
                     } // log to file too
 
@@ -146,7 +147,7 @@ abstract class ColorCode implements LoggerInterface, iColorCode
 
                     if (false === ini_set('error_log', '')) {
 
-                        throw new PublicAlert('Detected cli but failed to print color coded logging to standard out. ' . self::$generalWarning);
+                        throw new PrivateAlert('Detected cli but failed to print color coded logging to standard out. ' . self::$generalWarning);
 
                     }   // default output // cli stdout
 
@@ -159,7 +160,7 @@ abstract class ColorCode implements LoggerInterface, iColorCode
                     /** @noinspection ForgottenDebugOutputInspection */
                     if (false === error_log($additional)) {
 
-                        throw new PublicAlert("Failed to log! This is directly after successfully logging to the same file. Please investigate.");
+                        throw new PrivateAlert("Failed to log! This is directly after successfully logging to the same file. Please investigate.");
 
                     }  // do not double quote args passed here
 
@@ -169,20 +170,20 @@ abstract class ColorCode implements LoggerInterface, iColorCode
 
                     if (false === $lastLoggingLocation) {
 
-                        throw new PublicAlert('All color coded enabled logs must print to (' . ThrowableHandler::$defaultLocation . ") but switching from ($location) failed. "  . self::$generalWarning);
+                        throw new PrivateAlert('All color coded enabled logs must print to (' . ThrowableHandler::$defaultLocation . ") but switching from ($location) failed. "  . self::$generalWarning);
 
                     }
 
                     /** @noinspection ForgottenDebugOutputInspection */
                     if (false === error_log($message)) {
 
-                        throw new PublicAlert('Failed writing to error log after location switch. This is unexpected.');
+                        throw new PrivateAlert('Failed writing to error log after location switch. This is unexpected.');
 
                     }  // do not double quote args passed here
 
                     if (false === ini_set('error_log', '')) {
 
-                        throw new PublicAlert('Failed to change from c6 standard log file to stdout!');
+                        throw new PrivateAlert('Failed to change from c6 standard log file to stdout!');
 
                     }           // default output // cli stdout
 
@@ -191,13 +192,13 @@ abstract class ColorCode implements LoggerInterface, iColorCode
             /** @noinspection ForgottenDebugOutputInspection */
             if (false === error_log($message)) {
 
-                throw new PublicAlert('Our secondary logging mechanism failed, please review log.');
+                throw new PrivateAlert('Our secondary logging mechanism failed, please review log.');
 
             }  // do not double quote args passed here
 
             if (false === ini_set('error_log', $location)) {
 
-                throw new PublicAlert("Failed changing logging location back to ($location), this is unexpected.");
+                throw new PrivateAlert("Failed changing logging location back to ($location), this is unexpected.");
 
             }    // back to what it was before this function
 

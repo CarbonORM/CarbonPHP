@@ -897,13 +897,13 @@ xdescribe('REST {{ucEachTableName}} api', () => {
             const singleRowSelect = await {{ucEachTableName}}.Get({
                 [C6.WHERE]: {
                     [{{noPrefix}}[primaryKey.toUpperCase()]]: postID,
-                }6
+                }
             })
 
             if ('function' === typeof singleRowSelect) {
 
                 throw Error('singleRowSelect is a promise, this is unexpected.');
-
+ 
             }
 
             console.log('singleRowSelect', singleRowSelect?.data)
