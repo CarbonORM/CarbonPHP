@@ -532,8 +532,9 @@ class CarbonPHP
             self::$composer_root = dirname(self::CARBON_ROOT, 2) . DS;
 
             ################  Helpful Global Functions ####################
+            /** @noinspection UsingInclusionOnceReturnValueInspection */
             if (false === file_exists(__DIR__ . DS . 'Functions.php')
-                || false === include __DIR__ . DS . 'Functions.php') {
+                || false === include_once __DIR__ . DS . 'Functions.php') {
 
                 $message = PHP_EOL . 'Your instance of CarbonPHP appears corrupt. Please reinstall.' . PHP_EOL;
 

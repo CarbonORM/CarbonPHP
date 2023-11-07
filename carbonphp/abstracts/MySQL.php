@@ -174,7 +174,7 @@ IDENTIFIED;
 
         Background::executeAndCheckStatus($cmd);
 
-        return self::$mysqldump = CarbonPHP::$app_root . 'mysqldump.sql';
+        return self::$mysqldump = $outputFile;
 
     }
 
