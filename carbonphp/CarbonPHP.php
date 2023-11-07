@@ -803,10 +803,10 @@ class CarbonPHP
 
             print '<html lang="en"><head><meta http-equiv="refresh" content="5; url=//' . $URL . '"></head><body>' .
                 self::$server_ip . '<h1>Whoa, this server you reached does not appear to have permission to access the website hosted on it.' .
-                ' The server name (' . $_SERVER["SERVER_NAME"] . ') must match that passed via ["SITE"]["URL"] to CarbonPHP.</h1>' .
+                ' The server name (' . $_SERVER["SERVER_NAME"] . ') must match that passed via ["SITE"]["URL"] = ('.$URL.') to CarbonPHP.</h1>' .
                 '<h3>This message can be bypassed by leaving the configuration field "URL".</h3>' .
-                '<h2>Redirecting to <a href="//' . $URL . '"> ' . $URL . '</a></h2>' .
-                "<script>window.location.type = $URL</script></body></html>";
+                '<h2>Redirecting to <a href="//' . $URL . '"> ' . $URL . '</a></h2>';
+            // . "<script>window.location.type = $URL</script></body></html>";
 
             exit(1);
 
