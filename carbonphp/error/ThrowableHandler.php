@@ -85,17 +85,30 @@ class ThrowableHandler
     public static function checkCreateLogFile(string &$message): void
     {
 
-        $directory = dirname(self::$defaultLocation);
+        try {
 
-        if (false === is_dir($directory) && (false === mkdir($directory, 0755, true) || false === is_dir($directory))) {
+            $directory = dirname(self::$defaultLocation);
 
-            throw new PrivateAlert('The directory (' . $directory . ') for ThrowableHandler::$defaultLocation (' . self::$defaultLocation . ') does not exist and could not be created');
+            if (false === is_dir($directory) && (false === mkdir($directory, 0755, true) || false === is_dir($directory))) {
 
-        }
+                throw new PrivateAlert('The directory (' . $directory . ') for ThrowableHandler::$defaultLocation (' . self::$defaultLocation . ') does not exist and could not be created');
 
-        if (false === touch(self::$defaultLocation)) {
+            }
 
-            $message .= "\n\nCould not create file (" . self::$defaultLocation . ') as it does not exist on the system. All folders appear correct. Please create the directories required to store logs correctly!' . PHP_EOL;
+            if (false === file_exists(self::$defaultLocation) && false === touch(self::$defaultLocation)) {
+
+                $message .= "\n\nCould not create file (" . self::$defaultLocation . ') as it does not exist on the system. All folders appear correct. Please create the directories required to store logs correctly!' . PHP_EOL;
+
+            }
+
+            // todo - make sure file is writable
+
+
+
+
+        } catch (Throwable $e) {
+
+            self::generateLogAndExit($e);
 
         }
 

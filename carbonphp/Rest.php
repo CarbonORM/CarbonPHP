@@ -808,7 +808,7 @@ abstract class Rest extends RestLifeCycle
 
                 if (0 === $totalKeys) {
 
-                    return self::signalError('An unexpected error has occurred, please open a support ticket at https://github.com/RichardTMiles/CarbonPHP/issues.');
+                    return self::signalError('An unexpected error has occurred: Zero valid columns were matched to insert.');
 
                 }
 

@@ -11,6 +11,13 @@
           </mappings>
         </serverdata>
       </paths>
+      <paths name="GoogleAffinity">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/" local="$PROJECT_DIR$" web="/2.0/" />
+          </mappings>
+        </serverdata>
+      </paths>
       <paths name="VoltexC6">
         <serverdata>
           <mappings>

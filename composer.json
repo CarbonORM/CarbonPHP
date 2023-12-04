@@ -118,6 +118,12 @@
       "gcloud projects list",
       "gcloud compute instances list"
     ],
+    "gcloud:ssh": [
+      "gcloud compute ssh --zone \"us-central1-a\" \"purpleteam\" --project \"carbonphp-191421\""
+    ],
+    "gcloud:ssh:tunnel": [
+        "sudo gcloud compute ssh --zone \"us-central1-a\" \"purpleteam\" --project \"carbonphp-191421\" -- -NL 8080:localhost:80 -NL 8443:localhost:443 -NL 222:localhost:22"
+    ],
     "post-update-cmd": [
       "@carbon:wordpress",
       "@rest",
