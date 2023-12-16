@@ -648,11 +648,25 @@ FOOT;
 
         self::$pdo_options = $pdo_options;
 
-        $db = $reader instanceof PDO ? $reader : self::database($reader);
+        if ($reader instanceof PDO) {
+
+            $database = $reader;
+
+        } else {
+
+            $database = $reader ? self::$databaseReader : self::$database;
+
+        }
+
+        if (null === $database) {
+
+            return;
+
+        }
 
         foreach ($pdo_options as $key => $value) {
 
-            $db->setAttribute($key, $value);
+            $database->setAttribute($key, $value);
 
         }
 
