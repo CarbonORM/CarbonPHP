@@ -41,7 +41,7 @@ use function is_array;
 class Database
 {
 
-    private static array $pdo_options = [];
+    private static ?array $pdo_options = null;
 
     /**
      * @var bool - error catcher needs to initialize quickly,

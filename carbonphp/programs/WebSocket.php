@@ -160,11 +160,9 @@ class WebSocket extends WsFileStreams implements iCommand
     public function run(array $argv): void
     {
 
-
         ColorCode::colorCode('Handle All Resource Stream Selects On Single Thread');
 
         self::handleAllResourceStreamSelectOnSingleThread();
-
 
     }
 
