@@ -2,12 +2,7 @@
   "name": "carbonphp",
   "main": "index.php",
   "scripts": {
-    "getTag": "git describe --tags `git rev-list --tags --max-count=1`",
-    "postinstall": "cd ./view/assets/react/ && npm install",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "cd ./view/assets/react/ && npm start",
-    "build": "cd ./view/assets/react/ && npm run-script build && TAG=$(npm run --silent getTag) && rm -rf ./../../../view/releases/$TAG && mv -f ./build ./../../../view/releases/$TAG && cd ../../../ && npm run normalize",
-    "normalize": "mkdir -p \"./vendor/richardtmiles/carbonphp/view/releases/$(npm run  --silent getTag)\" && cp -r \"./view/releases/$(npm run --silent getTag)\"* \"./vendor/richardtmiles/carbonphp/view/releases/\""
+    "getTag": "git describe --tags `git rev-list --tags --max-count=1`"
   },
   "dependencies": {
     "admin-lte": "^3.1.0",

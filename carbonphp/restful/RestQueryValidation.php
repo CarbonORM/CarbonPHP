@@ -5,7 +5,6 @@ namespace CarbonPHP\Restful;
 
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Error\PrivateAlert;
-use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestMultiplePrimaryKeys;
 use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
@@ -93,7 +92,7 @@ abstract class RestQueryValidation extends RestAutoTargeting
         if (self::$externalRestfulRequestsAPI && !CarbonPHP::$test) {
 
             /** @noinspection JsonEncodingApiUsageInspection */
-            throw new PrivateAlert('Rest request denied by the PHP_VALIDATION\'s in the tables ORM. Remove DISALLOW_PUBLIC_ACCESS '
+            throw new PrivateAlert('Rest request denied by the PHP_VALIDATION\'s in the tables ORM. Remove DISALLOW_PUBLIC_ACCESS ie (static fn() => self::disallowPublicAccess(self::class)) '
                 . (null !== $calledFrom ? "from ($calledFrom) " : '')
                 . 'to gain privileges. Method: (' . $_SERVER['REQUEST_METHOD'] . ') Uri: (' . $_SERVER['REQUEST_URI'] . ') Request: (' . json_encode($request, JSON_PRETTY_PRINT) . ')');
 

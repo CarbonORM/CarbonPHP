@@ -90,18 +90,9 @@
     "metrics": [
       "php ./vendor/bin/phpmetrics --config=php-metrics.json ."
     ],
-    "carbon:wordpress": [
-      "mkdir -p \"`pwd`/wp-content/plugins/carbonphp\"",
-      "cp \"`pwd`/carbonphp/helpers/WordpressPlugin.php\" \"`pwd`/wp-content/plugins/carbonphp/CarbonPHP.php\"",
-      "./vendor/bin/wp --skip-plugins --skip-themes plugin activate carbonphp"
-    ],
     "post-install-cmd": [
       "@githooks",
-      "@carbon:wordpress",
       "@apache:linkApplication",
-      "mkdir -p \"`pwd`/wp-content/themes/c6documentation\"",
-      "echo \"<?php use CarbonPHP\\Documentation; Documentation::getLatestReactBuild();\" > \"`pwd`/wp-content/themes/c6documentation/index.php\"",
-      "touch \"`pwd`/wp-content/themes/c6documentation/style.css\"",
       "@database:refresh:schema",
       "@rest",
       "@test"
@@ -125,7 +116,6 @@
         "sudo gcloud compute ssh --zone \"us-central1-a\" \"purpleteam\" --project \"carbonphp-191421\" -- -NL 8080:localhost:80 -NL 8443:localhost:443 -NL 222:localhost:22"
     ],
     "post-update-cmd": [
-      "@carbon:wordpress",
       "@rest",
       "@test"
     ],
@@ -157,35 +147,6 @@
     "test": [
       "echo 'Use the following to enable XDEBUG :: export XDEBUG_MODE=debug XDEBUG_SESSION=1'",
       "XDEBUG_MODE=debug XDEBUG_SESSION=1 ./vendor/bin/phpunit --log-junit junit.xml  --testdox || ./vendor/bin/phpunit --verbose --log-junit junit.xml >> logs/tests.txt"
-    ],
-    "wp": [
-      "cp index.php index.og.php",
-      "@wordpress:download:nightly-build",
-      "mv index.php index.wp.php",
-      "cp index.og.php index.php",
-      "@wordpress:install",
-      "@carbon:wordpress"
-    ],
-    "wordpress:download:latest-stable": [
-      "php -r \"copy('https://wordpress.org/latest.tar.gz', 'latest.tar.gz');\"",
-      "tar xfz latest.tar.gz",
-      "cp -R wordpress/* ./",
-      "rm -rf wordpress",
-      "rm -f latest.tar.gz"
-    ],
-    "wordpress:download:nightly-build": [
-      "php -r \"copy('https://wordpress.org/nightly-builds/wordpress-latest.zip', 'latest.zip');\"",
-      "unzip latest.zip",
-      "cp -R wordpress/* ./",
-      "rm -rf wordpress",
-      "rm -f latest.tar.gz"
-    ],
-    "wordpress:install": "wp core install --url=127.0.0.1:80 --title=CarbonPHP --admin_user=root --admin_password=password --admin_email=richard@miles.systems",
-    "wordpress:install:cli:global": [
-      "php -r \"copy('https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar', 'wp-cli.phar');\"",
-      "php wp-cli.phar --info",
-      "chmod +x wp-cli.phar",
-      "mv wp-cli.phar /usr/local/bin/wp"
     ]
   },
   "config": {

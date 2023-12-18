@@ -631,7 +631,7 @@ SOCKET;
     public static function getVersions(): array
     {
 
-        return explode(PHP_EOL, shell_exec("git tag --sort=v:refname"));
+        return explode(PHP_EOL, shell_exec("git tag --sort=v:refname") ?? '');
 
     }
 

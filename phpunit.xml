@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit backupGlobals="false"
          backupStaticAttributes="false"
-         bootstrap="wp-load.php"
+         bootstrap="index.php"
          colors="true"
          convertErrorsToExceptions="true"
          convertNoticesToExceptions="true"
@@ -12,7 +12,6 @@
         <testsuite name="feature">
             <file>tests/feature/UserTest.php</file>
             <file>tests/feature/FullRestTest.php</file>
-            <file>tests/feature/WordpressTest.php</file>
             <file>tests/feature/RestWordpressTest.php</file>
         </testsuite>
     </testsuites>

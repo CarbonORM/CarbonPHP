@@ -24,6 +24,9 @@
       <webServer id="6df8949c-93a8-4ef8-bd1f-82b015007601" name="affinity" url="http://localhost">
         <fileTransfer mountedRoot="$PROJECT_DIR$/../affinity.voltex.app/vendor/carbonorm/carbonphp" accessType="MOUNT" port="0" />
       </webServer>
+      <webServer id="cd8af25c-3dff-474e-b9c5-f5f69b56281b" name="wordpressExample" url="http://localhost">
+        <fileTransfer mountedRoot="$PROJECT_DIR$/../CarbonWordPressExample/vendor/carbonorm/carbonphp" accessType="MOUNT" port="0" />
+      </webServer>
     </option>
   </component>
 </project>
