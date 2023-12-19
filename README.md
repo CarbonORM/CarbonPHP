@@ -39,19 +39,18 @@ called out in the Changelog with every minor release. Please read the changelog 
 Refer to the guide at [carbonphp.com](https://carbonphp.com)
 
 
-## Introduction - The ORM of your dreams & Wordpress Compatable
+## Introduction - The ORM of your dreams & WordPress Compatible
 
 
-CarbonPHP is a PHP 7.4+ library to simplify the building of custom, dynamic web applications. Its main focus is to make
+CarbonPHP is a PHP 8.2+ library to simplify the building of custom, dynamic web applications. Its main focus is to make
 webapps run ridiculously fast, with performance and high-traffic scalability being the absolute highest concern. CarbonPHP 
 has clocked in with impressive statistics, sometimes doubling the traffic that small servers with MySQL-intensive sites can handle.
-C6 works as a standalone backbone for your dev needs or in the corporation with other popular frameworks like [Wordpress](https://developer.wordpress.org)
+C6 works as a standalone backbone for your dev needs or in the corporation with other popular frameworks like [WordPress](https://developer.wordpress.org)
 or [Laravel](https://laravel.com).
 CarbonPHP's other goals include portability; allowing your webapps to be installed on servers with different operating 
 systems (Windows, Mac, and Linux Support). Full MySQL ORM REST generator, and php written database tools designed around 
-the MySQL. Windows PHP currently lacks a library capable of forking. Should your development require Windows 
-computers look into [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) . I have written a few 
-wiki's in the repo above explaining how to Use sockets in this way. I hope to contribute a php library
+the MySQL. Windows PHP currently lacks a library capable of forking. Should your development require a Windows 
+computers look into [WSL](https://learn.microsoft.com/en-us/windows/wsl/install). I hope to contribute a php library
 written in C (PHP is written in C) to support this task, however time is a factor. Should you feel compelled to help in 
 this goal please contact me at Richard@Miles.Systems. Please see the documentation at Carbonphp.com for more information.
 For the rest of us who live outside windows Hell C6 has a Websocket Library Class for Standard use and Wordpress use. 
