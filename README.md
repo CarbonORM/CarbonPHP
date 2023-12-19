@@ -50,7 +50,7 @@ or [Laravel](https://laravel.com).
 CarbonPHP's other goals include portability; allowing your webapps to be installed on servers with different operating 
 systems (Windows, Mac, and Linux Support). Full MySQL ORM REST generator, and php written database tools designed around 
 the MySQL. Windows PHP currently lacks a library capable of forking. Should your development require Windows 
-computers look into [Websocketd.com](Websocketd.com) and the file name "./programs/Websocketd.php". I have written a few 
+computers look into [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) . I have written a few 
 wiki's in the repo above explaining how to Use sockets in this way. I hope to contribute a php library
 written in C (PHP is written in C) to support this task, however time is a factor. Should you feel compelled to help in 
 this goal please contact me at Richard@Miles.Systems. Please see the documentation at Carbonphp.com for more information.
@@ -198,20 +198,3 @@ CarbonPHP was created by Richard Tyler Miles, the BDFL, and inspired by [Tom Fro
 
 Contributors can be found in the GitHub Contributor Listing.
 
-## NOTES 
-### Common TSX types 
-   
-    something: PropTypes.arrayOf(PropTypes.node)
-    ****classes: PropTypes.object.isRequired,
-    message: PropTypes.node.isRequired,
-
-To update the version number on the FED
-
-1) update the header menu
-
-    view/assets/react/src/components/HeaderTop/HeaderLinks.tsx
-    components/HeaderTop/HeaderLinks.tsx
-
-2) version number
-
-    variables/carbonphp.jsx
