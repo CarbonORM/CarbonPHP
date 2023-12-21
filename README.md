@@ -10,7 +10,7 @@
 ![All Downloads](https://img.shields.io/packagist/dt/richardtmiles/carbonphp)
 ![All Downloads](https://img.shields.io/packagist/dt/carbonorm/carbonphp)
 ![Star](https://img.shields.io/github/stars/carbonorm/carbonphp?style=social)
-<!-- ![Daily Downloads](https://img.shields.io/packagist/dd/carbonorm/carbonphp) -->
+![Daily Downloads](https://img.shields.io/packagist/dd/carbonorm/carbonphp)
 
 # UPDATE - Repository location change
 
