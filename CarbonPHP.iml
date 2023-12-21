@@ -19,7 +19,60 @@
       <sourceFolder url="file://$MODULE_DIR$/carbonphp/tables/traits" isTestSource="false" packagePrefix="CarbonPHP\Tables\Traits\" />
       <sourceFolder url="file://$MODULE_DIR$/carbonphp/abstracts" isTestSource="false" packagePrefix="CarbonPHP\Abstracts\" />
       <sourceFolder url="file://$MODULE_DIR$/carbonphp/websocket" isTestSource="false" packagePrefix="CarbonPHP\WebSocket\" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/eftec/bladeone" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/gettext/gettext" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/gettext/languages" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/justinrainbow/json-schema" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/mck89/peast" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/nb/oxymel" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/psr/container" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/react/promise" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/richardtmiles/carbonphp" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/seld/jsonlint" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/seld/phar-utils" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/console" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/deprecation-contracts" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/filesystem" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/finder" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/polyfill-ctype" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/polyfill-intl-grapheme" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/polyfill-intl-normalizer" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/polyfill-mbstring" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/polyfill-php73" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/polyfill-php80" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/process" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/service-contracts" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/string" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/cache-command" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/checksum-command" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/config-command" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/core-command" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/cron-command" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/db-command" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/embed-command" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/entity-command" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/eval-command" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/export-command" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/extension-command" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/i18n-command" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/import-command" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/language-command" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/maintenance-mode-command" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/media-command" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/mustangostang-spyc" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/package-command" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/php-cli-tools" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/rewrite-command" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/role-command" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/scaffold-command" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/search-replace-command" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/server-command" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/shell-command" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/super-admin-command" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/widget-command" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/wp-cli" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/wp-cli-bundle" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/wp-cli/wp-config-transformer" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
