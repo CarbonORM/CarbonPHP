@@ -27,7 +27,7 @@ Note - the old location should continue to work but is considered deprecated.
 CarbonPHP has grown into the [CarbonORM Public Organization](https://github.com/CarbonORM/). There you can find 
 documentation over the front end process of using the ORM. C6 now refers to any of Carbon* prefixed CarbonORM packages.
 
-[CarbonPHP.com](http://carbonphp.com/)
+[CarbonORM.dev](http://carbonorm.dev/)
 
 CarbonPHP has reached a stable level of trust in its own features through PHPUnit Tests + 
 GitHub Actions but is still in active development. CarbonPHP is being used in production environments. Anyone, or team, who attempts using this code
