@@ -243,7 +243,7 @@ SEMVAR
 
     sleep(1);
 
-    ColorCode::colorCode('Enter version bump type (major, minor, patch [default], skip): ', iColorCode::MAGENTA);
+    ColorCode::colorCode('Enter version bump type (major, minor, patch, skip[default]): ', iColorCode::MAGENTA);
 
     $versionBumpType = `exec < /dev/tty && php -r 'echo (\$r = readline()) ? \$r : "patch";'`;
 
@@ -255,11 +255,7 @@ SEMVAR
 
     }
 
-    if (empty($versionBumpType)) {
-
-        $versionBumpType = 'patch';
-
-    } elseif ($versionBumpType === 'skip') {
+    if (empty($versionBumpType) || $versionBumpType === 'skip') {
 
         ColorCode::colorCode('Skipping version bump.', iColorCode::CYAN);
 
