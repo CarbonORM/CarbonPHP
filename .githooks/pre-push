@@ -124,6 +124,8 @@ $addNewTag = static function ($tag, $versionBumpType): void {
 
         Background::executeAndCheckStatus("git push --tags --no-verify");
 
+        Background::executeAndCheckStatus("gh release create '$tag' --generate-notes --verify-tag");
+
     };
 
     ColorCode::colorCode("Adding new tag :: '$tag'");
