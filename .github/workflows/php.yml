@@ -1,6 +1,9 @@
 name: CarbonPHP Feature Test Suit
 
-on: [ push ]
+on:
+  push:
+    branches:
+      - lts
 
 jobs:
   Linux:
@@ -49,9 +52,6 @@ jobs:
       - name: composer validate
         run: composer validate
 
-      - name: composer wordpress:download:latest-stable
-        run: composer wordpress:download:latest-stable
-
       - name: composer install --prefer-dist --no-progress --no-scripts
         run: composer install --prefer-dist --no-progress --no-scripts
 
@@ -63,9 +63,6 @@ jobs:
 
       - name: ./vendor/se/selenium-server-standalone/composer/bin/selenium-server-standalone &
         run: ./vendor/se/selenium-server-standalone/composer/bin/selenium-server-standalone &
-
-      - name: ./vendor/bin/wp core update-db
-        run: ./vendor/bin/wp core update-db
 
       - name: php index.php rest (again to ensure generated php valid and to build Wp Tables)
         run: php index.php rest
