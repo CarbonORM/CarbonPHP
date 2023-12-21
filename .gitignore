@@ -13,7 +13,7 @@ createTables.sql
 /logs/*.log
 /logs/default_log.txt
 /mysql.cnf
-/mysqldump.cnf
+/mysqldump.cxrnf
 /mysqldump_data.sql
 /mysqldump.sql
 /triggers.sql
@@ -48,8 +48,6 @@ wp-admin/*
 # wordpress root
 /wp-includes/*
 readme.html
-!wp-config.php
-/wp-*.php
 /xmlrpc.php
 license.txt
 
