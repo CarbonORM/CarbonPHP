@@ -277,6 +277,10 @@ class Users extends Rest implements iRestSinglePrimaryKey
 
     ];
     
+    
+    /** Custom User Methods Are Placed Here **/
+    
+    
     public function __construct(array &$return = [])
     {
         parent::__construct($return);
@@ -330,11 +334,6 @@ class Users extends Rest implements iRestSinglePrimaryKey
             ]
         ];
     }
-    
-    /** Custom User Methods Are Placed Here **/
-    
-    
-
    
     /**
      * REGEX_VALIDATION

@@ -177,6 +177,10 @@ class Group_References extends Rest implements iRestNoPrimaryKey
     public const REFRESH_SCHEMA = [
     ];
     
+    
+    /** Custom User Methods Are Placed Here **/
+    
+    
     public function __construct(array &$return = [])
     {
         parent::__construct($return);
@@ -230,10 +234,7 @@ class Group_References extends Rest implements iRestNoPrimaryKey
             ]
         ];
     }
-    
-    /** Custom User Methods Are Placed Here **/
-    
-    
+
 
    
     /**

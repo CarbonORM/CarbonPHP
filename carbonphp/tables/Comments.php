@@ -186,6 +186,10 @@ class Comments extends Rest implements iRestSinglePrimaryKey
     public const REFRESH_SCHEMA = [
     ];
     
+    
+    /** Custom User Methods Are Placed Here **/
+    
+    
     public function __construct(array &$return = [])
     {
         parent::__construct($return);
@@ -239,11 +243,6 @@ class Comments extends Rest implements iRestSinglePrimaryKey
             ]
         ];
     }
-    
-    /** Custom User Methods Are Placed Here **/
-    
-    
-
    
     /**
      * REGEX_VALIDATION
