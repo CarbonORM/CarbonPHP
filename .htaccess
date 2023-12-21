@@ -114,6 +114,7 @@ Header always set Access-Control-Allow-Headers: *
     RewriteBase /
     RewriteRule ^index\.php$ - [L]
     RewriteRule ^info\.php$ - [L]
+    RewriteRule ^phpstorm_.*$ - [L]
     RewriteRule ^xdebug_info\.php$ - [L]
     RewriteRule ^wp-login\.php$ - [L]
     RewriteRule ^(wp-(admin|includes).*) $1 [L]

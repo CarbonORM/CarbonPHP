@@ -114,7 +114,7 @@
       "gcloud compute ssh --zone \"us-central1-a\" \"purpleteam\" --project \"carbonphp-191421\""
     ],
     "gcloud:ssh:tunnel": [
-        "sudo gcloud compute ssh --zone \"us-central1-a\" \"purpleteam\" --project \"carbonphp-191421\" -- -NL 8080:localhost:80 -NL 8443:localhost:443 -NL 222:localhost:22"
+      "sudo gcloud compute ssh --zone \"us-central1-a\" \"purpleteam\" --project \"carbonphp-191421\" -- -NL 8080:localhost:80 -NL 8443:localhost:443 -NL 222:localhost:22"
     ],
     "post-update-cmd": [
       "@rest",
@@ -122,6 +122,9 @@
     ],
     "rei": "rm -rf vendor && rm composer.lock && composer i",
     "rest": [
+      "php index.php restbuilder -json"
+    ],
+    "rest:dataDump": [
       "php index.php restbuilder -json -dumpData"
     ],
     "rest:production": [

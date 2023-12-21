@@ -168,7 +168,7 @@ END;
 
         $targetDir = CarbonPHP::$app_root . ($carbon_namespace ? 'carbonphp/tables/' : 'tables/');
         $only_these_tables = $history_table_query = $mysql = null;
-        $verbose = $debug = $primary_required = $skipTable = $logClasses =
+        $verbose = $debug = $primary_required = $skipTable = $logClasses = false;
         $target_namespace = $this->target_namespace ??= 'Tables\\';
         $prefix = $this->table_prefix ??= '';
         $exclude_these_tables = [];
@@ -393,7 +393,7 @@ END;
             exit(1);
         }
 
-        MySQL::$mysqldump = $dump ?? MySQL::mysqldump($mysqldump ?? null, $dumpData);
+        MySQL::$mysqldump = $dump ?? MySQL::mysqldump($mysqldump ?? null, $dumpData ?? false);
 
         if (!file_exists(MySQL::$mysqldump)) {
             print 'Could not load mysql dump file!' . PHP_EOL;
@@ -1100,6 +1100,7 @@ END;
 
             #$allRestInfo = json_encode($rest, JSON_PRETTY_PRINT);
             #file_put_contents(CarbonPHP::$app_root . 'test.json', $allRestInfo);
+
 
 
             // We need to break from this tables too if the tables is not in ( -l -f )

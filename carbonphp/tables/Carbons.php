@@ -3,7 +3,7 @@
 namespace CarbonPHP\Tables;
 
 // Restful defaults
-use CarbonPHP\Interfaces\iRestNoPrimaryKey;
+use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Tables\Traits\Carbons_Columns;
 use CarbonPHP\Restful\RestfulValidations;
 use CarbonPHP\Rest;
@@ -32,7 +32,7 @@ use PDO;
  * When creating static member functions which require persistent variables, consider making them static members of that 
  *  static method.
  */
-class Carbons extends Rest implements iRestNoPrimaryKey
+class Carbons extends Rest implements iRestSinglePrimaryKey
 {
     use Carbons_Columns;
     
@@ -63,7 +63,7 @@ class Carbons extends Rest implements iRestNoPrimaryKey
     
     // Tables that reference this tables columns via FK
     public const EXTERNAL_TABLE_CONSTRAINTS = [
-        'carbon_carbons.entity_fk' => self::ENTITY_PK,
+        Carbons::ENTITY_FK => self::ENTITY_PK,
         Comments::COMMENT_ID => self::ENTITY_PK,
         Comments::PARENT_ID => self::ENTITY_PK,
         Comments::USER_ID => self::ENTITY_PK,
@@ -109,7 +109,7 @@ class Carbons extends Rest implements iRestNoPrimaryKey
      * given composite primary keys. The existence and amount of primary keys of the will also determine the interface 
      * aka method signatures used.
     **/
-    public const PRIMARY = null;
+    public const PRIMARY = 'carbon_carbons.entity_pk';
 
     /**
      * AUTO_INCREMENT_PRIMARY_KEY
@@ -533,21 +533,22 @@ MYSQL;
     *
     *
     * @param array $return
+    * @param string|null $primary
     * @param array $argv
     * @generated
     * @return bool
     */
-    public static function get(array|null &$return, array $argv = []): bool
+    public static function get(array|null &$return, string $primary = null, array $argv = []): bool
     {
-        return self::select($return, $argv);
+        return self::select($return, $argv, $primary === null ? null : [ self::PRIMARY => $primary ]);
     }
 
     /**
      * @param array $post - a one to one; column => value mapping. Multiple rows may be inserted at one time using an array of arrays.
-     * @return bool|string
+     * @return bool|string|mixed
      * @generated
      */
-    public static function post(array &$post = []): bool
+    public static function post(array &$post = [])
     {   
         return self::insert($post);
     }
@@ -555,35 +556,35 @@ MYSQL;
     /**
     * 
     * 
-    *  Syntax should be as follows.
-    *  $argv = [
+    * Tables where primary keys exist must be updated by its primary key. 
+    * Column should be in a key value pair passed to $argv or optionally using syntax:
+    * $argv = [
     *       Rest::UPDATE => [
     *              ...
-    *       ],
-    *       Rest::WHERE => [
-    *              ...
     *       ]
+    * ]
     * 
     * @param array $returnUpdated - will be merged with with array_merge, with a successful update. 
-    
+    * @param string|null $primary
     * @param array $argv 
     * @generated
     * @return bool - if execute fails, false will be returned and $returnUpdated = $stmt->errorInfo(); 
     */
-    public static function put(array &$returnUpdated,  array $argv = []) : bool
+    public static function put(array &$returnUpdated, string $primary = null, array $argv = []) : bool
     {
-        return self::updateReplace($returnUpdated, $argv);
+        return self::updateReplace($returnUpdated, $argv, $primary === null ? null : [ self::PRIMARY => $primary ]);
     }
 
     /**
     * @param array $remove
+    * @param string|null $primary
     * @param array $argv
     * @generated
     * @return bool
     */
-    public static function delete(array &$remove, array $argv = []) : bool
+    public static function delete(array &$remove, string $primary = null, array $argv = []) : bool
     {
-        return self::remove($remove, $argv);
+        return self::remove($remove, $argv, $primary === null ? null : [ self::PRIMARY => $primary ]);
     }
     
 }
