@@ -2,7 +2,7 @@
   "name": "carbonorm/carbonphp",
   "license": "MIT",
   "type": "library",
-  "version": "19.0.6",
+  "version": "19.0.7",
   "keywords": [
     "Sockets",
     "Carbon",
@@ -122,7 +122,7 @@
     ],
     "rei": "rm -rf vendor && rm composer.lock && composer i",
     "rest": [
-      "php index.php restbuilder -json -dumpData -react view/react/ -javascript view/"
+      "php index.php restbuilder -json -dumpData"
     ],
     "rest:production": [
       "php index.php restbuilder -excludeTablesRegex '#wp_.*#' -json -dumpData -react view/ -javascript view/"
