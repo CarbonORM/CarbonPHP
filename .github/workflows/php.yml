@@ -59,7 +59,7 @@ jobs:
         run: |
           php -r "copy('https://wordpress.org/latest.tar.gz', 'latest.tar.gz');"
           tar xfz latest.tar.gz
-          cp -R wordpress/* ./
+          cp -R -n wordpress/* ./
           rm -rf wordpress
           rm -f latest.tar.gz
 
