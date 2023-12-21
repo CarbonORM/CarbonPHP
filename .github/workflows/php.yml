@@ -66,8 +66,8 @@ jobs:
       - name: composer require wp-cli/wp-cli-bundle
         run: composer require wp-cli/wp-cli-bundle
 
-      - name: wp core install --url=127.0.0.1:8080 --title=CarbonPHP --admin_user=root --admin_password=password --admin_email=richard@miles.systems
-        run: wp core install --url=127.0.0.1:8080 --title=CarbonPHP --admin_user=root --admin_password=password --admin_email=richard@miles.systems
+      - name: ./vendor/bin/wp core install --url=127.0.0.1:8080 --title=CarbonPHP --admin_user=root --admin_password=password --admin_email=richard@miles.systems
+        run: ./vendor/bin/wp core install --url=127.0.0.1:8080 --title=CarbonPHP --admin_user=root --admin_password=password --admin_email=richard@miles.systems
 
       - name: ./vendor/bin/wp core update-db
         run: ./vendor/bin/wp core update-db
