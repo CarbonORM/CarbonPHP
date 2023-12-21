@@ -20,7 +20,7 @@ Some badges above are duplicated to show the true stats across [Packagist](https
 
 `composer require carbonorm/carbonphp`
 
-Note - the old location `composer require richardtmiles/carbonphp` should continue to work but is considered deprecated 
+Note - the old location should continue to work but is considered deprecated.
 
 # CarbonPHP Tool Kit and Performance Library
 
