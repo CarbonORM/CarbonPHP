@@ -55,6 +55,23 @@ jobs:
       - name: composer install --prefer-dist --no-progress --no-scripts
         run: composer install --prefer-dist --no-progress --no-scripts
 
+      - name: WordPress download latest-stable
+        run: |
+          php -r "copy('https://wordpress.org/latest.tar.gz', 'latest.tar.gz');"
+          tar xfz latest.tar.gz
+          cp -R wordpress/* ./
+          rm -rf wordpress
+          rm -f latest.tar.gz
+
+      - name: composer install wp-cli/wp-cli-bundle
+        run: composer install wp-cli/wp-cli-bundle
+
+      - name: wp core install --url=127.0.0.1:8080 --title=CarbonPHP --admin_user=root --admin_password=password --admin_email=richard@miles.systems
+        run: wp core install --url=127.0.0.1:8080 --title=CarbonPHP --admin_user=root --admin_password=password --admin_email=richard@miles.systems
+
+      - name: ./vendor/bin/wp core update-db
+        run: ./vendor/bin/wp core update-db
+
       - name: php index.php buildDatabase -r
         run: php index.php buildDatabase -r
 
