@@ -1241,10 +1241,6 @@ END;
             MySQL::MySQLSource('triggers.sql', $mysql ?? null);
         }
 
-        // debug is a subset of the verbose flag
-        /** @noinspection ForgottenDebugOutputInspection */
-        $debug and var_dump($rest['clients']);
-
         ColorCode::colorCode("\tSuccess!\n\n");
 
     }
