@@ -66,8 +66,8 @@ jobs:
           rm -rf wordpress
           rm -f latest.tar.gz
 
-      - name: composer require wp-cli/wp-cli-bundle
-        run: composer require wp-cli/wp-cli-bundle
+      - name: composer require wp-cli/wp-cli-bundle --no-scripts
+        run: composer require wp-cli/wp-cli-bundle --no-scripts
 
       - name: ./vendor/bin/wp core install --url=127.0.0.1:8080 --title=CarbonPHP --admin_user=root --admin_password=password --admin_email=richard@miles.systems
         run: ./vendor/bin/wp core install --url=127.0.0.1:8080 --title=CarbonPHP --admin_user=root --admin_password=password --admin_email=richard@miles.systems
