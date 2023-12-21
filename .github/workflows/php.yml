@@ -55,6 +55,9 @@ jobs:
       - name: composer install --prefer-dist --no-progress --no-scripts
         run: composer install --prefer-dist --no-progress --no-scripts
 
+      - name: composer db
+        run: composer db
+
       - name: WordPress download latest-stable
         run: |
           php -r "copy('https://wordpress.org/latest.tar.gz', 'latest.tar.gz');"
@@ -72,8 +75,8 @@ jobs:
       - name: ./vendor/bin/wp core update-db
         run: ./vendor/bin/wp core update-db
 
-      - name: php index.php buildDatabase -r
-        run: php index.php buildDatabase -r
+      - name: composer db
+        run: composer db
 
       - name: php index.php rest
         run: php index.php rest
