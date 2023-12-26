@@ -139,7 +139,7 @@ class ThrowableHandler
 
             }
 
-            return highlight(implode(PHP_EOL, $snippet), true);
+            return highlight(implode(PHP_EOL, $snippet), true, $start_line);
 
         }
 
@@ -679,7 +679,7 @@ class ThrowableHandler
 
         $log_array[self::GLOBALS_JSON] = $json;
 
-        if (array_key_exists('sql', $json) && is_array($json['sql']) && !empty($json['sql'])) {
+        if (is_array($json) && array_key_exists('sql', $json) && is_array($json['sql']) && !empty($json['sql'])) {
 
             $lastRestStatement = $json['sql'][array_key_last($json['sql'])] ?? '';
 

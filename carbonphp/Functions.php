@@ -115,25 +115,15 @@ namespace {                                     // This runs the following code 
 
             $text = highlight_string($text, true);  // highlight_string() requires opening PHP tag or otherwise it will not colorize the text
 
-            $text = substr_replace($text, '', 0, 6);    // this removes the <code>
-
-            $text = preg_replace('#^<span style="[\w\s\#">;:]*#', '', $text, 1);  // remove prefix
+            $text = preg_replace('#</?(span|code)(\sstyle="[\w\s\#;:]+")?>#', '', $text, 1);  // remove prefix
 
             $text = (($pos = strpos($text, $needle = '&lt;?php')) ?
                 substr_replace($text, '', $pos, strlen($needle)) :
                 $text);
 
-            $text = (($pos = strrpos($text, $needle = '</span>')) ?
-                substr_replace($text, '', $pos, strlen($needle)) :
-                $text);
-
-            $text = (($pos = strrpos($text, $needle = '</code>')) ?
-                substr_replace($text, '', $pos, strlen($needle)) :
-                $text);
-
             $text = '<span style="overflow-x: scroll">' . $text . '</span>';
 
-            return "<table style='width: 100%'><tr><td class=\"num\">\n$lines\n</td><td>\n$text\n</td></tr></table>";
+            return "<table style='width: 100%'><tr><td class=\"num\" style='color: whitesmoke'>\n$lines\n</td><td>\n$text\n</td></tr></table>";
 
         }
     }
@@ -213,7 +203,7 @@ namespace {                                     // This runs the following code 
          * @noinspection ForgottenDebugOutputInspection
          * @noinspection PhpExpressionResultUnusedInspection
          */
-        function sortDump($mixed, bool $fullReport = false, bool $die = true, int $debug_backtrace_limit = 3): void
+        function sortDump($mixed, bool $fullReport = false, bool $die = true, int $debug_backtrace_limit = 50): void
         {
             // Notify that sort dump was executed
             CarbonPHP::$cli or alert(__FUNCTION__);
@@ -221,13 +211,13 @@ namespace {                                     // This runs the following code 
             $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, $debug_backtrace_limit);
 
             // Generate Report -- keep in mind were in a buffer here
-            $output = static function (bool $cli) use ($mixed, $fullReport, $backtrace): string {
+            $output = static function (bool $cli) use ($mixed, $fullReport, $backtrace, $debug_backtrace_limit): string {
 
                 ob_start(null, 0, PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_FLUSHABLE | PHP_OUTPUT_HANDLER_REMOVABLE);
 
                 print $cli ? PHP_EOL . PHP_EOL : '<br>';
 
-                print $cli ? 'SortDump Called With (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)) From' : '################### SortDump Called With (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)) From ################';
+                print $cli ? "SortDump Called With (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, $debug_backtrace_limit)) From" : "################### SortDump Called With (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, $debug_backtrace_limit)) From ################";
 
                 print $cli ? PHP_EOL . PHP_EOL : '<br><pre>';
 

@@ -176,7 +176,11 @@ trait ThrowableHTMLTemplate
             
             // full json error report
             
+            console.group('%c CarbonPHP caught a Throwable message', 'color: white; background: rgb(79,167,179); font-size: 30px');
+
             console.log({{{fullErrorReport}}});   
+            
+            console.groupEnd();
             
             </script><title>HTTP {{{code}}} {{{statusText}}}</title>
             </head>
