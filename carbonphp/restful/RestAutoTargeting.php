@@ -148,8 +148,7 @@ abstract class RestAutoTargeting extends RestSettings
         if (empty($classNamespace)) {
 
             // filePaths should be from glob
-
-            $tableDirectory = dirname($filePaths[0]);
+            $tableDirectory = array_key_exists(0, $filePaths) ? dirname($filePaths[0]) : 'NULL';
 
             throw new PrivateAlert("Failed to parse class namespace from files in ($tableDirectory). ");
 

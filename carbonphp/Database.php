@@ -1155,6 +1155,14 @@ FOOT;
 
         $restful = glob($tableDirectory . '*.php');
 
+        if (empty($restful)) {
+
+            ColorCode::colorCode("\n\n\nWARNING: No tables found in the directory ($tableDirectory).\n\n\n", iColorCode::BACKGROUND_YELLOW);
+
+            return;
+
+        }
+
         $classNamespace = Rest::getRestNamespaceFromFileList($restful);
 
         foreach ($restful as $file) {
