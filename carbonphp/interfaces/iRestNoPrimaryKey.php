@@ -8,7 +8,7 @@
 
 namespace CarbonPHP\Interfaces;
 
-use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Classes\Exceptions\PublicAlert;
 
 /**
  * Interface iRestNoPrimaryKeys

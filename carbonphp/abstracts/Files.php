@@ -3,11 +3,11 @@
 namespace CarbonPHP\Abstracts;
 
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\Error\PrivateAlert;
-use CarbonPHP\Error\PublicAlert;
-use CarbonPHP\Error\ThrowableHandler;
+use CarbonPHP\Classes\Exceptions\PrivateAlert;
+use CarbonPHP\Classes\Exceptions\PublicAlert;
+use CarbonPHP\Classes\Programs\Migrate;
+use CarbonPHP\Classes\ThrowableHandler;
 use CarbonPHP\Interfaces\iColorCode;
-use CarbonPHP\Programs\Migrate;
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;

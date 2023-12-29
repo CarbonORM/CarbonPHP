@@ -8,7 +8,7 @@
 
 namespace CarbonPHP\Interfaces;
 
-use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Classes\Exceptions\PublicAlert;
 
 /**
  * Interface iRestSinglePrimaryKey
@@ -47,4 +47,6 @@ interface iRestSinglePrimaryKey
      * @return bool  - true on success false on failure
      */
     public static function put(array &$returnUpdated, string $primary = null, array $argv = []): bool;
+
+
 }

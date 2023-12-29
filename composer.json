@@ -47,21 +47,28 @@
   ],
   "autoload": {
     "psr-4": {
+      "CarbonPHP\\": "carbonphp/",
       "CarbonPHP\\Abstracts\\": "carbonphp/abstracts/",
-      "CarbonPHP\\Error\\": "carbonphp/error/",
+      "CarbonPHP\\Abstracts\\Restful\\": "carbonphp/abstracts/restful/",
+      "CarbonPHP\\Abstracts\\Websocket\\": "carbonphp/abstracts/websocket/",
+      "CarbonPHP\\Classes\\": "carbonphp/classes/",
+      "CarbonPHP\\Classes\\Exceptions\\": "carbonphp/classes/exceptions/",
+      "CarbonPHP\\Classes\\Programs\\": "carbonphp/classes/programs/",
+      "CarbonPHP\\Classes\\Types\\": "carbonphp/classes/types/",
       "CarbonPHP\\Enums\\": "carbonphp/enums/",
+      "CarbonPHP\\Error\\": "carbonphp/error/",
       "CarbonPHP\\Helpers\\": "carbonphp/helpers/",
       "CarbonPHP\\Interfaces\\": "carbonphp/interfaces/",
-      "CarbonPHP\\Programs\\": "carbonphp/programs/",
       "CarbonPHP\\Restful\\": "carbonphp/restful/",
       "CarbonPHP\\Tables\\": "carbonphp/tables/",
+      "CarbonPHP\\Tables\\Classes\\\\": "carbonphp/tables/classes/",
       "CarbonPHP\\Tables\\Traits\\": "carbonphp/tables/traits/",
+      "CarbonPHP\\Traits\\": "carbonphp/traits/",
       "CarbonPHP\\WebSocket\\": "carbonphp/websocket/",
-      "CarbonPHP\\": "carbonphp/",
-      "Tests\\Browser\\": "tests/browser/",
-      "Tests\\Feature\\": "tests/feature/",
+      "Config\\": "config/",
       "Tests\\": "tests/",
-      "Config\\": "config/"
+      "Tests\\Browser\\": "tests/browser/",
+      "Tests\\Feature\\": "tests/feature/"
     }
   },
   "scripts": {
@@ -122,7 +129,7 @@
     ],
     "rei": "rm -rf vendor && rm composer.lock && composer i",
     "rest": [
-      "php index.php restbuilder -json"
+      "php index.php restbuilder -prefix carbon_"
     ],
     "rest:dataDump": [
       "php index.php restbuilder -json -dumpData"

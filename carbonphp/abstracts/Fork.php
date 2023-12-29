@@ -8,8 +8,7 @@
 
 namespace CarbonPHP\Abstracts;
 
-use CarbonPHP\Error\PrivateAlert;
-use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Classes\Exceptions\PrivateAlert;
 
 abstract class Fork
 {

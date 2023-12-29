@@ -6,9 +6,9 @@ namespace {                                     // This runs the following code 
 
     use CarbonPHP\Abstracts\ColorCode;
     use CarbonPHP\CarbonPHP;
-    use CarbonPHP\Error\PublicAlert;
+    use CarbonPHP\Classes\Exceptions\PublicAlert;
+    use CarbonPHP\Classes\View;
     use CarbonPHP\Interfaces\iColorCode;
-    use CarbonPHP\View;
 
     //  Displays alerts nicely
     //  Seamlessly include the DOM

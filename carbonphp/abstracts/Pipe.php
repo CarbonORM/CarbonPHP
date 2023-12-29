@@ -8,7 +8,7 @@
 
 namespace CarbonPHP\Abstracts;
 
-use CarbonPHP\Error\ThrowableHandler;
+use CarbonPHP\Classes\ThrowableHandler;
 
 /**
  * Class Pipe

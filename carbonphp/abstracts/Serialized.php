@@ -13,9 +13,8 @@
 
 namespace CarbonPHP\Abstracts;
 
-use CarbonPHP\Error\PrivateAlert;
-use CarbonPHP\Error\PublicAlert;
-use CarbonPHP\Error\ThrowableHandler;
+use CarbonPHP\Classes\Exceptions\PrivateAlert;
+use CarbonPHP\Classes\ThrowableHandler;
 
 abstract class Serialized
 {

@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use CarbonPHP\Abstracts\Bcrypt;
-use CarbonPHP\Database;
-use CarbonPHP\Interfaces\iRest;
-use CarbonPHP\Rest;
+use CarbonPHP\Abstracts\Cryptography;
+use CarbonPHP\Abstracts\Rest;
+use CarbonPHP\Classes\Database;
 use CarbonPHP\Tables\Carbons;
 use CarbonPHP\Tables\History_Logs;
 use CarbonPHP\Tables\Location_References;
@@ -16,6 +15,7 @@ use CarbonPHP\Tables\User_Sessions;
 use CarbonPHP\Tables\User_Tasks;
 use CarbonPHP\Tables\Users;
 use CarbonPHP\Tables\Wp_Users;
+use CarbonPHP\Interfaces\iRest;
 
 
 class CarbonRestTest extends Config
@@ -36,7 +36,7 @@ class CarbonRestTest extends Config
                     Users::USER_IP => '127.0.0.1',
                     Users::USER_SPORT => 'GOLF',
                     Users::USER_EMAIL_CONFIRMED => 1,
-                    Users::USER_USERNAME => Config::ADMIN_USERNAME . Bcrypt::genRandomHex(),
+                    Users::USER_USERNAME => Config::ADMIN_USERNAME . Cryptography::genRandomHex(),
                     Users::USER_PASSWORD => Config::ADMIN_PASSWORD,
                     Users::USER_EMAIL => 'richard@miles.systems',
                     Users::USER_FIRST_NAME => 'Richard',

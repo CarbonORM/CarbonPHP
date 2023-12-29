@@ -1,8 +1,6 @@
 /index.php
 /composer.phar
-.idea/dataSources/
-.idea/inspectionProfiles/
-.idea/webServers.xml
+.idea/*
 config/buildDatabase.php
 .DS_Store
 .phpunit.result.cache

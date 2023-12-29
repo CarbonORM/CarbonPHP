@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Classes\Exceptions\PublicAlert;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Tables\Users;
 

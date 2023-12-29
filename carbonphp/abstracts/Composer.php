@@ -3,9 +3,8 @@
 namespace CarbonPHP\Abstracts;
 
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\Error\PrivateAlert;
-use CarbonPHP\Error\PublicAlert;
-use CarbonPHP\Error\ThrowableHandler;
+use CarbonPHP\Classes\Exceptions\PrivateAlert;
+use CarbonPHP\Classes\ThrowableHandler;
 use Composer\Autoload\ClassLoader;
 use Throwable;
 

@@ -13,12 +13,19 @@
       <sourceFolder url="file://$MODULE_DIR$/carbonphp/error" isTestSource="false" packagePrefix="CarbonPHP\Error\" />
       <sourceFolder url="file://$MODULE_DIR$/carbonphp/helpers" isTestSource="false" packagePrefix="CarbonPHP\Helpers\" />
       <sourceFolder url="file://$MODULE_DIR$/carbonphp/interfaces" isTestSource="false" packagePrefix="CarbonPHP\Interfaces\" />
-      <sourceFolder url="file://$MODULE_DIR$/carbonphp/programs" isTestSource="false" packagePrefix="CarbonPHP\Programs\" />
       <sourceFolder url="file://$MODULE_DIR$/carbonphp/restful" isTestSource="false" packagePrefix="CarbonPHP\Restful\" />
       <sourceFolder url="file://$MODULE_DIR$/carbonphp/tables" isTestSource="false" packagePrefix="CarbonPHP\Tables\" />
       <sourceFolder url="file://$MODULE_DIR$/carbonphp/tables/traits" isTestSource="false" packagePrefix="CarbonPHP\Tables\Traits\" />
       <sourceFolder url="file://$MODULE_DIR$/carbonphp/abstracts" isTestSource="false" packagePrefix="CarbonPHP\Abstracts\" />
       <sourceFolder url="file://$MODULE_DIR$/carbonphp/websocket" isTestSource="false" packagePrefix="CarbonPHP\WebSocket\" />
+      <sourceFolder url="file://$MODULE_DIR$/carbonphp/abstracts/restful" isTestSource="false" packagePrefix="CarbonPHP\Abstracts\Restful\" />
+      <sourceFolder url="file://$MODULE_DIR$/carbonphp/abstracts/websocket" isTestSource="false" packagePrefix="CarbonPHP\Abstracts\Websocket\" />
+      <sourceFolder url="file://$MODULE_DIR$/carbonphp/classes" isTestSource="false" packagePrefix="CarbonPHP\Classes\" />
+      <sourceFolder url="file://$MODULE_DIR$/carbonphp/classes/exceptions" isTestSource="false" packagePrefix="CarbonPHP\Classes\Exceptions\" />
+      <sourceFolder url="file://$MODULE_DIR$/carbonphp/classes/programs" isTestSource="false" packagePrefix="CarbonPHP\Classes\Programs\" />
+      <sourceFolder url="file://$MODULE_DIR$/carbonphp/classes/types" isTestSource="false" packagePrefix="CarbonPHP\Classes\Types\" />
+      <sourceFolder url="file://$MODULE_DIR$/carbonphp/tables/classes" isTestSource="false" packagePrefix="CarbonPHP\Tables\Classes\\" />
+      <sourceFolder url="file://$MODULE_DIR$/carbonphp/traits" isTestSource="false" packagePrefix="CarbonPHP\Traits\" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/eftec/bladeone" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/gettext/gettext" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/gettext/languages" />

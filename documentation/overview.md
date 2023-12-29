@@ -1,31 +1,21 @@
 # Setup Overview
 
-Historically, CarbonPHP specifically started as a simple Controller -> Model -> View framework. With my first solo 
-application attempt I found the model layer increasingly verbose with repetitions difficult to abstract in a way which 
-stayed readable. I analysed what it would take to simplify the logic for PDO operations in a semantically pleasing and 
-programmatically safe way. As this dream evolved into a full REST MySQL ORM it was necessary to include functional hooks
-that could modify or validate queries further than what an automated system could possibly provide. The art of generating
-code to be tracked in a public repository, especially one with multiple team members, is a subtle beauty. Through many 
-generations the models added to your code are generally considered final with no need for code changes or feature 
-degradation with iterations of CarbonPHP and its inner workings.
+Historically, CarbonPHP specifically started as a simple (MVC) Controller -> Model -> View framework. With my first solo application attempt I found the model layer increasingly verbose with repetitions difficult to abstract in a way which stayed readable. I analysed what it would take to simplify the logic for PDO operations in a semantically pleasing and programmatically safe way. As this dream evolved into a full REST MySQL ORM it was necessary to include functional hooks that could modify or validate queries further than what an automated system could possibly provide. The art of generating code to be tracked in a public repository, especially one with multiple team members, is a subtle beauty. Through many iterations, the models added to your code are generally considered final with no need for code changes or feature degradation with iterations of CarbonPHP and its inner workings.
+
+Some users may find a [Guided User Interface](https://carbonorm.dev/#/documentation/CarbonWordPress/) to be helpful. To see if a plugin has been created for your CMS, please [see https://carbonorm.dev](https://carbonorm.dev).
 
 1) Create/Edit your database schema and tables with all columns and relations you would like
-2) Add CarbonPHP to your project.
+2) Add CarbonPHP to your project using one of the following methods:
     - Install with Composer using `composer require carbonphp/carbonphp` in your terminal.
-    - Add the following to your `composer.json` file.
+    - Add the following to your `composer.json` file and run `composer update` in your terminal.
         ```json
         {
           "require": {
             "carbonphp/carbonphp": "19.*"
-          },
-          "autoload": {
-            "psr-4": {
-              "Tables\\": "Tables/"
-            }
           }
         }
         ```
-3) Create an entry point invoke to your CarbonPHP instance such as the `index.php`. Below is a minimal example ```mvp.php```. Note: CarbonPHP is non-invasive and will not interfere with your existing code. It will not exit assuming the setup was successful. If you run the code using `php -S 0.0.0.0:8000 mvp.php` you will see the output `Hello World!` in your browser.
+3) Create an entry point invoke to your CarbonPHP instance such as the `index.php`. Below is a minimal example ```mvp.php```. You may need to adjust the `CarbonPHP::DB_NAME => 'CarbonPHPExamples',`, `CarbonPHP::DB_USER => 'root',`, and `CarbonPHP::DB_PASS => 'password',` configuration options. Note: CarbonPHP is non-invasive and will not interfere with your existing code. It will not exit assuming the setup was successful. If you run the code using `php -S 0.0.0.0:8000 mvp.php` you will see the output `Hello World!` in your browser.
    ```php
    <?php
    
@@ -35,7 +25,7 @@ degradation with iterations of CarbonPHP and its inner workings.
    use CarbonPHP\Interfaces\iConfig;
    use CarbonPHP\Programs\CLI;
    use CarbonPHP\Rest;
-   use CarbonPHP\Tables\Carbons;
+   use CarbonPHP\Classes\Tables\Carbons;
    
    // Composer autoload
    if (false === ($loader = include $autoloadFile = 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php')) {
@@ -85,8 +75,7 @@ degradation with iterations of CarbonPHP and its inner workings.
                    CarbonPHP::DB_PORT => '3306',
                    CarbonPHP::DB_NAME => 'CarbonPHPExamples',                       // Schema
                    CarbonPHP::DB_USER => 'root',
-                   CarbonPHP::DB_PASS => 'password',
-                   CarbonPHP::REBUILD => false
+                   CarbonPHP::DB_PASS => 'password'
                ],
                CarbonPHP::SITE => [
                    CarbonPHP::PROGRAM_DIRECTORIES => [
@@ -124,10 +113,24 @@ degradation with iterations of CarbonPHP and its inner workings.
    
    ```
 4) Generate you PHP bindings.
+5) ```bash
+   php mvp.php buildDatabase
+   ```
+6) Generate you PHP bindings.
    ```bash
    php mvp.php restbuilder -prefix carbon_ -dontQueryWithDatabaseName -excludeTablesRegex '#_mig_.*#' -json -namespace 'Tables' -target tables/
    ```
-5) Profit. You can now use the generated code to interact with your database. Below is a simple example of a GET request. To see how this code was setup, please see the [full example repo](https://github.com/RichardTMiles/CarbonPHPExamples).
+    - You will need to add the following to your `composer.json` file so the generated tables can be autoloaded. The `-target` table can be changed in the command above and corresponding examples below.
+      ```json
+      {
+        "autoload": {
+          "psr-4": {
+            "Tables\\": "Tables/"
+          }
+        }
+      }
+      ```
+7) Profit. You can now use the generated code to interact with your database. Below is a simple example of a GET request. To see how this code was set up, please see this [example repo](https://github.com/RichardTMiles/CarbonPHPExamples).
    ```php
    <?php
 

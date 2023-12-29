@@ -2,18 +2,22 @@
 
 namespace CarbonPHP;
 
+use CarbonPHP\Abstracts\Application;
 use CarbonPHP\Abstracts\ColorCode;
 use CarbonPHP\Abstracts\Files;
+use CarbonPHP\Abstracts\Restful\RestfulValidations;
 use CarbonPHP\Abstracts\Serialized;
+use CarbonPHP\Classes\Database;
+use CarbonPHP\Classes\Exceptions\PrivateAlert;
+use CarbonPHP\Classes\Exceptions\PublicAlert;
+use CarbonPHP\Classes\Programs\CLI;
+use CarbonPHP\Classes\Programs\WebSocket;
+use CarbonPHP\Classes\Session;
+use CarbonPHP\Classes\ThrowableHandler;
+use CarbonPHP\Classes\View;
 use CarbonPHP\Enums\ThrowableReportDisplay;
-use CarbonPHP\Error\PrivateAlert;
-use CarbonPHP\Error\PublicAlert;
-use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iConfig;
-use CarbonPHP\Programs\CLI;
-use CarbonPHP\Programs\WebSocket;
-use CarbonPHP\Restful\RestfulValidations;
 use Tests\Feature\CarbonRestTest;
 use Throwable;
 use function define;
@@ -184,7 +188,7 @@ class CarbonPHP
      * while this could return null by type constraints, I would like that case to raise an error here
      * @return Application
      */
-    public static function getApplication(): Application
+    public static function &getApplication(): Application
     {
         return self::$application;
     }
@@ -295,10 +299,6 @@ class CarbonPHP
 
         Session::update(true);        // Check wrapper / session callback
 
-        View::$forceWrapper = true;
-
-        Request::changeURI('/');
-
         $application = self::getApplication();
 
         $application::$matched = true;
@@ -320,34 +320,13 @@ class CarbonPHP
     {
         $application = self::getApplication();
 
-        if ($uri === '') {
-
-            Session::update();       // Check wrapper / session callback
-
-            $uri = $application::$uri;
-
-        } else if ($uri === '/') {
-
-            return self::resetApplication();
-
-        } else {
-
-            Session::update(true);
-
-            Request::changeURI($uri);           // So the browser will update PJAX
-
-            $application::changeURI($uri);      // So our routing file knows what to match
-
-            $_POST = [];
-
-        }
-
         $application::$matched = false;          // We can assume your in need of route matching again
 
         $return = $application->startApplication($uri) ? null : false; // this is for a recursive ending condition for Application::ControllerModelView
 
         // we need to invoke the destruct magic method which is inherited my Application from Route
         unset($application);
+
         self::$application = null;  // so we delete all the references to signal explicitly the destruct
 
         return $return;
@@ -582,11 +561,6 @@ class CarbonPHP
                 }
 
             }
-
-            #######################   VIEW      ######################
-            self::$app_view = $config[self::VIEW][self::VIEW] ??= '';         // Public Folder
-
-            View::$wrapper = self::$app_root . self::$app_view . ($config[self::VIEW][self::WRAPPER] ??= '');
 
             ####################  GENERAL CONF  ######################
             error_reporting($config[self::ERROR][self::LEVEL] ??= E_ALL | E_STRICT);
@@ -862,9 +836,6 @@ class CarbonPHP
             exit(0);                                        // This is an exit with error
 
         }
-
-        // Look for versioning
-        View::unVersion($_SERVER['REQUEST_URI']);           // This may exit and send a file
 
         // Not versioned, so see it it exists
         if (self::$app_root !== self::$composer_root

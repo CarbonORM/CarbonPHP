@@ -4,7 +4,7 @@
 namespace CarbonPHP\Interfaces;
 
 
-use CarbonPHP\Route;
+use CarbonPHP\Abstracts\Route;
 
 interface iRest
 {

@@ -2,9 +2,13 @@
 
 Writing sql in code is a long process which is hard to maintain over time. C6 automates that. When a reference no longer exists in MYSQL it will not be generated. Your editor will highlight it as undefined, giving you the opportunity to fix it. With code references generated for you writing your sql is easier than ever. Statement and columns will autocomplete giving you ease of mind every time. Queries generated will be validated automatically using PDO based off table data from the mysql dump. The REST ORM C6 ships with allows gives you a full api with customizable endpoints and validation functions.
 
+## MVP
+
+This is and advanced guide to using C6PHP. If you have not completed the [quickstart overview](https://github.com/CarbonORM/CarbonPHP/blob/lts/documentation/overview.md), please be sure to get your environment ready using that guide before continuing here. You can also clone our [example repo](https://github.com/RichardTMiles/CarbonPHPExamples/) to get started.
 
 
-The command line interface is used to generate and regenerate bindings.
+## Generate Bindings
+The command line interface is used to **generate and regenerate bindings**.
 
 ```bash
 php index.php rest

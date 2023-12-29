@@ -10,9 +10,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use CarbonPHP\Database;
-use CarbonPHP\Error\ThrowableHandler;
+use CarbonPHP\Classes\Database;
 use CarbonPHP\Tables\Wp_Users;
+use CarbonPHP\Classes\ThrowableHandler;
 use Throwable;
 
 

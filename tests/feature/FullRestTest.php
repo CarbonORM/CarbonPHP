@@ -4,12 +4,12 @@
 namespace Tests\Feature;
 
 
-use CarbonPHP\Interfaces\iRest;
-use CarbonPHP\Rest;
+use CarbonPHP\Abstracts\Rest;
 use CarbonPHP\Tables\Location_References;
 use CarbonPHP\Tables\Locations;
 use CarbonPHP\Tables\Photos;
 use CarbonPHP\Tables\Users;
+use CarbonPHP\Interfaces\iRest;
 
 
 class FullRestTest extends CarbonRestTest

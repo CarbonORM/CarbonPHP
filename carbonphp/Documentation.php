@@ -3,33 +3,21 @@
 namespace CarbonPHP;
 
 
-use CarbonPHP\Abstracts\ColorCode;
-use CarbonPHP\Error\PrivateAlert;
-use CarbonPHP\Error\PublicAlert;
+use CarbonPHP\Abstracts\Application;
+use CarbonPHP\Abstracts\Rest;
+use CarbonPHP\Classes\Exceptions\PrivateAlert;
+use CarbonPHP\Classes\Exceptions\PublicAlert;
+use CarbonPHP\Classes\Programs\CLI;
+use CarbonPHP\Classes\Programs\Deployment;
+use CarbonPHP\Classes\Programs\Migrate;
+use CarbonPHP\Classes\Programs\WebSocket;
+use CarbonPHP\Interfaces;
 use CarbonPHP\Interfaces\iConfig;
-use CarbonPHP\Programs\CLI;
-use CarbonPHP\Programs\Deployment;
-use CarbonPHP\Programs\Migrate;
-use CarbonPHP\Programs\WebSocket;
-use CarbonPHP\Tables\Carbons;
-use CarbonPHP\Tables\Users;
 
 class Documentation extends Application implements iConfig
 {
 
     public const GIT_SUPPORT = 'https://github.com/CarbonORM/CarbonPHP/issues';
-
-    public static bool $pureWordpressPluginConfigured = false;
-
-    public static function getLatestReactIndexPath(): string
-    {
-
-        $version = self::getLatestVersion();
-
-        return "view/releases/$version/index.html";
-
-    }
-
     /**
      * Sockets will not execute this
      * @return mixed|void
@@ -38,95 +26,47 @@ class Documentation extends Application implements iConfig
     public function defaultRoute(): void
     {
 
-        if (true === self::$pureWordpressPluginConfigured) {
-
-            return;
-
-        }
-
-
-
         self::getUser();
-
-        View::$forceWrapper = true; // this will hard refresh the wrapper
 
         if (CarbonPHP::$app_local
             && 'GET' === $_SERVER['REQUEST_METHOD']) {
 
-            throw new PrivateAlert('You should run the live version on <a id="staticSite" href="http://local.carbonphp.com:3000/" style="color:#ff0084">port 3000</a> with the command<br/><b>>> npm start </b> 
-                    <br/>or your may be looking to head to the  <a onClick=\'document.cookie="CARBON_PHP_DEV=value";\' href="http://local.carbonphp.com:8080/wp-admin/" style="color:blue">WordPress admin</a> to see ');
+            throw new PrivateAlert('You should run the live version on <a id="staticSite" href="http://local.carbonphp.com:3000/" style="color:#ff0084">port 3000</a> with the command<br/><b>>> npm start </b>.');
 
         }
 
-        throw new PrivateAlert('The default route was reached. This is unexpected. Please report this issue on <a href="' . self::GIT_SUPPORT . '">GitHub</a>');
-
-    }
-
-
-    public static function getLatestReactBuild(): void
-    {
-
-        header('Location: https://carbonorm.dev/');
-
-    }
-
-    public static function getLatestVersion(): string
-    {
-
-        $versions = self::getVersions();
-
-        $latest = array_pop($versions);
-
-        foreach ($versions as $version) {
-
-            if (version_compare($latest, $version, '<')) {
-
-                $latest = $version;
-
-            }
-
-        }
-
-        return $latest;
+        print self::inlineReact();
 
     }
 
     public static function inlineReact(): string
     {
 
-        $latest = self::getLatestVersion();
-
-        $carbonDynamicRoot = CarbonPHP::$public_carbon_root;
-
-        if ('/' === $carbonDynamicRoot) {
-
-            $carbonDynamicRoot = '';
-
-        } else {
-
-            $carbonDynamicRoot = '/' . $carbonDynamicRoot;
-
-        }
-
         /** @noinspection JSUnresolvedVariable */
         return <<<HTML
                 <div id="root" style="height: 100%;">
                 </div>
                 <script>
-                    const manifestURI = '{$carbonDynamicRoot}/view/releases/$latest/';
-                    fetch(manifestURI + 'asset-manifest.json')
+                    fetch('https://carbonorm.dev/asset-manifest.json')
                         .then(response => response.json())
                         .then(data => {
                             const entryPoints = data?.entrypoints || [];
-                            entryPoints.forEach((value => value.endsWith('.js')
-                                ?  jQuery.getScript( manifestURI + value )
-                                :  jQuery('<link/>',
-                                {
-                                    rel: 'stylesheet',
-                                    type: 'text/css',
-                                    href: manifestURI + value
-                                }).appendTo('head')
-                            ))
+                            entryPoints.forEach(value => {
+                                if (value.endsWith('.js')) {
+                                    // Load JavaScript files dynamically
+                                    const script = document.createElement('script');
+                                    script.src = manifestURI + value;
+                                    document.head.appendChild(script);
+                                } else {
+                                    // Load stylesheets dynamically
+                                    const link = document.createElement('link');
+                                    link.rel = 'stylesheet';
+                                    link.type = 'text/css';
+                                    link.href = manifestURI + value;
+                                    document.head.appendChild(link);
+                                }
+                            });
+                
                         });
                 </script>
                 HTML;
@@ -171,83 +111,14 @@ class Documentation extends Application implements iConfig
     }
 
 
-    /**  NOTE:
-     *  This is actually overriding the CM function in Carbon/Application.
-     *  I do this because the namespace changes for other applications not
-     *  in C6 context.
-     *
-     *  Stands for Controller -> Model
-     *
-     * This will run the controller/$class.$method().
-     * If the method returns !empty() the model/$class.$method() will be
-     * invoked. If an array is returned from the controller its values
-     * will be passed as parameters to our model.
-     * @link http://php.net/manual/en/function.call-user-func-array.php
-     *
-     * @TODO - I remember once using the return by reference to allow the changing of model from the controller. We now just use the return value of startApplication ie. false
-     *       - while I think this is a good use case, I think the obfuscation that this logic holds isn't true to the MVC arch thus shouldn't be done. I think with this in mind
-     *       - removing the & would same time in every route.... and I do not see a valid use case for it now (logically could it be used). I think we can remove with a minor version bump
-     *
-     * @param string $class This class name to autoload
-     * @param string $method The method within the provided class
-     * @param array $argv Arguments to be passed to method
-     * @return mixed the returned value from model/$class.$method() or false | void
-     * @noinspection DuplicatedCode                    - intellij needing help (avoiding unnecessary abstraction)
-     * @noinspection UnknownInspectionInspection       - intellij not helping intellij
-     */
-    public static function CM(string $class, string &$method, array &$argv = []): callable
-    {
-
-        $class = ucfirst(strtolower($class));   // Prevent malformed class names
-
-        $controller = "CarbonPHP\\Controller\\$class";     // add namespace for autoloader
-
-        $model = "CarbonPHP\\Model\\$class";
-
-        $method = strtolower($method);          // Prevent malformed method names
-
-        // Make sure our class exists
-        if (!class_exists($controller)) {
-            print "Invalid Controller ($controller) Passed to MVC. Please ensure your namespace mappings are correct!";
-        }
-
-        if (!class_exists($model)) {
-            print "Invalid Model ($model) Passed to MVC. Please ensure your namespace mappings are correct!";
-        }
-
-        // the array $argv will be passed as arguments to the method requested, see link above
-        $exec = static function &(string $class, array &$argv) use ($method) {
-            /** @noinspection CallableParameterUseCaseInTypeContextInspection - reference */
-            $argv = call_user_func_array([new $class, $method], $argv);
-            return $argv;
-        };
-
-        return static function () use ($exec, $controller, $model, &$argv) {
-            // execute controller
-            $argv = $exec($controller, $argv);
-
-            if (!empty($argv)) {                            // continue to the model?
-                if (is_array($argv)) {
-                    return $exec($model, $argv);        // array passed
-                }
-                $controller = [&$argv];                     // single return, allow return by reference TODO - is this still a thing? (not imperative
-                return $exec($model, $controller);
-            }
-
-            return $argv;
-        };
-    }
-
-
-    /** TODO - we dont use this return value for anything; actually - we do but I think only for the mvc which is legacy
-     *
+    /**
      * this should always be public and not static
      *
      * @param string $uri
      * @return bool
      * @throws PublicAlert
      */
-    public function startApplication(string $uri): bool
+    public function startApplication(string $uri): void
     {
         global $json;
 
@@ -256,7 +127,7 @@ class Documentation extends Application implements iConfig
         if (Deployment::github()
             || Migrate::enablePull([CarbonPHP::VIEW])) {
 
-            return true;
+            return;
 
         }
 
@@ -268,33 +139,33 @@ class Documentation extends Application implements iConfig
                     WebSocket::sendToAllExternalResources("Echo Server On URI ($uri) :: \$echo = $echo");
                 })) {
 
-            return true;
+            return;
 
         }
 
         if (Rest::MatchRestfulRequests('', Carbons::CLASS_NAMESPACE)) {
-            return true;
+            return;
         }
 
         if (self::regexMatch('#inlineReact#',
             static fn() => self::inlineReact())) {
 
-            return true;
+            return;
 
         }
 
         if (self::regexMatch('#(!?ws|wss)#i',
             static function () {
 
-            self::$matched = true;
+                self::$matched = true;
 
-            $colours = array('007AFF', 'FF7000', 'FF7000', '15E25F', 'CFC700', 'CFC700', 'CF1100', 'CF00BE', 'F00');
+                $colours = array('007AFF', 'FF7000', 'FF7000', '15E25F', 'CFC700', 'CFC700', 'CF1100', 'CF00BE', 'F00');
 
-            $user_colour = array_rand($colours);
+                $user_colour = array_rand($colours);
 
-            $session_id = session_id();
+                $session_id = session_id();
 
-            print <<<SOCKET
+                print <<<SOCKET
 
 <!DOCTYPE html>
 <html>
@@ -481,236 +352,15 @@ $(document).ready(function () {
 
 SOCKET;
 
-        })) {
-
-            return true;
-
-        }
-
-        if (Rest::MatchRestfulRequests('', Carbons::CLASS_NAMESPACE)) {
-
-            return true;
-
-        }
-
-        if (CarbonPHP::$app_local
-            && self::regexMatch('#color#',
-                static function () {
-
-                global $json;
-
-                if (array_key_exists('code', $_POST)) {
-
-                    if (!is_string($_POST['code'])) {
-
-                        throw new PrivateAlert('You must submit a string. This could be code or a file path.');
-
-                    }
-
-                    $json['colorCode'] = highlight($_POST['code'], false);
-
-                } else {
-
-                    $json['colorCode'] = '';
-                }
-
-                View::$wrapper = CarbonPHP::$app_root . CarbonPHP::$app_view . 'assets/AdminLTE/wrapper.hbs';
-
-                return View::content(CarbonPHP::$app_view . 'color' . DS . 'color.hbs', CarbonPHP::$app_root);
-
             })) {
-
-            return true;
-
-        }
-
-        ###################################### AdminLTE DOC
-        if (self::regexMatch('#2.0/UIElements/?([A-Za-z]{0,2.0.0})#',
-            static function ($AdminLTE = '') {
-
-                View::$wrapper = CarbonPHP::$app_root . CarbonPHP::$app_view . 'assets/AdminLTE/wrapper.hbs';
-
-                /** @noinspection PhpUnusedLocalVariableInspection */
-                if ($AdminLTE === '' ||
-                    !(new Request())->set($AdminLTE)->word() ||
-                    !(
-                        file_exists(CarbonPHP::$app_root . CarbonPHP::$app_view . $path = 'assets' . DS . 'AdminLTE' . DS . $AdminLTE . '.php') ||
-                        file_exists(CarbonPHP::$app_root . CarbonPHP::$app_view . $path = 'assets' . DS . 'AdminLTE' . DS . 'Charts' . DS . $AdminLTE . '.php') ||
-                        file_exists(CarbonPHP::$app_root . CarbonPHP::$app_view . $path = 'assets' . DS . 'AdminLTE' . DS . 'Examples' . DS . $AdminLTE . '.php') ||
-                        file_exists(CarbonPHP::$app_root . CarbonPHP::$app_view . $path = 'assets' . DS . 'AdminLTE' . DS . 'Forms' . DS . $AdminLTE . '.php') ||
-                        file_exists(CarbonPHP::$app_root . CarbonPHP::$app_view . $path = 'assets' . DS . 'AdminLTE' . DS . 'Layout' . DS . $AdminLTE . '.php') ||
-                        file_exists(CarbonPHP::$app_root . CarbonPHP::$app_view . $path = 'assets' . DS . 'AdminLTE' . DS . 'Mailbox' . DS . $AdminLTE . '.php') ||
-                        file_exists(CarbonPHP::$app_root . CarbonPHP::$app_view . $path = 'assets' . DS . 'AdminLTE' . DS . 'Tables' . DS . $AdminLTE . '.php') ||
-                        file_exists(CarbonPHP::$app_root . CarbonPHP::$app_view . $path = 'assets' . DS . 'AdminLTE' . DS . 'UI' . DS . $AdminLTE . '.php')
-                    )) {
-                    $path = 'assets' . DS . 'AdminLTE' . DS . 'widgets.php';
-                }
-
-                self::wrap($path);    // still relative to CarbonPHP::$app_root
-
-            })) {
-
-            return true;
-
-        }
-
-        $view = (self::$uriExplode[0] ?? false);
-
-        if ($view === 'view' && 'releases' === (self::$uriExplode[1] ?? false)) {
-
-            $version = (self::$uriExplode[2] ?? false);
-
-            if ($version === '2.0.0') {
-
-                $json['VersionTWO'] = true;
-
-                $page = $this->uriExplode[3] ?? false;
-
-                $page or (View::$forceWrapper = true and View::$wrapper = CarbonPHP::$app_root . CarbonPHP::$app_view . 'assets/AdminLTE/wrapper.hbs');
-
-                if ($page && array_key_exists($page, $this->version2Dot0)) {
-
-                    self::wrap($this->version2Dot0[$page]);
-
-                } else {
-
-                    self::wrap($this->version2Dot0['Home']);
-
-                }
-
-                return true;
-
-            }
-
-            $folderName = CarbonPHP::$app_root . 'view' . DS . 'releases' . DS . $version . DS;
-
-            if (is_dir($folderName)) {
-
-                self::$matched = true;
-
-                self::fullPage($folderName . 'index.html');
-
-                return true;
-
-            }
-
-        }
-
-        if (self::authenticateCarbonPHPReactAPI()) {
-
-            return true;
-
-        }
-
-        return false;
-    }
-
-    public static function authenticateCarbonPHPReactAPI(): bool
-    {
-
-        return Route::regexMatch('#carbon/authenticated#', static function () {
-
-            global $json;
-
-            header('Content-Type: application/json', true, 200); // Send as JSON
-
-            $json['pureWordpressPluginConfigured'] = self::$pureWordpressPluginConfigured;
-
-            $json['versions'] = self::getVersions();
-
-            $json['success'] = !true;
-
-            print json_encode($json, JSON_THROW_ON_ERROR);
-
-            return true;
-
-        });
-
-    }
-
-    public static function getVersions(): array
-    {
-
-        return explode(PHP_EOL, shell_exec("git tag --sort=v:refname") ?? '');
-
-    }
-
-    /**
-     * @param string $id
-     */
-    public static function getUser(string $id = ''): void
-    {
-        global $users, $json;
-
-        if (!is_array($users)) {
-
-            $users = [];
-
-        }
-
-        if ($id === '') {
-
-            $id = session_id();
-
-        }
-
-        $me = [];
-
-        if (false === Users::Get($me, null, [
-                Interfaces\iRest::SELECT => [
-                    Users::USER_ID,
-                    Users::USER_USERNAME,
-                    Users::USER_PASSWORD,
-                    Users::USER_FIRST_NAME,
-                    Users::USER_LAST_NAME
-                ],
-                Interfaces\iRest::WHERE => [
-                    [
-                        Users::USER_USERNAME => $id,
-                        Users::USER_PASSWORD => $id
-                    ]
-                ],
-                Interfaces\iRest::PAGINATION => [
-                    Interfaces\iRest::LIMIT => 1
-                ]
-            ])) {
-
-            PublicAlert::warning('Failed to find the user. Some demos may not function as expected.');
 
             return;
 
         }
 
-
-        if (!empty($me)) {
-
-            $_SESSION['id'] = $json['id'] = $me[Users::COLUMNS[Users::USER_ID]];
-
-        } else {
-
-            $user = [         // required fields :P
-                Users::USER_USERNAME => $id,
-                Users::USER_PASSWORD => $id,
-                Users::USER_FIRST_NAME => 'Guest',
-                Users::USER_LAST_NAME => 'Account',
-                Users::USER_GENDER => 'N/A',
-                Users::USER_EMAIL => 'N/A',
-                Users::USER_IP => CarbonPHP::$server_ip
-            ];
-
-            if (is_string($id = Users::Post($user))) {
-
-                PublicAlert::info('A new session has been established with the id ' . $id);
-
-            } else {
-
-                PublicAlert::warning('Failed to create you a new user. Some demos may not function as expected.');
-
-            }
-
-        }
-
+        Rest::MatchRestfulRequests('', Carbons::CLASS_NAMESPACE);
     }
+
 
     public static function configuration(): array
     {
@@ -734,8 +384,8 @@ SOCKET;
 
         return [
             CarbonPHP::REST => [
-                CarbonPHP::NAMESPACE => Carbons::CLASS_NAMESPACE,
-                CarbonPHP::TABLE_PREFIX => Carbons::TABLE_PREFIX
+                //CarbonPHP::NAMESPACE => Carbons::CLASS_NAMESPACE,
+                //CarbonPHP::TABLE_PREFIX => Carbons::TABLE_PREFIX
             ],
             CarbonPHP::DATABASE => [
                 CarbonPHP::DB_HOST => CarbonPHP::$is_running_production ? '35.224.229.250' : '127.0.0.1',

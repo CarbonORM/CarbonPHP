@@ -12,8 +12,8 @@ namespace CarbonPHP\Abstracts;
 
 
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\Error\PublicAlert;
-use CarbonPHP\Error\ThrowableHandler;
+use CarbonPHP\Classes\Exceptions\PublicAlert;
+use CarbonPHP\Classes\ThrowableHandler;
 use CarbonPHP\Interfaces\iColorCode;
 use Throwable;
 

@@ -3,9 +3,6 @@
 
 namespace CarbonPHP\Abstracts;
 
-use CarbonPHP\Rest;
-use CarbonPHP\Route;
-
 abstract class Swagger
 {
 
