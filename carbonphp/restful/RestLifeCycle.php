@@ -83,16 +83,7 @@ abstract class RestLifeCycle extends RestQueryBuilder
     public static function handleRestException(Throwable $e): void
     {
 
-        if ($e instanceof PDOException) {
-
-            // this most likely terminates (only on db resource drop will it continue < 1%)
-            Database::TryCatchPDOException($e);
-
-        } else {
-
-            ThrowableHandler::generateLog($e);  // this terminates
-
-        }
+        ThrowableHandler::generateLog($e);  // this terminates
 
     }
 

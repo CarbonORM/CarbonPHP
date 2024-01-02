@@ -9,6 +9,7 @@
 namespace CarbonPHP\Abstracts;
 
 use CarbonPHP\Error\ThrowableHandler;
+use CarbonPHP\Interfaces\iColorCode;
 
 /**
  * Class Pipe
@@ -44,8 +45,10 @@ abstract class Pipe
 
         umask(0000);
 
+        Files::mkdir($fifoPath);
+
         if (!posix_mkfifo($fifoPath, 0666)) {
-            print 'Failed to create named Pipe' . PHP_EOL;
+            ColorCode::colorCode("Failed to create named pipe ($fifoPath)", iColorCode::RED);
             return false;
         }                   # create a named pipe 0644
 

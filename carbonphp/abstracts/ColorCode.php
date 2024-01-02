@@ -19,6 +19,8 @@ abstract class ColorCode implements LoggerInterface, iColorCode
 {
     use LoggerTrait;
 
+    public static bool $useHrtime = false;
+
     public static string $generalWarning = 'As seen in comments of (@link https://www.php.net/manual/en/function.ini-set.php); I have experienced on some systems that ini_set() will fail and return a false, when trying to set a setting that was set inside php.ini inside a per-host setting. This would also include php-fpm configuration (php_admin_value[error_log] and php_admin_flag[log_errors]). You should comment out these lines if they exist. Beware of this.';
 
     public static bool $colorCodeBool = true;
@@ -62,17 +64,39 @@ abstract class ColorCode implements LoggerInterface, iColorCode
     public static function colorCode(string $message, string $color = iColorCode::GREEN): void
     {
 
+        static $pidColorCache = [];
+
         try {
+
+            $colors = iColorCode::PRINTF_ANSI_COLOR;
 
             $pid = getmypid(); // this shouldn't be cached
 
             if (false === $pid) {
 
-                $message = 'The php internal function getmypid() has failed' . PHP_EOL . $message;
+                $logLinePrefix = 'The php internal function getmypid() has failed' . PHP_EOL . $message;
 
             } else {
 
-                $message = "<pid($pid);time(".time().")> $message";
+                $pidColorCache[$pid] ??= array_values($colors)[($pid % (count($colors) - 8)) + 8];
+
+                if (self::$useHrtime) {
+
+                    [$seconds, $nanoseconds] = hrtime();
+
+                    $milliseconds = $nanoseconds / 1e+6;
+
+                    $logLinePrefix = sprintf($pidColorCache[$pid], "<pid($pid);hrtime(s:$seconds,m:$milliseconds)>") . ' ';
+
+                } else {
+
+                    $microtime = number_format(microtime(true), 4, '.', '');
+
+                    $logLinePrefix = "<pid($pid);microtime(" . $microtime . ")>;";
+
+                    $logLinePrefix = sprintf($pidColorCache[$pid], $logLinePrefix) . ' ';
+
+                }
 
             }
 
@@ -84,8 +108,6 @@ abstract class ColorCode implements LoggerInterface, iColorCode
 
             }
 
-            $colors = iColorCode::PRINTF_ANSI_COLOR;
-
             if (is_string($color) && !array_key_exists($color, $colors)) {
 
                 $message = "Color provided to color code ($color) is invalid, message caught '$message'";
@@ -96,7 +118,7 @@ abstract class ColorCode implements LoggerInterface, iColorCode
 
             $location = ini_get('error_log');
 
-            $message = sprintf($colors[$color], $message);
+            $message = $logLinePrefix . sprintf($colors[$color], $message);
 
             $status = error_log($message);
 
@@ -170,7 +192,7 @@ abstract class ColorCode implements LoggerInterface, iColorCode
 
                     if (false === $lastLoggingLocation) {
 
-                        throw new PrivateAlert('All color coded enabled logs must print to (' . ThrowableHandler::$defaultLocation . ") but switching from ($location) failed. "  . self::$generalWarning);
+                        throw new PrivateAlert('All color coded enabled logs must print to (' . ThrowableHandler::$defaultLocation . ") but switching from ($location) failed. " . self::$generalWarning);
 
                     }
 

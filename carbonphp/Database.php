@@ -150,7 +150,15 @@ FOOT;
 
             return $database;
 
-        } catch (Throwable $e) {                            // added for socket support
+        } catch (PDOException $e) {
+
+            ColorCode::colorCode('PDOException ' . get_class($e) . ' ' . $e->getMessage(), iColorCode::BACKGROUND_YELLOW);
+
+            ColorCode::colorCode( $e->getTraceAsString(), iColorCode::YELLOW);
+
+            return static::reset($reader);
+
+        } catch (Throwable $e) {
 
             ThrowableHandler::generateLog($e, true);
 
@@ -159,103 +167,8 @@ FOOT;
             error_reporting($oldLevel);
 
             return static::reset($reader);
-        }
-
-    }
-
-    /**
-     * @param PDOException $e
-     * @return mixed|bool|string|object - the return of the passed callable
-     */
-    public static function TryCatchPDOException(PDOException $e): void
-    {
-
-        $error_array = ThrowableHandler::generateLog($e, true);
-
-        $log_array = $error_array[ThrowableHandler::LOG_ARRAY];
-
-        $throwableHandler = static function () use (&$log_array): never {
-            ThrowableHandler::exitAndSendBasedOnRequested($log_array);
-        };
-
-        // todo - handle all pdo exceptions
-        switch ((string)$e->getCode()) {        // Database has not been created
-            case '0':
-
-                print ThrowableHandler::generateBrowserReport($log_array);  // this terminates
-
-                exit(1);
-
-            case 'HY000':
-
-                $code = $e->getMessage();
-
-                if ('SQLSTATE[HY000]: General error: 2006 MySQL server has gone away' === $code) {
-
-                    ColorCode::colorCode('Caught connection reset code (HY000)', iColorCode::BACKGROUND_MAGENTA);
-
-                    self::reset();
-
-                    self::reset(true);
-
-                    return;
-
-                }
-
-                $throwableHandler();
-
-            case '1049':
-
-                try {
-
-                    self::createDatabaseIfNotExist();
-
-                } catch (Throwable $e) {
-
-                    $error_array_two = ThrowableHandler::generateLog($e);
-
-                    if ($e->getCode() === 1049) {
-
-                        $error_array_two[] = '<h1>Auto Setup Failed!</h1><h3>Your database DSN may be slightly malformed.</h3>';
-
-                        $error_array_two[] = '<p>CarbonPHP requires the host come before the database in your DNS.</p>';
-
-                        $error_array_two[] = '<p>It should follow the following format "mysql:host=127.0.0.1;dbname=C6".</p>';
-                    }
-
-                    ThrowableHandler::generateBrowserReport($error_array_two);  // this terminates
-
-                }
-
-                static::refreshDatabase();
-
-                $throwableHandler();
-
-            case '42S02':
-
-                print ThrowableHandler::generateBrowserReport($log_array);
-
-                static::setUp(!CarbonPHP::$cli, CarbonPHP::$cli);
-
-                break;
-
-            default:
-
-                if (empty(static::$carbonDatabaseUsername)) {
-
-                    $log_array[] = '<h2>You must set a database username. See CarbonPHP.com for documentation</h2>';
-                }
-                if (empty(static::$carbonDatabasePassword)) {
-
-                    $log_array[] = '<h2>You may need to set a database password. See CarbonPHP.com for documentation</h2>';
-
-                }
-
-                $throwableHandler();
 
         }
-
-        exit(1);
 
     }
 
@@ -317,14 +230,6 @@ FOOT;
                 $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
                 return $db;
-
-            } catch (PDOException $e) {
-
-                self::$carbonDatabaseInitialized = false;
-
-                ColorCode::colorCode('$e instanceof PDOException', iColorCode::BACKGROUND_RED);
-
-                self::TryCatchPDOException($e); // this might exit todo - make sure this is perfect
 
             } catch (Throwable $e) {
 
@@ -400,7 +305,7 @@ FOOT;
 
                 $connection_status = $db->getAttribute(PDO::ATTR_CONNECTION_STATUS);
 
-                ColorCode::colorCode("Closing MySQL, Connection Status ::\n$connection_status\nCurrent Server Status ::\n$server_status", iColorCode::BLACK);
+                ColorCode::colorCode("Closing MySQL, Connection Status ::\n$connection_status\nCurrent Server Status ::\n$server_status", iColorCode::BLUE);
 
                 $db->exec('KILL CONNECTION_ID();');
 

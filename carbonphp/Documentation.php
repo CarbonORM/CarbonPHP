@@ -790,7 +790,7 @@ SOCKET;
             CarbonPHP::ERROR => [
                 CarbonPHP::LOCATION => CarbonPHP::$app_root . 'logs' . DIRECTORY_SEPARATOR,
                 CarbonPHP::LEVEL => E_ALL | E_STRICT,  // php ini level
-                CarbonPHP::STORE => false,      // Database if specified and / or File 'LOCATION' in your system
+                CarbonPHP::STORE => true,      // Database if specified and / or File 'LOCATION' in your system
                 CarbonPHP::SHOW => true,       // Show errors on browser
                 CarbonPHP::FULL => true        // Generate custom stacktrace will high detail - DO NOT set to TRUE in PRODUCTION
             ],

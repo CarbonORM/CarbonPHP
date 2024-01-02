@@ -147,10 +147,12 @@ abstract class WsBinaryStreams
 
         if (false === $read) {
 
+            $socket = socket_import_stream(self::$socket);
+
             return [
-                'socketStatus' => socket_get_status($socketResource),
+                'socketStatus' => stream_get_meta_data($socketResource),
                 'error' => 'socket read failure',
-                'socket_last_error' => $code = socket_last_error(self::$socket),
+                'socket_last_error' => $code = socket_last_error($socket),
                 'socket_strerror' => socket_strerror($code),
                 'opcode' => self::CLOSE,
                 'payload' => ''
@@ -160,12 +162,14 @@ abstract class WsBinaryStreams
 
         if (empty($read)) {
 
-            ColorCode::colorCode('Empty WS Read', iColorCode::BACKGROUND_YELLOW);
+            ColorCode::colorCode('Empty WS Read', iColorCode::BACKGROUND_RED);
+
+            $socket = socket_import_stream(self::$socket);
 
             return [
                 'stream_get_meta_data' => stream_get_meta_data($socketResource),
                 'error' => 'empty socket read, if your proxying this could be a timeout. @link https://stackoverflow.com/questions/64855794/proxy-timeout-with-rewriterule',
-                'socket_last_error' => $code = socket_last_error(self::$socket),
+                'socket_last_error' => $code = socket_last_error($socket),
                 'socket_strerror' => socket_strerror($code),
                 'opcode' => self::PING,
                 'payload' => ''
@@ -329,7 +333,7 @@ abstract class WsBinaryStreams
 
         $out['payload'] = $isJson ?: $message;
 
-        ColorCode::colorCode(print_r($out, true), iColorCode::BACKGROUND_MAGENTA);
+        ColorCode::colorCode(print_r($out, true), iColorCode::MAGENTA);
 
         return $out;
 

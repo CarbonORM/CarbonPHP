@@ -591,7 +591,6 @@ class CarbonPHP
             ####################  GENERAL CONF  ######################
             error_reporting($config[self::ERROR][self::LEVEL] ??= E_ALL | E_STRICT);
 
-            /** @noinspection PhpExpressionResultUnusedInspection */
             ini_set('display_errors', $config[self::ERROR][self::SHOW] ??= true);
 
             date_default_timezone_set($config[self::SITE][self::TIMEZONE] ??= 'America/Chicago');

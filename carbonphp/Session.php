@@ -21,6 +21,7 @@ use CarbonPHP\Abstracts\Serialized;
 use CarbonPHP\Error\PrivateAlert;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Error\ThrowableHandler;
+use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Programs\WebSocket;
@@ -110,7 +111,9 @@ class Session implements SessionHandlerInterface
                 'samesite' => 'Lax',
             ]);
 
-            if ($dbStore && !headers_sent()) {
+            $willSetSaveHandler = $dbStore && !headers_sent();
+
+            if ($willSetSaveHandler) {
 
                 ini_set('session.gc_probability', 1);  // Clear any lingering session data in default locations
 
@@ -122,11 +125,21 @@ class Session implements SessionHandlerInterface
 
             }
 
-            if (CarbonPHP::$cli && !CarbonPHP::$socket) {
+            if (CarbonPHP::$cli) {
+
+                if ($willSetSaveHandler) {
+
+                    ColorCode::colorCode('Session handler initialized (' . __FILE__ . '), but not started in CLI mode. Running (new ' .self::class. ') will start a session in CLI.');
+
+                }
 
                 return;
 
             }
+
+        } else {
+
+            ColorCode::colorCode('Session handler is already initialized (' . __FILE__ . ':' . __LINE__ . ') will start/resume session.');
 
         }
 
@@ -144,8 +157,12 @@ class Session implements SessionHandlerInterface
 
             }
 
+            ColorCode::colorCode('Starting Session');
+
             // this should not throw an error.. but if it doesnt we will catch and die
             if (false === session_start()) {
+
+                ColorCode::colorCode('Failed to start session', iColorCode::RED);
 
                 throw new PublicAlert('PHP failed to start your session; session_start() failed.');
 
@@ -326,13 +343,13 @@ class Session implements SessionHandlerInterface
 
         $stmt = $db->prepare($sql);
 
-        $stmt->execute([CarbonPHP::$server_ip, $session_id]);
+        $stmt->execute([$ip, $session_id]);
 
         $session = $stmt->fetchColumn();
 
         if (!$session) {
 
-            ColorCode::colorCode('BAD ADDRESS :: ' . $_SERVER['REMOTE_ADDR'] . "\n\n", 'red');
+            ColorCode::colorCode("BAD ADDRESS :: ($ip)\n\n", iColorCode::RED);
 
             return false;
 
@@ -378,12 +395,6 @@ class Session implements SessionHandlerInterface
             Database::database(false);
 
             return true;
-
-        } catch (PDOException $e) {
-
-            Database::TryCatchPDOException($e); // this will terminate 99% of the time
-
-            return false;
 
         } catch (Throwable $e) {
 

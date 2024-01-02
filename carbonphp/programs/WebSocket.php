@@ -5,14 +5,20 @@ namespace CarbonPHP\Programs;
 use CarbonPHP\Abstracts\ColorCode;
 use CarbonPHP\Abstracts\Pipe;
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Database;
+use CarbonPHP\Enums\ThrowableReportDisplay;
 use CarbonPHP\Error\PrivateAlert;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iCommand;
 use CarbonPHP\Session;
+use CarbonPHP\WebSocket\WsConnection;
 use CarbonPHP\WebSocket\WsFileStreams;
 use CarbonPHP\WebSocket\WsSignals;
+use CarbonPHP\WebSocket\WsUserConnectionRelationship;
+use Closure;
+use Error;
 use JetBrains\PhpStorm\NoReturn;
 use Throwable;
 use function is_resource;
@@ -43,15 +49,31 @@ class WebSocket extends WsFileStreams implements iCommand
 
 
     public static bool $verifyIP = true;
+    public static int $streamSelectSeconds = 10;
 
+    /**
+     * @var callable|null
+     */
+    public static mixed $startApplicationCallback = null;
+    /**
+     * @var callable|null
+     */
+    public static mixed $validateUserCallback = null;
 
     protected static array $applicationConfiguration = [];
+    public static array $allConnectedResources = [];
+
+    /**
+     * @var WsUserConnectionRelationship[]
+     */
+    public static array $userConnectionRelationships = [];
 
 
     public static function description(): string
     {
         return 'Start a WebSocket Server. This is a single or multi threaded server capable.';
     }
+
 
     public function __construct($config)
     {
@@ -60,9 +82,13 @@ class WebSocket extends WsFileStreams implements iCommand
 
         self::$applicationConfiguration = $config;
 
+        ThrowableHandler::$storeReport = true;
+
+        ThrowableHandler::$throwableReportDisplay = ThrowableReportDisplay::CLI_MINIMAL;
+
         $config['SOCKET'] ??= [];
 
-        ColorCode::colorCode("\nConstructing Socket Class");
+        ColorCode::colorCode("Constructing Socket Class");
 
         CarbonPHP::$socket = true;
 
@@ -74,22 +100,20 @@ class WebSocket extends WsFileStreams implements iCommand
 
         $_SERVER['SERVER_PORT'] = self::$port;
 
-        WsSignals::signalHandler(static fn() => ColorCode::colorCode('Implement garbage collection', iColorCode::YELLOW));
+        WsSignals::signalHandler(static fn() => WsConnection::garbageCollect());
 
         $argc = count($argv);
 
+        /** @noinspection ForeachInvariantsInspection */
         for ($i = 0; $i < $argc; $i++) {
 
             switch ($argv[$i]) {
                 default:
                 case '-help':
 
-                    ColorCode::colorCode("\tYou da bomb :)\n", 'blue');
+                    ColorCode::colorCode("\tYou da bomb :)", 'blue');
 
                     $this->usage();
-
-                    exit(1);
-
 
                 case '-dontVerifyIP':
 
@@ -101,59 +125,9 @@ class WebSocket extends WsFileStreams implements iCommand
 
         }
 
-        if (self::$ssl) {
+        self::$socket = WsConnection::startTcpServer(self::$ssl, self::$cert, self::$pass, self::$host, self::$port);
 
-            $context = stream_context_create([
-                'ssl' => [
-                    //'cafile' => __DIR__ . DIRECTORY_SEPARATOR . 'certificate.crt',
-                    'local_cert' => self::$cert,
-                    'passphrase' => self::$pass,
-                    //'peer_fingerprint' => PEER_FINGERPRINT,
-                    'CURLOPT_VERBOSE' => true,
-                    'verify_peer' => true,
-                    'verify_peer_name' => false,
-                    'allow_self_signed' => false,
-                    'verify_depth' => 5,
-                    //'CN_match'      => 'carbonphp.com',
-                    'disable_compression' => true,
-                    'SNI_enabled' => true,
-                    'ciphers' => 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:ECDHE-RSA-RC4-SHA:ECDHE-ECDSA-RC4-SHA:AES128:AES256:RC4-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!3DES:!MD5:!PSK'
-                ],
-            ]);
-
-            $protocol = 'ssl';
-
-        } else {
-
-            $context = stream_context_create();
-
-            $protocol = 'tcp';
-
-        }
-
-        ColorCode::colorCode("\nStream Context Created\n");
-
-        $socket = stream_socket_server("$protocol://" . ($config['SOCKET']['HOST'] ?? self::$host) . ':' . ($config['SOCKET']['PORT'] ?? self::$port), $errorNumber, $errorString, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, $context);
-
-        if (!$socket) {
-
-            ColorCode::colorCode("\n$errorString ($errorNumber)\n", iColorCode::RED);
-
-            die(1);
-
-        }
-
-        if (!is_resource($socket)) {
-
-            ColorCode::colorCode("\nThe socket creation failed unexpectedly.\n", 'red');
-
-            die(1);
-
-        }
-
-        self::$socket = $socket;
-
-        ColorCode::colorCode("\nStream Socket Server Created on " . self::$host . '::' . self::$port . "\n\nws" . (self::$ssl ? 's' : '') . '://' . self::$host . ':' . self::$port . '/ ');
+        ColorCode::colorCode("Stream Socket Server Created on ws" . (self::$ssl ? 's' : '') . '://' . self::$host . ':' . self::$port . '/ ');
 
     }
 
@@ -169,71 +143,44 @@ class WebSocket extends WsFileStreams implements iCommand
 
     public static function handleAllResourceStreamSelectOnSingleThread(): never
     {
+        static $cycles = 0;
 
-        $allConnectedResources = [self::$socket];
-
-        $WebsocketToPipeRelations = [];
-
-        $closeConnection = static function (&$connection) use (&$allConnectedResources, &$WebsocketToPipeRelations) {
-
-            ColorCode::colorCode("\nClose Connection Requested.\n", iColorCode::MAGENTA);
-
-            $resourceToDelete = array_search($connection, $allConnectedResources, false);
-
-            foreach ($WebsocketToPipeRelations as $key => &$information) {
-
-                if ($information['user_pipe'] === $connection) {
-
-                    ColorCode::colorCode("\nUser connected named pipe closed before socket.\n", 'red');
-
-                    exit(1);
-
-                }
-
-                if ($information['user_socket'] === $connection) {
-
-                    ColorCode::colorCode('Socket Closed.', iColorCode::RED);
-
-                    $pipeToDeleteKey = array_search($information['user_pipe'], $allConnectedResources, true);
-
-                    if (!is_resource($information['user_pipe'])) {
-
-                        ColorCode::colorCode('Pipe not resource. This is unexpected.', 'red');
-
-                    } else {
-
-                        @fclose($information['user_pipe']);
-
-                    }
-
-                    unset($allConnectedResources[$pipeToDeleteKey], $WebsocketToPipeRelations[$key]); // unset 1
-
-                    break;
-
-                }
-
-            }
-            unset($information);
-
-            $key = array_search($connection, self::$userResourceConnections, true);
-
-            @fclose($connection);
-
-            unset(self::$userResourceConnections[$key],                                     // unset 2, 3 (2 values 3 pointers)
-                $allConnectedResources[$resourceToDelete]);
-
-            $connection = null;
-
-        };
+        self::$allConnectedResources = [self::$socket];
 
         // help manage and kill zombie children
         $serverPID = getmypid();
 
-        $convert_memory_get_usage = static fn($size) => round($size / (1024 ** ($i = floor(log($size, 1024)))), 2) . ' ' . array('b', 'kb', 'mb', 'gb', 'tb', 'pb')[$i];
+        if (session_status() === PHP_SESSION_ACTIVE) {
+
+            ColorCode::colorCode("Session is active in the parent socket server process. This is not allowed. Closing.", iColorCode::RED);
+
+            session_write_close();
+
+        }
 
         while (true) {
 
             try {
+
+                ++$cycles;
+
+                if ($cycles === PHP_INT_MAX) {
+
+                    ColorCode::colorCode('Cycles have reached PHP_INT_MAX = (' . PHP_INT_MAX . '). Resetting to 0.', iColorCode::RED);
+
+                    $cycles = 0;
+
+                }
+
+                if (session_status() === PHP_SESSION_ACTIVE) {
+
+                    throw new PrivateAlert("Session is active in the parent socket server process. This should not be possible.", iColorCode::BACKGROUND_RED);
+
+                }
+
+                Database::close();
+
+                Database::close(true);
 
                 if ($serverPID !== getmypid()) {
 
@@ -241,170 +188,49 @@ class WebSocket extends WsFileStreams implements iCommand
 
                 }
 
-                $read = $allConnectedResources;
+                $read = self::$allConnectedResources;
 
-                $number = stream_select($read, $write, $error, 10);
+                $number = stream_select($read, $write, $error, self::$streamSelectSeconds);
 
                 if ($number === 0) {
 
-                    $int_cycles = gc_collect_cycles();
+                    if ($cycles % 100 === 0) {
 
-                    ColorCode::colorCode(print_r(gc_status(), true));
+                        WsConnection::garbageCollect();
 
-                    $used_memory = $convert_memory_get_usage(memory_get_usage());
+                    } else {
 
-                    $allocated_memory = $convert_memory_get_usage(memory_get_usage(true));
+                        ColorCode::colorCode("No streams are requesting to be processed. (cycle: $cycles; users: " . count(self::$userResourceConnections) . ") ", iColorCode::CYAN);
 
-                    ColorCode::colorCode("WebSocket has allocated ($allocated_memory) and used ($used_memory). PHP GC Collected ($int_cycles) CYCLES; MANUAL GC Cleaned (x) Resources.", iColorCode::YELLOW);
+                    }
 
                     continue;
 
                 }
 
-                ColorCode::colorCode("\n$number, stream(s) are requesting to be processed.\n");
+                ColorCode::colorCode("$number, stream(s) are requesting to be processed.");
 
                 foreach ($read as $connection) {
 
-                    if ($connection === self::$socket) { // accepting a new connection?
-
-                        $timeout = ini_get('default_socket_timeout');
-
-                        $connection = stream_socket_accept($connection,
-                            $timeout,
-                            $peerName);
-
-                        // this is where we get the ip and port of the user
-                        if ($connection === false) {
-
-                            ColorCode::colorCode("\nStream Socket Accept Failed\n", 'red');
-
-                            continue;
-
-                        }
-
-                        $headers = [];
-
-                        if (self::handshake($connection, $headers) === false) {  // attempt to send ws(s) validation
-
-                            @fclose($connection);
-
-                            ColorCode::colorCode("\nStream Handshake Failed\n", 'red');
-
-                            continue;
-
-                        }
-
-                        ColorCode::colorCode("\nHandshake Successful\n", 'blue');
-
-                        [$ip, $port] = explode(':', $peerName);
-
-                        ColorCode::colorCode("\nConnected $ip:$port\n", 'blue');
-
-                        if (self::$verifyIP && !Session::verifySocket($ip)) {
-
-                            ColorCode::colorCode("\nFailed to verify socket ip for session.\n", 'red');
-
-                            continue;
-
-                        }
-
-                        $session = new Session($config[CarbonPHP::SESSION][CarbonPHP::REMOTE] ?? false); // session start
-
-                        $session_id = $session::$session_id;
-
-                        ColorCode::colorCode("\nSession Verified $session_id\n", iColorCode::CYAN);
-
-                        $session::writeCloseClean();  // we have to kill the static user id so were thread safe
-
-                        unset($session);
-
-                        $_SESSION = [];
-
-                        ColorCode::colorCode("\nSession Closed Until Next Request $session_id\n", 'blue');
-
-                        // this is a really expensive foreach
-                        $WebsocketToPipeRelations[$session_id] ??= null;
-
-                        $pipeRelation = &$WebsocketToPipeRelations[$session_id];
-
-                        if ($pipeRelation !== null) {
-
-                            ColorCode::colorCode("\nFound Multiple Session Connections For :: $session_id\n", 'blue');
-
-                            if ($pipeRelation['user_socket'] === $connection) {
-
-                                ColorCode::colorCode('User Socket Connecting Through Same Resource :)');
-
-                            } else {
-
-                                ColorCode::colorCode('User Socket Connecting Through Different Resource. Closing Old Connection.', 'blue');
-
-                                $userToUpdateKey = array_search($pipeRelation['user_socket'], self::$userResourceConnections, true);
-
-                                $userToUpdateKey2 = array_search($pipeRelation['user_socket'], $allConnectedResources, true);
-
-                                @fclose($pipeRelation['user_socket']);  // todo - allow multiple browsers
-
-                                unset(self::$userResourceConnections[$userToUpdateKey], $allConnectedResources[$userToUpdateKey2]);
-
-                                $pipeRelation['user_socket'] = &$connection; // todo - this would 'potentially' overwrite a connection
-
-                            }
-
-                            if (!is_resource($pipeRelation['user_pipe'])) {
-
-                                ColorCode::colorCode("\nThe pipe went barron, this should never happen. Attempting to refresh.\n", 'red');
-
-                                @fclose($pipeRelation['user_pipe']);
-
-                                $pipe = Pipe::named(CarbonPHP::$app_root . 'temp/' . $session_id . '.fifo');     // other users can notify us to update our application through this file
-
-                                if ($pipe === false) {
-
-                                    ColorCode::colorCode("\nPipe failed to be created.\n", 'red');
-
-                                    continue;
-
-                                }
-
-                                ColorCode::colorCode("\nPipe refreshed.\n", 'blue');
-
-                                $pipeRelation['user_pipe'] = &$pipe;
-
-                            }
-
-                            continue;
-
-                        }
-
-                        $pipe = Pipe::named(CarbonPHP::$app_root . 'temp/' . $session_id . '.fifo');     // other users can notify us to update our application through this file
-
-                        if ($pipe === false) {
-
-                            ColorCode::colorCode("\nPipe failed to be created.\n", 'red');
-
-                            continue;
-
-                        }
-
-                        ColorCode::colorCode("\nPipe created.\n", 'blue');
-
-                        // add our new connection to the master list after we've checked for duplicates
-                        $allConnectedResources[] = &$connection;
-
-                        $allConnectedResources[] = &$pipe;
-
-                        self::$userResourceConnections[] = &$connection;
-
-                        $WebsocketToPipeRelations[$session_id] = [
-                            'user_pipe' => &$pipe,
-                            'user_socket' => &$connection,
-                            'session_id' => $session_id,
-                            'port' => $port,
-                            'ip' => $ip
-                        ];
+                    if (WsConnection::acceptNewConnection($connection)) {
 
                         continue;
+
+                    }
+
+                    // we have to find the relation regardless,
+                    foreach (self::$userConnectionRelationships as $information) {
+
+                        if ($information->userPipe === $connection) {
+
+                            WsFileStreams::readFromFifo($connection, $information);
+
+                            continue 2; // foreach read as connection
+
+                        }
+
+
+
 
                     }
 
@@ -414,34 +240,58 @@ class WebSocket extends WsFileStreams implements iCommand
 
                         case self::CLOSE:
 
-                            $closeConnection($connection);
+                            WsConnection::closeConnection($connection);
 
                             break;
 
-                        case self::PING :
+                        case self::PONG:
 
-                            self::sendToResource('', $connection, self::PONG);
+                            ColorCode::colorCode('Browser sent a response PONG', iColorCode::BACKGROUND_MAGENTA);
+
+                            break;
+
+                        case self::PING:
+
+                            ColorCode::colorCode('Browser sent PING', iColorCode::BACKGROUND_MAGENTA);
+
+                            if (false === self::sendToResource('', $connection, self::PONG)) {
+
+                                WsConnection::closeConnection($connection);
+
+                            }
 
                             break;
 
                         case self::TEXT:
 
-                            // we have to find the relation regardless,
-                            foreach ($WebsocketToPipeRelations as $information) {
+                            if ('ping' === $data['payload']) {
 
-                                if ($information['user_pipe'] === $connection) {
+                                ColorCode::colorCode('Browser sent text ping', iColorCode::BACKGROUND_MAGENTA);
 
-                                    self::readFromFifo($connection, $information);
+                                if (false === self::sendToResource('pong', $connection)) {
 
-                                    break;
+                                    WsConnection::closeConnection($connection);
 
                                 }
 
-                                if ($information['user_socket'] === $connection) {
+                                break;
+
+                            }
+
+                            // we have to find the relation regardless,
+                            foreach (self::$userConnectionRelationships as $information) {
+
+                                if ($information->userSocket === $connection) {
 
                                     if (is_string($data['payload'])) {
 
                                         self::forkStartApplication($data['payload'], $information, $connection);
+
+                                    } else {
+
+                                        ColorCode::colorCode("The 'payload' decoded was not a string. This is unexpected.", iColorCode::RED);
+
+                                        WsConnection::closeConnection($connection);
 
                                     }
 
@@ -451,13 +301,36 @@ class WebSocket extends WsFileStreams implements iCommand
 
                             }
 
+                            ColorCode::colorCode("Failed to get the users socket information for the payload.", iColorCode::RED);
+
+                            break;
+
+                        case self::CONTINUE:
+
+                            ColorCode::colorCode('CONTINUE FRAME: ' . print_r($data, true), iColorCode::MAGENTA);
+
+                            break;
+
+                        case self::BINARY:
+
+                            ColorCode::colorCode('BINARY FRAME:', iColorCode::BACKGROUND_MAGENTA);
+
+                            $data = print_r(bindec($data['payload']), true);
+
+                            ColorCode::colorCode("bindec = ($data).", iColorCode::YELLOW);
+
                             break;
 
                         default:
 
-                            ColorCode::colorCode("\nUnknown opcode given to websocket. Ignoring.\n", 'yellow');
+                            ColorCode::colorCode('ERROR DECODING OPCODE', iColorCode::RED);
+
+                            $data = print_r($data, true);
+
+                            ColorCode::colorCode("Unknown opcode given to websocket. Ignoring ($data).", iColorCode::YELLOW);
 
                             break;
+
 
                     }
 
@@ -479,7 +352,7 @@ class WebSocket extends WsFileStreams implements iCommand
 
     }
 
-    #[NoReturn] public function usage(): void // todo - update
+    public function usage(): never // todo - update
     {
         print <<<END
 \n

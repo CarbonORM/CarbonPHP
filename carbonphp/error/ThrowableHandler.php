@@ -10,6 +10,7 @@ use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
 use CarbonPHP\Enums\ThrowableReportDisplay;
 use CarbonPHP\Interfaces\iColorCode;
+use CarbonPHP\Programs\WebSocket;
 use CarbonPHP\Rest;
 use CarbonPHP\Tables\Reports;
 use PDOException;
@@ -56,7 +57,7 @@ class ThrowableHandler
     /**
      * @var bool
      */
-    public static bool $storeReport = false;
+    public static bool $storeReport = true;
 
     public static ThrowableReportDisplay $throwableReportDisplay = ThrowableReportDisplay::FULL_DEFAULT;
 
@@ -102,8 +103,6 @@ class ThrowableHandler
             }
 
             // todo - make sure file is writable
-
-
 
 
         } catch (Throwable $e) {
@@ -228,7 +227,7 @@ class ThrowableHandler
 
             $json['HEADER_WARNING'] = 'Headers already sent in ' . $file . ' on line ' . $line . '! This can effect the desired response code.';
 
-            $html = ThrowableHandler::generateBrowserReport($json, true);
+            $html = self::generateBrowserReport($json, true);
 
         }
 
@@ -533,7 +532,7 @@ class ThrowableHandler
 
                     ColorCode::colorCode('The trace failed to be json_encoded, serialized, or printed with print_r().', iColorCode::RED);
 
-                    ColorCode::colorCode($e->getMessage(), iColorCode::RED);
+                    ColorCode::colorCode($e?->getMessage(), iColorCode::RED);
 
                     $code = '** PARSING FAILED **';
 
@@ -604,7 +603,7 @@ class ThrowableHandler
 
             ColorCode::colorCode("Generating pretty error message using C6 tools. Message ::", iColorCode::CYAN);
 
-            ColorCode::colorCode("\t" . get_class($e), $color);
+            ColorCode::colorCode("\t" . get_class($e) . "\t" . $e->getFile() . ':' . $e->getLine(), $color);
 
             ColorCode::colorCode("\t\t" . $e->getMessage(), $color);
 
@@ -630,7 +629,7 @@ class ThrowableHandler
 
         }
 
-        if ($e instanceof Throwable) {
+        if (null !== $e) {
 
             $class = get_class($e);
 
@@ -646,14 +645,13 @@ class ThrowableHandler
 
             $log_array['LINE'] = (string)$e->getLine();
 
-            /** @noinspection SuspiciousAssignmentsInspection */
             $log_array['JUMP'] = $log_array['FILE'] . ':' . $log_array['LINE'];
 
             $log_array['CODE'] = (string)$e->getCode();
 
         } else {
 
-            [$traceCLI, $traceHTML] = self::generateCallTrace();
+            [$traceCLI, $traceHTML, $e] = self::generateCallTrace();
 
         }
 
@@ -707,7 +705,14 @@ class ThrowableHandler
 
         if (CarbonPHP::$setupComplete) {
 
-            if (Database::$carbonDatabaseInitialized) {
+            if (!Database::$carbonDatabaseInitialized) {
+
+                $log_array['INNODB_STATUS'] = 'Database::$carbonDatabaseInitialized was set to false! This was probably set in Database::newInstance. (SHOW ENGINE INNODB STATUS) will only log if already connected.';
+            } else if ($e instanceof PDOException) {
+
+                $log_array['INNODB_STATUS'] = 'Errors which are instances of PDOException will not query the database! This helps prevent recursive issues. (SHOW ENGINE INNODB STATUS) was not run.';
+
+            } else {
 
                 try {
 
@@ -725,9 +730,6 @@ class ThrowableHandler
 
                 }
 
-            } else {
-
-                $log_array['INNODB_STATUS'] = 'Database::$carbonDatabaseInitialized was set to false! This was probably set in Database::newInstance. (SHOW ENGINE INNODB STATUS) will only log if already connected.';
             }
 
         }
@@ -777,7 +779,7 @@ class ThrowableHandler
             $log_array[self::STORAGE_LOCATION_KEY] = "Will store report to file <a href=\"/$log_file_html\">("
                 . CarbonPHP::$app_root . '/' . $log_file_html . ")</a> and <a href=\"/$log_file_json\">(" . CarbonPHP::$app_root . $log_file_json . ')';
 
-            if (false === $e instanceof PDOException) {
+            if (true === $e instanceof PDOException) {
 
                 $log_array['[C6] STORAGE ISSUE'] = 'Errors which are instances of PDOException currently are not stored to database! This helps prevent recursive issues.';
 
@@ -814,7 +816,9 @@ class ThrowableHandler
 
             } else {
 
-                error_log($message = 'An error occurred before the database use initialized. This likely means you have no database configurations, or a general configuration issue issues occurred :: ' . $e->getMessage());
+                $message = 'An error occurred before the database was initialized. This likely means you have no database configurations, or a general configuration issue issues occurred :: ' . $e->getMessage();
+
+                ColorCode::colorCode($message, iColorCode::RED);
 
                 $log_array['[C6] ISSUE'] = $message;
 
@@ -854,14 +858,13 @@ class ThrowableHandler
 
         switch (self::$throwableReportDisplay) {
 
-
             /** @noinspection PhpMissingBreakStatementInspection */
             case ThrowableReportDisplay::CLI_MINIMAL:
 
                 if (self::$storeReport && array_key_exists(self::STORAGE_LOCATION_KEY, $log_array)) {
 
-                    ColorCode::colorCode("Stored report to file \n\tfile://"
-                        . CarbonPHP::$app_root . $log_file_html . "\n\tfile://" . CarbonPHP::$app_root . $log_file_json, $color);
+                    ColorCode::colorCode("Stored report to file \n\n\tfile://"
+                        . CarbonPHP::$app_root . $log_file_html . "\n\n\tfile://" . CarbonPHP::$app_root . $log_file_json . "\n\n", $color);
 
                     ColorCode::colorCode('file://' . $log_array['FILE'] . ':' . $log_array['LINE'], $color);
 
@@ -879,7 +882,6 @@ class ThrowableHandler
 
 
         }
-
 
         if (false === $return) {
 
@@ -998,7 +1000,7 @@ class ThrowableHandler
         }
 
         /** @noinspection JsonEncodingApiUsageInspection */
-        return [$traceWithKeys, PHP_EOL . json_encode($traceWithKeys,  JSON_PRETTY_PRINT) . PHP_EOL];
+        return [$traceWithKeys, PHP_EOL . json_encode($traceWithKeys, JSON_PRETTY_PRINT) . PHP_EOL, $e];
     }
 
     /**
