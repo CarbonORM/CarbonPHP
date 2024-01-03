@@ -205,6 +205,26 @@ class User_Tasks extends Rest implements iRestSinglePrimaryKey
 
     ];
     
+    
+    /** Custom User Methods Are Placed Here **/
+    
+    
+    /**
+     * This is for our test suite. It has no other purpose.
+     */
+    public static function restTesting(...$argv): void
+    {
+        if (CarbonPHP::$test) {
+
+            CarbonRestTest::$restChallenge[] = $argv;
+
+        } elseif (CarbonPHP::$cli) {
+
+            throw new PublicAlert('No way your trying to do this in cli. I bet CarbonPHP::$test was not set correctly.');
+
+        }
+    }
+
     public function __construct(array &$return = [])
     {
         parent::__construct($return);
@@ -258,25 +278,6 @@ class User_Tasks extends Rest implements iRestSinglePrimaryKey
                 ],
             ]
         ]);
-    }
-    
-    /** Custom User Methods Are Placed Here **/
-    
-    
-    /**
-     * This is for our test suite. It has no other purpose.
-     */
-    public static function restTesting(...$argv): void
-    {
-        if (CarbonPHP::$test) {
-
-            CarbonRestTest::$restChallenge[] = $argv;
-
-        } elseif (CarbonPHP::$cli) {
-
-            throw new PublicAlert('No way your trying to do this in cli. I bet CarbonPHP::$test was not set correctly.');
-
-        }
     }
    
     /**
@@ -537,7 +538,7 @@ class User_Tasks extends Rest implements iRestSinglePrimaryKey
                 [self::class => 'restTesting', '11',self::FINISH]
             ]
         ]
-    ];
+    ]; 
     
     public array $PHP_VALIDATION = [
         

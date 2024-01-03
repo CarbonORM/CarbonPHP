@@ -215,7 +215,7 @@ abstract class RestfulValidations
                                 return;
                             }
 
-                            // todo - close the current connection and open a new one
+                            Database::close();
                             Database::setPdoOptions(Database::getDefaultPdoOptions(), false);
 
                         }

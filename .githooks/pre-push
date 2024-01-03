@@ -158,8 +158,6 @@ $addNewTag = static function ($tag, $versionBumpType): void {
 
     } while ($releaseTitle === '');
 
-    Background::executeAndCheckStatus("git tag -a $tag -m \"" . $releaseName . " revision $tag\"");
-
     ColorCode::colorCode('Please add additional notes (type "done" alone on a new line to complete):', iColorCode::MAGENTA);
 
     $releaseNotes = '';
