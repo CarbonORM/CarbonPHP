@@ -265,7 +265,7 @@ class Documentation extends Application implements iConfig
         if (CarbonPHP::$socket
             && self::regexMatch('#echo/([a-z0-9]+)#i',
                 static function ($echo) use ($uri) {
-                    WebSocket::sendToAllExternalResources("Echo Server On URI ($uri) :: \$echo = $echo");
+                    WebSocket::sendToAllWebsSocketConnections("Echo Server On URI ($uri) :: \$echo = $echo");
                 })) {
 
             return true;

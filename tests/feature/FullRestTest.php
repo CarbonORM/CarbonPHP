@@ -63,9 +63,11 @@ class FullRestTest extends CarbonRestTest
 
         self::assertArrayHasKey('rest', $json_array);
 
+        #sortDump($GLOBALS['json']['sql']);
+
         self::assertEquals(
             "SELECT DISTINCT(carbon_photos.photo_path) AS :injection1, COUNT(carbon_photos.photo_id) AS :injection0 FROM CarbonPHP.carbon_photos INNER JOIN CarbonPHP.carbon_locations ON ((carbon_locations.entity_id = UNHEX(:injection2))) WHERE ((carbon_photos.photo_id <> UNHEX(:injection3)) AND (carbon_photos.photo_id = UNHEX(:injection4))) GROUP BY carbon_photos.photo_id  LIMIT 1000",
-            $GLOBALS['json']['sql'][0]['stmt']['sql']);
+            $GLOBALS['json']['sql'][2]['stmt']['sql']);
 
 
     }

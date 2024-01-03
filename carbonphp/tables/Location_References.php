@@ -189,7 +189,8 @@ class Location_References extends Rest implements iRestNoPrimaryKey
             
         ];
          
-        $this->PHP_VALIDATION = [ 
+        
+        $this->PHP_VALIDATION = RestfulValidations::getDefaultRestAccess(self::class, [ 
             self::COLUMN => [
                self::GLOBAL_COLUMN_VALIDATION => []
             ],
@@ -231,7 +232,7 @@ class Location_References extends Rest implements iRestNoPrimaryKey
                     // Has executed and committed to the database, results are passed by reference
                 ],
             ]
-        ];
+        ]);
     }
     
     /** Custom User Methods Are Placed Here **/

@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Enums\ThrowableReportDisplay;
+use CarbonPHP\Error\ThrowableHandler;
 use PHPUnit\Framework\TestCase;
 
 
@@ -16,6 +18,8 @@ abstract class Config extends TestCase
 
     public static function setupServerVariables(): void   // todo - what is needed
     {
+
+        ThrowableHandler::$throwableReportDisplay = ThrowableReportDisplay::CLI_MINIMAL;
 
         CarbonPHP::$safelyExit = true;  // We just want the env to load, not route life :)
 

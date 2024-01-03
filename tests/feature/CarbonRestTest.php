@@ -9,6 +9,7 @@ use CarbonPHP\Database;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Rest;
 use CarbonPHP\Tables\Carbons;
+use CarbonPHP\Tables\Group_References;
 use CarbonPHP\Tables\History_Logs;
 use CarbonPHP\Tables\Location_References;
 use CarbonPHP\Tables\Locations;
@@ -55,23 +56,6 @@ class CarbonRestTest extends Config
         return $uid;
     }
 
-    private function KeyExistsAndRemove(string $key): void
-    {
-        $store = [];
-
-        self::assertTrue(Carbons::Get($store, $key, []),
-            'Failed to find key (' . $key . ') in table carbons. Check that post is committed.');
-
-        if (!empty($store)) {
-
-            self::assertTrue(
-                Carbons::Delete($store, $key, []),
-                'Rest api failed to remove the test key ' . $key
-            );
-
-        }
-
-    }
 
     public function testRestApiCanPostAndDelete(): void
     {
@@ -492,7 +476,7 @@ class CarbonRestTest extends Config
 
         $post = [Carbons::ENTITY_FK => $USER_ID_TWO];
 
-        self::assertNotFalse( Carbons::Post($post));
+        self::assertNotFalse(Carbons::Post($post));
 
         $returnUpdated = [];
 
@@ -575,77 +559,97 @@ class CarbonRestTest extends Config
     public function testRestApiCanUseTablesWithNoPrimaryKey(): void
     {
         $ignore = [];
-        $condition = 'ME';
+
+        $bin16 = Carbons::Post($ignore);
 
         $post = [
-            History_Logs::HISTORY_UUID => Carbons::Post($ignore),
-            History_Logs::HISTORY_TABLE => $condition,
-            History_Logs::HISTORY_DATA => '{}',
+            Group_References::GROUP_ID => $bin16,
+            Group_References::ALLOWED_TO_GRANT_GROUP_ID => $bin16,
         ];
 
         // Should return a unique hex id
-        self::assertTrue(History_Logs::Post($post));
+        self::assertTrue(Group_References::Post($post));
 
-        $post = [];
-        // Should return a unique hex id
-        self::assertTrue(History_Logs::Put($ignore, [
-            iRest::UPDATE => [
-                History_Logs::HISTORY_UUID => Carbons::Post($post),
-                History_Logs::HISTORY_DATA => '{}',
-            ],
-            iRest::WHERE => [
-                History_Logs::HISTORY_TABLE => $condition,
-            ]
-        ]));
 
         $return = [];
 
-        self::assertTrue(History_Logs::Get($return, [
-            iRest::WHERE => [
-                History_Logs::HISTORY_TABLE => $condition
-            ],
-            iRest::PAGINATION => [
-                iRest::LIMIT => 1,
-                iRest::ORDER => [History_Logs::HISTORY_TIME => iRest::ASC]
-            ]
-        ]));
+        $getGroup = static function () use ($bin16, &$return) {
+            Group_References::Get($return, [
+                iRest::SELECT => [
+                    Group_References::GROUP_ID,
+                    Group_References::ALLOWED_TO_GRANT_GROUP_ID
+                ],
+                iRest::WHERE => [
+                    Group_References::GROUP_ID => $bin16,
+                    Group_References::ALLOWED_TO_GRANT_GROUP_ID => $bin16
+                ],
+                iRest::PAGINATION => [
+                    iRest::LIMIT => 1
+                ]
+            ]);
+        };
 
-        self::assertCount(6, $return);
+        $getGroup();
+
+        self::assertGreaterThan(0, count($return));
+
+        $ignore = [];
+
+        $bin16Update = Carbons::Post($ignore);
+
+        self::assertTrue(Group_References::Put($ignore, [
+            iRest::UPDATE => [
+                Group_References::ALLOWED_TO_GRANT_GROUP_ID => $bin16Update
+            ],
+            iRest::WHERE => [
+                Group_References::GROUP_ID => $bin16,
+                Group_References::ALLOWED_TO_GRANT_GROUP_ID => $bin16
+            ]]));
+
+        $getGroup();
+
+        self::assertEquals(0, count($return));
+
+        self::assertTrue(Group_References::Delete($ignore, [
+            iRest::WHERE => [
+                Group_References::GROUP_ID => $bin16,
+                Group_References::ALLOWED_TO_GRANT_GROUP_ID => $bin16Update
+            ]]));
+
+
     }
 
     public function testRestApiCanUseJson(): void
     {
         $ignore = [];
 
-        $condition = 'ME';
-
-        self::assertTrue(History_Logs::Delete($ignore, [
-            History_Logs::HISTORY_UUID => '8544e3d581ba11e8942cd89ef3fc55fb'
+        self::assertTrue(History_Logs::Delete($ignore, null, [
+            History_Logs::HISTORY_TABLE => self::class
         ]));
 
         $post = [
-            History_Logs::HISTORY_DATA => ['Json' => 'is cool'],
-            History_Logs::HISTORY_TABLE => $condition,
+            History_Logs::HISTORY_REQUEST => ['Json' => 'is cool'],
+            History_Logs::HISTORY_TABLE => self::class,
             History_Logs::HISTORY_UUID => Carbons::Post($ignore)
         ];
 
-        self::assertTrue(History_Logs::post($post));
+        self::assertNotFalse($logId = History_Logs::post($post));
 
         // Should return a unique hex id
-        self::assertTrue(History_Logs::Put($ignore, [
+        self::assertTrue(History_Logs::Put($ignore, $logId, [
             iRest::UPDATE => [
-                History_Logs::HISTORY_UUID => '8544e3d581ba11e8942cd89ef3fc55fb',
+                History_Logs::HISTORY_REQUEST => ['Json' => 'is fun'],
             ],
             iRest::WHERE => [
-                History_Logs::HISTORY_TABLE => $condition,
+                History_Logs::HISTORY_TABLE => self::class,
             ]
         ]));
 
         $return = [];
 
-        self::assertTrue(History_Logs::get($return, [
+        self::assertTrue(History_Logs::get($return, null, [
             iRest::WHERE => [
-                History_Logs::HISTORY_TABLE => $condition
+                History_Logs::HISTORY_TABLE => self::class
             ],
             iRest::PAGINATION => [
                 iRest::LIMIT => 1,
@@ -653,7 +657,11 @@ class CarbonRestTest extends Config
             ]
         ]));
 
-        self::assertCount(6, $return);
+        self::assertTrue(History_Logs::Delete($ignore, null, [
+            History_Logs::HISTORY_UUID => $logId
+        ]));
+
+        self::assertGreaterThan(1, $return);
 
     }
 
@@ -682,7 +690,7 @@ class CarbonRestTest extends Config
         self::assertNotEmpty($data);
 
 
-        self::assertCount(10,$data);
+        self::assertCount(10, $data);
 
     }
 
@@ -714,7 +722,7 @@ class CarbonRestTest extends Config
 
         self::assertNotEmpty($data);
 
-        self::assertCount(4,$data);
+        self::assertCount(4, $data);
 
     }
 

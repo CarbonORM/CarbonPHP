@@ -28,9 +28,17 @@ abstract class Pipe
 
     public static string $fifoDelimiter = PHP_EOL . __CLASS__ . ':' . __LINE__ . PHP_EOL;
 
+    public static string $channelDirectory = 'tmp' . DIRECTORY_SEPARATOR . 'fifo' . DIRECTORY_SEPARATOR;
+
     public static function createFifoChannel(string $channelName)
     {
-        return self::named(CarbonPHP::$app_root . DIRECTORY_SEPARATOR . 'fifo' . DIRECTORY_SEPARATOR . self::safePipeName($channelName) . '.fifo');
+        $channelName = self::safePipeName($channelName);
+
+        $channelPath = CarbonPHP::$app_root . self::$channelDirectory . $channelName . '.fifo';
+
+        ColorCode::colorCode("Creating fifo channel ($channelPath)", iColorCode::MAGENTA);
+
+        return self::named($channelPath);
     }
 
 
@@ -38,13 +46,15 @@ abstract class Pipe
      * @param string $channelName - this can be just a user id
      * @param mixed $data - must be JSON_ENCODE-ABLE
      */
-    public static function realtimeUpdateChannel(string $channelName, string $data): void
+    public static function sendToFifoChannel(string $channelName, string $data): void
     {
         $updateCount = 0;
 
         $channelName = self::safePipeName($channelName);
 
-        $channelFIFOS = glob(CarbonPHP::$app_root . "/tmp/fifo/$channelName*.fifo");
+        $channelPath = CarbonPHP::$app_root . self::$channelDirectory . $channelName . '*.fifo';
+
+        $channelFIFOS = glob($channelPath);
 
         foreach ($channelFIFOS as $resourceConnection) {
 
@@ -78,44 +88,56 @@ abstract class Pipe
      * Keep in mind that the fifo file must be unique to the users listening
      * on it.
      *
-     *** You need to run the Websocket server under a user who is not root.
-     * This most likely means copying Websocketd to the root of the web directory
-     * as well as any pem or key files
-     *
      * @param string $fifoPath is the location of the fifo file.
      * @return bool|resource
      */
     public static function named(string $fifoPath)  // Arbitrary)
     {
 
-        if (file_exists($fifoPath)) {
-            unlink($fifoPath);          // We are always the master, hopefully we'll catch the kill this time
+        try {
+
+            if (file_exists($fifoPath)) {
+
+                unlink($fifoPath);          // We are always the creator
+
+            }
+
+            umask(0000);
+
+            Files::mkdir($fifoPath);
+
+            if (!posix_mkfifo($fifoPath, 0666)) {
+
+                ColorCode::colorCode("Failed to create named pipe ($fifoPath)", iColorCode::RED);
+
+                return false;
+
+            }                   # create a named pipe 0644
+
+            // the websocket should be running under the same user the webserver is run under
+            #$user = get_current_user();                            // get current process user
+            #exec("chown -R {$user} $fifoPath");                    // We need to modify the permissions so users can write to it
+
+            $fifoFile = fopen($fifoPath, 'rb+');      // Now we open the named pipe we Already created
+
+            if (false === $fifoFile) {
+
+                return false;
+
+            }
+
+            stream_set_blocking($fifoFile, false);    // setting to true (resource heavy) activates the handshake feature, aka timeout
+
+            ColorCode::colorCode("Named pipe created ($fifoPath).", iColorCode::BLUE);
+
+            return $fifoFile;                                       // File descriptor
+
+        } catch (Throwable $e) {
+
+            ThrowableHandler::generateLogAndExit($e);
+
         }
 
-        umask(0000);
-
-        Files::mkdir($fifoPath);
-
-        if (!posix_mkfifo($fifoPath, 0666)) {
-            ColorCode::colorCode("Failed to create named pipe ($fifoPath)", iColorCode::RED);
-            return false;
-        }                   # create a named pipe 0644
-
-        // future self, please read the function doc above before wondering why this is commented out
-
-        #$user = get_current_user();                            // get current process user
-
-        #exec("chown -R {$user} $fifoPath");                    // We need to modify the permissions so users can write to it
-
-        $fifoFile = fopen($fifoPath, 'rb+');              // Now we open the named pipe we Already created
-
-        if (false === $fifoFile) {
-            return false;
-        }
-
-        stream_set_blocking($fifoFile, false);           // setting to true (resource heavy) activates the handshake feature, aka timeout
-
-        return $fifoFile;                                       // File descriptor
     }
 
     public static function safePipeName(string $name): string

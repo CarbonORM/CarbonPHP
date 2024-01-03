@@ -3,7 +3,9 @@
 
 namespace CarbonPHP\Restful;
 
+use CarbonPHP\Abstracts\Pipe;
 use CarbonPHP\CarbonPHP;
+use CarbonPHP\Database;
 use CarbonPHP\Error\PrivateAlert;
 use CarbonPHP\Error\PublicAlert;
 use CarbonPHP\Error\ThrowableHandler;
@@ -13,6 +15,9 @@ use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Rest;
 use CarbonPHP\Session;
+use CarbonPHP\Tables\History_Logs;
+use CarbonPHP\WebSocket\WsFileStreams;
+use PDO;
 use Throwable;
 
 abstract class RestfulValidations
@@ -20,6 +25,243 @@ abstract class RestfulValidations
 
     //EXTERNAL_REQUEST_VALID_SQL_CHECK
     public static bool $validateExternalRequestsGeneratedSql = true;
+    public static string $historyLogId = '';
+    public static string $historyQuery = '';
+
+    /**
+     * @var callable|null
+     */
+    public static mixed $defaultRestAccessOverride = null;
+
+    public static function postHistoryLog($selfClass): callable
+    {
+
+        static $hasRun = false;
+
+        return static function ($request) use ($selfClass, &$hasRun): void {
+
+            // this would run for all queries which will cause a recursive loop
+            if (false === RestQueryValidation::$externalRestfulRequestsAPI) {
+
+                return;
+
+            }
+
+            if (true === $hasRun) {
+
+                return;
+
+            }
+
+            $hasRun = true;
+
+            $postHistoryLog = [
+                History_Logs::HISTORY_URI => $_SERVER['REQUEST_URI'],
+                History_Logs::HISTORY_TABLE => $selfClass,
+                History_Logs::HISTORY_QUERY => 'N/A',
+                History_Logs::HISTORY_TYPE => $_SERVER['REQUEST_METHOD'],
+                History_Logs::HISTORY_REQUEST => $request,
+            ];
+
+            self::$historyLogId = History_Logs::post($postHistoryLog);
+
+            if (empty(self::$historyLogId)) {
+
+                throw new PublicAlert('Failed to add history log!');
+
+            }
+
+        };
+
+    }
+
+    public static function putHistoryLog(): callable
+    {
+
+        static $hasRun = false;
+
+        return static function ($response) use (&$hasRun): void {
+
+            if (false === RestQueryValidation::$externalRestfulRequestsAPI) {
+
+                return;
+
+            }
+
+            /** @noinspection PhpStrictComparisonWithOperandsOfDifferentTypesInspection */
+            if (true === $hasRun) {
+
+                return;
+
+            }
+
+            $hasRun = true;
+
+            if (empty(self::$historyLogId) || empty(self::$historyQuery)) {
+
+                throw new PublicAlert('Failed to complete history log. (' . print_r([
+                        '$historyLogId' => self::$historyLogId,
+                        '$historyQuery' => self::$historyQuery
+                    ], true) . ')');
+
+            }
+
+            $returnUpdated = [];
+
+            // transaction active?
+            if (session_status() === PHP_SESSION_ACTIVE) {
+
+                session_write_close(); // todo - do I like this?
+
+            }
+
+            if (false === History_Logs::put($returnUpdated, self::$historyLogId, [
+                    History_Logs::HISTORY_RESPONSE => (object)$response,
+                    History_Logs::HISTORY_QUERY => self::$historyQuery
+                ])) {
+                throw new PublicAlert('Failed to update general log.');
+            }
+
+        };
+
+    }
+
+    /**
+     * Careful those who journey here, the functions called here can run multiple times for a singe request.
+     * This is due to table joins merging the rules multiple times.
+     * This method can be overridden by the user to provide custom access rules. Setting the $defaultRestAccessOverride
+     * static member of this class to a custom callable will override this method.
+     * @param string $selfClass
+     * @param array $overrides
+     * @return array
+     */
+    public static function getDefaultRestAccess(string $selfClass, array $overrides = []): array
+    {
+
+        try {
+
+            if (null !== self::$defaultRestAccessOverride) {
+
+                $callable = self::$defaultRestAccessOverride;
+
+                if (false === is_callable($callable)) {
+
+                    throw new PrivateAlert('The default rest access callback is not callable.');
+
+                }
+
+                $defaultAccess = $callable($selfClass, $overrides);
+
+                if (false === is_array($defaultAccess)) {
+
+                    throw new PrivateAlert('The default rest access callback must return an array. Refer to the return of this method (' . __METHOD__ . ') for the correct/example format.');
+
+                }
+
+                return $defaultAccess;
+
+            }
+
+            return [
+                iRest::COLUMN => [
+                    ...($overrides[iRest::COLUMN] ??= [])
+                ],
+                iRest::PREPROCESS => [
+                    iRest::PREPROCESS => [
+                        self::postHistoryLog(static::class),
+                        ...($overrides[iRest::PREPROCESS][iRest::PREPROCESS] ?? []),
+                    ],
+                    iRest::FINISH => [
+                        static function ($query): void {
+                            if (false === RestQueryValidation::$externalRestfulRequestsAPI) {
+                                self::$historyQuery = $query[0];
+                            }
+                        },
+                        ...($overrides[iRest::PREPROCESS][iRest::FINISH] ?? [])
+                    ]
+                ],
+                iRest::GET => $overrides[iRest::GET] ?? [
+                        iRest::PREPROCESS => [
+                            fn() => Rest::disallowPublicAccess($selfClass),
+                        ]
+                    ],
+                iRest::POST => $overrides[iRest::POST] ?? [
+                        iRest::PREPROCESS => [
+                            fn() => Rest::disallowPublicAccess($selfClass),
+                        ]
+                    ],
+                iRest::PUT => [
+                    ...($overrides[iRest::PUT]),
+                    iRest::PREPROCESS => [
+                        ...($overrides[iRest::PUT][iRest::PREPROCESS] ?? [
+                            fn() => Rest::disallowPublicAccess($selfClass),
+                        ]),
+                        static function () {
+
+                            if (false === Rest::$externalRestfulRequestsAPI) {
+                                return;
+                            }
+
+                            Database::setPdoOptions([
+                                    PDO::MYSQL_ATTR_FOUND_ROWS => true,
+                                ] + Database::getDefaultPdoOptions(), false);
+                        },
+                    ],
+                    iRest::FINISH => [
+                        ...($overrides[iRest::PUT][iRest::FINISH] ?? []),
+                        static function () {
+
+                            if (false === Rest::$externalRestfulRequestsAPI) {
+                                return;
+                            }
+
+                            // todo - close the current connection and open a new one
+                            Database::setPdoOptions(Database::getDefaultPdoOptions(), false);
+
+                        }
+                    ]
+                ],
+                iRest::DELETE => $overrides[iRest::DELETE] ?? [
+                        iRest::PREPROCESS => [
+                            fn() => Rest::disallowPublicAccess($selfClass),
+                        ]
+                    ],
+                iRest::FINISH => [
+                    // add column validation options here as well
+                    iRest::PREPROCESS => [
+                        ...($overrides[iRest::FINISH][iRest::PREPROCESS] ?? []),
+                    ],
+                    iRest::FINISH => [
+                        self::putHistoryLog(),
+                        ...($overrides[iRest::FINISH][iRest::FINISH] ?? []),
+                        static function (array $c6DeliveredArgs) use ($selfClass): void {
+
+                            if (iRest::GET === Rest::$REST_REQUEST_METHOD
+                                || (false === CarbonPHP::$cli && false === Rest::$externalRestfulRequestsAPI)) {
+
+                                return;
+
+                            }
+
+                            WsFileStreams::sendToAllWebsSocketConnections(json_encode((object)[
+                                $selfClass::TABLE_NAME => [
+                                    Rest::$REST_REQUEST_METHOD,
+                                    $c6DeliveredArgs
+                                ]
+                            ], JSON_THROW_ON_ERROR));
+
+                        },
+                    ]
+                ]
+            ];
+
+        } catch (Throwable $e) {
+
+            ThrowableHandler::generateLogAndExit($e);
+
+        }
+
+    }
 
 
     /**
@@ -140,7 +382,7 @@ abstract class RestfulValidations
 
         if (!$shouldExit) {
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               $json['invalidSQL'] = [$sql, "The sql is not valid. Please add it to the validSQL.json file."];
+            $json['invalidSQL'] = [$sql, "The sql is not valid. Please add it to the validSQL.json file."];
 
             return;
 

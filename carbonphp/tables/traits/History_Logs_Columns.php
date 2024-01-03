@@ -21,15 +21,21 @@ trait History_Logs_Columns
     **/
     public ?string $history_uuid;
 
+    public ?string $history_uri;
+
     public ?string $history_table;
 
     public ?string $history_type;
 
-    public ?array $history_data;
+    public ?array $history_request;
 
-    public ?string $history_original_query;
+    public ?array $history_response;
+
+    public ?string $history_query;
 
     public ?string $history_time;
+
+    public ?string $history_updated;
 
 }
 

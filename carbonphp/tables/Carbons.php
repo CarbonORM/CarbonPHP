@@ -217,7 +217,8 @@ class Carbons extends Rest implements iRestSinglePrimaryKey
             
         ];
          
-        $this->PHP_VALIDATION = [ 
+        
+        $this->PHP_VALIDATION = RestfulValidations::getDefaultRestAccess(self::class, [ 
             self::COLUMN => [
                self::GLOBAL_COLUMN_VALIDATION => []
             ],
@@ -225,6 +226,7 @@ class Carbons extends Rest implements iRestSinglePrimaryKey
                 self::PREPROCESS => [
                     // before any other processing is done, this is the first callback to be executed
                     // typically used to validate the full request, add additional data to the request, and even creating a history log
+                    static fn() => self::disallowPublicAccess(self::class)
                 ],
                 self::FINISH => [
                     // the compiled sql is passed to the callback, the statement has not been executed yet
@@ -232,6 +234,7 @@ class Carbons extends Rest implements iRestSinglePrimaryKey
             ],
             self::GET => [
                 self::PREPROCESS => [
+                   static fn() => self::disallowPublicAccess(self::class)
                ]
             ],
             self::POST => [
@@ -257,7 +260,7 @@ class Carbons extends Rest implements iRestSinglePrimaryKey
                     // Has executed and committed to the database, results are passed by reference
                 ],
             ]
-        ];
+        ]);
     }
     
     /** Custom User Methods Are Placed Here **/

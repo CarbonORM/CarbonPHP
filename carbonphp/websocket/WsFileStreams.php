@@ -76,8 +76,22 @@ abstract class WsFileStreams extends WsBinaryStreams
 
     }
 
-    public static function sendToAllExternalResources(string $data, $opCode = self::TEXT): void
+    private static function sendToWebSocketGlobalPipe(string $data): void
     {
+       Pipe::sendToFifoChannel('global_pipe', $data);
+    }
+
+    public static function sendToAllWebsSocketConnections(string $data, $opCode = self::TEXT): void
+    {
+
+        if (null !== WebSocket::$socket) {
+
+            self::sendToWebSocketGlobalPipe($data, $opCode);
+
+            return;
+
+        }
+
         foreach (self::$userResourceConnections as $key => $resourceConnection) {
 
             if (is_resource($resourceConnection)) {
@@ -168,7 +182,7 @@ abstract class WsFileStreams extends WsBinaryStreams
 
     }
 
-    public static function readFromFifo(&$fifoFile, WsUserConnectionRelationship $information): void
+    public static function readFromFifo(&$fifoFile, callable $handlePipeInfo): void
     {
 
         /** @noinspection PhpUnusedLocalVariableInspection */
@@ -184,15 +198,15 @@ abstract class WsFileStreams extends WsBinaryStreams
 
         $data = explode(Pipe::$fifoDelimiter, $data);
 
-        foreach ($data as $uri) {
+        foreach ($data as $lineItem) {
 
-            if (empty($uri)) {
+            if (empty($lineItem)) {
 
                 continue;
 
             }
 
-            self::forkStartApplication(trim($uri), $information, $fifoFile);
+            $handlePipeInfo($lineItem);
 
         }
 

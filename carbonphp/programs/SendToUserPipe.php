@@ -17,7 +17,7 @@ class SendToUserPipe implements iCommand
     public function usage(): void
     {
         // TODO - improve documentation
-            print <<<END
+        print <<<END
 
 
 	           Question Marks Denote Optional Parameters
@@ -39,7 +39,7 @@ END;
 
     public static function description(): string
     {
-        return 'Send a value to a user pipe. (CarbonPHP::$app_root . \'temp/\' . \$session_id . \'.fifo\')';
+        return 'Send a value to a user pipe.';
     }
 
 
@@ -56,14 +56,14 @@ END;
         for ($i = 0; $i < $argc; $i++) {
             switch ($argv[$i]) {
                 case '-s':
-                        $session_id = $argv[$i++];
+                    $session_id = $argv[$i++];
                     break;
                 case '-v':
                     $value = $argv[$i++];
                     break;
                 default:
                     if (empty($session_id) || empty($value)) {
-                        if (count($argv) === 2){
+                        if (count($argv) === 2) {
                             [$session_id, $value] = $argv;
                         } else {
                             print 'Your not doing it right... smh... Here\'s some help';
@@ -74,10 +74,11 @@ END;
                 case '-help':
                     $this->usage();
                     break;
-                
+
             }
         }
-        if (false === Pipe::send($value, CarbonPHP::$app_root . 'temp/' . $session_id . '.fifo')) {
+
+        if (false === Pipe::sendToFifoChannel($session_id, $value)) {
             print 'Failed to send to pipe!' . PHP_EOL;
         } else {
             print 'Success!' . PHP_EOL;

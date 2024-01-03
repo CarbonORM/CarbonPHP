@@ -391,9 +391,8 @@ abstract class WsConnection
 
         }
 
-        $fifoPath = CarbonPHP::$app_root . 'temp/fifo/' . $uniqueUserWsSession . '.fifo';
-
-        $pipe = Pipe::named($fifoPath);     // other users can notify us to update our application through this file
+        // other users can notify us to update our application through this file
+        $pipe = Pipe::createFifoChannel($uniqueUserWsSession);
 
         if ($pipe === false) {
 
@@ -402,8 +401,6 @@ abstract class WsConnection
             return true;
 
         }
-
-        ColorCode::colorCode("Pipe created. ($fifoPath)", iColorCode::BLUE);
 
         // add our new connection to the master list after we've checked for duplicates
         WebSocket::$allConnectedResources[] = &$connection;

@@ -92,7 +92,7 @@ abstract class ColorCode implements LoggerInterface, iColorCode
 
                     $microtime = number_format(microtime(true), 4, '.', '');
 
-                    $logLinePrefix = "<pid($pid);microtime(" . $microtime . ")>;";
+                    $logLinePrefix = "<pid($pid);microtime(" . $microtime . ")>";
 
                     $logLinePrefix = sprintf($pidColorCache[$pid], $logLinePrefix) . ' ';
 

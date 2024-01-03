@@ -69,6 +69,12 @@ class WebSocket extends WsFileStreams implements iCommand
     public static array $userConnectionRelationships = [];
 
 
+    /**
+     * @var resource|null
+     */
+    public static mixed $globalPipeFifo = null;
+
+
     public static function description(): string
     {
         return 'Start a WebSocket Server. This is a single or multi threaded server capable.';
@@ -145,7 +151,9 @@ class WebSocket extends WsFileStreams implements iCommand
     {
         static $cycles = 0;
 
-        self::$allConnectedResources = [self::$socket];
+        self::$globalPipeFifo = Pipe::createFifoChannel('global_pipe');
+
+        self::$allConnectedResources = [self::$socket, self::$globalPipeFifo];
 
         // help manage and kill zombie children
         $serverPID = getmypid();
@@ -161,6 +169,10 @@ class WebSocket extends WsFileStreams implements iCommand
         while (true) {
 
             try {
+
+                Database::close();
+
+                Database::close(true);
 
                 ++$cycles;
 
@@ -178,10 +190,6 @@ class WebSocket extends WsFileStreams implements iCommand
 
                 }
 
-                Database::close();
-
-                Database::close(true);
-
                 if ($serverPID !== getmypid()) {
 
                     throw new PrivateAlert('Failed stop child process from returning to the main loop. This is a critical mistake.');
@@ -195,6 +203,8 @@ class WebSocket extends WsFileStreams implements iCommand
                 if ($number === 0) {
 
                     if ($cycles % 100 === 0) {
+
+                        ColorCode::colorCode("Running manual garbage collection and gathering server stats.");
 
                         WsConnection::garbageCollect();
 
@@ -212,9 +222,18 @@ class WebSocket extends WsFileStreams implements iCommand
 
                 foreach ($read as $connection) {
 
+                    // this will check if
                     if (WsConnection::acceptNewConnection($connection)) {
 
                         continue;
+
+                    }
+
+                    if (self::$globalPipeFifo === $connection) {
+
+                        WsFileStreams::readFromFifo($connection, static fn(string $data) => self::sendToAllWebsSocketConnections($data));
+
+                        continue; // foreach read as connection
 
                     }
 
@@ -223,7 +242,8 @@ class WebSocket extends WsFileStreams implements iCommand
 
                         if ($information->userPipe === $connection) {
 
-                            WsFileStreams::readFromFifo($connection, $information);
+                            WsFileStreams::readFromFifo($connection,
+                                static fn(string $data) => self::forkStartApplication($data, $information, $connection));
 
                             continue 2; // foreach read as connection
 

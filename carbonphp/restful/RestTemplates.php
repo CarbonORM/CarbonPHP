@@ -235,7 +235,8 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
             
         ];
          
-        \$this->PHP_VALIDATION = [ 
+        
+        \$this->PHP_VALIDATION = RestfulValidations::getDefaultRestAccess(self::class, [ 
             self::COLUMN => [
                self::GLOBAL_COLUMN_VALIDATION => []
             ],
@@ -277,7 +278,7 @@ class {{ucEachTableName}} extends Rest implements {{#primaryExists}}{{#multipleP
                     // Has executed and committed to the database, results are passed by reference
                 ],
             ]
-        ];
+        ]);
     }
      {{/constructorDefined}}
     

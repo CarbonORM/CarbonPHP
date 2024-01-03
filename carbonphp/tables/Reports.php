@@ -133,9 +133,9 @@ class Reports extends Rest implements iRestNoPrimaryKey
     **/
     public const PDO_VALIDATION = [
         self::LOG_LEVEL => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '20', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => null ],
-        self::REPORT => [ self::MYSQL_TYPE => 'text', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],
+        self::REPORT => [ self::MYSQL_TYPE => 'longblob', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],
         self::DATE => [ self::MYSQL_TYPE => 'datetime', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => self::CURRENT_TIMESTAMP ],
-        self::CALL_TRACE => [ self::MYSQL_TYPE => 'text', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],
+        self::CALL_TRACE => [ self::MYSQL_TYPE => 'longblob', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],
     ];
      
     /**
@@ -192,7 +192,8 @@ class Reports extends Rest implements iRestNoPrimaryKey
             
         ];
          
-        $this->PHP_VALIDATION = [ 
+        
+        $this->PHP_VALIDATION = RestfulValidations::getDefaultRestAccess(self::class, [ 
             self::COLUMN => [
                self::GLOBAL_COLUMN_VALIDATION => []
             ],
@@ -234,7 +235,7 @@ class Reports extends Rest implements iRestNoPrimaryKey
                     // Has executed and committed to the database, results are passed by reference
                 ],
             ]
-        ];
+        ]);
     }
     
     /** Custom User Methods Are Placed Here **/
@@ -457,9 +458,9 @@ class Reports extends Rest implements iRestNoPrimaryKey
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
 CREATE TABLE IF NOT EXISTS `carbon_reports` (
 `log_level` varchar(20) DEFAULT NULL,
-`report` text,
+`report` longblob,
 `date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-`call_trace` text NOT NULL
+`call_trace` longblob NOT NULL
 ) ENGINE=InnoDB;
 MYSQL;
        

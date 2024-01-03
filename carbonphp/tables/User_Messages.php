@@ -204,7 +204,8 @@ class User_Messages extends Rest implements iRestSinglePrimaryKey
             
         ];
          
-        $this->PHP_VALIDATION = [ 
+        
+        $this->PHP_VALIDATION = RestfulValidations::getDefaultRestAccess(self::class, [ 
             self::COLUMN => [
                self::GLOBAL_COLUMN_VALIDATION => []
             ],
@@ -246,7 +247,7 @@ class User_Messages extends Rest implements iRestSinglePrimaryKey
                     // Has executed and committed to the database, results are passed by reference
                 ],
             ]
-        ];
+        ]);
     }
     
     /** Custom User Methods Are Placed Here **/
@@ -434,41 +435,7 @@ class User_Messages extends Rest implements iRestSinglePrimaryKey
      *
      *  @version ^11.3
      */ 
-    public const PHP_VALIDATION = [ 
-        self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
-            self::PREPROCESS => [ 
-                [self::class => 'disallowPublicAccess', self::class],
-            ]
-        ],
-        self::GET => [ 
-            self::PREPROCESS => [ 
-                [self::class => 'disallowPublicAccess', self::class],
-            ],
-            self::MESSAGE_ID => [
-                [self::class => 'disallowPublicAccess', self::MESSAGE_ID]
-            ],
-            self::FROM_USER_ID => [
-                [self::class => 'disallowPublicAccess', self::FROM_USER_ID]
-            ],
-            self::TO_USER_ID => [
-                [self::class => 'disallowPublicAccess', self::TO_USER_ID]
-            ],
-            self::MESSAGE => [
-                [self::class => 'disallowPublicAccess', self::MESSAGE]
-            ],
-            self::MESSAGE_READ => [
-                [self::class => 'disallowPublicAccess', self::MESSAGE_READ]
-            ],
-            self::CREATION_DATE => [
-                [self::class => 'disallowPublicAccess', self::CREATION_DATE]
-            ],
-            
-        ],    
-        self::POST => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
-        self::PUT => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
-        self::DELETE => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],
-        self::REST_REQUEST_FINNISH_CALLBACKS => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]]    
-    ]; 
+    public const PHP_VALIDATION = [ ]; 
     
     public array $PHP_VALIDATION = [
         

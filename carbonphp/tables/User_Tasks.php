@@ -205,6 +205,60 @@ class User_Tasks extends Rest implements iRestSinglePrimaryKey
 
     ];
     
+    public function __construct(array &$return = [])
+    {
+        parent::__construct($return);
+         
+        # always create the column in your local database first, re-run the table builder, then add the needed functions
+        $this->REFRESH_SCHEMA = [
+            
+        ];
+         
+        
+        $this->PHP_VALIDATION = RestfulValidations::getDefaultRestAccess(self::class, [ 
+            self::COLUMN => [
+               self::GLOBAL_COLUMN_VALIDATION => []
+            ],
+            self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
+                self::PREPROCESS => [
+                    // before any other processing is done, this is the first callback to be executed
+                    // typically used to validate the full request, add additional data to the request, and even creating a history log
+                    static fn() => self::disallowPublicAccess(self::class)
+                ],
+                self::FINISH => [
+                    // the compiled sql is passed to the callback, the statement has not been executed yet
+                ]  
+            ],
+            self::GET => [
+                self::PREPROCESS => [
+                   static fn() => self::disallowPublicAccess(self::class)
+               ]
+            ],
+            self::POST => [
+                self::PREPROCESS => [
+                    static fn() => self::restTesting('12','__construct', 'post')
+                ]
+            ],
+            self::PUT => [
+                self::PREPROCESS => [
+                    static fn() => self::disallowPublicAccess(self::class)
+                ]
+            ],
+            self::DELETE => [
+                self::PREPROCESS => [
+                    static fn() => self::disallowPublicAccess(self::class)
+                ]
+            ],
+            self::FINISH => [
+                self::PREPROCESS => [
+                    // Has executed but not committed to the database, id is passed
+                ],
+                self::FINISH => [
+                    // Has executed and committed to the database, results are passed by reference
+                ],
+            ]
+        ]);
+    }
     
     /** Custom User Methods Are Placed Here **/
     
@@ -223,18 +277,6 @@ class User_Tasks extends Rest implements iRestSinglePrimaryKey
             throw new PublicAlert('No way your trying to do this in cli. I bet CarbonPHP::$test was not set correctly.');
 
         }
-    }
-
-    public function __construct(array &$return = [])
-    {
-        parent::__construct($return);
-
-        $this->PHP_VALIDATION = [
-            self::POST => [
-                self::PREPROCESS => [
-                    static fn() => self::restTesting('12','__construct', 'post')
-                ]
-            ]];
     }
    
     /**
@@ -455,7 +497,6 @@ class User_Tasks extends Rest implements iRestSinglePrimaryKey
             self::END_DATE => [
                 [self::class => 'disallowPublicAccess', self::END_DATE]
             ],
-
         ],
         self::POST => [
             self::PREPROCESS => [
@@ -496,7 +537,7 @@ class User_Tasks extends Rest implements iRestSinglePrimaryKey
                 [self::class => 'restTesting', '11',self::FINISH]
             ]
         ]
-    ]; 
+    ];
     
     public array $PHP_VALIDATION = [
         

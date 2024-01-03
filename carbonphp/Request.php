@@ -280,7 +280,7 @@ class Request   // requires carbon::application;
      * @return array|mixed
      * @throws PublicAlert if the files fail to be stored
      */
-    public function storeFiles(string $location = 'Data/Uploads/Temp/')
+    public function storeFiles(string $location = 'data/uploads/tmp/')
     {
         $storagePath = array();
 

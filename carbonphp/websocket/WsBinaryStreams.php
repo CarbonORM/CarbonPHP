@@ -9,9 +9,9 @@ use Socket;
 abstract class WsBinaryStreams
 {
     /**
-     * @var Socket $socket rhttps://www.php.net/manual/en/function.stream-set-timeout.php#100676
+     * @var Socket|resource|null $socket https://www.php.net/manual/en/function.stream-set-timeout.php#100676
      */
-    public static mixed $socket; // still a resource @link https://stackoverflow.com/questions/66871564/php-8-assign-resource-as-property-parameter-or-return-type
+    public static mixed $socket = null; // still a resource @link https://stackoverflow.com/questions/66871564/php-8-assign-resource-as-property-parameter-or-return-type
     public const CONTINUE = 0x0;
 
     public const TEXT = 0x1;

@@ -3,7 +3,7 @@
 namespace CarbonPHP\Tables;
 
 // Restful defaults
-use CarbonPHP\Interfaces\iRestNoPrimaryKey;
+use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Tables\Traits\History_Logs_Columns;
 use CarbonPHP\Restful\RestfulValidations;
 use CarbonPHP\Rest;
@@ -32,7 +32,7 @@ use PDO;
  * When creating static member functions which require persistent variables, consider making them static members of that 
  *  static method.
  */
-class History_Logs extends Rest implements iRestNoPrimaryKey
+class History_Logs extends Rest implements iRestSinglePrimaryKey
 {
     use History_Logs_Columns;
     
@@ -52,7 +52,7 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
     
     public const DATABASE = 'CarbonPHP';
     
-    public const JSON_COLUMNS = ['history_data',];
+    public const JSON_COLUMNS = ['history_request','history_response',];
 
     public const AUTO_ESCAPE_POST_HTML_SPECIAL_CHARS = true;
     
@@ -79,7 +79,7 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
      * given composite primary keys. The existence and amount of primary keys of the will also determine the interface 
      * aka method signatures used.
     **/
-    public const PRIMARY = null;
+    public const PRIMARY = 'carbon_history_logs.history_uuid';
 
     /**
      * AUTO_INCREMENT_PRIMARY_KEY
@@ -107,15 +107,21 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
     **/
     public const HISTORY_UUID = 'carbon_history_logs.history_uuid'; 
 
+    public const HISTORY_URI = 'carbon_history_logs.history_uri'; 
+
     public const HISTORY_TABLE = 'carbon_history_logs.history_table'; 
 
     public const HISTORY_TYPE = 'carbon_history_logs.history_type'; 
 
-    public const HISTORY_DATA = 'carbon_history_logs.history_data'; 
+    public const HISTORY_REQUEST = 'carbon_history_logs.history_request'; 
 
-    public const HISTORY_ORIGINAL_QUERY = 'carbon_history_logs.history_original_query'; 
+    public const HISTORY_RESPONSE = 'carbon_history_logs.history_response'; 
+
+    public const HISTORY_QUERY = 'carbon_history_logs.history_query'; 
 
     public const HISTORY_TIME = 'carbon_history_logs.history_time'; 
+
+    public const HISTORY_UPDATED = 'carbon_history_logs.history_updated'; 
     
     /**
      * COLUMNS
@@ -126,11 +132,14 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
     **/ 
     public const COLUMNS = [
         self::HISTORY_UUID => 'history_uuid',
+        self::HISTORY_URI => 'history_uri',
         self::HISTORY_TABLE => 'history_table',
         self::HISTORY_TYPE => 'history_type',
-        self::HISTORY_DATA => 'history_data',
-        self::HISTORY_ORIGINAL_QUERY => 'history_original_query',
+        self::HISTORY_REQUEST => 'history_request',
+        self::HISTORY_RESPONSE => 'history_response',
+        self::HISTORY_QUERY => 'history_query',
         self::HISTORY_TIME => 'history_time',
+        self::HISTORY_UPDATED => 'history_updated',
     ];
     
     /**
@@ -139,11 +148,14 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
     **/
     public const PDO_VALIDATION = [
         self::HISTORY_UUID => [ self::MYSQL_TYPE => 'binary', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '16', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],
+        self::HISTORY_URI => [ self::MYSQL_TYPE => 'longtext', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],
         self::HISTORY_TABLE => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '255', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => null ],
-        self::HISTORY_TYPE => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '20', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => null ],
-        self::HISTORY_DATA => [ self::MYSQL_TYPE => 'json', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => null ],
-        self::HISTORY_ORIGINAL_QUERY => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '1024', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => null ],
+        self::HISTORY_TYPE => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '200', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => null ],
+        self::HISTORY_REQUEST => [ self::MYSQL_TYPE => 'json', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => null ],
+        self::HISTORY_RESPONSE => [ self::MYSQL_TYPE => 'json', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => null ],
+        self::HISTORY_QUERY => [ self::MYSQL_TYPE => 'longtext', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],
         self::HISTORY_TIME => [ self::MYSQL_TYPE => 'datetime', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => self::CURRENT_TIMESTAMP ],
+        self::HISTORY_UPDATED => [ self::MYSQL_TYPE => 'datetime', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => null ],
     ];
      
     /**
@@ -200,7 +212,8 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
             
         ];
          
-        $this->PHP_VALIDATION = [ 
+        
+        $this->PHP_VALIDATION = RestfulValidations::getDefaultRestAccess(self::class, [ 
             self::COLUMN => [
                self::GLOBAL_COLUMN_VALIDATION => []
             ],
@@ -242,7 +255,7 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
                     // Has executed and committed to the database, results are passed by reference
                 ],
             ]
-        ];
+        ]);
     }
     
     /** Custom User Methods Are Placed Here **/
@@ -388,20 +401,29 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
      *              self::HISTORY_UUID => [
      *                  [self::class => 'disallowPublicAccess', self::HISTORY_UUID]
      *              ],
+     *              self::HISTORY_URI => [
+     *                  [self::class => 'disallowPublicAccess', self::HISTORY_URI]
+     *              ],
      *              self::HISTORY_TABLE => [
      *                  [self::class => 'disallowPublicAccess', self::HISTORY_TABLE]
      *              ],
      *              self::HISTORY_TYPE => [
      *                  [self::class => 'disallowPublicAccess', self::HISTORY_TYPE]
      *              ],
-     *              self::HISTORY_DATA => [
-     *                  [self::class => 'disallowPublicAccess', self::HISTORY_DATA]
+     *              self::HISTORY_REQUEST => [
+     *                  [self::class => 'disallowPublicAccess', self::HISTORY_REQUEST]
      *              ],
-     *              self::HISTORY_ORIGINAL_QUERY => [
-     *                  [self::class => 'disallowPublicAccess', self::HISTORY_ORIGINAL_QUERY]
+     *              self::HISTORY_RESPONSE => [
+     *                  [self::class => 'disallowPublicAccess', self::HISTORY_RESPONSE]
+     *              ],
+     *              self::HISTORY_QUERY => [
+     *                  [self::class => 'disallowPublicAccess', self::HISTORY_QUERY]
      *              ],
      *              self::HISTORY_TIME => [
      *                  [self::class => 'disallowPublicAccess', self::HISTORY_TIME]
+     *              ],
+     *              self::HISTORY_UPDATED => [
+     *                  [self::class => 'disallowPublicAccess', self::HISTORY_UPDATED]
      *              ],
      *          ],    
      *          self::POST => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
@@ -430,40 +452,7 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
      *
      *  @version ^11.3
      */ 
-    public const PHP_VALIDATION = [ 
-        self::REST_REQUEST_PREPROCESS_CALLBACKS => [ 
-            self::PREPROCESS => [ 
-                [self::class => 'disallowPublicAccess', self::class],
-            ]
-        ],
-        self::GET => [ 
-            self::PREPROCESS => [ 
-                [self::class => 'disallowPublicAccess', self::class],
-            ],
-            self::HISTORY_UUID => [
-                [self::class => 'disallowPublicAccess', self::HISTORY_UUID]
-            ],
-            self::HISTORY_TABLE => [
-                [self::class => 'disallowPublicAccess', self::HISTORY_TABLE]
-            ],
-            self::HISTORY_TYPE => [
-                [self::class => 'disallowPublicAccess', self::HISTORY_TYPE]
-            ],
-            self::HISTORY_DATA => [
-                [self::class => 'disallowPublicAccess', self::HISTORY_DATA]
-            ],
-            self::HISTORY_ORIGINAL_QUERY => [
-                [self::class => 'disallowPublicAccess', self::HISTORY_ORIGINAL_QUERY]
-            ],
-            self::HISTORY_TIME => [
-                [self::class => 'disallowPublicAccess', self::HISTORY_TIME]
-            ],
-            
-        ],    
-        self::POST => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
-        self::PUT => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],    
-        self::DELETE => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]],
-        self::REST_REQUEST_FINNISH_CALLBACKS => [ self::PREPROCESS => [[ self::class => 'disallowPublicAccess', self::class ]]]    
+    public const PHP_VALIDATION = [
     ]; 
     
     public array $PHP_VALIDATION = [
@@ -477,11 +466,15 @@ class History_Logs extends Rest implements iRestNoPrimaryKey
     public const CREATE_TABLE_SQL = /** @lang MySQL */ <<<MYSQL
 CREATE TABLE IF NOT EXISTS `carbon_history_logs` (
 `history_uuid` binary(16) NOT NULL,
+`history_uri` longtext,
 `history_table` varchar(255) DEFAULT NULL,
-`history_type` varchar(20) DEFAULT NULL,
-`history_data` json DEFAULT NULL,
-`history_original_query` varchar(1024) DEFAULT NULL,
-`history_time` datetime DEFAULT CURRENT_TIMESTAMP
+`history_type` varchar(200) DEFAULT NULL,
+`history_request` json DEFAULT NULL,
+`history_response` json DEFAULT NULL,
+`history_query` longtext,
+`history_time` datetime DEFAULT CURRENT_TIMESTAMP,
+`history_updated` datetime ON UPDATE CURRENT_TIMESTAMP,
+PRIMARY KEY (`history_uuid`)
 ) ENGINE=InnoDB;
 MYSQL;
        
@@ -557,21 +550,22 @@ MYSQL;
     *
     *
     * @param array $return
+    * @param string|null $primary
     * @param array $argv
     * @generated
     * @return bool
     */
-    public static function get(array|null &$return, array $argv = []): bool
+    public static function get(array|null &$return, string $primary = null, array $argv = []): bool
     {
-        return self::select($return, $argv);
+        return self::select($return, $argv, $primary === null ? null : [ self::PRIMARY => $primary ]);
     }
 
     /**
      * @param array $post - a one to one; column => value mapping. Multiple rows may be inserted at one time using an array of arrays.
-     * @return bool|string
+     * @return bool|string|mixed
      * @generated
      */
-    public static function post(array &$post = []): bool
+    public static function post(array &$post = [])
     {   
         return self::insert($post);
     }
@@ -579,35 +573,35 @@ MYSQL;
     /**
     * 
     * 
-    *  Syntax should be as follows.
-    *  $argv = [
+    * Tables where primary keys exist must be updated by its primary key. 
+    * Column should be in a key value pair passed to $argv or optionally using syntax:
+    * $argv = [
     *       Rest::UPDATE => [
     *              ...
-    *       ],
-    *       Rest::WHERE => [
-    *              ...
     *       ]
+    * ]
     * 
     * @param array $returnUpdated - will be merged with with array_merge, with a successful update. 
-    
+    * @param string|null $primary
     * @param array $argv 
     * @generated
     * @return bool - if execute fails, false will be returned and $returnUpdated = $stmt->errorInfo(); 
     */
-    public static function put(array &$returnUpdated,  array $argv = []) : bool
+    public static function put(array &$returnUpdated, string $primary = null, array $argv = []) : bool
     {
-        return self::updateReplace($returnUpdated, $argv);
+        return self::updateReplace($returnUpdated, $argv, $primary === null ? null : [ self::PRIMARY => $primary ]);
     }
 
     /**
     * @param array $remove
+    * @param string|null $primary
     * @param array $argv
     * @generated
     * @return bool
     */
-    public static function delete(array &$remove, array $argv = []) : bool
+    public static function delete(array &$remove, string $primary = null, array $argv = []) : bool
     {
-        return self::remove($remove, $argv);
+        return self::remove($remove, $argv, $primary === null ? null : [ self::PRIMARY => $primary ]);
     }
     
 }
