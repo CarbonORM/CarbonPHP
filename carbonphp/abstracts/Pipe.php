@@ -8,8 +8,10 @@
 
 namespace CarbonPHP\Abstracts;
 
+use CarbonPHP\CarbonPHP;
 use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Interfaces\iColorCode;
+use Throwable;
 
 /**
  * Class Pipe
@@ -23,6 +25,53 @@ use CarbonPHP\Interfaces\iColorCode;
  */
 abstract class Pipe
 {
+
+    public static string $fifoDelimiter = PHP_EOL . __CLASS__ . ':' . __LINE__ . PHP_EOL;
+
+    public static function createFifoChannel(string $channelName)
+    {
+        return self::named(CarbonPHP::$app_root . DIRECTORY_SEPARATOR . 'fifo' . DIRECTORY_SEPARATOR . self::safePipeName($channelName) . '.fifo');
+    }
+
+
+    /**
+     * @param string $channelName - this can be just a user id
+     * @param mixed $data - must be JSON_ENCODE-ABLE
+     */
+    public static function realtimeUpdateChannel(string $channelName, string $data): void
+    {
+        $updateCount = 0;
+
+        $channelName = self::safePipeName($channelName);
+
+        $channelFIFOS = glob(CarbonPHP::$app_root . "/tmp/fifo/$channelName*.fifo");
+
+        foreach ($channelFIFOS as $resourceConnection) {
+
+            try {
+
+                self::send($data, $resourceConnection);
+
+            } catch (Throwable $e) {
+
+                ThrowableHandler::generateLog($e);
+
+            } finally {
+
+                $updateCount++;
+            }
+
+        }
+
+        if (!CarbonPHP::$test) {
+
+            ColorCode::colorCode("The channel ($channelName) saw ($updateCount) browsers updated.", iColorCode::MAGENTA);
+
+        }
+
+    }
+
+
     /** This will open a named pipe on our server. This is used for sending
      * information between two active processes on the server. Generally,
      * each user can send data real time to each other using this method.
@@ -69,6 +118,10 @@ abstract class Pipe
         return $fifoFile;                                       // File descriptor
     }
 
+    public static function safePipeName(string $name): string
+    {
+        return str_replace(".", '_', preg_replace('#/#', ':', $name));
+    }
 
     /** Attempt to send a string to a named pipe. This is normally done
      * after forking so error are logged via error catcher.
@@ -86,8 +139,11 @@ abstract class Pipe
     {
 
         try {
+
             if (!file_exists($fifoPath)) {
+
                 return false;
+
             }
 
             umask(0000);
@@ -101,18 +157,25 @@ abstract class Pipe
 
             #sortDump(substr(sprintf('%o', fileperms($fifoPath)), -4) . PHP_EOL);  //-- file permissions
 
-            $value .= PHP_EOL; // safely send, dada needs to end in null
+            // to safely send, data needs to end with delimiter
+            $value .= self::$fifoDelimiter;
 
             $fifo = fopen($fifoPath, 'wb+');
 
             fwrite($fifo, $value, \strlen($value) + 1);
 
             fclose($fifo);
-        } catch (\Exception $e) {
+        } catch (Throwable $e) {
+
             ThrowableHandler::generateLog($e);
+
         }
+
         return true;
+
     }
+
+
 }
 
 

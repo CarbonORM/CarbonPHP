@@ -15,6 +15,112 @@ use Error;
 abstract class WsConnection
 {
 
+
+    public static function decodeWebsocket(&$connection) {
+        $data = WebSocket::decode($connection);
+
+        switch ($data['opcode']) {
+
+            case WsBinaryStreams::CLOSE:
+
+                WsConnection::closeConnection($connection);
+
+                break;
+
+            case WsBinaryStreams::PONG:
+
+                ColorCode::colorCode('Browser sent a response PONG', iColorCode::BACKGROUND_MAGENTA);
+
+                break;
+
+            case WsBinaryStreams::PING:
+
+                ColorCode::colorCode('Browser sent PING', iColorCode::BACKGROUND_MAGENTA);
+
+                if (false === WebSocket::sendToResource('', $connection, WsBinaryStreams::PONG)) {
+
+                    WsConnection::closeConnection($connection);
+
+                }
+
+                break;
+
+            case WsBinaryStreams::TEXT:
+
+                if ('ping' === $data['payload']) {
+
+                    ColorCode::colorCode('Browser sent text ping', iColorCode::BACKGROUND_MAGENTA);
+
+                    if (false === WebSocket::sendToResource('pong', $connection)) {
+
+                        WsConnection::closeConnection($connection);
+
+                    }
+
+                    break;
+
+                }
+
+                // we have to find the relation regardless,
+                foreach (WebSocket::$userConnectionRelationships as $information) {
+
+                    if ($information->userSocket === $connection) {
+
+                        if (is_string($data['payload'])) {
+
+                            WebSocket::forkStartApplication($data['payload'], $information, $connection);
+
+                        } else {
+
+                            ColorCode::colorCode("The 'payload' decoded was not a string. This is unexpected.", iColorCode::RED);
+
+                            WsConnection::closeConnection($connection);
+
+                        }
+
+                        break;
+
+                    }
+
+                }
+
+                ColorCode::colorCode("Failed to get the users socket information for the payload.", iColorCode::RED);
+
+                break;
+
+            case WsBinaryStreams::CONTINUE:
+
+                ColorCode::colorCode('CONTINUE FRAME: ' . print_r($data, true), iColorCode::MAGENTA);
+
+                break;
+
+            case WsBinaryStreams::BINARY:
+
+                ColorCode::colorCode('BINARY FRAME:', iColorCode::BACKGROUND_MAGENTA);
+
+                $data = print_r(bindec($data['payload']), true);
+
+                ColorCode::colorCode("bindec = ($data).", iColorCode::YELLOW);
+
+                break;
+
+            default:
+
+                ColorCode::colorCode('ERROR DECODING OPCODE', iColorCode::RED);
+
+                $data = print_r($data, true);
+
+                ColorCode::colorCode("Unknown opcode given to websocket. Ignoring ($data).", iColorCode::YELLOW);
+
+                break;
+
+
+        }
+
+    }
+
+
+
     public static function garbageCollect(): void
     {
 
@@ -108,7 +214,7 @@ abstract class WsConnection
 
         foreach (WebSocket::$userConnectionRelationships as $key => &$information) {
 
-            if ($information['user_pipe'] === $connection) {
+            if ($information->userPipe === $connection) {
 
                 ColorCode::colorCode("User connected named pipe closed before socket.", iColorCode::RED);
 
@@ -116,19 +222,19 @@ abstract class WsConnection
 
             }
 
-            if ($information['user_socket'] === $connection) {
+            if ($information->userSocket === $connection) {
 
                 ColorCode::colorCode('Socket Closed.', iColorCode::RED);
 
-                $pipeToDeleteKey = array_search($information['user_pipe'], WebSocket::$allConnectedResources, true);
+                $pipeToDeleteKey = array_search($information->userPipe, WebSocket::$allConnectedResources, true);
 
-                if (!is_resource($information['user_pipe'])) {
+                if (!is_resource($information->userPipe)) {
 
                     ColorCode::colorCode('Pipe not resource. This is unexpected.', iColorCode::RED);
 
                 } else {
 
-                    @fclose($information['user_pipe']);
+                    @fclose($information->userPipe);
 
                 }
 
@@ -186,6 +292,18 @@ abstract class WsConnection
 
         }
 
+        if (!array_key_exists('Cookie', $headers)) {
+
+            ColorCode::colorCode("No 'Cookie' Header was sent to WebSocket server! Closing connection", iColorCode::RED);
+
+            WebSocket::sendToResource('', $connection, WsBinaryStreams::CLOSE);
+
+            @fclose($connection);
+
+            return true;
+
+        }
+
         ColorCode::colorCode("Handshake Successful", iColorCode::BLUE);
 
         // use regex to split peer name
@@ -194,8 +312,6 @@ abstract class WsConnection
         [, $ip, $port] = $matches;
 
         ColorCode::colorCode("Connected ($ip:$port)", iColorCode::CYAN);
-
-        session_write_close();
 
         WebSocket::$validateUserCallback ??= static function (string $ip, int $port): int {
 
@@ -218,54 +334,56 @@ abstract class WsConnection
 
         ColorCode::colorCode("User Session Verified ($userId)", iColorCode::CYAN);
 
-        // this is a really expensive foreach
-        WebSocket::$userConnectionRelationships[$userId] ??= null;
+        $uniqueUserWsSession = "$userId:$ip:$port";
 
-        $pipeRelation = &WebSocket::$userConnectionRelationships[$userId];
+        // this is a really expensive foreach
+        WebSocket::$userConnectionRelationships[$uniqueUserWsSession] ??= null;
+
+        $pipeRelation = &WebSocket::$userConnectionRelationships[$uniqueUserWsSession];
 
         if ($pipeRelation !== null) {
 
-            ColorCode::colorCode("Found Multiple Session Connections For :: $userId", iColorCode::BLUE);
+            ColorCode::colorCode("Found Multiple Session Connections For :: $uniqueUserWsSession", iColorCode::BLUE);
 
-            if ($pipeRelation['user_socket'] === $connection) {
+            if ($pipeRelation->userSocket === $connection) {
 
                 ColorCode::colorCode('User Socket Connecting Through Same Resource :)');
 
             } else {
 
-                ColorCode::colorCode('User Socket Connecting Through Different Resource. Closing Old Connection.', 'blue');
+                ColorCode::colorCode('User Socket Connecting Through Different Resource. Closing Old Connection.', iColorCode::BLUE);
 
-                $userToUpdateKey = array_search($pipeRelation['user_socket'], WebSocket::$userResourceConnections, true);
+                $userToUpdateKey = array_search($pipeRelation->userSocket, WebSocket::$userResourceConnections, true);
 
-                $userToUpdateKey2 = array_search($pipeRelation['user_socket'], WebSocket::$allConnectedResources, true);
+                $userToUpdateKey2 = array_search($pipeRelation->userSocket, WebSocket::$allConnectedResources, true);
 
-                @fclose($pipeRelation['user_socket']);  // todo - allow multiple browsers
+                @fclose($pipeRelation->userSocket);  // todo - allow multiple browsers
 
                 unset(WebSocket::$userResourceConnections[$userToUpdateKey], WebSocket::$allConnectedResources[$userToUpdateKey2]);
 
-                $pipeRelation['user_socket'] = &$connection; // todo - this would 'potentially' overwrite a connection
+                $pipeRelation->userSocket = &$connection; // todo - this would 'potentially' overwrite a connection
 
             }
 
-            if (!is_resource($pipeRelation['user_pipe'])) {
+            if (!is_resource($pipeRelation->userPipe)) {
 
                 ColorCode::colorCode("The pipe went barron, this should never happen. Attempting to refresh.", iColorCode::RED);
 
-                @fclose($pipeRelation['user_pipe']);
+                @fclose($pipeRelation->userPipe);
 
-                $pipe = Pipe::named(CarbonPHP::$app_root . 'temp/' . $userId . '.fifo');     // other users can notify us to update our application through this file
+                $pipe = Pipe::createFifoChannel($uniqueUserWsSession);     // other users can notify us to update our application through this file
 
                 if ($pipe === false) {
 
-                    ColorCode::colorCode("Pipe failed to be created.", 'red');
+                    ColorCode::colorCode("Pipe failed to be created.", iColorCode::RED);
 
                     return true;
 
                 }
 
-                ColorCode::colorCode("Pipe refreshed.", 'blue');
+                ColorCode::colorCode("Pipe refreshed.", iColorCode::BLUE);
 
-                $pipeRelation['user_pipe'] = &$pipe;
+                $pipeRelation->userPipe = &$pipe;
 
             }
 
@@ -273,19 +391,19 @@ abstract class WsConnection
 
         }
 
-        $fifoPath = CarbonPHP::$app_root . 'temp/' . $userId . '.fifo';
+        $fifoPath = CarbonPHP::$app_root . 'temp/fifo/' . $uniqueUserWsSession . '.fifo';
 
         $pipe = Pipe::named($fifoPath);     // other users can notify us to update our application through this file
 
         if ($pipe === false) {
 
-            ColorCode::colorCode("Pipe failed to be created.", 'red');
+            ColorCode::colorCode("Pipe failed to be created.", iColorCode::RED);
 
             return true;
 
         }
 
-        ColorCode::colorCode("Pipe created. ($fifoPath)", 'blue');
+        ColorCode::colorCode("Pipe created. ($fifoPath)", iColorCode::BLUE);
 
         // add our new connection to the master list after we've checked for duplicates
         WebSocket::$allConnectedResources[] = &$connection;
@@ -294,7 +412,7 @@ abstract class WsConnection
 
         WebSocket::$userResourceConnections[] = &$connection;
 
-        WebSocket::$userConnectionRelationships[$userId] = new WsUserConnectionRelationship(
+        WebSocket::$userConnectionRelationships[$uniqueUserWsSession] = new WsUserConnectionRelationship(
             userId: $userId,
             userPipe: $pipe,
             userSocket: $connection,

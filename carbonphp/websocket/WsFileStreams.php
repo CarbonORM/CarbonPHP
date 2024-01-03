@@ -4,6 +4,8 @@ namespace CarbonPHP\WebSocket;
 
 
 use CarbonPHP\Abstracts\ColorCode;
+use CarbonPHP\Abstracts\Files;
+use CarbonPHP\Abstracts\Pipe;
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Error\PrivateAlert;
 use CarbonPHP\Error\ThrowableHandler;
@@ -16,10 +18,14 @@ use Throwable;
 abstract class WsFileStreams extends WsBinaryStreams
 {
 
+
+
+
     /**
      * @var Resource[]
      */
     public static array $userResourceConnections = [];
+
 
     public static function sendToResource(string $data, &$connection, int $opCode = self::TEXT): bool
     {
@@ -115,7 +121,7 @@ abstract class WsFileStreams extends WsBinaryStreams
 
             if (session_status() === PHP_SESSION_NONE) {
 
-                Session::resume($information['session_id']);
+                Session::resume($information->sessionId);
 
             }
 
@@ -176,9 +182,9 @@ abstract class WsFileStreams extends WsBinaryStreams
 
         }
 
-        $data = explode(PHP_EOL, $data);
+        $data = explode(Pipe::$fifoDelimiter, $data);
 
-        foreach ($data as $id => $uri) {
+        foreach ($data as $uri) {
 
             if (empty($uri)) {
 

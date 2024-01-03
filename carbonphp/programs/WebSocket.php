@@ -229,108 +229,13 @@ class WebSocket extends WsFileStreams implements iCommand
 
                         }
 
+                        if ($information->userSocket === $connection) {
 
+                            WsConnection::decodeWebsocket($connection);
 
+                            continue 2; // foreach read as connection
 
-                    }
-
-                    $data = self::decode($connection);
-
-                    switch ($data['opcode']) {
-
-                        case self::CLOSE:
-
-                            WsConnection::closeConnection($connection);
-
-                            break;
-
-                        case self::PONG:
-
-                            ColorCode::colorCode('Browser sent a response PONG', iColorCode::BACKGROUND_MAGENTA);
-
-                            break;
-
-                        case self::PING:
-
-                            ColorCode::colorCode('Browser sent PING', iColorCode::BACKGROUND_MAGENTA);
-
-                            if (false === self::sendToResource('', $connection, self::PONG)) {
-
-                                WsConnection::closeConnection($connection);
-
-                            }
-
-                            break;
-
-                        case self::TEXT:
-
-                            if ('ping' === $data['payload']) {
-
-                                ColorCode::colorCode('Browser sent text ping', iColorCode::BACKGROUND_MAGENTA);
-
-                                if (false === self::sendToResource('pong', $connection)) {
-
-                                    WsConnection::closeConnection($connection);
-
-                                }
-
-                                break;
-
-                            }
-
-                            // we have to find the relation regardless,
-                            foreach (self::$userConnectionRelationships as $information) {
-
-                                if ($information->userSocket === $connection) {
-
-                                    if (is_string($data['payload'])) {
-
-                                        self::forkStartApplication($data['payload'], $information, $connection);
-
-                                    } else {
-
-                                        ColorCode::colorCode("The 'payload' decoded was not a string. This is unexpected.", iColorCode::RED);
-
-                                        WsConnection::closeConnection($connection);
-
-                                    }
-
-                                    break;
-
-                                }
-
-                            }
-
-                            ColorCode::colorCode("Failed to get the users socket information for the payload.", iColorCode::RED);
-
-                            break;
-
-                        case self::CONTINUE:
-
-                            ColorCode::colorCode('CONTINUE FRAME: ' . print_r($data, true), iColorCode::MAGENTA);
-
-                            break;
-
-                        case self::BINARY:
-
-                            ColorCode::colorCode('BINARY FRAME:', iColorCode::BACKGROUND_MAGENTA);
-
-                            $data = print_r(bindec($data['payload']), true);
-
-                            ColorCode::colorCode("bindec = ($data).", iColorCode::YELLOW);
-
-                            break;
-
-                        default:
-
-                            ColorCode::colorCode('ERROR DECODING OPCODE', iColorCode::RED);
-
-                            $data = print_r($data, true);
-
-                            ColorCode::colorCode("Unknown opcode given to websocket. Ignoring ($data).", iColorCode::YELLOW);
-
-                            break;
-
+                        }
 
                     }
 
