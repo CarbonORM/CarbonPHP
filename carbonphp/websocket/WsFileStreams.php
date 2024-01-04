@@ -19,8 +19,6 @@ abstract class WsFileStreams extends WsBinaryStreams
 {
 
 
-
-
     /**
      * @var Resource[]
      */
@@ -78,7 +76,7 @@ abstract class WsFileStreams extends WsBinaryStreams
 
     private static function sendToWebSocketGlobalPipe(string $data): void
     {
-       Pipe::sendToFifoChannel('global_pipe', $data);
+        Pipe::sendToFifoChannel('global_pipe', $data);
     }
 
     public static function sendToAllWebsSocketConnections(string $data, $opCode = self::TEXT): void
@@ -92,7 +90,11 @@ abstract class WsFileStreams extends WsBinaryStreams
 
         }
 
-        ColorCode::colorCode("Sending to all websocket connections ($data)", iColorCode::BLUE);
+        if (CarbonPHP::$verbose) {
+
+            ColorCode::colorCode("Sending to all websocket connections ($data)", iColorCode::BLUE);
+
+        }
 
         foreach (self::$userResourceConnections as $key => $resourceConnection) {
 
@@ -187,14 +189,21 @@ abstract class WsFileStreams extends WsBinaryStreams
     public static function readFromFifo(&$fifoFile, callable $handlePipeInfo): void
     {
 
-        /** @noinspection PhpUnusedLocalVariableInspection */
-        $data = fread($fifoFile, $bytes = 1024);
+        $data = '';
 
-        if (false === $data) {
+        // @link https://stackoverflow.com/questions/20652194/websocket-frame-size-limitation
+        // the limitation is not the frame size, but php's memory limit. PHP's max int is not even 2^63
+        while (!feof($fifoFile)) {
 
-            ColorCode::colorCode("\nFailed to preform read for fifo file\n", iColorCode::RED);
+            $fread = fgetc($fifoFile);
 
-            return;
+            if (false === $fread) {
+
+                break;
+
+            }
+
+            $data .= $fread;
 
         }
 

@@ -98,6 +98,8 @@ class WebSocket extends WsFileStreams implements iCommand
 
         CarbonPHP::$socket = true;
 
+        ini_set('memory_limit', '4G');
+
         error_reporting(E_ALL);
 
         set_time_limit(0);
