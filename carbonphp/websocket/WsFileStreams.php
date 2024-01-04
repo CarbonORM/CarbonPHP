@@ -84,13 +84,15 @@ abstract class WsFileStreams extends WsBinaryStreams
     public static function sendToAllWebsSocketConnections(string $data, $opCode = self::TEXT): void
     {
 
-        if (null !== WebSocket::$socket) {
+        if (null === WebSocket::$socket) {
 
-            self::sendToWebSocketGlobalPipe($data, $opCode);
+            self::sendToWebSocketGlobalPipe($data);
 
             return;
 
         }
+
+        ColorCode::colorCode("Sending to all websocket connections ($data)", iColorCode::BLUE);
 
         foreach (self::$userResourceConnections as $key => $resourceConnection) {
 

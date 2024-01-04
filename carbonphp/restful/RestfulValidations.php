@@ -126,6 +126,66 @@ abstract class RestfulValidations
 
     }
 
+    public static function sendRestfulResponseToWebSocket($selfClass): void
+    {
+
+        try {
+
+            if (iRest::GET === Rest::$REST_REQUEST_METHOD
+                || (false === CarbonPHP::$cli && false === Rest::$externalRestfulRequestsAPI)) {
+
+                return;
+
+            }
+
+            $GLOBALS['json']['sql'] ??= [];
+
+            $sqlDebugInfo = null;
+
+            $externalRestIdentifier = 'CarbonPHP\Restful\RestSettings::$externalRestfulRequestsAPI';
+
+            foreach ($GLOBALS['json']['sql'] ?? [] as $debugInfo) {
+
+                if (true === $debugInfo[$externalRestIdentifier] ?? false) {
+
+                    $sqlDebugInfo = $debugInfo;
+
+                    $debugDumpParams = $sqlDebugInfo['stmt']['debugDumpParams'];
+
+                    unset($sqlDebugInfo['stmt']['debugDumpParams']);
+
+                    $sqlDebugInfo['stmt']['sent'] = $debugDumpParams[1];
+
+                    unset($sqlDebugInfo[$externalRestIdentifier]);
+
+                    break;
+
+                }
+
+            }
+
+            $jsonEncoded = json_encode((object)[
+                'REST' => [
+                    'TABLE_NAME' => $selfClass::TABLE_NAME,
+                    'TABLE_PREFIX' => $selfClass::TABLE_PREFIX,
+                    'METHOD' => Rest::$REST_REQUEST_METHOD,
+                    'REQUEST' => Rest::$REST_REQUEST_PARAMETERS,
+                    'REQUEST_PRIMARY_KEY' => Rest::$REST_REQUEST_PRIMARY_KEY,
+                    'SQL' => $sqlDebugInfo,
+                    'LOG_ID' => self::$historyLogId ?? null,
+                ]
+            ], JSON_THROW_ON_ERROR);
+
+            WsFileStreams::sendToAllWebsSocketConnections($jsonEncoded);
+
+        } catch (Throwable $e) {
+
+            ThrowableHandler::generateLogAndExit($e);
+
+        }
+
+    }
+
     /**
      * Careful those who journey here, the functions called here can run multiple times for a singe request.
      * This is due to table joins merging the rules multiple times.
@@ -233,24 +293,13 @@ abstract class RestfulValidations
                     ],
                     iRest::FINISH => [
                         self::putHistoryLog(),
-                        ...($overrides[iRest::FINISH][iRest::FINISH] ?? []),
-                        static function (array $c6DeliveredArgs) use ($selfClass): void {
+                        ...($overrides[iRest::FINISH][iRest::FINISH] ?? [
+                            static function () use ($selfClass): void {
 
-                            if (iRest::GET === Rest::$REST_REQUEST_METHOD
-                                || (false === CarbonPHP::$cli && false === Rest::$externalRestfulRequestsAPI)) {
+                                self::sendRestfulResponseToWebSocket($selfClass);
 
-                                return;
-
-                            }
-
-                            WsFileStreams::sendToAllWebsSocketConnections(json_encode((object)[
-                                $selfClass::TABLE_NAME => [
-                                    Rest::$REST_REQUEST_METHOD,
-                                    $c6DeliveredArgs
-                                ]
-                            ], JSON_THROW_ON_ERROR));
-
-                        },
+                            },
+                        ])
                     ]
                 ]
             ];

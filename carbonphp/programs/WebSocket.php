@@ -231,6 +231,8 @@ class WebSocket extends WsFileStreams implements iCommand
 
                     if (self::$globalPipeFifo === $connection) {
 
+                        ColorCode::colorCode("Reading from global pipe");
+
                         WsFileStreams::readFromFifo($connection, static fn(string $data) => self::sendToAllWebsSocketConnections($data));
 
                         continue; // foreach read as connection
