@@ -485,10 +485,10 @@ FOOT;
 
             }
 
-            $session = $_SESSION;
-
             if (false === empty(Session::$session_id)
                 && session_status() === PHP_SESSION_ACTIVE) {
+
+                $session = $_SESSION;
 
                 $success = session_write_close();
 
