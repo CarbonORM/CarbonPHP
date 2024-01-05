@@ -75,6 +75,8 @@ abstract class RestfulValidations
 
             $hasRun = true;
 
+            $sessionStatus = session_status();
+
             $postHistoryLog = [
                 History_Logs::HISTORY_URI => $_SERVER['REQUEST_URI'],
                 History_Logs::HISTORY_TABLE => $selfClass,
@@ -90,6 +92,12 @@ abstract class RestfulValidations
             if (empty(self::$historyLogId)) {
 
                 throw new PublicAlert('Failed to add history log!');
+
+            }
+
+            if (PHP_SESSION_ACTIVE === $sessionStatus && session_status() !== PHP_SESSION_ACTIVE) {
+
+                new Session();
 
             }
 
@@ -136,8 +144,6 @@ abstract class RestfulValidations
                 session_write_close(); // todo - do I like this?
 
             }
-
-            //
 
             $dynamicHistoryTable = self::getHistoryTable();
 

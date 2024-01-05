@@ -485,6 +485,8 @@ FOOT;
 
             }
 
+            $session = $_SESSION;
+
             if (false === empty(Session::$session_id)
                 && session_status() === PHP_SESSION_ACTIVE) {
 
@@ -507,6 +509,7 @@ FOOT;
                         'PHP_SESSION_ACTIVE' => PHP_SESSION_ACTIVE,
                         'PHP_SESSION_NONE' => PHP_SESSION_NONE,
                     ],
+                    '$_SESSION' => $session,
                     'Session Write Close' => '(this commit closed the session)'
                 ];
 

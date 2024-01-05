@@ -9,9 +9,6 @@
           </advancedOptions>
         </fileTransfer>
       </webServer>
-      <webServer id="2e9b5020-31ee-4b74-b06a-5fa44e91752a" name="dropingaming" url="http://localhost">
-        <fileTransfer mountedRoot="$PROJECT_DIR$/../dropingaming.com/vendor/richardtmiles/carbonphp" accessType="MOUNT" port="0" />
-      </webServer>
       <webServer id="2533def3-8a9f-4da4-ada1-7e94f4939629" name="miles.systems" url="http://localhost">
         <fileTransfer mountedRoot="$PROJECT_DIR$/../CarbonReactBootstrap/vendor/carbonorm/carbonphp" accessType="MOUNT" port="0" />
       </webServer>
