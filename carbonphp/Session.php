@@ -25,6 +25,7 @@ use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Programs\WebSocket;
+use CarbonPHP\Tables\History_Logs;
 use CarbonPHP\Tables\User_Sessions;
 use PDOException;
 use SessionHandlerInterface;
@@ -379,6 +380,8 @@ class Session implements SessionHandlerInterface
         return self::$session_table;
 
     }
+
+
 
     /** This is required for the session save handler interface.
      *  Do no change.

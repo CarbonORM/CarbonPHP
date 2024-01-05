@@ -33,6 +33,26 @@ abstract class RestfulValidations
      */
     public static mixed $defaultRestAccessOverride = null;
 
+    protected static ?iRestSinglePrimaryKey $history_table = null;
+
+
+    /**
+     * @return iRestSinglePrimaryKey
+     */
+    public static function getHistoryTable(): iRestSinglePrimaryKey
+    {
+
+        if (null === self::$history_table) {
+
+            $table_name = Rest::getDynamicRestClass(History_Logs::class);    // all because custom prefixes and callbacks exist
+
+            self::$history_table = new $table_name(); // This is only for referencing and is not actually needed as an instance.
+
+        }
+
+        return self::$history_table;
+
+    }
     public static function postHistoryLog($selfClass): callable
     {
 
@@ -63,7 +83,9 @@ abstract class RestfulValidations
                 History_Logs::HISTORY_REQUEST => $request,
             ];
 
-            self::$historyLogId = History_Logs::post($postHistoryLog);
+            $dynamicHistoryTable = self::getHistoryTable();
+
+            self::$historyLogId = $dynamicHistoryTable::post($postHistoryLog);
 
             if (empty(self::$historyLogId)) {
 
@@ -115,7 +137,11 @@ abstract class RestfulValidations
 
             }
 
-            if (false === History_Logs::put($returnUpdated, self::$historyLogId, [
+            //
+
+            $dynamicHistoryTable = self::getHistoryTable();
+
+            if (false === $dynamicHistoryTable::put($returnUpdated, self::$historyLogId, [
                     History_Logs::HISTORY_RESPONSE => (object)$response,
                     History_Logs::HISTORY_QUERY => self::$historyQuery
                 ])) {
@@ -146,7 +172,7 @@ abstract class RestfulValidations
 
             foreach ($GLOBALS['json']['sql'] ?? [] as $debugInfo) {
 
-                if (true === $debugInfo[$externalRestIdentifier] ?? false) {
+                if (true === ($debugInfo[$externalRestIdentifier] ?? false)) {
 
                     $sqlDebugInfo = $debugInfo;
 
