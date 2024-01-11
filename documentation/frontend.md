@@ -1,6 +1,6 @@
 # Front End Development (FED)
 
-C6 is not dependent on a theme; the documentation ships with a Material UI and Bootstrap opensource templates to 
+C6 is not **dependent on a theme or frontend system**; the documentation ships with a Material UI and Bootstrap opensource templates to 
 demonstrate the robust use-cases C6 can handle. Generally, I **recommend using [React](https://react.dev/)** for all projects. It is **NOT 
 required** and can be used in conjunction with **other frameworks or just straight PHP**!
 

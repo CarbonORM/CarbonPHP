@@ -1,6 +1,6 @@
 # Support
 
-CarbonPHP is free software made for love of a better web. Please **say thanks** to any all who help you in the forums. 
+Please **say thanks** to any all who help you in the forums. 
 To raise an [issue on GitHub](https://github.com/RichardTMiles/CarbonPHP/issues). 
 
 [Open Source Guide](https://opensource.guide/)
