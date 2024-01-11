@@ -6,6 +6,21 @@ CarbonPHP must be invoked in you index.php file for CLI commands to work. See th
 php index.php minify
 ```
 
+## External Dependencies
+
+These are marked as Development Dependencies in CarbonPHP's composer.json file. They are not required for CarbonPHP to run, but are required for the minify command to work. 
+
+```bash
+
+```json lines
+{
+    "require": {
+        "matthiasmullie/minify": "^1.3",
+        "patchwork/jsqueeze": "^2.0"
+    }
+}
+```
+
 ## Configuration
 
 The example below sets a custom output filename and specifies what files to minify.
