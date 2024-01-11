@@ -128,6 +128,7 @@ The PHP code snippet you provided defines two static properties in a class, both
 
   }
   ```
+
 2) public static mixed $validateUserCallback = null;
   - **Type:** callable|null
   - **Description:** Similar to the first property, this one is expected to store a callback function, but specifically for the purpose of validating a user. This could be used in contexts where user authentication or validation is required, and the specific logic of validation is to be provided at runtime or by the class's consumer. As with the previous property, it's set to null by default, indicating no validation logic is provided initially.
@@ -242,7 +243,7 @@ The PHP code snippet you provided defines two static properties in a class, both
     ```
 
 
-In both cases, the use of public static implies these properties are meant to be accessible and modifiable from outside the class without needing an instance of the class. This approach is common in designs where a class provides a service or functionality that can be customized via callbacks.
+In both cases, the use of public static implies these properties are meant to be accessible and modifiable from outside the class without needing an instance of the class. This approach is common in designs where a class provides a service or functionality that can be customized via callbacks. You can set custom callables anytime before CarbonPHP is invoked and after Composer autoload has run.
 
 ## Source
 Please refer to the [actual source here](https://github.com/CarbonORM/CarbonPHP/blob/lts/carbonphp/programs/WebSocket.php) for the most up-to-date code.
