@@ -295,7 +295,6 @@ class Users extends Rest implements iRestSinglePrimaryKey
                 self::PREPROCESS => [
                     // before any other processing is done, this is the first callback to be executed
                     // typically used to validate the full request, add additional data to the request, and even creating a history log
-                    static fn() => self::disallowPublicAccess(self::class)
                 ],
                 self::FINISH => [
                     // the compiled sql is passed to the callback, the statement has not been executed yet
@@ -303,7 +302,6 @@ class Users extends Rest implements iRestSinglePrimaryKey
             ],
             self::GET => [
                 self::PREPROCESS => [
-                   static fn() => self::disallowPublicAccess(self::class)
                ]
             ],
             self::POST => [
