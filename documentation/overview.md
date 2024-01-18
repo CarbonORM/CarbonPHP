@@ -53,7 +53,7 @@ degradation with iterations of CarbonPHP and its inner workings.
    
        public function defaultRoute(): void
        {
-   
+           print 'Hello World!';
        }
    
        /**
