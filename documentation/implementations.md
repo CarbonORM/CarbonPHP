@@ -11,9 +11,9 @@
 
 
 ## Comming Soon
-https://github.com/CarbonORM/CarbonPHP/assets/9538357/996c3e73-c9d3-4cc8-aee3-b637a790b97c
 ## [Voltex](https://affinity.voltex.app/about)
-[<img style='height: 100%; width: 100%; object-fit: contain' alt="Screenshot 2024-01-17 at 4 48 24 PM" src="https://github.com/CarbonORM/CarbonPHP/assets/9538357/5734762a-e7b1-4363-bba9-f5526c4680de">](https://affinity.voltex.app/about)
+[<img style='height: 100%; width: 100%; object-fit: contain' alt="Screenshot 2024-01-17 at 4 48 24 PM" src="https://github.com/CarbonORM/CarbonPHP/assets/9538357/59fc06be-14c0-4888-815e-00e6dd1938d2">](https://affinity.voltex.app/)
+
 
 [Stats.Coach](https://www.stats.coach/)
 
