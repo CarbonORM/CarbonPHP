@@ -17,7 +17,7 @@
 This command will install the [latest release](https://github.com/CarbonORM/CarbonPHP/releases) of CarbonPHP using Composer. If you do not already have Composer installed,
 you may do so by following the instructions at [getcomposer.org](https://getcomposer.org/download/). Composer is PHP's
 [package manager](https://en.wikipedia.org/wiki/Package_manager), and is required to use CarbonPHP. [Packagist](https://packagist.org/packages/carbonorm/carbonphp)
-is the official repository for Composer packages, and is where download statistics are gathered from. The old repository location `composer require richardtmiles/carbonphp` will still work with composer/packagist, but it is reccomended to move to the new location. The number # of downloads above are duplicated to refect the two ways to download via composer.
+is the official repository for Composer packages, and is where download statistics are gathered from. The old repository location `composer require richardtmiles/carbonphp` will still work with composer/packagist, but it is reccomended to move to the new location. The total number # of downloads above is duplicated to refect the two ways to download via composer.
 
 ### Wordpress
 
