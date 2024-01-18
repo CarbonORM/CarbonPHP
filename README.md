@@ -7,6 +7,7 @@
 ![CarbonPHP Feature Test Suit](https://github.com/carbonorm/CarbonPHP/workflows/CarbonPHP%20Feature%20Test%20Suit/badge.svg)
 ![Monthly Downloads](https://img.shields.io/packagist/dm/carbonorm/carbonphp)
 ![All Downloads](https://img.shields.io/packagist/dt/carbonorm/carbonphp)
+![Old Repository Location Downloads](https://img.shields.io/packagist/dt/richardtmiles/carbonphp)
 ![Star](https://img.shields.io/github/stars/carbonorm/carbonphp?style=social)
 
 ## Installation
