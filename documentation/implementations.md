@@ -1,6 +1,6 @@
 # Note Worthy Implementations
 
-## [CarbonORM.dev](https://www.CarbonORM.dev/)
+## [CarbonORM](https://www.CarbonORM.dev/)
 [<img style='height: 100%; width: 100%; object-fit: contain' alt="Screenshot 2024-01-17 at 4 47 08 PM" src="https://github.com/CarbonORM/CarbonPHP/assets/9538357/010c4c0f-0c35-4284-a1b1-86824899671b">](https://www.CarbonORM.dev/)
 
 ## [Drop-In Gaming](https://www.dropingaming.com/)
