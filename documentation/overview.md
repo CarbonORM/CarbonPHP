@@ -76,7 +76,7 @@ degradation with iterations of CarbonPHP and its inner workings.
        {
            return [
                CarbonPHP::REST => [
-                   CarbonPHP::NAMESPACE => 'Examples\\Tables\\',
+                   CarbonPHP::NAMESPACE => 'Tables\\',
                    CarbonPHP::TABLE_PREFIX => Carbons::TABLE_PREFIX
                ],
                CarbonPHP::DATABASE => [
