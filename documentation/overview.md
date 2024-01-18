@@ -174,8 +174,6 @@ degradation with iterations of CarbonPHP and its inner workings.
        Users::USER_EDUCATION_HISTORY => 'user_education_history',
    ];
    
-   
-   // dont be shy, drop into post, I wrote it
    if (false === Users::post($post)) {
    
        throw new Exception('Failed to create a new user.');
@@ -186,11 +184,11 @@ degradation with iterations of CarbonPHP and its inner workings.
    
    if (false === Users::get($results, null, [
        iRest::SELECT => [
-       Users::USER_USERNAME
-   ],
+           Users::USER_USERNAME
+       ],
        iRest::PAGINATION => [
-       iRest::LIMIT => 100,
-   ]
+           iRest::LIMIT => 100,
+       ]
    ])) {
    
        throw new Exception('Failed to get users');
