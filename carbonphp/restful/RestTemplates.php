@@ -2,8 +2,66 @@
 
 namespace CarbonPHP\Restful;
 
+use Mustache_Engine;
+
 class RestTemplates
 {
+
+
+    public static function parseSQLForTemplate($sql) {
+        $pattern = '/CREATE\s+TABLE\s+`?(\w+)`?\s+\(((.|\n)+?)\)\s*(ENGINE=.+?);/m';
+        preg_match_all($pattern, $sql, $tableMatches, PREG_SET_ORDER);
+
+        $tableData = [];
+        $references = [];
+
+        foreach ($tableMatches as $tableMatch) {
+            $tableName = $tableMatch[1];
+            $columnDefinitions = $tableMatch[2];
+
+            $columns = [];
+            $columnRegex = '/\s*`([^`]*)`\s+(\w+)(?:\(([^)]+)\))?\s*(NOT NULL)?\s*(AUTO_INCREMENT)?\s*(DEFAULT\s+\'[^\']*\'|DEFAULT\s+\S+)?/m';
+
+            preg_match_all($columnRegex, $columnDefinitions, $columnMatches, PREG_SET_ORDER);
+            foreach ($columnMatches as $match) {
+                $columns[$match[1]] = [
+                    'type' => $match[2],
+                    'length' => $match[3] ?? '',
+                    'notNull' => !empty($match[4]),
+                    'autoIncrement' => !empty($match[5]),
+                    'defaultValue' => $match[6] ?? ''
+                ];
+            }
+
+            $primaryKeyRegex = '/PRIMARY KEY \(([^)]+)\)/i';
+            preg_match($primaryKeyRegex, $columnDefinitions, $primaryKeyMatch);
+            $primaryKeys = $primaryKeyMatch ? array_map(function($key) { return trim($key, '`'); }, explode(',', $primaryKeyMatch[1])) : [];
+
+            $foreignKeyRegex = '/CONSTRAINT `([^`]+)` FOREIGN KEY \(`([^`]+)`\) REFERENCES `([^`]+)` \(`([^`]+)`\)( ON DELETE (\w+))?( ON UPDATE (\w+))?/';
+            preg_match_all($foreignKeyRegex, $columnDefinitions, $foreignKeyMatches, PREG_SET_ORDER);
+
+            foreach ($foreignKeyMatches as $foreignKeyMatch) {
+                $references[] = [
+                    'TABLE' => $tableName,
+                    'CONSTRAINT' => $foreignKeyMatch[1],
+                    'FOREIGN_KEY' => $foreignKeyMatch[2],
+                    'REFERENCES' => $foreignKeyMatch[3] . '.' . $foreignKeyMatch[4],
+                    'ON_DELETE' => $foreignKeyMatch[6] ?? null,
+                    'ON_UPDATE' => $foreignKeyMatch[8] ?? null
+                ];
+            }
+
+            $tableData[$tableName] = [
+                'TABLE_NAME' => $tableName,
+                'COLUMNS' => $columns,
+                'PRIMARY_KEYS' => $primaryKeys,
+                // Additional fields would be added here, similar to TypeScript version
+            ];
+        }
+
+        return $tableData;
+    }
+
     public static function restTrait(): string
     {
 

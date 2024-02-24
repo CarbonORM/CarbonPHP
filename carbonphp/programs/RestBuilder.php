@@ -167,7 +167,7 @@ END;
         $json = $carbon_namespace = CarbonPHP::isCarbonPHPDocumentation();
 
         $targetDir = CarbonPHP::$app_root . ($carbon_namespace ? 'carbonphp/tables/' : 'tables/');
-        $only_these_tables = $history_table_query = $mysql = null;
+        $only_these_tables = $history_table_query = null;
         $verbose = $debug = $primary_required = $skipTable = $logClasses = false;
         $target_namespace = $this->target_namespace ??= 'Tables\\';
         $prefix = $this->table_prefix ??= '';
@@ -245,10 +245,6 @@ END;
                 case '--target':
                     $targetDir = $argv[++$i];
                     break;
-                case '-subPrefix':
-                case '--subPrefix':
-                    $subQuery = $argv[++$i];
-                    break;
                 case '-x':
                     $this->cleanUp = true;
                     break;
@@ -308,10 +304,6 @@ END;
                 case '-mysqldump':
                     // the path to the mysqldump executable
                     $mysqldump = $argv[++$i];
-                    break;
-                case '-mysql':
-                    // the path to the mysql executable
-                    $mysql = $argv[++$i];
                     break;
                 case '-dump':
                     // path to an sql dump file
@@ -442,7 +434,6 @@ END;
                 $wordsInLine = explode(' ', trim($fullLineInCreateTableStatement));
 
                 // We can assume that this is the first line of the tables insert
-
                 switch ($wordsInLine[0]) {
                     case 'CREATE':
                         $tableName = trim($wordsInLine[2], '`');               // Table Name
@@ -1178,16 +1169,11 @@ END;
 
             $parsed['staticNamespaces'] = $staticNamespaces;
 
-
             if (false === file_put_contents($targetDir . $parsed['ucEachTableName'] . '.php', $mustache->render($class, $parsed))) {
 
                 ColorCode::colorCode('PHP internal file_put_contents failed while trying to store :: (' . $targetDir . $parsed['ucEachTableName'] . '.php)', iColorCode::RED);
 
             }
-
-
-            $skipTest = false;
-
 
             if (false === file_put_contents($targetDir . 'traits' . DS . $parsed['ucEachTableName'] . '_Columns.php', $mustache->render($trait, $parsed))) {
 
@@ -1210,170 +1196,12 @@ END;
         ColorCode::colorCode("\tFinished Building REST ORM!\n\n");
 
 
-        // TODO - validate the methods defined in table space
+        // TODO - validate the methods defined in table space, we should do this after each generation and check if can include try {}
 
-        /**
-         * Now that the full dump has been parsed, we need to build our triggers
-         * using the foreign key analysis
-         */
-
-        if ($history_table_query) {
-            ColorCode::colorCode("\tBuilding Triggers!");
-            $triggers = '';
-            foreach ($rest as $linesInCreateTableStatement) {
-                if ($linesInCreateTableStatement['TableName'] === $this->table_prefix . History_Logs::TABLE_NAME
-                    || $linesInCreateTableStatement['TableName'] === History_Logs::TABLE_NAME
-                    || $linesInCreateTableStatement['TableName'] === Carbons::TABLE_NAME
-                    || $linesInCreateTableStatement['TableName'] === $this->table_prefix . Carbons::TABLE_NAME
-                ) {
-
-                    continue;
-
-                }
-
-                if ($only_these_tables === null || in_array($linesInCreateTableStatement['TableName'], $only_these_tables, true)) {
-                    $triggers .= self::trigger($linesInCreateTableStatement['TableName'], $linesInCreateTableStatement['columns'], $linesInCreateTableStatement['binary_trigger'] ?? [], $linesInCreateTableStatement['dependencies'], $linesInCreateTableStatement['primary']);
-                }
-
-            }
-
-            file_put_contents('triggers.sql', 'DELIMITER ;;' . PHP_EOL . $triggers . PHP_EOL . 'DELIMITER ;');
-
-            MySQL::MySQLSource('triggers.sql', $mysql ?? null);
-        }
 
         ColorCode::colorCode("\tSuccess!\n\n");
 
     }
-
-    /**
-     * @param $table
-     * @param $columns
-     * @param $binary
-     * @param $dependencies
-     * @param $primary
-     * @return string
-     */
-    public static function trigger($table, $columns, $binary, $dependencies, $primary): string
-    {
-        // sys_resource_creation_logs sys_resource_history_logs
-        $history_sql = static function ($operation_type = 'POST') use ($binary, $table, $columns, $primary) {
-            $relative_time = 'OLD';
-
-            switch ($operation_type) {
-                case 'POST':
-                case 'PUT':
-                    $relative_time = 'NEW';
-                    break;
-            }
-
-            $query = '';
-
-            foreach ($columns as $column) {
-
-                $query .= in_array($column, $binary, true)
-                    ? <<<END
-
-                                                    '$column', HEX($relative_time.$column),
-                        END
-                    : <<<END
-                        
-                                                    '$column', JSON_QUOTE(COALESCE($relative_time.$column,'')),
-                        END;
-            }
-
-            $query = rtrim($query, ',');
-
-
-            /** @noinspection SqlResolve */
-            $query = "INSERT INTO carbon_history_logs (history_uuid, history_table, history_type, history_data, history_original_query)
-                VALUES (UNHEX(REPLACE(UUID() COLLATE utf8_unicode_ci,'-',''))
-                        , '$table'
-                        , '$operation_type'
-                        , history_data = JSON_OBJECT($query
-                        ), original_query);";
-
-            return $query;
-
-        };
-
-        $delete_children = static function () use ($dependencies) {
-            $sql = '';
-            if (!empty($dependencies)) {
-                foreach ($dependencies as $array) {
-                    // todo - I have this feeling advanced relations don't work correctly
-                    foreach ($array as $child => $relation) {
-                        foreach ($relation as $c => $keys) {
-                            /** @noinspection SqlResolve
-                             * @noinspection UnknownInspectionInspection
-                             */
-                            $sql .= "DELETE FROM $child WHERE $c = OLD.$keys;" . PHP_EOL;
-                        }
-                    }
-                }
-            }
-            return $sql;
-        };
-
-        return (<<<TRIGGER
-DROP TRIGGER IF EXISTS `trigger_{$table}_b_d`;;
-CREATE TRIGGER `trigger_{$table}_b_d` BEFORE DELETE ON `$table` FOR EACH ROW
-BEGIN
-
-DECLARE original_query text;
-
-SELECT argument INTO original_query 
-  FROM mysql.general_log 
-  where thread_id = connection_id() 
-  order by event_time desc 
-  limit 1;
-
-      -- Insert record into audit tables
-{$history_sql('DELETE')}
-      -- Delete Children
-{$delete_children()}
-
-END;;
-
-DROP TRIGGER IF EXISTS `trigger_{$table}_a_u`;;
-CREATE TRIGGER `trigger_{$table}_a_u` AFTER UPDATE ON `$table` FOR EACH ROW
-BEGIN
-
-DECLARE original_query text;
-
-SELECT argument INTO original_query 
-  FROM mysql.general_log 
-  where thread_id = connection_id() 
-  order by event_time desc 
-  limit 1;
-
-      -- Insert record into audit tables
-{$history_sql('PUT')}
-
-END;;
-
-DROP TRIGGER IF EXISTS `trigger_{$table}_a_i`;;
-CREATE TRIGGER `trigger_{$table}_a_i` AFTER INSERT ON `$table` FOR EACH ROW
-BEGIN
-
-DECLARE original_query text;
-
-SELECT argument INTO original_query 
-  FROM mysql.general_log 
-  where thread_id = connection_id() 
-  order by event_time desc 
-  limit 1;
-
-      -- Insert record into audit tables
-{$history_sql('POST')}
-
-END;;
-TRIGGER);
-
-    }
-
-
-
 
     private function restTemplateStaticNameSpace(): array
     {
@@ -1401,7 +1229,7 @@ TRIGGER);
 
             $comment = $func->getDocComment();
 
-        } catch (ReflectionException $e) {
+        } catch (ReflectionException) {
 
             return '<div>Failed to load code preview in ThrowableHandler class using ReflectionMethod.<div>';
 

@@ -794,7 +794,6 @@ class Migrate implements iCommand
 
         if (preg_match_all($pattern = '#\((?:[^)(]+|(?R))*+\),#', $subject, $matches)) {
 
-            sortDump($matches);
 
             return $matches;
 

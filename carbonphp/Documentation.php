@@ -493,109 +493,6 @@ SOCKET;
 
         }
 
-        if (CarbonPHP::$app_local
-            && self::regexMatch('#color#',
-                static function () {
-
-                global $json;
-
-                if (array_key_exists('code', $_POST)) {
-
-                    if (!is_string($_POST['code'])) {
-
-                        throw new PrivateAlert('You must submit a string. This could be code or a file path.');
-
-                    }
-
-                    $json['colorCode'] = highlight($_POST['code'], false);
-
-                } else {
-
-                    $json['colorCode'] = '';
-                }
-
-                View::$wrapper = CarbonPHP::$app_root . CarbonPHP::$app_view . 'assets/AdminLTE/wrapper.hbs';
-
-                return View::content(CarbonPHP::$app_view . 'color' . DS . 'color.hbs', CarbonPHP::$app_root);
-
-            })) {
-
-            return true;
-
-        }
-
-        ###################################### AdminLTE DOC
-        if (self::regexMatch('#2.0/UIElements/?([A-Za-z]{0,2.0.0})#',
-            static function ($AdminLTE = '') {
-
-                View::$wrapper = CarbonPHP::$app_root . CarbonPHP::$app_view . 'assets/AdminLTE/wrapper.hbs';
-
-                /** @noinspection PhpUnusedLocalVariableInspection */
-                if ($AdminLTE === '' ||
-                    !(new Request())->set($AdminLTE)->word() ||
-                    !(
-                        file_exists(CarbonPHP::$app_root . CarbonPHP::$app_view . $path = 'assets' . DS . 'AdminLTE' . DS . $AdminLTE . '.php') ||
-                        file_exists(CarbonPHP::$app_root . CarbonPHP::$app_view . $path = 'assets' . DS . 'AdminLTE' . DS . 'Charts' . DS . $AdminLTE . '.php') ||
-                        file_exists(CarbonPHP::$app_root . CarbonPHP::$app_view . $path = 'assets' . DS . 'AdminLTE' . DS . 'Examples' . DS . $AdminLTE . '.php') ||
-                        file_exists(CarbonPHP::$app_root . CarbonPHP::$app_view . $path = 'assets' . DS . 'AdminLTE' . DS . 'Forms' . DS . $AdminLTE . '.php') ||
-                        file_exists(CarbonPHP::$app_root . CarbonPHP::$app_view . $path = 'assets' . DS . 'AdminLTE' . DS . 'Layout' . DS . $AdminLTE . '.php') ||
-                        file_exists(CarbonPHP::$app_root . CarbonPHP::$app_view . $path = 'assets' . DS . 'AdminLTE' . DS . 'Mailbox' . DS . $AdminLTE . '.php') ||
-                        file_exists(CarbonPHP::$app_root . CarbonPHP::$app_view . $path = 'assets' . DS . 'AdminLTE' . DS . 'Tables' . DS . $AdminLTE . '.php') ||
-                        file_exists(CarbonPHP::$app_root . CarbonPHP::$app_view . $path = 'assets' . DS . 'AdminLTE' . DS . 'UI' . DS . $AdminLTE . '.php')
-                    )) {
-                    $path = 'assets' . DS . 'AdminLTE' . DS . 'widgets.php';
-                }
-
-                self::wrap($path);    // still relative to CarbonPHP::$app_root
-
-            })) {
-
-            return true;
-
-        }
-
-        $view = (self::$uriExplode[0] ?? false);
-
-        if ($view === 'view' && 'releases' === (self::$uriExplode[1] ?? false)) {
-
-            $version = (self::$uriExplode[2] ?? false);
-
-            if ($version === '2.0.0') {
-
-                $json['VersionTWO'] = true;
-
-                $page = $this->uriExplode[3] ?? false;
-
-                $page or (View::$forceWrapper = true and View::$wrapper = CarbonPHP::$app_root . CarbonPHP::$app_view . 'assets/AdminLTE/wrapper.hbs');
-
-                if ($page && array_key_exists($page, $this->version2Dot0)) {
-
-                    self::wrap($this->version2Dot0[$page]);
-
-                } else {
-
-                    self::wrap($this->version2Dot0['Home']);
-
-                }
-
-                return true;
-
-            }
-
-            $folderName = CarbonPHP::$app_root . 'view' . DS . 'releases' . DS . $version . DS;
-
-            if (is_dir($folderName)) {
-
-                self::$matched = true;
-
-                self::fullPage($folderName . 'index.html');
-
-                return true;
-
-            }
-
-        }
-
         if (self::authenticateCarbonPHPReactAPI()) {
 
             return true;
@@ -792,7 +689,6 @@ SOCKET;
                 CarbonPHP::LEVEL => E_ALL | E_STRICT,  // php ini level
                 CarbonPHP::STORE => true,      // Database if specified and / or File 'LOCATION' in your system
                 CarbonPHP::SHOW => true,       // Show errors on browser
-                CarbonPHP::FULL => true        // Generate custom stacktrace will high detail - DO NOT set to TRUE in PRODUCTION
             ],
             CarbonPHP::VIEW => [
                 // TODO - THIS IS USED AS A URL AND DIRECTORY PATH. THIS IS BAD. WE NEED DS

@@ -348,6 +348,7 @@ class CarbonPHP
 
         // we need to invoke the destruct magic method which is inherited my Application from Route
         unset($application);
+
         self::$application = null;  // so we delete all the references to signal explicitly the destruct
 
         return $return;
@@ -600,9 +601,9 @@ class CarbonPHP
             #####################   ERRORS + Warnings + Alerts    #######################
             if ($config[self::ERROR] ??= false) {
 
-                ThrowableHandler::$defaultLocation ??= self::$reports . 'default_log.txt';
+                ThrowableHandler::$defaultLocation = self::$reports . 'default_log.txt';
 
-                ThrowableHandler::$throwableReportDisplay ??= $config[self::ERROR][self::DISPLAY] ??= (self::$cli ? ThrowableReportDisplay::CLI_MINIMAL : ThrowableReportDisplay::FULL_DEFAULT);
+                ThrowableHandler::$throwableReportDisplay = $config[self::ERROR][self::DISPLAY] ??= (self::$cli ? ThrowableReportDisplay::CLI_MINIMAL : ThrowableReportDisplay::FULL_DEFAULT);
 
                 ThrowableHandler::$printToScreen = $config[self::ERROR][self::SHOW] ??= ThrowableHandler::$printToScreen;
 
@@ -650,7 +651,7 @@ class CarbonPHP
 
             }
 
-            self::$uri ??= trim(urldecode(parse_url(trim(preg_replace('/\s+/', ' ', $_SERVER['REQUEST_URI'] ?? '')), PHP_URL_PATH)), '/');
+            self::$uri ??= trim(urldecode(parse_url(trim(preg_replace('/\s+/', ' ', $_SERVER['REQUEST_URI'] ??= '')), PHP_URL_PATH)), '/');
 
             switch ($_SERVER['SERVER_PORT'] ??= 80) {
 

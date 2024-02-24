@@ -209,7 +209,7 @@ class Features extends Rest implements iRestSinglePrimaryKey
             ],
             self::POST => [
                 self::PREPROCESS => [
-                   static fn() => self::disallowPublicAccess(self::class)
+
                 ]
             ],
             self::PUT => [
