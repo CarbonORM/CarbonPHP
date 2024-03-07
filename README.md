@@ -7,7 +7,12 @@
 ![CarbonPHP Feature Test Suit](https://github.com/carbonorm/CarbonPHP/workflows/CarbonPHP%20Feature%20Test%20Suit/badge.svg)
 ![Monthly Downloads](https://img.shields.io/packagist/dm/carbonorm/carbonphp)
 ![All Downloads](https://img.shields.io/packagist/dt/carbonorm/carbonphp)
+![Old Repository Location Downloads](https://img.shields.io/packagist/dt/richardtmiles/carbonphp)
 ![Star](https://img.shields.io/github/stars/carbonorm/carbonphp?style=social)
+
+# Welcome to CarbonPHP
+
+Our full documentation is available at our [GitHub Wiki](https://github.com/CarbonORM/CarbonPHP/wiki) or with runnable examples at [Carbonorm.dev](https://carbonorm.dev/).
 
 ## Installation
 
@@ -16,7 +21,7 @@
 This command will install the [latest release](https://github.com/CarbonORM/CarbonPHP/releases) of CarbonPHP using Composer. If you do not already have Composer installed,
 you may do so by following the instructions at [getcomposer.org](https://getcomposer.org/download/). Composer is PHP's
 [package manager](https://en.wikipedia.org/wiki/Package_manager), and is required to use CarbonPHP. [Packagist](https://packagist.org/packages/carbonorm/carbonphp)
-is the official repository for Composer packages, and is where download statistics are gathered from.
+is the official repository for Composer packages, and is where download statistics are gathered from. The old repository location `composer require richardtmiles/carbonphp` will still work with composer/packagist, but it is reccomended to move to the new location. The total number # of downloads above is duplicated to refect the two ways to download via composer.
 
 ### Wordpress
 
@@ -59,7 +64,7 @@ computers look into [WSL](https://learn.microsoft.com/en-us/windows/wsl/install)
 written in C (PHP is written in C) to support this task, however time is a factor. Should you feel compelled to help in
 this goal please contact me at Richard@Miles.Systems. Please see the documentation at Carbonphp.com for more
 information.
-For the rest of us who live outside windows Hell C6 has a Websocket Library Class for Standard use and Wordpress use.
+For the rest of us who live outside windows Hell C6 has a Websocket Library Class for Standard use and WordPress use.
 
 ## Quick Start
 
