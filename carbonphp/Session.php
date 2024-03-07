@@ -130,7 +130,7 @@ class Session implements SessionHandlerInterface
 
                 if ($willSetSaveHandler) {
 
-                    ColorCode::colorCode('Session handler initialized (' . __FILE__ . '), but not started in CLI mode. Running (new ' .self::class. ') will start a session in CLI.');
+                    ColorCode::colorCode('Session handler initialized (' . __FILE__ . '), but not started in CLI mode. Running (new ' . self::class . ') will start a session in CLI.');
 
                 }
 
@@ -318,17 +318,25 @@ class Session implements SessionHandlerInterface
 
         $_SERVER['HTTP_COOKIE'] ??= '';
 
-        ColorCode::colorCode('User sent Cookie(s) :: ' . $_SERVER['HTTP_COOKIE'] . "\n\n");
+        ColorCode::colorCode('User sent Cookie(s) :: ' . print_r($_SERVER['HTTP_COOKIE'], true) . "\n\n");
 
-        if (false === @preg_match('#PHPSESSID=([^;\s]+)#', $_SERVER['HTTP_COOKIE'], $array, PREG_OFFSET_CAPTURE)) {
-            ColorCode::colorCode('Failed to verify socket IP address.', 'red');
+        // $_SERVER['HTTP_COOKIE'] should be a string, but
+        if (is_array($_SERVER['HTTP_COOKIE'])) {
 
-            return false;
+            $session_id = $_SERVER['HTTP_COOKIE']['PHPSESSID'] ?? false;
+
+        } else {
+
+            if (false === @preg_match('#PHPSESSID=([^;\s]+)#', $_SERVER['HTTP_COOKIE'], $array, PREG_OFFSET_CAPTURE)) {
+                ColorCode::colorCode('Failed to verify socket IP address.', 'red');
+
+                return false;
+            }
+
+            ColorCode::colorCode('Parsed Session ID Correctly');
+
+            $session_id = $array[1][0] ?? false;
         }
-
-        ColorCode::colorCode('Parsed Session ID Correctly');
-
-        $session_id = $array[1][0] ?? false;
 
         if (false === $session_id) {
             ColorCode::colorCode("\nCould not parse session id\n", 'red');
@@ -380,7 +388,6 @@ class Session implements SessionHandlerInterface
         return self::$session_table;
 
     }
-
 
 
     /** This is required for the session save handler interface.

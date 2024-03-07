@@ -10,9 +10,9 @@ use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
 use CarbonPHP\Enums\ThrowableReportDisplay;
 use CarbonPHP\Interfaces\iColorCode;
-use CarbonPHP\Programs\WebSocket;
 use CarbonPHP\Rest;
 use CarbonPHP\Tables\Reports;
+use DirectoryIterator;
 use PDOException;
 use ReflectionException;
 use ReflectionMethod;
@@ -57,7 +57,7 @@ class ThrowableHandler
     /**
      * @var bool
      */
-    public static bool $storeReport = true;
+    public static bool $storeReport = false;
 
     public static ThrowableReportDisplay $throwableReportDisplay = ThrowableReportDisplay::FULL_DEFAULT;
 
@@ -83,12 +83,28 @@ class ThrowableHandler
      */
     public static int $level = E_ALL | E_STRICT;
 
-    public static function checkCreateLogFile(string &$message): void
+    public static function checkCreateLogFile(string &$message, bool $fixFilePermissions = true): void
     {
 
         try {
 
             $directory = dirname(self::$defaultLocation);
+
+            $levels = 0;
+
+            do {
+
+                $subdir = dirname($directory, ++$levels);
+
+                if (is_dir($subdir)) {
+
+                    chmod($directory, 0755);
+
+                    break;
+
+                }
+
+            } while ($subdir !== '/' && $subdir !== CarbonPHP::$app_root);
 
             if (false === is_dir($directory) && (false === mkdir($directory, 0755, true) || false === is_dir($directory))) {
 
@@ -96,14 +112,73 @@ class ThrowableHandler
 
             }
 
-            if (false === file_exists(self::$defaultLocation) && false === touch(self::$defaultLocation)) {
+            if (true === file_exists(self::$defaultLocation) && false === touch(self::$defaultLocation) && chmod(self::$defaultLocation, 0644)) {
 
                 $message .= "\n\nCould not create file (" . self::$defaultLocation . ') as it does not exist on the system. All folders appear correct. Please create the directories required to store logs correctly!' . PHP_EOL;
+
+                throw new PrivateAlert($message);
 
             }
 
             // todo - make sure file is writable
 
+
+
+
+        } catch (Throwable $e) {
+
+            if (false === $fixFilePermissions) {
+
+                self::generateLogAndExit($e);
+
+            }
+
+            self::fixPermissions(CarbonPHP::$app_root);
+
+            self::checkCreateLogFile($message, false);
+
+        }
+
+    }
+
+    public static function fixPermissions($dir, $dirPermissions = 0755, $filePermissions = 0644): void
+    {
+
+        try {
+
+            // Check if the directory exists
+            if (!file_exists($dir)) {
+
+                throw new PrivateAlert("Directory does not exist: $dir\n");
+
+            }
+
+            // Attempt to set permissions on the directory itself
+            chmod($dir, $dirPermissions);
+
+            // Scan through the directory contents
+            $files = new DirectoryIterator($dir);
+
+            foreach ($files as $file) {
+
+                if ($file->isDot()) {
+                    continue;
+                }
+
+                $filePath = $file->getPathname();
+
+                if ($file->isDir()) {
+
+                    // Recursively fix permissions for directories
+                    self::fixPermissions($filePath, $dirPermissions, $filePermissions);
+
+                } else {
+
+                    // Set permissions for files
+                    chmod($filePath, $filePermissions);
+
+                }
+            }
 
         } catch (Throwable $e) {
 
@@ -138,7 +213,7 @@ class ThrowableHandler
 
             }
 
-            return highlight(implode(PHP_EOL, $snippet), true, $start_line);
+            return highlight(implode(PHP_EOL, $snippet), true);
 
         }
 
@@ -227,7 +302,7 @@ class ThrowableHandler
 
             $json['HEADER_WARNING'] = 'Headers already sent in ' . $file . ' on line ' . $line . '! This can effect the desired response code.';
 
-            $html = self::generateBrowserReport($json, true);
+            $html = ThrowableHandler::generateBrowserReport($json, true);
 
         }
 
@@ -532,7 +607,7 @@ class ThrowableHandler
 
                     ColorCode::colorCode('The trace failed to be json_encoded, serialized, or printed with print_r().', iColorCode::RED);
 
-                    ColorCode::colorCode($e?->getMessage(), iColorCode::RED);
+                    ColorCode::colorCode($e->getMessage(), iColorCode::RED);
 
                     $code = '** PARSING FAILED **';
 
@@ -603,7 +678,7 @@ class ThrowableHandler
 
             ColorCode::colorCode("Generating pretty error message using C6 tools. Message ::", iColorCode::CYAN);
 
-            ColorCode::colorCode("\t" . get_class($e) . "\t" . $e->getFile() . ':' . $e->getLine(), $color);
+            ColorCode::colorCode("\t" . get_class($e), $color);
 
             ColorCode::colorCode("\t\t" . $e->getMessage(), $color);
 
@@ -629,7 +704,7 @@ class ThrowableHandler
 
         }
 
-        if (null !== $e) {
+        if ($e instanceof Throwable) {
 
             $class = get_class($e);
 
@@ -645,13 +720,14 @@ class ThrowableHandler
 
             $log_array['LINE'] = (string)$e->getLine();
 
+            /** @noinspection SuspiciousAssignmentsInspection */
             $log_array['JUMP'] = $log_array['FILE'] . ':' . $log_array['LINE'];
 
             $log_array['CODE'] = (string)$e->getCode();
 
         } else {
 
-            [$traceCLI, $traceHTML, $e] = self::generateCallTrace();
+            [$traceCLI, $traceHTML] = self::generateCallTrace();
 
         }
 
@@ -677,7 +753,7 @@ class ThrowableHandler
 
         $log_array[self::GLOBALS_JSON] = $json;
 
-        if (is_array($json) && array_key_exists('sql', $json) && is_array($json['sql']) && !empty($json['sql'])) {
+        if (array_key_exists('sql', $json) && is_array($json['sql']) && !empty($json['sql'])) {
 
             $lastRestStatement = $json['sql'][array_key_last($json['sql'])] ?? '';
 
@@ -705,14 +781,7 @@ class ThrowableHandler
 
         if (CarbonPHP::$setupComplete) {
 
-            if (!Database::$carbonDatabaseInitialized) {
-
-                $log_array['INNODB_STATUS'] = 'Database::$carbonDatabaseInitialized was set to false! This was probably set in Database::newInstance. (SHOW ENGINE INNODB STATUS) will only log if already connected.';
-            } else if ($e instanceof PDOException) {
-
-                $log_array['INNODB_STATUS'] = 'Errors which are instances of PDOException will not query the database! This helps prevent recursive issues. (SHOW ENGINE INNODB STATUS) was not run.';
-
-            } else {
+            if (Database::$carbonDatabaseInitialized) {
 
                 try {
 
@@ -730,6 +799,9 @@ class ThrowableHandler
 
                 }
 
+            } else {
+
+                $log_array['INNODB_STATUS'] = 'Database::$carbonDatabaseInitialized was set to false! This was probably set in Database::newInstance. (SHOW ENGINE INNODB STATUS) will only log if already connected.';
             }
 
         }
@@ -779,7 +851,7 @@ class ThrowableHandler
             $log_array[self::STORAGE_LOCATION_KEY] = "Will store report to file <a href=\"/$log_file_html\">("
                 . CarbonPHP::$app_root . '/' . $log_file_html . ")</a> and <a href=\"/$log_file_json\">(" . CarbonPHP::$app_root . $log_file_json . ')';
 
-            if (true === $e instanceof PDOException) {
+            if (false === $e instanceof PDOException) {
 
                 $log_array['[C6] STORAGE ISSUE'] = 'Errors which are instances of PDOException currently are not stored to database! This helps prevent recursive issues.';
 
@@ -816,9 +888,7 @@ class ThrowableHandler
 
             } else {
 
-                $message = 'An error occurred before the database was initialized. This likely means you have no database configurations, or a general configuration issue issues occurred :: ' . $e->getMessage();
-
-                ColorCode::colorCode($message, iColorCode::RED);
+                error_log($message = 'An error occurred before the database use initialized. This likely means you have no database configurations, or a general configuration issue issues occurred :: ' . $e->getMessage());
 
                 $log_array['[C6] ISSUE'] = $message;
 
@@ -858,13 +928,14 @@ class ThrowableHandler
 
         switch (self::$throwableReportDisplay) {
 
+
             /** @noinspection PhpMissingBreakStatementInspection */
             case ThrowableReportDisplay::CLI_MINIMAL:
 
                 if (self::$storeReport && array_key_exists(self::STORAGE_LOCATION_KEY, $log_array)) {
 
-                    ColorCode::colorCode("Stored report to file \n\n\tfile://"
-                        . CarbonPHP::$app_root . $log_file_html . "\n\n\tfile://" . CarbonPHP::$app_root . $log_file_json . "\n\n", $color);
+                    ColorCode::colorCode("Stored report to file \n\tfile://"
+                        . CarbonPHP::$app_root . $log_file_html . "\n\tfile://" . CarbonPHP::$app_root . $log_file_json, $color);
 
                     ColorCode::colorCode('file://' . $log_array['FILE'] . ':' . $log_array['LINE'], $color);
 
@@ -882,6 +953,7 @@ class ThrowableHandler
 
 
         }
+
 
         if (false === $return) {
 
@@ -1000,7 +1072,7 @@ class ThrowableHandler
         }
 
         /** @noinspection JsonEncodingApiUsageInspection */
-        return [$traceWithKeys, PHP_EOL . json_encode($traceWithKeys, JSON_PRETTY_PRINT) . PHP_EOL, $e];
+        return [$traceWithKeys, PHP_EOL . json_encode($traceWithKeys,  JSON_PRETTY_PRINT) . PHP_EOL];
     }
 
     /**

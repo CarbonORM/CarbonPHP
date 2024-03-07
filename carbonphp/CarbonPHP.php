@@ -86,6 +86,7 @@ class CarbonPHP
     public const REPLY_EMAIL = 'REPLY_EMAIL';
     public const HTTP = 'HTTP';
     public const IP_TEST = 'IP_TEST';
+    public const PROGRAMS = 'PROGRAMS';
     public const PROGRAM_DIRECTORIES = 'PROGRAM_DIRECTORIES';
 
     // Session Mgmt
@@ -601,7 +602,7 @@ class CarbonPHP
             #####################   ERRORS + Warnings + Alerts    #######################
             if ($config[self::ERROR] ??= false) {
 
-                ThrowableHandler::$defaultLocation = self::$reports . 'default_log.txt';
+                ThrowableHandler::$defaultLocation ??= self::$reports . 'default_log.txt';
 
                 ThrowableHandler::$throwableReportDisplay = $config[self::ERROR][self::DISPLAY] ??= (self::$cli ? ThrowableReportDisplay::CLI_MINIMAL : ThrowableReportDisplay::FULL_DEFAULT);
 

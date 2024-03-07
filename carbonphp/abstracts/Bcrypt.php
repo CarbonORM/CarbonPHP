@@ -1,5 +1,6 @@
 <?php
 /* Create a new class called Bcrypt */
+
 /*
  *
 */
@@ -23,19 +24,18 @@ abstract class Bcrypt
     // godaddy has me on a 64 bit computer
     public static function genRandomHex($bitLength = 40): string
     {
-        $sudoRandom = 1;
-        for ($i=0;$i<=$bitLength;$i++) {
-            /** @noinspection PhpUnhandledExceptionInspection */
-            $sudoRandom = ($sudoRandom << 1) | random_int(0, 1);
-        }
-        return dechex($sudoRandom);
+        // Generate secure random bytes
+        $bytes = random_bytes($bitLength);
+
+        // Convert the bytes to a hexadecimal string
+        return bin2hex($bytes);
     }
-    
+
     private static function genSalt()
     {
         /* GenSalt */
-        $string = str_shuffle( mt_rand() );
-        return uniqid( $string, true );
+        $string = str_shuffle(mt_rand());
+        return uniqid($string, true);
     }
 
     /**
@@ -54,7 +54,7 @@ abstract class Bcrypt
         /* $this->rounds is the workload factor */
         /* GenHash */
         /* Return */
-        return crypt( $password, '$2y$' . self::$rounds . '$' . self::genSalt() );
+        return crypt($password, '$2y$' . self::$rounds . '$' . self::genSalt());
     }
 
     /* Verify Password */
@@ -67,7 +67,7 @@ abstract class Bcrypt
     {
         /* Hash new password with old hash */
 
-        $hash = crypt( $password, $existingHash );
+        $hash = crypt($password, $existingHash);
 
         /* Do Hashes match? */
         return $hash === $existingHash;

@@ -27,6 +27,12 @@ abstract class Composer
 
     public static function getComposerConfig(): array
     {
+        static $json = null;
+
+        if (null !== $json) {
+            return $json;
+        }
+
         try {
 
             if (!file_exists(CarbonPHP::$app_root . 'composer.json')) {

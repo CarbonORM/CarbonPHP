@@ -149,6 +149,12 @@ abstract class ColorCode implements LoggerInterface, iColorCode
 
             ThrowableHandler::checkCreateLogFile($message);
 
+            if (str_ends_with(ThrowableHandler::$defaultLocation, $location)) {
+
+                $location = ThrowableHandler::$defaultLocation;
+
+            }
+
             switch ($location) {
                 case '':
                     if (false === ini_set('error_log', ThrowableHandler::$defaultLocation)) {

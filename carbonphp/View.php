@@ -39,7 +39,9 @@ class View
         global $json;
 
         if ($directoryContext === null) {
+
             $directoryContext = CarbonPHP::$app_root;
+
         }
 
         $buffer = static function () use ($directoryContext, $file) : string {         // closure  $buffer();
@@ -74,8 +76,11 @@ class View
         };
 
         if (CarbonPHP::$socket) {
+
             print $buffer() . PHP_EOL;
+
             return true;
+
         }
 
         if (pathinfo($file, PATHINFO_EXTENSION) === 'hbs') {

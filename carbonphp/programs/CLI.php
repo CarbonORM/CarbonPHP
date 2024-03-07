@@ -26,7 +26,7 @@ class CLI implements iCommand
     public static array $customProgramDirectories = [];
 
     private array $C6Programs = [];
-    private array $UserPrograms = [];
+    public static array $UserPrograms = [];
 
     public static bool $showEmptyCliWarning = true;
 
@@ -122,7 +122,7 @@ class CLI implements iCommand
         // while way more likely to run a C6 program and not user defined, precedence says a user program should
         // overwrite a C6
         // If a user makes a program with a name C6 will later take, for example, backwards compatibility
-        if ($searchAndConstruct($this->UserPrograms, false) ||
+        if ($searchAndConstruct(self::$UserPrograms, false) ||
             $searchAndConstruct($this->C6Programs)) {
 
             return;
@@ -166,6 +166,28 @@ class CLI implements iCommand
                     print "\n\tThe decoding of composer.json failed. Please make sure the file contains a valid json.\n\n";
 
                     return;
+
+                }
+
+                foreach ($this->CONFIG[CarbonPHP::SITE][CarbonPHP::PROGRAMS] as $namespace) {
+
+                    if (class_exists($namespace) === false) {
+
+                        ColorCode::colorCode("The namespace ($namespace) provided in the composer.json file does not exist. Please check your composer.json file and configuration passe to CarbonPHP.", iColorCode::RED);
+
+                        continue;
+
+                    }
+
+                    if (!in_array(iCommand::class, class_implements($namespace, true), true)) {
+
+                        ColorCode::colorCode("The namespace ($namespace) provided in the composer.json file does not implement iCommand. Please check your composer.json file and configuration passe to CarbonPHP.", iColorCode::RED);
+
+                        continue;
+
+                    }
+
+                    self::$UserPrograms[] = $namespace;
 
                 }
 
@@ -231,7 +253,7 @@ class CLI implements iCommand
 
                         }
 
-                        $this->UserPrograms[] = $namespace . $name;
+                        self::$UserPrograms[] = $namespace . $name;
 
                     }
 
@@ -313,7 +335,7 @@ class CLI implements iCommand
         }
 
         // executables switch
-        switch (strtolower($program)) {
+        switch (strtolower($program ?? 'help')) {
             case 'check':
                 $cmd = 'netstat -a -n -o | find "' . ($PHP['SOCKET']['PORT'] ?? 8888) . '\"';
                 print PHP_EOL . $cmd . PHP_EOL;
@@ -337,7 +359,7 @@ class CLI implements iCommand
     public function usage(): void
     {
 
-        $compileProgramDescriptions = static function(array $fullyQualifiedPrograms): string {
+        $compileProgramDescriptions = static function (array $fullyQualifiedPrograms): string {
             $c6Programs = '';
 
             foreach ($fullyQualifiedPrograms as $fullyQualified) {
@@ -359,9 +381,9 @@ class CLI implements iCommand
 
         if (CarbonPHP::$app_root . 'carbonphp/' !== CarbonPHP::CARBON_ROOT) {
 
-            if (!empty($this->UserPrograms)) {
+            if (!empty(self::$UserPrograms)) {
 
-                $UserPrograms = $compileProgramDescriptions($this->UserPrograms);
+                $UserPrograms = $compileProgramDescriptions(self::$UserPrograms);
 
                 ColorCode::colorCode(<<<END
           Available CarbonPHP CLI Commands  

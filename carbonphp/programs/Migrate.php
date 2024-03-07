@@ -254,16 +254,22 @@ class Migrate implements iCommand
 
                     ColorCode::colorCode("Unrecognized cli argument ($argv[$i]) failing.", iColorCode::BACKGROUND_RED);
 
+                    $this->usage();
+
                     exit(1);
 
             }
         }
 
-        self::getLicense();
+        $this->getLicense();
 
         if (null === self::$localUrl || null === self::$remoteUrl) {
 
-            throw new PrivateAlert('The local and remote url must be passed to the migration command!');
+            $this->usage();
+
+            ColorCode::colorCode('The local and remote url must be passed to the migration command!', iColorCode::BACKGROUND_RED);
+
+            exit(2);
 
         }
 
@@ -344,7 +350,7 @@ class Migrate implements iCommand
 
             ColorCode::colorCode("Failed to get manifest from remote server!\n(file://$localManifestPath)", iColorCode::BACKGROUND_RED);
 
-            exit(1);
+            exit(7);
 
         }
 
@@ -360,7 +366,7 @@ class Migrate implements iCommand
 
             ColorCode::colorCode("Failed to parse remote server time from headers!\n" . print_r($header, true), iColorCode::BACKGROUND_RED);
 
-            exit(170);
+            exit(8);
 
         }
 
@@ -1861,7 +1867,7 @@ HALT;
         return CarbonPHP::$app_root . 'migration-license.php';
     }
 
-    public static function getLicense(): void
+    public function getLicense(): void
     {
 
         if (null !== self::$license) {
@@ -1874,7 +1880,7 @@ HALT;
 
         if (false === file_exists($licenseFile)) {
 
-            throw new PrivateAlert("No license passed as argument or exists in (file://$licenseFile).");
+            $this->createLicenseFile($licenseFile);
 
         }
 
@@ -1884,7 +1890,11 @@ HALT;
 
         if ('' === $importedLicense) {
 
-            throw new PrivateAlert("The license file (file://$licenseFile) provided returned an empty string. Please correct this.");
+            ColorCode::colorCode("The license file (file://$licenseFile) provided returned an empty string. Please correct this.", iColorCode::BACKGROUND_RED);
+
+            $this->usage();
+
+            exit(4);
 
         }
 
@@ -1892,7 +1902,31 @@ HALT;
 
     }
 
-    public static function checkLicense(string $checkLicense, string $licensePHPFilePath = null): void
+
+    public function createLicenseFile(string $licensePHPFilePath) : void {
+
+        $createLicense = uniqid('migration_', true);
+
+        if (false === file_put_contents($licensePHPFilePath,
+                <<<CODE
+                        <?php
+                        
+                        return '$createLicense';                  
+                        
+                        CODE
+            )) {
+
+            ColorCode::colorCode("Failed to store license file to (file://$licensePHPFilePath)", iColorCode::BACKGROUND_RED);
+
+            exit(5);
+
+        }
+
+        ColorCode::colorCode("No license was detected. We have created a new one and stored it to (file://$licensePHPFilePath).", iColorCode::BACKGROUND_YELLOW);
+
+    }
+
+    public function checkLicense(string $checkLicense, string $licensePHPFilePath = null): void
     {
 
         try {
@@ -1912,22 +1946,11 @@ HALT;
 
             if (false === file_exists($licensePHPFilePath)) {
 
-                $createLicense = uniqid('migration_', true);
+                $this->createLicenseFile($licensePHPFilePath);
 
-                if (false === file_put_contents($licensePHPFilePath,
-                        <<<CODE
-                        <?php
-                        
-                        return '$createLicense';                  
-                        
-                        CODE
-                    )) {
+                ColorCode::colorCode("No license was detected. We have created a new one and stored it to ($licensePHPFilePath).", iColorCode::BACKGROUND_RED);
 
-                    throw new PrivateAlert("Failed to store license file to ($licensePHPFilePath)");
-
-                }
-
-                throw new PrivateAlert("No license was detected. We have created a new one and stored it to ($licensePHPFilePath).");
+                exit(6);
 
             }
 
@@ -1936,7 +1959,9 @@ HALT;
 
             if ($realLicense !== $checkLicense) {
 
-                throw new PrivateAlert("The license ($checkLicense) provided did not match the expected.");
+                ColorCode::colorCode("The license ($checkLicense) provided did not match the expected.",iColorCode::BACKGROUND_RED);
+
+                exit(7);
 
             }
 
@@ -2045,11 +2070,42 @@ HALT;
 
     public function usage(): void
     {
-        print 'Pass a license with ';
+        ColorCode::colorCode(<<<HELP
+            Usage: command [options]
+            
+            Options:
+              --timeout <value>                        Set the timeout duration. Value should be in seconds.
+            
+              --max-folder-size-to-compress-mb <value> Set the maximum folder size allowed for compression, in megabytes (MB).
+            
+              --verbose                                Enable verbose mode. Prints more information during execution.
+            
+              --license <value>                        Specify the license. The value is a string representing the license.
+            
+              --local-url <value>                      Set the local URL. The URL must match the pattern "^http(s)?://.*/$". This is used to specify the local base URL.
+            
+              --remote-url <value>                     Set the remote URL. The URL must match the pattern "^http(s)?://.*/$". This is used to specify the remote base URL.
+            
+              --skip-mysql-data-dump                   Skip the MySQL data dump process. This flag disables the dumping of MySQL data.
+            
+              --migrate-directories <value>            Specify directories to be migrated. The value is a string representing the directories.
+            
+            Notes:
+              - If '--local-url' or '--remote-url' is set, the URL provided must end with a slash (/) and start with http(s)://.
+              - The '--verbose' flag enables detailed output, making it easier to follow what the script is doing.
+              - When using '--license', '--local-url', '--remote-url', or '--migrate-directories', ensure to provide a value immediately after the flag.
+              - Use '--skip-mysql-data-dump' to prevent MySQL data from being dumped. This is useful for migrations where data dumping is not required.
+              - If an unrecognized cli argument is provided, the script will terminate with an error message indicating the unrecognized argument.
+            
+            Example:
+              command --verbose --timeout 30 --max-folder-size-to-compress-mb 500 --local-url http://localhost/ --remote-url http://example.com/ --license GPL
+            HELP, iColorCode::BLUE);
+
     }
 
     public function cleanUp(): void
     {
+        self::unlinkMigrationFiles();
     }
 
 }

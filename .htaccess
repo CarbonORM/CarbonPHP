@@ -80,15 +80,6 @@ Header always set Access-Control-Allow-Headers: *
     # on production websocket port is set in the virtual host configuation file; see 000-default.handlebars
 
 
-    RewriteCond %{ENV:CDN} .
-    RewriteRule "^/?react/(.*)/index.html" "%{ENV:CDN}/react/$1/index.html" [P]
-
-    RewriteCond %{ENV:CDN} .
-    RewriteRule "^/?react/(.*)" "%{ENV:CDN}/react/$1" [R=302,L]
-
-    RewriteCond %{ENV:CDN} .
-    RewriteRule "^/?(dropingaming|wp-content)/(assets|uploads(?:COM?|GG|PRO|IO|VIDEO)?)/(.*)" "%{ENV:CDN}/$1/$2/$3" [R=302,L]
-
 
     # https://www.danielmorell.com/guides/htaccess-seo/redirects/introduction-to-redirects
     # deny access to evil robots site rippers offline browsers and other nasty scum
