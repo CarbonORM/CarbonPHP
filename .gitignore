@@ -57,3 +57,5 @@ carbonphp/tables/Wp_*
 carbonphp/tables/interfaces/iWp_*
 
 cache/*
+.idea/
+*.iml
