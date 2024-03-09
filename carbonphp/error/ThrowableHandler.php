@@ -112,6 +112,7 @@ class ThrowableHandler
 
             }
 
+            // todo - when this fail, shit goes really bad
             if (true === file_exists(self::$defaultLocation) && false === touch(self::$defaultLocation) && chmod(self::$defaultLocation, 0644)) {
 
                 $message .= "\n\nCould not create file (" . self::$defaultLocation . ') as it does not exist on the system. All folders appear correct. Please create the directories required to store logs correctly!' . PHP_EOL;

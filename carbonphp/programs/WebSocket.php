@@ -123,9 +123,11 @@ class WebSocket extends WsFileStreams implements iCommand
                 case '-help':
                 case '--help':
 
+                    ColorCode::colorCode("WebSocket Server Help (" . implode(' ', $argv) . ')', iColorCode::CYAN);
+
                     $this->usage(); // this exits : never
 
-                case '--autoAssignOpenPorts':
+                case '--autoAssignAnyOpenPort':
 
                     self::$autoAssignOpenPorts = true;
 
