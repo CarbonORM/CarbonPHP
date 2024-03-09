@@ -6,11 +6,13 @@ use CarbonPHP\Abstracts\ColorCode;
 use CarbonPHP\Abstracts\Pipe;
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Error\PrivateAlert;
+use CarbonPHP\Error\ThrowableHandler;
 use CarbonPHP\Interfaces\iColorCode;
 use CarbonPHP\Programs\WebSocket;
 use CarbonPHP\Session;
 use Closure;
 use Error;
+use Throwable;
 
 abstract class WsConnection
 {
@@ -183,10 +185,39 @@ abstract class WsConnection
 
         $port = $config['SOCKET']['PORT'] ??= $port;
 
+        $host = $config['SOCKET']['HOST'] ??= $host;
+
+
+        $portIsBoundError = static fn() => ColorCode::colorCode("The port ($port) is already in use. Please select a different port. You can use flag (--autoAssignOpenPorts true) to search for an empty port.", iColorCode::RED);
 
         do {
 
-            $socket = stream_socket_server("$protocol://" . ($config['SOCKET']['HOST'] ?? $host) . ':' . $port, $errorNumber, $errorString, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, $context);
+            ColorCode::colorCode("Attempting to bind port ($port)", iColorCode::YELLOW);
+
+            try {
+
+                $socket = stream_socket_server("$protocol://$host:$port", $errorNumber, $errorString, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, $context);
+
+            } catch (Throwable $e) {
+
+                $errorNumber = $e->getCode();
+
+                if ($errorNumber === 2) {
+
+
+                    if (WebSocket::$autoAssignOpenPorts) {
+
+                        continue;
+
+                    }
+
+                }
+
+                $portIsBoundError();
+
+                ThrowableHandler::generateLogAndExit($e);
+
+            }
 
             if (!$socket) {
 
@@ -195,13 +226,11 @@ abstract class WsConnection
 
                     if (WebSocket::$autoAssignOpenPorts) {
 
-                        ColorCode::colorCode("Attempting to use port ($port)", iColorCode::YELLOW);
-
                         continue;
 
                     }
 
-                    ColorCode::colorCode("The port is already in use. Please select a different port. You can use flag (--autoAssignOpenPorts true) to search for an empty port.", iColorCode::RED);
+                    $portIsBoundError();
 
                     exit(18);
 
@@ -209,7 +238,7 @@ abstract class WsConnection
 
                 ColorCode::colorCode("$errorString ($errorNumber)", iColorCode::RED);
 
-                exit(18);
+                exit(19);
 
             }
 
