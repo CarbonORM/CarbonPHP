@@ -1021,13 +1021,6 @@ class ThrowableHandler
     protected static function generateCallTrace(Throwable $e = null): array
     {
 
-        if (null === $e) {
-
-            ColorCode::colorCode("Generating new stack trace with Throwable. This might not capture all information needed :/",
-                iColorCode::YELLOW);
-
-        }
-
         $_SERVER["CONTENT_TYPE"] ??= '';
 
         self::$methodName = self::$className = '';
@@ -1042,6 +1035,8 @@ class ThrowableHandler
         if (null === $e) {
 
             $e = new \Exception();
+
+            ColorCode::colorCode("Generating new stack trace with (new \Exception()). If a Throwable is available to pass to (" . __METHOD__ . ") it SHOULD be to capture all necessary information.", iColorCode::YELLOW);
 
         }
 

@@ -270,6 +270,8 @@ SEMVAR
 
     }
 
+    $versionBumpType = strtolower(trim($versionBumpType));
+
     switch ($versionBumpType) {
 
         case 'major':
