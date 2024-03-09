@@ -208,6 +208,8 @@ abstract class WsConnection
 
                 }
 
+                ColorCode::colorCode("$errorString ($errorNumber)", iColorCode::MAGENTA);
+
                 $portIsBoundError();
 
                 ThrowableHandler::generateLogAndExit($e);
@@ -215,7 +217,6 @@ abstract class WsConnection
             }
 
             if (!$socket) {
-
 
                 if ($errorNumber === 98) {
 
