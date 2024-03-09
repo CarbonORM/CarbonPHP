@@ -270,7 +270,7 @@ SEMVAR
 
     }
 
-    $versionBumpType = strtolower(trim($versionBumpType));
+    $versionBumpType = strtolower(trim($versionBumpType, ' '));
 
     switch ($versionBumpType) {
 
