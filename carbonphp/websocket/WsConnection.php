@@ -16,7 +16,8 @@ abstract class WsConnection
 {
 
 
-    public static function decodeWebsocket(&$connection) {
+    public static function decodeWebsocket(&$connection)
+    {
         $data = WebSocket::decode($connection);
 
         switch ($data['opcode']) {
@@ -120,7 +121,6 @@ abstract class WsConnection
     }
 
 
-
     public static function garbageCollect(): void
     {
 
@@ -143,7 +143,7 @@ abstract class WsConnection
         string $cert = '',
         string $pass = '',
         string $host = '',
-        int    $port = 0,
+        int    &$port = 0,
     )
     {
 
@@ -181,15 +181,39 @@ abstract class WsConnection
 
         ColorCode::colorCode("Stream Context Created");
 
-        $socket = stream_socket_server("$protocol://" . ($config['SOCKET']['HOST'] ?? $host) . ':' . ($config['SOCKET']['PORT'] ?? $port), $errorNumber, $errorString, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, $context);
+        $port = $config['SOCKET']['PORT'] ??= $port;
 
-        if (!$socket) {
 
-            ColorCode::colorCode("$errorString ($errorNumber)", iColorCode::RED);
+        do {
 
-            die(1);
+            $socket = stream_socket_server("$protocol://" . ($config['SOCKET']['HOST'] ?? $host) . ':' . $port, $errorNumber, $errorString, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, $context);
 
-        }
+            if (!$socket) {
+
+
+                if ($errorNumber === 98) {
+
+                    if (WebSocket::$autoAssignOpenPorts) {
+
+                        ColorCode::colorCode("Attempting to use port ($port)", iColorCode::YELLOW);
+
+                        continue;
+
+                    }
+
+                    ColorCode::colorCode("The port is already in use. Please select a different port. You can use flag (--autoAssignOpenPorts true) to search for an empty port.", iColorCode::RED);
+
+                    exit(18);
+
+                }
+
+                ColorCode::colorCode("$errorString ($errorNumber)", iColorCode::RED);
+
+                exit(18);
+
+            }
+
+        } while ($socket === false && 1000 + $config['SOCKET']['PORT'] > $port++);
 
         if (!is_resource($socket)) {
 

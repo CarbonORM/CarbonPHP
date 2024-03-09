@@ -485,6 +485,14 @@ class CarbonPHP
 
             }
 
+
+            // @link https://stackoverflow.com/questions/20124327/php-shell-exec-command-is-not-working
+            if (false === putenv('PATH=/bin:/usr/bin/:/usr/sbin/:/usr/local/bin:$PATH')) {
+
+                ColorCode::colorCode('putenv: failed to set the PATH environment variable. (file://' . __FILE__ . ':' . __LINE__ . ')', iColorCode::YELLOW);
+
+            }
+
             // todo - we're using this as a uri and it could have directory separator in the wrong direction
             if (self::$app_root . 'carbonphp' . DS === self::CARBON_ROOT) {
 

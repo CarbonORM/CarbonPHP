@@ -73,6 +73,7 @@ class WebSocket extends WsFileStreams implements iCommand
      * @var resource|null
      */
     public static mixed $globalPipeFifo = null;
+    public static bool $autoAssignOpenPorts = false;
 
 
     public static function description(): string
@@ -106,7 +107,7 @@ class WebSocket extends WsFileStreams implements iCommand
 
         ob_implicit_flush();
 
-        $_SERVER['SERVER_PORT'] = self::$port;
+        $_SERVER['SERVER_PORT'] = &self::$port;
 
         WsSignals::signalHandler(static fn() => WsConnection::garbageCollect());
 
@@ -117,13 +118,20 @@ class WebSocket extends WsFileStreams implements iCommand
 
             switch ($argv[$i]) {
                 default:
+                    ColorCode::colorCode("Unknown Argument: {$argv[$i]}", iColorCode::RED);
+                case '-h':
                 case '-help':
+                case '--help':
 
-                    ColorCode::colorCode("\tYou da bomb :)", 'blue');
+                    $this->usage(); // this exits : never
 
-                    $this->usage();
+                case '--autoAssignOpenPorts':
 
-                case '-dontVerifyIP':
+                    self::$autoAssignOpenPorts = true;
+
+                    break;
+
+                case '--dontVerifyIP':
 
                     self::$verifyIP = false;
 
@@ -135,7 +143,62 @@ class WebSocket extends WsFileStreams implements iCommand
 
         self::$socket = WsConnection::startTcpServer(self::$ssl, self::$cert, self::$pass, self::$host, self::$port);
 
+        self::updateHtaccessWebSocketPort(self::$port);
+
         ColorCode::colorCode("Stream Socket Server Created on ws" . (self::$ssl ? 's' : '') . '://' . self::$host . ':' . self::$port . '/ ');
+
+    }
+
+    public static function updateHtaccessWebSocketPort(int $port, string $path = 'carbonorm/websocket'): void
+    {
+
+        $path = trim($path, '/');
+
+        $startWebSocketHtaccessComment = '# START CarbonORM WebSockets';
+
+        // this is the proxy for the WebSocket - we want apache to forward all requests to the WebSocket server
+        $connectionProxy = <<<HTACCESS
+            $startWebSocketHtaccessComment
+            <IfModule mod_rewrite.c>
+                RewriteEngine On
+                RewriteCond %{HTTP:Connection} Upgrade [NC]
+                RewriteCond %{HTTP:Upgrade} websocket [NC]
+                RewriteRule ^/$path/?(.*) ws://127.0.0.1:$port/$path/$1  [P,L,E=noconntimeout:1,E=noabort:1]
+            </IfModule>
+            # END CarbonORM WebSockets
+            HTACCESS;
+
+
+        // if one does not exist we will create it
+        $htaccess = file_get_contents(ABSPATH . '/.htaccess') ?? '';
+
+        if (str_contains($htaccess, $connectionProxy)) {
+
+            ColorCode::colorCode('The .htaccess file already contains the WebSocket proxy. No changes were made.');
+
+            return;
+
+        }
+
+        if (str_contains($htaccess, $startWebSocketHtaccessComment)) {
+
+            ColorCode::colorCode('The .htaccess file already contains the WebSocket proxy. Updating to new port.', iColorCode::CYAN);
+
+            $htaccess = preg_replace('#' . $startWebSocketHtaccessComment . '.*?' . '#s', $connectionProxy, $htaccess);;
+
+        } else {
+
+            $htaccess = $connectionProxy . PHP_EOL . $htaccess;
+
+        }
+
+        if (false === file_put_contents(ABSPATH . '/.htaccess', $htaccess)) {
+
+            ColorCode::colorCode('Failed to write to .htaccess file. Please check permissions.', iColorCode::RED);
+
+            exit(1);
+
+        }
 
     }
 
