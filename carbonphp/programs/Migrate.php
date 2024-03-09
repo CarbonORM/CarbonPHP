@@ -4,6 +4,7 @@ namespace CarbonPHP\Programs;
 
 use CarbonPHP\Abstracts\Background;
 use CarbonPHP\Abstracts\ColorCode;
+use CarbonPHP\Abstracts\Cryptography;
 use CarbonPHP\Abstracts\Files;
 use CarbonPHP\Abstracts\MySQL;
 use CarbonPHP\CarbonPHP;
@@ -1903,9 +1904,9 @@ HALT;
     }
 
 
-    public function createLicenseFile(string $licensePHPFilePath) : void {
+    public static function createLicenseFile(string $licensePHPFilePath) : void {
 
-        $createLicense = uniqid('migration_', true);
+        $createLicense = uniqid('migration_', true) . Cryptography::genRandomHex(200);
 
         if (false === file_put_contents($licensePHPFilePath,
                 <<<CODE
@@ -1926,7 +1927,7 @@ HALT;
 
     }
 
-    public function checkLicense(string $checkLicense, string $licensePHPFilePath = null): void
+    public static function checkLicense(string $checkLicense, string $licensePHPFilePath = null): void
     {
 
         try {
@@ -1946,7 +1947,7 @@ HALT;
 
             if (false === file_exists($licensePHPFilePath)) {
 
-                $this->createLicenseFile($licensePHPFilePath);
+                self::createLicenseFile($licensePHPFilePath);
 
                 ColorCode::colorCode("No license was detected. We have created a new one and stored it to ($licensePHPFilePath).", iColorCode::BACKGROUND_RED);
 
@@ -2098,7 +2099,7 @@ HALT;
               - If an unrecognized cli argument is provided, the script will terminate with an error message indicating the unrecognized argument.
             
             Example:
-              command --verbose --timeout 30 --max-folder-size-to-compress-mb 500 --local-url http://localhost/ --remote-url http://example.com/ --license GPL
+              command --verbose --timeout 30 --max-folder-size-to-compress-mb 500 --local-url http://localhost/ --remote-url http://example.com/ --license migrate_23430.21432
             HELP, iColorCode::BLUE);
 
     }
