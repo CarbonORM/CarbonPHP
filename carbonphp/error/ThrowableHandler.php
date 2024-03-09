@@ -525,7 +525,7 @@ class ThrowableHandler
 
             $color = $warning ? iColorCode::YELLOW : iColorCode::RED;
 
-            ColorCode::colorCode('The Global Error (set_error_handler) Handler has been invoked.', $color);
+            ColorCode::colorCode('The Global Error (set_error_handler) Handler has been invoked. (' . ($warning ? 'RECOVERABLE WARNING' : 'FATAL ERROR') . ')', $color);
 
             ColorCode::colorCode("code: $errorLevel, message: $errorString, $errorFile:$errorLine", $color);
 
