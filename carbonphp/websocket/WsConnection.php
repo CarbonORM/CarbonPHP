@@ -202,14 +202,9 @@ abstract class WsConnection
 
                 $errorNumber = $e->getCode();
 
-                if ($errorNumber === 2) {
+                if ($errorNumber === 2 && WebSocket::$autoAssignOpenPorts) {
 
-
-                    if (WebSocket::$autoAssignOpenPorts) {
-
-                        continue;
-
-                    }
+                    continue;
 
                 }
 
