@@ -200,25 +200,13 @@ abstract class WsConnection
 
             } catch (Throwable $e) {
 
-                $errorNumber = $e->getCode();
-
-                if ($errorNumber === 2 && WebSocket::$autoAssignOpenPorts) {
-
-                    continue;
-
-                }
-
-                ColorCode::colorCode("$errorString ($errorNumber)", iColorCode::MAGENTA);
-
-                $portIsBoundError();
-
                 ThrowableHandler::generateLogAndExit($e);
 
             }
 
             if (!$socket) {
 
-                if ($errorNumber === 98) {
+                if ($errorNumber === 0 || $errorString === 'Address already in use') {
 
                     if (WebSocket::$autoAssignOpenPorts) {
 
@@ -232,7 +220,7 @@ abstract class WsConnection
 
                 }
 
-                ColorCode::colorCode("$errorString ($errorNumber)", iColorCode::RED);
+                ColorCode::colorCode("$errorNumber) $errorString file://" . __FILE__ . ':' . __LINE__, iColorCode::RED);
 
                 exit(19);
 

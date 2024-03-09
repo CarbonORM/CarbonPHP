@@ -124,8 +124,6 @@ class ThrowableHandler
             // todo - make sure file is writable
 
 
-
-
         } catch (Throwable $e) {
 
             if (false === $fixFilePermissions) {
@@ -523,9 +521,9 @@ class ThrowableHandler
 
             $warning = array_key_exists('RECOVERABLE WARNING', $browserOutput);
 
-            $color = $warning ? iColorCode::YELLOW : iColorCode::RED;
+            $color = $warning ? iColorCode::BACKGROUND_YELLOW : iColorCode::BACKGROUND_RED;
 
-            ColorCode::colorCode('The Global Error (set_error_handler) Handler has been invoked. (' . ($warning ? 'RECOVERABLE WARNING' : 'FATAL ERROR') . ')', $color);
+            ColorCode::colorCode('The Global ' . ($warning ? 'Warning' : 'Error') . ' (set_error_handler) Handler has been invoked. (' . ($warning ? 'RECOVERABLE WARNING - will not be caught with a try { } catch block, but will continue back to regular execution.' : 'FATAL ERROR') . ')', $color);
 
             ColorCode::colorCode("code: $errorLevel, message: $errorString, $errorFile:$errorLine", $color);
 
@@ -1073,7 +1071,7 @@ class ThrowableHandler
         }
 
         /** @noinspection JsonEncodingApiUsageInspection */
-        return [$traceWithKeys, PHP_EOL . json_encode($traceWithKeys,  JSON_PRETTY_PRINT) . PHP_EOL];
+        return [$traceWithKeys, PHP_EOL . json_encode($traceWithKeys, JSON_PRETTY_PRINT) . PHP_EOL];
     }
 
     /**
