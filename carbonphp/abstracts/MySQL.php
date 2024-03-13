@@ -114,7 +114,12 @@ IDENTIFIED;
 
         $c[CarbonPHP::DATABASE][CarbonPHP::DB_PORT] ??= 3306;
 
-        $cnf[] = "port = {$c[CarbonPHP::DATABASE][CarbonPHP::DB_PORT]}";
+        // explicit empty indicates to mysql to auto-resolve, this is important for aws rds
+        if (!empty($c[CarbonPHP::DATABASE][CarbonPHP::DB_PORT])) {
+
+            $cnf[] = "port = {$c[CarbonPHP::DATABASE][CarbonPHP::DB_PORT]}";
+
+        }
 
         // We're going to use this function to execute mysql from the command line
         // Mysql needs this to access the server

@@ -50,6 +50,7 @@ wp-admin/*
 readme.html
 /xmlrpc.php
 license.txt
+migration-license.php
 
 
 # wp rest tables

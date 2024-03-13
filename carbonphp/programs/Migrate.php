@@ -1664,170 +1664,172 @@ HALT;
     public static function enablePull(array $allowedDirectories): bool
     {
 
-        return Route::regexMatch('#^' . self::$migrationUrl . '/?(.*)?#i', static function (string $getPath = '') use ($allowedDirectories) {
+        return Route::regexMatch('#^' . self::$migrationUrl . '/?(.*)?#i',
+            static function (string $getPath = '') use ($allowedDirectories) {
 
-            self::unlinkMigrationFiles();
+                self::unlinkMigrationFiles();
 
-            self::$currentTime = self::$remoteServerTime = microtime(true);
+                self::$currentTime = self::$remoteServerTime = microtime(true);
 
-            ColorCode::colorCode("Migration Request " . print_r($_POST, true), iColorCode::CYAN);
+                ColorCode::colorCode("Migration Request " . print_r($_POST, true), iColorCode::CYAN);
 
-            $requestedDirectoriesString = $_POST['directories'] ?? '';
+                $requestedDirectoriesString = $_POST['directories'] ?? '';
 
-            self::$license = $_POST['license'] ?? '';
+                self::$license = $_POST['license'] ?? '';
 
-            if ('' === self::$license) {
+                if ('' === self::$license) {
 
-                throw new PrivateAlert('License is empty!');
+                    throw new PrivateAlert('License is empty!');
 
-            }
+                }
 
-            self::$remoteUrl = $_POST['url'] ?? '';
+                self::$remoteUrl = $_POST['url'] ?? '';
 
-            ColorCode::colorCode('Running checkLicense');
+                ColorCode::colorCode('Running checkLicense');
 
-            self::checkLicense(self::$license);
+                self::checkLicense(self::$license);
 
-            ColorCode::colorCode('checkLicense Passed');
+                ColorCode::colorCode('checkLicense Passed');
 
-            header("abspath: " . CarbonPHP::$app_root);
+                header("abspath: " . CarbonPHP::$app_root);
 
-            if (array_key_exists(self::SKIP_MYSQL_DATA_DUMP_FLAG, $_POST)) {
+                if (array_key_exists(self::SKIP_MYSQL_DATA_DUMP_FLAG, $_POST)) {
 
-                self::$MySQLDataDump = false;
+                    self::$MySQLDataDump = false;
 
-            }
+                }
 
-            if ('' !== $getPath) {
+                if ('' !== $getPath) {
 
-                $getPath = base64_decode($getPath);
+                    $getPath = base64_decode($getPath);
 
-                $absolutePath = CarbonPHP::$app_root . $getPath;
+                    $absolutePath = CarbonPHP::$app_root . $getPath;
 
-                ColorCode::colorCode("Attempting to transfer out file \nfile://$absolutePath");
+                    ColorCode::colorCode("Attempting to transfer out file \nfile://$absolutePath");
 
-                self::transferLargeFileOut(CarbonPHP::$app_root . $getPath);
+                    self::transferLargeFileOut(CarbonPHP::$app_root . $getPath);
 
-                exit(0);
+                    exit(0);
 
-            }
+                }
 
-            $requestedDirectories = [];
+                $requestedDirectories = [];
 
-            if ('' !== $requestedDirectoriesString) {
+                if ('' !== $requestedDirectoriesString) {
 
-                $requestedDirectories = explode(',', $requestedDirectoriesString);
+                    $requestedDirectories = explode(',', $requestedDirectoriesString);
 
-                if ([] === array_diff($requestedDirectories, $allowedDirectories)) {
+                    if ([] === array_diff($requestedDirectories, $allowedDirectories)) {
 
-                    foreach ($requestedDirectories as $directory) {
+                        foreach ($requestedDirectories as $directory) {
 
-                        $allowed = false;
+                            $allowed = false;
 
-                        foreach ($allowedDirectories as $allowedDirectory) {
+                            foreach ($allowedDirectories as $allowedDirectory) {
 
-                            if (str_starts_with($allowedDirectory, $directory)) {
+                                if (str_starts_with($allowedDirectory, $directory)) {
 
-                                ColorCode::colorCode("The requested directory ($directory) was found as a subset, or subdirectory, of allowed directory ($allowedDirectory).", iColorCode::CYAN);
+                                    ColorCode::colorCode("The requested directory ($directory) was found as a subset, or subdirectory, of allowed directory ($allowedDirectory).", iColorCode::CYAN);
 
-                                $allowed = true;
+                                    $allowed = true;
 
-                                break;
+                                    break;
+
+                                }
+
+                            }
+
+                            if (false === $allowed) {
+
+                                throw new PrivateAlert("Failed to verify requested ($directory) is allowed to transfer.");
 
                             }
 
                         }
 
-                        if (false === $allowed) {
+                        ColorCode::colorCode("The requested ($requestedDirectoriesString) had directories not allowed by this server. Allowed values :: " . print_r($allowedDirectories, true));
 
-                            throw new PrivateAlert("Failed to verify requested ($directory) is allowed to transfer.");
-
-                        }
+                        // omit publicly logging what is allowed
+                        throw new PrivateAlert("One or more directories you have requested are not listed as available! ($requestedDirectoriesString)");
 
                     }
 
+                    ColorCode::colorCode('No media directories requested.');
 
-                    ColorCode::colorCode("The requested ($requestedDirectoriesString) had directories not allowed by this server. Allowed values :: " . print_r($allowedDirectories, true));
+                } else if (false === self::$MySQLDataDump) {
 
-                    // omit publicly logging what is allowed
-                    throw new PrivateAlert("One or more directories you have requested are not listed as available! ($requestedDirectoriesString)");
+                    throw new PrivateAlert('Request failed as no migration directories were provided and no mysql data was explicitly requests. Nothing to do.');
 
                 }
 
-                ColorCode::colorCode('No media directories requested.');
+                $haltPHP = self::selfHidingFile();
 
-            } else if (false === self::$MySQLDataDump) {
+                $pathHaltPHP = CarbonPHP::$app_root . 'cache/haltPHP.php';
 
-                throw new PrivateAlert('Request failed as no migration directories were provided and no mysql data was explicitly requests. Nothing to do.');
+                Files::createDirectoryIfNotExist(dirname($pathHaltPHP));
 
-            }
+                if (false === file_put_contents($pathHaltPHP, $haltPHP)) {
 
-            $haltPHP = self::selfHidingFile();
+                    throw new PrivateAlert("Failed to store halt file (file://$pathHaltPHP) to disk. Please check permissions.");
 
-            $pathHaltPHP = CarbonPHP::$app_root . 'cache/haltPHP.php';
+                }
 
-            if (false === file_put_contents($pathHaltPHP, $haltPHP)) {
+                if (self::$MySQLDataDump) {
 
-                throw new PrivateAlert('Failed to store halt file');
+                    ColorCode::colorCode('About to dump mysql schemas <' . Database::$carbonDatabaseName . '> to file.',
+                        iColorCode::CYAN);
 
-            }
+                    self::dumpAll($pathHaltPHP);
 
-            if (self::$MySQLDataDump) {
+                } else {
 
-                ColorCode::colorCode('About to dump mysql schemas <' . Database::$carbonDatabaseName . '> to file.',
-                    iColorCode::CYAN);
+                    ColorCode::colorCode('Detected user param (' . self::SKIP_MYSQL_DATA_DUMP_FLAG . ') skipping database dump.');
 
-                self::dumpAll($pathHaltPHP);
+                }
 
-            } else {
+                if ([] === $requestedDirectories) {
 
-                ColorCode::colorCode('Detected user param (' . self::SKIP_MYSQL_DATA_DUMP_FLAG . ') skipping database dump.');
+                    ColorCode::colorCode('No media directories requested. Done.');
 
-            }
+                    exit(0);
 
-            if ([] === $requestedDirectories) {
+                }
 
-                ColorCode::colorCode('No media directories requested. Done.');
+                ColorCode::colorCode("Preparing to create a manifest to media!!", iColorCode::BACKGROUND_CYAN);
+
+                $zipDirectory = CarbonPHP::$app_root . self::$migrationFolder . DS . 'zip' . DS;
+
+                if (true === is_dir($zipDirectory)) {
+
+                    self::clearDirectory($zipDirectory);
+
+                } else {
+
+                    Files::createDirectoryIfNotExist($zipDirectory);
+
+                }
+
+                # server needs to compile directories
+                foreach ($requestedDirectories as $media) {
+
+                    if (false === is_string($media)) {
+
+                        throw new PrivateAlert('An argument passed in the array $directories was not of type string ' . print_r($allowedDirectories, true));
+
+                    }
+
+                    // create a list of all files the requesting server will need to transfer
+                    print self::manifestDirectory($media) . PHP_EOL;    // do not remove the newline
+
+                    flush();
+
+                }
+
+                ColorCode::colorCode('Completed Migration Request!');
 
                 exit(0);
 
-            }
-
-            ColorCode::colorCode("Preparing to create a manifest to media!!", iColorCode::BACKGROUND_CYAN);
-
-            $zipDirectory = CarbonPHP::$app_root . self::$migrationFolder . DS . 'zip' . DS;
-
-            if (true === is_dir($zipDirectory)) {
-
-                self::clearDirectory($zipDirectory);
-
-            } else {
-
-                Files::createDirectoryIfNotExist($zipDirectory);
-
-            }
-
-            # server needs to compile directories
-            foreach ($requestedDirectories as $media) {
-
-                if (false === is_string($media)) {
-
-                    throw new PrivateAlert('An argument passed in the array $directories was not of type string ' . print_r($allowedDirectories, true));
-
-                }
-
-                // create a list of all files the requesting server will need to transfer
-                print self::manifestDirectory($media) . PHP_EOL;    // do not remove the newline
-
-                flush();
-
-            }
-
-            ColorCode::colorCode('Completed Migration Request!');
-
-            exit(0);
-
-        });
+            });
 
     }
 
@@ -1904,7 +1906,8 @@ HALT;
     }
 
 
-    public static function createLicenseFile(string $licensePHPFilePath) : void {
+    public static function createLicenseFile(string $licensePHPFilePath): void
+    {
 
         $createLicense = uniqid('migration_', true) . Cryptography::genRandomHex(200);
 
@@ -1960,7 +1963,7 @@ HALT;
 
             if ($realLicense !== $checkLicense) {
 
-                ColorCode::colorCode("The license ($checkLicense) provided did not match the expected.",iColorCode::BACKGROUND_RED);
+                ColorCode::colorCode("The license ($checkLicense) provided did not match the expected.", iColorCode::BACKGROUND_RED);
 
                 exit(7);
 
