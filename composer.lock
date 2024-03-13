@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4ed19230c5230d4483160109434b6680",
+    "content-hash": "c5235fcb50b66eaef3d5f96c713c6699",
     "packages": [
         {
             "name": "mustache/mustache",
@@ -259,16 +259,16 @@
         },
         {
             "name": "composer/composer",
-            "version": "2.7.1",
+            "version": "2.7.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer/composer.git",
-                "reference": "aaf6ed5ccd27c23f79a545e351b4d7842a99d0bc"
+                "reference": "b826edb791571ab1eaf281eb1bd6e181a1192adc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer/composer/zipball/aaf6ed5ccd27c23f79a545e351b4d7842a99d0bc",
-                "reference": "aaf6ed5ccd27c23f79a545e351b4d7842a99d0bc",
+                "url": "https://api.github.com/repos/composer/composer/zipball/b826edb791571ab1eaf281eb1bd6e181a1192adc",
+                "reference": "b826edb791571ab1eaf281eb1bd6e181a1192adc",
                 "shasum": ""
             },
             "require": {
@@ -353,7 +353,7 @@
                 "irc": "ircs://irc.libera.chat:6697/composer",
                 "issues": "https://github.com/composer/composer/issues",
                 "security": "https://github.com/composer/composer/security/policy",
-                "source": "https://github.com/composer/composer/tree/2.7.1"
+                "source": "https://github.com/composer/composer/tree/2.7.2"
             },
             "funding": [
                 {
@@ -369,7 +369,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-02-09T14:26:28+00:00"
+            "time": "2024-03-11T16:12:18+00:00"
         },
         {
             "name": "composer/metadata-minifier",
@@ -1093,16 +1093,16 @@
         },
         {
             "name": "matthiasmullie/minify",
-            "version": "1.3.71",
+            "version": "1.3.72",
             "source": {
                 "type": "git",
                 "url": "https://github.com/matthiasmullie/minify.git",
-                "reference": "ae42a47d7fecc1fbb7277b2f2d84c37a33edc3b1"
+                "reference": "531fdeef1911ffe27a53f8a19c297648c78f757e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/matthiasmullie/minify/zipball/ae42a47d7fecc1fbb7277b2f2d84c37a33edc3b1",
-                "reference": "ae42a47d7fecc1fbb7277b2f2d84c37a33edc3b1",
+                "url": "https://api.github.com/repos/matthiasmullie/minify/zipball/531fdeef1911ffe27a53f8a19c297648c78f757e",
+                "reference": "531fdeef1911ffe27a53f8a19c297648c78f757e",
                 "shasum": ""
             },
             "require": {
@@ -1152,7 +1152,7 @@
             ],
             "support": {
                 "issues": "https://github.com/matthiasmullie/minify/issues",
-                "source": "https://github.com/matthiasmullie/minify/tree/1.3.71"
+                "source": "https://github.com/matthiasmullie/minify/tree/1.3.72"
             },
             "funding": [
                 {
@@ -1160,7 +1160,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2023-04-25T20:33:03+00:00"
+            "time": "2024-03-13T12:02:00+00:00"
         },
         {
             "name": "matthiasmullie/path-converter",
@@ -3188,6 +3188,7 @@
                     "type": "github"
                 }
             ],
+            "abandoned": true,
             "time": "2020-09-28T06:45:17+00:00"
         },
         {
