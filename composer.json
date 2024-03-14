@@ -96,7 +96,6 @@
     ],
     "post-install-cmd": [
       "PhpGitHooks\\PhpGitHooks::install",
-      "@githooks",
       "@apache:linkApplication",
       "@database:refresh:schema",
       "@rest",
