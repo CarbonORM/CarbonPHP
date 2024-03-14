@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "49c1ad9fb1c3459fd927df260a497ae5",
+    "content-hash": "1cc2c1a7a79470a88245eeeb45e9bdf7",
     "packages": [
         {
             "name": "mustache/mustache",
@@ -2287,6 +2287,47 @@
                 }
             ],
             "time": "2023-11-16T16:21:57+00:00"
+        },
+        {
+            "name": "richardtmiles/php-git-hooks",
+            "version": "0.2.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/RichardTMiles/php-git-hooks.git",
+                "reference": "574fc47dd74448992d0614fb4d58dd5836278372"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/RichardTMiles/php-git-hooks/zipball/574fc47dd74448992d0614fb4d58dd5836278372",
+                "reference": "574fc47dd74448992d0614fb4d58dd5836278372",
+                "shasum": ""
+            },
+            "require": {
+                "carbonorm/carbonphp": ">=20.1.9",
+                "php": ">=8.2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "PhpGitHooks\\": "phpgithooks/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "mit"
+            ],
+            "authors": [
+                {
+                    "name": "richardtmiles",
+                    "email": "richard@miles.systems"
+                }
+            ],
+            "description": "version and release management",
+            "support": {
+                "issues": "https://github.com/RichardTMiles/php-git-hooks/issues",
+                "source": "https://github.com/RichardTMiles/php-git-hooks/tree/0.2.5"
+            },
+            "time": "2024-03-14T07:49:34+00:00"
         },
         {
             "name": "se/selenium-server-standalone",

@@ -155,18 +155,25 @@ class WebSocket extends WsFileStreams implements iCommand
     {
         $path = trim($path, '/');
 
-        $startWebSocketHtaccessComment = '# START CarbonORM WebSockets';
+        $startWebSocketHtaccessComment = "# START CarbonORM WebSockets ($path) - GENERATED CODE";
 
         // This is the proxy for the WebSocket - we want apache to forward all requests to the WebSocket server
         $connectionProxy = <<<HTACCESS
             $startWebSocketHtaccessComment
+            
+            <IfModule mod_alias.c>
+                RedirectMatch 403 ^/tmp(/?.*)?$
+                RedirectMatch 403 ^/cache/tmp/migration_.*$
+            </IfModule>
+            
             <IfModule mod_rewrite.c>
                 RewriteEngine On
                 RewriteCond %{HTTP:Connection} Upgrade [NC]
                 RewriteCond %{HTTP:Upgrade} websocket [NC]
                 RewriteRule ^/$path/?(.*) ws://127.0.0.1:$port/$path/$1  [P,L,E=noconntimeout:1,E=noabort:1]
             </IfModule>
-            # END CarbonORM WebSockets
+            # END CarbonORM WebSockets - DO NOT MODIFY GENERATED CODE
+            
             HTACCESS;
 
         // Attempt to open the .htaccess file in read-write mode

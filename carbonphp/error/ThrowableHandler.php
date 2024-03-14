@@ -97,8 +97,11 @@ class ThrowableHandler
                 $subdir = dirname($directory, ++$levels);
 
                 if (is_dir($subdir)) {
+                    // check if permissions are correct
 
-                    chmod($directory, 0755);
+                    ColorCode::colorCode('The directory (' . $subdir . ') exists, attempting to chmod 0755.', iColorCode::YELLOW);
+
+                    chmod($subdir, 0755);
 
                     break;
 
@@ -126,62 +129,12 @@ class ThrowableHandler
 
         } catch (Throwable $e) {
 
-            if (false === $fixFilePermissions) {
+            print $e->getMessage() . ' (file://' . $e->getFile() . ':' . $e->getLine() . ')';
 
-                self::generateLogAndExit($e);
+            /** @noinspection ForgottenDebugOutputInspection */
+            var_dump(debug_backtrace());
 
-            }
-
-            self::fixPermissions(CarbonPHP::$app_root);
-
-            self::checkCreateLogFile($message, false);
-
-        }
-
-    }
-
-    public static function fixPermissions($dir, $dirPermissions = 0755, $filePermissions = 0644): void
-    {
-
-        try {
-
-            // Check if the directory exists
-            if (!file_exists($dir)) {
-
-                throw new PrivateAlert("Directory does not exist: $dir\n");
-
-            }
-
-            // Attempt to set permissions on the directory itself
-            chmod($dir, $dirPermissions);
-
-            // Scan through the directory contents
-            $files = new DirectoryIterator($dir);
-
-            foreach ($files as $file) {
-
-                if ($file->isDot()) {
-                    continue;
-                }
-
-                $filePath = $file->getPathname();
-
-                if ($file->isDir()) {
-
-                    // Recursively fix permissions for directories
-                    self::fixPermissions($filePath, $dirPermissions, $filePermissions);
-
-                } else {
-
-                    // Set permissions for files
-                    chmod($filePath, $filePermissions);
-
-                }
-            }
-
-        } catch (Throwable $e) {
-
-            self::generateLogAndExit($e);
+            exit(18);
 
         }
 
