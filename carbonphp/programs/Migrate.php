@@ -1096,8 +1096,6 @@ HALT;
 
                     }
 
-                    passthru("cat $toLocalFilePath.html");
-
                     throw new PrivateAlert("The curl download detected an html document (file://$toLocalFilePath.html) using `strpos(\$firstLine, '<html')`, this is an unexpected error possibly thrown on the remote host. View downloaded file content above for (potentially) more details.");
 
                 }

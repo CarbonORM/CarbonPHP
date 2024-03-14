@@ -153,12 +153,11 @@ class WebSocket extends WsFileStreams implements iCommand
 
     public static function updateHtaccessWebSocketPort(int $port, string $path = 'carbonorm/websocket'): void
     {
-
         $path = trim($path, '/');
 
         $startWebSocketHtaccessComment = '# START CarbonORM WebSockets';
 
-        // this is the proxy for the WebSocket - we want apache to forward all requests to the WebSocket server
+        // This is the proxy for the WebSocket - we want apache to forward all requests to the WebSocket server
         $connectionProxy = <<<HTACCESS
             $startWebSocketHtaccessComment
             <IfModule mod_rewrite.c>
@@ -170,39 +169,53 @@ class WebSocket extends WsFileStreams implements iCommand
             # END CarbonORM WebSockets
             HTACCESS;
 
+        // Attempt to open the .htaccess file in read-write mode
+        $htaccessFile = ABSPATH . '/.htaccess';
 
-        // if one does not exist we will create it
-        $htaccess = file_get_contents(ABSPATH . '/.htaccess') ?? '';
+        $fileResource = fopen($htaccessFile, 'cb+');
 
-        if (str_contains($htaccess, $connectionProxy)) {
-
-            ColorCode::colorCode('The .htaccess file already contains the WebSocket proxy. No changes were made.');
-
-            return;
-
-        }
-
-        if (str_contains($htaccess, $startWebSocketHtaccessComment)) {
-
-            ColorCode::colorCode('The .htaccess file already contains the WebSocket proxy. Updating to new port.', iColorCode::CYAN);
-
-            $htaccess = preg_replace('#' . $startWebSocketHtaccessComment . '.*?' . '#s', $connectionProxy, $htaccess);;
-
-        } else {
-
-            $htaccess = $connectionProxy . PHP_EOL . $htaccess;
-
-        }
-
-        if (false === file_put_contents(ABSPATH . '/.htaccess', $htaccess)) {
-
-            ColorCode::colorCode('Failed to write to .htaccess file. Please check permissions.', iColorCode::RED);
-
+        if ($fileResource === false) {
+            ColorCode::colorCode('Failed to open .htaccess file. Please check permissions.', iColorCode::RED);
             exit(1);
-
         }
 
+        // Acquire an exclusive lock
+        if (!flock($fileResource, LOCK_EX)) {
+            ColorCode::colorCode('Failed to lock .htaccess file for writing.', iColorCode::RED);
+            fclose($fileResource); // Always release the resource
+            exit(1);
+        }
+
+        // Read the current contents of the file
+        $htaccess = stream_get_contents($fileResource);
+
+        // Check if the connection proxy exists or needs to be updated
+        if (str_contains($htaccess, $connectionProxy)) {
+            ColorCode::colorCode('The .htaccess file already contains the WebSocket proxy. No changes were made.');
+        } elseif (str_contains($htaccess, $startWebSocketHtaccessComment)) {
+            ColorCode::colorCode('The .htaccess file already contains the WebSocket proxy. Updating to new port.', iColorCode::CYAN);
+            $htaccess = preg_replace('#' . preg_quote($startWebSocketHtaccessComment, '#') . '.*?#s', $connectionProxy, $htaccess);
+        } else {
+            $htaccess = $connectionProxy . PHP_EOL . $htaccess;
+        }
+
+        // Move the file pointer to the beginning of the file and truncate the file to zero length
+        ftruncate($fileResource, 0);
+        rewind($fileResource);
+
+        // Write the modified contents back to the file
+        if (fwrite($fileResource, $htaccess) === false) {
+            ColorCode::colorCode('Failed to write to .htaccess file. Please check permissions.', iColorCode::RED);
+            flock($fileResource, LOCK_UN); // Release the lock
+            fclose($fileResource); // Always release the resource
+            exit(1);
+        }
+
+        // Release the lock and close the file
+        flock($fileResource, LOCK_UN);
+        fclose($fileResource);
     }
+
 
     public function run(array $argv): void
     {
