@@ -96,7 +96,7 @@
     ],
     "post-install-cmd": [
       "PhpGitHooks\\PhpGitHooks::install",
-      "@apache:linkApplication",
+      "pwd | grep -q \"^/var/www\" || composer run apache:linkApplication",
       "@database:refresh:schema",
       "@rest",
       "@test"
