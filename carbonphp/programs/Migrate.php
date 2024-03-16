@@ -22,6 +22,7 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileObject;
 use Throwable;
+use ZipArchive;
 
 class Migrate implements iCommand
 {
@@ -30,6 +31,8 @@ class Migrate implements iCommand
     public static string $migrationFolder = 'tmp';
 
     public static string $migrationFolderPrefix = 'migration_';
+
+    public const MIGRATION_COMPLETE = "Migration complete\n";
 
     public static float $currentTime;
 
@@ -305,11 +308,12 @@ class Migrate implements iCommand
 
             foreach ($requestedDirectories as $media) {
 
-                // todo - did this deprecate on accident?
                 // create a list of all files the requesting server will need to transfer
                 $requestedDirectoriesLocalCopyInfo += self::compileFolderFiles($media);
 
             }
+
+            ColorCode::colorCode('Requested directories local copy cache info: ' . print_r($requestedDirectoriesLocalCopyInfo, true));
 
         }
 
@@ -422,11 +426,23 @@ class Migrate implements iCommand
         // todo - note network io is a limiting factor in this loop
         // @link https://stackoverflow.com/questions/10198844/waiting-for-all-pids-to-exit-in-php
 
+        $manifestComplete = false;
+
         while (false === feof($manifest)) {
 
             $uri = trim(fgets($manifest));
 
             if (false === empty($uri)) {
+
+                if (str_contains($uri, self::MIGRATION_COMPLETE)) {
+
+                    $manifestComplete = true;
+
+                    ColorCode::colorCode('Manifest was transferred correctly!');
+
+                    break;
+
+                }
 
                 $importManifestFilePath = $uri;
 
@@ -440,6 +456,7 @@ class Migrate implements iCommand
 
                 $importManifestFilePath = CarbonPHP::$app_root . 'cache/' . $importManifestFilePath;
 
+                // todo - make this a regex or better
                 $importManifestFilePath = rtrim($importManifestFilePath, '.ph');
 
                 self::largeHttpPostRequestsToFile(self::$remoteUrl . $uri, $importManifestFilePath, []);
@@ -456,6 +473,12 @@ class Migrate implements iCommand
 
         }
 
+        if (false === $manifestComplete) {
+
+            throw new PrivateAlert('The manifest was not transferred correctly! ' . print_r($manifestArray, true));
+
+        }
+
         // todo - we need to NOT download zips unless needed
         $done = 0;
 
@@ -467,7 +490,7 @@ class Migrate implements iCommand
 
             CarbonPHP::$verbose and ColorCode::colorCode($importFileAbsolutePath, iColorCode::MAGENTA);
 
-            self::importManifestFile($importFileAbsolutePath, $uri);
+            self::importManifestFile($importFileAbsolutePath, $uri, $requestedDirectoriesLocalCopyInfo);
 
         }
 
@@ -496,7 +519,7 @@ class Migrate implements iCommand
      * @param string $uri
      * @return void
      */
-    public static function importMedia(string $file, string $uri): void
+    public static function importMedia(string $file, string $uri, array $requestedDirectoriesLocalCopyInfo): void
     {
 
         static $color = true;
@@ -536,7 +559,16 @@ class Migrate implements iCommand
 
                 $mediaFile = trim($mediaFile);
 
+                // check if the folder
                 if ('' === $mediaFile) {
+
+                    continue;
+
+                }
+
+                if ($requestedDirectoriesLocalCopyInfo[$mediaFile] ?? false) {
+
+                    ColorCode::colorCode("Skipping file ($mediaFile) as its hash matched a the local version!", iColorCode::BACKGROUND_YELLOW);
 
                     continue;
 
@@ -720,9 +752,11 @@ class Migrate implements iCommand
     }
 
     /**
+     * $requestedDirectoriesLocalCopyInfo is and array of directories and zip file paths.
+     * The zip files are unique self::zipFolder "migration_{$zipPathHash}_{$md5Zip}_{$folderName}.zip"
      * @throws PrivateAlert
      */
-    public static function importManifestFile(string $file, string $uri): void
+    public static function importManifestFile(string $file, string $uri, array $requestedDirectoriesLocalCopyInfo): void
     {
 
         CarbonPHP::$verbose and ColorCode::colorCode("Importing file ($file)");
@@ -738,7 +772,9 @@ class Migrate implements iCommand
 
                 ColorCode::colorCode("Import media manifest\nfile://$file", iColorCode::CYAN);
 
-                self::importMedia($file, $uri);
+                // self::importMedia($file, $uri, $requestedDirectoriesLocalCopyInfo);
+
+                print shell_exec("cat $file");
 
                 break;
 
@@ -749,7 +785,7 @@ class Migrate implements iCommand
                     ColorCode::colorCode("Doing an update to Mysql, do not exit!!!\nfile://$file",
                         iColorCode::BACKGROUND_YELLOW);
 
-                    MySQL::MySQLSource($file);
+                    // MySQL::MySQLSource($file);
 
                     break;
 
@@ -917,7 +953,7 @@ fpassthru(\$fp);
 
 if ('' !== \$_POST['unlink']) {
 
-    unlink(__FILE__);
+    // unlink(__FILE__);
 
 }
 
@@ -964,11 +1000,11 @@ HALT;
 
                 curl_setopt($ch, CURLOPT_POST, 1);
 
-                curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post));
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $query = http_build_query($post));
 
                 $timeout = self::$timeout;
 
-                ColorCode::colorCode("Setting the post ($url) timeout to ($timeout) <" . self::secondsToReadable($timeout) . '>', iColorCode::YELLOW);
+                ColorCode::colorCode("Setting the post ($url) timeout to ($timeout) <" . self::secondsToReadable($timeout) . '> with body (' . $query . ')', iColorCode::YELLOW);
 
                 curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
 
@@ -1041,9 +1077,22 @@ HALT;
 
                 curl_exec($ch);
 
+                // Get the HTTP response code
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
                 curl_close($ch);
 
                 ColorCode::colorCode("Stored to local tmp file (file://$toLocalFilePath)", iColorCode::BACKGROUND_RED);
+
+                if (401 === $httpCode) {
+
+                    passthru("cat $toLocalFilePath; rm -rf $toLocalFilePath");
+
+                    ColorCode::colorCode("Server responded with http code 401. Unauthorized to access the remote server ($url) with the given parameters (" . $query . '). Please make sure your license is correct!', iColorCode::BACKGROUND_RED);
+
+                    exit(100);
+
+                }
 
                 $md5 = md5_file($toLocalFilePath);
 
@@ -1065,7 +1114,7 @@ HALT;
 
                 if (false === $bytesSent) {
 
-                    ColorCode::colorCode("The method (" . __METHOD__ . ") failed to CURL url \n($url) and save it to path\n(file://$toLocalFilePath)",
+                    ColorCode::colorCode("The method (" . __METHOD__ . ") failed to CURL url \n($url) and save it to path\n(file://$toLocalFilePath) response code ($httpCode) after ($attempt) attempts",
                         iColorCode::BACKGROUND_RED);
 
                     $failed = true;
@@ -1624,7 +1673,23 @@ HALT;
 
         $zipFile = $zipFolder . $zipFilename;
 
-        Background::executeAndCheckStatus("cd '$rootPath' && zip -r '$zipFile' *");
+        // Remove any trailing slashes from the path
+        $rootPath = rtrim(realpath($rootPath), DIRECTORY_SEPARATOR);
+
+        $exitCode = Background::executeAndCheckStatus("cd '$rootPath' && zip -r '$zipFile' *", false);
+
+        if ($exitCode !== 0) {
+
+            throw new PrivateAlert("Failed to zip the folder ($rootPath) to ($zipFile) with exit code ($exitCode)");
+
+        }
+
+        // ensure the file is written to disk
+        if (false === file_exists($zipFile)) {
+
+            throw new PrivateAlert("Failed to write zip file ($zipFile) to disk.");
+
+        }
 
         $md5Zip = md5_file($zipFile);
 
@@ -1787,7 +1852,7 @@ HALT;
 
                 if ([] === $requestedDirectories) {
 
-                    ColorCode::colorCode('No media directories requested. Done.');
+                    print self::MIGRATION_COMPLETE . '. No media directories requested. Done.';
 
                     exit(0);
 
@@ -1819,11 +1884,13 @@ HALT;
                     // create a list of all files the requesting server will need to transfer
                     print self::manifestDirectory($media) . PHP_EOL;    // do not remove the newline
 
-                    flush();
-
                 }
 
-                ColorCode::colorCode('Completed Migration Request!');
+                print self::MIGRATION_COMPLETE;
+
+                flush();
+
+                ColorCode::colorCode(self::MIGRATION_COMPLETE);
 
                 exit(0);
 
@@ -1950,7 +2017,13 @@ HALT;
 
                 self::createLicenseFile($licensePHPFilePath);
 
-                ColorCode::colorCode("No license was detected. We have created a new one and stored it to ($licensePHPFilePath).", iColorCode::BACKGROUND_RED);
+                $msg = "No license was detected. We have created a new one and stored it to ($licensePHPFilePath).";
+
+                ColorCode::colorCode($msg, iColorCode::BACKGROUND_RED);
+
+                http_response_code(401); // Unauthorized
+
+                print $msg;
 
                 exit(6);
 
@@ -1958,10 +2031,15 @@ HALT;
 
             $realLicense = include $licensePHPFilePath;
 
-
             if ($realLicense !== $checkLicense) {
 
-                ColorCode::colorCode("The license ($checkLicense) provided did not match the expected.", iColorCode::BACKGROUND_RED);
+                $msg = "The license ($checkLicense) provided did not match the expected.";
+
+                ColorCode::colorCode($msg, iColorCode::BACKGROUND_RED);
+
+                http_response_code(401); // Unauthorized
+
+                print $msg;
 
                 exit(7);
 
@@ -1982,55 +2060,77 @@ HALT;
      */
     public static function compileFolderFiles(string $path): array
     {
+        try {
 
-        $files = [];
+            $files = [];
 
-        Files::createDirectoryIfNotExist($path);
+            print __FILE__ . ':' . __LINE__ . " $path" . PHP_EOL;
 
-        $directory = new DirectoryIterator($path);
+            Files::createDirectoryIfNotExist($path);
 
-        foreach ($directory as $file) {
+            $directory = new DirectoryIterator($path);
 
-            $filePath = $file->getPathname();
+            foreach ($directory as $file) {
 
-            if ($file->isDot()) {
+                $filePath = $file->getPathname();
 
-                continue;
-
-            }
-
-            if (false === $file->isDir()) {
-
-                $files[] = $filePath;
-
-            } else if ($file->isDir()) {
-
-                if (false === self::directorySizeLessThan($filePath, self::$maxFolderSizeForCompressionInMb)) {
-
-                    // recursive, logically simple; runtime expensive
-                    $files += self::compileFolderFiles($filePath);
+                if ($file->isDot()) {
 
                     continue;
 
                 }
 
-                $isDirEmpty = !(new FilesystemIterator($filePath))->valid();
+                print __FILE__ . ':' . __LINE__ . " $filePath" . PHP_EOL;
 
-                if ($isDirEmpty) {
+                if (false === $file->isDir()) {
 
-                    $files[] = $filePath . DS;
+                    $files[] = $filePath;
 
-                    continue;
+                } else {
 
+                    print __FILE__ . ':' . __LINE__ . " isdir" . PHP_EOL;
+
+                    if (false === self::directorySizeLessThan($filePath, self::$maxFolderSizeForCompressionInMb)) {
+
+                        print __FILE__ . ':' . __LINE__ . " larger than max megs" . PHP_EOL;
+
+                        // recursive, logically simple; runtime expensive
+                        $files += self::compileFolderFiles($filePath);
+
+                        continue;
+
+                    }
+
+                    print __FILE__ . ':' . __LINE__ . " FilesystemIterator" . PHP_EOL;
+
+                    $isDirEmpty = !(new FilesystemIterator($filePath))->valid();
+
+                    if ($isDirEmpty) {
+
+                        $files[] = $filePath . DS;
+
+                        continue;
+
+                    }
+
+                    print __FILE__ . ':' . __LINE__ . " zipFolder" . PHP_EOL;
+
+                    $files[] = self::zipFolder($filePath);
+
+                    print __FILE__ . ':' . __LINE__ . " \$files[] = done" . PHP_EOL;
                 }
 
-                $files[] = self::zipFolder($filePath);
-
             }
+
+            return $files;
+
+        } catch (Throwable $e) {
+
+            ThrowableHandler::generateLog($e);
+
+            exit(8);
 
         }
-
-        return $files;
 
     }
 
@@ -2039,13 +2139,21 @@ HALT;
 
         try {
 
+            print __FILE__ . ':' . __LINE__ . PHP_EOL;
+
             $hash = base64_encode($path);
 
             $relativePath = self::$migrationFolder . DS . self::$migrationFolderPrefix . self::$currentTime . DS . 'media_' . $hash . '_' . self::$currentTime . '.txt.php';
 
             $storeToFile = CarbonPHP::$app_root . $relativePath;
 
+            print __FILE__ . ':' . __LINE__ . PHP_EOL;
+
             $files = self::compileFolderFiles($path);   // array
+
+            print __FILE__ . ':' . __LINE__ . PHP_EOL;
+
+            $files[] = ("files found in the directory ($path) :: " . print_r($files, true));
 
             $php = self::selfHidingFile();
 
@@ -2060,6 +2168,8 @@ HALT;
             return $relativePath;
 
         } catch (Throwable $e) {
+
+            print $e->getMessage();
 
             ThrowableHandler::generateLog($e);
 
