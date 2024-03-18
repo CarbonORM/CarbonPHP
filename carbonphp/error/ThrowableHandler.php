@@ -451,12 +451,15 @@ class ThrowableHandler
 
             $browserOutput = [];
 
-            // refer to link on this one
-            /*if (!(error_reporting() & $errorLevel)) {
+            $errorReportingLevel = error_reporting();
+
+            // @link - https://www.php.net/manual/en/function.set-error-handler.php
+            // This is from the first example at the link above. We will catch errors not in the error_reporting level
+            if (!($errorReportingLevel & $errorLevel)) {
                 // This error code is not included in error_reporting, so let it fall
                 // through to the standard PHP error handler
                 return false;
-            }*/
+            }
 
             $browserOutput['PHP'] = PHP_VERSION . ' (' . PHP_OS . ')';
 
@@ -506,19 +509,22 @@ class ThrowableHandler
                     break;
             }
 
-            $browserOutput['ERROR REPORTING LEVEL'] = self::errorLevelHumanReadable();
+            $browserOutput['ERROR REPORTING LEVEL'] = self::errorLevelHumanReadable($errorReportingLevel);
 
             $c6DefaultLevel = self::errorLevelHumanReadable(self::$level);
 
-            if ($c6DefaultLevel !== $browserOutput['ERROR REPORTING LEVEL']) {
+            if (self::$level & $errorReportingLevel) {
 
                 $browserOutput['ERROR LEVEL WAS CHANGED FROM C6 INIT'] = $c6DefaultLevel;
 
                 $browserOutput['C6 INIT ERROR LEVEL'] = $c6DefaultLevel & error_reporting() ? 'Would have caught this error' : 'Would not have caught this error';
 
+            } else if (false === self::$level & $errorLevel) {
+
+                // though this should not happen,
+                $browserOutput['C6 INIT ERROR LEVEL'] = 'Would have caught this error';
+
             }
-
-
 
             $browserOutput['FILE'] = $errorFile;
 
