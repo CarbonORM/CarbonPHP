@@ -514,7 +514,11 @@ class ThrowableHandler
 
                 $browserOutput['ERROR LEVEL WAS CHANGED FROM C6 INIT'] = $c6DefaultLevel;
 
+                $browserOutput['C6 INIT ERROR LEVEL'] = $c6DefaultLevel & error_reporting() ? 'Would have caught this error' : 'Would not have caught this error';
+
             }
+
+
 
             $browserOutput['FILE'] = $errorFile;
 
