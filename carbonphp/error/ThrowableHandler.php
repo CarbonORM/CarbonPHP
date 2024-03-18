@@ -349,6 +349,44 @@ class ThrowableHandler
     }
 
     /**
+     * Converts a PHP error level integer into a human-readable string.
+     * @return string A human-readable string of PHP error levels.
+     */
+    public static function errorLevelHumanReadable() : string
+    {
+        $level = error_reporting();
+        $errorLevels = [
+            E_ALL => 'E_ALL',
+            E_USER_DEPRECATED => 'E_USER_DEPRECATED',
+            E_DEPRECATED => 'E_DEPRECATED',
+            E_RECOVERABLE_ERROR => 'E_RECOVERABLE_ERROR',
+            E_STRICT => 'E_STRICT',
+            E_USER_NOTICE => 'E_USER_NOTICE',
+            E_USER_WARNING => 'E_USER_WARNING',
+            E_USER_ERROR => 'E_USER_ERROR',
+            E_COMPILE_WARNING => 'E_COMPILE_WARNING',
+            E_COMPILE_ERROR => 'E_COMPILE_ERROR',
+            E_CORE_WARNING => 'E_CORE_WARNING',
+            E_CORE_ERROR => 'E_CORE_ERROR',
+            E_NOTICE => 'E_NOTICE',
+            E_PARSE => 'E_PARSE',
+            E_WARNING => 'E_WARNING',
+            E_ERROR => 'E_ERROR'
+        ];
+
+        $result = '';
+
+        foreach ($errorLevels as $number => $name) {
+            if (($level & $number) === $number) {
+                $result .= ($result !== '' ? ' & ' : '') . $name;
+            }
+        }
+
+        return $result;
+
+    }
+
+    /**
      * ThrowableHandler constructor.
      * @return int
      */
@@ -467,6 +505,8 @@ class ThrowableHandler
 
                     break;
             }
+
+            $browserOutput['ERROR REPORTING LEVEL'] = self::errorLevelHumanReadable();
 
             $browserOutput['FILE'] = $errorFile;
 

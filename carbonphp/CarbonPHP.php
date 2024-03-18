@@ -605,7 +605,15 @@ class CarbonPHP
             View::$wrapper = self::$app_root . self::$app_view . ($config[self::VIEW][self::WRAPPER] ??= '');
 
             ####################  GENERAL CONF  ######################
-            error_reporting($config[self::ERROR][self::LEVEL] ??= E_ALL | E_STRICT);
+            if ($config[self::ERROR][self::LEVEL] ?? false) {
+
+                error_reporting($config[self::ERROR][self::LEVEL]);
+
+            } else {
+
+                $config[self::ERROR][self::LEVEL] ??= E_ALL | E_STRICT;
+
+            }
 
             ini_set('display_errors', $config[self::ERROR][self::SHOW] ??= true);
 
