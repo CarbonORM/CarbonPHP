@@ -147,7 +147,7 @@ abstract class ColorCode implements LoggerInterface, iColorCode
 
             }
 
-            if (str_ends_with(ThrowableHandler::$defaultLocation, $location)) {
+            if (str_ends_with(ThrowableHandler::$defaultLocation, $location) && false === str_contains(CarbonPHP::$app_root, $location)) {
 
                 $location = ThrowableHandler::$defaultLocation;
 
