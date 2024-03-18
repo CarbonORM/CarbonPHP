@@ -352,9 +352,9 @@ class ThrowableHandler
      * Converts a PHP error level integer into a human-readable string.
      * @return string A human-readable string of PHP error levels.
      */
-    public static function errorLevelHumanReadable() : string
+    public static function errorLevelHumanReadable(int $level = null): string
     {
-        $level = error_reporting();
+        $level ??= error_reporting();
         $errorLevels = [
             E_ALL => 'E_ALL',
             E_USER_DEPRECATED => 'E_USER_DEPRECATED',
@@ -507,6 +507,14 @@ class ThrowableHandler
             }
 
             $browserOutput['ERROR REPORTING LEVEL'] = self::errorLevelHumanReadable();
+
+            $c6DefaultLevel = self::errorLevelHumanReadable(self::$level);
+
+            if ($c6DefaultLevel !== $browserOutput['ERROR REPORTING LEVEL']) {
+
+                $browserOutput['ERROR LEVEL WAS CHANGED FROM C6 INIT'] = $c6DefaultLevel;
+
+            }
 
             $browserOutput['FILE'] = $errorFile;
 
