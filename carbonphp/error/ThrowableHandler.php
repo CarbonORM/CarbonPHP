@@ -453,6 +453,7 @@ class ThrowableHandler
 
             $errorReportingLevel = error_reporting();
 
+            // todo - I want a configurable option to use our configured error level, not the globally set one.
             // @link - https://www.php.net/manual/en/function.set-error-handler.php
             // This is from the first example at the link above. We will catch errors not in the error_reporting level
             if (!($errorReportingLevel & $errorLevel)) {
@@ -509,20 +510,13 @@ class ThrowableHandler
                     break;
             }
 
-            $browserOutput['ERROR REPORTING LEVEL'] = self::errorLevelHumanReadable($errorReportingLevel);
+            $browserOutput['CURRENT ERROR REPORTING LEVEL'] = self::errorLevelHumanReadable($errorReportingLevel);
 
-            $c6DefaultLevel = self::errorLevelHumanReadable(self::$level);
+            if (self::$level === $errorReportingLevel) {
 
-            if (self::$level & $errorReportingLevel) {
+                $browserOutput['ERROR LEVEL WAS CHANGED FROM C6 INIT'] = self::errorLevelHumanReadable(self::$level);
 
-                $browserOutput['ERROR LEVEL WAS CHANGED FROM C6 INIT'] = $c6DefaultLevel;
-
-                $browserOutput['C6 INIT ERROR LEVEL'] = $c6DefaultLevel & error_reporting() ? 'Would have caught this error' : 'Would not have caught this error';
-
-            } else if (false === self::$level & $errorLevel) {
-
-                // though this should not happen,
-                $browserOutput['C6 INIT ERROR LEVEL'] = 'Would have caught this error';
+                $browserOutput['C6 INIT ERROR LEVEL'] = self::$level & error_reporting() ? 'Would have caught this error' : 'Would not have caught this error';
 
             }
 
