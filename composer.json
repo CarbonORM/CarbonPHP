@@ -2,7 +2,7 @@
   "name": "carbonorm/carbonphp",
   "license": "MIT",
   "type": "library",
-  "version": "20.3.7",
+  "version": "20.3.8",
   "keywords": [
     "Sockets",
     "Carbon",
