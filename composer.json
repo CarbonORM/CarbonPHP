@@ -153,9 +153,9 @@
     "open": "open http://local.carbonphp.com:80/",
     "socket": "php index.php websocket",
     "test": [
-      "echo 'Use the following to enable XDEBUG :: export XDEBUG_MODE=debug XDEBUG_SESSION=1'",
-      "XDEBUG_MODE=debug XDEBUG_SESSION=1 ./vendor/bin/phpunit --log-junit junit.xml  --testdox || ./vendor/bin/phpunit --verbose --log-junit junit.xml >> logs/tests.txt"
-    ]
+      "./vendor/bin/phpunit --log-junit junit.xml  --testdox || ./vendor/bin/phpunit --verbose --log-junit junit.xml >> logs/tests.txt"
+    ],
+    "test:debug": "XDEBUG_MODE=debug XDEBUG_SESSION=1 composer run test"
   },
   "config": {
     "allow-plugins": {
