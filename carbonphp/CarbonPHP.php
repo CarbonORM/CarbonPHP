@@ -690,7 +690,7 @@ class CarbonPHP
 
             if (!self::$cli) {
 
-                self::URI_FILTER($config['SITE']['URL'] ?? '', $config['SITE']['CACHE_CONTROL'] ?? []);
+                self::cacheControl($config[self::SITE]['CACHE_CONTROL'] ?? []);
 
                 #######################   Pjax Ajax Refresh   ######################
                 // Must return a non empty value
@@ -808,26 +808,12 @@ class CarbonPHP
      * @todo recursion checking
      *
      */
-    private static function URI_FILTER(string $URL = '', array $cacheControl = []): bool
+    private static function cacheControl(array $cacheControl = []): void
     {
-        if (!empty($URL = strtolower($URL)) && $_SERVER['SERVER_NAME'] !== $URL && !self::$app_local) {
-
-            header("Refresh:0; url=$URL");
-
-            print '<html lang="en"><head><meta http-equiv="refresh" content="5; url=//' . $URL . '"></head><body>' .
-                self::$server_ip . '<h1>Whoa, this server you reached does not appear to have permission to access the website hosted on it.' .
-                ' The server name (' . $_SERVER["SERVER_NAME"] . ') must match that passed via ["SITE"]["URL"] = (' . $URL . ') to CarbonPHP.</h1>' .
-                '<h3>This message can be bypassed by leaving the configuration field "URL".</h3>' .
-                '<h2>Redirecting to <a href="//' . $URL . '"> ' . $URL . '</a></h2>';
-            // . "<script>window.location.type = $URL</script></body></html>";
-
-            exit(1);
-
-        }
 
         if (empty($cacheControl)) {
 
-            return true;
+            return;
 
         }
 
@@ -842,7 +828,7 @@ class CarbonPHP
 
         if (empty($ext)) {              // We're requesting a file
 
-            return true;
+            return;
 
         }
 
@@ -864,7 +850,6 @@ class CarbonPHP
         }
 
         if (!$allowedAccess) {
-
 
             ColorCode::colorCode("Sending 403 Forbidden for uri :: {$_SERVER['REQUEST_URI']}",
                 iColorCode::BACKGROUND_YELLOW);
@@ -994,8 +979,11 @@ class CarbonPHP
         $arrHttpHeaders = array();
 
         foreach ($_SERVER as $strKey => $mixValue) {
+
             if (!str_starts_with($strKey, 'HTTP_')) {
+
                 continue;
+
             }
 
             $strHeaderKey = strtolower(substr($strKey, 5));

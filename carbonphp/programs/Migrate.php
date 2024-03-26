@@ -7,6 +7,7 @@ use CarbonPHP\Abstracts\ColorCode;
 use CarbonPHP\Abstracts\Cryptography;
 use CarbonPHP\Abstracts\Files;
 use CarbonPHP\Abstracts\MySQL;
+use CarbonPHP\Abstracts\Zip;
 use CarbonPHP\CarbonPHP;
 use CarbonPHP\Database;
 use CarbonPHP\Error\PrivateAlert;
@@ -1680,7 +1681,7 @@ HALT;
 
         if ($exitCode !== 0) {
 
-            throw new PrivateAlert("Failed to zip the folder ($rootPath) to ($zipFile) with exit code ($exitCode)");
+            Zip::compress($rootPath, $zipFile);
 
         }
 
