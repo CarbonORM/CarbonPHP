@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * Created by IntelliJ IDEA.
  * User: richardmiles
@@ -8,15 +11,18 @@
 
 namespace CarbonPHP\Interfaces;
 
-
 interface iCommand
 {
     /**
      * A one sentence description of the command
+     *
      * @return string
      */
     public static function description(): string;
+
     public function usage(): void;
+
     public function run(array $argv): void;
+
     public function cleanUp(): void;
 }

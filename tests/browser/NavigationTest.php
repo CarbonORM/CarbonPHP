@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * Created by IntelliJ IDEA.
  * User: richardmiles
@@ -8,13 +11,11 @@
 
 namespace Tests\Browser;
 
-
-
 use PHPUnit\Extensions\Selenium2TestCase;
 
 /** Selenium2TestCase
- * @link https://github.com/giorgiosironi/phpunit-selenium/blob/master/Tests/Selenium2TestCaseTest.php
- * @link http://apigen.juzna.cz/doc/sebastianbergmann/phpunit-selenium/class-PHPUnit_Extensions_Selenium2TestCase.html
+ * @see https://github.com/giorgiosironi/phpunit-selenium/blob/master/Tests/Selenium2TestCaseTest.php
+ * @see http://apigen.juzna.cz/doc/sebastianbergmann/phpunit-selenium/class-PHPUnit_Extensions_Selenium2TestCase.html
  */
 class NavigationTest extends Selenium2TestCase
 {
@@ -24,8 +25,8 @@ class NavigationTest extends Selenium2TestCase
 
         $this->setDesiredCapabilities([
             'chromeOptions' => [
-                'w3c' => false
-            ]
+                'w3c' => false,
+            ],
         ]);
 
         $this->setBrowserUrl('http://127.0.0.1:8080/');
@@ -41,46 +42,37 @@ class NavigationTest extends Selenium2TestCase
         $this->setSeleniumServerRequestsTimeout(10);
 
         $this->url('/');
-
     }
-
 
     public function testBasicNavigation(): void
     {
-
         if (!defined('DS')) {
-
             define('DS', DIRECTORY_SEPARATOR);
-
         }
 
-        //self::$ROOT_DIRECTORY = dirname(__DIR__) . DS;
+        // self::$ROOT_DIRECTORY = dirname(__DIR__) . DS;
 
-        //self::startSeleniumServer();
+        // self::startSeleniumServer();
 
         self::shareSession(true);
-
-
 
         $register = $this->byId('staticSite');
 
         self::assertEquals('port 3000', $register->text());
 
-        #
-        #self::assertEquals('', $this->title());
+        //
+        // self::assertEquals('', $this->title());
 
-      /*  $this->timeouts()->implicitWait(10000);//10 seconds
+        /*  $this->timeouts()->implicitWait(10000);//10 seconds
 
-        $register = $this->byId('register');
+          $register = $this->byId('register');
 
-        self::assertEquals('Register a new membership', $register->text());
+          self::assertEquals('Register a new membership', $register->text());
 
-        $link = $this->byLinkText('Register a new membership');
+          $link = $this->byLinkText('Register a new membership');
 
-        $link->click(); // we must grab all new elements now
+          $link->click(); // we must grab all new elements now
 
-        $this->timeouts()->implicitWait(10000);//10 seconds*/
-
+          $this->timeouts()->implicitWait(10000);//10 seconds*/
     }
-
 }

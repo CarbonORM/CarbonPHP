@@ -3,10 +3,11 @@
 namespace CarbonPHP\Tables;
 
 // Restful defaults
+use CarbonPHP\Interfaces\iRest;
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Tables\Traits\Users_Columns;
-use CarbonPHP\Restful\RestfulValidations;
-use CarbonPHP\Rest;
+use CarbonPHP\Abstracts\Restful\RestfulValidations;
+use CarbonPHP\Abstracts\Rest;
 use PDO;
 
 // Custom User Imports
@@ -202,12 +203,12 @@ class Users extends Rest implements iRestSinglePrimaryKey
      * This is automatically generated. Modify your mysql table directly and rerun RestBuilder to see changes.
     **/
     public const PDO_VALIDATION = [
-        self::USER_USERNAME => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '100', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],
-        self::USER_PASSWORD => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '225', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],
-        self::USER_ID => [ self::MYSQL_TYPE => 'binary', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [Carbons::ENTITY_PK => [ self::CONSTRAINT_NAME => 'user_entity_entity_pk_fk', self::UPDATE_RULE => 'CASCADE', self::DELETE_RULE => 'CASCADE'],], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '16', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],
-        self::USER_TYPE => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '20', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => '"Athlete"' ],
-        self::USER_SPORT => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '20', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => '"GOLF"' ],
-        self::USER_SESSION_ID => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '225', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => null ],
+        self::USER_USERNAME => [ iRest::MYSQL_TYPE => 'varchar', iRest::NOT_NULL => true, iRest::COLUMN_CONSTRAINTS => [], iRest::PDO_TYPE => PDO::PARAM_STR, iRest::MAX_LENGTH => '100', iRest::AUTO_INCREMENT => false, iRest::SKIP_COLUMN_IN_POST => false ],
+        self::USER_PASSWORD => [ iRest::MYSQL_TYPE => 'varchar', iRest::NOT_NULL => true, iRest::COLUMN_CONSTRAINTS => [], iRest::PDO_TYPE => PDO::PARAM_STR, iRest::MAX_LENGTH => '225', iRest::AUTO_INCREMENT => false, iRest::SKIP_COLUMN_IN_POST => false ],
+        self::USER_ID => [ iRest::MYSQL_TYPE => 'binary', iRest::NOT_NULL => true, iRest::COLUMN_CONSTRAINTS => [Carbons::ENTITY_PK => [ iRest::CONSTRAINT_NAME => 'user_entity_entity_pk_fk', iRest::UPDATE_RULE => 'CASCADE', iRest::DELETE_RULE => 'CASCADE'],], iRest::PDO_TYPE => PDO::PARAM_STR, iRest::MAX_LENGTH => '16', iRest::AUTO_INCREMENT => false, iRest::SKIP_COLUMN_IN_POST => false ],
+        self::USER_TYPE => [ iRest::MYSQL_TYPE => 'varchar', iRest::NOT_NULL => true, iRest::COLUMN_CONSTRAINTS => [], iRest::PDO_TYPE => PDO::PARAM_STR, iRest::MAX_LENGTH => '20', iRest::AUTO_INCREMENT => false, iRest::SKIP_COLUMN_IN_POST => true, iRest::DEFAULT_POST_VALUE => '"Athlete"' ],
+        self::USER_SPORT => [ iRest::MYSQL_TYPE => 'varchar', iRest::NOT_NULL => false, iRest::COLUMN_CONSTRAINTS => [], iRest::PDO_TYPE => PDO::PARAM_STR, iRest::MAX_LENGTH => '20', iRest::AUTO_INCREMENT => false, iRest::SKIP_COLUMN_IN_POST => true, iRest::DEFAULT_POST_VALUE => '"GOLF"' ],
+        self::USER_SESSION_ID => [ iRest::MYSQL_TYPE => 'varchar', iRest::NOT_NULL => false, iRest::COLUMN_CONSTRAINTS => [], iRest::PDO_TYPE => PDO::PARAM_STR, iRest::MAX_LENGTH => '225', iRest::AUTO_INCREMENT => false, iRest::SKIP_COLUMN_IN_POST => true, iRest::DEFAULT_POST_VALUE => null ],
         self::USER_FACEBOOK_ID => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => false, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '225', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => true, self::DEFAULT_POST_VALUE => null ],
         self::USER_FIRST_NAME => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '25', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],
         self::USER_LAST_NAME => [ self::MYSQL_TYPE => 'varchar', self::NOT_NULL => true, self::COLUMN_CONSTRAINTS => [], self::PDO_TYPE => PDO::PARAM_STR, self::MAX_LENGTH => '25', self::AUTO_INCREMENT => false, self::SKIP_COLUMN_IN_POST => false ],

@@ -1,32 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CarbonPHP\Abstracts;
 
+use CarbonPHP\Abstracts\CarbonPHP;
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\Error\PrivateAlert;
-use CarbonPHP\Interfaces\iColorCode;
-use CarbonPHP\Programs\Migrate;
+use Error\PrivateAlert;
+use Error\ThrowableHandler;
+use Interfaces\iColorCode;
+use Programs\Migrate;
 
 class Htaccess
 {
+    public const string ENDING_COMMENT = '# END CarbonPHP .htaccess injection - DO NOT MODIFY GENERATED CODE';
 
-    public static bool $disableCoors = false;
-
-    public const ENDING_COMMENT = '# END CarbonPHP .htaccess injection - DO NOT MODIFY GENERATED CODE';
-
-    public static function startWebSocketHtaccessComment(string $identifier): string
+    public static function startHtaccessComment(string $identifier): string
     {
         return "# START CarbonPHP ($identifier) - GENERATED CODE";
     }
 
     public static function updateHtaccess(string $identifier, string $content): void
     {
+        try {
+            $startWebSocketHtaccessComment = self::startHtaccessComment($identifier);
 
-        $startWebSocketHtaccessComment = self::startWebSocketHtaccessComment($identifier);
+            $endingComment = self::ENDING_COMMENT;
 
-        $endingComment = self::ENDING_COMMENT;
-
-        $connectionProxy = <<<HTACCESS
+            $connectionProxy = <<<HTACCESS
             $startWebSocketHtaccessComment
             
             $content
@@ -35,96 +36,71 @@ class Htaccess
             
             HTACCESS;
 
+            // Attempt to open the .htaccess file in read-write mode
+            $htaccessFile = CarbonPHP::$app_root.'/.htaccess';
 
-        // Attempt to open the .htaccess file in read-write mode
-        $htaccessFile = CarbonPHP::$app_root . '/.htaccess';
+            $fileResource = fopen($htaccessFile, 'cb+');
 
-        $fileResource = fopen($htaccessFile, 'cb+');
-
-        if ($fileResource === false) {
-            ColorCode::colorCode('Failed to open .htaccess file. Please check permissions.', iColorCode::RED);
-            exit(1);
-        }
-
-        // Acquire an exclusive lock
-        if (!flock($fileResource, LOCK_EX)) {
-            ColorCode::colorCode('Failed to lock .htaccess file for writing.', iColorCode::RED);
-            fclose($fileResource); // Always release the resource
-            exit(1);
-        }
-
-        // Read the current contents of the file
-        $htaccess = stream_get_contents($fileResource);
-
-        // Check if the connection proxy exists or needs to be updated
-        if (str_contains($htaccess, $connectionProxy)) {
-
-            ColorCode::colorCode('The .htaccess file already contains the WebSocket proxy. No changes were made.');
-
-        } elseif (str_contains($htaccess, $startWebSocketHtaccessComment)) {
-
-            ColorCode::colorCode('The .htaccess file already contains the WebSocket proxy. Updating to new port.', iColorCode::CYAN);
-
-            $htaccess = preg_replace('#' . preg_quote($startWebSocketHtaccessComment, '#') . '.*?#s', $connectionProxy, $htaccess);
-
-        } else {
-
-            $htaccess = $connectionProxy . PHP_EOL . $htaccess;
-
-        }
-
-        // Move the file pointer to the beginning of the file and truncate the file to zero length
-        ftruncate($fileResource, 0);
-
-        rewind($fileResource);
-
-        // Write the modified contents back to the file
-        if (fwrite($fileResource, $htaccess) === false) {
-
-            ColorCode::colorCode('Failed to write to .htaccess file. Please check permissions.', iColorCode::RED);
-
-            flock($fileResource, LOCK_UN); // Release the lock
-
-            fclose($fileResource); // Always release the resource
-
-            if (!CarbonPHP::$cli) {
-
-                throw new PrivateAlert('Failed to write to .htaccess file. Please check permissions.');
-
+            if ($fileResource === false) {
+                ColorCode::colorCode('Failed to open .htaccess file. Please check permissions.', iColorCode::RED);
+                exit(1);
             }
 
-            exit(1);
+            // Acquire an exclusive lock
+            if (!flock($fileResource, LOCK_EX)) {
+                ColorCode::colorCode('Failed to lock .htaccess file for writing.', iColorCode::RED);
+                fclose($fileResource); // Always release the resource
+                exit(1);
+            }
 
+            // Read the current contents of the file
+            $htaccess = stream_get_contents($fileResource);
+
+            // Check if the connection proxy exists or needs to be updated
+            if (str_contains($htaccess, $connectionProxy)) {
+                ColorCode::colorCode('The .htaccess file already contains the WebSocket proxy. No changes were made.');
+            } elseif (str_contains($htaccess, $startWebSocketHtaccessComment)) {
+                ColorCode::colorCode('The .htaccess file already contains the WebSocket proxy. Updating to new port.', iColorCode::CYAN);
+
+                $htaccess = preg_replace('#'.preg_quote($startWebSocketHtaccessComment, '#').'.*?#s', $connectionProxy, $htaccess);
+            } else {
+                $htaccess = $connectionProxy.PHP_EOL.$htaccess;
+            }
+
+            // Move the file pointer to the beginning of the file and truncate the file to zero length
+            ftruncate($fileResource, 0);
+
+            rewind($fileResource);
+
+            // Write the modified contents back to the file
+            if (fwrite($fileResource, $htaccess) === false) {
+                ColorCode::colorCode('Failed to write to .htaccess file. Please check permissions.', iColorCode::RED);
+
+                flock($fileResource, LOCK_UN); // Release the lock
+
+                fclose($fileResource); // Always release the resource
+
+                if (!CarbonPHP::CLI) {
+                    throw new PrivateAlert('Failed to write to .htaccess file. Please check permissions.');
+                }
+
+                exit(1);
+            }
+
+            // Release the lock and close the file
+            flock($fileResource, LOCK_UN);
+
+            fclose($fileResource);
+        } catch (\Throwable $e) {
+            ThrowableHandler::generateLogAndExit($e);
         }
-
-        // Release the lock and close the file
-        flock($fileResource, LOCK_UN);
-
-        fclose($fileResource);
-
     }
 
     public static function generalConfigurations(): void
     {
-
         $migrationFolder = Migrate::$migrationFolder;
 
-        $disableCoors = self::$disableCoors ? <<<HTACCESS
-                    # https://stackoverflow.com/questions/14003332/access-control-allow-origin-wildcard-subdomains-ports-and-protocols/27990162#27990162
-                    SetEnvIf Origin ^(https?://.*(?::\d{1,5})?)$ CORS_ALLOW_ORIGIN=$1
-                    Header always set Access-Control-Allow-Origin %{CORS_ALLOW_ORIGIN}e env=CORS_ALLOW_ORIGIN
-                    Header merge Vary "Origin"
-                    
-                    # todo - allow for customized cache times? (Cached for a day - 86400)
-                    # it would be uncommon, but if you knew your api wasn't going to change often (like a weather api?)
-                    Header always set Access-Control-Max-Age: 0
-                    Header always set Access-Control-Allow-Methods "GET, POST, PATCH, PUT, DELETE, OPTIONS"
-                    Header always set Access-Control-Allow-Headers: *
-                    HTACCESS
-                    : '';
-
-        self::updateHtaccess('CarbonPHP',
-            <<<HTACCESS
+        self::updateHtaccess('GENERAL', <<<HTACCESS
                     # protect against DOS attacks by limiting file upload size [bytes]
                     LimitRequestBody 10240000
                     
@@ -150,7 +126,16 @@ class Htaccess
                         Deny from all
                     </If>
                     
-                    $disableCoors
+                    # https://stackoverflow.com/questions/14003332/access-control-allow-origin-wildcard-subdomains-ports-and-protocols/27990162#27990162
+                    SetEnvIf Origin ^(https?://.*(?::\d{1,5})?)$ CORS_ALLOW_ORIGIN=$1
+                    Header always set Access-Control-Allow-Origin %{CORS_ALLOW_ORIGIN}e env=CORS_ALLOW_ORIGIN
+                    Header merge Vary "Origin"
+                    
+                    # todo - allow for customized cache times? (Cached for a day - 86400)
+                    # it would be uncommon, but if you knew your api wasn't going to change often (like a weather api?)
+                    Header always set Access-Control-Max-Age: 0
+                    Header always set Access-Control-Allow-Methods "GET, POST, PATCH, PUT, DELETE, OPTIONS"
+                    Header always set Access-Control-Allow-Headers: *
                     
                     <FilesMatch "\.(ico|pdf|flv)$"> # 1 YEAR - 29030400; 1 WEEK - 604800; 2 DAYS - 172800; 1 MIN  - 60
                         Header set Cache-Control "max-age=29030400, public"
@@ -162,16 +147,14 @@ class Htaccess
                         Header set Cache-Control "max-age=0, private, public"
                     </FilesMatch>
                     HTACCESS);
-
     }
 
     /**
      * This method will update the .htaccess file to include a WebSocket proxy for the specified port.
      *
-     * @param int $port The port number to which the WebSocket server is listening.
+     * @param int $port the port number to which the WebSocket server is listening
      * @param string $path The path to the WebSocket server. Default is 'carbonorm/websocket'.
      */
-
     public static function updateHtaccessWebSocketPort(int $port, string $path = 'carbonorm/websocket'): void
     {
         $path = trim($path, '/');
@@ -190,7 +173,5 @@ class Htaccess
                 RewriteRule ^/?$path/?(.*)? ws://127.0.0.1:$port/$path/$1  [P,L,E=noconntimeout:1,E=noabort:1]
             </IfModule>
             HTACCESS);
-
     }
-
 }

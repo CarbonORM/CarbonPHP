@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * Created by IntelliJ IDEA.
  * User: richardmiles
@@ -9,18 +12,17 @@
 namespace Tests\Browser;
 
 use PHPUnit\Extensions\Selenium2TestCase;
-use Tests\Config;
 
 /** Selenium2TestCase
  * It should be considered that chrome is constantly updating and so is chromedriver
  * brew install chromedriver
  * composer dependencies will need to be manually updated.
- * @link https://github.com/giorgiosironi/phpunit-selenium/blob/master/Tests/Selenium2TestCaseTest.php
- * @link http://apigen.juzna.cz/doc/sebastianbergmann/phpunit-selenium/class-PHPUnit_Extensions_Selenium2TestCase.html
+ *
+ * @see https://github.com/giorgiosironi/phpunit-selenium/blob/master/Tests/Selenium2TestCaseTest.php
+ * @see http://apigen.juzna.cz/doc/sebastianbergmann/phpunit-selenium/class-PHPUnit_Extensions_Selenium2TestCase.html
  */
 class Selenium2Test extends Selenium2TestCase
 {
-
     private static string $ROOT_DIRECTORY;
 
     private static function startSeleniumServer(): void
@@ -28,21 +30,19 @@ class Selenium2Test extends Selenium2TestCase
         static $run = false;
 
         if ($run) {
-
             return;
-
         }
 
         $run = true;
 
         // java -Dwebdriver.chrome.driver =  -jar selenium-server.jar
-        $chromeDriver = self::$ROOT_DIRECTORY . 'bin' . DS . 'chromedriver';
-        $selenium = self::$ROOT_DIRECTORY . 'vendor' . DS . 'bin' . DS . 'selenium-server-standalone' . DS . 'bin' . DS . 'selenium-server-standalone.jar';
+        $chromeDriver = self::$ROOT_DIRECTORY.'bin'.DS.'chromedriver';
+        $selenium     = self::$ROOT_DIRECTORY.'vendor'.DS.'bin'.DS.'selenium-server-standalone'.DS.'bin'.DS.'selenium-server-standalone.jar';
         // print $selenium . PHP_EOL;die;
-        print "\nThe following code should be running in another terminal\n\t";
-        print ("\n\njava -Dwebdriver.chrome.driver=$chromeDriver -jar $selenium &");
+        echo "\nThe following code should be running in another terminal\n\t";
+        echo "\n\njava -Dwebdriver.chrome.driver=$chromeDriver -jar $selenium &";
 
-        print <<<LINKS
+        echo <<<LINKS
 
 // fml
 brew upgrade --cask chromedriver
@@ -69,29 +69,24 @@ Mac OS X (64-bit): https://commondatastorage.googleapis.com/chromium-browser-sna
 
 Windows (32-bit): https://commondatastorage.googleapis.com/chromium-browser-snapshots/index.html?prefix=Win/
 LINKS;
-
     }
-
 
     public function setUp(): void
     {
-
         if (!defined('DS')) {
-
             define('DS', DIRECTORY_SEPARATOR);
-
         }
 
-        self::$ROOT_DIRECTORY = dirname(__DIR__) . DS;
+        self::$ROOT_DIRECTORY = dirname(__DIR__).DS;
 
-        //self::startSeleniumServer();
+        // self::startSeleniumServer();
 
         // self::shareSession(true);
 
         $this->setDesiredCapabilities([
             'chromeOptions' => [
-                'w3c' => false
-            ]
+                'w3c' => false,
+            ],
         ]);
 
         $this->setHost('localhost');
@@ -100,7 +95,6 @@ LINKS;
         $this->setBrowserUrl('http://127.0.0.1:8080/');
         $this->prepareSession()->currentWindow()->maximize();
         $this->setSeleniumServerRequestsTimeout(10);
-
     }
 
     public function testSetupNavigationAndTitle(): void
@@ -113,5 +107,4 @@ LINKS;
 
         self::assertEquals('', $string);
     }
-
 }

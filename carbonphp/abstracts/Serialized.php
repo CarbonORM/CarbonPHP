@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This has been edited to include an auto serialized method.
  * Variables given to the start function will be cached between requests.
@@ -13,26 +15,26 @@
 
 namespace CarbonPHP\Abstracts;
 
-use CarbonPHP\Error\PrivateAlert;
-use CarbonPHP\Error\PublicAlert;
-use CarbonPHP\Error\ThrowableHandler;
+
+use CarbonPHP\Abstracts\Classes\ThrowableHandler;
+use CarbonPHP\Abstracts\Throwables\PrivateAlert;
 
 abstract class Serialized
 {
-
     /**
-     * @var array $sessionVar is an array who's values equal variables
-     * names in the global scope.
+     * @var array is an array who's values equal variables
+     *            names in the global scope
      */
     private static array $sessionVar = [];
 
-    private const NOT_STRING_ERROR = 'All values passed to the Session::start() method must be strings.';
+    private const string NOT_STRING_ERROR = 'All values passed to the Session::start() method must be strings.';
 
     private static bool $base64 = true;
 
     /** Variables given will be cached between requests.
      * Variables should be provided as string names referencing
      * the global scope.
+     *
      * @param array ...$argv
      */
     public static function start(...$argv): void
@@ -46,7 +48,7 @@ abstract class Serialized
                 if (empty($_SESSION[__CLASS__][$value])) {
                     continue;
                 }
-                self::is_serialized(base64_decode($_SESSION[__CLASS__][$value]), $GLOBALS[$value]);
+                self::is_serialized(base64_decode($_SESSION[__CLASS__][$value], true), $GLOBALS[$value]);
             } else {
                 $GLOBALS[$value] = $_SESSION[__CLASS__][$value] ??= '';
             }
@@ -54,41 +56,26 @@ abstract class Serialized
 
         // You CAN register multiple shutdown functions
         register_shutdown_function(static function () use ($argv) {
-
             $last_error = error_get_last();
 
             if (($last_error['type'] ?? false) && $last_error['type'] === E_ERROR) {
-
                 throw new PrivateAlert(['register_shutdown_function captured an error', $last_error]);
-
             }
 
             foreach ($argv as $value) {
-
                 if (!is_string($value)) {
-
                     throw new PrivateAlert(self::NOT_STRING_ERROR);
-
                 }
 
                 if (isset($GLOBALS[$value])) {
-
                     if (self::$base64) {
-
                         $_SESSION[__CLASS__][$value] = base64_encode(serialize($GLOBALS[$value]));
-
                     } else {
-
                         $_SESSION[__CLASS__][$value] = $GLOBALS[$value] ??= null;
-
                     }
-
                 }
-
             }
-
         });
-
     }
 
     /**
@@ -104,7 +91,6 @@ abstract class Serialized
             }
         }
     }
-
 
     /**
      * Tests if an input is valid PHP serialized string.
@@ -126,13 +112,16 @@ abstract class Serialized
      *
      * @param string $value Value to test for serialized form
      * @param mixed $result Result of unserialize() of the $value
-     * @return        boolean            True if $value is serialized data, otherwise false
+     *
+     * @return bool True if $value is serialized data, otherwise false
+     *
      * @author        Chris Smith <code+php@chris.cs278.org>
+     *
      * @auther        Richard Miles, modified/improved for carbonPHP and php ^8
+     *
      * @copyright    Copyright (c) 2009 Chris Smith (http://www.cs278.org/)
      * @license        http://sam.zoy.org/wtfpl/ WTFPL
      */
-
     public static function is_serialized($value, &$result = null): bool
     {
         // Bit of a give away this one
@@ -145,22 +134,25 @@ abstract class Serialized
         // false, eliminate that possibility.
         if ($value === 'b:0;') {
             $result = false;
+
             return true;
         }
 
         $length = \strlen($value);
-        $end = '';
+        $end    = '';
 
         switch ($value[0]) {
             case 's':
                 if ($value[$length - 2] !== '"') {
                     return false;
                 }
+                // no break
             case 'b':
             case 'i':
             case 'd':
                 // This looks odd but it is quicker than isset()ing
                 $end .= ';';
+                // no break
             case 'a':
             case 'O':
                 $end .= '}';
@@ -185,6 +177,7 @@ abstract class Serialized
                     default:
                         return false;
                 }
+                // no break
             case 'N':
                 $end .= ';';
 
@@ -198,26 +191,18 @@ abstract class Serialized
         }
 
         try {
-
             /** @noinspection UnserializeExploitsInspection */
             $result = unserialize($value, []);
 
             if (false === $result) {
-
                 $result = null;
 
                 return false;
-
             }
-
         } catch (\Throwable $e) {
-
             ThrowableHandler::generateLog($e);
-
         }
 
         return true;
-
     }
-
 }

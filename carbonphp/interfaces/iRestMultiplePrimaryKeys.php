@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * Created by IntelliJ IDEA.
  * User: Miles
@@ -8,11 +11,11 @@
 
 namespace CarbonPHP\Interfaces;
 
-use CarbonPHP\Error\PublicAlert;
+
+use CarbonPHP\Throwables\PublicAlert;
 
 /**
  * Interface iRestMultiplePrimaryKeys
- * @package CarbonPHP\Interfaces
  */
 interface iRestMultiplePrimaryKeys
 {
@@ -20,22 +23,26 @@ interface iRestMultiplePrimaryKeys
      * @param array $remove
      * @param array|null $primary
      * @param array $argv
+     *
      * @return bool
      */
-    public static function delete(array &$remove, array|null $primary = null, array $argv = []): bool;      // Delete all data from a tables given its primary key
+    public static function delete(array &$remove, ?array $primary = null, array $argv = []): bool;      // Delete all data from a tables given its primary key
 
     /**
      * @param array $return
      * @param array|null $primary
      * @param array $argv - column names desired to be in our array
+     *
      * @return bool
      */
-    public static function get(array &$return, array|null $primary = null, array $argv = []): bool;   // Get tables columns given in argv (usually an array) and place them into our array
+    public static function get(array &$return, ?array $primary = null, array $argv = []): bool;   // Get tables columns given in argv (usually an array) and place them into our array
 
     /**
      * @param array $post
      * @param string|null \$dependantEntityId - a C6 Hex entity key
+     *
      * @return bool|string
+     *
      * @throws PublicAlert
      */
     public static function post(array &$post = []);              // Add and associative array Column => value
@@ -43,8 +50,9 @@ interface iRestMultiplePrimaryKeys
     /**
      * @param array $returnUpdated
      * @param array|null $primary
-     * @param array $argv   - an associative array of Column => Value pairs
-     * @return bool  - true on success false on failure
+     * @param array $argv - an associative array of Column => Value pairs
+     *
+     * @return bool - true on success false on failure
      */
-    public static function put(array &$returnUpdated, array|null $primary = null, array $argv = []): bool;
+    public static function put(array &$returnUpdated, ?array $primary = null, array $argv = []): bool;
 }

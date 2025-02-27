@@ -5,13 +5,13 @@ namespace CarbonPHP\Tables;
 // Restful defaults
 use CarbonPHP\Interfaces\iRestSinglePrimaryKey;
 use CarbonPHP\Tables\Traits\User_Tasks_Columns;
-use CarbonPHP\Restful\RestfulValidations;
-use CarbonPHP\Rest;
+use CarbonPHP\Abstracts\Restful\RestfulValidations;
+use CarbonPHP\Abstracts\Rest;
+use CarbonPHP\Throwables\PublicAlert;
 use PDO;
 
 // Custom User Imports
 use CarbonPHP\CarbonPHP;
-use CarbonPHP\Error\PublicAlert;
 use Tests\Feature\CarbonRestTest;
 
 /**
@@ -218,7 +218,7 @@ class User_Tasks extends Rest implements iRestSinglePrimaryKey
 
             CarbonRestTest::$restChallenge[] = $argv;
 
-        } elseif (CarbonPHP::$cli) {
+        } elseif (CarbonPHP::CLI) {
 
             throw new PublicAlert('No way your trying to do this in cli. I bet CarbonPHP::$test was not set correctly.');
 

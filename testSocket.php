@@ -44,7 +44,7 @@
 </head>
 <body>
 <?php
-$colours = array('007AFF', 'FF7000', 'FF7000', '15E25F', 'CFC700', 'CFC700', 'CF1100', 'CF00BE', 'F00');
+$colours     = ['007AFF', 'FF7000', 'FF7000', '15E25F', 'CFC700', 'CFC700', 'CF1100', 'CF00BE', 'F00'];
 $user_colour = array_rand($colours);
 ?>
 
@@ -78,7 +78,7 @@ $user_colour = array_rand($colours);
       let msg = {
         message: mymessage,
         name: myname,
-        color: '<?=$colours[$user_colour] ?>'
+        color: '<?php echo $colours[$user_colour]; ?>'
       };
       //convert and send data to server
       websocket.send(JSON.stringify(msg));

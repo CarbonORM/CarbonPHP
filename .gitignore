@@ -60,4 +60,5 @@ carbonphp/tables/interfaces/iWp_*
 
 cache/*
 .idea/
+.php-cs-fixer.dist.php
 *.iml

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by IntelliJ IDEA.
  * User: rmiles
@@ -10,11 +11,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use CarbonPHP\Database;
-use CarbonPHP\Error\ThrowableHandler;
-use CarbonPHP\Tables\Wp_Users;
-use Throwable;
 
+
+use CarbonPHP\Abstracts\Classes\Database;
+use CarbonPHP\Classes\ThrowableHandler;
+use Throwable;
 
 final class RestWordpressTest extends Config
 {
@@ -33,7 +34,6 @@ final class RestWordpressTest extends Config
 
         self::assertArrayHasKey(Wp_Users::COLUMNS[Wp_Users::USER_PASS], $return);
     }
-
 
     public function testRestInternalSelectAndUpdate(): void
     {
@@ -54,7 +54,7 @@ final class RestWordpressTest extends Config
         $returnUpdated = [];
 
         self::assertTrue(Wp_Users::Put($returnUpdated, $primary, [
-            Wp_Users::USER_LOGIN => $actual = 'Wookiee'
+            Wp_Users::USER_LOGIN => $actual = 'Wookiee',
         ]));
 
         self::assertArrayHasKey(Wp_Users::COLUMNS[Wp_Users::USER_LOGIN], $return);
@@ -67,15 +67,16 @@ final class RestWordpressTest extends Config
     }
 
     /** @noinspection PhpUnhandledExceptionInspection */
-    public static function createUser(array|null $data = null) : string {
+    public static function createUser(?array $data = null): string
+    {
         try {
             $data ??= [
-                Wp_Users::USER_LOGIN => 'WookieeWorking',
-                Wp_Users::USER_PASS => 'carbon',
-                Wp_Users::USER_NICENAME => 'WookieeWorking1',
-                Wp_Users::USER_EMAIL => 'support@miles.systems',
+                Wp_Users::USER_LOGIN      => 'WookieeWorking',
+                Wp_Users::USER_PASS       => 'carbon',
+                Wp_Users::USER_NICENAME   => 'WookieeWorking1',
+                Wp_Users::USER_EMAIL      => 'support@miles.systems',
                 Wp_Users::USER_REGISTERED => date('Y-m-d H:i:s'),
-                Wp_Users::USER_URL => '',
+                Wp_Users::USER_URL        => '',
             ];
 
             // an auto incrementing int should be returned
@@ -84,26 +85,23 @@ final class RestWordpressTest extends Config
             self::assertGreaterThan(1, $primary, 'Failed to create a new wordpress user.');
 
             return $primary;
-
         } catch (Throwable $e) {
             ThrowableHandler::generateLog($e);
-            die(1);
+            exit(1);
         }
     }
 
     /** @noinspection PhpUnhandledExceptionInspection */
-    public static function deleteUser(string $id) : bool {
+    public static function deleteUser(string $id): bool
+    {
         try {
             $ignore = [];
 
             return Wp_Users::Delete($ignore, $id);
-
         } catch (Throwable $e) {
-
             ThrowableHandler::generateLog($e);
 
-            die(1);
+            exit(1);
         }
     }
-
 }

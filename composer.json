@@ -16,7 +16,7 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
-    "php": ">=8.3",
+    "php": ">=8.4",
     "mustache/mustache": "^v2.14.2",
     "psr/log": "1.1.4",
     "ext-json": "*",
@@ -35,7 +35,8 @@
     "se/selenium-server-standalone": ">=3.141.59",
     "phpunit/phpunit": ">=9.5",
     "phpmetrics/phpmetrics": ">=2.7",
-    "richardtmiles/php-git-hooks": "dev-main"
+    "richardtmiles/php-git-hooks": "dev-main",
+    "friendsofphp/php-cs-fixer": "*"
   },
   "authors": [
     {
@@ -48,15 +49,18 @@
   "autoload": {
     "psr-4": {
       "CarbonPHP\\Abstracts\\": "carbonphp/abstracts/",
-      "CarbonPHP\\Error\\": "carbonphp/error/",
-      "CarbonPHP\\Extras\\": "carbonphp/extras/",
+      "CarbonPHP\\Abstracts\\Restful\\": "carbonphp/abstracts/restful/",
+      "CarbonPHP\\Abstracts\\WebSocket\\": "carbonphp/abstracts/websocket/",
+      "CarbonPHP\\Classes\\": "carbonphp/classes/",
+      "CarbonPHP\\Classes\\Configurations\\": "carbonphp/classes/configurations/",
+      "CarbonPHP\\Classes\\Programs\\": "carbonphp/classes/programs/",
       "CarbonPHP\\Enums\\": "carbonphp/enums/",
-      "CarbonPHP\\Helpers\\": "carbonphp/helpers/",
       "CarbonPHP\\Interfaces\\": "carbonphp/interfaces/",
-      "CarbonPHP\\Programs\\": "carbonphp/programs/",
       "CarbonPHP\\Restful\\": "carbonphp/restful/",
       "CarbonPHP\\Tables\\": "carbonphp/tables/",
       "CarbonPHP\\Tables\\Traits\\": "carbonphp/tables/traits/",
+      "CarbonPHP\\Throwables\\": "carbonphp/throwables/",
+      "CarbonPHP\\Traits\\": "carbonphp/traits/",
       "CarbonPHP\\WebSocket\\": "carbonphp/websocket/",
       "CarbonPHP\\": "carbonphp/",
       "Tests\\Browser\\": "tests/browser/",
@@ -68,7 +72,7 @@
   "scripts": {
     "apache:linkApplication": [
       "mkdir -p ./logs/httpd/",
-      "rm /usr/local/var/www",
+      "rm -r /usr/local/var/www",
       "ln -s $(pwd) /usr/local/var/www",
       "@apache:restart:mac"
     ],

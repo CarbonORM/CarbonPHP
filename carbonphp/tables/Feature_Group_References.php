@@ -5,8 +5,8 @@ namespace CarbonPHP\Tables;
 // Restful defaults
 use CarbonPHP\Interfaces\iRestNoPrimaryKey;
 use CarbonPHP\Tables\Traits\Feature_Group_References_Columns;
-use CarbonPHP\Restful\RestfulValidations;
-use CarbonPHP\Rest;
+use CarbonPHP\Abstracts\Restful\RestfulValidations;
+use CarbonPHP\Abstracts\Rest;
 use PDO;
 
 // Custom User Imports
